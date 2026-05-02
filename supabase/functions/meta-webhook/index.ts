@@ -410,6 +410,13 @@ DIRETRIZES DE QUALIFICAÇÃO:
                           const newStatus = match[1];
                           console.log(`AI setting status to: ${newStatus}`);
                           await supabase.from('crm_contacts').update({ status: newStatus }).eq('id', contact.id);
+                          
+                          // Increment metrics based on status
+                          if (newStatus === 'qualified') {
+                            await supabase.rpc('increment_crm_metric', { metric_column: 'qualified_count' });
+                          } else if (newStatus === 'closed') {
+                            await supabase.rpc('increment_crm_metric', { metric_column: 'sales_count' });
+                          }
                         }
                         aiText = aiText.replace(/\[SET_STATUS: \w+\]/g, '').trim();
 
