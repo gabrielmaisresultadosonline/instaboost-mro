@@ -4457,7 +4457,20 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() => {
+                const lastOrder = orders[0];
+                if (lastOrder) sendToCRMWebhook(lastOrder, true);
+                else toast.error("Nenhum pedido encontrado para testar");
+              }}
+              variant="outline"
+              className="border-zinc-700 text-zinc-300 w-full"
+              disabled={isSendingWebhook !== null || orders.length === 0}
+            >
+              {isSendingWebhook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Testar com Último Pedido
+            </Button>
             <Button
               onClick={() => setShowWebhookSettings(false)}
               className="bg-cyan-600 hover:bg-cyan-700 text-white w-full"
