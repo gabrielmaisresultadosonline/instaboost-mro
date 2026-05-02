@@ -420,6 +420,11 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         const templateMatches = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/gi);
                         const processedTemplates = new Set();
                         
+                        if (settings.ai_operation_mode === 'monitor' && aiText.length > 0) {
+                          console.log('AI is in monitor mode, suppressing outgoing message.');
+                          return new Response('OK - AI Monitored', { status: 200 });
+                        }
+
                         for (const part of parts) {
                           try {
                             const trimmedPart = part.trim();
