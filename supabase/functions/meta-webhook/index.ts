@@ -266,7 +266,12 @@ serve(async (req) => {
                     else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
 
-                    console.log(`AI Agent should trigger: ${shouldTriggerAI}`);
+                    // If mode is monitor, we ALWAYS trigger AI to analyze, but we'll control response later
+                    if (settings.ai_operation_mode === 'monitor' || settings.ai_operation_mode === 'hybrid') {
+                      shouldTriggerAI = true;
+                    }
+
+                    console.log(`AI Agent should trigger: ${shouldTriggerAI} (Mode: ${settings.ai_operation_mode})`);
                     
                     if (shouldTriggerAI) {
                       const { data: history } = await supabase
@@ -280,6 +285,9 @@ serve(async (req) => {
                       const { data: flows } = await supabase.from('crm_flows').select('id, name').eq('is_active', true);
 
                       const systemPrompt = `
+MODO DE OPERAÇÃO ATUAL: ${settings.ai_operation_mode || 'chat'}
+(Se o modo for "monitor", você NÃO deve enviar mensagens ao usuário, apenas tags de status ou gatilhos).
+
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 
 TEMPLATES DISPONÍVEIS (IMPORTANTE: Use [SEND_TEMPLATE: nome] em uma linha isolada para enviar um template oficial):
@@ -364,15 +372,19 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         const aiData = await aiResponse.json();
                         if (aiData.error) {
                           console.error('OpenAI API Error:', aiData.error);
-                          // If it's a quota error, we should log it specifically
-                          if (aiData.error.code === 'insufficient_quota') {
-                             console.error('CRITICAL: OpenAI Quota Exceeded. Please check billing.');
-                          }
                           throw new Error(aiData.error.message);
                         }
 
                         let aiText = aiData.choices[0].message.content.trim();
                         console.log('Raw AI Response:', aiText);
+
+                        // If auto-generate strategy is enabled, trigger the generate-strategy function
+                        if (settings.auto_generate_strategy) {
+                          console.log('Auto-generating strategy for contact:', contact.id);
+                          supabase.functions.invoke('generate-strategy', {
+                            body: { contactId: contact.id }
+                          }).catch(e => console.error('Error auto-generating strategy:', e));
+                        }
                         
                         // Parse status update tags (side-effect, can be anywhere)
                         const statusMatches = aiText.matchAll(/\[SET_STATUS: (\w+)\]/g);
@@ -408,6 +420,11 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         const templateMatches = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/gi);
                         const processedTemplates = new Set();
                         
+                        if (settings.ai_operation_mode === 'monitor' && aiText.length > 0) {
+                          console.log('AI is in monitor mode, suppressing outgoing message.');
+                          return new Response('OK - AI Monitored', { status: 200 });
+                        }
+
                         for (const part of parts) {
                           try {
                             const trimmedPart = part.trim();

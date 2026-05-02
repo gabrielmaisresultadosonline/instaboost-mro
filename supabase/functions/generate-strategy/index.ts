@@ -1,12 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
+
 interface StrategyRequest {
-  profile: {
+  contactId?: string; // New: for CRM strategy
+  profile?: {
     username: string;
     fullName: string;
     bio: string;
@@ -16,7 +23,7 @@ interface StrategyRequest {
     category: string;
     engagement?: number;
   };
-  analysis: {
+  analysis?: {
     niche: string;
     recommendations: string[];
     strengths?: string[];
@@ -27,7 +34,7 @@ interface StrategyRequest {
     profileScore?: number;
     audienceType?: string;
   };
-  type: 'mro' | 'content' | 'engagement' | 'sales' | 'bio';
+  type?: 'mro' | 'content' | 'engagement' | 'sales' | 'bio' | 'crm_strategy';
 }
 
 const MRO_TOOL_CONTEXT = `
@@ -72,8 +79,91 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, analysis, type }: StrategyRequest = await req.json();
+    const { profile, analysis, type, contactId }: StrategyRequest = await req.json();
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+
+    // CRM CRM Strategy branch
+    if (contactId) {
+      console.log('Gerando estratégia para CRM contact:', contactId);
+      
+      const { data: contact } = await supabase
+        .from('crm_contacts')
+        .select('*')
+        .eq('id', contactId)
+        .single();
+      
+      if (!contact) throw new Error('Contato não encontrado');
+
+      const { data: messages } = await supabase
+        .from('crm_messages')
+        .select('content, direction, created_at')
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: true })
+        .limit(50);
+      
+      const { data: settings } = await supabase
+        .from('crm_settings')
+        .select('*')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .single();
+
+      const chatHistory = messages?.map(m => 
+        `${m.direction === 'inbound' ? 'CLIENTE' : 'ATENDENTE'}: ${m.content}`
+      ).join('\n') || 'Sem histórico de mensagens.';
+
+      const crmSystemPrompt = `
+        ${settings?.strategy_generation_prompt || 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente.'}
+        
+        CONTEXTO DO CLIENTE:
+        Nome: ${contact.name || 'Desconhecido'}
+        WhatsApp ID: ${contact.wa_id}
+        Status Atual: ${contact.status}
+      `;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${settings?.openai_api_key || OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: crmSystemPrompt },
+            { role: 'user', content: `HISTÓRICO DE CONVERSA:\n${chatHistory}` }
+          ],
+        }),
+      });
+
+      const aiData = await response.json();
+      const strategyText = aiData.choices?.[0]?.message?.content;
+
+      if (!strategyText) throw new Error('Falha ao gerar estratégia via IA');
+
+      // Update contact with the new strategy
+      const strategyHistory = contact.ai_strategy_history || [];
+      const newStrategyEntry = {
+        strategy: strategyText,
+        created_at: new Date().toISOString()
+      };
+      
+      await supabase
+        .from('crm_contacts')
+        .update({
+          last_ai_strategy: strategyText,
+          ai_strategy_history: [newStrategyEntry, ...strategyHistory].slice(0, 10)
+        })
+        .eq('id', contactId);
+
+      return new Response(
+        JSON.stringify({ success: true, strategy: strategyText }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Original Instagram branch (profile/analysis based)
+    if (!profile) throw new Error('Dados do perfil não fornecidos');
 
     console.log('Gerando estratégia:', type, 'para:', profile.username);
 
