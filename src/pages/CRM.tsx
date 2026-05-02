@@ -2334,9 +2334,9 @@ const CRM = () => {
                                   onClick={isRecording ? stopRecording : startRecording}
                                 >
                                   {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
-                                  </Button>
-                                </div>
+                                </Button>
                               </div>
+                            </div>
                             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                           </div>
                         </>
@@ -2354,7 +2354,7 @@ const CRM = () => {
                         </div>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}
