@@ -1887,7 +1887,27 @@ const CRM = () => {
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1.5 sm:gap-2 max-w-5xl mx-auto w-full">
+                              <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
+                                {selectedContact?.last_ai_strategy && (
+                                  <div className="flex items-center gap-2 px-3 py-2 bg-purple-500/5 border border-purple-200 rounded-xl animate-in slide-in-from-bottom-2 duration-300">
+                                    <div className="p-1.5 bg-purple-100 rounded-lg shrink-0">
+                                      <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-[10px] font-bold text-purple-900 truncate">Sugestão de Estratégia / Pergunta</p>
+                                      <p className="text-[9px] text-purple-600 truncate">{selectedContact.last_ai_strategy}</p>
+                                    </div>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 text-[9px] font-bold text-purple-600 hover:bg-purple-100"
+                                      onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
+                                    >
+                                      <Copy className="w-3 h-3 mr-1" /> Copiar
+                                    </Button>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-1.5 sm:gap-2 w-full">
                                 <div className="flex gap-0.5 sm:gap-1">
                                   <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><ImageIcon className="w-5 h-5" /></Button>
                                   <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><Paperclip className="w-5 h-5" /></Button>
