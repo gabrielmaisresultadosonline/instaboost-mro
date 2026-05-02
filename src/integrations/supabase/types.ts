@@ -1198,9 +1198,12 @@ export type Database = {
           components: Json | null
           created_at: string | null
           id: string
+          is_carousel: boolean | null
+          is_pix: boolean | null
           knowledge_description: string | null
           language: string | null
           name: string
+          pix_code: string | null
           status: string | null
           updated_at: string | null
         }
@@ -1209,9 +1212,12 @@ export type Database = {
           components?: Json | null
           created_at?: string | null
           id: string
+          is_carousel?: boolean | null
+          is_pix?: boolean | null
           knowledge_description?: string | null
           language?: string | null
           name: string
+          pix_code?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -1220,9 +1226,12 @@ export type Database = {
           components?: Json | null
           created_at?: string | null
           id?: string
+          is_carousel?: boolean | null
+          is_pix?: boolean | null
           knowledge_description?: string | null
           language?: string | null
           name?: string
+          pix_code?: string | null
           status?: string | null
           updated_at?: string | null
         }

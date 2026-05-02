@@ -61,7 +61,10 @@ import {
   MapPin,
   Smile,
   MoreHorizontal,
-  Webhook
+  Webhook,
+  Layers,
+  CreditCard,
+  Copy
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
@@ -2504,6 +2507,7 @@ const CRM = () => {
                         const body = template.components?.find((c: any) => c.type === 'BODY');
                         const footer = template.components?.find((c: any) => c.type === 'FOOTER');
                         const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+                        const carouselComp = template.components?.find((c: any) => c.type === 'CAROUSEL');
 
                         return (
                           <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
@@ -2534,7 +2538,11 @@ const CRM = () => {
                                   </Button>
                                 </div>
                               </div>
-                              <CardTitle className="text-base truncate font-bold">{template.name}</CardTitle>
+                              <CardTitle className="text-base truncate font-bold flex items-center gap-2">
+                                {template.name}
+                                {template.is_carousel && <Layers className="w-3 h-3 text-primary" />}
+                                {template.is_pix && <CreditCard className="w-3 h-3 text-amber-500" />}
+                              </CardTitle>
                               <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.category}</Badge>
                                 <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.language}</Badge>
@@ -2548,9 +2556,37 @@ const CRM = () => {
                                     <img src={header.example.header_handle[0]} alt="Header" className="w-full h-full object-cover" />
                                   </div>
                                 )}
+                                {carouselComp && carouselComp.cards && (
+                                  <div className="mb-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    {carouselComp.cards.map((card: any, cIdx: number) => {
+                                      const cardHeader = card.components?.find((c: any) => c.type === 'HEADER');
+                                      return (
+                                        <div key={cIdx} className="min-w-[120px] aspect-square rounded-lg bg-muted overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                                          {cardHeader?.example?.header_handle?.[0] && (
+                                            <img src={cardHeader.example.header_handle[0]} className="w-full h-full object-cover" />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                                 <div className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4">
                                   "{body?.text}"
                                 </div>
+                                {template.is_pix && template.pix_code && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full mt-3 h-8 text-[10px] bg-amber-50/50 hover:bg-amber-100 dark:bg-amber-900/10 dark:hover:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 gap-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigator.clipboard.writeText(template.pix_code);
+                                      toast({ title: "PIX Copiado!", description: "Chave PIX copiada para a área de transferência." });
+                                    }}
+                                  >
+                                    <Copy className="w-3 h-3" /> Copiar PIX
+                                  </Button>
+                                )}
                               </div>
                               {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
                                 <div className="space-y-1.5">

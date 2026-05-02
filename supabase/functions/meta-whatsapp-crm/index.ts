@@ -154,6 +154,7 @@ serve(async (req) => {
       }
       
       if (result.id) {
+        const { is_pix, pix_code, is_carousel } = params;
         await supabase.from('crm_templates').upsert({
           id: result.id,
           name,
@@ -161,6 +162,9 @@ serve(async (req) => {
           language,
           status: 'PENDING',
           components: processedComponents,
+          is_pix: is_pix || false,
+          pix_code: pix_code || null,
+          is_carousel: is_carousel || false,
           updated_at: new Date().toISOString()
         })
       }
