@@ -2731,13 +2731,13 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             </Button>
             <Button
               onClick={() => setShowWebhookSettings(true)}
-              variant="outline"
+              variant="default"
               size="sm"
-              className={`border-amber-500/50 ${webhookConfig.enabled ? "text-amber-400 bg-amber-500/5" : "text-zinc-500"}`}
-              title="Configurar Webhook do CRM"
+              className="bg-amber-500 hover:bg-amber-600 text-black font-bold border-amber-400 border shadow-lg shadow-amber-500/20"
+              title="Configurar Webhook do CRM e Etiquetas do Kanban"
             >
               <Settings className="w-4 h-4 mr-1" />
-              Editor Etapa Kanban
+              EDITOR WEBHOOK / KANBAN
             </Button>
           </div>
           <div className="flex gap-2">
