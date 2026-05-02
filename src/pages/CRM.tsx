@@ -2224,8 +2224,8 @@ const CRM = () => {
                         </>
                       )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             )}
             {activeTab === 'scheduling' && (
