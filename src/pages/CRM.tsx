@@ -320,6 +320,7 @@ const CRM = () => {
       const { error } = await supabase.from('crm_settings').upsert({
         ...rest,
         id: '00000000-0000-0000-0000-000000000001',
+        strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas". As perguntas devem ser diretas para copiar e colar.',
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
       if (error) throw error;
@@ -357,10 +358,12 @@ const CRM = () => {
   };
 
   const copyToClipboard = (text: string, label: string = "Texto") => {
-    navigator.clipboard.writeText(text);
+    // Remove " e ' das perguntas para facilitar o envio
+    const cleanText = text.replace(/["']/g, '');
+    navigator.clipboard.writeText(cleanText);
     toast({
       title: `${label} copiado!`,
-      description: "Conteúdo salvo na área de transferência.",
+      description: "Conteúdo pronto para enviar (sem aspas).",
     });
   };
 
@@ -2852,14 +2855,14 @@ const CRM = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-7 w-7 rounded-lg text-zinc-400 hover:text-primary hover:bg-primary/5 transition-colors"
-                                  title="Copiar texto do template"
+                                  className="h-9 w-9 rounded-xl text-primary hover:text-white hover:bg-primary shadow-sm hover:shadow-primary/20 transition-all border border-primary/10 active:scale-95"
+                                  title="Copiar texto fácil (sem aspas)"
                                   onClick={() => {
                                     const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text || '';
                                     copyToClipboard(bodyText, "Texto do Template");
                                   }}
                                 >
-                                  <Copy className="h-3.5 w-3.5" />
+                                  <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
                               <div className="flex items-center gap-2 mt-1">
