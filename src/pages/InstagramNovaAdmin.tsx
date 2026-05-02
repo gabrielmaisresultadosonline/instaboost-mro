@@ -2729,16 +2729,6 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <FileText className="w-4 h-4 mr-1" />
               Histórico WhatsApp
             </Button>
-            <Button
-              onClick={() => setShowWebhookSettings(true)}
-              variant="default"
-              size="sm"
-              className="bg-amber-500 hover:bg-amber-600 text-black font-bold border-amber-400 border shadow-lg shadow-amber-500/20"
-              title="Configurar Webhook do CRM e Etiquetas do Kanban"
-            >
-              <Settings className="w-4 h-4 mr-1" />
-              EDITOR WEBHOOK / KANBAN
-            </Button>
           </div>
           <div className="flex gap-2">
             <Button
