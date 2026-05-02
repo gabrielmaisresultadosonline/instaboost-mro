@@ -1406,18 +1406,33 @@ const CRM = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value).length}</Badge>
-                            {/* Allow deleting custom statuses */}
+                            {/* Allow editing and deleting custom statuses */}
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
-                                  if (sObj) handleDeleteStatus(sObj.id);
-                                }}
-                                className="opacity-0 group-hover/column:opacity-100 transition-opacity hover:text-red-500"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
+                              <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                    if (sObj) {
+                                      setEditingStatus(sObj);
+                                      setIsEditStatusDialogOpen(true);
+                                    }
+                                  }}
+                                  className="hover:text-primary p-1"
+                                >
+                                  <Settings className="w-3 h-3" />
+                                </button>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                    if (sObj) handleDeleteStatus(sObj.id);
+                                  }}
+                                  className="hover:text-red-500 p-1"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
