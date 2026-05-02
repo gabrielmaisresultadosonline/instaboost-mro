@@ -2226,7 +2226,7 @@ const CRM = () => {
                                       </Button>
                                     </div>
                                   </div>
-                                </div>
+                                )}
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                               </div>
                             ) : (
@@ -2242,7 +2242,7 @@ const CRM = () => {
                     )}
                   </div>
                 )}
-              </div>
+              </main>
             )}
             {activeTab === 'scheduling' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
