@@ -118,10 +118,18 @@ export default function InstagramNovaAdmin() {
 
   // CRM Webhook States
   const [isSendingWebhook, setIsSendingWebhook] = useState<string | null>(null);
+  const [isSavingWebhookConfig, setIsSavingWebhookConfig] = useState(false);
+  const [kanbanLabels, setKanbanLabels] = useState<Record<string, string>>({
+    completed: "Completos",
+    paid: "Pagos",
+    pending: "Pendentes",
+    expired: "Expirados"
+  });
   const [webhookConfig, setWebhookConfig] = useState({
     enabled: true,
     webhook_id: "0c578c9d-4e33-48be-91dd-63f98d7ff430",
     token: "qnf3vbusrbs105v96afj2r8",
+    default_status: "pending",
     message_template: `Obrigado por fazer parte do nosso sistema!✅
 
 🚀🔥 *Ferramenta para Instagram Vip acesso!*
