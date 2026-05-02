@@ -337,6 +337,21 @@ serve(async (req) => {
       return respond({ success: true });
     }
 
+    if (action === "getCrmWebhook") {
+      const { data, error } = await supabase
+        .from("crm_webhooks")
+        .select("*")
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("[instagram-admin] getCrmWebhook error", error);
+        return respond({ success: false, error: "Erro ao carregar webhook" });
+      }
+
+      return respond({ success: true, config: data });
+    }
+
     return respond({ success: false, error: "Ação inválida" });
   } catch (error) {
     console.error("[instagram-admin] unexpected error", error);
