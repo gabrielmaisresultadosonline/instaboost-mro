@@ -807,6 +807,7 @@ Participe também do nosso GRUPO DE AVISOS
       setAdminSessionToken(response.token);
       setIsAuthenticated(true);
       await loadOrders(response.token);
+      loadWebhookConfig();
       toast.success("Login realizado com sucesso!");
     } catch (error) {
       console.error("Admin login error:", error);
