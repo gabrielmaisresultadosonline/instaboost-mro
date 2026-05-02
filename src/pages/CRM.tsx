@@ -2557,6 +2557,20 @@ const CRM = () => {
                                 <div className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4">
                                   "{body?.text}"
                                 </div>
+                                {template.is_pix && template.pix_code && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full mt-3 h-8 text-[10px] bg-amber-50/50 hover:bg-amber-100 dark:bg-amber-900/10 dark:hover:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 gap-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigator.clipboard.writeText(template.pix_code);
+                                      toast({ title: "PIX Copiado!", description: "Chave PIX copiada para a área de transferência." });
+                                    }}
+                                  >
+                                    <Copy className="w-3 h-3" /> Copiar PIX
+                                  </Button>
+                                )}
                               </div>
                               {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
                                 <div className="space-y-1.5">
