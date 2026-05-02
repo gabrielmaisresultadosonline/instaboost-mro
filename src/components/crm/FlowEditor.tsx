@@ -461,7 +461,8 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       position: centerPosition,
       data: { 
         text: type === 'message' ? 'Olá, como posso ajudar?' : '',
-        buttons: type === 'question' ? [{ text: 'Sim' }, { text: 'Não' }] : [],
+        buttons: type === 'question' ? [{ text: 'Sim', id: 'btn-0' }, { text: 'Não', id: 'btn-1' }] : [],
+        anyResponse: false,
         delay: 5,
         unit: 'segundos',
         timeout: 20,
