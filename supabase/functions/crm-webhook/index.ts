@@ -1,0 +1,185 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
+
+  try {
+    const body = await req.json()
+    const { webhook_id, token, to, message, template_id, variables } = body
+
+    if (!webhook_id || !token || !to) {
+      return new Response(JSON.stringify({ error: 'Missing required fields: webhook_id, token, to' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Validate Webhook
+    const { data: webhook, error: webhookError } = await supabase
+      .from('crm_webhooks')
+      .select('*')
+      .eq('id', webhook_id)
+      .eq('secret_token', token)
+      .eq('is_active', true)
+      .single()
+
+    if (webhookError || !webhook) {
+      return new Response(JSON.stringify({ error: 'Invalid or inactive webhook credentials' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Get Meta Settings
+    const { data: settings } = await supabase
+      .from('crm_settings')
+      .select('*')
+      .eq('id', '00000000-0000-0000-0000-000000000001')
+      .single()
+
+    if (!settings?.meta_access_token || !settings?.meta_phone_number_id) {
+      throw new Error('CRM Meta settings not configured')
+    }
+
+    const { meta_access_token, meta_phone_number_id } = settings
+
+    // Clean phone number (remove non-digits)
+    const cleanTo = to.replace(/\D/g, '')
+
+    let result;
+    let finalMessageText = message || '';
+
+    if (webhook.response_type === 'template' || template_id) {
+      // Send Template
+      const tid = template_id || webhook.template_id
+      const { data: template } = await supabase
+        .from('crm_templates')
+        .select('*')
+        .eq('id', tid)
+        .single()
+      
+      if (!template) throw new Error('Template not found')
+
+      finalMessageText = `[Template: ${template.name}]`;
+
+      const components = variables ? [
+        {
+          type: 'body',
+          parameters: variables.map((v: string) => ({ type: 'text', text: v }))
+        }
+      ] : []
+
+      const response = await fetch(
+        `https://graph.facebook.com/v20.0/${meta_phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: cleanTo,
+            type: 'template',
+            template: {
+              name: template.name,
+              language: { code: template.language || 'pt_BR' },
+              components: components
+            },
+          }),
+        }
+      )
+      result = await response.json()
+    } else {
+      // Send Text Message
+      if (!finalMessageText) finalMessageText = 'Mensagem automática via Webhook';
+      
+      const response = await fetch(
+        `https://graph.facebook.com/v20.0/${meta_phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: cleanTo,
+            type: 'text',
+            text: { body: finalMessageText },
+          }),
+        }
+      )
+      result = await response.json()
+    }
+
+    if (result.error) {
+      console.error('Meta API Error:', result.error)
+      throw new Error(result.error.message || 'Error sending message')
+    }
+
+    // Update last_used_at
+    await supabase.from('crm_webhooks').update({ last_used_at: new Date().toISOString() }).eq('id', webhook_id)
+
+    // Ensure contact exists and log message
+    let { data: contact } = await supabase
+      .from('crm_contacts')
+      .select('id')
+      .eq('wa_id', cleanTo)
+      .maybeSingle();
+
+    if (!contact) {
+      const { data: newContact, error: createError } = await supabase
+        .from('crm_contacts')
+        .insert([{
+          wa_id: cleanTo,
+          name: cleanTo,
+          status: 'new',
+          source: `webhook_${webhook.name}`
+        }])
+        .select('id')
+        .single();
+      
+      if (createError) console.error('Error creating contact from webhook:', createError);
+      contact = newContact;
+    }
+
+    if (contact) {
+      await supabase.from('crm_messages').insert([{
+        contact_id: contact.id,
+        direction: 'outgoing',
+        message_type: 'text',
+        content: finalMessageText,
+        meta_id: result.messages?.[0]?.id
+      }]);
+
+      await supabase.from('crm_contacts').update({
+        last_interaction: new Date().toISOString()
+      }).eq('id', contact.id);
+    }
+
+    return new Response(JSON.stringify({ success: true, result }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+
+  } catch (error: any) {
+    console.error('Webhook Error:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+})
