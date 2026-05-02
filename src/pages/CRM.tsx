@@ -3296,22 +3296,16 @@ const CRM = () => {
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-5 h-5" /></div>
                           <div>
-                            <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
-                            <CardDescription className="text-[11px]">Respostas automáticas com GPT-4.</CardDescription>
+                            <CardTitle className="text-lg">Configurações de IA</CardTitle>
+                            <CardDescription className="text-[11px]">Chave de API e configurações globais.</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="p-6 space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                          <div>
-                            <p className="font-bold text-sm">Habilitar Agente AI</p>
-                            <p className="text-[10px] text-muted-foreground">O robô responderá conversas ociosas.</p>
-                          </div>
-                          <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
-                        </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
                           <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                          <p className="text-[10px] text-muted-foreground">A ativação geral do robô deve ser feita na aba <strong>Agente IA</strong>.</p>
                         </div>
                       </CardContent>
                     </Card>
