@@ -2252,7 +2252,7 @@ const CRM = () => {
                                     </DialogFooter>
                                   </DialogContent>
                                 </Dialog>
-                              </div>
+                              </>
                             )}
 
                             {isPreviewingAudio && recordedAudioUrl ? (
