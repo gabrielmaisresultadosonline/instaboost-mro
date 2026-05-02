@@ -308,6 +308,30 @@ const CRM = () => {
     }
   };
 
+  const handleImprovePrompt = async () => {
+    if (!metaSettings.ai_system_prompt?.trim() || improvingPrompt) {
+      toast({ title: "Aviso", description: "Escreva algo no prompt primeiro para que eu possa melhorar." });
+      return;
+    }
+    
+    setImprovingPrompt(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'improvePrompt', prompt: metaSettings.ai_system_prompt }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || "Erro ao melhorar prompt");
+
+      setMetaSettings(prev => ({ ...prev, ai_system_prompt: data.improvedPrompt }));
+      toast({ title: "Prompt melhorado!", description: "A I.A. refinou suas instruções com sucesso." });
+    } catch (err: any) {
+      toast({ title: "Erro ao melhorar prompt", description: err.message, variant: "destructive" });
+    } finally {
+      setImprovingPrompt(false);
+    }
+  };
+
   const updateContactStatus = async (contactId: string, updates: any) => {
     try {
       setContacts(prev => prev.map(c => c.id === contactId ? { ...c, ...updates } : c));
