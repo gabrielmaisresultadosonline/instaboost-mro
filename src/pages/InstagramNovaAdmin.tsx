@@ -423,7 +423,10 @@ Participe também do nosso GRUPO DE AVISOS
           action: "updateCrmWebhook", 
           token,
           webhookId: webhookConfig.webhook_id,
-          config: webhookConfig
+          config: {
+            ...webhookConfig,
+            kanban_labels: kanbanLabels
+          }
         }
       });
 
