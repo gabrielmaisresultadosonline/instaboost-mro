@@ -997,6 +997,7 @@ const CRM = () => {
       case 'qualified': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
       case 'closed': return 'bg-green-500/10 text-green-500 border-green-500/20';
       case 'lost': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'human': return 'bg-orange-500 text-white border-orange-600 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.5)]';
       default: return 'bg-gray-500/10 text-gray-500';
     }
   };
@@ -1108,10 +1109,13 @@ const CRM = () => {
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
                   <div className="flex-1 overflow-x-auto p-4 flex gap-4">
-                    {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
+                    {['new', 'responded', 'qualified', 'human', 'closed', 'lost'].map(status => (
                       <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
-                        <div className="p-3 border-b font-bold uppercase text-xs flex justify-between bg-muted/30">
-                          {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
+                        <div className={cn(
+                          "p-3 border-b font-bold uppercase text-[10px] flex justify-between",
+                          status === 'human' ? "bg-orange-500/20 text-orange-700" : "bg-muted/30"
+                        )}>
+                          {status === 'human' ? '+ HUMANO' : status} <Badge variant="secondary" className={status === 'human' ? "bg-orange-500 text-white" : ""}>{contacts.filter(c => c.status === status).length}</Badge>
                         </div>
                         <ScrollArea className="flex-1 p-2">
                           {contacts.filter(c => c.status === status).map(contact => (
@@ -1144,7 +1148,7 @@ const CRM = () => {
                           />
                         </div>
                         <div className="flex flex-wrap gap-1 pb-1">
-                          {['all', 'new', 'responded', 'qualified', 'closed'].map(s => (
+                          {['all', 'new', 'responded', 'human', 'qualified', 'closed'].map(s => (
                             <Badge 
                               key={s} 
                               variant={statusFilter === s ? 'default' : 'outline'} 
