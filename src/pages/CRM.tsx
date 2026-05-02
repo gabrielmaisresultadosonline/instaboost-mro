@@ -425,17 +425,36 @@ const CRM = () => {
     setSaving(true);
     try {
       const token = newWebhook.secret_token || Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      const { error } = await supabase.from('crm_webhooks').insert([{
-        ...newWebhook,
-        secret_token: token
-      }]);
-      if (error) throw error;
+      
+      const webhookData = {
+        name: newWebhook.name,
+        response_type: newWebhook.response_type,
+        template_id: newWebhook.template_id || null,
+        secret_token: token,
+        is_active: true
+      };
+
+      console.log('Attempting to create webhook:', webhookData);
+
+      const { data, error } = await supabase.from('crm_webhooks').insert([webhookData]).select();
+      
+      if (error) {
+        console.error('Supabase error creating webhook:', error);
+        throw error;
+      }
+
+      console.log('Webhook created successfully:', data);
       toast({ title: "Webhook criado!" });
       fetchWebhooks();
       setIsNewWebhookDialogOpen(false);
       setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '', is_active: true });
     } catch (err: any) {
-      toast({ title: "Erro ao criar", description: err.message, variant: "destructive" });
+      console.error('Catch error creating webhook:', err);
+      toast({ 
+        title: "Erro ao criar", 
+        description: err.message || "Ocorreu um erro ao salvar no banco de dados.", 
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }
