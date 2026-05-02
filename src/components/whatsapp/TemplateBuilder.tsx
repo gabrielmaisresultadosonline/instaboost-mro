@@ -212,7 +212,7 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
             { 
               type: 'HEADER', 
               format: card.headerType, 
-              example: { header_handle: [card.headerUrl || "https://example.com/card.png"] } 
+              example: { header_handle: [card.headerUrl || "https://maisonline.com.br/wp-content/uploads/2023/07/mais-resultados-online.png"] } 
             },
             { 
               type: 'BODY', 
