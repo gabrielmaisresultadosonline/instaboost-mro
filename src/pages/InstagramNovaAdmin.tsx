@@ -4483,7 +4483,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6 py-4 overflow-y-auto max-h-[60vh] px-1">
+          <div className="space-y-6 py-4 overflow-y-auto max-h-[70vh] px-1">
             <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-white">Status do Webhook</p>
@@ -4495,9 +4495,67 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               />
             </div>
 
+            {/* Configuração das Etiquetas do Kanban */}
+            <div className="p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/50 space-y-4">
+              <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-amber-400" />
+                Etiquetas do Kanban (Colunas)
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase text-zinc-500 font-bold">Pendentes</label>
+                  <Input 
+                    value={kanbanLabels.pending}
+                    onChange={(e) => setKanbanLabels(prev => ({ ...prev, pending: e.target.value }))}
+                    className="bg-zinc-900/50 border-zinc-700 h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase text-zinc-500 font-bold">Pagos</label>
+                  <Input 
+                    value={kanbanLabels.paid}
+                    onChange={(e) => setKanbanLabels(prev => ({ ...prev, paid: e.target.value }))}
+                    className="bg-zinc-900/50 border-zinc-700 h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase text-zinc-500 font-bold">Completos</label>
+                  <Input 
+                    value={kanbanLabels.completed}
+                    onChange={(e) => setKanbanLabels(prev => ({ ...prev, completed: e.target.value }))}
+                    className="bg-zinc-900/50 border-zinc-700 h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase text-zinc-500 font-bold">Expirados</label>
+                  <Input 
+                    value={kanbanLabels.expired}
+                    onChange={(e) => setKanbanLabels(prev => ({ ...prev, expired: e.target.value }))}
+                    className="bg-zinc-900/50 border-zinc-700 h-8 text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="text-sm text-zinc-400 mb-2 block">Status Padrão (Webhook)</label>
+                  <select 
+                    value={webhookConfig.default_status}
+                    onChange={(e) => setWebhookConfig(prev => ({ ...prev, default_status: e.target.value }))}
+                    className="w-full bg-zinc-800/50 border border-zinc-600 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                  >
+                    <option value="pending">{kanbanLabels.pending}</option>
+                    <option value="paid">{kanbanLabels.paid}</option>
+                    <option value="completed">{kanbanLabels.completed}</option>
+                  </select>
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    Novos contatos do webhook entrarão nesta etiqueta.
+                  </p>
+                </div>
+                
+                <div className="col-span-2 sm:col-span-1">
                   <label className="text-sm text-zinc-400 mb-2 block">ID do Webhook</label>
                   <Input 
                     value={webhookConfig.webhook_id}
@@ -4506,28 +4564,29 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                     className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
                   />
                 </div>
-                <div>
-                  <label className="text-sm text-zinc-400 mb-2 block">Token de Acesso</label>
-                  <Input 
-                    value={webhookConfig.token}
-                    onChange={(e) => setWebhookConfig(prev => ({ ...prev, token: e.target.value }))}
-                    placeholder="Token do seu Webhook"
-                    type="password"
-                    className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Token de Acesso</label>
+                <Input 
+                  value={webhookConfig.token}
+                  onChange={(e) => setWebhookConfig(prev => ({ ...prev, token: e.target.value }))}
+                  placeholder="Token do seu Webhook"
+                  type="password"
+                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
+                />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm text-zinc-400 block">Template da Mensagem (Etiqueta)</label>
+                  <label className="text-sm text-zinc-400 block">Template da Mensagem</label>
                   <Badge variant="outline" className="text-[10px] bg-zinc-800 border-zinc-700 text-cyan-400">WhatsApp</Badge>
                 </div>
                 <Textarea 
                   value={webhookConfig.message_template}
                   onChange={(e) => setWebhookConfig(prev => ({ ...prev, message_template: e.target.value }))}
                   placeholder="Escreva a mensagem aqui..."
-                  className="bg-zinc-800/50 border-zinc-600 text-sm min-h-[200px] leading-relaxed resize-none"
+                  className="bg-zinc-800/50 border-zinc-600 text-sm min-h-[150px] leading-relaxed resize-none"
                 />
                 <div className="mt-2 p-2 bg-zinc-800/30 rounded border border-zinc-700/50">
                   <p className="text-[10px] text-zinc-500 font-medium mb-1 uppercase tracking-wider">Variáveis Disponíveis:</p>
@@ -4542,31 +4601,47 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
             <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
               <p className="text-xs text-blue-300 leading-relaxed">
-                <strong>Dica:</strong> Quando ativo, o sistema enviará automaticamente a mensagem acima via WhatsApp assim que o acesso for aprovado.
+                <strong>Dica:</strong> Quando ativo, o sistema usará o template acima caso nenhuma mensagem seja enviada no corpo do webhook.
               </p>
             </div>
           </div>
           
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
-              onClick={() => {
-                const lastOrder = orders[0];
-                if (lastOrder) sendToCRMWebhook(lastOrder, true);
-                else toast.error("Nenhum pedido encontrado para testar");
-              }}
-              variant="outline"
-              className="border-zinc-700 text-zinc-300 w-full"
-              disabled={isSendingWebhook !== null || orders.length === 0}
-            >
-              {isSendingWebhook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-              Testar com Último Pedido
-            </Button>
-            <Button
-              onClick={() => setShowWebhookSettings(false)}
+              onClick={saveWebhookConfigToDB}
               className="bg-cyan-600 hover:bg-cyan-700 text-white w-full"
+              disabled={isSavingWebhookConfig}
             >
-              Concluído
+              {isSavingWebhookConfig ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Salvar Configurações na Nuvem
             </Button>
+            
+            <div className="flex gap-2 w-full">
+              <Button
+                onClick={() => {
+                  const lastOrder = orders[0];
+                  if (lastOrder) sendToCRMWebhook(lastOrder, true);
+                  else toast.error("Nenhum pedido encontrado para testar");
+                }}
+                variant="outline"
+                className="border-zinc-700 text-zinc-300 flex-1"
+                disabled={isSendingWebhook !== null || orders.length === 0}
+              >
+                {isSendingWebhook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                Testar
+              </Button>
+              <Button
+                onClick={() => setShowWebhookSettings(false)}
+                variant="outline"
+                className="border-zinc-700 text-zinc-300 flex-1"
+              >
+                Fechar
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
