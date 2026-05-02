@@ -212,6 +212,25 @@ export default function InstagramNovaAdmin() {
   const [showWebhookLogs, setShowWebhookLogs] = useState(false);
   const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  
+  // CRM Webhook Delivery Logs
+  interface CRMLog {
+    id: string;
+    created_at: string;
+    webhook_id: string;
+    to_number: string;
+    message: string;
+    status: string;
+    error_message: string | null;
+    order_id: string | null;
+    crm_webhooks?: {
+      name: string;
+    }
+  }
+  const [showCRMWebhookLogs, setShowCRMWebhookLogs] = useState(false);
+  const [crmWebhookLogs, setCrmWebhookLogs] = useState<CRMLog[]>([]);
+  const [loadingCRMLogs, setLoadingCRMLogs] = useState(false);
+  const crmLogsAutoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reenvio de email e edição de email
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
@@ -289,6 +308,54 @@ export default function InstagramNovaAdmin() {
       }
     };
   }, [showWebhookLogs]);
+
+  const loadCRMWebhookLogs = async (tokenOverride?: string) => {
+    const token = getAdminSessionToken(tokenOverride);
+    if (!token) return;
+
+    setLoadingCRMLogs(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "listCrmWebhookLogs", token }
+      });
+
+      if (error || !response?.success) {
+        if (response?.error?.includes("Sessão expirada")) {
+          clearAdminSession();
+        }
+        throw new Error(response?.error || error?.message || "Erro ao carregar histórico");
+      }
+
+      setCrmWebhookLogs(response.logs || []);
+    } catch (error) {
+      console.error("Error loading CRM logs:", error);
+      toast.error("Erro ao carregar histórico do CRM");
+    } finally {
+      setLoadingCRMLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!showCRMWebhookLogs) {
+      if (crmLogsAutoRefreshIntervalRef.current) {
+        clearInterval(crmLogsAutoRefreshIntervalRef.current);
+        crmLogsAutoRefreshIntervalRef.current = null;
+      }
+      return;
+    }
+
+    loadCRMWebhookLogs();
+    crmLogsAutoRefreshIntervalRef.current = setInterval(() => {
+      loadCRMWebhookLogs();
+    }, 5000);
+
+    return () => {
+      if (crmLogsAutoRefreshIntervalRef.current) {
+        clearInterval(crmLogsAutoRefreshIntervalRef.current);
+        crmLogsAutoRefreshIntervalRef.current = null;
+      }
+    };
+  }, [showCRMWebhookLogs]);
 
   // Carregar afiliados da nuvem via edge function - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
@@ -968,7 +1035,8 @@ export default function InstagramNovaAdmin() {
           token: webhookConfig.token,
           to: phone,
           message: `Olá ${cleanName}, seu acesso ao produto Instagram Nova foi liberado! 🚀\n\nUsuário: ${order.username}\nSenha: ${order.username}\n\nAcesse agora: ${MEMBER_LINK}`,
-          variables: [cleanName, order.username, order.username, MEMBER_LINK] // Caso use template
+          variables: [cleanName, order.username, order.username, MEMBER_LINK], // Caso use template
+          order_id: order.id
         })
       });
 
@@ -2556,6 +2624,16 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               Logs
             </Button>
             <Button
+              onClick={() => setShowCRMWebhookLogs(true)}
+              variant="outline"
+              size="sm"
+              className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+              title="Ver histórico de envios do CRM"
+            >
+              <FileText className="w-4 h-4 mr-1" />
+              Histórico CRM
+            </Button>
+            <Button
               onClick={() => setShowWebhookSettings(true)}
               variant="outline"
               size="sm"
@@ -4059,6 +4137,94 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
         </DialogContent>
       </Dialog>
 
+      {/* Dialog de Histórico CRM Webhook */}
+      <Dialog open={showCRMWebhookLogs} onOpenChange={setShowCRMWebhookLogs}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-400 flex items-center gap-2">
+              <Send className="w-5 h-5" />
+              Histórico de Envios - CRM
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Logs detalhados dos envios automáticos e manuais para o WhatsApp via CRM
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              size="sm"
+              onClick={() => loadCRMWebhookLogs()}
+              disabled={loadingCRMLogs}
+              className="bg-cyan-600 hover:bg-cyan-700"
+            >
+              <RefreshCw className={`w-4 h-4 mr-1 ${loadingCRMLogs ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+            <span className="text-xs text-zinc-500">
+              {crmWebhookLogs.length > 0 && `Último envio: ${format(new Date(crmWebhookLogs[0]?.created_at), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}`}
+            </span>
+          </div>
+          
+          <ScrollArea className="h-[500px]">
+            {loadingCRMLogs ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+              </div>
+            ) : crmWebhookLogs.length === 0 ? (
+              <div className="text-center py-8 text-zinc-500">
+                Nenhum envio registrado
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {crmWebhookLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`p-3 rounded-lg border text-sm ${
+                      log.status === 'success' 
+                        ? 'bg-green-500/10 border-green-500/30' 
+                        : 'bg-red-500/10 border-red-500/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className={`text-xs ${
+                          log.status === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {log.status === 'success' ? 'Sucesso' : 'Erro'}
+                        </Badge>
+                        <Badge className="bg-cyan-500/20 text-cyan-400 text-xs">
+                          {log.crm_webhooks?.name || 'Webhook'}
+                        </Badge>
+                        <span className="text-xs text-zinc-300 font-mono">{log.to_number}</span>
+                      </div>
+                      <span className="text-xs text-zinc-500">
+                        {format(new Date(log.created_at), "dd/MM HH:mm:ss", { locale: ptBR })}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs text-zinc-400 mb-2 italic">
+                      {log.message}
+                    </div>
+
+                    {log.error_message && (
+                      <div className="text-xs text-red-400 bg-red-400/10 p-2 rounded border border-red-400/20">
+                        <strong>Erro:</strong> {log.error_message}
+                      </div>
+                    )}
+
+                    {log.order_id && (
+                      <div className="mt-2 text-[10px] text-zinc-500">
+                        ID do Pedido: {log.order_id}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog de Webhook Logs */}
       <Dialog open={showWebhookLogs} onOpenChange={setShowWebhookLogs}>
         <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-4xl max-h-[90vh]">
@@ -4291,7 +4457,20 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() => {
+                const lastOrder = orders[0];
+                if (lastOrder) sendToCRMWebhook(lastOrder, true);
+                else toast.error("Nenhum pedido encontrado para testar");
+              }}
+              variant="outline"
+              className="border-zinc-700 text-zinc-300 w-full"
+              disabled={isSendingWebhook !== null || orders.length === 0}
+            >
+              {isSendingWebhook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Testar com Último Pedido
+            </Button>
             <Button
               onClick={() => setShowWebhookSettings(false)}
               className="bg-cyan-600 hover:bg-cyan-700 text-white w-full"

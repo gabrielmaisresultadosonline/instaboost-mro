@@ -1267,6 +1267,47 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_webhook_delivery_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string | null
+          order_id: string | null
+          status: string
+          to_number: string
+          webhook_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string | null
+          order_id?: string | null
+          status: string
+          to_number: string
+          webhook_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string | null
+          order_id?: string | null
+          status?: string
+          to_number?: string
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_webhook_delivery_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "crm_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_webhooks: {
         Row: {
           created_at: string
