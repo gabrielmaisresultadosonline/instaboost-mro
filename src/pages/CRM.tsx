@@ -1652,9 +1652,8 @@ const CRM = () => {
                                     <Bot className={cn("w-4 h-4", selectedContact.ai_active ? "text-primary" : "text-muted-foreground")} />
                                     <span className="text-[11px] font-bold">Assistente IA</span>
                                     <Switch 
-                                      size="sm"
                                       checked={selectedContact.ai_active}
-                                      onCheckedChange={async (val) => {
+                                      onCheckedChange={async (val: boolean) => {
                                         await updateContactStatus(selectedContact.id, { ai_active: val });
                                       }}
                                     />
@@ -1664,9 +1663,8 @@ const CRM = () => {
                                     <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-purple-500" : "text-muted-foreground")} />
                                     <span className="text-[11px] font-bold">Estratégias IA</span>
                                     <Switch 
-                                      size="sm"
                                       checked={selectedContact.ai_strategy_active}
-                                      onCheckedChange={async (val) => {
+                                      onCheckedChange={async (val: boolean) => {
                                         await updateContactStatus(selectedContact.id, { ai_strategy_active: val });
                                       }}
                                     />
