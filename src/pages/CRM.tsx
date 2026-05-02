@@ -2083,7 +2083,7 @@ const CRM = () => {
                           </ScrollArea>
                           
                           <div className="p-4 bg-card border-t shadow-lg z-10 space-y-3">
-                             {selectedContact && (
+                             {selectedContact ? (
                                <>
                                 <div className="flex flex-col gap-2 p-3 bg-muted/20 rounded-xl border border-border/50">
                                   {!metaSettings.ai_agent_enabled && (
