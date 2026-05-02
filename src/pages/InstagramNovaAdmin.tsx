@@ -115,6 +115,16 @@ export default function InstagramNovaAdmin() {
   const [autoCheckEnabled, setAutoCheckEnabled] = useState(true);
   const [lastAutoCheck, setLastAutoCheck] = useState<Date | null>(null);
 
+  // CRM Webhook States
+  const [isSendingWebhook, setIsSendingWebhook] = useState<string | null>(null);
+  const [webhookConfig, setWebhookConfig] = useState({
+    enabled: true,
+    webhook_id: "0c578c9d-4e33-48be-91dd-63f98d7ff430",
+    token: "qnf3vbusrbs105v96afj2r8"
+  });
+  const [showWebhookSettings, setShowWebhookSettings] = useState(false);
+
+
   // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
   useEffect(() => {
     ordersRef.current = orders;
@@ -383,8 +393,18 @@ export default function InstagramNovaAdmin() {
     loadAffiliatesFromCloud();
     loadAffiliateSettings();
     loadPaidCommissions();
+    
+    // Carregar configuração do webhook do localStorage
+    const savedWebhook = localStorage.getItem("mro_crm_webhook_config");
+    if (savedWebhook) {
+      try {
+        setWebhookConfig(JSON.parse(savedWebhook));
+      } catch (e) {
+        console.error("Error parsing webhook config:", e);
+      }
+    }
   }, []);
-  
+
   // Carregar comissões pagas da nuvem
   const loadPaidCommissions = async () => {
     try {
@@ -899,8 +919,10 @@ export default function InstagramNovaAdmin() {
 
       if (data.status === "completed") {
         toast.success("Pagamento confirmado e acesso liberado!");
+        sendToCRMWebhook(order);
       } else if (data.status === "paid") {
         toast.info("Pagamento confirmado! Processando acesso...");
+        sendToCRMWebhook(order);
       } else {
         toast.info("Pagamento ainda não confirmado");
       }
@@ -911,6 +933,53 @@ export default function InstagramNovaAdmin() {
       toast.error("Erro ao verificar");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Enviar para o CRM Webhook
+  const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
+    if (!webhookConfig.enabled && !isTest) return;
+    if (!webhookConfig.webhook_id || !webhookConfig.token) {
+      if (isTest) toast.error("Configure o ID e Token do Webhook primeiro");
+      return;
+    }
+
+    const phone = order.phone?.replace(/\D/g, "");
+    if (!phone) {
+      if (isTest) toast.error("Cliente não possui telefone cadastrado");
+      return;
+    }
+
+    setIsSendingWebhook(order.id);
+    try {
+      // Extrair o nome limpo do usuário (remover se for afiliado)
+      let cleanName = order.username;
+      
+      const response = await fetch("https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          webhook_id: webhookConfig.webhook_id,
+          token: webhookConfig.token,
+          to: phone,
+          message: `Olá ${cleanName}, seu acesso ao produto Instagram Nova foi liberado! 🚀\n\nUsuário: ${order.username}\nSenha: ${order.username}\n\nAcesse agora: ${MEMBER_LINK}`,
+          variables: [cleanName, order.username, order.username, MEMBER_LINK] // Caso use template
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        if (isTest) toast.success("Webhook de teste enviado com sucesso!");
+        console.log("Webhook enviado com sucesso:", result);
+      } else {
+        throw new Error(result.error || "Erro ao enviar webhook");
+      }
+    } catch (error: any) {
+      console.error("Erro ao enviar webhook:", error);
+      if (isTest) toast.error(`Erro no Webhook: ${error.message}`);
+    } finally {
+      setIsSendingWebhook(null);
     }
   };
 
@@ -940,6 +1009,9 @@ export default function InstagramNovaAdmin() {
         } else {
           toast.success("Aprovação manual realizada! Acesso criado e email enviado.");
         }
+        
+        // Enviar Webhook do CRM após aprovação manual bem-sucedida
+        sendToCRMWebhook(order);
       } else {
         toast.warning(data.message || "Aprovação parcial realizada");
       }
@@ -2238,17 +2310,34 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           
           <div className="flex items-center gap-1.5 flex-wrap">
             {(order.status === "completed" || order.status === "paid") && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => copyToClipboard(order)}
-                className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
-              >
-                <Copy className="w-3 h-3 mr-1" />
-                Copiar
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => sendToCRMWebhook(order, true)}
+                  className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
+                  disabled={isSendingWebhook === order.id}
+                  title="Testar envio de Webhook WhatsApp"
+                >
+                  {isSendingWebhook === order.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : (
+                    <Send className="w-3 h-3 mr-1" />
+                  )}
+                  WhatsApp
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(order)}
+                  className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copiar
+                </Button>
+              </>
             )}
-            
+
             {(order.status === "pending" || order.status === "expired") && (
               <>
                 <Button
