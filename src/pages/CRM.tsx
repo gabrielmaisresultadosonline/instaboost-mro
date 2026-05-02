@@ -2252,8 +2252,6 @@ const CRM = () => {
                                     </DialogFooter>
                                   </DialogContent>
                                 </Dialog>
-                              </>
-                            )}
 
                             {isPreviewingAudio && recordedAudioUrl ? (
                               <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in slide-in-from-bottom-2 duration-300">
