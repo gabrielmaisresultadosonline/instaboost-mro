@@ -445,8 +445,8 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Botões do Cartão (Máx 2)</Label>
                           <div className="flex gap-1">
-                            <Button variant="outline" size="xs" className="h-6 text-[10px]" onClick={() => addButton('QUICK_REPLY', activeCardIndex)} disabled={cards[activeCardIndex].buttons.length >= 2}>+ Resposta</Button>
-                            <Button variant="outline" size="xs" className="h-6 text-[10px]" onClick={() => addButton('URL', activeCardIndex)} disabled={cards[activeCardIndex].buttons.length >= 2}>+ Link</Button>
+                            <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => addButton('QUICK_REPLY', activeCardIndex)} disabled={cards[activeCardIndex].buttons.length >= 2}>+ Resposta</Button>
+                            <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => addButton('URL', activeCardIndex)} disabled={cards[activeCardIndex].buttons.length >= 2}>+ Link</Button>
                           </div>
                         </div>
                         {cards[activeCardIndex].buttons.map((btn: any, idx: number) => (
