@@ -2079,43 +2079,76 @@ const CRM = () => {
 
                         <div className="space-y-2">
                           <Label className="text-sm font-bold">Quando Ativar?</Label>
-                          <Select 
-                            value={metaSettings.ai_agent_trigger} 
-                            onValueChange={(val) => setMetaSettings({...metaSettings, ai_agent_trigger: val})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">Todas as mensagens (quando não houver fluxo ativo)</SelectItem>
-                              <SelectItem value="first_message">Somente na primeira mensagem do contato</SelectItem>
-                              <SelectItem value="manual">Somente quando ativado manualmente por contato</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </CardContent>
-                    </Card>
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-bold flex items-center gap-2">
+                                  <Zap className="w-4 h-4 text-amber-500" /> Modo de Operação
+                                </Label>
+                                <Select 
+                                  value={metaSettings.ai_operation_mode || 'chat'} 
+                                  onValueChange={(val) => setMetaSettings({...metaSettings, ai_operation_mode: val})}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="chat">Apenas Conversar (I.A. Ativa)</SelectItem>
+                                    <SelectItem value="monitor">Apenas Qualificar/Monitorar (Passiva)</SelectItem>
+                                    <SelectItem value="hybrid">Híbrido (Conversa e Qualifica)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-[10px] text-muted-foreground italic">
+                                  "Apenas Monitorar" fará com que a IA não envie mensagens, apenas analise e mova contatos no Kanban.
+                                </p>
+                              </div>
 
-                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
-                      <CardHeader className="bg-muted/30 border-b">
-                        <CardTitle className="text-lg">Instruções do Agente</CardTitle>
-                        <CardDescription>O "cérebro" do seu robô</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-bold">Prompt do Sistema</Label>
-                          <Textarea 
-                            rows={8}
-                            className="resize-none"
-                            placeholder="Ex: Você é um consultor de vendas especializado em..."
-                            value={metaSettings.ai_system_prompt}
-                            onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
-                          />
-                          <p className="text-[10px] text-muted-foreground">Descreva detalhadamente como a IA deve se comportar, o que falar e o que evitar.</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                              <div className="flex items-center justify-between p-3 bg-purple-500/5 rounded-xl border border-purple-200">
+                                <div className="space-y-0.5">
+                                  <Label className="text-xs font-bold flex items-center gap-2">
+                                    <TrendingUp className="w-3.5 h-3.5 text-purple-600" /> Auto-Estratégia
+                                  </Label>
+                                  <p className="text-[10px] text-muted-foreground">Gerar estratégias automaticamente em cada mensagem.</p>
+                                </div>
+                                <Switch 
+                                  checked={metaSettings.auto_generate_strategy}
+                                  onCheckedChange={(val) => setMetaSettings({...metaSettings, auto_generate_strategy: val})}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-bold">Prompt de Estratégia</Label>
+                                <Textarea 
+                                  rows={3}
+                                  className="resize-none text-xs"
+                                  placeholder="Como a IA deve gerar as estratégias..."
+                                  value={metaSettings.strategy_generation_prompt}
+                                  onChange={(e) => setMetaSettings({...metaSettings, strategy_generation_prompt: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                          <CardHeader className="bg-muted/30 border-b">
+                            <CardTitle className="text-lg">Instruções do Agente</CardTitle>
+                            <CardDescription>O "cérebro" do seu robô</CardDescription>
+                          </CardHeader>
+                          <CardContent className="p-6 space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-bold">Prompt do System</Label>
+                              <Textarea 
+                                rows={8}
+                                className="resize-none"
+                                placeholder="Ex: Você é um consultor de vendas especializado em..."
+                                value={metaSettings.ai_system_prompt}
+                                onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
+                              />
+                              <p className="text-[10px] text-muted-foreground">Descreva detalhadamente como a IA deve se comportar, o que falar e o que evitar.</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
 
                   <Card className="rounded-2xl shadow-sm border overflow-hidden">
                     <CardHeader className="bg-primary/5 border-b">
