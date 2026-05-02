@@ -2228,17 +2228,12 @@ const CRM = () => {
                                   </div>
                                 )}
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
-                                <MessageSquare className="w-10 h-10 text-primary/30" />
                                 <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
                                 <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
                               </div>
                             )}
                           </div>
                         </div>
-                      </>
                     )}
                   </div>
                 )}
