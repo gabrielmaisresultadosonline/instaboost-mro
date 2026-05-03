@@ -1107,10 +1107,8 @@ const CRM = () => {
         const { error } = await supabase.from('crm_contacts').upsert(batch, { onConflict: 'wa_id' });
         if (!error) {
           successCount += batch.length;
-          // Mostra progresso parcial para listas muito grandes
-          if (contacts_to_import.length > 500) {
-             console.log(`Progresso: ${successCount}/${contacts_to_import.length}`);
-          }
+          // Atualiza a lista periodicamente para feedback visual
+          if (successCount % 500 === 0) fetchContacts();
         } else {
           console.error("Batch error:", error);
         }
