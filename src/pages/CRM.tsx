@@ -312,7 +312,8 @@ const CRM = () => {
       const { data: contactsData } = await supabase
         .from('crm_contacts')
         .select('*')
-        .order('last_interaction', { ascending: false });
+        .order('last_interaction', { ascending: false, nullsFirst: false })
+        .limit(10000);
       setContacts(contactsData || []);
 
       const { data: templatesData } = await supabase.from('crm_templates').select('*');
