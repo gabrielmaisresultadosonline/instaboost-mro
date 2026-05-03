@@ -1004,9 +1004,10 @@ const CRM = () => {
       const contacts_to_import: any[] = [];
 
       if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
-        // Normaliza quebras de linha para evitar problemas com diferentes sistemas operacionais
         const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         const vcardBlocks = normalizedContent.split(/BEGIN:VCARD/i).filter(block => block.trim());
+        
+        console.log(`vCard blocks found: ${vcardBlocks.length}`);
 
         for (const block of vcardBlocks) {
           const lines = block.split('\n');
@@ -1018,27 +1019,24 @@ const CRM = () => {
             const trimmedLine = line.trim();
             if (!trimmedLine) continue;
 
-            if (trimmedLine.startsWith('FN:')) {
-              currentContact.name = trimmedLine.substring(3).trim();
+            if (/^FN[;:]/i.test(trimmedLine)) {
+              currentContact.name = trimmedLine.split(':').slice(1).join(':').trim();
               foundName = true;
-            } else if (trimmedLine.startsWith('N:') && !foundName) {
-              // Tenta extrair o nome do campo N (Name) se FN não existir
-              const parts = trimmedLine.substring(2).split(';');
+            } else if (/^N[;:]/i.test(trimmedLine) && !foundName) {
+              const nameValue = trimmedLine.split(':').slice(1).join(':').trim();
+              const parts = nameValue.split(';');
               currentContact.name = parts.filter(p => p).reverse().join(' ').trim();
               foundName = true;
-            } else if (trimmedLine.startsWith('TEL')) {
-              // Regex mais robusta para pegar o número após o último ':'
-              const match = trimmedLine.match(/:(.*)$/);
-              if (match) {
-                const phone = match[1].trim().replace(/\D/g, '');
-                if (phone && phone.length >= 8) {
-                  currentContact.wa_id = phone;
-                  foundPhone = true;
-                }
+            } else if (/^TEL[;:]/i.test(trimmedLine)) {
+              const phoneValue = trimmedLine.split(':').slice(1).join(':').trim();
+              const phone = phoneValue.replace(/\D/g, '');
+              if (phone && phone.length >= 8) {
+                currentContact.wa_id = phone;
+                foundPhone = true;
               }
-            } else if (trimmedLine.startsWith('NOTE:')) {
+            } else if (trimmedLine.toUpperCase().startsWith('NOTE:')) {
               currentContact.metadata.bio = trimmedLine.substring(5).trim();
-            } else if (trimmedLine.startsWith('URL:')) {
+            } else if (trimmedLine.toUpperCase().startsWith('URL:')) {
               currentContact.metadata.links = trimmedLine.substring(4).trim();
             }
           }
