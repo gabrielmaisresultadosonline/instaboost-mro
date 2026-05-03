@@ -268,17 +268,29 @@ const CRM = () => {
     const { data: contactsData } = await supabase
       .from('crm_contacts')
       .select('*')
-      .order('last_interaction', { ascending: false });
+      .order('last_interaction', { ascending: false, nullsFirst: false })
+      .limit(10000);
     setContacts(contactsData || []);
   };
 
   useEffect(() => {
-    if (statusFilter === 'all') {
-      setFilteredContacts(contacts);
-    } else {
-      setFilteredContacts(contacts.filter(c => c.status === statusFilter));
+    let filtered = contacts;
+    
+    // In the "Conversations" tab, only show contacts that actually have an interaction history
+    if (activeTab === 'contacts') {
+      filtered = filtered.filter(c => c.last_interaction !== null);
     }
-  }, [statusFilter, contacts]);
+
+    if (statusFilter !== 'all') {
+      // Allow searching by name/phone or filtering by status
+      filtered = filtered.filter(c => 
+        c.status === statusFilter || 
+        c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
+        c.wa_id?.includes(statusFilter)
+      );
+    }
+    setFilteredContacts(filtered);
+  }, [statusFilter, contacts, activeTab]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -300,7 +312,8 @@ const CRM = () => {
       const { data: contactsData } = await supabase
         .from('crm_contacts')
         .select('*')
-        .order('last_interaction', { ascending: false });
+        .order('last_interaction', { ascending: false, nullsFirst: false })
+        .limit(10000);
       setContacts(contactsData || []);
 
       const { data: templatesData } = await supabase.from('crm_templates').select('*');
@@ -991,9 +1004,10 @@ const CRM = () => {
       const contacts_to_import: any[] = [];
 
       if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
-        // Normaliza quebras de linha para evitar problemas com diferentes sistemas operacionais
         const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         const vcardBlocks = normalizedContent.split(/BEGIN:VCARD/i).filter(block => block.trim());
+        
+        console.log(`vCard blocks found: ${vcardBlocks.length}`);
 
         for (const block of vcardBlocks) {
           const lines = block.split('\n');
@@ -1005,27 +1019,24 @@ const CRM = () => {
             const trimmedLine = line.trim();
             if (!trimmedLine) continue;
 
-            if (trimmedLine.startsWith('FN:')) {
-              currentContact.name = trimmedLine.substring(3).trim();
+            if (/^FN[;:]/i.test(trimmedLine)) {
+              currentContact.name = trimmedLine.split(':').slice(1).join(':').trim();
               foundName = true;
-            } else if (trimmedLine.startsWith('N:') && !foundName) {
-              // Tenta extrair o nome do campo N (Name) se FN não existir
-              const parts = trimmedLine.substring(2).split(';');
+            } else if (/^N[;:]/i.test(trimmedLine) && !foundName) {
+              const nameValue = trimmedLine.split(':').slice(1).join(':').trim();
+              const parts = nameValue.split(';');
               currentContact.name = parts.filter(p => p).reverse().join(' ').trim();
               foundName = true;
-            } else if (trimmedLine.startsWith('TEL')) {
-              // Regex mais robusta para pegar o número após o último ':'
-              const match = trimmedLine.match(/:(.*)$/);
-              if (match) {
-                const phone = match[1].trim().replace(/\D/g, '');
-                if (phone && phone.length >= 8) {
-                  currentContact.wa_id = phone;
-                  foundPhone = true;
-                }
+            } else if (/^TEL[;:]/i.test(trimmedLine)) {
+              const phoneValue = trimmedLine.split(':').slice(1).join(':').trim();
+              const phone = phoneValue.replace(/\D/g, '');
+              if (phone && phone.length >= 8) {
+                currentContact.wa_id = phone;
+                foundPhone = true;
               }
-            } else if (trimmedLine.startsWith('NOTE:')) {
+            } else if (trimmedLine.toUpperCase().startsWith('NOTE:')) {
               currentContact.metadata.bio = trimmedLine.substring(5).trim();
-            } else if (trimmedLine.startsWith('URL:')) {
+            } else if (trimmedLine.toUpperCase().startsWith('URL:')) {
               currentContact.metadata.links = trimmedLine.substring(4).trim();
             }
           }
@@ -1090,12 +1101,14 @@ const CRM = () => {
           status: contact.status || 'new',
           source_type: 'imported',
           metadata: contact.metadata || {},
-          last_interaction: new Date().toISOString()
+          last_interaction: null
         }));
 
         const { error } = await supabase.from('crm_contacts').upsert(batch, { onConflict: 'wa_id' });
         if (!error) {
           successCount += batch.length;
+          // Atualiza a lista periodicamente para feedback visual
+          if (successCount % 500 === 0) fetchContacts();
         } else {
           console.error("Batch error:", error);
         }
@@ -1546,7 +1559,7 @@ const CRM = () => {
                             {status.label}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value).length}</Badge>
+                            <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value && c.last_interaction !== null).length}</Badge>
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
                               <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
                                 <button 
@@ -1577,7 +1590,7 @@ const CRM = () => {
                           </div>
                         </div>
                         <ScrollArea className="flex-1 p-3">
-                          {contacts.filter(c => c.status === status.value).map(contact => (
+                          {contacts.filter(c => c.status === status.value && c.last_interaction !== null).map(contact => (
                             <Card 
                               key={contact.id} 
                               draggable 
@@ -1601,7 +1614,7 @@ const CRM = () => {
                               </div>
                             </Card>
                           ))}
-                          {contacts.filter(c => c.status === status.value).length === 0 && (
+                          {contacts.filter(c => c.status === status.value && c.last_interaction !== null).length === 0 && (
                             <div className="h-20 flex items-center justify-center border-2 border-dashed border-muted rounded-xl opacity-40">
                               <p className="text-[10px] font-bold uppercase tracking-widest">Vazio</p>
                             </div>
