@@ -1090,7 +1090,7 @@ const CRM = () => {
           status: contact.status || 'new',
           source_type: 'imported',
           metadata: contact.metadata || {},
-          last_interaction: new Date().toISOString()
+          last_interaction: null // Don't set last_interaction on import so they don't appear in "Conversations" until they talk
         }));
 
         const { error } = await supabase.from('crm_contacts').upsert(batch, { onConflict: 'wa_id' });
