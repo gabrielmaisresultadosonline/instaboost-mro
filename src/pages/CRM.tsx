@@ -72,6 +72,7 @@ import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
@@ -2450,60 +2451,72 @@ const CRM = () => {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-                    {flows.length > 0 ? (
-                      flows.map((flow) => (
-                        <Card key={flow.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-all">
-                          <CardHeader className="bg-muted/30 pb-4 border-b">
-                            <div className="flex justify-between items-start mb-2">
-                              <Badge variant={flow.is_active ? "default" : "secondary"} className={cn("text-[10px]", flow.is_active ? "bg-green-500/10 text-green-600 border-green-200" : "")}>
-                                {flow.is_active ? 'Ativo' : 'Inativo'}
-                              </Badge>
-                              <div className="flex gap-1">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-7 w-7 text-primary hover:bg-primary/10" 
-                                  onClick={() => handleDuplicateFlow(flow)}
-                                  title="Duplicar Fluxo"
-                                >
-                                  <Copy className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={async () => {
-                                  if (confirm('Deseja excluir este fluxo?')) {
-                                    await supabase.from('crm_flows').delete().eq('id', flow.id);
-                                    fetchData();
-                                  }
-                                }}>
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
+                  <Accordion type="single" collapsible className="w-full space-y-4">
+                    <AccordionItem value="flows-list" className="border-none">
+                      <AccordionTrigger className="bg-card p-6 rounded-2xl border shadow-sm hover:no-underline">
+                        <div className="flex flex-col items-start text-left">
+                          <h3 className="text-xl font-bold tracking-tight">Lista de Fluxos</h3>
+                          <p className="text-muted-foreground text-sm font-normal">Clique para ver e gerenciar seus fluxos de automação.</p>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                          {flows.length > 0 ? (
+                            flows.map((flow) => (
+                              <Card key={flow.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-all">
+                                <CardHeader className="bg-muted/30 pb-4 border-b">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <Badge variant={flow.is_active ? "default" : "secondary"} className={cn("text-[10px]", flow.is_active ? "bg-green-500/10 text-green-600 border-green-200" : "")}>
+                                      {flow.is_active ? 'Ativo' : 'Inativo'}
+                                    </Badge>
+                                    <div className="flex gap-1">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-7 w-7 text-primary hover:bg-primary/10" 
+                                        onClick={() => handleDuplicateFlow(flow)}
+                                        title="Duplicar Fluxo"
+                                      >
+                                        <Copy className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={async () => {
+                                        if (confirm('Deseja excluir este fluxo?')) {
+                                          await supabase.from('crm_flows').delete().eq('id', flow.id);
+                                          fetchData();
+                                        }
+                                      }}>
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <CardTitle className="text-lg truncate">{flow.name}</CardTitle>
+                                  <CardDescription className="text-[11px] flex items-center gap-1.5 mt-1 font-medium">
+                                    <Zap className="w-3 h-3 text-amber-500" /> Gatilho: <span className="text-foreground">{flow.trigger_type || 'Manual'}</span>
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 bg-card">
+                                  <Button variant="outline" size="sm" className="w-full hover:bg-primary hover:text-white transition-colors h-9" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
+                                    <GitBranch className="w-4 h-4 mr-2" /> Abrir Editor Visual
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))
+                          ) : (
+                            <div className="col-span-full py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted flex flex-col items-center justify-center gap-4">
+                              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                                <GitBranch className="w-8 h-8 text-muted-foreground/50" />
                               </div>
+                              <div className="max-w-xs mx-auto">
+                                <h3 className="font-bold text-lg">Nenhum fluxo criado</h3>
+                                <p className="text-sm text-muted-foreground">Comece criando um novo fluxo visual para automatizar suas mensagens do WhatsApp.</p>
+                              </div>
+                              <Button variant="outline" size="sm" onClick={() => setIsFlowEditorOpen(true)}>Criar meu primeiro fluxo</Button>
                             </div>
-                            <CardTitle className="text-lg truncate">{flow.name}</CardTitle>
-                            <CardDescription className="text-[11px] flex items-center gap-1.5 mt-1 font-medium">
-                              <Zap className="w-3 h-3 text-amber-500" /> Gatilho: <span className="text-foreground">{flow.trigger_type || 'Manual'}</span>
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="p-4 bg-card">
-                            <Button variant="outline" size="sm" className="w-full hover:bg-primary hover:text-white transition-colors h-9" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
-                              <GitBranch className="w-4 h-4 mr-2" /> Abrir Editor Visual
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ))
-                    ) : (
-                      <div className="col-span-full py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted flex flex-col items-center justify-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <GitBranch className="w-8 h-8 text-muted-foreground/50" />
+                          )}
                         </div>
-                        <div className="max-w-xs mx-auto">
-                          <h3 className="font-bold text-lg">Nenhum fluxo criado</h3>
-                          <p className="text-sm text-muted-foreground">Comece criando um novo fluxo visual para automatizar suas mensagens do WhatsApp.</p>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => setIsFlowEditorOpen(true)}>Criar meu primeiro fluxo</Button>
-                      </div>
-                    )}
-                  </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
               </ScrollArea>
             )}
@@ -2880,43 +2893,52 @@ const CRM = () => {
                     </DialogContent>
                   </Dialog>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-                    {templates.length > 0 ? (
-                      templates.map((template) => {
-                        const header = template.components?.find((c: any) => c.type === 'HEADER');
-                        const body = template.components?.find((c: any) => c.type === 'BODY');
-                        const footer = template.components?.find((c: any) => c.type === 'FOOTER');
-                        const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
-                        const carouselComp = template.components?.find((c: any) => c.type === 'CAROUSEL');
+                  <Accordion type="single" collapsible className="w-full space-y-4">
+                    <AccordionItem value="templates-list" className="border-none">
+                      <AccordionTrigger className="bg-card p-6 rounded-2xl border shadow-sm hover:no-underline">
+                        <div className="flex flex-col items-start text-left">
+                          <h3 className="text-xl font-bold tracking-tight">Lista de Templates</h3>
+                          <p className="text-muted-foreground text-sm font-normal">Clique para ver e gerenciar seus templates.</p>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                          {templates.length > 0 ? (
+                            templates.map((template) => {
+                              const header = template.components?.find((c: any) => c.type === 'HEADER');
+                              const body = template.components?.find((c: any) => c.type === 'BODY');
+                              const footer = template.components?.find((c: any) => c.type === 'FOOTER');
+                              const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+                              const carouselComp = template.components?.find((c: any) => c.type === 'CAROUSEL');
 
-                        return (
-                          <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
-                            <CardHeader className="bg-muted/30 pb-4 border-b">
-                              <div className="flex justify-between items-start mb-2">
-                                <Badge variant={
-                                  template.status === 'APPROVED' ? 'default' : 
-                                  template.status === 'REJECTED' ? 'destructive' : 'secondary'
-                                } className={cn(
-                                  "text-[9px] uppercase tracking-wider",
-                                  template.status === 'APPROVED' ? "bg-green-500/10 text-green-600 border-green-200" : ""
-                                )}>
-                                  {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
-                                  template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
-                                  <Clock className="w-3 h-3 mr-1" />}
-                                  {template.status}
-                                </Badge>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
-                                    <Eye className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => {
-                                    if (confirm(`Deseja realmente excluir o template "${template.name}"?`)) {
-                                      handleDeleteTemplate(template.name);
-                                    }
-                                  }}>
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
+                              return (
+                                <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
+                                  <CardHeader className="bg-muted/30 pb-4 border-b">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <Badge variant={
+                                        template.status === 'APPROVED' ? 'default' : 
+                                        template.status === 'REJECTED' ? 'destructive' : 'secondary'
+                                      } className={cn(
+                                        "text-[9px] uppercase tracking-wider",
+                                        template.status === 'APPROVED' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                      )}>
+                                        {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
+                                        template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
+                                        <Clock className="w-3 h-3 mr-1" />}
+                                        {template.status}
+                                      </Badge>
+                                      <div className="flex gap-1">
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
+                                          <Eye className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => {
+                                          if (confirm(`Deseja realmente excluir o template "${template.name}"?`)) {
+                                            handleDeleteTemplate(template.name);
+                                          }
+                                        }}>
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
                               </div>
                               <div className="flex justify-between items-center gap-2">
                                 <CardTitle className="text-base truncate font-bold flex items-center gap-2">
@@ -3028,8 +3050,11 @@ const CRM = () => {
                         <p className="text-sm text-muted-foreground">Clique em "Sincronizar Meta" para carregar seus templates oficiais.</p>
                         <Button variant="outline" size="sm" onClick={syncTemplates} disabled={syncingTemplates}>Sincronizar agora</Button>
                       </div>
-                    )}
-                  </div>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
 
                 <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
