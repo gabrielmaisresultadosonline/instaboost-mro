@@ -1101,12 +1101,16 @@ const CRM = () => {
           status: contact.status || 'new',
           source_type: 'imported',
           metadata: contact.metadata || {},
-          last_interaction: null // Don't set last_interaction on import so they don't appear in "Conversations" until they talk
+          last_interaction: null
         }));
 
         const { error } = await supabase.from('crm_contacts').upsert(batch, { onConflict: 'wa_id' });
         if (!error) {
           successCount += batch.length;
+          // Mostra progresso parcial para listas muito grandes
+          if (contacts_to_import.length > 500) {
+             console.log(`Progresso: ${successCount}/${contacts_to_import.length}`);
+          }
         } else {
           console.error("Batch error:", error);
         }
