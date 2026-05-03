@@ -1132,7 +1132,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
       }
       return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
   }
@@ -1155,7 +1155,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
     }
     return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
   else if (node.type === 'delay') {
@@ -1352,7 +1352,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   }
 
   return new Response(JSON.stringify({ success: true, node: node.id }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }
 
@@ -1378,7 +1378,7 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
       .eq('id', contactId)
     
     return new Response(JSON.stringify({ success: true, action: 'wait', seconds: step.delay_seconds }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
   
@@ -1389,12 +1389,12 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
       .eq('id', contactId)
     
     return new Response(JSON.stringify({ success: true, action: 'wait_response' }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
   return new Response(JSON.stringify({ success: true, message: 'Step processed' }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }
 
