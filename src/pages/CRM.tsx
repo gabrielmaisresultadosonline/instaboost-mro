@@ -3160,65 +3160,95 @@ const CRM = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y">
-                          {contacts
-                            .filter(c => {
+                          {(() => {
+                            const filtered = contacts.filter(c => {
                               const matchesSearch = statusFilter === 'all' || 
                                 c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
                                 c.wa_id?.includes(statusFilter);
                               const matchesSource = sourceFilter === 'all' || c.source_type === sourceFilter;
                               return matchesSearch && matchesSource;
-                            })
-                            .map((contact) => (
-                            <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                    {contact.name?.charAt(0) || <User className="w-4 h-4" />}
-                                  </div>
-                                  <span className="font-semibold text-sm">{contact.name || 'Sem nome'}</span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 text-sm text-muted-foreground font-mono">{contact.wa_id}</td>
-                              <td className="px-6 py-4">
-                                <Badge variant="secondary" className="text-[9px] uppercase font-bold">
-                                  {contact.source_type === 'imported' ? 'Importado' : 'Sistema'}
-                                </Badge>
-                              </td>
-                              <td className="px-6 py-4">
-                                <Badge variant="outline" className={cn("capitalize text-[10px]", getStatusColor(contact.status))}>
-                                  {contact.status}
-                                </Badge>
-                              </td>
-                              <td className="px-6 py-4 text-[11px] text-muted-foreground">
-                                {contact.last_interaction ? new Date(contact.last_interaction).toLocaleString() : 'Nunca'}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
-                                    <MessageSquare className="w-4 h-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
-                                    <Settings className="w-4 h-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
-                                    if (confirm('Excluir este contato?')) {
-                                      await supabase.from('crm_contacts').delete().eq('id', contact.id);
-                                      fetchContacts();
-                                    }
-                                  }}>
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                          {contacts.length === 0 && (
-                            <tr>
-                              <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground italic text-sm">
-                                Nenhum contato encontrado. Importe uma lista vCard ou CSV para começar.
-                              </td>
-                            </tr>
-                          )}
+                            });
+                            
+                            const totalFiltered = filtered.length;
+                            const isSearching = statusFilter !== 'all';
+                            const displayContacts = (showAllContacts || isSearching) ? filtered : filtered.slice(0, 10);
+
+                            return (
+                              <>
+                                {displayContacts.map((contact) => (
+                                  <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
+                                    <td className="px-6 py-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                          {contact.name?.charAt(0) || <User className="w-4 h-4" />}
+                                        </div>
+                                        <span className="font-semibold text-sm">{contact.name || 'Sem nome'}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-muted-foreground font-mono">{contact.wa_id}</td>
+                                    <td className="px-6 py-4">
+                                      <Badge variant="secondary" className="text-[9px] uppercase font-bold">
+                                        {contact.source_type === 'imported' ? 'Importado' : 'Sistema'}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <Badge variant="outline" className={cn("capitalize text-[10px]", getStatusColor(contact.status))}>
+                                        {contact.status}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 text-[11px] text-muted-foreground">
+                                      {contact.last_interaction ? new Date(contact.last_interaction).toLocaleString() : 'Nunca'}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                          <MessageSquare className="w-4 h-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                          <Settings className="w-4 h-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
+                                          if (confirm('Excluir este contato?')) {
+                                            await supabase.from('crm_contacts').delete().eq('id', contact.id);
+                                            fetchContacts();
+                                          }
+                                        }}>
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                                
+                                {totalFiltered > 10 && !showAllContacts && !isSearching && (
+                                  <tr>
+                                    <td colSpan={6} className="px-6 py-8 text-center bg-muted/5">
+                                      <div className="flex flex-col items-center gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                          Mostrando 10 de <strong>{totalFiltered}</strong> contatos
+                                        </p>
+                                        <Button 
+                                          variant="outline" 
+                                          onClick={() => setShowAllContacts(true)}
+                                          className="font-bold"
+                                        >
+                                          <Eye className="w-4 h-4 mr-2" /> Ver Todos os Contatos
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                                
+                                {totalFiltered === 0 && (
+                                  <tr>
+                                    <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground italic text-sm">
+                                      Nenhum contato encontrado. Importe uma lista vCard ou CSV para começar.
+                                    </td>
+                                  </tr>
+                                )}
+                              </>
+                            );
+                          })()}
                         </tbody>
                       </table>
                     </div>
