@@ -2238,11 +2238,11 @@ const CRM = () => {
                             )}
                           </div>
                         </div>
-                      </main>
+                      </>
                     )}
                   </div>
                 )}
-              </>
+              </main>
             )}
             {activeTab === 'scheduling' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
