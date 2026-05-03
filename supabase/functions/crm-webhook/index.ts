@@ -142,14 +142,26 @@ serve(async (req) => {
       throw new Error(result.error.message || 'Error sending message')
     }
 
-    // Log success
-    await supabase.from('crm_webhook_delivery_logs').insert([{
-      webhook_id,
-      to_number: cleanTo,
-      message: finalMessageText,
-      status: 'success',
-      order_id: order_id || null
-    }])
+    // Log success with idempotency check
+    const { data: existingLog } = await supabase
+      .from('crm_webhook_delivery_logs')
+      .select('id')
+      .eq('webhook_id', webhook_id)
+      .eq('order_id', order_id)
+      .eq('status', 'success')
+      .maybeSingle();
+
+    if (existingLog && order_id) {
+      console.log(`Duplicate webhook detected for order ${order_id}, skipping delivery log.`);
+    } else {
+      await supabase.from('crm_webhook_delivery_logs').insert([{
+        webhook_id,
+        to_number: cleanTo,
+        message: finalMessageText,
+        status: 'success',
+        order_id: order_id || null
+      }])
+    }
 
     // Update last_used_at
     await supabase.from('crm_webhooks').update({ last_used_at: new Date().toISOString() }).eq('id', webhook_id)

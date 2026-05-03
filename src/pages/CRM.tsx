@@ -361,7 +361,6 @@ const CRM = () => {
   };
 
   const copyToClipboard = (text: string, label: string = "Texto") => {
-    // Remove " e ' das perguntas para facilitar o envio
     const cleanText = text.replace(/["']/g, '');
     navigator.clipboard.writeText(cleanText);
     toast({
@@ -452,22 +451,17 @@ const CRM = () => {
         default_status: newWebhook.default_status || 'new'
       };
 
-      console.log('Attempting to create webhook:', webhookData);
-
       const { data, error } = await supabase.from('crm_webhooks').insert([webhookData]).select();
       
       if (error) {
-        console.error('Supabase error creating webhook:', error);
         throw error;
       }
 
-      console.log('Webhook created successfully:', data);
       toast({ title: "Webhook criado!" });
       fetchWebhooks();
       setIsNewWebhookDialogOpen(false);
       setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '', is_active: true, default_status: 'new' });
     } catch (err: any) {
-      console.error('Catch error creating webhook:', err);
       toast({ 
         title: "Erro ao criar", 
         description: err.message || "Ocorreu um erro ao salvar no banco de dados.", 
@@ -694,7 +688,7 @@ const CRM = () => {
       if (error) throw error;
       toast({ title: "Fluxo Iniciado!" });
       fetchMessages(selectedContact.id);
-      fetchContacts(); // Refresh contact to update next_execution_time and flow_state
+      fetchContacts();
     } catch (err) {
       toast({ title: "Erro ao iniciar fluxo", variant: "destructive" });
     } finally {
@@ -718,7 +712,6 @@ const CRM = () => {
         
       if (error) throw error;
       
-      // Delete any pending scheduled messages for this contact
       await supabase
         .from('crm_scheduled_messages')
         .delete()
@@ -997,7 +990,6 @@ const CRM = () => {
       const content = event.target?.result as string;
 
       if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
-        // vCard Import
         const contacts_to_import: any[] = [];
         const lines = content.split('\n');
         let currentContact: any = { metadata: {} };
@@ -1008,7 +1000,6 @@ const CRM = () => {
           } else if (line.startsWith('FN:')) {
             currentContact.name = line.substring(3).trim();
           } else if (line.startsWith('TEL;')) {
-            // Extract number from TEL;TYPE=CELL:5511999999999 or TEL:5511999999999
             const match = line.match(/:(.*)$/);
             if (match) {
               currentContact.wa_id = match[1].trim().replace(/\D/g, '');
@@ -1035,7 +1026,6 @@ const CRM = () => {
         }
         toast({ title: `${contacts_to_import.length} contatos importados do vCard!` });
       } else {
-        // CSV Import (Keep existing logic)
         const lines = content.split('\n').filter(l => l.trim());
         if (lines.length < 2) return;
         
@@ -1115,7 +1105,6 @@ const CRM = () => {
     try {
       const { id, ...flowData } = flow;
       
-      // Validação básica para garantir que o fluxo tem nome
       if (!flowData.name || flowData.name.trim() === '') {
         throw new Error("O fluxo precisa de um nome.");
       }
@@ -1144,7 +1133,6 @@ const CRM = () => {
       }
 
       if (result.error) {
-        console.error("Supabase error saving flow:", result.error);
         throw result.error;
       }
       
@@ -1153,7 +1141,6 @@ const CRM = () => {
       setEditingFlow(null);
       fetchData();
     } catch (err: any) {
-      console.error("Error in handleSaveFlow:", err);
       toast({ 
         title: "Erro ao salvar fluxo", 
         description: err.message || "Ocorreu um erro inesperado.", 
@@ -1167,10 +1154,8 @@ const CRM = () => {
   const handleDuplicateFlow = async (flow: any) => {
     setSaving(true);
     try {
-      // 1. Clonar o fluxo sem os IDs do sistema
       const { id, created_at, updated_at, ...flowData } = flow;
       
-      // 2. Criar IDs únicos para os novos nós e atualizar as referências nas arestas
       const nodeMap: Record<string, string> = {};
       const newNodes = (flowData.nodes || []).map((node: any) => {
         const newId = `${node.type}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
@@ -1193,22 +1178,18 @@ const CRM = () => {
         is_active: false
       };
 
-      console.log("Duplicating flow with data:", newFlow);
-
       const { data, error } = await supabase
         .from('crm_flows')
         .insert([newFlow])
         .select();
 
       if (error) {
-        console.error("Supabase insert error:", error);
         throw error;
       }
       
       toast({ title: "Fluxo duplicado com sucesso!" });
       fetchData();
     } catch (err: any) {
-      console.error("Error in handleDuplicateFlow:", err);
       toast({ 
         title: "Erro ao duplicar fluxo", 
         description: err.message || "Verifique se há campos obrigatórios faltando ou conflitos.", 
@@ -1248,7 +1229,6 @@ const CRM = () => {
       }
     }
     
-    // Fallback for legacy hardcoded values
     switch (status) {
       case 'new': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
       case 'responded': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
@@ -1516,7 +1496,6 @@ const CRM = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value).length}</Badge>
-                            {/* Allow editing and deleting custom statuses */}
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
                               <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
                                 <button 
@@ -1708,7 +1687,6 @@ const CRM = () => {
                                     </Badge>
                                   </p>
 
-                                  {/* AI Toggle for individual contact */}
                                   <Button
                                     variant="ghost"
                                     size="icon"
@@ -1899,7 +1877,6 @@ const CRM = () => {
                                 const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
                                 let template = isTemplate ? templates.find(t => t.name === templateName) : null;
 
-                                // Fallback para templates antigos que não têm o prefixo [Template: name]
                                 if (isTemplate && !template && m.content) {
                                   template = templates.find(t => {
                                     const bodyComponent = t.components?.find((c: any) => c.type === 'BODY');
@@ -1935,7 +1912,6 @@ const CRM = () => {
                                                 const header = template.components.find((c: any) => c.type === 'HEADER');
                                                 let mediaUrl = m.media_url || header?.example?.header_handle?.[0];
                                                 
-                                                // Se a URL for apenas um ID numérico (Meta Media ID), não conseguimos exibir diretamente
                                                 const isNumericId = mediaUrl && /^\d+$/.test(mediaUrl.toString());
                                                 
                                                 if (header?.format === 'IMAGE' && mediaUrl && !isNumericId) {
@@ -2228,7 +2204,7 @@ const CRM = () => {
                                   </div>
                                 )}
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
-                              </div>
+                              </>
                             ) : (
                               <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
                                 <MessageSquare className="w-10 h-10 text-primary/30" />
@@ -2237,12 +2213,18 @@ const CRM = () => {
                               </div>
                             )}
                           </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
+                          <MessageSquare className="w-10 h-10 text-primary/30" />
+                          <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
+                          <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
                         </div>
-                      </>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </>
                 )}
-              </main>
+              </div>
             )}
             {activeTab === 'scheduling' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
@@ -2483,7 +2465,6 @@ const CRM = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Card 1: Conexão e Motor */}
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
                       <CardHeader className="bg-zinc-50 dark:bg-zinc-900/50 border-b">
                         <CardTitle className="text-lg flex items-center gap-2">
@@ -2529,7 +2510,6 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Card 2: Estratégias e Gatilhos */}
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
                       <CardHeader className="bg-amber-50 dark:bg-amber-900/10 border-b">
                         <CardTitle className="text-lg flex items-center gap-2 text-amber-700 dark:text-amber-500">
@@ -2595,7 +2575,6 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Card 3: Horário Comercial (Span 2) */}
                     <Card className="rounded-2xl shadow-sm border overflow-hidden md:col-span-2">
                       <CardHeader className="bg-blue-50 dark:bg-blue-900/10 border-b flex flex-row items-center justify-between">
                         <div>
@@ -2676,7 +2655,6 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Card 4: Instruções do Agente (Span 2) */}
                     <Card className="rounded-2xl shadow-sm border overflow-hidden md:col-span-2">
                       <CardHeader className="bg-primary/5 border-b">
                         <CardTitle className="text-lg flex items-center gap-2">
@@ -2950,7 +2928,7 @@ const CRM = () => {
                                       {btn.text}
                                     </div>
                                   ))}
-                </div>
+                                </div>
                               )}
                               
                               <div className="mt-4 pt-4 border-t space-y-2">
@@ -3494,7 +3472,7 @@ const CRM = () => {
                         </div>
                       )}
                     </div>
-                    <DialogFooter className="gap-2">
+                    <DialogFooter className="gap-2 sm:gap-0">
                       <Button variant="ghost" onClick={() => setIsNewWebhookDialogOpen(false)} className="rounded-2xl h-12 px-6">Cancelar</Button>
                       <Button onClick={handleCreateWebhook} disabled={saving || !newWebhook.name} className="rounded-2xl h-12 px-8 bg-primary shadow-lg shadow-primary/20 font-bold">
                         {saving ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
@@ -3623,7 +3601,6 @@ const CRM = () => {
                     metadata: contactToView.metadata 
                   }).eq('id', id);
                 } else {
-                  // New contact
                   const { error } = await supabase.from('crm_contacts').insert([{
                     name: contactToView.name,
                     wa_id: contactToView.wa_id,
