@@ -282,7 +282,7 @@ serve(async (req) => {
                     messageType: message.type
                   });
                   
-                  if (isAiEnabledGlobally && settings?.openai_api_key && contact.ai_active) {
+                  if (isAiEnabledGlobally && settings?.openai_api_key && contact.ai_active && !isFlowActive) {
                     let shouldTriggerAI = false;
                     
                     if (settings.ai_agent_trigger === 'all') {
