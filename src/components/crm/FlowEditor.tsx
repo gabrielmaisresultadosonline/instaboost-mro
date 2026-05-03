@@ -231,6 +231,9 @@ const CRMActionNode = ({ data }: any) => (
     </CardHeader>
     <CardContent className="p-3">
       <p className="text-[10px] font-bold text-slate-600">{data.action || 'Notificar Agente'}</p>
+      {data.action === 'Adicionar Etiqueta' && data.statusLabel && (
+        <Badge variant="outline" className="mt-1 text-[8px] h-4 bg-slate-50">{data.statusLabel}</Badge>
+      )}
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
   </Card>
@@ -383,16 +386,19 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   const [uploading, setUploading] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
   const [availableFlows, setAvailableFlows] = useState<any[]>([]);
+  const [availableStatuses, setAvailableStatuses] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [templatesRes, flowsRes] = await Promise.all([
+      const [templatesRes, flowsRes, statusesRes] = await Promise.all([
         supabase.from('crm_templates').select('*'),
-        supabase.from('zapi_flows').select('id, name')
+        supabase.from('zapi_flows').select('id, name'),
+        supabase.from('crm_statuses').select('*').order('sort_order', { ascending: true })
       ]);
       
       if (templatesRes.data) setAvailableTemplates(templatesRes.data);
       if (flowsRes.data) setAvailableFlows(flowsRes.data);
+      if (statusesRes.data) setAvailableStatuses(statusesRes.data);
     };
     fetchData();
   }, []);
@@ -480,6 +486,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
         isPTT: type === 'audio',
         fileName: '',
         action: type === 'crmAction' ? 'Notificar Agente' : '',
+        statusValue: '',
         templateName: '',
         templateId: '',
         language: '',
@@ -847,23 +854,60 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                   </div>
                 )}
                 {selectedNode.type === 'crmAction' && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Tipo de Ação</Label>
-                    <Select 
-                      value={selectedNode.data.action as string} 
-                      onValueChange={(val) => updateNodeData(selectedNode.id, { action: val })}
-                    >
-                      <SelectTrigger className="text-xs h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Notificar Agente">Notificar Agente</SelectItem>
-                        <SelectItem value="Mudar Status: Ganho">Mudar Status: Ganho</SelectItem>
-                        <SelectItem value="Mudar Status: Perdido">Mudar Status: Perdido</SelectItem>
-                        <SelectItem value="Adicionar Etiqueta">Adicionar Etiqueta</SelectItem>
-                        <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Tipo de Ação</Label>
+                      <Select 
+                        value={selectedNode.data.action as string} 
+                        onValueChange={(val) => updateNodeData(selectedNode.id, { action: val })}
+                      >
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Notificar Agente">Notificar Agente</SelectItem>
+                          <SelectItem value="Mudar Status: Ganho">Mudar Status: Ganho</SelectItem>
+                          <SelectItem value="Mudar Status: Perdido">Mudar Status: Perdido</SelectItem>
+                          <SelectItem value="Adicionar Etiqueta">Adicionar Etiqueta</SelectItem>
+                          <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedNode.data.action === 'Adicionar Etiqueta' && (
+                      <div className="space-y-2 animate-in slide-in-from-top-2">
+                        <Label className="text-xs font-semibold text-slate-700">Escolher Etiqueta (Status)</Label>
+                        <Select 
+                          value={selectedNode.data.statusValue as string} 
+                          onValueChange={(val) => {
+                            const status = availableStatuses.find(s => s.value === val);
+                            if (status) {
+                              updateNodeData(selectedNode.id, { 
+                                statusValue: val,
+                                statusLabel: status.label
+                              });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="text-xs h-9 border-slate-300">
+                            <SelectValue placeholder="Selecione uma etiqueta..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableStatuses.map(s => (
+                              <SelectItem key={s.id} value={s.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full bg-${s.color}-500`} />
+                                  {s.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-[9px] text-muted-foreground mt-1 italic">
+                          O contato receberá esta etiqueta automaticamente ao chegar nesta etapa.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
                 {selectedNode.type === 'jump' && (
