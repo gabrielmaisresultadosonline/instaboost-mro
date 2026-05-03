@@ -988,9 +988,9 @@ const CRM = () => {
 
     reader.onload = async (event) => {
       const content = event.target?.result as string;
+      const contacts_to_import: any[] = [];
 
       if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
-        const contacts_to_import: any[] = [];
         const lines = content.split('\n');
         let currentContact: any = { metadata: {} };
 
@@ -1014,35 +1014,29 @@ const CRM = () => {
             }
           }
         }
-
-        for (const contact of contacts_to_import) {
-          await supabase.from('crm_contacts').upsert({
-            wa_id: contact.wa_id,
-            name: contact.name,
-            status: 'new',
-            source_type: 'imported',
-            metadata: contact.metadata
-          }, { onConflict: 'wa_id' });
-        }
-        toast({ title: `${contacts_to_import.length} contatos importados do vCard!` });
       } else {
-        const lines = content.split('\n').filter(l => l.trim());
-        if (lines.length < 2) return;
+        const lines = content.split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.length < 1) return;
         
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        // Detect delimiter (comma or semicolon)
+        const firstLine = lines[0];
+        const delimiter = firstLine.includes(';') ? ';' : ',';
+        
+        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
         const imported = lines.slice(1).map(line => {
-          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const values = line.split(delimiter).map(v => v.trim().replace(/"/g, ''));
           const obj: any = {};
           headers.forEach((h, i) => obj[h] = values[i]);
           return obj;
         });
 
         for (const contact of imported) {
-          const phone = contact.Telefone || contact.wa_id || contact.phone;
+          const phone = (contact.Telefone || contact.wa_id || contact.phone || contact.whatsapp || Object.values(contact)[0])?.toString();
           if (!phone) continue;
-          await supabase.from('crm_contacts').upsert({
+          
+          contacts_to_import.push({
             wa_id: phone.replace(/\D/g, ''),
-            name: contact.Nome || contact.name,
+            name: contact.Nome || contact.name || contact.full_name || phone,
             status: contact.Status || 'new',
             source_type: 'imported',
             metadata: {
@@ -1051,10 +1045,36 @@ const CRM = () => {
               facebook: contact.Facebook || contact.facebook,
               links: contact.Links || contact.links
             }
-          }, { onConflict: 'wa_id' });
+          });
         }
-        toast({ title: "Importação CSV concluída!" });
       }
+
+      if (contacts_to_import.length === 0) {
+        toast({ title: "Nenhum contato encontrado no arquivo", variant: "destructive" });
+        return;
+      }
+
+      // Process in batches of 50 for performance and reliability
+      const batchSize = 50;
+      let successCount = 0;
+      
+      toast({ title: `Iniciando importação de ${contacts_to_import.length} contatos...` });
+
+      for (let i = 0; i < contacts_to_import.length; i += batchSize) {
+        const batch = contacts_to_import.slice(i, i + batchSize).map(contact => ({
+          wa_id: contact.wa_id,
+          name: contact.name,
+          status: contact.status || 'new',
+          source_type: 'imported',
+          metadata: contact.metadata || {}
+        }));
+
+        const { error } = await supabase.from('crm_contacts').upsert(batch, { onConflict: 'wa_id' });
+        if (!error) successCount += batch.length;
+        else console.error("Batch error:", error);
+      }
+
+      toast({ title: `Importação concluída: ${successCount} contatos!` });
       fetchContacts();
     };
     reader.readAsText(file);
