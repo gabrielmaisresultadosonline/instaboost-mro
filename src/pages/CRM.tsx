@@ -1171,11 +1171,13 @@ const CRM = () => {
       }));
 
       const newFlow = {
-        ...flowData,
         name: `${flowData.name} (Cópia)`,
+        trigger_type: flowData.trigger_type || 'manual',
+        trigger_keywords: flowData.trigger_keywords || [],
+        is_active: false,
         nodes: newNodes,
         edges: newEdges,
-        is_active: false
+        updated_at: new Date().toISOString()
       };
 
       const { data, error } = await supabase
@@ -1190,6 +1192,7 @@ const CRM = () => {
       toast({ title: "Fluxo duplicado com sucesso!" });
       fetchData();
     } catch (err: any) {
+      console.error("Erro ao duplicar fluxo:", err);
       toast({ 
         title: "Erro ao duplicar fluxo", 
         description: err.message || "Verifique se há campos obrigatórios faltando ou conflitos.", 
@@ -1199,6 +1202,7 @@ const CRM = () => {
       setSaving(false);
     }
   };
+
 
 
   const getWindowInfo = (lastInteraction: string) => {
