@@ -280,6 +280,20 @@ serve(async (req) => {
     if (action === 'startFlow') {
       const { flowId, contactId, waId } = params
       
+      // Check if contact already has an active flow to prevent duplicates
+      const { data: currentContact } = await supabase
+        .from('crm_contacts')
+        .select('flow_state, current_flow_id')
+        .eq('id', contactId)
+        .single();
+        
+      if (currentContact?.flow_state === 'running' || currentContact?.flow_state === 'waiting_response') {
+        console.log(`Contact ${contactId} already has an active flow (${currentContact.current_flow_id}). Skipping startFlow for ${flowId}.`);
+        return new Response(JSON.stringify({ success: true, message: 'Flow already active, skipped duplicate' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const { data: flow } = await supabase
         .from('crm_flows')
         .select('*')
