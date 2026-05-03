@@ -364,7 +364,7 @@ serve(async (req) => {
           nextNode = flow.nodes.find((n: any) => n.id === nextNodeId)
         } else {
           const currentNode = flow.nodes.find((n: any) => n.id === contact.current_node_id)
-          if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404 })
+          if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
           // Find next node based on buttonId or standard connection
           let nextEdge = null;
@@ -1132,7 +1132,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
       }
       return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
   }
@@ -1155,7 +1155,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
     }
     return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
   else if (node.type === 'delay') {
@@ -1352,7 +1352,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   }
 
   return new Response(JSON.stringify({ success: true, node: node.id }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }
 
@@ -1378,7 +1378,7 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
       .eq('id', contactId)
     
     return new Response(JSON.stringify({ success: true, action: 'wait', seconds: step.delay_seconds }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
   
@@ -1389,12 +1389,12 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
       .eq('id', contactId)
     
     return new Response(JSON.stringify({ success: true, action: 'wait_response' }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
   return new Response(JSON.stringify({ success: true, message: 'Step processed' }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }
 
