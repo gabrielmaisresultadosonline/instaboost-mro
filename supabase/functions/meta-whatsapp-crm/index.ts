@@ -364,7 +364,7 @@ serve(async (req) => {
           nextNode = flow.nodes.find((n: any) => n.id === nextNodeId)
         } else {
           const currentNode = flow.nodes.find((n: any) => n.id === contact.current_node_id)
-          if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404 })
+          if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
           // Find next node based on buttonId or standard connection
           let nextEdge = null;
