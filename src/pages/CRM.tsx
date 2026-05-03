@@ -2881,43 +2881,52 @@ const CRM = () => {
                     </DialogContent>
                   </Dialog>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-                    {templates.length > 0 ? (
-                      templates.map((template) => {
-                        const header = template.components?.find((c: any) => c.type === 'HEADER');
-                        const body = template.components?.find((c: any) => c.type === 'BODY');
-                        const footer = template.components?.find((c: any) => c.type === 'FOOTER');
-                        const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
-                        const carouselComp = template.components?.find((c: any) => c.type === 'CAROUSEL');
+                  <Accordion type="single" collapsible className="w-full space-y-4">
+                    <AccordionItem value="templates-list" className="border-none">
+                      <AccordionTrigger className="bg-card p-6 rounded-2xl border shadow-sm hover:no-underline">
+                        <div className="flex flex-col items-start text-left">
+                          <h3 className="text-xl font-bold tracking-tight">Lista de Templates</h3>
+                          <p className="text-muted-foreground text-sm font-normal">Clique para ver e gerenciar seus templates.</p>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                          {templates.length > 0 ? (
+                            templates.map((template) => {
+                              const header = template.components?.find((c: any) => c.type === 'HEADER');
+                              const body = template.components?.find((c: any) => c.type === 'BODY');
+                              const footer = template.components?.find((c: any) => c.type === 'FOOTER');
+                              const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+                              const carouselComp = template.components?.find((c: any) => c.type === 'CAROUSEL');
 
-                        return (
-                          <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
-                            <CardHeader className="bg-muted/30 pb-4 border-b">
-                              <div className="flex justify-between items-start mb-2">
-                                <Badge variant={
-                                  template.status === 'APPROVED' ? 'default' : 
-                                  template.status === 'REJECTED' ? 'destructive' : 'secondary'
-                                } className={cn(
-                                  "text-[9px] uppercase tracking-wider",
-                                  template.status === 'APPROVED' ? "bg-green-500/10 text-green-600 border-green-200" : ""
-                                )}>
-                                  {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
-                                  template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
-                                  <Clock className="w-3 h-3 mr-1" />}
-                                  {template.status}
-                                </Badge>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
-                                    <Eye className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => {
-                                    if (confirm(`Deseja realmente excluir o template "${template.name}"?`)) {
-                                      handleDeleteTemplate(template.name);
-                                    }
-                                  }}>
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
+                              return (
+                                <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
+                                  <CardHeader className="bg-muted/30 pb-4 border-b">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <Badge variant={
+                                        template.status === 'APPROVED' ? 'default' : 
+                                        template.status === 'REJECTED' ? 'destructive' : 'secondary'
+                                      } className={cn(
+                                        "text-[9px] uppercase tracking-wider",
+                                        template.status === 'APPROVED' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                      )}>
+                                        {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
+                                        template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
+                                        <Clock className="w-3 h-3 mr-1" />}
+                                        {template.status}
+                                      </Badge>
+                                      <div className="flex gap-1">
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
+                                          <Eye className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => {
+                                          if (confirm(`Deseja realmente excluir o template "${template.name}"?`)) {
+                                            handleDeleteTemplate(template.name);
+                                          }
+                                        }}>
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
                               </div>
                               <div className="flex justify-between items-center gap-2">
                                 <CardTitle className="text-base truncate font-bold flex items-center gap-2">
