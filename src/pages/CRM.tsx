@@ -1639,22 +1639,32 @@ const CRM = () => {
                             onChange={e => setStatusFilter(e.target.value || 'all')} 
                           />
                         </div>
-                        <div className="flex flex-wrap gap-1 pb-1">
-                          {['all', ...(kanbanStatuses.length > 0 ? kanbanStatuses.map(s => s.value) : ['new', 'responded', 'human', 'qualified', 'closed', 'lost'])].map(s => (
-                            <Badge 
-                              key={s} 
-                              variant={statusFilter === s ? 'default' : 'outline'} 
-                              style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                              className={cn(
-                                "cursor-pointer capitalize whitespace-nowrap px-2 font-black transition-all",
-                                statusFilter === s ? "shadow-md scale-105" : "hover:bg-muted"
-                              )}
-                              onClick={() => setStatusFilter(s)}
-                            >
-                              {s === 'all' ? '🚀 Todos' : getStatusLabel(s)}
-                            </Badge>
-                          ))}
-                        </div>
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value="tags" className="border-none">
+                            <AccordionTrigger className="py-2 hover:no-underline text-xs font-semibold text-muted-foreground flex gap-2">
+                              <ListFilter className="w-3.5 h-3.5" />
+                              Filtrar por Etiquetas
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="flex flex-wrap gap-1 pb-1 pt-1">
+                                {['all', ...(kanbanStatuses.length > 0 ? kanbanStatuses.map(s => s.value) : ['new', 'responded', 'human', 'qualified', 'closed', 'lost'])].map(s => (
+                                  <Badge 
+                                    key={s} 
+                                    variant={statusFilter === s ? 'default' : 'outline'} 
+                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    className={cn(
+                                      "cursor-pointer capitalize whitespace-nowrap px-2 font-black transition-all",
+                                      statusFilter === s ? "shadow-md scale-105" : "hover:bg-muted"
+                                    )}
+                                    onClick={() => setStatusFilter(s)}
+                                  >
+                                    {s === 'all' ? '🚀 Todos' : getStatusLabel(s)}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
                       </div>
                       <ScrollArea className="flex-1 min-h-0">
                         {filteredContacts.length > 0 ? (
