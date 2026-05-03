@@ -3038,8 +3038,11 @@ const CRM = () => {
                         <p className="text-sm text-muted-foreground">Clique em "Sincronizar Meta" para carregar seus templates oficiais.</p>
                         <Button variant="outline" size="sm" onClick={syncTemplates} disabled={syncingTemplates}>Sincronizar agora</Button>
                       </div>
-                    )}
-                  </div>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
 
                 <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
