@@ -991,34 +991,54 @@ const CRM = () => {
       const contacts_to_import: any[] = [];
 
       if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
-        const lines = content.split('\n');
-        let currentContact: any = { metadata: {} };
+        // Normaliza quebras de linha para evitar problemas com diferentes sistemas operacionais
+        const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const vcardBlocks = normalizedContent.split(/BEGIN:VCARD/i).filter(block => block.trim());
 
-        for (const line of lines) {
-          if (line.startsWith('BEGIN:VCARD')) {
-            currentContact = { metadata: {} };
-          } else if (line.startsWith('FN:')) {
-            currentContact.name = line.substring(3).trim();
-          } else if (line.startsWith('TEL;')) {
-            const match = line.match(/:(.*)$/);
-            if (match) {
-              currentContact.wa_id = match[1].trim().replace(/\D/g, '');
+        for (const block of vcardBlocks) {
+          const lines = block.split('\n');
+          let currentContact: any = { metadata: {} };
+          let foundName = false;
+          let foundPhone = false;
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
+
+            if (trimmedLine.startsWith('FN:')) {
+              currentContact.name = trimmedLine.substring(3).trim();
+              foundName = true;
+            } else if (trimmedLine.startsWith('N:') && !foundName) {
+              // Tenta extrair o nome do campo N (Name) se FN não existir
+              const parts = trimmedLine.substring(2).split(';');
+              currentContact.name = parts.filter(p => p).reverse().join(' ').trim();
+              foundName = true;
+            } else if (trimmedLine.startsWith('TEL')) {
+              // Regex mais robusta para pegar o número após o último ':'
+              const match = trimmedLine.match(/:(.*)$/);
+              if (match) {
+                const phone = match[1].trim().replace(/\D/g, '');
+                if (phone && phone.length >= 8) {
+                  currentContact.wa_id = phone;
+                  foundPhone = true;
+                }
+              }
+            } else if (trimmedLine.startsWith('NOTE:')) {
+              currentContact.metadata.bio = trimmedLine.substring(5).trim();
+            } else if (trimmedLine.startsWith('URL:')) {
+              currentContact.metadata.links = trimmedLine.substring(4).trim();
             }
-          } else if (line.startsWith('NOTE:')) {
-            currentContact.metadata.bio = line.substring(5).trim();
-          } else if (line.startsWith('URL:')) {
-            currentContact.metadata.links = line.substring(4).trim();
-          } else if (line.startsWith('END:VCARD')) {
-            if (currentContact.wa_id) {
-              contacts_to_import.push(currentContact);
-            }
+          }
+
+          if (foundPhone) {
+            if (!currentContact.name) currentContact.name = currentContact.wa_id;
+            contacts_to_import.push(currentContact);
           }
         }
       } else {
         const lines = content.split('\n').map(l => l.trim()).filter(l => l);
         if (lines.length < 1) return;
         
-        // Detect delimiter (comma or semicolon)
         const firstLine = lines[0];
         const delimiter = firstLine.includes(';') ? ';' : ',';
         
@@ -1034,9 +1054,12 @@ const CRM = () => {
           const phone = (contact.Telefone || contact.wa_id || contact.phone || contact.whatsapp || Object.values(contact)[0])?.toString();
           if (!phone) continue;
           
+          const cleanPhone = phone.replace(/\D/g, '');
+          if (cleanPhone.length < 8) continue;
+
           contacts_to_import.push({
-            wa_id: phone.replace(/\D/g, ''),
-            name: contact.Nome || contact.name || contact.full_name || phone,
+            wa_id: cleanPhone,
+            name: contact.Nome || contact.name || contact.full_name || cleanPhone,
             status: contact.Status || 'new',
             source_type: 'imported',
             metadata: {
@@ -1050,28 +1073,32 @@ const CRM = () => {
       }
 
       if (contacts_to_import.length === 0) {
-        toast({ title: "Nenhum contato encontrado no arquivo", variant: "destructive" });
+        toast({ title: "Nenhum contato válido encontrado no arquivo", variant: "destructive" });
         return;
       }
 
-      // Process in batches of 50 for performance and reliability
-      const batchSize = 50;
+      const batchSize = 100;
       let successCount = 0;
       
-      toast({ title: `Iniciando importação de ${contacts_to_import.length} contatos...` });
+      toast({ title: `Importando ${contacts_to_import.length} contatos...` });
 
+      // Processamento em lotes maiores
       for (let i = 0; i < contacts_to_import.length; i += batchSize) {
         const batch = contacts_to_import.slice(i, i + batchSize).map(contact => ({
           wa_id: contact.wa_id,
           name: contact.name,
           status: contact.status || 'new',
           source_type: 'imported',
-          metadata: contact.metadata || {}
+          metadata: contact.metadata || {},
+          last_interaction: new Date().toISOString()
         }));
 
         const { error } = await supabase.from('crm_contacts').upsert(batch, { onConflict: 'wa_id' });
-        if (!error) successCount += batch.length;
-        else console.error("Batch error:", error);
+        if (!error) {
+          successCount += batch.length;
+        } else {
+          console.error("Batch error:", error);
+        }
       }
 
       toast({ title: `Importação concluída: ${successCount} contatos!` });
