@@ -210,8 +210,9 @@ serve(async (req) => {
                   const isNewContact = contact.total_messages_received === 1;
                   const lastInteraction = contact.last_interaction ? new Date(contact.last_interaction).getTime() : 0;
                   const isAfter24h = lastInteraction > 0 && (new Date().getTime() - lastInteraction) > 24 * 60 * 60 * 1000;
+                  const isFlowActive = contact.flow_state === 'running' || contact.flow_state === 'waiting_response';
 
-                  if (message.type === 'text' || message.referral) {
+                  if (!isFlowActive && (message.type === 'text' || message.referral)) {
                     const text = message.text?.body?.toLowerCase()?.trim() || "";
                     const referralData = message.referral;
                     
@@ -281,7 +282,7 @@ serve(async (req) => {
                     messageType: message.type
                   });
                   
-                  if (isAiEnabledGlobally && settings?.openai_api_key && contact.ai_active) {
+                  if (isAiEnabledGlobally && settings?.openai_api_key && contact.ai_active && !isFlowActive) {
                     let shouldTriggerAI = false;
                     
                     if (settings.ai_agent_trigger === 'all') {

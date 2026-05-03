@@ -280,6 +280,20 @@ serve(async (req) => {
     if (action === 'startFlow') {
       const { flowId, contactId, waId } = params
       
+      // Check if contact already has an active flow to prevent duplicates
+      const { data: currentContact } = await supabase
+        .from('crm_contacts')
+        .select('flow_state, current_flow_id')
+        .eq('id', contactId)
+        .single();
+        
+      if (currentContact?.flow_state === 'running' || currentContact?.flow_state === 'waiting_response') {
+        console.log(`Contact ${contactId} already has an active flow (${currentContact.current_flow_id}). Skipping startFlow for ${flowId}.`);
+        return new Response(JSON.stringify({ success: true, message: 'Flow already active, skipped duplicate' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const { data: flow } = await supabase
         .from('crm_flows')
         .select('*')
@@ -1341,7 +1355,6 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          // Removed sleep(200) to ensure immediate transition between nodes after any configured delay
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()
@@ -1349,6 +1362,14 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
           
           return executeVisualNode(supabase, flow, nextNode, contactId, waId)
         }
+      } else {
+        // No more nodes, finish flow
+        console.log(`No more nodes after ${node.id}, finishing flow.`);
+        await supabase.from('crm_contacts').update({ 
+          flow_state: 'idle', 
+          current_flow_id: null, 
+          current_node_id: null 
+        }).eq('id', contactId);
       }
     } else {
       console.error(`Node ${node.id} failed, stopping flow:`, sendResult?.error);
