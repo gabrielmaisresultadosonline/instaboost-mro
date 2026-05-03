@@ -273,12 +273,23 @@ const CRM = () => {
   };
 
   useEffect(() => {
-    if (statusFilter === 'all') {
-      setFilteredContacts(contacts);
-    } else {
-      setFilteredContacts(contacts.filter(c => c.status === statusFilter));
+    let filtered = contacts;
+    
+    // In the "Conversations" tab, only show contacts that actually have an interaction history
+    if (activeTab === 'contacts') {
+      filtered = filtered.filter(c => c.last_interaction !== null);
     }
-  }, [statusFilter, contacts]);
+
+    if (statusFilter !== 'all') {
+      // Allow searching by name/phone or filtering by status
+      filtered = filtered.filter(c => 
+        c.status === statusFilter || 
+        c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
+        c.wa_id?.includes(statusFilter)
+      );
+    }
+    setFilteredContacts(filtered);
+  }, [statusFilter, contacts, activeTab]);
 
   const fetchData = async () => {
     setLoading(true);
