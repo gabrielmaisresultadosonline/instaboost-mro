@@ -1204,8 +1204,16 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   }
   else if (node.type === 'crmAction') {
     const action = node.data.action || 'Notificar Agente'
-    if (action === 'Finalizar Atendimento') {
+    if (action === 'Finalizar Atendimento' || action === 'Mudar Status: Ganho') {
       await supabase.from('crm_contacts').update({ status: 'closed' }).eq('id', contactId)
+    } else if (action === 'Mudar Status: Perdido') {
+      await supabase.from('crm_contacts').update({ status: 'lost' }).eq('id', contactId)
+    } else if (action === 'Adicionar Etiqueta' && node.data.statusValue) {
+      const updateData: any = { status: node.data.statusValue };
+      if (node.data.statusValue === 'human') updateData.ai_active = false;
+      await supabase.from('crm_contacts').update(updateData).eq('id', contactId)
+    } else if (action === 'Humanizar Atendimento') {
+      await supabase.from('crm_contacts').update({ status: 'human', ai_active: false }).eq('id', contactId)
     }
     sendResult = { success: true };
   }

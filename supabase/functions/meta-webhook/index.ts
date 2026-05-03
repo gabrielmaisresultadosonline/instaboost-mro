@@ -211,9 +211,14 @@ serve(async (req) => {
                   const lastInteraction = contact.last_interaction ? new Date(contact.last_interaction).getTime() : 0;
                   const isAfter24h = lastInteraction > 0 && (new Date().getTime() - lastInteraction) > 24 * 60 * 60 * 1000;
 
-                  if (message.type === 'text') {
-                    const text = message.text.body.toLowerCase().trim();
+                  if (message.type === 'text' || message.referral) {
+                    const text = message.text?.body?.toLowerCase()?.trim() || "";
+                    const referralData = message.referral;
                     
+                    if (referralData) {
+                      console.log('Detected Click-to-WhatsApp referral:', JSON.stringify(referralData));
+                    }
+
                     // Search for flows with matching keywords or type
                     const { data: flows } = await supabase
                       .from('crm_flows')
@@ -223,12 +228,25 @@ serve(async (req) => {
                     let triggeredFlow = null;
 
                     if (flows) {
-                      triggeredFlow = flows.find(f => 
-                        f.trigger_type === 'keyword' && 
-                        (f.trigger_keywords?.some((k: string) => k.toLowerCase() === text) || 
-                         f.trigger_keyword?.toLowerCase() === text)
-                      );
+                      // 1. Priority: Referral/Ads Trigger
+                      if (referralData) {
+                        triggeredFlow = flows.find(f => 
+                          f.trigger_type === 'ads' || 
+                          f.trigger_type === 'referral' ||
+                          (f.trigger_type === 'keyword' && referralData.body && f.trigger_keywords?.some((k: string) => referralData.body.toLowerCase().includes(k.toLowerCase())))
+                        );
+                      }
 
+                      // 2. Keyword Trigger
+                      if (!triggeredFlow && text) {
+                        triggeredFlow = flows.find(f => 
+                          f.trigger_type === 'keyword' && 
+                          (f.trigger_keywords?.some((k: string) => k.toLowerCase() === text) || 
+                           f.trigger_keyword?.toLowerCase() === text)
+                        );
+                      }
+
+                      // 3. Status-based triggers
                       if (!triggeredFlow && isFirstMessageOfDay) {
                         triggeredFlow = flows.find(f => f.trigger_type === 'first_message_day');
                       }

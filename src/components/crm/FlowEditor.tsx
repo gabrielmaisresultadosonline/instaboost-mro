@@ -870,6 +870,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                           <SelectItem value="Mudar Status: Perdido">Mudar Status: Perdido</SelectItem>
                           <SelectItem value="Adicionar Etiqueta">Adicionar Etiqueta</SelectItem>
                           <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
+                          <SelectItem value="Humanizar Atendimento">Encaminhar p/ Humano</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
