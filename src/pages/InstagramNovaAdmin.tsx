@@ -1222,6 +1222,12 @@ Participe também do nosso GRUPO DE AVISOS
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
     if (whatsappMode === "none" && !isTest) return;
     
+    // Verificar se já foi enviado para evitar duplicidade
+    if (order.whatsapp_sent && !isTest) {
+      console.log(`[CRM] WhatsApp já enviado para o pedido ${order.id}, ignorando.`);
+      return;
+    }
+    
     // Se for QR Code, enfileirar via wpp-bot-admin
     if (whatsappMode === "qrcode") {
       try {

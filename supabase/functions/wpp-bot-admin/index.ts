@@ -304,6 +304,22 @@ const handler = async (req: Request): Promise<Response> => {
       
       const { data: settings } = await supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle();
       
+      // Verificar se já existe uma mensagem pendente ou enviada para este lead nas últimas 24h
+      // para evitar duplicidade causada por retentativas de webhook ou loops de interface
+      if (parsed.data.lead_id) {
+        const { data: existing } = await supabase
+          .from("wpp_bot_messages")
+          .select("id, status")
+          .eq("lead_id", parsed.data.lead_id)
+          .gt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+          .maybeSingle();
+
+        if (existing) {
+          console.log(`[sendTest] Mensagem já existe para o lead ${parsed.data.lead_id} (status: ${existing.status}). Ignorando.`);
+          return json({ success: true, duplicate: true, message_id: existing.id });
+        }
+      }
+
       // Buscar a última mensagem agendada para evitar sobreposição
       const { data: lastPending } = await supabase
         .from("wpp_bot_messages")
@@ -316,14 +332,11 @@ const handler = async (req: Request): Promise<Response> => {
       let baseTime = Date.now();
       if (lastPending?.scheduled_for) {
         const lastTime = new Date(lastPending.scheduled_for).getTime();
-        // Se a última agendada ainda não passou, começamos dela
         if (lastTime > baseTime) {
           baseTime = lastTime;
         }
       }
 
-      // Adicionar atraso aleatório entre 45 e 180 segundos (comportamento humano)
-      // Se for a primeira da fila (baseTime == now), podemos usar um atraso menor inicial
       const isQueueEmpty = baseTime <= Date.now();
       const minDelay = isQueueEmpty ? 5 : 45;
       const maxDelay = isQueueEmpty ? 15 : 180;
