@@ -1123,10 +1123,13 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
-    if (whatsappMode === "none" && !isTest) return;
+    // Se for teste manual, força o envio independente do status 'whatsapp_sent'
+    const isManualTest = isTest;
     
-    // Verificar se já foi enviado para evitar duplicidade
-    if (order.whatsapp_sent && !isTest) {
+    if (whatsappMode === "none" && !isManualTest) return;
+    
+    // Verificar se já foi enviado para evitar duplicidade (exceto se for teste manual)
+    if (order.whatsapp_sent && !isManualTest) {
       console.log(`[CRM] WhatsApp já enviado para o pedido ${order.id}, ignorando.`);
       return;
     }
@@ -1138,7 +1141,7 @@ Participe também do nosso GRUPO DE AVISOS
         const token = getAdminSessionToken();
         const response = await supabase.functions.invoke("wpp-bot-admin", {
           body: { 
-            action: "sendTest",
+            action: isManualTest ? "enqueueLead" : "sendTest",
             adminToken: token,
             phone: order.phone,
             message_template: formatWebhookMessage(webhookConfig.message_template, order),
