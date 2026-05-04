@@ -58,7 +58,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
-import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
+// AccessReminderPanel removido
 import WppBotPanel from "@/components/admin/WppBotPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -182,7 +182,7 @@ Participe também do nosso GRUPO DE AVISOS
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
   // showRemarketingDashboard removido
-  const [showAccessReminder, setShowAccessReminder] = useState(false);
+  // showAccessReminder removido
   const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
   // Afiliado atual sendo editado
@@ -2305,6 +2305,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
   const getAffiliateSales = (affId: string) => {
     return orders.filter(o => 
       (o.status === "paid" || o.status === "completed") && 
+      o.whatsapp_sent && // Apenas os já enviados
       o.email.toLowerCase().startsWith(`${affId.toLowerCase()}:`)
     );
   };
@@ -2347,9 +2348,10 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
   // Vendas filtradas por afiliado (para aba de vendas)
   const getFilteredAffiliateSales = () => {
     if (selectedAffiliateFilter === "all") {
-      // Todas as vendas de afiliados
+      // Todas as vendas de afiliados JÁ ENVIADAS
       return orders.filter(o => 
         (o.status === "paid" || o.status === "completed") && 
+        o.whatsapp_sent && // Apenas os já enviados
         affiliates.some(a => o.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`))
       );
     } else {
@@ -2375,9 +2377,9 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
 
   const stats = {
-    total: orders.length,
+    total: orders.filter(o => o.status === "paid" || o.status === "completed").length,
     pending: orders.filter(o => o.status === "pending").length,
-    paid: orders.filter(o => o.status === "paid" || o.status === "completed").length,
+    paid: orders.filter(o => o.status === "paid").length,
     completed: orders.filter(o => o.status === "completed").length,
     expired: orders.filter(o => o.status === "expired").length,
     totalRevenue: orders.filter(o => o.status === "paid" || o.status === "completed").reduce((sum, o) => sum + Number(o.amount), 0)
@@ -2618,12 +2620,10 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     );
   };
 
-  // Configuração das seções
+  // Configuração das seções - Apenas Vendas Aprovadas (Pagas e Completas)
   const sections = [
     { key: "completed", label: kanbanLabels.completed, color: "green", icon: CheckCircle, orders: groupedOrders.completed },
     { key: "paid", label: kanbanLabels.paid, color: "blue", icon: CheckCircle, orders: groupedOrders.paid },
-    { key: "pending", label: kanbanLabels.pending, color: "yellow", icon: Clock, orders: groupedOrders.pending },
-    { key: "expired", label: kanbanLabels.expired, color: "red", icon: AlertTriangle, orders: groupedOrders.expired },
   ];
 
   if (!isAuthenticated) {
@@ -2739,15 +2739,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               Afiliados
             </Button>
             {/* Botão Remarketing Removido conforme solicitação: Foco apenas em Vendas Aprovadas */}
-            <Button
-              onClick={() => { setShowAccessReminder(!showAccessReminder); if (!showAccessReminder) { setShowAffiliateConfig(false); } }}
-              variant="outline"
-              size="sm"
-              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAccessReminder ? "text-blue-400 border-blue-500/50" : "text-zinc-400"}`}
-            >
-              <Key className="w-4 h-4 mr-1.5" />
-              Lembrete
-            </Button>
+            {/* Botão de Lembrete Removido para focar apenas em Vendas Aprovadas */}
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
@@ -2807,9 +2799,9 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                     Histórico ({affiliates.length})
                   </TabsTrigger>
                   <TabsTrigger value="sales" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
-                    Vendas
+                    Histórico de Envios
                   </TabsTrigger>
-                  {/* Tab Tentativas removida para focar apenas em Vendas Aprovadas */}
+                  {/* Tab Tentativas removida permanentemente para focar apenas em Vendas Aprovadas */}
                   <TabsTrigger value="email-preview" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
                     📧 Preview Email
                   </TabsTrigger>
@@ -3502,128 +3494,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   )}
                 </TabsContent>
 
-                {/* Tab: Tentativas (pessoas que não pagaram) */}
-                <TabsContent value="attempts">
-                  <div className="mb-4 flex items-center gap-4">
-                    <Filter className="w-4 h-4 text-zinc-400" />
-                    <select
-                      value={selectedAffiliateFilter}
-                      onChange={(e) => setSelectedAffiliateFilter(e.target.value)}
-                      className="bg-zinc-800 border border-zinc-600 text-white rounded-lg px-3 py-2"
-                    >
-                      <option value="all">Todos os Afiliados</option>
-                      {affiliates.map(a => (
-                        <option key={a.id} value={a.id}>{a.name} ({a.id})</option>
-                      ))}
-                    </select>
-                    <span className="text-sm text-yellow-400">
-                      {getFilteredAffiliateAttempts().length} tentativas sem pagamento
-                    </span>
-                  </div>
-                  
-                  {getFilteredAffiliateAttempts().length === 0 ? (
-                    <div className="text-center py-8 text-zinc-400">
-                      <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>Nenhuma tentativa pendente</p>
-                      <p className="text-sm text-green-400">Ótimo! Todas as pessoas pagaram 🎉</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {/* Primeiro mostrar pessoas com múltiplas tentativas */}
-                      {(() => {
-                        const multipleAttemptsList = selectedAffiliateFilter === "all" 
-                          ? affiliates.flatMap(a => getMultipleAttempts(a.id))
-                          : getMultipleAttempts(selectedAffiliateFilter);
-                        
-                        if (multipleAttemptsList.length > 0) {
-                          return (
-                            <div className="mb-4">
-                              <h4 className="text-orange-400 font-medium mb-2 flex items-center gap-2">
-                                <AlertTriangle className="w-4 h-4" />
-                                Múltiplas Tentativas ({multipleAttemptsList.length} pessoas)
-                              </h4>
-                              <div className="space-y-2">
-                                {multipleAttemptsList.map(item => {
-                                  const affiliate = affiliates.find(a => 
-                                    item.attempts[0]?.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
-                                  );
-                                  return (
-                                    <div key={item.email} className={`bg-zinc-800/30 border rounded-lg p-3 ${item.hasPaid ? 'border-green-500/30' : 'border-orange-500/30'}`}>
-                                      <div className="flex items-center justify-between flex-wrap gap-2">
-                                        <div className="flex items-center gap-3">
-                                          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                                            {affiliate?.name || "Afiliado"}
-                                          </Badge>
-                                          <div>
-                                            <p className="text-sm text-white">{item.email}</p>
-                                            <p className="text-xs text-zinc-400">
-                                              {item.totalAttempts} tentativas
-                                            </p>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          {item.hasPaid ? (
-                                            <Badge className="bg-green-500/20 text-green-400 flex items-center gap-1">
-                                              <CheckCircle2 className="w-3 h-3" />
-                                              Pagou na {item.attempts.findIndex(a => a.status === "paid" || a.status === "completed") + 1}ª tentativa
-                                            </Badge>
-                                          ) : (
-                                            <Badge className="bg-red-500/20 text-red-400 flex items-center gap-1">
-                                              <XCircle className="w-3 h-3" />
-                                              Não pagou
-                                            </Badge>
-                                          )}
-                                          <span className="text-xs text-zinc-500">
-                                            Última: {format(new Date(item.attempts[item.attempts.length - 1].created_at), "dd/MM HH:mm", { locale: ptBR })}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                      
-                      {/* Lista de todas as tentativas */}
-                      <h4 className="text-yellow-400 font-medium mb-2 mt-4">Todas as Tentativas</h4>
-                      {getFilteredAffiliateAttempts().map(order => {
-                        const affiliate = affiliates.find(a => 
-                          order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
-                        );
-                        
-                        return (
-                          <div key={order.id} className="bg-zinc-800/30 border border-yellow-500/20 rounded-lg p-3">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <div className="flex items-center gap-4">
-                                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                                  {affiliate?.name || "Afiliado"}
-                                </Badge>
-                                <div>
-                                  <p className="text-sm text-white">{order.email.split(":")[1]}</p>
-                                  <p className="text-xs text-zinc-400">{order.username} | {order.phone || "sem telefone"}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <Badge className={order.status === "expired" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"}>
-                                    {order.status === "expired" ? "Expirado" : "Pendente"}
-                                  </Badge>
-                                  <p className="text-xs text-zinc-400 mt-1">
-                                    {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </TabsContent>
+                {/* Tab: Tentativas removida permanentemente */}
 
                 {/* Tab: Preview do Email */}
                 <TabsContent value="email-preview">
@@ -3760,13 +3631,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </Card>
         )}
 
-        {/* Lembrete de Acesso */}
-        {showAccessReminder && (
-          <AccessReminderPanel
-            adminSessionToken={adminSessionToken}
-            onClose={() => setShowAccessReminder(false)}
-          />
-        )}
+        {/* Lembrete de Acesso Removido conforme solicitação */}
 
         {/* Dashboard de Remarketing - Separado */}
         {/* Dashboard de Remarketing Removido */}
@@ -3779,12 +3644,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </CardContent>
           </Card>
-          <Card className="bg-yellow-500/10 border-yellow-500/30">
-            <CardContent className="p-4">
-              <p className="text-yellow-400 text-sm">Pendentes</p>
-              <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
-            </CardContent>
-          </Card>
+          {/* Pendentes removido da visualização principal */}
           <Card className="bg-blue-500/10 border-blue-500/30">
             <CardContent className="p-4">
               <p className="text-blue-400 text-sm">Pagos</p>
@@ -3797,12 +3657,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <p className="text-2xl font-bold text-green-400">{stats.completed}</p>
             </CardContent>
           </Card>
-          <Card className="bg-red-500/10 border-red-500/30">
-            <CardContent className="p-4">
-              <p className="text-red-400 text-sm">Expirados</p>
-              <p className="text-2xl font-bold text-red-400">{stats.expired}</p>
-            </CardContent>
-          </Card>
+          {/* Expirados removido da visualização principal */}
           <Card className="bg-amber-500/10 border-amber-500/30">
             <CardContent className="p-4">
               <p className="text-amber-400 text-sm">Receita</p>
