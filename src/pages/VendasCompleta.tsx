@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
-import ActiveClientsSection from "@/components/ActiveClientsSection";
+// import ActiveClientsSection from "@/components/ActiveClientsSection"; // Removed as requested
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 
 interface SalesSettings {
