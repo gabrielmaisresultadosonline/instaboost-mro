@@ -405,14 +405,15 @@ Participe também do nosso GRUPO DE AVISOS
     const processQueue = async () => {
       // 1. Verificar se há pedidos que precisam ser enviados
       // Filtramos pedidos pagos ou completos que ainda não foram marcados como whatsapp_sent
-      // Para evitar carregar histórico antigo, filtramos apenas pedidos das últimas 12 horas
-      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      // Para garantir que não enviamos históricos antigos ou remarketing, 
+      // filtramos apenas pedidos pagos/completos criados nas últimas 6 horas
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
       
       const pendingWhatsAppOrders = orders.filter(o => 
         (o.status === "paid" || o.status === "completed") && 
         o.whatsapp_sent !== true &&
         o.phone &&
-        new Date(o.created_at) > twelveHoursAgo
+        new Date(o.created_at) > sixHoursAgo
       );
 
       if (pendingWhatsAppOrders.length === 0) {
