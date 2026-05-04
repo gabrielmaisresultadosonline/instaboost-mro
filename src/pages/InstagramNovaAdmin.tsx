@@ -2746,8 +2746,24 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <Users className="w-4 h-4 mr-1.5" />
               Afiliados
             </Button>
-            {/* Botão Remarketing Removido conforme solicitação: Foco apenas em Vendas Aprovadas */}
-            {/* Botão de Lembrete Removido para focar apenas em Vendas Aprovadas */}
+            <Button
+              onClick={() => setShowRemarketingDashboard(!showRemarketingDashboard)}
+              variant="outline"
+              size="sm"
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showRemarketingDashboard ? "text-orange-400 border-orange-500/50" : "text-zinc-400"}`}
+            >
+              <RefreshCw className="w-4 h-4 mr-1.5" />
+              Remarketing
+            </Button>
+            <Button
+              onClick={() => setShowAccessReminder(!showAccessReminder)}
+              variant="outline"
+              size="sm"
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAccessReminder ? "text-cyan-400 border-cyan-500/50" : "text-zinc-400"}`}
+            >
+              <Clock className="w-4 h-4 mr-1.5" />
+              Lembretes
+            </Button>
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
