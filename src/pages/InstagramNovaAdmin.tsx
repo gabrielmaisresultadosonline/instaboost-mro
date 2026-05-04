@@ -58,7 +58,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
-import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
+// AccessReminderPanel removido
 import WppBotPanel from "@/components/admin/WppBotPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
