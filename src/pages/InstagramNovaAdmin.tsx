@@ -3631,13 +3631,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </Card>
         )}
 
-        {/* Lembrete de Acesso */}
-        {showAccessReminder && (
-          <AccessReminderPanel
-            adminSessionToken={adminSessionToken}
-            onClose={() => setShowAccessReminder(false)}
-          />
-        )}
+        {/* Lembrete de Acesso Removido conforme solicitação */}
 
         {/* Dashboard de Remarketing - Separado */}
         {/* Dashboard de Remarketing Removido */}
