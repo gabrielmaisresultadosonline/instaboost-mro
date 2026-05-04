@@ -3679,11 +3679,16 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <Card className="bg-zinc-800/50 border-zinc-700">
             <CardContent className="p-4">
-              <p className="text-zinc-400 text-sm">Total</p>
+              <p className="text-zinc-400 text-sm">Vendas Total</p>
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </CardContent>
           </Card>
-          {/* Pendentes removido da visualização principal */}
+          <Card className="bg-yellow-500/10 border-yellow-500/30">
+            <CardContent className="p-4">
+              <p className="text-yellow-400 text-sm">Pendentes</p>
+              <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
+            </CardContent>
+          </Card>
           <Card className="bg-blue-500/10 border-blue-500/30">
             <CardContent className="p-4">
               <p className="text-blue-400 text-sm">Pagos</p>
@@ -3696,7 +3701,12 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <p className="text-2xl font-bold text-green-400">{stats.completed}</p>
             </CardContent>
           </Card>
-          {/* Expirados removido da visualização principal */}
+          <Card className="bg-red-500/10 border-red-500/30">
+            <CardContent className="p-4">
+              <p className="text-red-400 text-sm">Expirados</p>
+              <p className="text-2xl font-bold text-red-400">{stats.expired}</p>
+            </CardContent>
+          </Card>
           <Card className="bg-amber-500/10 border-amber-500/30">
             <CardContent className="p-4">
               <p className="text-amber-400 text-sm">Receita</p>
