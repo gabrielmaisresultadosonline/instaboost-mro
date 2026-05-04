@@ -65,8 +65,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     enabled: true,
   });
   const [messages, setMessages] = useState<MessageRow[]>([]);
-  const [testPhone, setTestPhone] = useState("");
-  const [testMessage, setTestMessage] = useState("");
 
   const invokeAdmin = useCallback(
     async (body: Record<string, unknown>) => {
