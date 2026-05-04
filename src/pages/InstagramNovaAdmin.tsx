@@ -4292,9 +4292,9 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
               </div>
-            ) : crmWebhookLogs.length === 0 ? (
+            ) : crmWebhookLogs.filter(log => !!log.order_id).length === 0 ? (
               <div className="text-center py-8 text-zinc-500">
-                Nenhum envio registrado
+                Nenhum envio de venda aprovada registrado
               </div>
             ) : (
               <div className="space-y-2">
