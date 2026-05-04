@@ -2739,15 +2739,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               Afiliados
             </Button>
             {/* Botão Remarketing Removido conforme solicitação: Foco apenas em Vendas Aprovadas */}
-            <Button
-              onClick={() => { setShowAccessReminder(!showAccessReminder); if (!showAccessReminder) { setShowAffiliateConfig(false); } }}
-              variant="outline"
-              size="sm"
-              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAccessReminder ? "text-blue-400 border-blue-500/50" : "text-zinc-400"}`}
-            >
-              <Key className="w-4 h-4 mr-1.5" />
-              Lembrete
-            </Button>
+            {/* Botão de Lembrete Removido para focar apenas em Vendas Aprovadas */}
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
