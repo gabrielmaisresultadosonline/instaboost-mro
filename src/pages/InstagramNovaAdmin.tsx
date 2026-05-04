@@ -3501,8 +3501,39 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                     </div>
                   )}
                 </TabsContent>
-
-                {/* Tab: Tentativas removida permanentemente */}
+                
+                <TabsContent value="attempts">
+                  {getFilteredAffiliateAttempts().length === 0 ? (
+                    <div className="text-center py-12 text-zinc-500 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                      <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p>Nenhuma tentativa (pendente/expirada) encontrada</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {getFilteredAffiliateAttempts().map((order) => (
+                        <div key={order.id} className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <Badge className={order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" : "bg-red-500/20 text-red-400"}>
+                                {order.status === "pending" ? "Pendente" : "Expirado"}
+                              </Badge>
+                              <div>
+                                <p className="text-sm text-white">{order.email.includes(":") ? order.email.split(":")[1] : order.email}</p>
+                                <p className="text-xs text-zinc-400 font-mono">{order.username} ({order.phone || "Sem tel"})</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-zinc-300">R$ {Number(order.amount).toFixed(2)}</p>
+                              <p className="text-[10px] text-zinc-500">
+                                {format(new Date(order.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
 
                 {/* Tab: Preview do Email */}
                 <TabsContent value="email-preview">
