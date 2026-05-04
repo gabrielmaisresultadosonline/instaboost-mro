@@ -282,7 +282,7 @@ const handler = async (req: Request): Promise<Response> => {
         lead_id: parsed.data.lead_id || null,
         lead_name: parsed.data.lead_name || null,
         phone,
-        message: settings.message_template,
+        message: parsed.data.message_template || settings.message_template,
         scheduled_for: new Date(Date.now() + (settings.delay_minutes || 30) * 60_000).toISOString(),
         status: "pending",
       });
