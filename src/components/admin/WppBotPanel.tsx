@@ -275,7 +275,7 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
                 {messages.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                      Nenhuma mensagem ainda. Cadastre um lead em /rendaextra2 para começar.
+                      Nenhuma mensagem enviada recentemente.
                     </TableCell>
                   </TableRow>
                 )}
