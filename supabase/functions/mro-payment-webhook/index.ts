@@ -513,8 +513,8 @@ serve(async (req) => {
       log("Email already sent previously, skipping");
     }
 
-    // Marcar como completo
-    await supabase
+    // Marcar como completo usando atualização atômica para evitar processamento duplicado
+    const { data: completedOrder, error: completeError } = await supabase
       .from("mro_orders")
       .update({
         status: "completed",
@@ -523,13 +523,25 @@ serve(async (req) => {
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .neq("status", "completed") // Importante: só move para completo se já não estiver
+      .select()
+      .single();
+
+    if (completeError || !completedOrder) {
+      log("Order already completed by another request, skipping final actions", { orderId: order.id });
+      return new Response(
+        JSON.stringify({ success: true, message: "Already completed" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    order = completedOrder;
 
     log("Order completed successfully", { 
       orderId: order.id, 
-      apiCreated: apiResult.success, 
-      apiAlreadyExists: apiResult.alreadyExists,
-      emailSent 
+      apiCreated: order.api_created, 
+      emailSent: order.email_sent 
     });
 
     // Fire Meta Conversions API Purchase event (only if transitioning to completed for the first time)
