@@ -1183,10 +1183,18 @@ Participe também do nosso GRUPO DE AVISOS
 
       if (data.status === "completed") {
         toast.success("Pagamento confirmado e acesso liberado!");
-        sendToCRMWebhook(order);
+        if (!slowSendEnabled) {
+          sendToCRMWebhook(order);
+        } else {
+          toast.info("WhatsApp enfileirado para envio lento.");
+        }
       } else if (data.status === "paid") {
         toast.info("Pagamento confirmado! Processando acesso...");
-        sendToCRMWebhook(order);
+        if (!slowSendEnabled) {
+          sendToCRMWebhook(order);
+        } else {
+          toast.info("WhatsApp enfileirado para envio lento.");
+        }
       } else {
         toast.info("Pagamento ainda não confirmado");
       }
