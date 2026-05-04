@@ -2568,217 +2568,236 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     totalRevenue: orders.filter(o => o.status === "paid" || o.status === "completed").reduce((sum, o) => sum + Number(o.amount), 0)
   };
 
-  // Renderizar card de pedido compacto
+  // Renderizar card de pedido totalmente responsivo
   const renderOrderCard = (order: MROOrder, compact = false) => {
     const daysRemaining = getDaysRemaining(order);
     
     return (
       <div 
         key={order.id} 
-        className={`bg-zinc-800/30 border border-zinc-700/50 rounded-lg ${compact ? "p-3" : "p-4"}`}
+        className={`bg-zinc-800/40 border border-zinc-700/50 rounded-xl transition-all hover:bg-zinc-800/60 shadow-lg ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}`}
       >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className={`flex-1 grid grid-cols-2 ${compact ? "md:grid-cols-5" : "md:grid-cols-5"} gap-3`}>
-            <div>
-              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
-                <Mail className="w-3 h-3" /> Email
-              </div>
-              <p className="text-white text-xs font-medium truncate">{order.email}</p>
+        <div className="flex flex-col gap-4">
+          {/* Header do Card: Info Principal */}
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-wrap gap-2 items-center">
+              {getStatusBadge(order.status)}
+              <span className="text-[10px] sm:text-xs text-zinc-500 font-mono bg-zinc-900/50 px-2 py-0.5 rounded border border-zinc-700/30">
+                NSU: {order.nsu_order}
+              </span>
+              <span className="text-[10px] sm:text-xs text-zinc-500 font-mono bg-zinc-900/50 px-2 py-0.5 rounded border border-zinc-700/30">
+                {format(new Date(order.created_at), "dd/MM HH:mm", { locale: ptBR })}
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
-                <User className="w-3 h-3" /> Usuário
-              </div>
-              <p className="text-white text-xs font-mono">{order.username}</p>
+            
+            <div className="flex items-center gap-1.5 ml-auto">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-red-400/70 hover:text-red-400 hover:bg-red-400/10"
+                onClick={() => deleteOrder(order)}
+                title="Excluir pedido"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
-            <div>
-              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
-                <Phone className="w-3 h-3" /> Celular
+          </div>
+
+          {/* Grid de Informações - Responsivo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+                <Mail className="w-3.5 h-3.5 text-amber-500/70" /> 
+                <span className="font-medium">Email</span>
               </div>
-              <p className="text-white text-xs">{order.phone || "-"}</p>
+              <p className="text-white text-sm font-medium truncate bg-zinc-900/30 p-2 rounded-lg border border-zinc-700/30" title={order.email}>
+                {order.email}
+              </p>
             </div>
-            <div>
-              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
-                <DollarSign className="w-3 h-3" /> Valor
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+                <User className="w-3.5 h-3.5 text-blue-400/70" />
+                <span className="font-medium">Usuário</span>
               </div>
-              <p className="text-white text-xs">R$ {Number(order.amount).toFixed(2)}</p>
+              <p className="text-white text-sm font-mono bg-zinc-900/30 p-2 rounded-lg border border-zinc-700/30 truncate">
+                {order.username}
+              </p>
             </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+                <Phone className="w-3.5 h-3.5 text-green-400/70" />
+                <span className="font-medium">WhatsApp</span>
+              </div>
+              <p className="text-white text-sm bg-zinc-900/30 p-2 rounded-lg border border-zinc-700/30">
+                {order.phone || "Não informado"}
+              </p>
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+                <DollarSign className="w-3.5 h-3.5 text-yellow-400/70" />
+                <span className="font-medium">Valor e Plano</span>
+              </div>
+              <div className="flex items-center justify-between bg-zinc-900/30 p-2 rounded-lg border border-zinc-700/30">
+                <span className="text-white text-sm font-bold">R$ {Number(order.amount).toFixed(2)}</span>
+                <Badge variant="outline" className="text-[10px] h-5 bg-zinc-800 border-zinc-600">
+                  {order.plan_type === 'trial' ? 'Mensal' : order.plan_type === 'lifetime' ? 'Vitalício' : 'Anual'}
+                </Badge>
+              </div>
+            </div>
+
             {daysRemaining !== null && (
-              <div>
-                <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
-                  <Calendar className="w-3 h-3" /> Dias Restantes
+              <div className="min-w-0 col-span-1 sm:col-span-2 lg:grid-cols-4 xl:col-span-1">
+                <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+                  <Calendar className="w-3.5 h-3.5 text-purple-400/70" />
+                  <span className="font-medium">Expiração</span>
                 </div>
-                <p className={`text-xs font-bold ${daysRemaining > 30 ? "text-green-400" : daysRemaining > 7 ? "text-yellow-400" : "text-red-400"}`}>
-                  {daysRemaining} dias
-                </p>
+                <div className={`flex items-center justify-center p-2 rounded-lg border text-sm font-black shadow-inner ${
+                  daysRemaining > 30 ? "bg-green-500/10 border-green-500/30 text-green-400" : 
+                  daysRemaining > 7 ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" : 
+                  "bg-red-500/10 border-red-500/30 text-red-400"
+                }`}>
+                  {daysRemaining} dias restantes
+                </div>
               </div>
             )}
           </div>
-          
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {(order.status === "completed" || order.status === "paid") && (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => sendToCRMWebhook(order, true)}
-                  className={`h-7 px-2 text-xs ${
-                    !order.whatsapp_sent 
-                      ? "border-amber-500/50 text-amber-500 hover:bg-amber-500/10" 
-                      : "border-green-500/50 text-green-400 hover:bg-green-500/10"
-                  } ${(!order.whatsapp_sent && slowSendEnabled) ? "animate-pulse" : ""}`}
-                  disabled={isSendingWebhook === order.id}
-                  title={!order.whatsapp_sent ? "Aguardando envio na fila lenta" : "Reenviar WhatsApp"}
-                >
-                  {isSendingWebhook === order.id ? (
-                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  ) : !order.whatsapp_sent ? (
-                    <Clock className="w-3 h-3 mr-1" />
-                  ) : (
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                  )}
-                  {!order.whatsapp_sent ? "WhatsApp Fila" : "WhatsApp"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => copyToClipboard(order)}
-                  className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
-                >
-                  <Copy className="w-3 h-3 mr-1" />
-                  Copiar
-                </Button>
-              </>
-            )}
 
-            {(order.status === "pending" || order.status === "expired") && (
-              <>
-                <Button
-                  size="sm"
-                  onClick={() => checkPayment(order)}
-                  className="bg-blue-500 hover:bg-blue-600 h-7 px-2 text-xs"
-                  disabled={loading}
-                  title="Verificar se pagamento foi confirmado"
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  Verificar
-                </Button>
+          {/* Footer do Card: Badges e Botões */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-zinc-700/30">
+            <div className="flex flex-wrap gap-2 items-center">
+              {order.api_created && (
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-2 py-0.5">
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> API ✓
+                </Badge>
+              )}
+              {order.email_sent && (
+                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-[10px] px-2 py-0.5">
+                  <Mail className="w-3 h-3 mr-1" /> Email ✓
+                </Badge>
+              )}
+              {order.whatsapp_sent && (
+                <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px] px-2 py-0.5">
+                  <Smartphone className="w-3 h-3 mr-1" /> WhatsApp ✓
+                </Badge>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+              {(order.status === "completed" || order.status === "paid") && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => sendToCRMWebhook(order, true)}
+                    className={`h-9 px-3 text-xs font-bold transition-all ${
+                      !order.whatsapp_sent 
+                        ? "bg-amber-500/10 border-amber-500/50 text-amber-500 hover:bg-amber-500/20" 
+                        : "bg-cyan-500/10 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20"
+                    } ${(!order.whatsapp_sent && slowSendEnabled) ? "animate-pulse" : ""}`}
+                    disabled={isSendingWebhook === order.id}
+                  >
+                    {isSendingWebhook === order.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <Smartphone className="w-3.5 h-3.5 mr-1.5" />
+                    )}
+                    {!order.whatsapp_sent ? "Fila WPP" : "Reenviar WPP"}
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => copyToClipboard(order)}
+                    className="h-9 px-3 text-xs font-bold border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-1.5" />
+                    Copiar
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openEditEmailModal(order)}
+                    className="h-9 px-3 text-xs font-bold border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                    Email
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => resendAccessEmail(order)}
+                    className="h-9 px-3 text-xs font-bold border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                    disabled={resendingEmail === order.id}
+                  >
+                    {resendingEmail === order.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                    )}
+                    Acesso
+                  </Button>
+                </>
+              )}
+
+              {(order.status === "pending" || order.status === "expired") && (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => checkPayment(order)}
+                    className="h-9 px-3 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+                    Verificar
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => approveManually(order)}
+                    className="h-9 px-3 text-xs font-bold bg-green-600 hover:bg-green-700 text-white"
+                    disabled={loading}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                    Aprovar
+                  </Button>
+                </>
+              )}
+
+              {order.status === "paid" && !order.api_created && (
                 <Button
                   size="sm"
                   onClick={() => approveManually(order)}
-                  className="bg-green-600 hover:bg-green-700 h-7 px-2 text-xs"
+                  className="h-9 px-3 text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white col-span-2 sm:col-auto"
                   disabled={loading}
-                  title="Aprovar manualmente e criar acesso"
                 >
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Aprovar
+                  <Plus className="w-3.5 h-3.5 mr-1.5" />
+                  Criar Acesso
                 </Button>
-              </>
-            )}
-
-            {order.status === "paid" && !order.api_created && (
-              <Button
-                size="sm"
-                onClick={() => approveManually(order)}
-                className="bg-orange-500 hover:bg-orange-600 h-7 px-2 text-xs"
-                disabled={loading}
-                title="Reprocessar criação de acesso"
-              >
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Criar Acesso
-              </Button>
-            )}
-            
-            {order.api_created && (
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs py-0.5">
-                API ✓
-              </Badge>
-            )}
-            
-            {order.email_sent && (
-              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs py-0.5">
-                Email ✓
-              </Badge>
-            )}
-
-            {/* Botões de Editar Email e Reenviar - apenas para pagos/completos */}
-            {(order.status === "completed" || order.status === "paid") && (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => openEditEmailModal(order)}
-                  className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 h-7 px-2 text-xs"
-                  title="Editar email do cliente"
-                >
-                  <Pencil className="w-3 h-3 mr-1" />
-                  Editar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => sendToCRMWebhook(order, true)}
-                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 h-7 px-2 text-xs"
-                  disabled={isSendingWebhook === order.id}
-                  title="Enviar mensagem via Webhook CRM agora"
-                >
-                  {isSendingWebhook === order.id ? (
-                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  ) : (
-                    <Send className="w-3 h-3 mr-1" />
-                  )}
-                  Webhook
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => resendAccessEmail(order)}
-                  className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 h-7 px-2 text-xs"
-                  disabled={resendingEmail === order.id}
-                  title="Reenviar email de acesso"
-                >
-                  {resendingEmail === order.id ? (
-                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  ) : (
-                    <Send className="w-3 h-3 mr-1" />
-                  )}
-                  Reenviar
-                </Button>
-              </>
-            )}
-            
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => deleteOrder(order)}
-              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 w-7 p-0"
-              title="Excluir pedido"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+              )}
+            </div>
           </div>
-        </div>
-        
-        <div className="mt-2 pt-2 border-t border-zinc-700/30 flex items-center gap-3 text-[10px] text-zinc-500 flex-wrap">
-          <span>NSU: {order.nsu_order}</span>
-          <span className="text-blue-400">
-            Cadastro: {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-          </span>
-          {order.paid_at && (
-            <span className="text-green-500">
-              Pago: {format(new Date(order.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-            </span>
-          )}
-          {order.status === "pending" && order.expired_at && (
-            <span className="text-yellow-500">
-              Expira: {format(new Date(order.expired_at), "dd/MM HH:mm", { locale: ptBR })}
-            </span>
-          )}
-          {order.status === "expired" && (
-            <span className="text-red-400">
-              Tentativa: {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-            </span>
-          )}
+          
+          <div className="mt-2 pt-2 border-t border-zinc-700/30 flex items-center gap-3 text-[10px] text-zinc-500 flex-wrap">
+            {order.paid_at && (
+              <span className="text-green-500">
+                Pago: {format(new Date(order.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              </span>
+            )}
+            {order.status === "pending" && order.expired_at && (
+              <span className="text-yellow-500">
+                Expira: {format(new Date(order.expired_at), "dd/MM HH:mm", { locale: ptBR })}
+              </span>
+            )}
+            {order.status === "expired" && (
+              <span className="text-red-400">
+                Tentativa: {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );
