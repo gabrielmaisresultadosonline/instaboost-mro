@@ -2942,15 +2942,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <Users className="w-4 h-4 mr-1.5" />
               Afiliados
             </Button>
-            <Button
-              onClick={() => { setShowRemarketingDashboard(!showRemarketingDashboard); if (!showRemarketingDashboard) setShowAffiliateConfig(false); }}
-              variant="outline"
-              size="sm"
-              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showRemarketingDashboard ? "text-red-400 border-red-500/50" : "text-zinc-400"}`}
-            >
-              <Send className="w-4 h-4 mr-1.5" />
-              Remarketing
-            </Button>
+            {/* Botão Remarketing Removido conforme solicitação: Foco apenas em Vendas Aprovadas */}
             <Button
               onClick={() => { setShowAccessReminder(!showAccessReminder); if (!showAccessReminder) { setShowAffiliateConfig(false); setShowRemarketingDashboard(false); } }}
               variant="outline"
