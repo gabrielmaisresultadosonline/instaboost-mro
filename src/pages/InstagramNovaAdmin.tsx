@@ -2618,12 +2618,10 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     );
   };
 
-  // Configuração das seções
+  // Configuração das seções - Apenas Vendas Aprovadas (Pagas e Completas)
   const sections = [
     { key: "completed", label: kanbanLabels.completed, color: "green", icon: CheckCircle, orders: groupedOrders.completed },
     { key: "paid", label: kanbanLabels.paid, color: "blue", icon: CheckCircle, orders: groupedOrders.paid },
-    { key: "pending", label: kanbanLabels.pending, color: "yellow", icon: Clock, orders: groupedOrders.pending },
-    { key: "expired", label: kanbanLabels.expired, color: "red", icon: AlertTriangle, orders: groupedOrders.expired },
   ];
 
   if (!isAuthenticated) {
