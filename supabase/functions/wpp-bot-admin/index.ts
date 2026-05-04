@@ -262,6 +262,22 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: settings } = await supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle();
       if (!settings?.enabled) return json({ success: true, skipped: true, reason: "disabled" });
 
+      // Verificar duplicidade mesmo no enqueueLead para evitar múltiplos disparos por cliques rápidos ou retentativas de rede
+      if (parsed.data.lead_id) {
+        const { data: existing } = await supabase
+          .from("wpp_bot_messages")
+          .select("id, status")
+          .eq("lead_id", parsed.data.lead_id)
+          .eq("status", "pending")
+          .gt("created_at", new Date(Date.now() - 3600 * 1000).toISOString()) // 1 hora de janela para evitar duplicados pendentes
+          .maybeSingle();
+
+        if (existing) {
+          console.log(`[enqueueLead] Mensagem já está pendente para o lead ${parsed.data.lead_id}. Ignorando.`);
+          return json({ success: true, duplicate: true, message_id: existing.id });
+        }
+      }
+
       await supabase.from("wpp_bot_messages").insert({
         lead_id: parsed.data.lead_id || null,
         lead_name: parsed.data.lead_name || null,

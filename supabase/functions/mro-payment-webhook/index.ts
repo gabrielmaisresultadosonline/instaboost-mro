@@ -585,33 +585,64 @@ Para acessar a ferramenta e área de membros, utilize os acessos:
 Participe também do nosso GRUPO DE AVISOS
 ${GROUP_LINK}`;
 
-        // Configuração fixa do webhook para automação
-        const webhook_id = "0c578c9d-4e33-48be-91dd-63f98d7ff430";
-        const token = "qnf3vbusrbs105v96afj2r8";
+        // Buscar a configuração atual do modo de WhatsApp (API ou QR Code)
+        const { data: webhookConfig } = await supabase
+          .from("crm_webhooks")
+          .select("id, secret_token, metadata")
+          .eq("id", "0c578c9d-4e33-48be-91dd-63f98d7ff430")
+          .single();
 
-        log("Sending to CRM Webhook", { phone: cleanPhone });
-        
-        const crmResp = await fetch(`${supabaseUrl}/functions/v1/crm-webhook`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
-          },
-          body: JSON.stringify({
-            webhook_id,
-            token,
-            to: cleanPhone,
-            message: messageText,
-            order_id: order.id
-          })
-        });
-        
-        const crmResult = await crmResp.json().catch(() => ({}));
-        log("CRM Webhook response", crmResult);
+        const whatsapp_mode = (webhookConfig?.metadata as any)?.whatsapp_mode || "api";
+        const webhook_id = webhookConfig?.id || "0c578c9d-4e33-48be-91dd-63f98d7ff430";
+        const token = webhookConfig?.secret_token || "qnf3vbusrbs105v96afj2r8";
 
-        // Marcar como enviado no WhatsApp para evitar duplicidade em retentativas ou polling
-        if (crmResult.success || crmResult.duplicate) {
-          await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+        log("Sending WhatsApp message", { mode: whatsapp_mode, phone: cleanPhone });
+
+        if (whatsapp_mode === "qrcode") {
+          // Enviar via QR Code (wpp-bot-admin)
+          const botResp = await fetch(`${supabaseUrl}/functions/v1/wpp-bot-admin`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
+            },
+            body: JSON.stringify({
+              action: "sendTest",
+              phone: cleanPhone,
+              message_template: messageText,
+              lead_name: order.username,
+              lead_id: order.id
+            })
+          });
+          const botResult = await botResp.json().catch(() => ({}));
+          log("WPP Bot response", botResult);
+          
+          if (botResult.success || botResult.duplicate) {
+            await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+          }
+        } else {
+          // Enviar via API (crm-webhook)
+          const crmResp = await fetch(`${supabaseUrl}/functions/v1/crm-webhook`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
+            },
+            body: JSON.stringify({
+              webhook_id,
+              token,
+              to: cleanPhone,
+              message: messageText,
+              order_id: order.id
+            })
+          });
+          
+          const crmResult = await crmResp.json().catch(() => ({}));
+          log("CRM Webhook response", crmResult);
+
+          if (crmResult.success || crmResult.duplicate) {
+            await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+          }
         }
       }
     } catch (crmError) {
