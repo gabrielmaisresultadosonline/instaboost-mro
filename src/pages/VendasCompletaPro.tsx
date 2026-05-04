@@ -1005,6 +1005,46 @@ const VendasCompletaPro = () => {
         </div>
       </section>
 
+      {/* Ads Integration Section */}
+      <section className="py-20 px-4 bg-zinc-950">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Posso rodar tráfego pago e utilizar a MRO? <span className="text-amber-400">Sim, sem problema nenhum</span>
+              </h2>
+              <div className="space-y-4 text-gray-300 text-lg">
+                <p>
+                  Seu resultado vai ser melhor ainda, embora só a ferramenta MRO já traga um resultado ao ponto de não precisar investir em tráfego pago.
+                </p>
+                <p>
+                  Além de seguidores, engajamento e público no automático, seus leads vão ficar muito mais baratos e muito mais assertivos usando a MRO Inteligente!
+                </p>
+                <p>
+                  E no Meta Ads, se for rodar anúncio, vai conseguir criar um público em cima do engajamento real e orgânico gerado pela ferramenta - uma conexão instantânea com algoritmo e aperfeiçoamento de público!
+                </p>
+              </div>
+            </div>
+            
+            <div 
+              onClick={() => openVideo("EHTtdvtoI_A")}
+              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700 hover:border-amber-500/50 transition-all"
+            >
+              <img 
+                src="https://img.youtube.com/vi/EHTtdvtoI_A/maxresdefault.jpg" 
+                alt="Tráfego Pago e MRO" 
+                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
+                  <Play className="w-8 h-8 text-white ml-1" fill="white" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto text-center">
