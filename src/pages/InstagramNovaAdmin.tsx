@@ -3686,10 +3686,48 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </Card>
         )}
 
-        {/* Lembrete de Acesso Removido conforme solicitação */}
+        {showAccessReminder && (
+          <AccessReminderPanel 
+            adminSessionToken={getAdminSessionToken()} 
+            onClose={() => setShowAccessReminder(false)} 
+          />
+        )}
 
-        {/* Dashboard de Remarketing - Separado */}
-        {/* Dashboard de Remarketing Removido */}
+        {showRemarketingDashboard && (
+          <Card className="bg-orange-500/10 border-orange-500/30 mb-6">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg text-orange-400 flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5" />
+                  Dashboard de Remarketing (Pendentes/Expirados)
+                </CardTitle>
+                <p className="text-sm text-zinc-400">Visualize leads que não finalizaram a compra</p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => setShowRemarketingDashboard(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                  <h4 className="text-yellow-400 font-bold mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" /> Pendentes: {stats.pending}
+                  </h4>
+                  <p className="text-xs text-zinc-500">Aguardando pagamento ou em processamento</p>
+                </div>
+                <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                  <h4 className="text-red-400 font-bold mb-2 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" /> Expirados: {stats.expired}
+                  </h4>
+                  <p className="text-xs text-zinc-500">Tempo limite de pagamento excedido</p>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-orange-500/5 rounded border border-orange-500/20 text-xs text-orange-300/70 italic">
+                Nota: O envio automático de remarketing está desativado conforme solicitado. Use a lista abaixo para acompanhamento manual.
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
