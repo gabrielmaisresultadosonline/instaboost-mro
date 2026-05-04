@@ -426,6 +426,7 @@ Participe também do nosso GRUPO DE AVISOS
           // Load WhatsApp preference
           if (config.metadata.whatsapp_mode) setWhatsappMode(config.metadata.whatsapp_mode as any);
           if (config.metadata.use_global_wpp !== undefined) setUseGlobalWpp(config.metadata.use_global_wpp);
+          if (config.metadata.slow_send_enabled !== undefined) setSlowSendEnabled(config.metadata.slow_send_enabled);
         }
         console.log("Loaded webhook config:", config);
       }
