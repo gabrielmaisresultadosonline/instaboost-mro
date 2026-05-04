@@ -4716,9 +4716,32 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   </div>
                   <Switch 
                     checked={useGlobalWpp}
-                    onCheckedChange={setUseGlobalWpp}
+                  onCheckedChange={setUseGlobalWpp}
                   />
                 </div>
+
+                <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-400" />
+                    <div>
+                      <span className="text-xs text-white block">Envio Lento (Contingência)</span>
+                      <p className="text-[10px] text-zinc-500">Mínimo 3min entre mensagens acumuladas</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={slowSendEnabled}
+                    onCheckedChange={setSlowSendEnabled}
+                  />
+                </div>
+                
+                {isProcessingQueue && nextQueueRun && (
+                  <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 text-orange-500 animate-spin" />
+                    <span className="text-[10px] text-orange-200">
+                      Fila ativa: Próximo envio às {nextQueueRun.toLocaleTimeString()}
+                    </span>
+                  </div>
+                )}
                 
                 <p className="text-[10px] text-zinc-500 italic">
                   * Ative apenas um método. Se desativar ambos, o envio automático de WhatsApp será interrompido.
