@@ -424,9 +424,9 @@ Participe também do nosso GRUPO DE AVISOS
       try {
         await sendToCRMWebhook(orderToSend);
         
-        // Calcular próximo intervalo (mínimo 3 min, máximo 6 min randomizado conforme pedido)
+        // Calcular próximo intervalo (mínimo 3 min, máximo 5 min randomizado conforme pedido)
         const minDelay = 3 * 60 * 1000; // 3 minutos
-        const randomExtra = Math.floor(Math.random() * 3 * 60 * 1000); // 0-3 minutos extras
+        const randomExtra = Math.floor(Math.random() * 2 * 60 * 1000); // 0-2 minutos extras (total 3-5m)
         const totalDelay = minDelay + randomExtra;
         
         const nextRun = new Date(Date.now() + totalDelay);
