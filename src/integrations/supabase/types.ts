@@ -2477,6 +2477,7 @@ export type Database = {
           transaction_nsu: string | null
           updated_at: string
           username: string
+          whatsapp_sent: boolean | null
         }
         Insert: {
           amount: number
@@ -2497,6 +2498,7 @@ export type Database = {
           transaction_nsu?: string | null
           updated_at?: string
           username: string
+          whatsapp_sent?: boolean | null
         }
         Update: {
           amount?: number
@@ -2517,6 +2519,7 @@ export type Database = {
           transaction_nsu?: string | null
           updated_at?: string
           username?: string
+          whatsapp_sent?: boolean | null
         }
         Relationships: []
       }
