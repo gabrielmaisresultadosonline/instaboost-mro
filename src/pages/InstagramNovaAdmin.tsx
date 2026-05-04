@@ -4298,7 +4298,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               </div>
             ) : (
               <div className="space-y-2">
-                {crmWebhookLogs.map((log) => (
+                {crmWebhookLogs.filter(log => !!log.order_id).map((log) => (
                   <div
                     key={log.id}
                     className={`p-3 rounded-lg border text-sm ${
