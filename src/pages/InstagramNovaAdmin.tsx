@@ -44,7 +44,9 @@ import {
   Eye,
   EyeOff,
   FileText,
-  Key
+  Key,
+  Smartphone,
+  QrCode
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, differenceInDays, addDays } from "date-fns";
@@ -153,6 +155,8 @@ Participe também do nosso GRUPO DE AVISOS
 {group_link}`
   });
   const [showWebhookSettings, setShowWebhookSettings] = useState(false);
+  const [whatsappMode, setWhatsappMode] = useState<"api" | "qrcode" | "none">("api");
+  const [useGlobalWpp, setUseGlobalWpp] = useState(true);
 
 
   // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
@@ -411,6 +415,10 @@ Participe também do nosso GRUPO DE AVISOS
             ...prev,
             ...config.metadata
           }));
+          
+          // Load WhatsApp preference
+          if (config.metadata.whatsapp_mode) setWhatsappMode(config.metadata.whatsapp_mode as any);
+          if (config.metadata.use_global_wpp !== undefined) setUseGlobalWpp(config.metadata.use_global_wpp);
         }
         console.log("Loaded webhook config:", config);
       }
@@ -432,7 +440,11 @@ Participe também do nosso GRUPO DE AVISOS
           webhookId: webhookConfig.webhook_id,
           config: {
             ...webhookConfig,
-            kanban_labels: kanbanLabels
+            kanban_labels: {
+              ...kanbanLabels,
+              whatsapp_mode: whatsappMode,
+              use_global_wpp: useGlobalWpp
+            }
           }
         }
       });
@@ -1131,6 +1143,34 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
+    if (whatsappMode === "none" && !isTest) return;
+    
+    // Se for QR Code, enfileirar via wpp-bot-admin
+    if (whatsappMode === "qrcode") {
+      try {
+        const token = getAdminSessionToken();
+        const response = await supabase.functions.invoke("wpp-bot-admin", {
+          body: { 
+            action: "sendTest", // Reutilizando a função de envio direto
+            adminToken: token,
+            phone: order.phone,
+            message_template: formatWebhookMessage(webhookConfig.message_template, order),
+            lead_name: order.username
+          },
+        });
+        if (isTest) {
+          if (response.data?.success) toast.success("Mensagem enviada via QR Code!");
+          else toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
+        }
+        return;
+      } catch (err: any) {
+        console.error("QR Code send error:", err);
+        if (isTest) toast.error("Erro ao conectar com o Bot QR Code");
+        // Fallback: se der erro no QR Code, não faz nada (conforme solicitado: "permanece enviando o que já tava fazendo")
+      }
+    }
+
+    // Lógica original da API
     if (!webhookConfig.enabled && !isTest) return;
     if (!webhookConfig.webhook_id || !webhookConfig.token) {
       if (isTest) toast.error("Configure o ID e Token do Webhook primeiro");
@@ -4541,6 +4581,53 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 checked={webhookConfig.enabled}
                 onCheckedChange={(checked) => setWebhookConfig(prev => ({ ...prev, enabled: checked }))}
               />
+            </div>
+
+            {/* Configuração de Método de Envio WhatsApp */}
+            <div className="p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/50 space-y-4">
+              <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-green-400" />
+                Método de Envio WhatsApp
+              </h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
+                  <div className="flex items-center gap-2">
+                    <Send className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs text-white">Usar API (Z-API/Evolution)</span>
+                  </div>
+                  <Switch 
+                    checked={whatsappMode === "api"}
+                    onCheckedChange={(checked) => setWhatsappMode(checked ? "api" : "none")}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
+                  <div className="flex items-center gap-2">
+                    <QrCode className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs text-white">Usar QR Code (VPS Direto)</span>
+                  </div>
+                  <Switch 
+                    checked={whatsappMode === "qrcode"}
+                    onCheckedChange={(checked) => setWhatsappMode(checked ? "qrcode" : "none")}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs text-white">WhatsApp Global (Todos)</span>
+                  </div>
+                  <Switch 
+                    checked={useGlobalWpp}
+                    onCheckedChange={setUseGlobalWpp}
+                  />
+                </div>
+                
+                <p className="text-[10px] text-zinc-500 italic">
+                  * Ative apenas um método. Se desativar ambos, o envio automático de WhatsApp será interrompido.
+                </p>
+              </div>
             </div>
 
             {/* Configuração das Etiquetas do Kanban */}
