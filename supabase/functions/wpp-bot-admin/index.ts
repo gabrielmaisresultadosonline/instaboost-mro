@@ -325,14 +325,25 @@ const handler = async (req: Request): Promise<Response> => {
       if (parsed.data.lead_id) {
         const { data: existing } = await supabase
           .from("wpp_bot_messages")
-          .select("id, status")
+          .select("id, status, message")
           .eq("lead_id", parsed.data.lead_id)
           .gt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (existing) {
-          console.log(`[sendTest] Mensagem já existe para o lead ${parsed.data.lead_id} (status: ${existing.status}). Ignorando.`);
-          return json({ success: true, duplicate: true, message_id: existing.id });
+          const newMessage = parsed.data.message_template || settings?.message_template || "";
+          
+          // Se a mensagem existente for exatamente igual, ignoramos para evitar duplicidade (pedido do usuário)
+          if (existing.message === newMessage) {
+            console.log(`[sendTest] Mensagem idêntica já existe para o lead ${parsed.data.lead_id}. Ignorando duplicado.`);
+            return json({ success: true, duplicate: true, message_id: existing.id });
+          }
+          
+          // Se a mensagem existente for diferente (ex: era remarketing e agora é acesso), 
+          // ou se a anterior falhou, permitimos o envio da nova mensagem.
+          console.log(`[sendTest] Mensagem diferente detectada para o lead ${parsed.data.lead_id}. Enviando nova versão.`);
         }
       }
 
