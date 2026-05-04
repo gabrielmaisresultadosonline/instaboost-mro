@@ -2724,16 +2724,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 <FileText className="w-4 h-4 mr-1.5" />
                 Logs
               </Button>
-              <Button
-                onClick={() => setShowCRMWebhookLogs(true)}
-                variant="outline"
-                size="sm"
-                className="h-9 px-2 md:px-3 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 text-xs md:text-sm"
-                title="Ver histórico de envios do CRM"
-              >
-                <FileText className="w-4 h-4 mr-1.5" />
-                <span className="hidden sm:inline">Histórico</span> Wpp
-              </Button>
+              {/* Botão de Histórico Wpp removido a pedido do usuário */}
             </div>
           </div>
 

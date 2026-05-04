@@ -170,6 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
           .select("*")
           .eq("status", "pending")
           .lte("scheduled_for", new Date().toISOString())
+          .gt("created_at", new Date(Date.now() - 6 * 3600 * 1000).toISOString()) // Apenas criados nas últimas 6h
           .order("scheduled_for", { ascending: true })
           .limit(10);
 
@@ -221,9 +222,9 @@ const handler = async (req: Request): Promise<Response> => {
         supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle(),
         supabase.from("wpp_bot_messages")
           .select("*")
-          .or(`message.ilike.%Obrigado por fazer parte%,lead_id.not.is.null`)
+          .gt("created_at", new Date(Date.now() - 6 * 3600 * 1000).toISOString()) // Apenas últimas 6h
           .order("created_at", { ascending: false })
-          .limit(200),
+          .limit(50),
       ]);
       return json({ success: true, session, settings, messages: messages || [] });
     }
