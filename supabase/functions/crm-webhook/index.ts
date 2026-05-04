@@ -43,6 +43,28 @@ serve(async (req) => {
       })
     }
 
+    // Check for duplicate delivery if order_id is provided
+    if (order_id) {
+      const { data: existingDelivery } = await supabase
+        .from('crm_webhook_delivery_logs')
+        .select('id')
+        .eq('webhook_id', webhook_id)
+        .eq('order_id', order_id)
+        .eq('status', 'success')
+        .maybeSingle();
+
+      if (existingDelivery) {
+        console.log(`[CRM-WEBHOOK] Duplicate delivery detected for order ${order_id}. Skipping.`);
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'Message already sent for this order',
+          duplicate: true 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // Get Meta Settings
     const { data: settings } = await supabase
       .from('crm_settings')

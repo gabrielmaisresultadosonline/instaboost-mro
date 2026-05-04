@@ -466,16 +466,28 @@ serve(async (req) => {
       );
     }
 
-    // Marcar como pago (se ainda não estava)
+    // Marcar como pago (se ainda não estava) usando atualização atômica para evitar race conditions
     if (order.status === "pending") {
-      await supabase
+      const { data: updatedOrder, error: updateError } = await supabase
         .from("mro_orders")
         .update({
           status: "paid",
           paid_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", order.id);
+        .eq("id", order.id)
+        .eq("status", "pending")
+        .select()
+        .single();
+      
+      if (updateError || !updatedOrder) {
+        log("Order already being processed by another request (race condition)", { orderId: order.id });
+        return new Response(
+          JSON.stringify({ success: true, message: "Already processing" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+      order = updatedOrder;
     }
 
     // Calcular dias de acesso
@@ -501,8 +513,8 @@ serve(async (req) => {
       log("Email already sent previously, skipping");
     }
 
-    // Marcar como completo
-    await supabase
+    // Marcar como completo usando atualização atômica para evitar processamento duplicado
+    const { data: completedOrder, error: completeError } = await supabase
       .from("mro_orders")
       .update({
         status: "completed",
@@ -511,24 +523,34 @@ serve(async (req) => {
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .neq("status", "completed") // Importante: só move para completo se já não estiver
+      .select()
+      .single();
+
+    if (completeError || !completedOrder) {
+      log("Order already completed by another request, skipping final actions", { orderId: order.id });
+      return new Response(
+        JSON.stringify({ success: true, message: "Already completed" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    order = completedOrder;
 
     log("Order completed successfully", { 
       orderId: order.id, 
-      apiCreated: apiResult.success, 
-      apiAlreadyExists: apiResult.alreadyExists,
-      emailSent 
+      apiCreated: order.api_created, 
+      emailSent: order.email_sent 
     });
 
-    // Fire Meta Conversions API Purchase event (only if transitioning to completed for the first time)
-    if (order.status !== "completed") {
-      const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
-      await sendMetaPurchaseEvent(
-        customerEmail,
-        Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
-        `MRO Instagram ${planLabel}`
-      );
-    }
+    // Fire Meta Conversions API Purchase event
+    const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
+    await sendMetaPurchaseEvent(
+      customerEmail,
+      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
+      `MRO Instagram ${planLabel}`
+    );
 
     // Enviar para o CRM Webhook se estiver configurado
     try {
