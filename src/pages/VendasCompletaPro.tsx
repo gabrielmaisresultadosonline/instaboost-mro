@@ -36,7 +36,7 @@ import {
   Phone
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
-import ActiveClientsSection from "@/components/ActiveClientsSection";
+// import ActiveClientsSection from "@/components/ActiveClientsSection"; // Removed
 
 interface SalesSettings {
   whatsappNumber: string;
