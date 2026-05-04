@@ -552,9 +552,9 @@ serve(async (req) => {
       `MRO Instagram ${planLabel}`
     );
 
-    // Enviar para o CRM Webhook se estiver configurado
+    // Enviar para o CRM Webhook se estiver configurado e ainda não enviado
     try {
-      if (order.phone) {
+      if (order.phone && !order.whatsapp_sent) {
         let cleanPhone = order.phone.replace(/\D/g, "");
         if (cleanPhone.length <= 11 && !cleanPhone.startsWith("55")) {
           cleanPhone = `55${cleanPhone}`;
@@ -608,6 +608,11 @@ ${GROUP_LINK}`;
         
         const crmResult = await crmResp.json().catch(() => ({}));
         log("CRM Webhook response", crmResult);
+
+        // Marcar como enviado no WhatsApp para evitar duplicidade em retentativas ou polling
+        if (crmResult.success || crmResult.duplicate) {
+          await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+        }
       }
     } catch (crmError) {
       log("Error calling CRM Webhook", { error: String(crmError) });
