@@ -2377,9 +2377,9 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
 
   const stats = {
-    total: orders.length,
+    total: orders.filter(o => o.status === "paid" || o.status === "completed").length,
     pending: orders.filter(o => o.status === "pending").length,
-    paid: orders.filter(o => o.status === "paid" || o.status === "completed").length,
+    paid: orders.filter(o => o.status === "paid").length,
     completed: orders.filter(o => o.status === "completed").length,
     expired: orders.filter(o => o.status === "expired").length,
     totalRevenue: orders.filter(o => o.status === "paid" || o.status === "completed").reduce((sum, o) => sum + Number(o.amount), 0)
