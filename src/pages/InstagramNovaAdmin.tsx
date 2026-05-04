@@ -80,6 +80,7 @@ interface MROOrder {
   infinitepay_link: string | null;
   api_created: boolean | null;
   email_sent: boolean | null;
+  whatsapp_sent?: boolean | null; // Novo campo para rastrear envio de WhatsApp
   paid_at: string | null;
   completed_at: string | null;
   expired_at: string | null;
