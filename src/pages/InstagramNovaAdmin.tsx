@@ -80,6 +80,7 @@ interface MROOrder {
   infinitepay_link: string | null;
   api_created: boolean | null;
   email_sent: boolean | null;
+  whatsapp_sent?: boolean | null; // Novo campo para rastrear envio de WhatsApp
   paid_at: string | null;
   completed_at: string | null;
   expired_at: string | null;
@@ -160,6 +161,9 @@ Participe também do nosso GRUPO DE AVISOS
   const [showWppConnection, setShowWppConnection] = useState(false);
   const [whatsappMode, setWhatsappMode] = useState<"api" | "qrcode" | "none">("api");
   const [useGlobalWpp, setUseGlobalWpp] = useState(true);
+  const [slowSendEnabled, setSlowSendEnabled] = useState(false);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [nextQueueRun, setNextQueueRun] = useState<Date | null>(null);
 
 
   // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
@@ -394,6 +398,65 @@ Participe também do nosso GRUPO DE AVISOS
     };
   }, [showCRMWebhookLogs]);
 
+  // Efeito para gerenciar o envio lento de mensagens (Drip Feed / Queue)
+  useEffect(() => {
+    if (!slowSendEnabled || isProcessingQueue || whatsappMode === "none" || !isAuthenticated) return;
+
+    const processQueue = async () => {
+      // 1. Verificar se há pedidos que precisam ser enviados
+      // Filtramos pedidos pagos ou completos que ainda não foram marcados como whatsapp_sent
+      const pendingWhatsAppOrders = orders.filter(o => 
+        (o.status === "paid" || o.status === "completed") && 
+        o.whatsapp_sent !== true &&
+        o.phone
+      );
+
+      if (pendingWhatsAppOrders.length === 0) return;
+
+      setIsProcessingQueue(true);
+      
+      // Pegar o mais antigo (orders está desc por padrão)
+      const orderToSend = pendingWhatsAppOrders[pendingWhatsAppOrders.length - 1];
+      
+      console.log(`[QUEUE] Processando envio lento para: ${orderToSend.username}`);
+      
+      try {
+        await sendToCRMWebhook(orderToSend);
+        
+        // Calcular próximo intervalo (mínimo 3 min, máximo 6 min randomizado conforme pedido)
+        const minDelay = 3 * 60 * 1000; // 3 minutos
+        const randomExtra = Math.floor(Math.random() * 3 * 60 * 1000); // 0-3 minutos extras
+        const totalDelay = minDelay + randomExtra;
+        
+        const nextRun = new Date(Date.now() + totalDelay);
+        setNextQueueRun(nextRun);
+        
+        // Recarregar pedidos para atualizar o estado visual
+        loadOrders();
+        
+        console.log(`[QUEUE] Mensagem enviada. Próximo envio em ${Math.round(totalDelay/1000)}s (${nextRun.toLocaleTimeString()})`);
+        
+        // Aguardar o intervalo antes de liberar para o próximo
+        setTimeout(() => {
+          setIsProcessingQueue(false);
+          setNextQueueRun(null);
+        }, totalDelay);
+        
+      } catch (error) {
+        console.error("[QUEUE] Erro ao processar fila (tentará novamente em 1 min):", error);
+        // Em caso de erro, espera 1 minuto antes de tentar novamente para não travar em loop infinito de erro
+        setTimeout(() => {
+          setIsProcessingQueue(false);
+        }, 60000);
+      }
+    };
+
+    // Só inicia se não estiver esperando o intervalo
+    if (!nextQueueRun) {
+      processQueue();
+    }
+  }, [slowSendEnabled, orders, isProcessingQueue, nextQueueRun, whatsappMode, isAuthenticated]);
+
   const loadWebhookConfig = async () => {
     const token = getAdminSessionToken();
     if (!token) return;
@@ -422,6 +485,7 @@ Participe também do nosso GRUPO DE AVISOS
           // Load WhatsApp preference
           if (config.metadata.whatsapp_mode) setWhatsappMode(config.metadata.whatsapp_mode as any);
           if (config.metadata.use_global_wpp !== undefined) setUseGlobalWpp(config.metadata.use_global_wpp);
+          if (config.metadata.slow_send_enabled !== undefined) setSlowSendEnabled(config.metadata.slow_send_enabled);
         }
         console.log("Loaded webhook config:", config);
       }
@@ -446,7 +510,8 @@ Participe também do nosso GRUPO DE AVISOS
             kanban_labels: {
               ...kanbanLabels,
               whatsapp_mode: whatsappMode,
-              use_global_wpp: useGlobalWpp
+              use_global_wpp: useGlobalWpp,
+              slow_send_enabled: slowSendEnabled
             }
           }
         }
@@ -1118,10 +1183,18 @@ Participe também do nosso GRUPO DE AVISOS
 
       if (data.status === "completed") {
         toast.success("Pagamento confirmado e acesso liberado!");
-        sendToCRMWebhook(order);
+        if (!slowSendEnabled) {
+          sendToCRMWebhook(order);
+        } else {
+          toast.info("WhatsApp enfileirado para envio lento.");
+        }
       } else if (data.status === "paid") {
         toast.info("Pagamento confirmado! Processando acesso...");
-        sendToCRMWebhook(order);
+        if (!slowSendEnabled) {
+          sendToCRMWebhook(order);
+        } else {
+          toast.info("WhatsApp enfileirado para envio lento.");
+        }
       } else {
         toast.info("Pagamento ainda não confirmado");
       }
@@ -1161,15 +1234,20 @@ Participe também do nosso GRUPO DE AVISOS
             lead_name: order.username
           },
         });
-        if (isTest) {
-          if (response.data?.success) toast.success("Mensagem enviada via QR Code!");
-          else toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
+        
+        if (response.data?.success) {
+          if (isTest) toast.success("Mensagem enviada via QR Code!");
+          // Atualizar no banco que foi enviado
+          await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+        } else {
+          if (isTest) toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
+          throw new Error(response.data?.error || "Erro no envio QR Code");
         }
         return;
       } catch (err: any) {
         console.error("QR Code send error:", err);
         if (isTest) toast.error("Erro ao conectar com o Bot QR Code");
-        // Fallback: se der erro no QR Code, não faz nada (conforme solicitado: "permanece enviando o que já tava fazendo")
+        throw err;
       }
     }
 
@@ -1214,7 +1292,9 @@ Participe também do nosso GRUPO DE AVISOS
       const result = await response.json();
       
       if (result.success) {
-        if (isTest) toast.success("Webhook de teste enviado com sucesso!");
+        if (isTest) toast.success("Webhook enviado com sucesso!");
+        // Atualizar no banco que foi enviado
+        await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
         console.log("Webhook enviado com sucesso:", result);
       } else {
         throw new Error(result.error || "Erro ao enviar webhook");
@@ -1222,6 +1302,7 @@ Participe também do nosso GRUPO DE AVISOS
     } catch (error: any) {
       console.error("Erro ao enviar webhook:", error);
       if (isTest) toast.error(`Erro no Webhook: ${error.message}`);
+      throw error;
     } finally {
       setIsSendingWebhook(null);
     }
@@ -1255,7 +1336,11 @@ Participe também do nosso GRUPO DE AVISOS
         }
         
         // Enviar Webhook do CRM após aprovação manual bem-sucedida
-        sendToCRMWebhook(order);
+        if (!slowSendEnabled) {
+          sendToCRMWebhook(order);
+        } else {
+          toast.info("WhatsApp enfileirado para envio lento.");
+        }
       } else {
         toast.warning(data.message || "Aprovação parcial realizada");
       }
@@ -2537,16 +2622,22 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   size="sm"
                   variant="outline"
                   onClick={() => sendToCRMWebhook(order, true)}
-                  className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
+                  className={`h-7 px-2 text-xs ${
+                    !order.whatsapp_sent 
+                      ? "border-amber-500/50 text-amber-500 hover:bg-amber-500/10" 
+                      : "border-green-500/50 text-green-400 hover:bg-green-500/10"
+                  } ${(!order.whatsapp_sent && slowSendEnabled) ? "animate-pulse" : ""}`}
                   disabled={isSendingWebhook === order.id}
-                  title="Testar envio de Webhook WhatsApp"
+                  title={!order.whatsapp_sent ? "Aguardando envio na fila lenta" : "Reenviar WhatsApp"}
                 >
                   {isSendingWebhook === order.id ? (
                     <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : !order.whatsapp_sent ? (
+                    <Clock className="w-3 h-3 mr-1" />
                   ) : (
-                    <Send className="w-3 h-3 mr-1" />
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
                   )}
-                  WhatsApp
+                  {!order.whatsapp_sent ? "WhatsApp Fila" : "WhatsApp"}
                 </Button>
                 <Button
                   size="sm"
@@ -4643,9 +4734,32 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   </div>
                   <Switch 
                     checked={useGlobalWpp}
-                    onCheckedChange={setUseGlobalWpp}
+                  onCheckedChange={setUseGlobalWpp}
                   />
                 </div>
+
+                <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-400" />
+                    <div>
+                      <span className="text-xs text-white block">Envio Lento (Contingência)</span>
+                      <p className="text-[10px] text-zinc-500">Mínimo 3min entre mensagens acumuladas</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={slowSendEnabled}
+                    onCheckedChange={setSlowSendEnabled}
+                  />
+                </div>
+                
+                {isProcessingQueue && nextQueueRun && (
+                  <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 text-orange-500 animate-spin" />
+                    <span className="text-[10px] text-orange-200">
+                      Fila ativa: Próximo envio às {nextQueueRun.toLocaleTimeString()}
+                    </span>
+                  </div>
+                )}
                 
                 <p className="text-[10px] text-zinc-500 italic">
                   * Ative apenas um método. Se desativar ambos, o envio automático de WhatsApp será interrompido.
