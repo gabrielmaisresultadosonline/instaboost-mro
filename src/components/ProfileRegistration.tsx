@@ -500,7 +500,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
               ) : (
                 <>
                   <Camera className="w-4 h-4 mr-2" />
-                  Cadastrar Perfil
+                  Cadastrar Instagram
                 </>
               )}
             </Button>
