@@ -359,13 +359,14 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      // Buscar a última mensagem agendada para evitar sobreposição
-      const { data: lastPending } = await supabase
+      // Buscar a última mensagem agendada para o futuro PRÓXIMO para evitar sobreposição
+      // Se a última mensagem está agendada para daqui a mais de 10 minutos, consideramos a fila "vazia" para o agora
+      const { data: lastNearPending } = await supabase
         .from("wpp_bot_messages")
         .select("scheduled_for")
         .eq("status", "pending")
-        // Considerar apenas mensagens agendadas para o futuro (evitar pegar mensagens antigas travadas)
         .gt("scheduled_for", new Date().toISOString())
+        .lt("scheduled_for", new Date(Date.now() + 10 * 60 * 1000).toISOString()) // Apenas nos próximos 10 min
         .order("scheduled_for", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -373,18 +374,14 @@ const handler = async (req: Request): Promise<Response> => {
       let baseTime = Date.now();
       let isQueueEmpty = true;
 
-      if (lastPending?.scheduled_for) {
-        const lastTime = new Date(lastPending.scheduled_for).getTime();
-        if (lastTime > baseTime) {
-          baseTime = lastTime;
-          isQueueEmpty = false;
-        }
+      if (lastNearPending?.scheduled_for) {
+        baseTime = new Date(lastNearPending.scheduled_for).getTime();
+        isQueueEmpty = false;
       }
 
-      // Se a fila está vazia, aguarda apenas 10 segundos.
-      // Se já tem gente, aguarda entre 3 e 5 minutos (randomizado) entre cada envio.
-      const minDelay = isQueueEmpty ? 10 : 180; // 10s ou 3min
-      const maxDelay = isQueueEmpty ? 12 : 300; // 12s ou 5min
+      // 10s se vazio, 3-5min se ocupado
+      const minDelay = isQueueEmpty ? 10 : 180;
+      const maxDelay = isQueueEmpty ? 15 : 300;
       const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay) * 1000;
       const scheduledFor = new Date(baseTime + randomDelay).toISOString();
 
