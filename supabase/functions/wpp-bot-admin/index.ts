@@ -219,7 +219,11 @@ const handler = async (req: Request): Promise<Response> => {
       const [{ data: session }, { data: settings }, { data: messages }] = await Promise.all([
         supabase.from("wpp_bot_session").select("*").eq("id", SESSION_ID).maybeSingle(),
         supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle(),
-        supabase.from("wpp_bot_messages").select("*").order("created_at", { ascending: false }).limit(200),
+        supabase.from("wpp_bot_messages")
+          .select("*")
+          .or(`message.ilike.%Obrigado por fazer parte%,lead_id.not.is.null`)
+          .order("created_at", { ascending: false })
+          .limit(200),
       ]);
       return json({ success: true, session, settings, messages: messages || [] });
     }
@@ -296,16 +300,44 @@ const handler = async (req: Request): Promise<Response> => {
     if (parsed.data.action === "sendTest") {
       const phone = normalizePhone(parsed.data.phone);
       if (!phone) return json({ success: false, error: "Número inválido" }, 400);
+      
       const { data: settings } = await supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle();
+      
+      // Buscar a última mensagem agendada para evitar sobreposição
+      const { data: lastPending } = await supabase
+        .from("wpp_bot_messages")
+        .select("scheduled_for")
+        .eq("status", "pending")
+        .order("scheduled_for", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let baseTime = Date.now();
+      if (lastPending?.scheduled_for) {
+        const lastTime = new Date(lastPending.scheduled_for).getTime();
+        // Se a última agendada ainda não passou, começamos dela
+        if (lastTime > baseTime) {
+          baseTime = lastTime;
+        }
+      }
+
+      // Adicionar atraso aleatório entre 45 e 180 segundos (comportamento humano)
+      // Se for a primeira da fila (baseTime == now), podemos usar um atraso menor inicial
+      const isQueueEmpty = baseTime <= Date.now();
+      const minDelay = isQueueEmpty ? 5 : 45;
+      const maxDelay = isQueueEmpty ? 15 : 180;
+      const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay) * 1000;
+      const scheduledFor = new Date(baseTime + randomDelay).toISOString();
+
       await supabase.from("wpp_bot_messages").insert({
-        lead_id: null,
-        lead_name: parsed.data.lead_name || "TESTE",
+        lead_id: parsed.data.lead_id || null,
+        lead_name: parsed.data.lead_name || "VENDA",
         phone,
-        message: parsed.data.message_template || settings?.message_template || "Teste",
-        scheduled_for: new Date(Date.now() - 1000).toISOString(),
+        message: parsed.data.message_template || settings?.message_template || "Obrigado por fazer parte do nosso sistema!✅",
+        scheduled_for: scheduledFor,
         status: "pending",
       });
-      return json({ success: true, phone });
+      return json({ success: true, phone, scheduled_for: scheduledFor });
     }
 
     return json({ success: false, error: "Ação inválida" }, 400);
