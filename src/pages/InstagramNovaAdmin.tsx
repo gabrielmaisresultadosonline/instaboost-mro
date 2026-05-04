@@ -161,6 +161,9 @@ Participe também do nosso GRUPO DE AVISOS
   const [showWppConnection, setShowWppConnection] = useState(false);
   const [whatsappMode, setWhatsappMode] = useState<"api" | "qrcode" | "none">("api");
   const [useGlobalWpp, setUseGlobalWpp] = useState(true);
+  const [slowSendEnabled, setSlowSendEnabled] = useState(false);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [nextQueueRun, setNextQueueRun] = useState<Date | null>(null);
 
 
   // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
