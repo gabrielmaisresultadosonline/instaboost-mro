@@ -2842,109 +2842,120 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Admin MRO Instagram</h1>
-              <p className="text-zinc-400 text-sm">Gerenciamento de pedidos /instagram-nova</p>
-              {lastAutoCheck && (
-                <p className="text-zinc-500 text-xs mt-1">
-                  Última verificação: {format(lastAutoCheck, "HH:mm:ss", { locale: ptBR })}
-                  {autoCheckEnabled && " (auto: 8s para pedidos recentes)"}
-                </p>
-              )}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-500/10 rounded-lg hidden sm:block">
+                <Settings className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-white whitespace-nowrap">Admin MRO Instagram</h1>
+                <p className="text-zinc-400 text-xs md:text-sm">Gerenciamento /instagram-nova</p>
+                {lastAutoCheck && (
+                  <p className="text-zinc-500 text-[10px] md:text-xs mt-0.5">
+                    Última verificação: {format(lastAutoCheck, "HH:mm:ss", { locale: ptBR })}
+                    {autoCheckEnabled && " (auto: 8s)"}
+                  </p>
+                )}
+              </div>
             </div>
-            <Button
-              onClick={() => setShowWebhookSettings(true)}
-              variant="outline"
-              size="sm"
-              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
-              title="Configurar envio automático de acessos via WhatsApp"
-            >
-              <Settings className="w-4 h-4 mr-1" />
-              WhatsApp (API)
-            </Button>
-            <Button
-              onClick={() => setShowWppConnection(true)}
-              variant="outline"
-              size="sm"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-              title="Conectar WhatsApp via QR Code (VPS)"
-            >
-              <QrCode className="w-4 h-4 mr-1" />
-              Conectar WhatsApp
-            </Button>
-            <Button
-              onClick={() => setShowWebhookLogs(true)}
-              variant="outline"
-              size="sm"
-              className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
-            >
-              <FileText className="w-4 h-4 mr-1" />
-              Logs InfiniPay
-            </Button>
-            <Button
-              onClick={() => setShowCRMWebhookLogs(true)}
-              variant="outline"
-              size="sm"
-              className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
-              title="Ver histórico de envios do CRM"
-            >
-              <FileText className="w-4 h-4 mr-1" />
-              Histórico WhatsApp
-            </Button>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                onClick={() => setShowWebhookSettings(true)}
+                variant="outline"
+                size="sm"
+                className="h-9 px-2 md:px-3 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 text-xs md:text-sm"
+                title="Configurar envio automático de acessos via WhatsApp"
+              >
+                <Settings className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">WhatsApp</span> (API)
+              </Button>
+              <Button
+                onClick={() => setShowWppConnection(true)}
+                variant="outline"
+                size="sm"
+                className="h-9 px-2 md:px-3 border-green-500/50 text-green-400 hover:bg-green-500/10 text-xs md:text-sm"
+                title="Conectar WhatsApp via QR Code (VPS)"
+              >
+                <QrCode className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Conectar</span> QR Code
+              </Button>
+              <Button
+                onClick={() => setShowWebhookLogs(true)}
+                variant="outline"
+                size="sm"
+                className="h-9 px-2 md:px-3 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 text-xs md:text-sm"
+              >
+                <FileText className="w-4 h-4 mr-1.5" />
+                Logs
+              </Button>
+              <Button
+                onClick={() => setShowCRMWebhookLogs(true)}
+                variant="outline"
+                size="sm"
+                className="h-9 px-2 md:px-3 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 text-xs md:text-sm"
+                title="Ver histórico de envios do CRM"
+              >
+                <FileText className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Histórico</span> Wpp
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={() => { setShowAffiliateConfig(!showAffiliateConfig); if (!showAffiliateConfig) setShowRemarketingDashboard(false); }}
               variant="outline"
               size="sm"
-              className={`border-zinc-600 ${showAffiliateConfig ? "text-purple-400 border-purple-500/50" : "text-zinc-400"}`}
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAffiliateConfig ? "text-purple-400 border-purple-500/50" : "text-zinc-400"}`}
             >
-              <Settings className="w-4 h-4 mr-1" />
+              <Users className="w-4 h-4 mr-1.5" />
               Afiliados
             </Button>
             <Button
               onClick={() => { setShowRemarketingDashboard(!showRemarketingDashboard); if (!showRemarketingDashboard) setShowAffiliateConfig(false); }}
               variant="outline"
               size="sm"
-              className={`border-zinc-600 ${showRemarketingDashboard ? "text-red-400 border-red-500/50" : "text-zinc-400"}`}
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showRemarketingDashboard ? "text-red-400 border-red-500/50" : "text-zinc-400"}`}
             >
-              <Send className="w-4 h-4 mr-1" />
+              <Send className="w-4 h-4 mr-1.5" />
               Remarketing
             </Button>
             <Button
               onClick={() => { setShowAccessReminder(!showAccessReminder); if (!showAccessReminder) { setShowAffiliateConfig(false); setShowRemarketingDashboard(false); } }}
               variant="outline"
               size="sm"
-              className={`border-zinc-600 ${showAccessReminder ? "text-blue-400 border-blue-500/50" : "text-zinc-400"}`}
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAccessReminder ? "text-blue-400 border-blue-500/50" : "text-zinc-400"}`}
             >
-              <Key className="w-4 h-4 mr-1" />
+              <Key className="w-4 h-4 mr-1.5" />
               Lembrete
             </Button>
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
               size="sm"
-              className={`border-zinc-600 ${autoCheckEnabled ? "text-green-400 border-green-500/50" : "text-zinc-400"}`}
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${autoCheckEnabled ? "text-green-400 border-purple-500/50" : "text-zinc-400"}`}
             >
               {autoCheckEnabled ? "Auto ✓" : "Auto ✗"}
             </Button>
             <Button
               onClick={() => { loadOrders(); checkPendingPayments(); }}
               variant="outline"
-              className="border-zinc-600 text-zinc-300"
+              size="sm"
+              className="h-9 px-2 md:px-3 border-zinc-600 text-zinc-300 text-xs md:text-sm"
               disabled={loading}
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-              Atualizar
+              <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Atualizar</span>
             </Button>
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+              size="sm"
+              className="h-9 px-2 md:px-3 border-red-500/50 text-red-400 hover:bg-red-500/10 text-xs md:text-sm"
             >
-              <LogOut className="w-4 h-4 mr-2" />
+              <LogOut className="w-4 h-4 mr-1.5" />
               Sair
             </Button>
           </div>
