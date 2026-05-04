@@ -4788,7 +4788,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded flex items-center gap-2">
                     <Loader2 className="w-3 h-3 text-orange-500 animate-spin" />
                     <span className="text-[10px] text-orange-200">
-                      Fila ativa: Próximo envio às {nextQueueRun.toLocaleTimeString()}
+                      Envio Automático (Vendas): Próximo em {nextQueueRun.toLocaleTimeString()}
                     </span>
                   </div>
                 )}
