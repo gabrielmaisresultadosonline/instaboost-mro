@@ -175,8 +175,8 @@ Participe também do nosso GRUPO DE AVISOS
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     completed: true,
     paid: true,
-    pending: false,
-    expired: false
+    pending: true,
+    expired: true
   });
 
   // Configuração de afiliado - sistema expandido
