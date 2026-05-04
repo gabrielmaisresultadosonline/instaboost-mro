@@ -2739,7 +2739,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              onClick={() => { setShowAffiliateConfig(!showAffiliateConfig); if (!showAffiliateConfig) setShowRemarketingDashboard(false); }}
+              onClick={() => { setShowAffiliateConfig(!showAffiliateConfig); }}
               variant="outline"
               size="sm"
               className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAffiliateConfig ? "text-purple-400 border-purple-500/50" : "text-zinc-400"}`}
