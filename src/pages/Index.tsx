@@ -522,7 +522,7 @@ const Index = () => {
         />
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
-        <CadastrarContaButton />
+        <CadastrarContaButton onClick={handleNavigateToRegister} />
       </>
     );
   }
