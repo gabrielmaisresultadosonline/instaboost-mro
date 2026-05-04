@@ -65,8 +65,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     enabled: true,
   });
   const [messages, setMessages] = useState<MessageRow[]>([]);
-  const [testPhone, setTestPhone] = useState("");
-  const [testMessage, setTestMessage] = useState("");
 
   const invokeAdmin = useCallback(
     async (body: Record<string, unknown>) => {
@@ -121,16 +119,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     load();
   };
 
-  const saveSettings = async () => {
-    await invokeAdmin({
-      action: "saveSettings",
-      message_template: settings.message_template,
-      delay_minutes: Number(settings.delay_minutes) || 30,
-      enabled: settings.enabled,
-    });
-    toast({ title: "Configurações salvas!" });
-  };
-
   const retry = async (id: string) => {
     await invokeAdmin({ action: "retryMessage", message_id: id });
     load();
@@ -145,27 +133,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
   const remove = async (id: string) => {
     await invokeAdmin({ action: "deleteMessage", message_id: id });
     load();
-  };
-
-  const sendTest = async () => {
-    if (!testPhone.trim()) {
-      toast({ title: "Informe um número", variant: "destructive" });
-      return;
-    }
-    try {
-      const res = await invokeAdmin({
-        action: "sendTest",
-        phone: testPhone.trim(),
-        message_template: testMessage.trim() || settings.message_template,
-        lead_name: "TESTE",
-      });
-      toast({ title: "Teste enfileirado!", description: `Enviando para ${res.phone}` });
-      setTestPhone("");
-      setTestMessage("");
-      load();
-    } catch (e: any) {
-      toast({ title: "Erro no teste", description: e.message, variant: "destructive" });
-    }
   };
 
   const status = session?.status || "disconnected";
@@ -227,7 +194,8 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
 
           <div className="flex flex-wrap gap-2">
             <Button onClick={requestQr} variant="outline" disabled={loading}>
-              <QrCode className="w-4 h-4 mr-2" /> Gerar/Atualizar QR
+              <QrCode className="w-4 h-4 mr-2" /> 
+              {status === "disconnected" ? "Conectar" : "Atualizar QR"}
             </Button>
             <Button onClick={logout} variant="destructive" disabled={status !== "connected"}>
               <Power className="w-4 h-4 mr-2" /> Desconectar
@@ -239,77 +207,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
         </CardContent>
       </Card>
 
-      {/* Configurações de Remarketing */}
-      <Card className="bg-gray-800/50 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white">Mensagem de Remarketing</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={settings.enabled}
-              onCheckedChange={(v) => setSettings({ ...settings, enabled: v })}
-            />
-            <Label className="text-gray-300">Envio automático ativado</Label>
-          </div>
-          <div>
-            <Label className="text-gray-300">Atraso após cadastro (minutos)</Label>
-            <Input
-              type="number"
-              min={1}
-              value={settings.delay_minutes}
-              onChange={(e) =>
-                setSettings({ ...settings, delay_minutes: Number(e.target.value) })
-              }
-              className="mt-2 bg-gray-700 border-gray-600 text-white max-w-xs"
-            />
-          </div>
-          <div>
-            <Label className="text-gray-300">Mensagem (use *texto* para negrito)</Label>
-            <Textarea
-              rows={6}
-              value={settings.message_template}
-              onChange={(e) =>
-                setSettings({ ...settings, message_template: e.target.value })
-              }
-              className="mt-2 bg-gray-700 border-gray-600 text-white"
-            />
-          </div>
-          <Button onClick={saveSettings}>
-            <Send className="w-4 h-4 mr-2" /> Salvar configurações
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Envio de Teste */}
-      <Card className="bg-gray-800/50 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white">Enviar mensagem de teste</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-xs text-gray-400">
-            Aceita formatos: <code>51980437695</code>, <code>5180437695</code>, <code>(51) 98043-7695</code>. O sistema sempre adiciona <strong>55</strong> automaticamente.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              placeholder="Número (ex: 51980437695)"
-              value={testPhone}
-              onChange={(e) => setTestPhone(e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white"
-            />
-            <Button onClick={sendTest} className="shrink-0">
-              <Send className="w-4 h-4 mr-2" /> Enviar Teste
-            </Button>
-          </div>
-          <Textarea
-            rows={3}
-            placeholder="(opcional) mensagem custom — em branco usa o template salvo"
-            value={testMessage}
-            onChange={(e) => setTestMessage(e.target.value)}
-            className="bg-gray-700 border-gray-600 text-white"
-          />
-        </CardContent>
-      </Card>
 
       {/* Histórico */}
       <Card className="bg-gray-800/50 border-gray-700">
@@ -378,7 +275,7 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
                 {messages.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                      Nenhuma mensagem ainda. Cadastre um lead em /rendaextra2 para começar.
+                      Nenhuma mensagem enviada recentemente.
                     </TableCell>
                   </TableRow>
                 )}
