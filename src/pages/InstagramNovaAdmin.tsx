@@ -46,7 +46,8 @@ import {
   FileText,
   Key,
   Smartphone,
-  QrCode
+  QrCode,
+  MessageCircle
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, differenceInDays, addDays } from "date-fns";
@@ -58,6 +59,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
+import WppBotPanel from "@/components/admin/WppBotPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ADMIN_SESSION_STORAGE_KEY = "mro_instagram_admin_session";
@@ -155,6 +157,7 @@ Participe também do nosso GRUPO DE AVISOS
 {group_link}`
   });
   const [showWebhookSettings, setShowWebhookSettings] = useState(false);
+  const [showWppConnection, setShowWppConnection] = useState(false);
   const [whatsappMode, setWhatsappMode] = useState<"api" | "qrcode" | "none">("api");
   const [useGlobalWpp, setUseGlobalWpp] = useState(true);
 
@@ -2761,6 +2764,26 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               )}
             </div>
             <Button
+              onClick={() => setShowWebhookSettings(true)}
+              variant="outline"
+              size="sm"
+              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+              title="Configurar envio automático de acessos via WhatsApp"
+            >
+              <Settings className="w-4 h-4 mr-1" />
+              WhatsApp (API)
+            </Button>
+            <Button
+              onClick={() => setShowWppConnection(true)}
+              variant="outline"
+              size="sm"
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+              title="Conectar WhatsApp via QR Code (VPS)"
+            >
+              <QrCode className="w-4 h-4 mr-1" />
+              Conectar WhatsApp
+            </Button>
+            <Button
               onClick={() => setShowWebhookLogs(true)}
               variant="outline"
               size="sm"
@@ -4594,7 +4617,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
                   <div className="flex items-center gap-2">
                     <Send className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs text-white">Usar API (Z-API/Evolution)</span>
+                    <span className="text-xs text-white">Usar API (Meta Direta)</span>
                   </div>
                   <Switch 
                     checked={whatsappMode === "api"}
@@ -4777,6 +4800,34 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 Fechar
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* WhatsApp Connection Modal */}
+      <Dialog open={showWppConnection} onOpenChange={setShowWppConnection}>
+        <DialogContent className="max-w-4xl bg-zinc-900 border-zinc-800 text-white max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Conexão WhatsApp (QR Code)</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Gerencie a conexão do WhatsApp via QR Code para o envio de acessos.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <WppBotPanel 
+              adminToken={getAdminSessionToken()} 
+              onUnauthorized={() => {
+                setShowWppConnection(false);
+                clearAdminSession();
+              }} 
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWppConnection(false)} className="bg-zinc-800 border-zinc-700 text-white">
+              Fechar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
