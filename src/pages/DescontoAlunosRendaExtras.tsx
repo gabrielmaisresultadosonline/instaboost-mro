@@ -864,6 +864,11 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       )}
 
+      {/* Active Clients */}
+      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
+        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
+      </section>
+
       {/* Footer */}
       <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-gray-800">
         <div className="max-w-7xl mx-auto text-center text-gray-500 text-xs sm:text-sm">
