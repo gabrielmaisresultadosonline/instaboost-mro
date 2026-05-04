@@ -170,6 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
           .select("*")
           .eq("status", "pending")
           .lte("scheduled_for", new Date().toISOString())
+          .gt("created_at", new Date(Date.now() - 6 * 3600 * 1000).toISOString()) // Apenas criados nas últimas 6h
           .order("scheduled_for", { ascending: true })
           .limit(10);
 
