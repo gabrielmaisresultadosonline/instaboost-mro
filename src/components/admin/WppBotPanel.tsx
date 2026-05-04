@@ -141,6 +141,9 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     session?.last_heartbeat &&
     Date.now() - new Date(session.last_heartbeat).getTime() < 30_000;
 
+  // Filtrar apenas mensagens de vendas (que possuem lead_id)
+  const salesMessages = messages.filter(m => m.lead_id !== null);
+
   return (
     <div className="space-y-4">
       {/* Status + Conexão */}
