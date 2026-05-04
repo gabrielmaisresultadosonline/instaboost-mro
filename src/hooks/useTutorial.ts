@@ -34,7 +34,7 @@ export const profileRegistrationTutorial: TutorialSection[] = [
   },
   {
     id: 'cadastrar',
-    title: 'Cadastrar Perfil',
+    title: 'Cadastrar Instagram',
     icon: '➕',
     steps: [
       {
