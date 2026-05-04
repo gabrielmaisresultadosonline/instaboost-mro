@@ -27,6 +27,7 @@ interface SettingsRow {
 }
 interface MessageRow {
   id: string;
+  lead_id: string | null;
   lead_name: string | null;
   phone: string;
   message: string;
