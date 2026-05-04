@@ -2305,6 +2305,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
   const getAffiliateSales = (affId: string) => {
     return orders.filter(o => 
       (o.status === "paid" || o.status === "completed") && 
+      o.whatsapp_sent && // Apenas os já enviados
       o.email.toLowerCase().startsWith(`${affId.toLowerCase()}:`)
     );
   };
