@@ -287,10 +287,10 @@ const VendasCompleta = () => {
         </div>
       </section>
 
-      {/* Active Clients - hidden temporarily */}
-      {/* <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
+      {/* Active Clients */}
+      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
         <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
-      </section> */}
+      </section>
 
       {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
       <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">

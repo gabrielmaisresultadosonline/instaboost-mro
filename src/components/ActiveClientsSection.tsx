@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, X, ChevronRight, Loader2 } from 'lucide-react';
+import { Users, X, ChevronRight, Loader2, Camera, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ActiveClient {
@@ -36,6 +37,7 @@ export default function ActiveClientsSection({
   maxClients = 15,
   className = ''
 }: ActiveClientsSectionProps) {
+  const navigate = useNavigate();
   const [previewClients, setPreviewClients] = useState<ActiveClient[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -231,7 +233,21 @@ export default function ActiveClientsSection({
           </div>
         )}
 
-        <p className="text-center text-gray-400 text-sm mt-4">
+        <div className="mt-8 flex flex-col items-center gap-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/20 rounded-2xl p-6 max-w-2xl mx-auto shadow-lg shadow-amber-500/5">
+          <div className="flex items-center gap-3 text-amber-400">
+            <Camera className="w-5 h-5" />
+            <p className="text-sm font-medium">📸 Após cadastrar, envie um print do perfil para análise completa com I.A.</p>
+          </div>
+          <Button
+            onClick={() => navigate('/')}
+            className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold px-8 py-6 rounded-xl text-lg transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl shadow-amber-500/20"
+          >
+            <Instagram className="w-5 h-5 mr-2" />
+            Cadastrar Instagram
+          </Button>
+        </div>
+
+        <p className="text-center text-gray-400 text-sm mt-6">
           Perfis utilizando nossa inteligência artificial
         </p>
       </div>

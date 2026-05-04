@@ -109,7 +109,7 @@ export const ProfileSelector = ({
             className="cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Adicionar Perfil
+            Cadastrar Instagram
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
