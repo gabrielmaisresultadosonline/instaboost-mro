@@ -1140,27 +1140,42 @@ Participe também do nosso GRUPO DE AVISOS
         console.log(`[CRM] Enviando via QR Code para ${order.username} (${order.phone})`);
         const token = getAdminSessionToken();
         
-        // Sempre usamos 'sendTest' para pedidos aprovados, pois o 'sendTest' no robô
-        // agora segue a regra de 10s se fila vazia e 3-5m se ocupada.
-        // O 'enqueueLead' é reservado para remarketing com longos atrasos (ex: 30 min).
+        // Garantir que estamos enviando o template correto de ACESSO (não o de remarketing)
+        const accessMessage = formatWebhookMessage(webhookConfig.message_template, order);
+        
+        // Usamos 'sendTest' no robô, pois ele gerencia a fila inteligentemente:
+        // - 10 segundos se não houver mensagens próximas
+        // - 3 a 5 minutos entre mensagens se a fila estiver ativa
         const response = await supabase.functions.invoke("wpp-bot-admin", {
           body: { 
             action: "sendTest", 
             adminToken: token,
             phone: order.phone,
-            message_template: formatWebhookMessage(webhookConfig.message_template, order),
+            message_template: accessMessage,
             lead_name: order.username,
             lead_id: order.id
           },
         });
         
-        if (response.data?.success) {
-          if (isTest) toast.success("Mensagem enfileirada via QR Code!");
-          // Atualizar no banco que foi enviado
-          const { error: updateError } = await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
-          if (updateError) {
-            console.error("Erro ao atualizar whatsapp_sent:", updateError);
+        if (response.data?.success || response.data?.duplicate) {
+          if (isTest) {
+            if (response.data?.duplicate) {
+              toast.info("Este cliente já recebeu ou está para receber a mesma mensagem.");
+            } else {
+              toast.success("Mensagem de acesso enfileirada via QR Code!");
+            }
           }
+          
+          // Atualizar no banco que foi enviado para o WhatsApp
+          const { error: updateError } = await supabase
+            .from("mro_orders")
+            .update({ whatsapp_sent: true })
+            .eq("id", order.id);
+            
+          if (updateError) console.error("Erro ao atualizar whatsapp_sent:", updateError);
+          
+          // Se for manual, recarrega para atualizar o badge
+          if (isTest) loadOrders();
         } else {
           console.error("Erro no retorno do wpp-bot-admin:", response.data);
           if (isTest) toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
