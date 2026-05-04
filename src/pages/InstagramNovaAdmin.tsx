@@ -1134,6 +1134,7 @@ Participe também do nosso GRUPO DE AVISOS
     // Se for QR Code, enfileirar via wpp-bot-admin
     if (whatsappMode === "qrcode") {
       try {
+        console.log(`[CRM] Enviando via QR Code para ${order.username} (${order.phone})`);
         const token = getAdminSessionToken();
         const response = await supabase.functions.invoke("wpp-bot-admin", {
           body: { 
@@ -1147,22 +1148,31 @@ Participe também do nosso GRUPO DE AVISOS
         });
         
         if (response.data?.success) {
-          if (isTest) toast.success("Mensagem enviada via QR Code!");
+          if (isTest) toast.success("Mensagem enfileirada via QR Code!");
           // Atualizar no banco que foi enviado
-          await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+          const { error: updateError } = await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+          if (updateError) {
+            console.error("Erro ao atualizar whatsapp_sent:", updateError);
+          }
         } else {
+          console.error("Erro no retorno do wpp-bot-admin:", response.data);
           if (isTest) toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
           throw new Error(response.data?.error || "Erro no envio QR Code");
         }
         return;
       } catch (err: any) {
         console.error("QR Code send error:", err);
-        if (isTest) toast.error("Erro ao conectar com o Bot QR Code");
+        if (isTest) toast.error("Erro ao conectar com o Bot QR Code: " + err.message);
         throw err;
       }
     }
 
-    // Lógica original da API
+    // Lógica da API Meta (apenas se whatsappMode for 'api')
+    if (whatsappMode !== "api") {
+      console.log(`[CRM] Modo API desativado (atual: ${whatsappMode}). Ignorando envio Meta.`);
+      return;
+    }
+
     if (!webhookConfig.enabled && !isTest) return;
     if (!webhookConfig.webhook_id || !webhookConfig.token) {
       if (isTest) toast.error("Configure o ID e Token do Webhook primeiro");
