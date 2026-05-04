@@ -21,7 +21,7 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List } from 'lucide-react';
+import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List, Mail } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
 import { getSession, updateAnalysis, clearStrategies } from '@/lib/storage';
@@ -42,6 +42,7 @@ const ADMIN_PASSWORD = 'Ga145523@';
 export const UserHeader = ({ onLogout, onReanalysisComplete, tutorial, activeTab }: UserHeaderProps) => {
   const user = getCurrentUser();
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [nicheInput, setNicheInput] = useState('');
@@ -198,12 +199,27 @@ export const UserHeader = ({ onLogout, onReanalysisComplete, tutorial, activeTab
                 Criativos: {creativesAccess.allowed ? 'Liberado' : 'Bloqueado'}
               </p>
             )}
-            {user.email && (
-              <p className="text-xs text-muted-foreground mt-1">{user.email}</p>
-            )}
           </div>
         </TooltipContent>
       </Tooltip>
+
+      {user.email && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowEmailModal(true)}
+              className="p-1.5 sm:p-2 h-auto hover:text-primary transition-colors"
+            >
+              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Ver e-mail cadastrado</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
       {/* Help icon - red, next to logout */}
       {tutorial && (
@@ -258,6 +274,33 @@ export const UserHeader = ({ onLogout, onReanalysisComplete, tutorial, activeTab
       <Button variant="ghost" size="sm" onClick={handleLogout} className="p-1.5 sm:p-2 h-auto">
         <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
+
+      {/* Email View Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              E-mail Vinculado
+            </DialogTitle>
+            <DialogDescription>
+              Este é o e-mail cadastrado em sua conta.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center p-6 space-y-4 bg-secondary/20 rounded-xl border border-border">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Mail className="w-8 h-8 text-primary" />
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-foreground break-all">{user.email}</p>
+              <p className="text-sm text-muted-foreground mt-1">Conta: {user.username}</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowEmailModal(false)} className="w-full">
+            Fechar
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Admin Access Modal */}
       <Dialog open={showAdminModal} onOpenChange={handleCloseModal}>
