@@ -36,7 +36,7 @@ import {
   Phone
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
-import ActiveClientsSection from "@/components/ActiveClientsSection";
+// import ActiveClientsSection from "@/components/ActiveClientsSection"; // Removed
 
 interface SalesSettings {
   whatsappNumber: string;
@@ -494,10 +494,7 @@ const VendasCompletaPro = () => {
         </div>
       </section>
 
-      {/* Active Clients Section */}
-      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
-      </section>
+      {/* Active Clients section removed as requested */}
 
       {/* O QUE VOCÊ VAI RECEBER */}
       <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-950">
