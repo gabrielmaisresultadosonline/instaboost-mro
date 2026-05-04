@@ -2728,7 +2728,9 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   <TabsTrigger value="sales" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
                     Histórico de Envios
                   </TabsTrigger>
-                  {/* Tab Tentativas removida permanentemente para focar apenas em Vendas Aprovadas */}
+                  <TabsTrigger value="attempts" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
+                    Tentativas ({getFilteredAffiliateAttempts().length})
+                  </TabsTrigger>
                   <TabsTrigger value="email-preview" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
                     📧 Preview Email
                   </TabsTrigger>
