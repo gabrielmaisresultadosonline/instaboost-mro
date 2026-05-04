@@ -398,6 +398,65 @@ Participe também do nosso GRUPO DE AVISOS
     };
   }, [showCRMWebhookLogs]);
 
+  // Efeito para gerenciar o envio lento de mensagens (Drip Feed / Queue)
+  useEffect(() => {
+    if (!slowSendEnabled || isProcessingQueue || whatsappMode === "none" || !isAuthenticated) return;
+
+    const processQueue = async () => {
+      // 1. Verificar se há pedidos que precisam ser enviados
+      // Filtramos pedidos pagos ou completos que ainda não foram marcados como whatsapp_sent
+      const pendingWhatsAppOrders = orders.filter(o => 
+        (o.status === "paid" || o.status === "completed") && 
+        o.whatsapp_sent !== true &&
+        o.phone
+      );
+
+      if (pendingWhatsAppOrders.length === 0) return;
+
+      setIsProcessingQueue(true);
+      
+      // Pegar o mais antigo (orders está desc por padrão)
+      const orderToSend = pendingWhatsAppOrders[pendingWhatsAppOrders.length - 1];
+      
+      console.log(`[QUEUE] Processando envio lento para: ${orderToSend.username}`);
+      
+      try {
+        await sendToCRMWebhook(orderToSend);
+        
+        // Calcular próximo intervalo (mínimo 3 min, máximo 6 min randomizado conforme pedido)
+        const minDelay = 3 * 60 * 1000; // 3 minutos
+        const randomExtra = Math.floor(Math.random() * 3 * 60 * 1000); // 0-3 minutos extras
+        const totalDelay = minDelay + randomExtra;
+        
+        const nextRun = new Date(Date.now() + totalDelay);
+        setNextQueueRun(nextRun);
+        
+        // Recarregar pedidos para atualizar o estado visual
+        loadOrders();
+        
+        console.log(`[QUEUE] Mensagem enviada. Próximo envio em ${Math.round(totalDelay/1000)}s (${nextRun.toLocaleTimeString()})`);
+        
+        // Aguardar o intervalo antes de liberar para o próximo
+        setTimeout(() => {
+          setIsProcessingQueue(false);
+          setNextQueueRun(null);
+        }, totalDelay);
+        
+      } catch (error) {
+        console.error("[QUEUE] Erro ao processar fila (tentará novamente em 1 min):", error);
+        // Em caso de erro, espera 1 minuto antes de tentar novamente para não travar em loop infinito de erro
+        setTimeout(() => {
+          setIsProcessingQueue(false);
+        }, 60000);
+      }
+    };
+
+    // Só inicia se não estiver esperando o intervalo
+    if (!nextQueueRun) {
+      processQueue();
+    }
+  }, [slowSendEnabled, orders, isProcessingQueue, nextQueueRun, whatsappMode, isAuthenticated]);
+
   const loadWebhookConfig = async () => {
     const token = getAdminSessionToken();
     if (!token) return;
