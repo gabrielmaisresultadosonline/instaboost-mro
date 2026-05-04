@@ -194,7 +194,8 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
 
           <div className="flex flex-wrap gap-2">
             <Button onClick={requestQr} variant="outline" disabled={loading}>
-              <QrCode className="w-4 h-4 mr-2" /> Gerar/Atualizar QR
+              <QrCode className="w-4 h-4 mr-2" /> 
+              {status === "disconnected" ? "Conectar" : "Atualizar QR"}
             </Button>
             <Button onClick={logout} variant="destructive" disabled={status !== "connected"}>
               <Power className="w-4 h-4 mr-2" /> Desconectar
