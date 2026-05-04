@@ -1139,9 +1139,13 @@ Participe também do nosso GRUPO DE AVISOS
       try {
         console.log(`[CRM] Enviando via QR Code para ${order.username} (${order.phone})`);
         const token = getAdminSessionToken();
+        
+        // Sempre usamos 'sendTest' para pedidos aprovados, pois o 'sendTest' no robô
+        // agora segue a regra de 10s se fila vazia e 3-5m se ocupada.
+        // O 'enqueueLead' é reservado para remarketing com longos atrasos (ex: 30 min).
         const response = await supabase.functions.invoke("wpp-bot-admin", {
           body: { 
-            action: isManualTest ? "enqueueLead" : "sendTest",
+            action: "sendTest", 
             adminToken: token,
             phone: order.phone,
             message_template: formatWebhookMessage(webhookConfig.message_template, order),
