@@ -2622,16 +2622,22 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   size="sm"
                   variant="outline"
                   onClick={() => sendToCRMWebhook(order, true)}
-                  className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
+                  className={`h-7 px-2 text-xs ${
+                    !order.whatsapp_sent 
+                      ? "border-amber-500/50 text-amber-500 hover:bg-amber-500/10" 
+                      : "border-green-500/50 text-green-400 hover:bg-green-500/10"
+                  } ${(!order.whatsapp_sent && slowSendEnabled) ? "animate-pulse" : ""}`}
                   disabled={isSendingWebhook === order.id}
-                  title="Testar envio de Webhook WhatsApp"
+                  title={!order.whatsapp_sent ? "Aguardando envio na fila lenta" : "Reenviar WhatsApp"}
                 >
                   {isSendingWebhook === order.id ? (
                     <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : !order.whatsapp_sent ? (
+                    <Clock className="w-3 h-3 mr-1" />
                   ) : (
-                    <Send className="w-3 h-3 mr-1" />
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
                   )}
-                  WhatsApp
+                  {!order.whatsapp_sent ? "WhatsApp Fila" : "WhatsApp"}
                 </Button>
                 <Button
                   size="sm"
