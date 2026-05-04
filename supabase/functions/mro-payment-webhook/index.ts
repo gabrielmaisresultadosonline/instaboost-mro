@@ -466,16 +466,28 @@ serve(async (req) => {
       );
     }
 
-    // Marcar como pago (se ainda não estava)
+    // Marcar como pago (se ainda não estava) usando atualização atômica para evitar race conditions
     if (order.status === "pending") {
-      await supabase
+      const { data: updatedOrder, error: updateError } = await supabase
         .from("mro_orders")
         .update({
           status: "paid",
           paid_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", order.id);
+        .eq("id", order.id)
+        .eq("status", "pending")
+        .select()
+        .single();
+      
+      if (updateError || !updatedOrder) {
+        log("Order already being processed by another request (race condition)", { orderId: order.id });
+        return new Response(
+          JSON.stringify({ success: true, message: "Already processing" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+      order = updatedOrder;
     }
 
     // Calcular dias de acesso
