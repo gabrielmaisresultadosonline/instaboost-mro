@@ -3669,12 +3669,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <p className="text-2xl font-bold text-green-400">{stats.completed}</p>
             </CardContent>
           </Card>
-          <Card className="bg-red-500/10 border-red-500/30">
-            <CardContent className="p-4">
-              <p className="text-red-400 text-sm">Expirados</p>
-              <p className="text-2xl font-bold text-red-400">{stats.expired}</p>
-            </CardContent>
-          </Card>
+          {/* Expirados removido da visualização principal */}
           <Card className="bg-amber-500/10 border-amber-500/30">
             <CardContent className="p-4">
               <p className="text-amber-400 text-sm">Receita</p>
