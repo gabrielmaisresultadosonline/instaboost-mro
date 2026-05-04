@@ -262,19 +262,27 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: settings } = await supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle();
       if (!settings?.enabled) return json({ success: true, skipped: true, reason: "disabled" });
 
-      // Verificar duplicidade mesmo no enqueueLead para evitar múltiplos disparos por cliques rápidos ou retentativas de rede
+      // Verificar duplicidade e conteúdo
       if (parsed.data.lead_id) {
         const { data: existing } = await supabase
           .from("wpp_bot_messages")
-          .select("id, status")
+          .select("id, status, message")
           .eq("lead_id", parsed.data.lead_id)
-          .eq("status", "pending")
-          .gt("created_at", new Date(Date.now() - 3600 * 1000).toISOString()) // 1 hora de janela para evitar duplicados pendentes
+          .gt("created_at", new Date(Date.now() - 3600 * 1000).toISOString()) 
           .maybeSingle();
 
         if (existing) {
-          console.log(`[enqueueLead] Mensagem já está pendente para o lead ${parsed.data.lead_id}. Ignorando.`);
-          return json({ success: true, duplicate: true, message_id: existing.id });
+          const newMessage = parsed.data.message_template || settings.message_template;
+          
+          if (existing.message === newMessage) {
+            console.log(`[enqueueLead] Mensagem idêntica já está pendente para o lead ${parsed.data.lead_id}. Ignorando.`);
+            return json({ success: true, duplicate: true, message_id: existing.id });
+          }
+
+          if (existing.status === "pending") {
+            await supabase.from("wpp_bot_messages").delete().eq("id", existing.id);
+            console.log(`[enqueueLead] Mensagem pendente anterior deletada para o lead ${parsed.data.lead_id} (conteúdo diferente).`);
+          }
         }
       }
 
@@ -282,7 +290,7 @@ const handler = async (req: Request): Promise<Response> => {
         lead_id: parsed.data.lead_id || null,
         lead_name: parsed.data.lead_name || null,
         phone,
-        message: settings.message_template,
+        message: parsed.data.message_template || settings.message_template,
         scheduled_for: new Date(Date.now() + (settings.delay_minutes || 30) * 60_000).toISOString(),
         status: "pending",
       });
@@ -325,14 +333,29 @@ const handler = async (req: Request): Promise<Response> => {
       if (parsed.data.lead_id) {
         const { data: existing } = await supabase
           .from("wpp_bot_messages")
-          .select("id, status")
+          .select("id, status, message")
           .eq("lead_id", parsed.data.lead_id)
           .gt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (existing) {
-          console.log(`[sendTest] Mensagem já existe para o lead ${parsed.data.lead_id} (status: ${existing.status}). Ignorando.`);
-          return json({ success: true, duplicate: true, message_id: existing.id });
+          const newMessage = parsed.data.message_template || settings?.message_template || "";
+          
+          // Se a mensagem existente for exatamente igual, ignoramos para evitar duplicidade (pedido do usuário)
+          if (existing.message === newMessage) {
+            console.log(`[sendTest] Mensagem idêntica já existe para o lead ${parsed.data.lead_id}. Ignorando duplicado.`);
+            return json({ success: true, duplicate: true, message_id: existing.id });
+          }
+          
+          // Se a mensagem existente for diferente (ex: era remarketing e agora é acesso), 
+          // deletamos a anterior (pendente) para garantir que o cliente receba a mais atual e correta.
+          if (existing.status === "pending") {
+            await supabase.from("wpp_bot_messages").delete().eq("id", existing.id);
+            console.log(`[sendTest] Mensagem pendente anterior deletada para o lead ${parsed.data.lead_id}.`);
+          }
+          console.log(`[sendTest] Enviando nova versão da mensagem para o lead ${parsed.data.lead_id}.`);
         }
       }
 

@@ -560,16 +560,23 @@ serve(async (req) => {
           cleanPhone = `55${cleanPhone}`;
         }
         
+        // Buscar a configuração atual do modo de WhatsApp e o template
+        const { data: webhookConfig } = await supabase
+          .from("crm_webhooks")
+          .select("id, secret_token, metadata, message_template")
+          .eq("id", "0c578c9d-4e33-48be-91dd-63f98d7ff430")
+          .single();
+
         const MEMBER_LINK = "https://maisresultadosonline.com.br/instagram";
         const GROUP_LINK = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
 
-        const messageText = `Obrigado por fazer parte do nosso sistema!✅
+        const template = webhookConfig?.message_template || `Obrigado por fazer parte do nosso sistema!✅
 
 🚀🔥 *Ferramenta para Instagram Vip acesso!*
 
 Preciso que assista os vídeos da área de membros com o link abaixo:
 
-( ${MEMBER_LINK} ) 
+( {member_link} ) 
 
 1 - Acesse Área Membros
 
@@ -577,20 +584,20 @@ Preciso que assista os vídeos da área de membros com o link abaixo:
 
 Para acessar a ferramenta e área de membros, utilize os acessos:
 
-*usuário:* ${order.username}
-*senha:* ${order.username}
+*usuário:* {username}
+*senha:* {username}
 
 ⚠ Assista todos os vídeos, por favor!
 
 Participe também do nosso GRUPO DE AVISOS
-${GROUP_LINK}`;
+{group_link}`;
 
-        // Buscar a configuração atual do modo de WhatsApp (API ou QR Code)
-        const { data: webhookConfig } = await supabase
-          .from("crm_webhooks")
-          .select("id, secret_token, metadata")
-          .eq("id", "0c578c9d-4e33-48be-91dd-63f98d7ff430")
-          .single();
+        const messageText = template
+          .replace(/{username}/g, order.username)
+          .replace(/{member_link}/g, MEMBER_LINK)
+          .replace(/{group_link}/g, GROUP_LINK)
+          .replace(/{email}/g, order.email)
+          .replace(/{order_id}/g, order.id);
 
         const whatsapp_mode = (webhookConfig?.metadata as any)?.whatsapp_mode || "api";
         const webhook_id = webhookConfig?.id || "0c578c9d-4e33-48be-91dd-63f98d7ff430";
@@ -604,7 +611,7 @@ ${GROUP_LINK}`;
             method: "POST",
             headers: { 
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
             },
             body: JSON.stringify({
               action: "sendTest",
@@ -626,7 +633,7 @@ ${GROUP_LINK}`;
             method: "POST",
             headers: { 
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
             },
             body: JSON.stringify({
               webhook_id,
