@@ -1235,11 +1235,12 @@ Participe também do nosso GRUPO DE AVISOS
         const token = getAdminSessionToken();
         const response = await supabase.functions.invoke("wpp-bot-admin", {
           body: { 
-            action: "sendTest", // Reutilizando a função de envio direto
+            action: "sendTest",
             adminToken: token,
             phone: order.phone,
             message_template: formatWebhookMessage(webhookConfig.message_template, order),
-            lead_name: order.username
+            lead_name: order.username,
+            lead_id: order.id
           },
         });
         
