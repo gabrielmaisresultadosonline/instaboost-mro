@@ -3656,12 +3656,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </CardContent>
           </Card>
-          <Card className="bg-yellow-500/10 border-yellow-500/30">
-            <CardContent className="p-4">
-              <p className="text-yellow-400 text-sm">Pendentes</p>
-              <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
-            </CardContent>
-          </Card>
+          {/* Pendentes removido da visualização principal */}
           <Card className="bg-blue-500/10 border-blue-500/30">
             <CardContent className="p-4">
               <p className="text-blue-400 text-sm">Pagos</p>
