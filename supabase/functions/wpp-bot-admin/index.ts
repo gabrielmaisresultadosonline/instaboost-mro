@@ -364,21 +364,27 @@ const handler = async (req: Request): Promise<Response> => {
         .from("wpp_bot_messages")
         .select("scheduled_for")
         .eq("status", "pending")
+        // Considerar apenas mensagens agendadas para o futuro (evitar pegar mensagens antigas travadas)
+        .gt("scheduled_for", new Date().toISOString())
         .order("scheduled_for", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       let baseTime = Date.now();
+      let isQueueEmpty = true;
+
       if (lastPending?.scheduled_for) {
         const lastTime = new Date(lastPending.scheduled_for).getTime();
         if (lastTime > baseTime) {
           baseTime = lastTime;
+          isQueueEmpty = false;
         }
       }
 
-      const isQueueEmpty = baseTime <= Date.now();
-      const minDelay = isQueueEmpty ? 5 : 45;
-      const maxDelay = isQueueEmpty ? 15 : 180;
+      // Se a fila está vazia, aguarda apenas 10 segundos.
+      // Se já tem gente, aguarda entre 3 e 5 minutos (randomizado) entre cada envio.
+      const minDelay = isQueueEmpty ? 10 : 180; // 10s ou 3min
+      const maxDelay = isQueueEmpty ? 12 : 300; // 12s ou 5min
       const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay) * 1000;
       const scheduledFor = new Date(baseTime + randomDelay).toISOString();
 
