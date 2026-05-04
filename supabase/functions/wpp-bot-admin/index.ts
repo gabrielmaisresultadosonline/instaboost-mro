@@ -342,8 +342,12 @@ const handler = async (req: Request): Promise<Response> => {
           }
           
           // Se a mensagem existente for diferente (ex: era remarketing e agora é acesso), 
-          // ou se a anterior falhou, permitimos o envio da nova mensagem.
-          console.log(`[sendTest] Mensagem diferente detectada para o lead ${parsed.data.lead_id}. Enviando nova versão.`);
+          // deletamos a anterior (pendente) para garantir que o cliente receba a mais atual e correta.
+          if (existing.status === "pending") {
+            await supabase.from("wpp_bot_messages").delete().eq("id", existing.id);
+            console.log(`[sendTest] Mensagem pendente anterior deletada para o lead ${parsed.data.lead_id}.`);
+          }
+          console.log(`[sendTest] Enviando nova versão da mensagem para o lead ${parsed.data.lead_id}.`);
         }
       }
 
