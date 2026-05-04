@@ -181,7 +181,7 @@ Participe também do nosso GRUPO DE AVISOS
 
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
-  const [showRemarketingDashboard, setShowRemarketingDashboard] = useState(false);
+  // showRemarketingDashboard removido
   const [showAccessReminder, setShowAccessReminder] = useState(false);
   const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
