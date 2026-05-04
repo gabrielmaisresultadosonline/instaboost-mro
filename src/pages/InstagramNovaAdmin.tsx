@@ -1336,7 +1336,11 @@ Participe também do nosso GRUPO DE AVISOS
         }
         
         // Enviar Webhook do CRM após aprovação manual bem-sucedida
-        sendToCRMWebhook(order);
+        if (!slowSendEnabled) {
+          sendToCRMWebhook(order);
+        } else {
+          toast.info("WhatsApp enfileirado para envio lento.");
+        }
       } else {
         toast.warning(data.message || "Aprovação parcial realizada");
       }
