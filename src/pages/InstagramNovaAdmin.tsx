@@ -1167,15 +1167,20 @@ Participe também do nosso GRUPO DE AVISOS
             lead_name: order.username
           },
         });
-        if (isTest) {
-          if (response.data?.success) toast.success("Mensagem enviada via QR Code!");
-          else toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
+        
+        if (response.data?.success) {
+          if (isTest) toast.success("Mensagem enviada via QR Code!");
+          // Atualizar no banco que foi enviado
+          await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
+        } else {
+          if (isTest) toast.error("Erro ao enviar via QR Code: " + (response.data?.error || "Desconhecido"));
+          throw new Error(response.data?.error || "Erro no envio QR Code");
         }
         return;
       } catch (err: any) {
         console.error("QR Code send error:", err);
         if (isTest) toast.error("Erro ao conectar com o Bot QR Code");
-        // Fallback: se der erro no QR Code, não faz nada (conforme solicitado: "permanece enviando o que já tava fazendo")
+        throw err;
       }
     }
 
@@ -1220,7 +1225,9 @@ Participe também do nosso GRUPO DE AVISOS
       const result = await response.json();
       
       if (result.success) {
-        if (isTest) toast.success("Webhook de teste enviado com sucesso!");
+        if (isTest) toast.success("Webhook enviado com sucesso!");
+        // Atualizar no banco que foi enviado
+        await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
         console.log("Webhook enviado com sucesso:", result);
       } else {
         throw new Error(result.error || "Erro ao enviar webhook");
@@ -1228,6 +1235,7 @@ Participe também do nosso GRUPO DE AVISOS
     } catch (error: any) {
       console.error("Erro ao enviar webhook:", error);
       if (isTest) toast.error(`Erro no Webhook: ${error.message}`);
+      throw error;
     } finally {
       setIsSendingWebhook(null);
     }
