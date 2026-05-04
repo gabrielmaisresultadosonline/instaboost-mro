@@ -359,26 +359,29 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      // Buscar a última mensagem agendada para evitar sobreposição
-      const { data: lastPending } = await supabase
+      // Buscar a última mensagem agendada para o futuro PRÓXIMO para evitar sobreposição
+      // Se a última mensagem está agendada para daqui a mais de 10 minutos, consideramos a fila "vazia" para o agora
+      const { data: lastNearPending } = await supabase
         .from("wpp_bot_messages")
         .select("scheduled_for")
         .eq("status", "pending")
+        .gt("scheduled_for", new Date().toISOString())
+        .lt("scheduled_for", new Date(Date.now() + 10 * 60 * 1000).toISOString()) // Apenas nos próximos 10 min
         .order("scheduled_for", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       let baseTime = Date.now();
-      if (lastPending?.scheduled_for) {
-        const lastTime = new Date(lastPending.scheduled_for).getTime();
-        if (lastTime > baseTime) {
-          baseTime = lastTime;
-        }
+      let isQueueEmpty = true;
+
+      if (lastNearPending?.scheduled_for) {
+        baseTime = new Date(lastNearPending.scheduled_for).getTime();
+        isQueueEmpty = false;
       }
 
-      const isQueueEmpty = baseTime <= Date.now();
-      const minDelay = isQueueEmpty ? 5 : 45;
-      const maxDelay = isQueueEmpty ? 15 : 180;
+      // 10s se vazio, 3-5min se ocupado
+      const minDelay = isQueueEmpty ? 10 : 180;
+      const maxDelay = isQueueEmpty ? 15 : 300;
       const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay) * 1000;
       const scheduledFor = new Date(baseTime + randomDelay).toISOString();
 
