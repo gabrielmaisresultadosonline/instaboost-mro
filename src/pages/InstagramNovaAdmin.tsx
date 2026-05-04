@@ -451,7 +451,8 @@ Participe também do nosso GRUPO DE AVISOS
             kanban_labels: {
               ...kanbanLabels,
               whatsapp_mode: whatsappMode,
-              use_global_wpp: useGlobalWpp
+              use_global_wpp: useGlobalWpp,
+              slow_send_enabled: slowSendEnabled
             }
           }
         }
