@@ -1331,7 +1331,37 @@ Participe também do nosso GRUPO DE AVISOS
     }
   };
 
-  const filteredOrders = orders.filter(order => {
+  // Agrupar e deduplicar pedidos por usuário para mostrar apenas o estado mais atual
+  // Mas mantendo a capacidade de ver o histórico se necessário (em abas específicas)
+  const deduplicatedOrders = orders.reduce((acc: MROOrder[], current) => {
+    // Chave única para o usuário (email ou username)
+    const userKey = current.email.toLowerCase();
+    const existingIndex = acc.findIndex(o => o.email.toLowerCase() === userKey);
+
+    if (existingIndex === -1) {
+      acc.push(current);
+    } else {
+      const existing = acc[existingIndex];
+      // Prioridade: paid/completed > pending > expired
+      const statusPriority: Record<string, number> = {
+        completed: 4,
+        paid: 3,
+        pending: 2,
+        expired: 1
+      };
+
+      const currentPriority = statusPriority[current.status] || 0;
+      const existingPriority = statusPriority[existing.status] || 0;
+
+      // Se o novo tem prioridade maior ou é mais recente com mesma prioridade, substitui
+      if (currentPriority > existingPriority || (currentPriority === existingPriority && new Date(current.created_at) > new Date(existing.created_at))) {
+        acc[existingIndex] = current;
+      }
+    }
+    return acc;
+  }, []);
+
+  const filteredOrders = deduplicatedOrders.filter(order => {
     const matchesSearch = 
       order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
