@@ -208,7 +208,74 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
       </Card>
 
 
-      {/* Seção de Histórico removida a pedido do usuário para evitar confusão com dados antigos */}
+      {/* Histórico de Envios (Apenas Vendas Aprovadas) */}
+      <Card className="bg-gray-800/50 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white text-sm flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-400" /> 
+            Histórico de Envios (Vendas Aprovadas)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border border-gray-700">
+            <Table>
+              <TableHeader className="bg-gray-900/50">
+                <TableRow className="border-gray-700 hover:bg-transparent">
+                  <TableHead className="text-gray-400">Lead</TableHead>
+                  <TableHead className="text-gray-400">Telefone</TableHead>
+                  <TableHead className="text-gray-400">Status</TableHead>
+                  <TableHead className="text-gray-400">Agendado</TableHead>
+                  <TableHead className="text-gray-400 text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {messages.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      Nenhum envio recente
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  messages.map((msg) => {
+                    const status = MSG_STATUS[msg.status] || { color: "bg-gray-500", label: msg.status };
+                    return (
+                      <TableRow key={msg.id} className="border-gray-700 hover:bg-gray-700/30">
+                        <TableCell className="font-medium text-white">{msg.lead_name || "Desconhecido"}</TableCell>
+                        <TableCell className="text-gray-300">{msg.phone}</TableCell>
+                        <TableCell>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${status.color}`}>
+                            {status.label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-gray-400 text-xs">
+                          {format(new Date(msg.scheduled_for), "HH:mm:ss", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            {msg.status === "failed" && (
+                              <Button size="icon" variant="ghost" onClick={() => retry(msg.id)} title="Tentar novamente">
+                                <RefreshCw className="w-3 h-3" />
+                              </Button>
+                            )}
+                            {msg.status === "pending" && (
+                              <Button size="icon" variant="ghost" onClick={() => sendNow(msg.id)} title="Enviar agora">
+                                <Send className="w-3 h-3 text-blue-400" />
+                              </Button>
+                            )}
+                            <Button size="icon" variant="ghost" onClick={() => remove(msg.id)} title="Excluir">
+                              <Trash2 className="w-3 h-3 text-red-400" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
