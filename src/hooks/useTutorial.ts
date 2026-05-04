@@ -47,7 +47,7 @@ export const profileRegistrationTutorial: TutorialSection[] = [
       {
         id: 'buscar-button',
         targetSelector: '[data-tutorial="buscar-button"]',
-        title: 'Cadastrar Perfil',
+        title: 'Cadastrar Instagram',
         description: 'Clique para cadastrar o perfil. Ele aparecerá como placeholder até que você envie o print.',
         position: 'bottom'
       }
