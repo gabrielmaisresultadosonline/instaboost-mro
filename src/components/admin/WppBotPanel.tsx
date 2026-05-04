@@ -119,16 +119,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     load();
   };
 
-  const saveSettings = async () => {
-    await invokeAdmin({
-      action: "saveSettings",
-      message_template: settings.message_template,
-      delay_minutes: Number(settings.delay_minutes) || 30,
-      enabled: settings.enabled,
-    });
-    toast({ title: "Configurações salvas!" });
-  };
-
   const retry = async (id: string) => {
     await invokeAdmin({ action: "retryMessage", message_id: id });
     load();
@@ -143,27 +133,6 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
   const remove = async (id: string) => {
     await invokeAdmin({ action: "deleteMessage", message_id: id });
     load();
-  };
-
-  const sendTest = async () => {
-    if (!testPhone.trim()) {
-      toast({ title: "Informe um número", variant: "destructive" });
-      return;
-    }
-    try {
-      const res = await invokeAdmin({
-        action: "sendTest",
-        phone: testPhone.trim(),
-        message_template: testMessage.trim() || settings.message_template,
-        lead_name: "TESTE",
-      });
-      toast({ title: "Teste enfileirado!", description: `Enviando para ${res.phone}` });
-      setTestPhone("");
-      setTestMessage("");
-      load();
-    } catch (e: any) {
-      toast({ title: "Erro no teste", description: e.message, variant: "destructive" });
-    }
   };
 
   const status = session?.status || "disconnected";
