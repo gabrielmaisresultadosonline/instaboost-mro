@@ -233,14 +233,14 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {messages.length === 0 ? (
+                {salesMessages.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                      Nenhum envio recente
+                      Nenhum envio recente de venda aprovada
                     </TableCell>
                   </TableRow>
                 ) : (
-                  messages.map((msg) => {
+                  salesMessages.map((msg) => {
                     const status = MSG_STATUS[msg.status] || { color: "bg-gray-500", label: msg.status };
                     return (
                       <TableRow key={msg.id} className="border-gray-700 hover:bg-gray-700/30">
