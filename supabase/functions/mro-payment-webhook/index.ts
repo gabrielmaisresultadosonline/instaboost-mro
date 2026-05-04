@@ -544,15 +544,13 @@ serve(async (req) => {
       emailSent: order.email_sent 
     });
 
-    // Fire Meta Conversions API Purchase event (only if transitioning to completed for the first time)
-    if (order.status !== "completed") {
-      const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
-      await sendMetaPurchaseEvent(
-        customerEmail,
-        Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
-        `MRO Instagram ${planLabel}`
-      );
-    }
+    // Fire Meta Conversions API Purchase event
+    const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
+    await sendMetaPurchaseEvent(
+      customerEmail,
+      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
+      `MRO Instagram ${planLabel}`
+    );
 
     // Enviar para o CRM Webhook se estiver configurado
     try {
