@@ -58,7 +58,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
-// AccessReminderPanel removido
+import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
 import WppBotPanel from "@/components/admin/WppBotPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -175,14 +175,14 @@ Participe também do nosso GRUPO DE AVISOS
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     completed: true,
     paid: true,
-    pending: false,
-    expired: false
+    pending: true,
+    expired: true
   });
 
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
-  // showRemarketingDashboard removido
-  // showAccessReminder removido
+  const [showRemarketingDashboard, setShowRemarketingDashboard] = useState(false);
+  const [showAccessReminder, setShowAccessReminder] = useState(false);
   const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
   // Afiliado atual sendo editado
@@ -2626,10 +2626,12 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     );
   };
 
-  // Configuração das seções - Apenas Vendas Aprovadas (Pagas e Completas)
+  // Configuração das seções - Incluindo Pendentes e Expirados conforme solicitado
   const sections = [
     { key: "completed", label: kanbanLabels.completed, color: "green", icon: CheckCircle, orders: groupedOrders.completed },
     { key: "paid", label: kanbanLabels.paid, color: "blue", icon: CheckCircle, orders: groupedOrders.paid },
+    { key: "pending", label: kanbanLabels.pending, color: "yellow", icon: Clock, orders: groupedOrders.pending },
+    { key: "expired", label: kanbanLabels.expired, color: "red", icon: AlertTriangle, orders: groupedOrders.expired },
   ];
 
   if (!isAuthenticated) {
@@ -2744,8 +2746,24 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <Users className="w-4 h-4 mr-1.5" />
               Afiliados
             </Button>
-            {/* Botão Remarketing Removido conforme solicitação: Foco apenas em Vendas Aprovadas */}
-            {/* Botão de Lembrete Removido para focar apenas em Vendas Aprovadas */}
+            <Button
+              onClick={() => setShowRemarketingDashboard(!showRemarketingDashboard)}
+              variant="outline"
+              size="sm"
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showRemarketingDashboard ? "text-orange-400 border-orange-500/50" : "text-zinc-400"}`}
+            >
+              <RefreshCw className="w-4 h-4 mr-1.5" />
+              Remarketing
+            </Button>
+            <Button
+              onClick={() => setShowAccessReminder(!showAccessReminder)}
+              variant="outline"
+              size="sm"
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAccessReminder ? "text-cyan-400 border-cyan-500/50" : "text-zinc-400"}`}
+            >
+              <Clock className="w-4 h-4 mr-1.5" />
+              Lembretes
+            </Button>
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
@@ -3499,8 +3517,39 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                     </div>
                   )}
                 </TabsContent>
-
-                {/* Tab: Tentativas removida permanentemente */}
+                
+                <TabsContent value="attempts">
+                  {getFilteredAffiliateAttempts().length === 0 ? (
+                    <div className="text-center py-12 text-zinc-500 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                      <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p>Nenhuma tentativa (pendente/expirada) encontrada</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {getFilteredAffiliateAttempts().map((order) => (
+                        <div key={order.id} className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <Badge className={order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" : "bg-red-500/20 text-red-400"}>
+                                {order.status === "pending" ? "Pendente" : "Expirado"}
+                              </Badge>
+                              <div>
+                                <p className="text-sm text-white">{order.email.includes(":") ? order.email.split(":")[1] : order.email}</p>
+                                <p className="text-xs text-zinc-400 font-mono">{order.username} ({order.phone || "Sem tel"})</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-zinc-300">R$ {Number(order.amount).toFixed(2)}</p>
+                              <p className="text-[10px] text-zinc-500">
+                                {format(new Date(order.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
 
                 {/* Tab: Preview do Email */}
                 <TabsContent value="email-preview">
@@ -3637,20 +3686,63 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </Card>
         )}
 
-        {/* Lembrete de Acesso Removido conforme solicitação */}
+        {showAccessReminder && (
+          <AccessReminderPanel 
+            adminSessionToken={getAdminSessionToken()} 
+            onClose={() => setShowAccessReminder(false)} 
+          />
+        )}
 
-        {/* Dashboard de Remarketing - Separado */}
-        {/* Dashboard de Remarketing Removido */}
+        {showRemarketingDashboard && (
+          <Card className="bg-orange-500/10 border-orange-500/30 mb-6">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg text-orange-400 flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5" />
+                  Dashboard de Remarketing (Pendentes/Expirados)
+                </CardTitle>
+                <p className="text-sm text-zinc-400">Visualize leads que não finalizaram a compra</p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => setShowRemarketingDashboard(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                  <h4 className="text-yellow-400 font-bold mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" /> Pendentes: {stats.pending}
+                  </h4>
+                  <p className="text-xs text-zinc-500">Aguardando pagamento ou em processamento</p>
+                </div>
+                <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                  <h4 className="text-red-400 font-bold mb-2 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" /> Expirados: {stats.expired}
+                  </h4>
+                  <p className="text-xs text-zinc-500">Tempo limite de pagamento excedido</p>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-orange-500/5 rounded border border-orange-500/20 text-xs text-orange-300/70 italic">
+                Nota: O envio automático de remarketing está desativado conforme solicitado. Use a lista abaixo para acompanhamento manual.
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <Card className="bg-zinc-800/50 border-zinc-700">
             <CardContent className="p-4">
-              <p className="text-zinc-400 text-sm">Total</p>
+              <p className="text-zinc-400 text-sm">Vendas Total</p>
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </CardContent>
           </Card>
-          {/* Pendentes removido da visualização principal */}
+          <Card className="bg-yellow-500/10 border-yellow-500/30">
+            <CardContent className="p-4">
+              <p className="text-yellow-400 text-sm">Pendentes</p>
+              <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
+            </CardContent>
+          </Card>
           <Card className="bg-blue-500/10 border-blue-500/30">
             <CardContent className="p-4">
               <p className="text-blue-400 text-sm">Pagos</p>
@@ -3663,7 +3755,12 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <p className="text-2xl font-bold text-green-400">{stats.completed}</p>
             </CardContent>
           </Card>
-          {/* Expirados removido da visualização principal */}
+          <Card className="bg-red-500/10 border-red-500/30">
+            <CardContent className="p-4">
+              <p className="text-red-400 text-sm">Expirados</p>
+              <p className="text-2xl font-bold text-red-400">{stats.expired}</p>
+            </CardContent>
+          </Card>
           <Card className="bg-amber-500/10 border-amber-500/30">
             <CardContent className="p-4">
               <p className="text-amber-400 text-sm">Receita</p>
