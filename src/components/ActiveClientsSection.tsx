@@ -37,6 +37,7 @@ export default function ActiveClientsSection({
   maxClients = 15,
   className = ''
 }: ActiveClientsSectionProps) {
+  const navigate = useNavigate();
   const [previewClients, setPreviewClients] = useState<ActiveClient[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
