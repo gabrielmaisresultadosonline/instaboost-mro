@@ -83,13 +83,25 @@ async function loadSessionSecret(supabase: ReturnType<typeof createClient>) {
 }
 
 async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, secret: string | null) {
-  if (!secret) return false;
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
-  // Allow both scopes to be safe, but primarily match the one from renda-extra-v2-admin
-  const verified = await verifyAdminSessionToken(token, secret, "renda-extra-v2-admin") || 
-                   await verifyAdminSessionToken(token, secret, "rendaext-admin");
-  return !!verified;
+  if (!token) return false;
+
+  // 1. Try verify using the local secret (renda_extra_v2_settings)
+  if (secret) {
+    const verified = await verifyAdminSessionToken(token, secret, "renda-extra-v2-admin") || 
+                     await verifyAdminSessionToken(token, secret, "rendaext-admin");
+    if (verified) return true;
+  }
+
+  // 2. Try verify using the service role key (instagram-admin scope)
+  const serviceSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (serviceSecret) {
+    const verified = await verifyAdminSessionToken(token, serviceSecret, "instagram-admin");
+    if (verified) return true;
+  }
+
+  return false;
 }
 
 const handler = async (req: Request): Promise<Response> => {
