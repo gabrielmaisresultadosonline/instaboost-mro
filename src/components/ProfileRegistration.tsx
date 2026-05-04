@@ -463,7 +463,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-amber-400">
               <UserPlus className="w-5 h-5" />
-              {registeredIGs.length > 0 ? 'Cadastrar Nova Conta' : 'Cadastrar Perfil'}
+              Cadastrar Instagram
             </CardTitle>
             <CardDescription>
               Cadastre um perfil para conseguir utilizar a ferramenta MRO. A ferramenta só vai funcionar em um perfil cadastrado no nosso banco de dados.
