@@ -153,13 +153,22 @@ const handler = async (req: Request): Promise<Response> => {
           last_heartbeat: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
-        if (typeof body.status === "string") update.status = body.status;
+        
+        // Só atualiza o status se for explicitamente enviado pelo robô
+        // Se o robô enviar status "connected", remove pedidos de QR/Logout
+        if (typeof body.status === "string") {
+          update.status = body.status;
+          
+          if (body.status === "connected") {
+            update.request_qr = false;
+            update.request_logout = false;
+            update.qr_code = null;
+          }
+        }
+        
         if (body.qr_code !== undefined) update.qr_code = body.qr_code;
         if (body.phone_number !== undefined) update.phone_number = body.phone_number;
-        if (body.status === "connected") {
-          update.request_qr = false;
-          update.qr_code = null;
-        }
+        
         await supabase.from("wpp_bot_session").update(update).eq("id", SESSION_ID);
         return json({ success: true }, 200, start);
       }
