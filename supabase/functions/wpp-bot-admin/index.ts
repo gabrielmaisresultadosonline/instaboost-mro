@@ -87,17 +87,17 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
   if (!token) return false;
 
-  // 1. Try verify using the local secret (renda_extra_v2_settings)
-  if (secret) {
-    const verified = await verifyAdminSessionToken(token, secret, "renda-extra-v2-admin") || 
-                     await verifyAdminSessionToken(token, secret, "rendaext-admin");
-    if (verified) return true;
-  }
-
-  // 2. Try verify using the service role key (instagram-admin scope)
+  // 1. Try verify using the service role key (instagram-admin scope) - most common for this page
   const serviceSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (serviceSecret) {
     const verified = await verifyAdminSessionToken(token, serviceSecret, "instagram-admin");
+    if (verified) return true;
+  }
+
+  // 2. Try verify using the local secret (renda_extra_v2_settings) for compatibility
+  if (secret) {
+    const verified = await verifyAdminSessionToken(token, secret, "renda-extra-v2-admin") || 
+                     await verifyAdminSessionToken(token, secret, "rendaext-admin");
     if (verified) return true;
   }
 
