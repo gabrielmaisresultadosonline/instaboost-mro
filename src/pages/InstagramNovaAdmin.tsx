@@ -1095,8 +1095,6 @@ Participe também do nosso GRUPO DE AVISOS
       } else {
         toast.info("Pagamento ainda não confirmado");
       }
-        toast.info("Pagamento ainda não confirmado");
-      }
 
       loadOrders();
     } catch (error) {
