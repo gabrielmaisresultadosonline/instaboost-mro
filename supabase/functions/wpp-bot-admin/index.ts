@@ -155,12 +155,23 @@ const handler = async (req: Request): Promise<Response> => {
           updated_at: new Date().toISOString(),
         };
         
-        // Só atualiza o status se for explicitamente enviado pelo robô
-        // Se o robô enviar status "connected", remove pedidos de QR/Logout
+        // Buscar o status atual para comparar
+        const { data: currentSession } = await supabase.from("wpp_bot_session").select("status, request_logout").eq("id", SESSION_ID).single();
+
         if (typeof body.status === "string") {
-          update.status = body.status;
+          let newStatus = body.status;
           
-          if (body.status === "connected") {
+          // Se o robô reportar "disconnected" mas NÃO pedimos logout, 
+          // e ele estava conectado antes, mantemos como "connected" ou "connecting"
+          // para evitar que a interface do usuário pisque como desconectado em pequenas quedas de socket.
+          if (body.status === "disconnected" && currentSession?.status === "connected" && !currentSession?.request_logout) {
+            console.log(`[botHeartbeat] Bot reportou desconexão temporária. Mantendo status 'connected' por resiliência.`);
+            newStatus = "connected"; 
+          }
+
+          update.status = newStatus;
+          
+          if (newStatus === "connected") {
             update.request_qr = false;
             update.request_logout = false;
             update.qr_code = null;
