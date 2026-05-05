@@ -1062,6 +1062,8 @@ Participe também do nosso GRUPO DE AVISOS
         confirmedPayments.forEach(result => {
           if (result) {
             toast.success(`Pagamento confirmado: ${result.order.username}`);
+            // Envia WhatsApp automaticamente no auto-check quando confirma
+            sendToCRMWebhook(result.order);
           }
         });
       }
@@ -1085,21 +1087,14 @@ Participe também do nosso GRUPO DE AVISOS
         return;
       }
 
-      if (data.status === "completed") {
-        toast.success("Pagamento confirmado e acesso liberado!");
-        if (!slowSendEnabled) {
-          sendToCRMWebhook(order);
-        } else {
-          toast.info("WhatsApp enfileirado para envio lento.");
-        }
-      } else if (data.status === "paid") {
-        toast.info("Pagamento confirmado! Processando acesso...");
-        if (!slowSendEnabled) {
-          sendToCRMWebhook(order);
-        } else {
-          toast.info("WhatsApp enfileirado para envio lento.");
-        }
+      if (data.status === "completed" || data.status === "paid") {
+        toast.success(data.status === "completed" ? "Pagamento confirmado e acesso liberado!" : "Pagamento confirmado! Processando acesso...");
+        
+        // Sempre envia para o CRM/WhatsApp quando confirmado no check manual
+        sendToCRMWebhook(order);
       } else {
+        toast.info("Pagamento ainda não confirmado");
+      }
         toast.info("Pagamento ainda não confirmado");
       }
 
@@ -1279,11 +1274,7 @@ Participe também do nosso GRUPO DE AVISOS
         }
         
         // Enviar Webhook do CRM após aprovação manual bem-sucedida
-        if (!slowSendEnabled) {
-          sendToCRMWebhook(order);
-        } else {
-          toast.info("WhatsApp enfileirado para envio lento.");
-        }
+        sendToCRMWebhook(order);
       } else {
         toast.warning(data.message || "Aprovação parcial realizada");
       }
