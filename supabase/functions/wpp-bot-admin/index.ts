@@ -87,11 +87,33 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
   if (!token) return false;
 
-  // 1. Try verify using the service role key (instagram-admin scope) - most common for this page
+  // 1. Try verify using the service role key (instagram-admin scope)
   const serviceSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (serviceSecret) {
-    const verified = await verifyAdminSessionToken(token, serviceSecret, "instagram-admin");
-    if (verified) return true;
+    // Robust check matching instagram-admin's own logic
+    const [payloadPart, signaturePart] = token.split(".");
+    if (payloadPart && signaturePart) {
+      try {
+        const payloadBytes = fromBase64Url(payloadPart);
+        const signatureBytes = fromBase64Url(signaturePart);
+        const key = await crypto.subtle.importKey(
+          "raw",
+          new TextEncoder().encode(serviceSecret),
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["verify"],
+        );
+        const valid = await crypto.subtle.verify("HMAC", key, signatureBytes, payloadBytes);
+        if (valid) {
+          const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+          if (payload?.scope === "instagram-admin" && payload?.exp > Date.now()) {
+            return true;
+          }
+        }
+      } catch (e) {
+        console.error("[isAuthorizedAdmin] Service role auth error:", e.message);
+      }
+    }
   }
 
   // 2. Try verify using the local secret (renda_extra_v2_settings) for compatibility
@@ -102,6 +124,13 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
   }
 
   return false;
+}
+
+function fromBase64Url(value: string) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4 || 4)) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
 const handler = async (req: Request): Promise<Response> => {
