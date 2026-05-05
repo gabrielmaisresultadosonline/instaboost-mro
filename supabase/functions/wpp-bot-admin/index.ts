@@ -87,21 +87,50 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
   if (!token) return false;
 
-  // 1. Try verify using the local secret (renda_extra_v2_settings)
+  // 1. Try verify using the service role key (instagram-admin scope)
+  const serviceSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (serviceSecret) {
+    // Robust check matching instagram-admin's own logic
+    const [payloadPart, signaturePart] = token.split(".");
+    if (payloadPart && signaturePart) {
+      try {
+        const payloadBytes = fromBase64Url(payloadPart);
+        const signatureBytes = fromBase64Url(signaturePart);
+        const key = await crypto.subtle.importKey(
+          "raw",
+          new TextEncoder().encode(serviceSecret),
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["verify"],
+        );
+        const valid = await crypto.subtle.verify("HMAC", key, signatureBytes, payloadBytes);
+        if (valid) {
+          const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+          if (payload?.scope === "instagram-admin" && payload?.exp > Date.now()) {
+            return true;
+          }
+        }
+      } catch (e) {
+        console.error("[isAuthorizedAdmin] Service role auth error:", e.message);
+      }
+    }
+  }
+
+  // 2. Try verify using the local secret (renda_extra_v2_settings) for compatibility
   if (secret) {
     const verified = await verifyAdminSessionToken(token, secret, "renda-extra-v2-admin") || 
                      await verifyAdminSessionToken(token, secret, "rendaext-admin");
     if (verified) return true;
   }
 
-  // 2. Try verify using the service role key (instagram-admin scope)
-  const serviceSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (serviceSecret) {
-    const verified = await verifyAdminSessionToken(token, serviceSecret, "instagram-admin");
-    if (verified) return true;
-  }
-
   return false;
+}
+
+function fromBase64Url(value: string) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4 || 4)) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -149,17 +178,42 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       if (action === "botHeartbeat") {
+        console.log(`[botHeartbeat] status=${body.status}, phone=${body.phone_number}`);
         const update: Record<string, unknown> = {
           last_heartbeat: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
-        if (typeof body.status === "string") update.status = body.status;
+        
+        // Buscar o status atual para comparar
+        const { data: currentSession } = await supabase.from("wpp_bot_session").select("status, request_logout").eq("id", SESSION_ID).single();
+
+        if (typeof body.status === "string") {
+          let newStatus = body.status;
+          
+          // Se o robô reportar "disconnected" mas NÃO pedimos logout, 
+          // e ele estava conectado antes, mantemos como "connecting" 
+          // para dar chance ao robô de usar a sessão salva em nuvem.
+          if (body.status === "disconnected" && currentSession?.status === "connected" && !currentSession?.request_logout) {
+            console.log(`[botHeartbeat] Bot reportou desconexão temporária. Tentando manter conectado na nuvem...`);
+            newStatus = "connected"; // Mantém como conectado para não derrubar a interface
+          } else if (body.status === "disconnected" && !currentSession?.request_logout) {
+            // Se já estava desconectado ou conectando, mas o robô insiste em "disconnected"
+            // sem pedido de logout, mantemos em "connecting" se o QR code for solicitado
+            if (currentSession?.request_qr) newStatus = "connecting";
+          }
+
+          update.status = newStatus;
+          
+          if (newStatus === "connected") {
+            update.request_qr = false;
+            update.request_logout = false;
+            update.qr_code = null;
+          }
+        }
+        
         if (body.qr_code !== undefined) update.qr_code = body.qr_code;
         if (body.phone_number !== undefined) update.phone_number = body.phone_number;
-        if (body.status === "connected") {
-          update.request_qr = false;
-          update.qr_code = null;
-        }
+        
         await supabase.from("wpp_bot_session").update(update).eq("id", SESSION_ID);
         return json({ success: true }, 200, start);
       }
@@ -359,12 +413,15 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      // Buscar qualquer mensagem pendente para o futuro para determinar se a fila está livre
+      // Buscar qualquer mensagem pendente para o futuro PRÓXIMO para determinar se a fila está ocupada
+      // Consideramos a fila "livre" se não houver mensagens agendadas para os próximos 10 minutos
+      const tenMinutesFromNow = new Date(Date.now() + 10 * 60_000).toISOString();
       const { data: lastNearPending } = await supabase
         .from("wpp_bot_messages")
         .select("scheduled_for")
         .eq("status", "pending")
         .gt("scheduled_for", new Date().toISOString())
+        .lt("scheduled_for", tenMinutesFromNow)
         .order("scheduled_for", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -374,9 +431,6 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (lastNearPending?.scheduled_for) {
         const lastScheduled = new Date(lastNearPending.scheduled_for).getTime();
-        // Se a última mensagem agendada for para daqui a muito tempo (ex: 1 hora), 
-        // mas não houver nada entre agora e lá, ainda consideramos a fila "agora" como livre.
-        // Porém, para simplificar o pedido do usuário: se tem ALGO pendente no futuro, aplica o delay de fila.
         baseTime = lastScheduled;
         isQueueEmpty = false;
       }
