@@ -605,8 +605,8 @@ Participe também do nosso GRUPO DE AVISOS
 
         log("Sending WhatsApp message", { mode: whatsapp_mode, phone: cleanPhone });
 
-        if (whatsapp_mode === "qrcode") {
-          // Enviar via QR Code (wpp-bot-admin)
+        if (whatsapp_mode === "qrcode" || whatsapp_mode === "api") {
+          // Enviar via QR Code ou API (sempre usando sendTest do wpp-bot-admin para centralizar a fila)
           const botResp = await fetch(`${supabaseUrl}/functions/v1/wpp-bot-admin`, {
             method: "POST",
             headers: { 
