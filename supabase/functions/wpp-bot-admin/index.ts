@@ -162,11 +162,15 @@ const handler = async (req: Request): Promise<Response> => {
           let newStatus = body.status;
           
           // Se o robô reportar "disconnected" mas NÃO pedimos logout, 
-          // e ele estava conectado antes, mantemos como "connected" ou "connecting"
-          // para evitar que a interface do usuário pisque como desconectado em pequenas quedas de socket.
+          // e ele estava conectado antes, mantemos como "connecting" 
+          // para dar chance ao robô de usar a sessão salva em nuvem.
           if (body.status === "disconnected" && currentSession?.status === "connected" && !currentSession?.request_logout) {
-            console.log(`[botHeartbeat] Bot reportou desconexão temporária. Mantendo status 'connected' por resiliência.`);
-            newStatus = "connected"; 
+            console.log(`[botHeartbeat] Bot reportou desconexão temporária. Tentando manter conectado na nuvem...`);
+            newStatus = "connected"; // Mantém como conectado para não derrubar a interface
+          } else if (body.status === "disconnected" && !currentSession?.request_logout) {
+            // Se já estava desconectado ou conectando, mas o robô insiste em "disconnected"
+            // sem pedido de logout, mantemos em "connecting" se o QR code for solicitado
+            if (currentSession?.request_qr) newStatus = "connecting";
           }
 
           update.status = newStatus;
