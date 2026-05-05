@@ -368,12 +368,15 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      // Buscar qualquer mensagem pendente para o futuro para determinar se a fila está livre
+      // Buscar qualquer mensagem pendente para o futuro PRÓXIMO para determinar se a fila está ocupada
+      // Consideramos a fila "livre" se não houver mensagens agendadas para os próximos 10 minutos
+      const tenMinutesFromNow = new Date(Date.now() + 10 * 60_000).toISOString();
       const { data: lastNearPending } = await supabase
         .from("wpp_bot_messages")
         .select("scheduled_for")
         .eq("status", "pending")
         .gt("scheduled_for", new Date().toISOString())
+        .lt("scheduled_for", tenMinutesFromNow)
         .order("scheduled_for", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -383,9 +386,6 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (lastNearPending?.scheduled_for) {
         const lastScheduled = new Date(lastNearPending.scheduled_for).getTime();
-        // Se a última mensagem agendada for para daqui a muito tempo (ex: 1 hora), 
-        // mas não houver nada entre agora e lá, ainda consideramos a fila "agora" como livre.
-        // Porém, para simplificar o pedido do usuário: se tem ALGO pendente no futuro, aplica o delay de fila.
         baseTime = lastScheduled;
         isQueueEmpty = false;
       }
