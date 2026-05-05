@@ -149,6 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       if (action === "botHeartbeat") {
+        console.log(`[botHeartbeat] status=${body.status}, phone=${body.phone_number}`);
         const update: Record<string, unknown> = {
           last_heartbeat: new Date().toISOString(),
           updated_at: new Date().toISOString(),
