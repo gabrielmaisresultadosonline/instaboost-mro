@@ -109,6 +109,7 @@ import MROCriativoTerms from "./pages/MROCriativoTerms";
 import MROCriativoPrivacy from "./pages/MROCriativoPrivacy";
 import MROCriativoCallback from "./pages/MROCriativoCallback";
 import MROCriativoWebhook from "./pages/MROCriativoWebhook";
+import MROCriativoOAuth from "./pages/MROCriativoOAuth";
 
 
 
@@ -256,6 +257,7 @@ const App = () => (
           <Route path="/mrocriativo/privacy.php" element={<MROCriativoPrivacy />} />
           <Route path="/mrocriativo/callback.php" element={<MROCriativoCallback />} />
           <Route path="/mrocriativo/webhook.php" element={<MROCriativoWebhook />} />
+          <Route path="/mrocriativo/oauth.php" element={<MROCriativoOAuth />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -216,7 +216,8 @@ const MROCriativoAdmin = () => {
                     <li>Acesse o <strong>Meta for Developers</strong> e selecione seu App.</li>
                     <li>Vá em <strong>Configurações {" > "} Básico</strong> e adicione o domínio <code>maisresultadosonline.com.br</code>.</li>
                     <li>Em <strong>Login do Facebook {" > "} Configurações</strong>, cole a URL de Callback abaixo em "URIs de redirecionamento do OAuth válidos".</li>
-                    <li>Em <strong>Instagram Graph API {" > "} Webhooks</strong>, cole a URL de Webhook abaixo. Verifique se o token de verificação está correto.</li>
+                    <li>Em <strong>Instagram Graph API {" > "} Webhooks</strong>, cole a URL de Webhook abaixo.</li>
+                    <li>Utilize o link <strong>oauth.php</strong> para o redirecionamento final da autenticação.</li>
                   </ol>
                 </div>
               </CardHeader>
@@ -252,6 +253,23 @@ const MROCriativoAdmin = () => {
                       />
                       <Button size="sm" variant="outline" className="border-white/10" onClick={() => {
                         navigator.clipboard.writeText(settings.mroCriativo.urls.webhookUrl);
+                        toast.success("Copiado!");
+                      }}>Copiar</Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 flex justify-between">
+                      <span>OAuth PHP Redirect</span>
+                      <span className="text-[10px] text-primary">Copiar para Meta App</span>
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value="https://maisresultadosonline.com.br/mrocriativo/oauth.php" 
+                        readOnly
+                        className="bg-white/5 border-white/10 text-xs" 
+                      />
+                      <Button size="sm" variant="outline" className="border-white/10" onClick={() => {
+                        navigator.clipboard.writeText("https://maisresultadosonline.com.br/mrocriativo/oauth.php");
                         toast.success("Copiado!");
                       }}>Copiar</Button>
                     </div>
