@@ -209,10 +209,10 @@ const DEFAULT_ADMIN_DATA: AdminData = {
     },
     mroCriativo: {
       urls: {
-        authRedirect: 'https://mrocriativo.com.br/callback',
-        webhookUrl: 'https://mrocriativo.com.br/webhook',
-        termsUrl: 'https://mrocriativo.com.br/terms',
-        privacyUrl: 'https://mrocriativo.com.br/privacy'
+        authRedirect: 'https://maisresultadosonline.com.br/mrocriativo/callback',
+        webhookUrl: 'https://maisresultadosonline.com.br/mrocriativo/webhook',
+        termsUrl: 'https://maisresultadosonline.com.br/mrocriativo/terms',
+        privacyUrl: 'https://maisresultadosonline.com.br/mrocriativo/privacy'
       },
       fallbacks: {
         defaultMessage: 'Desculpe, não entendi. Pode repetir?',
