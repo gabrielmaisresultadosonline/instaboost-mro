@@ -108,7 +108,8 @@ const Live = () => {
 
   const loadDirectVideo = (video: HTMLVideoElement, url: string) => {
     video.src = url;
-    video.preload = "auto";
+    video.preload = "metadata"; // Carrega apenas o necessário inicialmente
+    video.muted = true;
     video.play().catch(() => {});
   };
 
