@@ -11,8 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  CheckCircle, XCircle, Loader2, RefreshCw, Power, QrCode, Send, Trash2, Smartphone,
+  CheckCircle, XCircle, Loader2, RefreshCw, Power, QrCode, Send, Trash2, Smartphone, History, AlertCircle
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SessionRow {
   status: string;
@@ -34,6 +36,15 @@ interface MessageRow {
   status: string;
   scheduled_for: string;
   sent_at: string | null;
+  error_message: string | null;
+  created_at: string;
+}
+
+interface ConnectionLog {
+  id: string;
+  event_type: string;
+  status: string;
+  details: string | null;
   error_message: string | null;
   created_at: string;
 }
@@ -66,6 +77,8 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     enabled: true,
   });
   const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [connectionLogs, setConnectionLogs] = useState<ConnectionLog[]>([]);
+  const [isLogsOpen, setIsLogsOpen] = useState(false);
 
   const invokeAdmin = useCallback(
     async (body: Record<string, unknown>) => {
@@ -101,11 +114,32 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     }
   }, [invokeAdmin]);
 
+  const loadLogs = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("wpp_connection_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      setConnectionLogs(data || []);
+    } catch (e: any) {
+      console.error("Erro ao carregar logs de conexão:", e.message);
+    }
+  }, []);
+
   useEffect(() => {
     load();
     const t = setInterval(load, 5000); // polling para QR / status / histórico
     return () => clearInterval(t);
   }, [load]);
+
+  useEffect(() => {
+    if (isLogsOpen) {
+      loadLogs();
+    }
+  }, [isLogsOpen, loadLogs]);
 
   const requestQr = async () => {
     await invokeAdmin({ action: "requestQr" });
@@ -204,6 +238,53 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
             <Button onClick={logout} variant="destructive" disabled={status !== "connected"}>
               <Power className="w-4 h-4 mr-2" /> Desconectar
             </Button>
+            
+            <Dialog open={isLogsOpen} onOpenChange={setIsLogsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10">
+                  <History className="w-4 h-4 mr-2" /> Logs Internos
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-2xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <History className="w-5 h-5 text-blue-400" /> Histórico de Conexão (VPS)
+                  </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="h-[50vh] pr-4">
+                  <div className="space-y-3">
+                    {connectionLogs.length === 0 ? (
+                      <div className="text-center py-10 text-gray-500">Nenhum log registrado ainda.</div>
+                    ) : (
+                      connectionLogs.map((log) => (
+                        <div key={log.id} className="p-3 rounded-lg bg-gray-800/50 border border-gray-700 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`font-bold uppercase ${
+                              log.event_type === 'connection_lost' ? 'text-red-400' : 
+                              log.event_type === 'connection_restored' ? 'text-green-400' : 
+                              'text-blue-400'
+                            }`}>
+                              {log.event_type.replace(/_/g, ' ')}
+                            </span>
+                            <span className="text-gray-500">
+                              {format(new Date(log.created_at), "dd/MM HH:mm:ss", { locale: ptBR })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-200">{log.details}</p>
+                          {log.error_message && (
+                            <div className="flex items-start gap-2 mt-2 p-2 bg-red-500/10 rounded border border-red-500/20">
+                              <AlertCircle className="w-3 h-3 text-red-400 mt-0.5" />
+                              <p className="text-xs text-red-300 italic">{log.error_message}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
             <Button onClick={load} variant="ghost">
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Atualizar
             </Button>
