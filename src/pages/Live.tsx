@@ -148,18 +148,20 @@ const Live = () => {
         const r = Math.random();
         let delta: number;
 
-        if (r < 0.15) {
-          delta = -(3 + Math.floor(Math.random() * 10));
+        if (r < 0.1) {
+          // Pequena queda ocasional (máximo 1 ou 2 como solicitado)
+          delta = -(1 + Math.floor(Math.random() * 2));
         } else if (r < 0.3) {
-          delta = -(1 + Math.floor(Math.random() * 4));
+          // Manter estável (delta 0)
+          delta = 0;
         } else if (r < 0.7) {
+          // Tendência de subida gradual para o alvo
           const diff = targetForPhase - prev;
-          delta = Math.floor(diff * (0.1 + Math.random() * 0.2));
-          if (delta === 0) delta = Math.random() > 0.5 ? 1 : -1;
-        } else if (r < 0.9) {
-          delta = 2 + Math.floor(Math.random() * 6);
+          delta = Math.max(0, Math.floor(diff * (0.1 + Math.random() * 0.2)));
+          if (delta === 0 && prev < targetForPhase) delta = 1;
         } else {
-          delta = 5 + Math.floor(Math.random() * 11);
+          // Subida mais rápida
+          delta = 1 + Math.floor(Math.random() * 4);
         }
 
         const next = prev + delta;
