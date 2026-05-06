@@ -75,13 +75,16 @@ const Live = () => {
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
               setHlsReady(true);
-              video.muted = false; // Removido muted para garantir áudio
+              video.muted = false;
               video.volume = 1;
-              video.play().catch(() => {
-                // Se autoplay com som falhar, silencia e tenta novamente
-                video.muted = true;
-                video.play().catch(() => {});
-              });
+              const playPromise = video.play();
+              if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                  console.log("Autoplay with sound prevented, trying muted:", error);
+                  video.muted = true;
+                  video.play().catch(e => console.error("Playback failed:", e));
+                });
+              }
             });
             hls.on(Hls.Events.ERROR, (_, data) => {
               if (data.fatal) {
@@ -116,10 +119,14 @@ const Live = () => {
     video.preload = "metadata"; // Carrega apenas o necessário inicialmente
     video.muted = false;
     video.volume = 1;
-    video.play().catch(() => {
-      video.muted = true;
-      video.play().catch(() => {});
-    });
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.log("Direct play with sound prevented, trying muted:", error);
+        video.muted = true;
+        video.play().catch(e => console.error("Playback failed:", e));
+      });
+    }
   };
 
   // Realistic fake viewers - starts low, gradually climbs with organic fluctuations
