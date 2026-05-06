@@ -195,6 +195,7 @@ const MROCriativoAdmin = () => {
                       value={settings.mroCriativo.urls.authRedirect} 
                       onChange={(e) => updateNestedSetting('mroCriativo.urls.authRedirect', e.target.value)}
                       className="bg-white/5 border-white/10" 
+                      placeholder="https://maisresultadosonline.com.br/mrocriativo/callback"
                     />
                   </div>
                   <div className="space-y-2">
@@ -203,6 +204,7 @@ const MROCriativoAdmin = () => {
                       value={settings.mroCriativo.urls.webhookUrl} 
                       onChange={(e) => updateNestedSetting('mroCriativo.urls.webhookUrl', e.target.value)}
                       className="bg-white/5 border-white/10" 
+                      placeholder="https://maisresultadosonline.com.br/mrocriativo/webhook"
                     />
                   </div>
                 </div>
@@ -213,6 +215,7 @@ const MROCriativoAdmin = () => {
                       value={settings.mroCriativo.urls.termsUrl} 
                       onChange={(e) => updateNestedSetting('mroCriativo.urls.termsUrl', e.target.value)}
                       className="bg-white/5 border-white/10" 
+                      placeholder="https://maisresultadosonline.com.br/mrocriativo/terms"
                     />
                   </div>
                   <div className="space-y-2">
@@ -221,6 +224,7 @@ const MROCriativoAdmin = () => {
                       value={settings.mroCriativo.urls.privacyUrl} 
                       onChange={(e) => updateNestedSetting('mroCriativo.urls.privacyUrl', e.target.value)}
                       className="bg-white/5 border-white/10" 
+                      placeholder="https://maisresultadosonline.com.br/mrocriativo/privacy"
                     />
                   </div>
                 </div>
