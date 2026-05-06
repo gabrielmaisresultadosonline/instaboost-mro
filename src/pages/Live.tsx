@@ -352,7 +352,7 @@ const Live = () => {
 
             <div
               ref={videoContainerRef}
-              className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black shadow-2xl shadow-red-500/10 border border-white/10 group"
+              className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black border border-white/10 group shadow-lg"
               onMouseMove={handleVideoContainerMove}
               onTouchStart={handleVideoContainerMove}
               style={{ cursor: showControls ? "default" : "none" }}
