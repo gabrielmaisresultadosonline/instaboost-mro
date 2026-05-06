@@ -104,6 +104,7 @@ import RendaExtObrigado from "./pages/RendaExtObrigado";
 import CRM from "./pages/CRM";
 import CRMLogin from "./pages/CRMLogin";
 import MROCriativo from "./pages/MROCriativo";
+import MROCriativoAdmin from "./pages/MROCriativoAdmin";
 
 
 
