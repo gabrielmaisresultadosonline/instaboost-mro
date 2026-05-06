@@ -63,15 +63,19 @@ const Live = () => {
           const response = await fetch(fullHlsUrl, { method: "HEAD" });
           if (response.ok) {
             const hls = new Hls({
-              startLevel: 0,
+              startLevel: 0, // Inicia na menor qualidade para conexões lentas
               capLevelToPlayerSize: true,
               maxBufferLength: 30,
               maxMaxBufferLength: 60,
+              enableWorker: true, // Usa Web Worker para não travar a UI
+              lowLatencyMode: true,
+              backBufferLength: 90,
             });
             hls.loadSource(fullHlsUrl);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
               setHlsReady(true);
+              video.muted = true; // Necessário para autoplay em muitos navegadores
               video.play().catch(() => {});
             });
             hls.on(Hls.Events.ERROR, (_, data) => {
