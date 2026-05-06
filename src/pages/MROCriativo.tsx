@@ -178,7 +178,7 @@ const MROCriativo = () => {
                 </div>
               </div>
             </div>
-          </motion.h1>
+          </motion.div>
         </div>
       </section>
 
