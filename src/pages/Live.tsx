@@ -114,8 +114,12 @@ const Live = () => {
   const loadDirectVideo = (video: HTMLVideoElement, url: string) => {
     video.src = url;
     video.preload = "metadata"; // Carrega apenas o necessário inicialmente
-    video.muted = true;
-    video.play().catch(() => {});
+    video.muted = false;
+    video.volume = 1;
+    video.play().catch(() => {
+      video.muted = true;
+      video.play().catch(() => {});
+    });
   };
 
   // Realistic fake viewers - starts low, gradually climbs with organic fluctuations
