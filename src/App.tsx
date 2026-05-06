@@ -105,6 +105,10 @@ import CRM from "./pages/CRM";
 import CRMLogin from "./pages/CRMLogin";
 import MROCriativo from "./pages/MROCriativo";
 import MROCriativoAdmin from "./pages/MROCriativoAdmin";
+import MROCriativoTerms from "./pages/MROCriativoTerms";
+import MROCriativoPrivacy from "./pages/MROCriativoPrivacy";
+import MROCriativoCallback from "./pages/MROCriativoCallback";
+import MROCriativoWebhook from "./pages/MROCriativoWebhook";
 
 
 
@@ -248,6 +252,10 @@ const App = () => (
           <Route path="/crm/login" element={<CRMLogin />} />
           <Route path="/mrocriativo" element={<MROCriativo />} />
           <Route path="/mrocriativo/admin" element={<MROCriativoAdmin />} />
+          <Route path="/mrocriativo/terms" element={<MROCriativoTerms />} />
+          <Route path="/mrocriativo/privacy" element={<MROCriativoPrivacy />} />
+          <Route path="/mrocriativo/callback" element={<MROCriativoCallback />} />
+          <Route path="/mrocriativo/webhook" element={<MROCriativoWebhook />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
