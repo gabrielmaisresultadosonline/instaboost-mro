@@ -252,10 +252,10 @@ const App = () => (
           <Route path="/crm/login" element={<CRMLogin />} />
           <Route path="/mrocriativo" element={<MROCriativo />} />
           <Route path="/mrocriativo/admin" element={<MROCriativoAdmin />} />
-          <Route path="/mrocriativo/terms" element={<MROCriativoTerms />} />
-          <Route path="/mrocriativo/privacy" element={<MROCriativoPrivacy />} />
-          <Route path="/mrocriativo/callback" element={<MROCriativoCallback />} />
-          <Route path="/mrocriativo/webhook" element={<MROCriativoWebhook />} />
+          <Route path="/mrocriativo/terms.php" element={<MROCriativoTerms />} />
+          <Route path="/mrocriativo/privacy.php" element={<MROCriativoPrivacy />} />
+          <Route path="/mrocriativo/callback.php" element={<MROCriativoCallback />} />
+          <Route path="/mrocriativo/webhook.php" element={<MROCriativoWebhook />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
