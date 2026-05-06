@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Settings, Link, MessageSquare, Save, Lock } from "lucide-react";
+import { Shield, Settings, Link, MessageSquare, Save, Lock, Key } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const MROCriativoAdmin = () => {
