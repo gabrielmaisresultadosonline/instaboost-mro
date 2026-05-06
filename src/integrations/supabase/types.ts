@@ -4272,6 +4272,33 @@ export type Database = {
         }
         Relationships: []
       }
+      wpp_connection_logs: {
+        Row: {
+          created_at: string | null
+          details: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       zapi_contacts: {
         Row: {
           created_at: string
