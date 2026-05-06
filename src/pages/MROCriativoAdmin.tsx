@@ -256,7 +256,6 @@ const MROCriativoAdmin = () => {
                         toast.success("Copiado!");
                       }}>Copiar</Button>
                     </div>
-                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-gray-400 flex justify-between">
