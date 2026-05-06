@@ -103,6 +103,7 @@ import Addmin from "./pages/Addmin";
 import RendaExtObrigado from "./pages/RendaExtObrigado";
 import CRM from "./pages/CRM";
 import CRMLogin from "./pages/CRMLogin";
+import MROCriativo from "./pages/MROCriativo";
 
 
 
@@ -244,6 +245,8 @@ const App = () => (
           <Route path="/addmin" element={<Addmin />} />
           <Route path="/crm" element={<CRM />} />
           <Route path="/crm/login" element={<CRMLogin />} />
+          <Route path="/mrocriativo" element={<MROCriativo />} />
+
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
