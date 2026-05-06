@@ -202,7 +202,27 @@ const DEFAULT_ADMIN_DATA: AdminData = {
     apis: {
       deepseek: '',
       gemini: '',
-      nanoBanana: ''
+      nanoBanana: '',
+      metaClientId: '',
+      metaClientSecret: '',
+      metaAccessToken: ''
+    },
+    mroCriativo: {
+      urls: {
+        authRedirect: 'https://mrocriativo.com.br/callback',
+        webhookUrl: 'https://mrocriativo.com.br/webhook',
+        termsUrl: 'https://mrocriativo.com.br/terms',
+        privacyUrl: 'https://mrocriativo.com.br/privacy'
+      },
+      fallbacks: {
+        defaultMessage: 'Desculpe, não entendi. Pode repetir?',
+        errorMessage: 'Ocorreu um erro ao processar sua solicitação.',
+        offlineMessage: 'Estamos em manutenção, voltamos logo!'
+      },
+      integrations: {
+        active: true,
+        platform: 'meta'
+      }
     },
     facebookPixel: '569414052132145',
     facebookPixelCode: `!function(f,b,e,v,n,t,s)
