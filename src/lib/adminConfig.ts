@@ -59,6 +59,26 @@ export interface AdminSettings {
     deepseek: string;
     gemini: string;
     nanoBanana: string;
+    metaClientId?: string;
+    metaClientSecret?: string;
+    metaAccessToken?: string;
+  };
+  mroCriativo: {
+    urls: {
+      authRedirect: string;
+      webhookUrl: string;
+      termsUrl: string;
+      privacyUrl: string;
+    };
+    fallbacks: {
+      defaultMessage: string;
+      errorMessage: string;
+      offlineMessage: string;
+    };
+    integrations: {
+      active: boolean;
+      platform: 'meta' | 'custom';
+    };
   };
   facebookPixel: string;
   facebookPixelCode: string; // Complete pixel code for manual injection
