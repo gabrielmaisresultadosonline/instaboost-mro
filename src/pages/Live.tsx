@@ -319,7 +319,7 @@ const Live = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       {/* Header */}
-      <div className="bg-red-600/90 backdrop-blur-sm py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50">
+      <div className="bg-red-600 py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse" />
