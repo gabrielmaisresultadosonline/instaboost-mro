@@ -2457,6 +2457,33 @@ export type Database = {
         }
         Relationships: []
       }
+      mro_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          prompt: string | null
+          url: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          prompt?: string | null
+          url: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          prompt?: string | null
+          url?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mro_orders: {
         Row: {
           amount: number
@@ -2523,6 +2550,83 @@ export type Database = {
         }
         Relationships: []
       }
+      mro_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          instagram_id: string | null
+          instagram_username: string | null
+          meta_access_token: string | null
+          settings: Json | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          instagram_id?: string | null
+          instagram_username?: string | null
+          meta_access_token?: string | null
+          settings?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          instagram_id?: string | null
+          instagram_username?: string | null
+          meta_access_token?: string | null
+          settings?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      mro_schedules: {
+        Row: {
+          content_text: string | null
+          created_at: string | null
+          id: string
+          image_id: string | null
+          metadata: Json | null
+          scheduled_for: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content_text?: string | null
+          created_at?: string | null
+          id?: string
+          image_id?: string | null
+          metadata?: Json | null
+          scheduled_for: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content_text?: string | null
+          created_at?: string | null
+          id?: string
+          image_id?: string | null
+          metadata?: Json | null
+          scheduled_for?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mro_schedules_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "mro_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mro_settings: {
         Row: {
           created_at: string | null
@@ -2544,6 +2648,33 @@ export type Database = {
           key?: string
           updated_at?: string | null
           value?: Json
+        }
+        Relationships: []
+      }
+      mro_strategies: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          title: string
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          title: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          title?: string
+          type?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
