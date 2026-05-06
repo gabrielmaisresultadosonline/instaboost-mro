@@ -214,9 +214,9 @@ const MROCriativoAdmin = () => {
                   <p className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">Passo a Passo para Meta App:</p>
                   <ol className="text-[11px] text-gray-300 space-y-1 list-decimal ml-4">
                     <li>Acesse o <strong>Meta for Developers</strong> e selecione seu App.</li>
-                    <li>Vá em <strong>Configurações > Básico</strong> e adicione o domínio <code>maisresultadosonline.com.br</code>.</li>
-                    <li>Em <strong>Login do Facebook > Configurações</strong>, cole a URL de Callback abaixo em "URIs de redirecionamento do OAuth válidos".</li>
-                    <li>Em <strong>Instagram Graph API > Webhooks</strong>, cole a URL de Webhook abaixo.</li>
+                    <li>Vá em <strong>Configurações {" > "} Básico</strong> e adicione o domínio <code>maisresultadosonline.com.br</code>.</li>
+                    <li>Em <strong>Login do Facebook {" > "} Configurações</strong>, cole a URL de Callback abaixo em "URIs de redirecionamento do OAuth válidos".</li>
+                    <li>Em <strong>Instagram Graph API {" > "} Webhooks</strong>, cole a URL de Webhook abaixo.</li>
                   </ol>
                 </div>
               </CardHeader>
