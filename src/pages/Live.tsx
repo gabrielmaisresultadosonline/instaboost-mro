@@ -63,15 +63,19 @@ const Live = () => {
           const response = await fetch(fullHlsUrl, { method: "HEAD" });
           if (response.ok) {
             const hls = new Hls({
-              startLevel: 0,
+              startLevel: 0, // Inicia na menor qualidade para conexões lentas
               capLevelToPlayerSize: true,
               maxBufferLength: 30,
               maxMaxBufferLength: 60,
+              enableWorker: true, // Usa Web Worker para não travar a UI
+              lowLatencyMode: true,
+              backBufferLength: 90,
             });
             hls.loadSource(fullHlsUrl);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
               setHlsReady(true);
+              video.muted = true; // Necessário para autoplay em muitos navegadores
               video.play().catch(() => {});
             });
             hls.on(Hls.Events.ERROR, (_, data) => {
@@ -104,7 +108,8 @@ const Live = () => {
 
   const loadDirectVideo = (video: HTMLVideoElement, url: string) => {
     video.src = url;
-    video.preload = "auto";
+    video.preload = "metadata"; // Carrega apenas o necessário inicialmente
+    video.muted = true;
     video.play().catch(() => {});
   };
 
@@ -314,7 +319,7 @@ const Live = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       {/* Header */}
-      <div className="bg-red-600/90 backdrop-blur-sm py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50">
+      <div className="bg-red-600 py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse" />
@@ -347,7 +352,7 @@ const Live = () => {
 
             <div
               ref={videoContainerRef}
-              className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black shadow-2xl shadow-red-500/10 border border-white/10 group"
+              className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black border border-white/10 group shadow-lg"
               onMouseMove={handleVideoContainerMove}
               onTouchStart={handleVideoContainerMove}
               style={{ cursor: showControls ? "default" : "none" }}
@@ -357,6 +362,7 @@ const Live = () => {
                   ref={videoRef}
                   autoPlay
                   playsInline
+                  muted
                   className="w-full aspect-video bg-black"
                   style={{ objectFit: "contain" }}
                   onClick={togglePlay}
@@ -372,7 +378,7 @@ const Live = () => {
                 LIVE
               </div>
 
-              <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/70 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 pointer-events-none">
+              <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/80 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 pointer-events-none">
                 <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                 <span className="font-medium">{fakeViewers.toLocaleString()}</span>
               </div>
@@ -412,7 +418,7 @@ const Live = () => {
 
           {/* Chat Disabled Panel */}
           <div className="w-full lg:w-80 xl:w-96 shrink-0">
-            <div className="bg-gray-900/80 border border-gray-800 rounded-lg sm:rounded-2xl h-48 sm:h-64 lg:h-full lg:min-h-[400px] flex flex-col">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg sm:rounded-2xl h-48 sm:h-64 lg:h-full lg:min-h-[400px] flex flex-col shadow-lg">
               <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-800">
                 <div className="flex items-center gap-2">
                   <MessageSquareOff className="w-4 h-4 text-gray-500" />
