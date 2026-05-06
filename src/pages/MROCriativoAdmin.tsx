@@ -208,47 +208,70 @@ const MROCriativoAdmin = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="w-5 h-5 text-primary" />
-                  Redirecionamentos e Webhooks
+                  Configuração de URLs e Rotas
                 </CardTitle>
+                <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg mt-2">
+                  <p className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">Passo a Passo para Meta App:</p>
+                  <ol className="text-[11px] text-gray-300 space-y-1 list-decimal ml-4">
+                    <li>Acesse o <strong>Meta for Developers</strong> e selecione seu App.</li>
+                    <li>Vá em <strong>Configurações > Básico</strong> e adicione o domínio <code>maisresultadosonline.com.br</code>.</li>
+                    <li>Em <strong>Login do Facebook > Configurações</strong>, cole a URL de Callback abaixo em "URIs de redirecionamento do OAuth válidos".</li>
+                    <li>Em <strong>Instagram Graph API > Webhooks</strong>, cole a URL de Webhook abaixo.</li>
+                  </ol>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-gray-400">OAuth Redirect URI</Label>
-                    <Input 
-                      value={settings.mroCriativo.urls.authRedirect} 
-                      onChange={(e) => updateNestedSetting('mroCriativo.urls.authRedirect', e.target.value)}
-                      className="bg-white/5 border-white/10" 
-                      placeholder="https://maisresultadosonline.com.br/mrocriativo/callback"
-                    />
+                    <Label className="text-gray-400 flex justify-between">
+                      <span>OAuth Redirect URI (Callback)</span>
+                      <span className="text-[10px] text-primary">Copiar para Meta App</span>
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={settings.mroCriativo.urls.authRedirect} 
+                        onChange={(e) => updateNestedSetting('mroCriativo.urls.authRedirect', e.target.value)}
+                        className="bg-white/5 border-white/10 text-xs" 
+                      />
+                      <Button size="sm" variant="outline" className="border-white/10" onClick={() => {
+                        navigator.clipboard.writeText(settings.mroCriativo.urls.authRedirect);
+                        toast.success("Copiado!");
+                      }}>Copiar</Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-gray-400">Webhook URL</Label>
-                    <Input 
-                      value={settings.mroCriativo.urls.webhookUrl} 
-                      onChange={(e) => updateNestedSetting('mroCriativo.urls.webhookUrl', e.target.value)}
-                      className="bg-white/5 border-white/10" 
-                      placeholder="https://maisresultadosonline.com.br/mrocriativo/webhook"
-                    />
+                    <Label className="text-gray-400 flex justify-between">
+                      <span>Webhook URL</span>
+                      <span className="text-[10px] text-primary">Copiar para Meta App</span>
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={settings.mroCriativo.urls.webhookUrl} 
+                        onChange={(e) => updateNestedSetting('mroCriativo.urls.webhookUrl', e.target.value)}
+                        className="bg-white/5 border-white/10 text-xs" 
+                      />
+                      <Button size="sm" variant="outline" className="border-white/10" onClick={() => {
+                        navigator.clipboard.writeText(settings.mroCriativo.urls.webhookUrl);
+                        toast.success("Copiado!");
+                      }}>Copiar</Button>
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
                   <div className="space-y-2">
-                    <Label className="text-gray-400">Termos de Uso URL</Label>
+                    <Label className="text-gray-400">Página de Termos de Uso</Label>
                     <Input 
                       value={settings.mroCriativo.urls.termsUrl} 
                       onChange={(e) => updateNestedSetting('mroCriativo.urls.termsUrl', e.target.value)}
-                      className="bg-white/5 border-white/10" 
-                      placeholder="https://maisresultadosonline.com.br/mrocriativo/terms"
+                      className="bg-white/5 border-white/10 text-xs" 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-gray-400">Privacidade URL</Label>
+                    <Label className="text-gray-400">Página de Privacidade</Label>
                     <Input 
                       value={settings.mroCriativo.urls.privacyUrl} 
                       onChange={(e) => updateNestedSetting('mroCriativo.urls.privacyUrl', e.target.value)}
-                      className="bg-white/5 border-white/10" 
-                      placeholder="https://maisresultadosonline.com.br/mrocriativo/privacy"
+                      className="bg-white/5 border-white/10 text-xs" 
                     />
                   </div>
                 </div>
