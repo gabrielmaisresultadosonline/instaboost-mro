@@ -75,8 +75,13 @@ const Live = () => {
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
               setHlsReady(true);
-              video.muted = true; // Necessário para autoplay em muitos navegadores
-              video.play().catch(() => {});
+              video.muted = false; // Removido muted para garantir áudio
+              video.volume = 1;
+              video.play().catch(() => {
+                // Se autoplay com som falhar, silencia e tenta novamente
+                video.muted = true;
+                video.play().catch(() => {});
+              });
             });
             hls.on(Hls.Events.ERROR, (_, data) => {
               if (data.fatal) {
