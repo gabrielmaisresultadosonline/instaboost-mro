@@ -418,7 +418,7 @@ const Live = () => {
 
           {/* Chat Disabled Panel */}
           <div className="w-full lg:w-80 xl:w-96 shrink-0">
-            <div className="bg-gray-900/80 border border-gray-800 rounded-lg sm:rounded-2xl h-48 sm:h-64 lg:h-full lg:min-h-[400px] flex flex-col">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg sm:rounded-2xl h-48 sm:h-64 lg:h-full lg:min-h-[400px] flex flex-col shadow-lg">
               <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-800">
                 <div className="flex items-center gap-2">
                   <MessageSquareOff className="w-4 h-4 text-gray-500" />
