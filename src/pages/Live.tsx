@@ -362,6 +362,7 @@ const Live = () => {
                   ref={videoRef}
                   autoPlay
                   playsInline
+                  muted
                   className="w-full aspect-video bg-black"
                   style={{ objectFit: "contain" }}
                   onClick={togglePlay}
