@@ -179,6 +179,30 @@ const MROCriativoAdmin = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="integrations" className="space-y-4">
+            <Card className="bg-[#0a0a0f] border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="w-5 h-5 text-primary" />
+                  Inteligência Artificial
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-gray-400">OpenAI API Key (ChatGPT)</Label>
+                  <Input 
+                    type="password"
+                    value={settings.apis.openai || ''} 
+                    onChange={(e) => updateNestedSetting('apis.openai', e.target.value)}
+                    className="bg-white/5 border-white/10"
+                    placeholder="sk-..."
+                  />
+                  <p className="text-[10px] text-gray-500">Utilizada para geração de estratégias, legendas e análise de perfil.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="urls" className="space-y-4">
             <Card className="bg-[#0a0a0f] border-white/10">
               <CardHeader>

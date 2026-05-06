@@ -59,6 +59,7 @@ export interface AdminSettings {
     deepseek: string;
     gemini: string;
     nanoBanana: string;
+    openai: string;
     metaClientId?: string;
     metaClientSecret?: string;
     metaAccessToken?: string;
@@ -203,6 +204,7 @@ const DEFAULT_ADMIN_DATA: AdminData = {
       deepseek: '',
       gemini: '',
       nanoBanana: '',
+      openai: '',
       metaClientId: '',
       metaClientSecret: '',
       metaAccessToken: ''
