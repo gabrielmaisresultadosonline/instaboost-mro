@@ -49,7 +49,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   // Default empty data for fresh state
   const getEmptyData = (): AdminData => ({
     settings: {
-      apis: { deepseek: '', gemini: '', nanoBanana: '', metaClientId: '', metaClientSecret: '', metaAccessToken: '' },
+      apis: { deepseek: '', gemini: '', nanoBanana: '', openai: '', metaClientId: '', metaClientSecret: '', metaAccessToken: '' },
       mroCriativo: {
         urls: {
           authRedirect: 'https://mrocriativo.com.br/callback',
