@@ -217,11 +217,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         if (pageNum === 2) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('A GRANDE OPORTUNIDADE', 50, 150);
+          wrapText('A GRANDE OPORTUNIDADE', 50, 150, 500);
           
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-          ctx.fillText('A Importância de uma Presença Digital Dominante', 50, 190);
+          wrapText('A Importância de uma Presença Digital Dominante', 50, 190, 500);
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
@@ -229,8 +229,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-          ctx.fillText('POR QUE NOSSA ESTRATÉGIA É 10X MAIS ASSERTIVA?', 50, y + 20);
-          y += 55;
+          y = wrapText('POR QUE NOSSA ESTRATÉGIA É 10X MAIS ASSERTIVA?', 50, y + 20, 500);
+          y += 25;
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
