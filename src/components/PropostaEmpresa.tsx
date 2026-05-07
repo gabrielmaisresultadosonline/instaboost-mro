@@ -454,9 +454,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     if (canvasRef.current) await renderPage(canvasRef.current, 1);
     if (canvasPage2Ref.current) await renderPage(canvasPage2Ref.current, 2);
     if (canvasPage3Ref.current) await renderPage(canvasPage3Ref.current, 3);
-    if (canvasPage4Ref.current) await renderPage(canvasPage4Ref.current, 4);
-    if (canvasPage5Ref.current && (data.incluirCriativos || data.incluirConfiguracao)) {
-      await renderPage(canvasPage5Ref.current, 5);
+    
+    // Se incluir extras, renderizamos eles antes do investimento na prévia
+    if (data.incluirCriativos || data.incluirConfiguracao) {
+      if (canvasPage5Ref.current) await renderPage(canvasPage5Ref.current, 5);
+      if (canvasPage4Ref.current) await renderPage(canvasPage4Ref.current, 4);
+    } else {
+      if (canvasPage4Ref.current) await renderPage(canvasPage4Ref.current, 4);
     }
   };
 
@@ -1045,8 +1049,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     { ref: canvasRef, label: 'PÁGINA 1: CAPA' },
                     { ref: canvasPage2Ref, label: 'PÁGINA 2: O PROBLEMA' },
                     { ref: canvasPage3Ref, label: 'PÁGINA 3: SOLUÇÃO' },
-                    { ref: canvasPage4Ref, label: 'PÁGINA 4: INVESTIMENTO' },
-                    ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, label: 'PÁGINA 5: EXTRAS' }] : [])
+                    ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, label: 'PÁGINA 4: EXTRAS' }] : []),
+                    { ref: canvasPage4Ref, label: data.incluirCriativos || data.incluirConfiguracao ? 'PÁGINA 5: INVESTIMENTO' : 'PÁGINA 4: INVESTIMENTO' }
                   ].map((page, idx) => (
                     <div key={idx} className="relative group/page">
                       <canvas ref={page.ref} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
@@ -1086,8 +1090,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                 { ref: canvasRef, title: 'Capa da Proposta' },
                 { ref: canvasPage2Ref, title: 'Análise de Mercado' },
                 { ref: canvasPage3Ref, title: 'Metodologia de Resultados' },
-                { ref: canvasPage4Ref, title: 'Investimento e Garantia' },
-                ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, title: 'Criativos e Otimização' }] : [])
+                ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, title: 'Criativos e Otimização' }] : []),
+                { ref: canvasPage4Ref, title: 'Investimento e Garantia' }
               ].map((page, idx) => (
                 <div key={idx} className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col">
                   <div className="bg-gray-100 py-2 px-4 text-[10px] font-bold text-gray-400 border-b border-gray-200 flex justify-between">
