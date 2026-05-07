@@ -109,6 +109,29 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       canvas.width = W;
       canvas.height = H;
 
+      // WrapText definition available for all pages
+      const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
+        const words = text.split(' ');
+        let line = '';
+        const lines = [];
+        
+        for(let n = 0; n < words.length; n++) {
+          let testLine = line + words[n] + ' ';
+          let metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+          } else { line = testLine; }
+        }
+        lines.push(line);
+
+        lines.forEach((l, i) => {
+          ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
+        });
+        
+        return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
+      };
+
       // Background
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
@@ -144,16 +167,16 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
         ctx.textAlign = 'center';
         ctx.fillStyle = data.corPrincipal;
-        ctx.font = `bold ${data.fontSizeBase * 2.5}px Arial`;
-        ctx.fillText('PROPOSTA ESTRATÉGICA', W/2, 500);
+        ctx.font = `bold ${data.fontSizeBase * 2.2}px Arial`;
+        wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
 
         ctx.fillStyle = '#1a1a1a';
-        ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
-        ctx.fillText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560);
+        ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
+        wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560, W - 60, 1.3, true);
 
         ctx.fillStyle = '#666666';
-        ctx.font = `${data.fontSizeBase * 1}px Arial`;
-        ctx.fillText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 600);
+        ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
+        wrapText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 610, W - 80, 1.2, true);
 
         const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
         footerGrad.addColorStop(0, data.corPrincipal);
@@ -169,30 +192,36 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillRect(0, 0, W, 80);
         ctx.textAlign = 'left';
 
-        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5) => {
+        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
           const words = text.split(' ');
           let line = '';
+          const lines = [];
+          
           for(let n = 0; n < words.length; n++) {
             let testLine = line + words[n] + ' ';
             let metrics = ctx.measureText(testLine);
             if (metrics.width > maxWidth && n > 0) {
-              ctx.fillText(line, x, y);
+              lines.push(line);
               line = words[n] + ' ';
-              y += data.fontSizeBase * lineHeightMultiplier;
             } else { line = testLine; }
           }
-          ctx.fillText(line, x, y);
-          return y + data.fontSizeBase * lineHeightMultiplier;
+          lines.push(line);
+
+          lines.forEach((l, i) => {
+            ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
+          });
+          
+          return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
         };
 
         if (pageNum === 2) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('A GRANDE OPORTUNIDADE', 50, 150);
+          wrapText('A GRANDE OPORTUNIDADE', 50, 150, 500);
           
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-          ctx.fillText('A Importância de uma Presença Digital Dominante', 50, 190);
+          wrapText('A Importância de uma Presença Digital Dominante', 50, 190, 500);
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
@@ -200,8 +229,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-          ctx.fillText('POR QUE NOSSA ESTRATÉGIA É 10X MAIS ASSERTIVA?', 50, y + 20);
-          y += 55;
+          y = wrapText('POR QUE NOSSA ESTRATÉGIA É 10X MAIS ASSERTIVA?', 50, y + 20, 500);
+          y += 25;
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
@@ -211,7 +240,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         } else if (pageNum === 3) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('METODOLOGIA NA PRÁTICA', 50, 140);
+          wrapText('METODOLOGIA NA PRÁTICA', 50, 140, 500);
 
           let y = 190;
           [
@@ -222,8 +251,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(item.t, 85, y + 5);
-            y += 30;
+            y = wrapText(item.t, 85, y + 5, 460);
+            y += 5;
             ctx.fillStyle = '#666666';
             ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
             y = wrapText(item.d, 85, y, 460);
@@ -236,7 +265,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.fill();
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
-          ctx.fillText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40);
+          wrapText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40, 460);
           ctx.fillStyle = '#444444';
           ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
           wrapText("Sem gastos com tráfego pago, focando apenas em público 3x mais assertivo e nichado para o seu negócio.", 70, y + 65, 460);
@@ -244,7 +273,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         } else if (pageNum === 4) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('SOLUÇÃO E INVESTIMENTO', 50, 140);
+          wrapText('SOLUÇÃO E INVESTIMENTO', 50, 140, 500);
 
           let y = 180;
 
@@ -258,20 +287,20 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-            ctx.fillText('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40);
+            wrapText('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40, 460);
             
             y += 65;
             if (data.incluirConfiguracao) {
               ctx.fillStyle = '#444444';
               ctx.font = `${data.fontSizeBase * 1}px Arial`;
-              ctx.fillText('• Configuração Profissional de Redes & Otimização de Perfil', 70, y);
-              y += 25;
+              y = wrapText('• Configuração Profissional de Redes & Otimização de Perfil', 70, y, 460);
+              y += 5;
             }
             if (data.incluirCriativos) {
               ctx.fillStyle = '#444444';
               ctx.font = `${data.fontSizeBase * 1}px Arial`;
-              ctx.fillText(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, 70, y);
-              y += 25;
+              y = wrapText(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, 70, y, 460);
+              y += 5;
             }
             y += 30;
           }
@@ -284,29 +313,29 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             
             ctx.fillStyle = 'white';
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-            ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50);
+            y = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50, 440);
             ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 85);
-            y += 150;
+            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 10, 440);
+            y += 80;
           } else {
             y += 50;
           }
 
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-          ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
-          y += 35;
+          y = wrapText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y, 500);
+          y += 10;
           ctx.fillStyle = '#666666';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
           wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
         } else if (pageNum === 5) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('CRIATIVOS & OTIMIZAÇÃO', 50, 140);
+          wrapText('CRIATIVOS & OTIMIZAÇÃO', 50, 140, 500);
 
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-          ctx.fillText('Design Estratégico & Autoridade Visual', 50, 180);
+          wrapText('Design Estratégico & Autoridade Visual', 50, 180, 500);
 
           let y = 210;
           
@@ -314,8 +343,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, 85, y + 5);
-            y += 25;
+            y = wrapText(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, 85, y + 5, 460);
+            y += 5;
             ctx.fillStyle = '#444444';
             ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
             y = wrapText("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", 85, y, 460);
@@ -326,8 +355,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText('Otimização de Bio e Perfil (SEO Instagram)', 85, y + 5);
-            y += 25;
+            y = wrapText('Otimização de Bio e Perfil (SEO Instagram)', 85, y + 5, 460);
+            y += 5;
             ctx.fillStyle = '#444444';
             ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
             y = wrapText("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", 85, y, 460);
@@ -340,7 +369,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.fill();
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
-          ctx.fillText("POR QUE ESSA ETAPA É CRUCIAL?", 70, y + 35);
+          wrapText("POR QUE ESSA ETAPA É CRUCIAL?", 70, y + 35, 460);
           ctx.fillStyle = '#444444';
           ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
           wrapText("Não adianta atrair o público certo se sua 'casa' (seu perfil) estiver desarrumada. A otimização e os criativos garantem que a primeira impressão seja de uma empresa líder de mercado.", 70, y + 60, 460);
