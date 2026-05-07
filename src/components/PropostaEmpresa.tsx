@@ -565,7 +565,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                   </div>
                   <div>
                     <span className="text-sm font-bold text-white block leading-none">Prévia em Tempo Real</span>
-                    <span className="text-[10px] text-gray-500">2 páginas configuradas</span>
+                    <span className="text-[10px] text-gray-500">4 páginas configuradas</span>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowFullPreview(true)} className="text-gray-400 hover:text-white gap-1 text-xs">
@@ -576,14 +576,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
               <div className="p-6 bg-gray-900/50 backdrop-blur-sm space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
                 <div className="space-y-8">
-                  <div className="relative group/page">
-                    <canvas ref={canvasRef} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
-                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white opacity-0 group-hover/page:opacity-100 transition-opacity">PÁGINA 1</div>
-                  </div>
-                  <div className="relative group/page">
-                    <canvas ref={canvasPage2Ref} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
-                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white opacity-0 group-hover/page:opacity-100 transition-opacity">PÁGINA 2</div>
-                  </div>
+                  {[
+                    { ref: canvasRef, label: 'PÁGINA 1: CAPA' },
+                    { ref: canvasPage2Ref, label: 'PÁGINA 2: O PROBLEMA' },
+                    { ref: canvasPage3Ref, label: 'PÁGINA 3: SOLUÇÃO' },
+                    { ref: canvasPage4Ref, label: 'PÁGINA 4: INVESTIMENTO' }
+                  ].map((page, idx) => (
+                    <div key={idx} className="relative group/page">
+                      <canvas ref={page.ref} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
+                      <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white opacity-0 group-hover/page:opacity-100 transition-opacity uppercase">{page.label}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
