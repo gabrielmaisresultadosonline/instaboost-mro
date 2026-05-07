@@ -489,7 +489,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.circle(gx + 35, gy - 20, 0.8, 'F');
 
         // People Flow (Bottom Left)
-        const po = 0.08;
+        const po = 0.12;
         const pr = mixWithWhite(rgb.r, po);
         const pg = mixWithWhite(rgb.g, po);
         const pb = mixWithWhite(rgb.b, po);
