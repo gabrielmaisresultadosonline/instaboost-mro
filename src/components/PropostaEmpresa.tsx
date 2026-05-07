@@ -839,55 +839,71 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       if (data.incluirConfiguracao || data.incluirCriativos) {
         doc.setFillColor(248, 249, 250);
-        doc.roundedRect(margin, yPos, contentWidth, 35, 3, 3, 'F');
+        
+        let extraY = yPos + 10;
+        const extras = [];
+        if (data.incluirConfiguracao) extras.push('• Otimização e Configuração de Redes Sociais');
+        if (data.incluirCriativos) extras.push(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`);
+        
+        let extrasTotalHeight = 15;
+        const processedExtras = extras.map(e => {
+          const lines = doc.splitTextToSize(e, contentWidth - 20);
+          extrasTotalHeight += (lines.length * 6);
+          return lines;
+        });
+
+        doc.roundedRect(margin, yPos, contentWidth, extrasTotalHeight + 10, 3, 3, 'F');
         doc.setTextColor(30, 30, 30);
         doc.setFontSize(data.fontSizeBase * 1.1);
         doc.text('EXTRAS INCLUSOS NA PROPOSTA:', margin + 5, yPos + 10);
-        yPos += 18;
+        
         doc.setFontSize(data.fontSizeBase * 0.9);
-        if (data.incluirConfiguracao) {
-          doc.text('• Otimização e Configuração de Redes Sociais', margin + 10, yPos);
-          yPos += 6;
-        }
-        if (data.incluirCriativos) {
-          doc.text(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, margin + 10, yPos);
-          yPos += 6;
-        }
-        yPos += 15;
+        let currentExtraY = yPos + 18;
+        processedExtras.forEach(lines => {
+          doc.text(lines, margin + 10, currentExtraY);
+          currentExtraY += (lines.length * 6);
+        });
+        
+        yPos += extrasTotalHeight + 20;
       }
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, contentWidth, 40, 5, 5, 'F');
+        const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
+        const investLines = doc.splitTextToSize(investText, contentWidth - 20);
+        const subText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
+        const subLines = doc.splitTextToSize(subText, contentWidth - 20);
+        
+        const boxHeight = (investLines.length * 8) + (subLines.length * 6) + 15;
+        doc.roundedRect(margin, yPos, contentWidth, boxHeight, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
         
         doc.setFontSize(data.fontSizeBase * 1.5);
         doc.setFont('helvetica', 'bold');
-        const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
-        const investLines = doc.splitTextToSize(investText, contentWidth - 20);
         doc.text(investLines, margin + 10, yPos + 12);
         
-        const nextY = yPos + 12 + (investLines.length * (data.fontSizeBase * 0.6));
+        const subLineY = yPos + 12 + (investLines.length * 8);
         doc.setFontSize(data.fontSizeBase * 1);
-        const investSubText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
-        const investSubLines = doc.splitTextToSize(investSubText, contentWidth - 20);
-        doc.text(investSubLines, margin + 10, nextY);
-        yPos += 60;
+        doc.text(subLines, margin + 10, subLineY);
+        yPos += boxHeight + 20;
       } else {
         yPos += 20;
       }
 
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.4);
-      doc.text(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, margin, yPos);
-      yPos += 12;
+      const garTitle = `GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`;
+      const garTitleLines = doc.splitTextToSize(garTitle, contentWidth);
+      doc.text(garTitleLines, margin, yPos);
+      yPos += (garTitleLines.length * 8) + 4;
+      
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
       const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não sentir o potencial de escala na primeira semana, devolvemos seu investimento integralmente.`;
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
-      yPos += 40;
+      yPos += (garLines.length * 7) + 20;
 
 
       doc.setFont('helvetica', 'bold');
