@@ -622,14 +622,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       
       // Floating Vector Icon (Result Chart) near title
-      const iconX = pageWidth - 40;
-      const iconY = yPos - 10;
-      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-      doc.setLineWidth(0.8);
-      doc.line(iconX, iconY, iconX + 5, iconY - 5);
-      doc.line(iconX + 5, iconY - 5, iconX + 10, iconY - 2);
-      doc.line(iconX + 10, iconY - 2, iconX + 15, iconY - 10);
-      doc.circle(iconX + 15, iconY - 10, 1, 'F');
+      const iconX = pageWidth - 35;
+      const iconY = yPos - 25; // Subi o ícone para não sobrepor o texto da empresa
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b, 0.4);
+      doc.setLineWidth(0.6);
+      doc.line(iconX, iconY, iconX + 4, iconY - 4);
+      doc.line(iconX + 4, iconY - 4, iconX + 8, iconY - 1);
+      doc.line(iconX + 8, iconY - 1, iconX + 12, iconY - 8);
+      doc.circle(iconX + 12, iconY - 8, 0.8, 'F');
 
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
