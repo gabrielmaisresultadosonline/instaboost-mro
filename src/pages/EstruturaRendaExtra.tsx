@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
+import { PropostaEmpresa } from '@/components/PropostaEmpresa';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
 import { EstruturaTrialDashboard } from '@/components/EstruturaTrialDashboard';
 import { ReportGenerator } from '@/components/ReportGenerator';
