@@ -577,7 +577,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 0.9);
       doc.setTextColor(100, 100, 100);
-      doc.text('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', pageWidth / 2, yPos, { align: 'center' });
+      const subTitleText = 'FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO';
+      const subTitleLines = doc.splitTextToSize(subTitleText, contentWidth);
+      doc.text(subTitleLines, pageWidth / 2, yPos, { align: 'center' });
 
       drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
