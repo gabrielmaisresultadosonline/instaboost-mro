@@ -245,9 +245,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.font = `bold ${data.fontSizeBase * 2.2}px Arial`;
         let curY = wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
 
+        // Graphics next to title in preview
+        ctx.beginPath();
+        ctx.strokeStyle = data.corPrincipal;
+        ctx.lineWidth = 3;
+        ctx.moveTo(W/2 - 60, curY + 10);
+        ctx.lineTo(W/2 + 60, curY + 10);
+        ctx.stroke();
+
         ctx.fillStyle = '#1a1a1a';
         ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
-        curY = wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, curY + 10, W - 60, 1.3, true);
+        curY = wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, curY + 25, W - 60, 1.3, true);
 
         ctx.fillStyle = '#666666';
         ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
