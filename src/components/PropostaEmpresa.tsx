@@ -350,11 +350,15 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(60, 60, 60);
       doc.text('Estamos prontos para transformar o seu jogo digital.', margin, y);
       
-      y += 12;
+      y += 15;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
+      doc.setFontSize(16);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text(data.minhaEmpresa.toUpperCase(), margin, y);
+      doc.text('ESTAMOS PRONTOS PARA TRANSFORMAR O SEU JOGO DIGITAL.', pageWidth / 2, y, { align: 'center' });
+      
+      y += 15;
+      doc.setFontSize(18);
+      doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, y, { align: 'center' });
 
       // Download
       const fileName = `Proposta_Premium_${data.empresaDestino.replace(/\s+/g, '_') || 'Empresa'}.pdf`;
