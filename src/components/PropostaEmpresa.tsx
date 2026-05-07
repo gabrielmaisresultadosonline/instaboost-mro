@@ -351,11 +351,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const fileName = `Proposta_Premium_${data.empresaDestino.replace(/\s+/g, '_') || 'Empresa'}.pdf`;
       doc.save(fileName);
       toast.success('Proposta Premium gerada com sucesso!');
-
-      // Download
-      const fileName = `Proposta_${data.empresaDestino.replace(/\s+/g, '_') || 'Empresa'}.pdf`;
-      doc.save(fileName);
-      toast.success('Proposta gerada com sucesso!');
     } catch (err) {
       console.error(err);
       toast.error('Erro ao gerar a proposta');
