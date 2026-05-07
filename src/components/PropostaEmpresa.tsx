@@ -404,11 +404,20 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     <span className="text-[10px] text-gray-500">Logo</span>
                   </button>
                 )}
-                <div className="flex-1 space-y-1">
-                  <label className="text-xs text-gray-500 block">Cor Principal do PDF</label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="w-8 h-8 rounded cursor-pointer bg-transparent" />
-                    <Input value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="h-8 bg-white/5 border-white/10 text-xs" />
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-500 block">Cor 1 (Topo)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="w-6 h-6 rounded cursor-pointer bg-transparent" />
+                      <Input value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="h-7 bg-white/5 border-white/10 text-[10px] px-1" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-500 block">Cor 2 (Base)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={data.corSecundaria} onChange={e => update('corSecundaria', e.target.value)} className="w-6 h-6 rounded cursor-pointer bg-transparent" />
+                      <Input value={data.corSecundaria} onChange={e => update('corSecundaria', e.target.value)} className="h-7 bg-white/5 border-white/10 text-[10px] px-1" />
+                    </div>
                   </div>
                 </div>
                 <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
