@@ -761,7 +761,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     <Label>Qtd. de Criativos (mensal)</Label>
                     <Input value={data.quantidadeCriativos} onChange={e => update('quantidadeCriativos', e.target.value)} placeholder="12" className="bg-white/5" />
                   </div>
-                </div>
+                )}
 
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="space-y-0.5">
