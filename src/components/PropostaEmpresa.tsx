@@ -444,50 +444,153 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             </section>
 
             <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
-              <h2 className="text-xl font-bold flex items-center gap-2"><Package className="text-purple-400" /> Oferta</h2>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                <Label>Exibir Valor no PDF</Label>
-                <Switch checked={data.incluirValor} onCheckedChange={v => update('incluirValor', v)} />
-              </div>
-              {data.incluirValor && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <Label>Valor do Serviço (R$)</Label>
-                  <Input value={data.valorServico} onChange={e => update('valorServico', e.target.value)} placeholder="497,00" className="bg-white/5" />
+              <h2 className="text-xl font-bold flex items-center gap-2"><Package className="text-purple-400" /> Oferta & Valor</h2>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Exibir Valor no PDF</Label>
+                    <p className="text-[10px] text-gray-500">Ocultar se for negociar depois</p>
+                  </div>
+                  <Switch checked={data.incluirValor} onCheckedChange={v => update('incluirValor', v)} />
                 </div>
-              )}
+
+                {data.incluirValor && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Label>Valor do Serviço (R$)</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
+                      <Input value={data.valorServico} onChange={e => update('valorServico', e.target.value)} placeholder="497,00" className="bg-white/5 pl-10" />
+                    </div>
+                    <p className="text-[10px] text-emerald-500/80 italic font-medium">O PDF informará que este é um valor mensal para 30 dias.</p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Dias de Garantia</Label>
+                  <Input value={data.periodoGarantia} onChange={e => update('periodoGarantia', e.target.value)} placeholder="7" className="bg-white/5" />
+                </div>
+              </div>
             </section>
 
-            <Button onClick={generatePDF} disabled={generating} className="w-full h-16 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl rounded-2xl shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
-              {generating ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Download className="w-6 h-6 mr-2" />}
-              GERAR PROPOSTA AGORA
-            </Button>
+            <div className="grid grid-cols-1 gap-3">
+              <Button onClick={generatePDF} disabled={generating} className="w-full h-16 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xl rounded-2xl shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.01] active:scale-[0.99] group">
+                {generating ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Download className="w-6 h-6 mr-2 group-hover:bounce" />}
+                GERAR PDF PROFISSIONAL
+              </Button>
+              
+              <Button variant="outline" onClick={() => setShowFullPreview(true)} className="lg:hidden w-full h-12 bg-white/5 border-white/10 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-white/10">
+                <Maximize2 size={18} className="text-emerald-400" />
+                Ver Prévia Completa
+              </Button>
+            </div>
           </div>
 
           {/* Live Preview Column */}
-          <div className="lg:sticky lg:top-24 space-y-4">
-            <div className="bg-white/[0.03] border border-white/10 p-2 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="lg:sticky lg:top-24 space-y-6">
+            <div className="bg-white/[0.03] border border-white/10 p-1.5 rounded-[2rem] shadow-2xl overflow-hidden group">
               <div className="bg-[#12121a] p-4 flex items-center justify-between border-b border-white/5">
                 <div className="flex items-center gap-2">
-                  <Eye size={18} className="text-gray-400" />
-                  <span className="text-sm font-medium text-gray-400">Prévia do Documento</span>
+                  <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                    <Eye size={18} className="text-emerald-400" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-white block leading-none">Prévia em Tempo Real</span>
+                    <span className="text-[10px] text-gray-500">2 páginas configuradas</span>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-red-500/20" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
-                  <div className="w-2 h-2 rounded-full bg-green-500/20" />
-                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowFullPreview(true)} className="text-gray-400 hover:text-white gap-1 text-xs">
+                  <Maximize2 size={14} />
+                  Expandir
+                </Button>
               </div>
-              <div className="p-4 bg-gray-900/50 backdrop-blur-sm">
-                <canvas ref={canvasRef} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-opacity duration-300" />
+
+              <div className="p-6 bg-gray-900/50 backdrop-blur-sm space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+                <div className="space-y-8">
+                  <div className="relative group/page">
+                    <canvas ref={canvasRef} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white opacity-0 group-hover/page:opacity-100 transition-opacity">PÁGINA 1</div>
+                  </div>
+                  <div className="relative group/page">
+                    <canvas ref={canvasPage2Ref} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white opacity-0 group-hover/page:opacity-100 transition-opacity">PÁGINA 2</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <p className="text-center text-xs text-gray-500 italic">
-              A prévia acima é uma simulação visual. O PDF final será gerado em alta resolução.
-            </p>
+            
+            <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
+              <ShieldCheck className="text-emerald-400 w-8 h-8 shrink-0" />
+              <p className="text-[11px] text-emerald-100/70 leading-relaxed">
+                <strong className="text-emerald-400 block mb-0.5">Design de Alta Conversão</strong>
+                Sua proposta utiliza gatilhos mentais e uma estrutura visual validada para fechar contratos de alto valor.
+              </p>
+            </div>
           </div>
 
         </div>
       </main>
+
+      {/* Full Preview Modal */}
+      {showFullPreview && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
+          <button onClick={() => setShowFullPreview(false)} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50">
+            <X size={24} />
+          </button>
+          
+          <div className="w-full max-w-4xl h-full flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2">
+            <div className="text-center space-y-2 pt-10">
+              <h3 className="text-2xl font-bold text-white">Visualização Completa</h3>
+              <p className="text-gray-400">Arraste para ver as páginas da sua proposta estratégica</p>
+            </div>
+            
+            <div className="space-y-12 pb-20 flex flex-col items-center">
+              <div className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
+                <canvas 
+                  width={600} 
+                  height={848} 
+                  style={{ width: '100%', height: 'auto' }}
+                  ref={(el) => {
+                    if (el && canvasRef.current) {
+                      const ctx = el.getContext('2d');
+                      if (ctx) ctx.drawImage(canvasRef.current, 0, 0);
+                    }
+                  }} 
+                />
+              </div>
+              <div className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
+                <canvas 
+                  width={600} 
+                  height={848} 
+                  style={{ width: '100%', height: 'auto' }}
+                  ref={(el) => {
+                    if (el && canvasPage2Ref.current) {
+                      const ctx = el.getContext('2d');
+                      if (ctx) ctx.drawImage(canvasPage2Ref.current, 0, 0);
+                    }
+                  }} 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      `}</style>
     </div>
   );
 };
