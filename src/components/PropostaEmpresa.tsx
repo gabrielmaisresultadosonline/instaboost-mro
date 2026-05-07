@@ -1049,8 +1049,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     { ref: canvasRef, label: 'PÁGINA 1: CAPA' },
                     { ref: canvasPage2Ref, label: 'PÁGINA 2: O PROBLEMA' },
                     { ref: canvasPage3Ref, label: 'PÁGINA 3: SOLUÇÃO' },
-                    { ref: canvasPage4Ref, label: 'PÁGINA 4: INVESTIMENTO' },
-                    ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, label: 'PÁGINA 5: EXTRAS' }] : [])
+                    ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, label: 'PÁGINA 4: EXTRAS' }] : []),
+                    { ref: canvasPage4Ref, label: data.incluirCriativos || data.incluirConfiguracao ? 'PÁGINA 5: INVESTIMENTO' : 'PÁGINA 4: INVESTIMENTO' }
                   ].map((page, idx) => (
                     <div key={idx} className="relative group/page">
                       <canvas ref={page.ref} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
