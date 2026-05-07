@@ -154,7 +154,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       canvas.width = W;
       canvas.height = H;
 
-      const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
+      const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.3, center = false) => {
         const words = text.split(' ');
         let line = '';
         const lines = [];
@@ -169,11 +169,19 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         }
         lines.push(line);
 
+        const actualLineHeight = data.fontSizeBase * lineHeightMultiplier;
         lines.forEach((l, i) => {
-          ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
+          const textLine = l.trim();
+          let drawX = center ? W/2 : x;
+          if (center) {
+            ctx.textAlign = 'center';
+          } else {
+            ctx.textAlign = 'left';
+          }
+          ctx.fillText(textLine, drawX, y + (i * actualLineHeight));
         });
         
-        return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
+        return y + (lines.length * actualLineHeight);
       };
 
       ctx.fillStyle = '#ffffff';
