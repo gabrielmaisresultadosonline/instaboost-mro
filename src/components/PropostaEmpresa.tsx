@@ -554,13 +554,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, 150, 35, 4, 4, 'F');
+        doc.roundedRect(margin, yPos, 160, 40, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(data.fontSizeBase * 1.5);
-        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 13);
-        doc.setFontSize(data.fontSizeBase * 0.9);
-        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 25);
-        yPos += 55;
+        doc.setFontSize(data.fontSizeBase * 1.6);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 15);
+        doc.setFontSize(data.fontSizeBase * 1.1);
+        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 28);
+        yPos += 60;
       } else {
         yPos += 20;
       }
