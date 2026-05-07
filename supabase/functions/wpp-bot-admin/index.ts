@@ -178,28 +178,27 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       if (action === "botHeartbeat") {
-        console.log(`[botHeartbeat] status=${body.status}, phone=${body.phone_number}`);
         const update: Record<string, unknown> = {
           last_heartbeat: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
         
-        // Buscar o status atual para comparar
-        const { data: currentSession } = await supabase.from("wpp_bot_session").select("status, request_logout").eq("id", SESSION_ID).single();
+        // Buscar o status atual para preservar dados importantes
+        const { data: currentSession } = await supabase
+          .from("wpp_bot_session")
+          .select("status, request_logout, request_qr, phone_number")
+          .eq("id", SESSION_ID)
+          .single();
 
         if (typeof body.status === "string") {
           let newStatus = body.status;
           
-          // Se o robô reportar "disconnected" mas NÃO pedimos logout, 
-          // e ele estava conectado antes, mantemos como "connecting" 
-          // para dar chance ao robô de usar a sessão salva em nuvem.
+          // Lógica para manter o status "estável" na interface durante reconexões
           if (body.status === "disconnected" && currentSession?.status === "connected" && !currentSession?.request_logout) {
-            console.log(`[botHeartbeat] Bot reportou desconexão temporária. Tentando manter conectado na nuvem...`);
-            newStatus = "connected"; // Mantém como conectado para não derrubar a interface
-          } else if (body.status === "disconnected" && !currentSession?.request_logout) {
-            // Se já estava desconectado ou conectando, mas o robô insiste em "disconnected"
-            // sem pedido de logout, mantemos em "connecting" se o QR code for solicitado
-            if (currentSession?.request_qr) newStatus = "connecting";
+            console.log(`[botHeartbeat] Bot reportou desconexão temporária. Mantendo status visual...`);
+            newStatus = "connected"; 
+          } else if (body.status === "disconnected" && !currentSession?.request_logout && currentSession?.request_qr) {
+            newStatus = "connecting";
           }
 
           update.status = newStatus;
@@ -212,10 +211,25 @@ const handler = async (req: Request): Promise<Response> => {
         }
         
         if (body.qr_code !== undefined) update.qr_code = body.qr_code;
-        if (body.phone_number !== undefined) update.phone_number = body.phone_number;
+        
+        // Preservar o número de telefone se o bot enviar null mas já tivermos um
+        if (body.phone_number) {
+          update.phone_number = body.phone_number;
+        } else if (currentSession?.phone_number) {
+          // Mantém o último número conhecido para não sumir da interface
+          update.phone_number = currentSession.phone_number;
+        }
         
         await supabase.from("wpp_bot_session").update(update).eq("id", SESSION_ID);
-        return json({ success: true }, 200, start);
+        
+        // Retornar comandos básicos para agilizar a resposta do bot
+        return json({ 
+          success: true, 
+          commands: { 
+            request_qr: currentSession?.request_qr, 
+            request_logout: currentSession?.request_logout 
+          } 
+        }, 200, start);
       }
 
       if (action === "botFetchPending") {
