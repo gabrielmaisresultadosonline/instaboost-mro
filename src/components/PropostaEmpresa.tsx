@@ -18,6 +18,7 @@ interface PropostaData {
   incluirValor: boolean;
   incluirCriativos: boolean;
   quantidadeCriativos: string;
+  incluirConfiguracao: boolean;
   corPrincipal: string;
   corSecundaria: string;
   logoUrl: string | null;
@@ -32,6 +33,7 @@ const defaultData: PropostaData = {
   incluirValor: true,
   incluirCriativos: false,
   quantidadeCriativos: '12',
+  incluirConfiguracao: false,
   corPrincipal: '#00d4aa',
   corSecundaria: '#0f0f1a',
   logoUrl: null,
@@ -59,6 +61,25 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return { r, g, b };
+  };
+
+  const drawInstagramIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size / 10;
+    // Outer square
+    const radius = size / 4;
+    ctx.beginPath();
+    ctx.roundRect(x - size / 2, y - size / 2, size, size, radius);
+    ctx.stroke();
+    // Inner circle
+    ctx.beginPath();
+    ctx.arc(x, y, size / 4, 0, Math.PI * 2);
+    ctx.stroke();
+    // Small dot
+    ctx.beginPath();
+    ctx.arc(x + size / 4, y - size / 4, size / 12, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
   };
 
   const drawCanvasIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, color: string) => {
@@ -116,6 +137,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             const w = h * ratio;
             ctx.drawImage(img, (W-w)/2, 350, w, h);
           } catch (e) {}
+        } else {
+          drawInstagramIcon(ctx, W/2, 380, 60, data.corPrincipal);
         }
 
         ctx.textAlign = 'center';
@@ -126,6 +149,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillStyle = '#1a1a1a';
         ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
         ctx.fillText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560);
+
+        ctx.fillStyle = '#666666';
+        ctx.font = `${data.fontSizeBase * 1}px Arial`;
+        ctx.fillText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 600);
 
         const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
         footerGrad.addColorStop(0, data.corPrincipal);
@@ -141,7 +168,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillRect(0, 0, W, 80);
         ctx.textAlign = 'left';
 
-        const wrapText = (text: string, x: number, y: number, maxWidth: number) => {
+        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5) => {
           const words = text.split(' ');
           let line = '';
           for(let n = 0; n < words.length; n++) {
@@ -150,78 +177,127 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             if (metrics.width > maxWidth && n > 0) {
               ctx.fillText(line, x, y);
               line = words[n] + ' ';
-              y += data.fontSizeBase * 1.5;
+              y += data.fontSizeBase * lineHeightMultiplier;
             } else { line = testLine; }
           }
           ctx.fillText(line, x, y);
-          return y + data.fontSizeBase * 2;
+          return y + data.fontSizeBase * lineHeightMultiplier;
         };
 
         if (pageNum === 2) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('O GRANDE PROBLEMA ATUAL', 50, 150);
+          ctx.fillText('A GRANDE OPORTUNIDADE', 50, 150);
           
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+          ctx.fillText('Mais Vendas e Engajamento sem Anúncios Pagos', 50, 190);
+
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          let y = wrapText("Hoje, a maioria das empresas desperdiça milhares de reais em anúncios que não convertem, ou pior, tentam vender para quem não tem interesse. O custo por cliente está cada vez mais alto e a atenção das pessoas cada vez menor.", 50, 200, 500);
+          let y = wrapText("Atualmente, investir horrores em anúncios não é mais a única (nem a melhor) saída. O mercado está saturado e o custo por cliente só aumenta. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e mais clientes de forma estratégica.", 50, 225, 500);
 
           ctx.fillStyle = data.corPrincipal;
-          ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
-          ctx.fillText('NOSSA SOLUÇÃO EXCLUSIVA', 50, y);
-          y += 40;
+          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
+          ctx.fillText('POR QUE NOSSA ESTRATÉGIA É 10X MAIS ASSERTIVA?', 50, y + 20);
+          y += 55;
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          y = wrapText("Nós não vamos 'tentar' achar seu público. Nós vamos buscá-lo onde ele já está: nos seus concorrentes. Atraímos a audiência que já consome produtos similares ao seu, mas entregamos uma oferta impossível de ignorar.", 50, y, 500);
+          y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende.", 50, y, 500);
+          
+          drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
         } else if (pageNum === 3) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('METODOLOGIA EM 3 PASSOS', 50, 150);
+          ctx.fillText('METODOLOGIA NA PRÁTICA', 50, 140);
 
-          let y = 220;
+          let y = 190;
           [
-            { t: "1. Mapeamento de Concorrentes", d: "Identificamos quem são os players que já possuem seu público." },
-            { t: "2. Extração e Atração", d: "Utilizamos ferramentas para atrair essa audiência de forma orgânica." },
-            { t: "3. Conversão Direta", d: "Transformamos seguidores e curiosos em clientes pagantes." }
+            { t: "1. Monitoramento Dedicado (10h/dia)", d: "Nossa equipe passa mais de 10 horas por dia focada no seu perfil, realizando prospecção direta e humana, respeitando todos os limites do Instagram." },
+            { t: "2. Conexões Reais e Massa", d: "Interagimos em massa com o público dos seus concorrentes, criando conexões que se transformam em seguidores e clientes reais." },
+            { t: "3. Conversão e Promoção", d: "Após a interação, enviamos mensagens estratégicas com sua promoção, desconto ou checkout, direto para quem tem interesse real." }
           ].forEach((item) => {
-            drawCanvasIcon(ctx, 60, y, data.corPrincipal);
+            drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(item.t, 80, y + 5);
-            y += 25;
+            ctx.fillText(item.t, 85, y + 5);
+            y += 30;
             ctx.fillStyle = '#666666';
-            ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
-            y = wrapText(item.d, 80, y, 450);
-            y += 10;
+            ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
+            y = wrapText(item.d, 85, y, 460);
+            y += 15;
           });
+
+          ctx.fillStyle = data.corPrincipal + '15';
+          ctx.beginPath();
+          ctx.roundRect(50, y, 500, 110, 15);
+          ctx.fill();
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
+          ctx.fillText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40);
+          ctx.fillStyle = '#444444';
+          ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
+          wrapText("Sem gastos com tráfego pago, focando apenas em público 3x mais assertivo e nichado para o seu negócio.", 70, y + 65, 460);
+
         } else if (pageNum === 4) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('INVESTIMENTO E GARANTIA', 50, 150);
+          ctx.fillText('SOLUÇÃO E INVESTIMENTO', 50, 140);
 
-          let y = 200;
+          let y = 180;
+
+          if (data.incluirConfiguracao || data.incluirCriativos) {
+            ctx.fillStyle = '#f8f9fa';
+            ctx.beginPath();
+            ctx.roundRect(50, y, 500, 140, 15);
+            ctx.fill();
+            ctx.strokeStyle = '#e9ecef';
+            ctx.stroke();
+
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+            ctx.fillText('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40);
+            
+            y += 65;
+            if (data.incluirConfiguracao) {
+              ctx.fillStyle = '#444444';
+              ctx.font = `${data.fontSizeBase * 1}px Arial`;
+              ctx.fillText('• Configuração Profissional de Redes & Otimização de Perfil', 70, y);
+              y += 25;
+            }
+            if (data.incluirCriativos) {
+              ctx.fillStyle = '#444444';
+              ctx.font = `${data.fontSizeBase * 1}px Arial`;
+              ctx.fillText(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, 70, y);
+              y += 25;
+            }
+            y += 30;
+          }
+
           if (data.incluirValor) {
             ctx.fillStyle = data.corPrincipal;
             ctx.beginPath();
-            ctx.roundRect(50, y, 500, 120, 15);
+            ctx.roundRect(50, y, 500, 110, 15);
             ctx.fill();
             
             ctx.fillStyle = 'white';
-            ctx.font = `bold ${data.fontSizeBase * 1.6}px Arial`;
-            ctx.fillText(`PLANO DE 30 DIAS: R$ ${data.valorServico}`, 80, y + 50);
-            ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
-            ctx.fillText("INVESTIMENTO MENSAL PARA RESULTADOS ESCALÁVEIS", 80, y + 85);
-            y += 160;
+            ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+            ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50);
+            ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 85);
+            y += 150;
+          } else {
+            y += 50;
           }
 
           ctx.fillStyle = '#1a1a1a';
-          ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
-          ctx.fillText(`RISCO ZERO: ${data.periodoGarantia} DIAS DE GARANTIA`, 50, y);
-          y += 30;
+          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
+          ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
+          y += 35;
           ctx.fillStyle = '#666666';
-          ctx.font = `${data.fontSizeBase * 1}px Arial`;
-          wrapText("Se em até 7 dias você não estiver satisfeito com a qualidade da audiência e o início dos trabalhos, devolvemos seu investimento integralmente.", 50, y, 500);
+          ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+          wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
         }
       }
     };
@@ -309,6 +385,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, yPos, logoW, logoH);
           yPos += logoH + 25;
         } catch (e) {}
+      } else {
+        yPos += 20;
       }
 
       doc.setFont('helvetica', 'bold');
@@ -319,6 +397,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
       doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(data.fontSizeBase * 0.9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', pageWidth / 2, yPos, { align: 'center' });
 
       drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
@@ -332,24 +415,30 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('O DESAFIO DO MERCADO ATUAL', margin, yPos);
+      doc.text('A GRANDE OPORTUNIDADE', margin, yPos);
       yPos += 15;
       
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(data.fontSizeBase * 1.2);
+      doc.setTextColor(30, 30, 30);
+      doc.text('Mais Vendas e Engajamento sem Anúncios Pagos', margin, yPos);
+      yPos += 10;
+
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
-      const probText = "Atualmente, a maioria das empresas enfrenta o mesmo obstáculo: o alto custo de aquisição de clientes através de anúncios pagos. O mercado está saturado e a atenção do público está cada vez mais cara.";
+      const probText = "Atualmente, investir horrores em anúncios não é mais a única (nem a melhor) saída. O mercado está saturado e o custo por cliente só aumenta. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e mais clientes de forma estratégica, sem precisar de anúncios.";
       const probLines = doc.splitTextToSize(probText, contentWidth);
       doc.text(probLines, margin, yPos);
       yPos += probLines.length * 7 + 15;
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('NOSSA ABORDAGEM DISRUPTIVA', margin, yPos);
+      doc.text('ESTRATÉGIA 10X MAIS ASSERTIVA', margin, yPos);
       yPos += 10;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(60, 60, 60);
-      const solText = "Em vez de lutar por atenção aleatória, nós focamos no seu 'Público Alvo 3x Mais Assertivo'. Isso significa atrair pessoas que já demonstram interesse real em produtos como o seu, capturando a audiência qualificada dos seus concorrentes de forma ética e estratégica.";
+      const solText = "Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende, capturando a atenção de forma ética.";
       const solLines = doc.splitTextToSize(solText, contentWidth);
       doc.text(solLines, margin, yPos);
 
@@ -360,13 +449,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('METODOLOGIA DE RESULTADOS', margin, yPos);
+      doc.text('METODOLOGIA NA PRÁTICA', margin, yPos);
       yPos += 20;
 
       const steps = [
-        { t: "1. MAPEAMENTO E INTELIGÊNCIA", d: "Identificamos os perfis e canais onde seus potenciais clientes estão ativos agora. Analisamos o comportamento de compra e engajamento." },
-        { t: "2. EXTRAÇÃO E ATRAÇÃO ORGÂNICA", d: "Implementamos nossa tecnologia para atrair esses usuários qualificados para sua marca, sem depender de orçamentos crescentes em anúncios." },
-        { t: "3. ESCALABILIDADE DE VENDAS", d: "Criamos um fluxo constante de novos interessados chegando diariamente, permitindo que seu time foque apenas em fechar novos negócios." }
+        { t: "1. MONITORAMENTO DEDICADO (10H/DIA)", d: "Nossa equipe passa mais de 10 horas por dia focada no seu perfil, realizando prospecção direta e humana. Não é automação barata, é trabalho estratégico dedicado." },
+        { t: "2. CONEXÕES REAIS E INTERAÇÃO EM MASSA", d: "Buscamos o público dos seus concorrentes e interagimos de forma orgânica, criando conexões reais que se transformam em seguidores qualificados e clientes." },
+        { t: "3. PROSPECÇÃO DIRETA E CONVERSÃO", d: "Após a interação, enviamos mensagens com sua promoção, desconto ou link de checkout para quem realmente tem interesse no seu nicho." }
       ];
 
       steps.forEach(step => {
@@ -377,12 +466,22 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.text(step.t, margin + 10, yPos);
         yPos += 8;
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setFontSize(data.fontSizeBase * 0.95);
         doc.setTextColor(70, 70, 70);
         const dLines = doc.splitTextToSize(step.d, contentWidth - 15);
         doc.text(dLines, margin + 10, yPos);
         yPos += dLines.length * 6 + 12;
       });
+
+      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
+      doc.rect(margin, yPos, contentWidth, 30, 'F');
+      doc.setFont('helvetica', 'bolditalic');
+      doc.setFontSize(data.fontSizeBase * 0.9);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text("ESTRUTURA FOCO EM PÚBLICO 3X MAIS ASSERTIVO E NICHADO.", margin + 5, yPos + 12);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(data.fontSizeBase * 0.8);
+      doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
 
       // PAGE 4: INVESTMENT & GUARANTEE
       doc.addPage();
@@ -391,28 +490,49 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('INVESTIMENTO E PARCERIA', margin, yPos);
+      doc.text('SOLUÇÃO E INVESTIMENTO', margin, yPos);
       yPos += 20;
+
+      if (data.incluirConfiguracao || data.incluirCriativos) {
+        doc.setFillColor(248, 249, 250);
+        doc.roundedRect(margin, yPos, contentWidth, 35, 3, 3, 'F');
+        doc.setTextColor(30, 30, 30);
+        doc.setFontSize(data.fontSizeBase * 1.1);
+        doc.text('EXTRAS INCLUSOS NA PROPOSTA:', margin + 5, yPos + 10);
+        yPos += 18;
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        if (data.incluirConfiguracao) {
+          doc.text('• Otimização e Configuração de Redes Sociais', margin + 10, yPos);
+          yPos += 6;
+        }
+        if (data.incluirCriativos) {
+          doc.text(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, margin + 10, yPos);
+          yPos += 6;
+        }
+        yPos += 15;
+      }
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, 140, 35, 4, 4, 'F');
+        doc.roundedRect(margin, yPos, 150, 35, 4, 4, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(data.fontSizeBase * 1.4);
-        doc.text(`VALOR MENSAL: R$ ${data.valorServico}`, margin + 10, yPos + 13);
-        doc.setFontSize(data.fontSizeBase * 0.8);
-        doc.text("PLANO DE ACELERAÇÃO PARA 30 DIAS", margin + 10, yPos + 25);
+        doc.setFontSize(data.fontSizeBase * 1.5);
+        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 13);
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 25);
         yPos += 55;
+      } else {
+        yPos += 20;
       }
 
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.4);
-      doc.text(`GARANTIA DE SATISFAÇÃO: ${data.periodoGarantia} DIAS`, margin, yPos);
+      doc.text(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, margin, yPos);
       yPos += 12;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
-      const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não ver o potencial de escala logo na primeira semana, devolvemos seu investimento sem burocracia.`;
+      const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não sentir o potencial de escala na primeira semana, devolvemos seu investimento integralmente.`;
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
       
@@ -420,7 +540,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.6);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text("VAMOS COMEÇAR HOJE?", pageWidth / 2, yPos, { align: 'center' });
+      doc.text("VAMOS COMEÇAR?", pageWidth / 2, yPos, { align: 'center' });
 
       const fileName = `Proposta_${data.empresaDestino.replace(/\s+/g, '_')}.pdf`;
       doc.save(fileName);
@@ -487,7 +607,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     </button>
                   )}
                   <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  <p className="text-xs text-gray-500 italic">PNG ou JPG com fundo transparente recomendado.</p>
+                  <p className="text-xs text-gray-500 italic">PNG ou JPG recomendado.</p>
                 </div>
               </div>
 
@@ -515,27 +635,46 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
               <h2 className="text-xl font-bold flex items-center gap-2"><Package className="text-purple-400" /> Oferta & Valor</h2>
               
-              <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="space-y-0.5">
                     <Label>Exibir Valor no PDF</Label>
-                    <p className="text-[10px] text-gray-500">Ocultar se for negociar depois</p>
                   </div>
                   <Switch checked={data.incluirValor} onCheckedChange={v => update('incluirValor', v)} />
                 </div>
 
                 {data.incluirValor && (
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
                     <Label>Valor do Serviço (R$)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
                       <Input value={data.valorServico} onChange={e => update('valorServico', e.target.value)} placeholder="497,00" className="bg-white/5 pl-10" />
                     </div>
-                    <p className="text-[10px] text-emerald-500/80 italic font-medium">O PDF informará que este é um valor mensal para 30 dias.</p>
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Entrega de Conteúdo (Criativos)</Label>
+                  </div>
+                  <Switch checked={data.incluirCriativos} onCheckedChange={v => update('incluirCriativos', v)} />
+                </div>
+
+                {data.incluirCriativos && (
+                  <div className="space-y-2">
+                    <Label>Qtd. de Criativos (mensal)</Label>
+                    <Input value={data.quantidadeCriativos} onChange={e => update('quantidadeCriativos', e.target.value)} placeholder="12" className="bg-white/5" />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Configuração de Redes</Label>
+                  </div>
+                  <Switch checked={data.incluirConfiguracao} onCheckedChange={v => update('incluirConfiguracao', v)} />
+                </div>
+
+                <div className="space-y-2 pt-2">
                   <Label>Dias de Garantia</Label>
                   <Input value={data.periodoGarantia} onChange={e => update('periodoGarantia', e.target.value)} placeholder="7" className="bg-white/5" />
                 </div>
