@@ -342,8 +342,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             // Highlighted "Valor Mensal"
             ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
             ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
-            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 15, 440);
-            y += 80;
+            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, valY + 5, 440, 1.2);
+            y += 140;
           } else {
             y += 50;
           }
