@@ -335,8 +335,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           if (data.incluirConfiguracao) {
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText('CONFIGURAÇÃO E OTIMIZAÇÃO', 50, y);
-            y += 25;
+            y = wrapText('CONFIGURAÇÃO E OTIMIZAÇÃO', 50, y, 500);
+            y += 10;
             ctx.fillStyle = '#666666';
             ctx.font = `${data.fontSizeBase * 1}px Arial`;
             y = wrapText('Analisamos sua Bio, destaques e link para garantir que cada novo visitante entenda sua oferta em segundos.', 50, y, 500);
@@ -346,8 +346,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           if (data.incluirCriativos) {
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(`${data.quantidadeCriativos} CRIATIVOS ESTRATÉGICOS`, 50, y);
-            y += 25;
+            y = wrapText(`${data.quantidadeCriativos} CRIATIVOS ESTRATÉGICOS`, 50, y, 500);
+            y += 10;
             ctx.fillStyle = '#666666';
             ctx.font = `${data.fontSizeBase * 1}px Arial`;
             y = wrapText('Produzimos artes focadas em conversão (vendas) para que seu feed se torne uma máquina de vendas automática.', 50, y, 500);
@@ -394,26 +394,65 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
           if (data.incluirValor) {
             ctx.fillStyle = data.corPrincipal;
+            // Medir o texto para box dinâmico
+            const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
+            const subText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
+            
+            ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+            const investLines = [];
+            const words = investText.split(' ');
+            let line = '';
+            for(let n = 0; n < words.length; n++) {
+              let testLine = line + words[n] + ' ';
+              if (ctx.measureText(testLine).width > 440 && n > 0) {
+                investLines.push(line.trim());
+                line = words[n] + ' ';
+              } else { line = testLine; }
+            }
+            investLines.push(line.trim());
+            
+            ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
+            const subLines = [];
+            const wordsSub = subText.split(' ');
+            line = '';
+            for(let n = 0; n < wordsSub.length; n++) {
+              let testLine = line + wordsSub[n] + ' ';
+              if (ctx.measureText(testLine).width > 440 && n > 0) {
+                subLines.push(line.trim());
+                line = wordsSub[n] + ' ';
+              } else { line = testLine; }
+            }
+            subLines.push(line.trim());
+
+            const boxHeight = (investLines.length * data.fontSizeBase * 2.2) + (subLines.length * data.fontSizeBase * 1.5) + 40;
+            
             ctx.beginPath();
-            ctx.roundRect(50, y, 500, 120, 15);
+            ctx.roundRect(50, y, 500, boxHeight, 15);
             ctx.fill();
             
             ctx.fillStyle = 'white';
+            let innerY = y + 45;
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-            ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45);
+            investLines.forEach((l, i) => {
+              ctx.fillText(l, 80, innerY + (i * data.fontSizeBase * 2));
+            });
             
+            innerY += (investLines.length * data.fontSizeBase * 2);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
             ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
-            ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 75);
-            y += 140;
+            subLines.forEach((l, i) => {
+              ctx.fillText(l, 80, innerY + (i * data.fontSizeBase * 1.4));
+            });
+            
+            y += boxHeight + 30;
           } else {
             y += 50;
           }
 
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-          ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
-          y += 25;
+          y = wrapText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y, 500);
+          y += 10;
           ctx.fillStyle = '#666666';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
           y = wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
@@ -704,8 +743,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(data.fontSizeBase * 1);
         doc.setTextColor(30, 30, 30);
-        doc.text(step.t, margin + 10, yPos);
-        yPos += 8;
+        const tLines = doc.splitTextToSize(step.t, contentWidth - 15);
+        doc.text(tLines, margin + 10, yPos);
+        yPos += (tLines.length * 6) + 2;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(data.fontSizeBase * 0.95);
         doc.setTextColor(70, 70, 70);
@@ -745,8 +785,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           drawIcon(margin + 3, yPos - 1);
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 1);
-          doc.text(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, margin + 10, yPos);
-          yPos += 8;
+          const tText = `Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`;
+          const tLines = doc.splitTextToSize(tText, contentWidth - 15);
+          doc.text(tLines, margin + 10, yPos);
+          yPos += (tLines.length * 6) + 2;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.95);
           doc.setTextColor(70, 70, 70);
@@ -760,8 +802,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 1);
           doc.setTextColor(30, 30, 30);
-          doc.text('Otimização de Bio e Perfil (SEO Instagram)', margin + 10, yPos);
-          yPos += 8;
+          const bTitle = 'Otimização de Bio e Perfil (SEO Instagram)';
+          const btLines = doc.splitTextToSize(bTitle, contentWidth - 15);
+          doc.text(btLines, margin + 10, yPos);
+          yPos += (btLines.length * 6) + 2;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.95);
           doc.setTextColor(70, 70, 70);
@@ -795,55 +839,71 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       if (data.incluirConfiguracao || data.incluirCriativos) {
         doc.setFillColor(248, 249, 250);
-        doc.roundedRect(margin, yPos, contentWidth, 35, 3, 3, 'F');
+        
+        let extraY = yPos + 10;
+        const extras = [];
+        if (data.incluirConfiguracao) extras.push('• Otimização e Configuração de Redes Sociais');
+        if (data.incluirCriativos) extras.push(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`);
+        
+        let extrasTotalHeight = 15;
+        const processedExtras = extras.map(e => {
+          const lines = doc.splitTextToSize(e, contentWidth - 20);
+          extrasTotalHeight += (lines.length * 6);
+          return lines;
+        });
+
+        doc.roundedRect(margin, yPos, contentWidth, extrasTotalHeight + 10, 3, 3, 'F');
         doc.setTextColor(30, 30, 30);
         doc.setFontSize(data.fontSizeBase * 1.1);
         doc.text('EXTRAS INCLUSOS NA PROPOSTA:', margin + 5, yPos + 10);
-        yPos += 18;
+        
         doc.setFontSize(data.fontSizeBase * 0.9);
-        if (data.incluirConfiguracao) {
-          doc.text('• Otimização e Configuração de Redes Sociais', margin + 10, yPos);
-          yPos += 6;
-        }
-        if (data.incluirCriativos) {
-          doc.text(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, margin + 10, yPos);
-          yPos += 6;
-        }
-        yPos += 15;
+        let currentExtraY = yPos + 18;
+        processedExtras.forEach(lines => {
+          doc.text(lines, margin + 10, currentExtraY);
+          currentExtraY += (lines.length * 6);
+        });
+        
+        yPos += extrasTotalHeight + 20;
       }
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, contentWidth, 40, 5, 5, 'F');
+        const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
+        const investLines = doc.splitTextToSize(investText, contentWidth - 20);
+        const subText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
+        const subLines = doc.splitTextToSize(subText, contentWidth - 20);
+        
+        const boxHeight = (investLines.length * 8) + (subLines.length * 6) + 15;
+        doc.roundedRect(margin, yPos, contentWidth, boxHeight, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
         
         doc.setFontSize(data.fontSizeBase * 1.5);
         doc.setFont('helvetica', 'bold');
-        const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
-        const investLines = doc.splitTextToSize(investText, contentWidth - 20);
         doc.text(investLines, margin + 10, yPos + 12);
         
-        const nextY = yPos + 12 + (investLines.length * (data.fontSizeBase * 0.6));
+        const subLineY = yPos + 12 + (investLines.length * 8);
         doc.setFontSize(data.fontSizeBase * 1);
-        const investSubText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
-        const investSubLines = doc.splitTextToSize(investSubText, contentWidth - 20);
-        doc.text(investSubLines, margin + 10, nextY);
-        yPos += 60;
+        doc.text(subLines, margin + 10, subLineY);
+        yPos += boxHeight + 20;
       } else {
         yPos += 20;
       }
 
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.4);
-      doc.text(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, margin, yPos);
-      yPos += 12;
+      const garTitle = `GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`;
+      const garTitleLines = doc.splitTextToSize(garTitle, contentWidth);
+      doc.text(garTitleLines, margin, yPos);
+      yPos += (garTitleLines.length * 8) + 4;
+      
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
       const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não sentir o potencial de escala na primeira semana, devolvemos seu investimento integralmente.`;
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
-      yPos += 40;
+      yPos += (garLines.length * 7) + 20;
 
 
       doc.setFont('helvetica', 'bold');
