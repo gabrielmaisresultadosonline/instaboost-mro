@@ -602,11 +602,27 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
 
+      // Page 1 Decorative Graphics around Title
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+      doc.setLineWidth(0.5);
+      doc.line(pageWidth / 2 - 30, yPos - 10, pageWidth / 2 + 30, yPos - 10);
+      
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, yPos, { align: 'center' });
       yPos += 15;
+      
+      // Floating Vector Icon (Result Chart) near title
+      const iconX = pageWidth - 40;
+      const iconY = yPos - 10;
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+      doc.setLineWidth(0.8);
+      doc.line(iconX, iconY, iconX + 5, iconY - 5);
+      doc.line(iconX + 5, iconY - 5, iconX + 10, iconY - 2);
+      doc.line(iconX + 10, iconY - 2, iconX + 15, iconY - 10);
+      doc.circle(iconX + 15, iconY - 10, 1, 'F');
+
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
       const destText = `EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`;
