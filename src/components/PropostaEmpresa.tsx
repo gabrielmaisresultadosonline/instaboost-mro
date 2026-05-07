@@ -394,26 +394,65 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
           if (data.incluirValor) {
             ctx.fillStyle = data.corPrincipal;
+            // Medir o texto para box dinâmico
+            const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
+            const subText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
+            
+            ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+            const investLines = [];
+            const words = investText.split(' ');
+            let line = '';
+            for(let n = 0; n < words.length; n++) {
+              let testLine = line + words[n] + ' ';
+              if (ctx.measureText(testLine).width > 440 && n > 0) {
+                investLines.push(line.trim());
+                line = words[n] + ' ';
+              } else { line = testLine; }
+            }
+            investLines.push(line.trim());
+            
+            ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
+            const subLines = [];
+            const wordsSub = subText.split(' ');
+            line = '';
+            for(let n = 0; n < wordsSub.length; n++) {
+              let testLine = line + wordsSub[n] + ' ';
+              if (ctx.measureText(testLine).width > 440 && n > 0) {
+                subLines.push(line.trim());
+                line = wordsSub[n] + ' ';
+              } else { line = testLine; }
+            }
+            subLines.push(line.trim());
+
+            const boxHeight = (investLines.length * data.fontSizeBase * 2.2) + (subLines.length * data.fontSizeBase * 1.5) + 40;
+            
             ctx.beginPath();
-            ctx.roundRect(50, y, 500, 120, 15);
+            ctx.roundRect(50, y, 500, boxHeight, 15);
             ctx.fill();
             
             ctx.fillStyle = 'white';
+            let innerY = y + 45;
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-            ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45);
+            investLines.forEach((l, i) => {
+              ctx.fillText(l, 80, innerY + (i * data.fontSizeBase * 2));
+            });
             
+            innerY += (investLines.length * data.fontSizeBase * 2);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
             ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
-            ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 75);
-            y += 140;
+            subLines.forEach((l, i) => {
+              ctx.fillText(l, 80, innerY + (i * data.fontSizeBase * 1.4));
+            });
+            
+            y += boxHeight + 30;
           } else {
             y += 50;
           }
 
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-          ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
-          y += 25;
+          y = wrapText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y, 500);
+          y += 10;
           ctx.fillStyle = '#666666';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
           y = wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
