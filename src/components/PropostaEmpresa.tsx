@@ -335,8 +335,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           if (data.incluirConfiguracao) {
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText('CONFIGURAÇÃO E OTIMIZAÇÃO', 50, y);
-            y += 25;
+            y = wrapText('CONFIGURAÇÃO E OTIMIZAÇÃO', 50, y, 500);
+            y += 10;
             ctx.fillStyle = '#666666';
             ctx.font = `${data.fontSizeBase * 1}px Arial`;
             y = wrapText('Analisamos sua Bio, destaques e link para garantir que cada novo visitante entenda sua oferta em segundos.', 50, y, 500);
@@ -346,8 +346,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           if (data.incluirCriativos) {
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(`${data.quantidadeCriativos} CRIATIVOS ESTRATÉGICOS`, 50, y);
-            y += 25;
+            y = wrapText(`${data.quantidadeCriativos} CRIATIVOS ESTRATÉGICOS`, 50, y, 500);
+            y += 10;
             ctx.fillStyle = '#666666';
             ctx.font = `${data.fontSizeBase * 1}px Arial`;
             y = wrapText('Produzimos artes focadas em conversão (vendas) para que seu feed se torne uma máquina de vendas automática.', 50, y, 500);
