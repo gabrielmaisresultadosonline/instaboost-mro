@@ -1158,5 +1158,4 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       `}</style>
     </div>
   );
-  }
 };
