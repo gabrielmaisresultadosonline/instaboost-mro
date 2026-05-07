@@ -268,19 +268,18 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const pageHeight = 297;
       const margin = 20;
       const contentWidth = pageWidth - margin * 2;
-      let y = 0;
-
+      
       const rgb = hexToRgb(data.corPrincipal);
       const secondaryRgb = hexToRgb(data.corSecundaria);
 
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
-        for (let i = 0; i < h; i++) {
+        for (let i = 0; i < h; i += 0.5) {
           const ratio = i / h;
           const r = Math.floor(rgb.r * (1 - ratio) + secondaryRgb.r * ratio);
           const g = Math.floor(rgb.g * (1 - ratio) + secondaryRgb.g * ratio);
           const b = Math.floor(rgb.b * (1 - ratio) + secondaryRgb.b * ratio);
           doc.setFillColor(r, g, b);
-          doc.rect(x, y + i, w, 1.2, 'F');
+          doc.rect(x, y + i, w, 0.6, 'F');
         }
       };
 
@@ -293,16 +292,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.line(x-0.5, y+1, x+1.5, y-1);
       };
 
-      // Page 1
+      // PAGE 1: COVER
       drawGradientRect(0, 0, pageWidth, 90);
-      
-      // Decorative elements on Page 1
       doc.setDrawColor(255, 255, 255, 0.1);
-      for(let i=0; i<pageWidth; i+=10) {
-        doc.line(i, 0, i+20, 90);
-      }
+      for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
 
-      y = 110;
+      let yPos = 110;
       if (data.logoUrl) {
         try {
           const img = new Image();
@@ -311,76 +306,121 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const ratio = img.width / img.height;
           const logoH = 35;
           const logoW = logoH * ratio;
-          doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, y, logoW, logoH);
-          y += logoH + 25;
+          doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, yPos, logoW, logoH);
+          yPos += logoH + 25;
         } catch (e) {}
       }
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
-      y += 15;
+      doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
-      doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
+      doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, yPos, { align: 'center' });
 
       drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(data.fontSizeBase * 1.2);
       doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 15, { align: 'center' });
 
-      // Page 2
+      // PAGE 2: THE PROBLEM & VISION
       doc.addPage();
       drawGradientRect(0, 0, pageWidth, 25);
-      y = 45;
+      yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('POR QUE ESTA SOLUÇÃO?', margin, y);
-      y += 15;
+      doc.text('O DESAFIO DO MERCADO ATUAL', margin, yPos);
+      yPos += 15;
       
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(data.fontSizeBase * 0.9);
+      doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
-      const introText = "Sua empresa precisa de público qualificado que já consome seus concorrentes. Nossa metodologia foca em atrair essa audiência nichada sem custos com anúncios, gerando engajamento real e vendas diárias.";
-      const introLines = doc.splitTextToSize(introText, contentWidth);
-      doc.text(introLines, margin, y);
-      y += introLines.length * 8 + 10;
+      const probText = "Atualmente, a maioria das empresas enfrenta o mesmo obstáculo: o alto custo de aquisição de clientes através de anúncios pagos. O mercado está saturado e a atenção do público está cada vez mais cara.";
+      const probLines = doc.splitTextToSize(probText, contentWidth);
+      doc.text(probLines, margin, yPos);
+      yPos += probLines.length * 7 + 15;
 
-      const items = [
-        "Público 3x mais assertivo e altamente nichado.",
-        "Aumento exponencial de engajamento e alcance orgânico.",
-        "Conexão direta com quem já tem interesse no seu produto.",
-        `Garantia incondicional de ${data.periodoGarantia} dias para sua segurança.`
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text('NOSSA ABORDAGEM DISRUPTIVA', margin, yPos);
+      yPos += 10;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      const solText = "Em vez de lutar por atenção aleatória, nós focamos no seu 'Público Alvo 3x Mais Assertivo'. Isso significa atrair pessoas que já demonstram interesse real em produtos como o seu, capturando a audiência qualificada dos seus concorrentes de forma ética e estratégica.";
+      const solLines = doc.splitTextToSize(solText, contentWidth);
+      doc.text(solLines, margin, yPos);
+
+      // PAGE 3: METHODOLOGY
+      doc.addPage();
+      drawGradientRect(0, 0, pageWidth, 25);
+      yPos = 45;
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.setFontSize(data.fontSizeBase * 1.8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('METODOLOGIA DE RESULTADOS', margin, yPos);
+      yPos += 20;
+
+      const steps = [
+        { t: "1. MAPEAMENTO E INTELIGÊNCIA", d: "Identificamos os perfis e canais onde seus potenciais clientes estão ativos agora. Analisamos o comportamento de compra e engajamento." },
+        { t: "2. EXTRAÇÃO E ATRAÇÃO ORGÂNICA", d: "Implementamos nossa tecnologia para atrair esses usuários qualificados para sua marca, sem depender de orçamentos crescentes em anúncios." },
+        { t: "3. ESCALABILIDADE DE VENDAS", d: "Criamos um fluxo constante de novos interessados chegando diariamente, permitindo que seu time foque apenas em fechar novos negócios." }
       ];
 
-      items.forEach(item => {
-        drawIcon(margin + 3, y - 1);
+      steps.forEach(step => {
+        drawIcon(margin + 3, yPos - 1);
         doc.setFont('helvetica', 'bold');
+        doc.setFontSize(data.fontSizeBase * 1);
+        doc.setTextColor(30, 30, 30);
+        doc.text(step.t, margin + 10, yPos);
+        yPos += 8;
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(data.fontSizeBase * 0.9);
-        doc.setTextColor(40, 40, 40);
-        doc.text(item, margin + 10, y);
-        y += 12;
+        doc.setTextColor(70, 70, 70);
+        const dLines = doc.splitTextToSize(step.d, contentWidth - 15);
+        doc.text(dLines, margin + 10, yPos);
+        yPos += dLines.length * 6 + 12;
       });
 
+      // PAGE 4: INVESTMENT & GUARANTEE
+      doc.addPage();
+      drawGradientRect(0, 0, pageWidth, 25);
+      yPos = 45;
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.setFontSize(data.fontSizeBase * 1.8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('INVESTIMENTO E PARCERIA', margin, yPos);
+      yPos += 20;
+
       if (data.incluirValor) {
-        y += 15;
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, y, 120, 30, 3, 3, 'F');
+        doc.roundedRect(margin, yPos, 140, 35, 4, 4, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(data.fontSizeBase * 1.3);
-        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 8, y + 12);
-        doc.setFontSize(data.fontSizeBase * 0.7);
-        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 8, y + 22);
+        doc.setFontSize(data.fontSizeBase * 1.4);
+        doc.text(`VALOR MENSAL: R$ ${data.valorServico}`, margin + 10, yPos + 13);
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        doc.text("PLANO DE ACELERAÇÃO PARA 30 DIAS", margin + 10, yPos + 25);
+        yPos += 55;
       }
 
-      // Final CTA
-      y += 50;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(data.fontSizeBase * 1.4);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text("VAMOS ESCALAR SEU NEGÓCIO?", pageWidth / 2, y, { align: 'center' });
+      doc.setFontSize(data.fontSizeBase * 1.4);
+      doc.text(`GARANTIA DE SATISFAÇÃO: ${data.periodoGarantia} DIAS`, margin, yPos);
+      yPos += 12;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(data.fontSizeBase * 1);
+      doc.setTextColor(60, 60, 60);
+      const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não ver o potencial de escala logo na primeira semana, devolvemos seu investimento sem burocracia.`;
+      const garLines = doc.splitTextToSize(garText, contentWidth);
+      doc.text(garLines, margin, yPos);
+      
+      yPos += garLines.length * 7 + 40;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(data.fontSizeBase * 1.6);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text("VAMOS COMEÇAR HOJE?", pageWidth / 2, yPos, { align: 'center' });
 
       const fileName = `Proposta_${data.empresaDestino.replace(/\s+/g, '_')}.pdf`;
       doc.save(fileName);
