@@ -315,13 +315,22 @@ const Live = () => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
+    const onVolumeChange = () => {
+      setVolume(video.volume);
+      setIsMuted(video.muted);
+    };
+
     video.addEventListener("play", onPlay);
     video.addEventListener("pause", onPause);
+    video.addEventListener("volumechange", onVolumeChange);
+
     return () => {
       video.removeEventListener("play", onPlay);
       video.removeEventListener("pause", onPause);
+      video.removeEventListener("volumechange", onVolumeChange);
     };
   }, [session]);
 
