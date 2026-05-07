@@ -95,48 +95,77 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const drawDecorativeElements = (ctx: CanvasRenderingContext2D, W: number, H: number, color: string) => {
-    // Top background patterns
     ctx.save();
-    ctx.globalAlpha = 0.05;
+    
+    // Background Grid
+    ctx.globalAlpha = 0.03;
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
-    
-    // Grid lines
-    for (let i = 0; i < W; i += 40) {
+    for (let i = 0; i < W; i += 30) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(i + 20, 100);
+      ctx.lineTo(i, H);
+      ctx.stroke();
+    }
+    for (let i = 0; i < H; i += 30) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(W, i);
       ctx.stroke();
     }
 
-    // Graph Vector (Trend Up)
-    ctx.globalAlpha = 0.1;
+    // Top Right: Result Graph (Lines)
+    ctx.globalAlpha = 0.15;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(W - 150, 150);
-    ctx.bezierCurveTo(W - 120, 140, W - 100, 110, W - 50, 80);
+    ctx.moveTo(W - 180, 100);
+    ctx.lineTo(W - 140, 80);
+    ctx.lineTo(W - 110, 90);
+    ctx.lineTo(W - 60, 40);
     ctx.stroke();
     
-    // Growth Points
-    [W-150, W-100, W-50].forEach((x, i) => {
+    // Points on graph
+    [ [W - 180, 100], [W - 140, 80], [W - 110, 90], [W - 60, 40] ].forEach(([x, y]) => {
       ctx.beginPath();
-      ctx.arc(x, 150 - (i * 35), 4, 0, Math.PI * 2);
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
     });
 
-    // People Flow Vector
+    // Bottom Left: Growth Bar Chart
+    ctx.globalAlpha = 0.12;
+    const bars = [30, 50, 40, 70, 60, 90];
+    bars.forEach((h, i) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(40 + (i * 25), H - 150, 15, -h);
+    });
+
+    // Middle/Floating: People Flow Icons (Simplified Silhouettes)
     ctx.globalAlpha = 0.08;
-    for (let i = 0; i < 5; i++) {
-      const x = 50 + (i * 30);
-      const y = H - 150 + (Math.sin(i) * 20);
+    for (let i = 0; i < 4; i++) {
+      const x = W - 100 - (i * 40);
+      const y = H - 200 + (i * 20);
+      // Head
       ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
       ctx.fill();
+      // Body
       ctx.beginPath();
-      ctx.moveTo(x, y + 5);
-      ctx.lineTo(x - 10, y + 20);
-      ctx.stroke();
+      ctx.moveTo(x - 10, y + 15);
+      ctx.quadraticCurveTo(x, y + 5, x + 10, y + 15);
+      ctx.lineTo(x + 10, y + 25);
+      ctx.lineTo(x - 10, y + 25);
+      ctx.closePath();
+      ctx.fill();
     }
+
+    // Modern Geometric Accents
+    ctx.globalAlpha = 0.05;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(50, 50, 100, 100);
+    ctx.beginPath();
+    ctx.arc(W - 50, H - 50, 80, 0, Math.PI * 2);
+    ctx.stroke();
     
     ctx.restore();
   };
