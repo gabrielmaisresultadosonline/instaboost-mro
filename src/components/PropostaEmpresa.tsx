@@ -448,7 +448,18 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       const mixWithWhite = (val: number, opacity: number) => Math.floor(val * opacity + 255 * (1 - opacity));
 
+      const drawPDFInstagramIcon = (x: number, y: number, size: number, r: number, g: number, b: number) => {
+        doc.setDrawColor(r, g, b);
+        doc.setLineWidth(size / 10);
+        const radius = size / 4;
+        doc.roundedRect(x - size / 2, y - size / 2, size, size, radius, radius, 'S');
+        doc.circle(x, y, size / 4, 'S');
+        doc.setFillColor(r, g, b);
+        doc.circle(x + size / 4, y - size / 4, size / 12, 'F');
+      };
+
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
+
         const opacity = 0.15;
         const r = mixWithWhite(rgb.r, opacity);
         const g = mixWithWhite(rgb.g, opacity);
