@@ -84,13 +84,67 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       let y = 0;
 
       const rgb = hexToRgb(data.corPrincipal);
+      const secondaryRgb = {
+        r: Math.max(0, rgb.r - 40),
+        g: Math.max(0, rgb.g - 40),
+        b: Math.max(0, rgb.b - 40)
+      };
+
+      // Helper functions for modern look
+      const drawGradientRect = (x: number, y: number, w: number, h: number) => {
+        for (let i = 0; i < h; i++) {
+          const ratio = i / h;
+          const r = Math.floor(rgb.r * (1 - ratio) + secondaryRgb.r * ratio);
+          const g = Math.floor(rgb.g * (1 - ratio) + secondaryRgb.g * ratio);
+          const b = Math.floor(rgb.b * (1 - ratio) + secondaryRgb.b * ratio);
+          doc.setFillColor(r, g, b);
+          doc.rect(x, y + i, w, 1, 'F');
+        }
+      };
+
+      const drawIcon = (x: number, y: number, type: 'target' | 'zap' | 'shield' | 'users' | 'chart') => {
+        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+        doc.setLineWidth(0.5);
+        doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.1);
+        doc.circle(x, y, 5, 'FD');
+        
+        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+        doc.setLineWidth(0.3);
+        if (type === 'target') {
+          doc.circle(x, y, 2.5, 'D');
+          doc.line(x - 4, y, x + 4, y);
+          doc.line(x, y - 4, x, y + 4);
+        } else if (type === 'zap') {
+          doc.line(x - 1, y - 3, x + 2, y);
+          doc.line(x + 2, y, x - 2, y);
+          doc.line(x - 2, y, x + 1, y + 3);
+        } else if (type === 'shield') {
+          doc.line(x - 2, y - 2, x + 2, y - 2);
+          doc.line(x + 2, y - 2, x + 2, y + 1);
+          doc.line(x + 2, y + 1, x, y + 3);
+          doc.line(x, y + 3, x - 2, y + 1);
+          doc.line(x - 2, y + 1, x - 2, y - 2);
+        } else if (type === 'users') {
+          doc.circle(x - 1.5, y - 1, 1.5, 'D');
+          doc.circle(x + 1.5, y - 1, 1.5, 'D');
+        } else if (type === 'chart') {
+          doc.line(x - 2.5, y + 2, x - 2.5, y);
+          doc.line(x, y + 2, x, y - 2);
+          doc.line(x + 2.5, y + 2, x + 2.5, y - 1);
+        }
+      };
 
       // --- CAPA ---
-      // Background Accent
-      doc.setFillColor(rgb.r, rgb.g, rgb.b);
-      doc.rect(0, 0, pageWidth, 40, 'F');
+      // Background Gradient
+      drawGradientRect(0, 0, pageWidth, 60);
+      
+      // Decorative Vectors on Cover
+      doc.setDrawColor(255, 255, 255, 0.2);
+      for(let i=0; i<10; i++) {
+        doc.circle(20 + i*20, 30 + (i%3)*5, 1 + (i%2), 'D');
+      }
 
-      y = 60;
+      y = 80;
       // Logo
       if (data.logoUrl) {
         try {
@@ -101,195 +155,202 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             img.onerror = reject;
           });
           const ratio = img.width / img.height;
-          const logoH = 25;
+          const logoH = 30;
           const logoW = logoH * ratio;
           doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, y, logoW, logoH);
-          y += logoH + 20;
+          y += logoH + 25;
         } catch {
-          y += 10;
+          y += 15;
         }
       }
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(28);
+      doc.setFontSize(32);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
       
-      y += 12;
-      doc.setFontSize(16);
-      doc.setTextColor(80, 80, 80);
-      doc.text(`Preparada para: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
+      y += 14;
+      doc.setFontSize(18);
+      doc.setTextColor(60, 60, 60);
+      doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
 
-      y += 40;
-      doc.setFontSize(14);
-      doc.setTextColor(100, 100, 100);
-      doc.text('Aumente suas vendas e engajamento no orgânico', pageWidth / 2, y, { align: 'center' });
+      y += 45;
+      doc.setFontSize(15);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text('Vendas e Engajamento de Alta Performance', pageWidth / 2, y, { align: 'center' });
       
       y += 8;
-      doc.setFontSize(14);
-      doc.text('sem gastar fortunas com anúncios pagos.', pageWidth / 2, y, { align: 'center' });
+      doc.setFontSize(13);
+      doc.setTextColor(100, 100, 100);
+      doc.text('A estratégia definitiva para dominar o mercado orgânico.', pageWidth / 2, y, { align: 'center' });
 
-      // Footer Cover
-      doc.setFillColor(rgb.r, rgb.g, rgb.b);
-      doc.rect(0, pageHeight - 30, pageWidth, 30, 'F');
+      // Footer Cover Gradient
+      drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(12);
-      doc.text(data.minhaEmpresa, pageWidth / 2, pageHeight - 15, { align: 'center' });
+      doc.setFontSize(14);
+      doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 16, { align: 'center' });
 
-      // --- PAGINA 2: O PROBLEMA & A SOLUÇÃO ---
+      // --- PAGINA 2: O CENÁRIO ---
       doc.addPage();
-      y = 25;
+      y = 35;
 
-      // Header Small
-      doc.setFillColor(rgb.r, rgb.g, rgb.b);
-      doc.rect(0, 0, pageWidth, 15, 'F');
+      // Top Bar Gradient
+      drawGradientRect(0, 0, pageWidth, 20);
       
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
+      doc.setFontSize(22);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('O Cenário Atual', margin, y);
-      y += 12;
+      drawIcon(margin + 5, y - 2, 'chart');
+      doc.text('O Cenário Atual', margin + 15, y);
+      y += 15;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      doc.setTextColor(60, 60, 60);
-      const introText = `Atualmente, a maioria das empresas acredita que para vender no Instagram é necessário investir fortunas em tráfego pago (anúncios). No entanto, o custo por clique está cada vez mais alto e a assertividade muitas vezes deixa a desejar.`;
+      doc.setTextColor(50, 50, 50);
+      const introText = `Atualmente, o mercado digital está saturado de anúncios caros e ineficientes. Muitas empresas "queimam dinheiro" tentando atrair a atenção de pessoas que não têm o perfil ideal de compra. O custo por clique sobe, enquanto a conversão cai.`;
       const introLines = doc.splitTextToSize(introText, contentWidth);
       doc.text(introLines, margin, y);
-      y += introLines.length * 6 + 10;
+      y += introLines.length * 6 + 15;
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('Nossa Metodologia: 100% Orgânica e Humana', margin, y);
-      y += 10;
+      drawIcon(margin + 5, y - 2, 'zap');
+      doc.text('Nossa Metodologia Disruptiva', margin + 15, y);
+      y += 12;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      doc.setTextColor(60, 60, 60);
-      const methodText = `Nossa metodologia é totalmente focada no orgânico, entregando resultados sem que você precise gastar fortunas em anúncios. O segredo está na assertividade: nós vamos direto no público dos seus CONCORRENTES como referência, buscando um público extremamente nichado e qualificado.`;
+      doc.setTextColor(50, 50, 50);
+      const methodText = `Não dependemos da sorte ou de algoritmos de anúncios. Nossa estratégia é cirúrgica: focamos 100% no público qualificado dos seus concorrentes. Nós acessamos a audiência que já consome o seu nicho e a trazemos para o seu ecossistema de forma humana, orgânica e altamente persuasiva.`;
       const methodLines = doc.splitTextToSize(methodText, contentWidth);
       doc.text(methodLines, margin, y);
-      y += methodLines.length * 6 + 15;
+      y += methodLines.length * 6 + 20;
 
-      // Box Destaque
+      // Modern Info Box
+      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.08);
       doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-      doc.setLineWidth(0.5);
-      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
-      doc.roundedRect(margin, y, contentWidth, 35, 3, 3, 'FD');
+      doc.setLineWidth(0.1);
+      doc.roundedRect(margin, y, contentWidth, 40, 4, 4, 'FD');
       
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
+      doc.setFontSize(15);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('Público 10x mais assertivo', margin + 10, y + 12);
+      doc.text('Público Alvo 3x Mais Assertivo', margin + 10, y + 12);
       
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(80, 80, 80);
-      doc.text('Ao buscar o público de quem já é referência no seu nicho, acertamos 10x mais', margin + 10, y + 20);
-      doc.text('o perfil do seu cliente ideal, sem desperdício de tempo ou dinheiro.', margin + 10, y + 26);
-      y += 50;
+      doc.setFontSize(10.5);
+      doc.setTextColor(60, 60, 60);
+      doc.text('Ao mirar em quem já demonstrou interesse real no seu produto ou serviço através', margin + 10, y + 20);
+      doc.text('de referências do mercado, eliminamos o desperdício e focamos em quem compra.', margin + 10, y + 27);
+      y += 60;
 
       // --- PAGINA 3: COMO FAZEMOS ---
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
+      doc.setFontSize(20);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('A Execução do Trabalho', margin, y);
-      y += 12;
+      drawIcon(margin + 5, y - 2, 'target');
+      doc.text('Estratégia de Execução', margin + 15, y);
+      y += 15;
 
       const items = [
-        { title: 'Prospecção Direta Diária', desc: 'Nossa equipe passa mais de 10 horas por dia dedicada exclusivamente ao seu Instagram, fazendo a prospecção direta e manual.' },
-        { title: 'Interações e Conexões Reais', desc: 'Começamos interagindo em massa com o público-alvo para criar conexões verdadeiras e despertar o interesse genuíno pelo seu negócio.' },
-        { title: 'Abordagem Estratégica', desc: 'Após a interação inicial, enviamos mensagens com sua promoção, desconto, link de checkout ou o que você desejar comunicar.' },
-        { title: 'Metodologia Segura', desc: 'Esta prospecção não pode ser feita às pressas. Seguimos rigorosamente as políticas do Instagram para garantir a segurança da sua conta.' }
+        { title: 'Inteligência de Mercado', desc: 'Mapeamento constante dos perfis referência para extrair o público mais engajado e comprador.', icon: 'chart' },
+        { title: 'Conexão Humana Direta', desc: 'Prospecção manual e estratégica. Tratamos cada lead como único, aumentando drasticamente a taxa de resposta.', icon: 'users' },
+        { title: 'Funil de Conversão Orgânico', desc: 'Direcionamento estratégico para seu checkout, WhatsApp ou link de vendas com scripts validados.', icon: 'zap' },
+        { title: 'Segurança e Autoridade', desc: 'Processos que respeitam as normas das plataformas, garantindo o crescimento sustentável da sua conta.', icon: 'shield' }
       ];
 
-      items.forEach(item => {
+      items.forEach((item, idx) => {
+        const itemY = y + (idx * 28);
+        drawIcon(margin + 5, itemY + 2, item.icon as any);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(12.5);
         doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.text(`• ${item.title}`, margin, y);
-        y += 6;
+        doc.text(item.title, margin + 15, itemY + 3);
+        
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        doc.setTextColor(80, 80, 80);
-        const descLines = doc.splitTextToSize(item.desc, contentWidth - 10);
-        doc.text(descLines, margin + 5, y);
-        y += descLines.length * 5 + 6;
+        doc.setTextColor(70, 70, 70);
+        const dLines = doc.splitTextToSize(item.desc, contentWidth - 20);
+        doc.text(dLines, margin + 15, itemY + 10);
       });
 
-      // --- PAGINA 4: ENTREGÁVEIS & VALOR ---
-      if (y > 200 || data.incluirCriativos) {
-        doc.addPage();
-        y = 25;
-        // Header Small
-        doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.rect(0, 0, pageWidth, 15, 'F');
-      } else {
-        y += 10;
-      }
+      // --- PAGINA 4: ENTREGÁVEIS ---
+      doc.addPage();
+      drawGradientRect(0, 0, pageWidth, 20);
+      y = 35;
 
       if (data.incluirCriativos) {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(18);
+        doc.setFontSize(20);
         doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.text('Configuração de Redes e Conteúdo Profissional', margin, y);
-        y += 10;
+        drawIcon(margin + 5, y - 2, 'zap');
+        doc.text('Posicionamento e Criativos', margin + 15, y);
+        y += 12;
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
-        doc.setTextColor(60, 60, 60);
-        const criativosText = `Para agregar valor e passar autoridade, incluímos a configuração estratégica do seu perfil e a entrega de ${data.quantidadeCriativos} criativos mensais de alta performance. Nossa equipe cuida de toda a estética e comunicação visual, garantindo que sua marca tenha um posicionamento de mercado profissional e atrativo, focado em conversão.`;
+        doc.setTextColor(50, 50, 50);
+        const criativosText = `Não basta atrair o público, sua "casa" precisa estar arrumada. Incluímos a otimização estratégica do seu perfil e a entrega de ${data.quantidadeCriativos} artes/vídeos profissionais mensais. Focamos em design de alto nível para gerar autoridade imediata e confiança no seu lead.`;
         const criativosLines = doc.splitTextToSize(criativosText, contentWidth);
         doc.text(criativosLines, margin, y);
-        y += criativosLines.length * 6 + 15;
+        y += criativosLines.length * 6 + 20;
       }
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
+      doc.setFontSize(20);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('Investimento Estratégico', margin, y);
-      y += 12;
+      drawIcon(margin + 5, y - 2, 'chart');
+      doc.text('Investimento para Resultados', margin + 15, y);
+      y += 15;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      doc.text(`Solução completa de 30 dias de acompanhamento e prospecção ativa para gerar mais vendas e clientes.`, margin, y);
-      y += 10;
+      doc.text(`Proposta para 30 dias de acompanhamento focado em gerar ROI (Retorno sobre Investimento).`, margin, y);
+      y += 12;
 
       if (data.incluirValor) {
-        doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, y, 80, 25, 3, 3, 'F');
+        // Modern Value Badge
+        drawGradientRect(margin, y, 90, 30);
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
-        doc.text('INVESTIMENTO MENSAL', margin + 5, y + 8);
-        doc.setFontSize(18);
-        doc.text(`R$ ${data.valorServico}`, margin + 5, y + 18);
-        y += 35;
+        doc.text('PLANO MENSAL EXCLUSIVO', margin + 8, y + 10);
+        doc.setFontSize(24);
+        doc.text(`R$ ${data.valorServico}`, margin + 8, y + 22);
+        y += 45;
       }
 
-      // Garantia
-      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-      doc.setLineWidth(0.2);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 10;
+      // Guarantee Section
+      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
+      doc.roundedRect(margin, y, contentWidth, 25, 3, 3, 'F');
       
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
+      doc.setFontSize(13);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('GARANTIA DE SATISFAÇÃO DE 7 DIAS', margin, y);
-      y += 6;
+      drawIcon(margin + 8, y + 12, 'shield');
+      doc.text('GARANTIA INCONDICIONAL DE 7 DIAS', margin + 18, y + 13);
+      
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
-      doc.text('Estamos tão seguros da nossa metodologia que oferecemos 7 dias para você testar nossos serviços.', margin, y);
-      y += 20;
+      doc.text('Teste nossa metodologia sem riscos. Se não houver progresso, você está protegido.', margin + 18, y + 20);
+      y += 40;
 
       doc.setFont('helvetica', 'italic');
-      doc.setFontSize(10);
-      doc.text('Aguardo seu retorno para iniciarmos o crescimento da sua empresa.', margin, y);
-      y += 10;
+      doc.setFontSize(11);
+      doc.setTextColor(60, 60, 60);
+      doc.text('Estamos prontos para transformar o seu jogo digital.', margin, y);
+      
+      y += 12;
       doc.setFont('helvetica', 'bold');
-      doc.text(data.minhaEmpresa, margin, y);
+      doc.setFontSize(14);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text(data.minhaEmpresa.toUpperCase(), margin, y);
+
+      // Download
+      const fileName = `Proposta_Premium_${data.empresaDestino.replace(/\s+/g, '_') || 'Empresa'}.pdf`;
+      doc.save(fileName);
+      toast.success('Proposta Premium gerada com sucesso!');
 
       // Download
       const fileName = `Proposta_${data.empresaDestino.replace(/\s+/g, '_') || 'Empresa'}.pdf`;
