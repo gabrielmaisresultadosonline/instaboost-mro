@@ -67,16 +67,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   const drawInstagramIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
     ctx.strokeStyle = color;
     ctx.lineWidth = size / 10;
-    // Outer square
     const radius = size / 4;
     ctx.beginPath();
     ctx.roundRect(x - size / 2, y - size / 2, size, size, radius);
     ctx.stroke();
-    // Inner circle
     ctx.beginPath();
     ctx.arc(x, y, size / 4, 0, Math.PI * 2);
     ctx.stroke();
-    // Small dot
     ctx.beginPath();
     ctx.arc(x + size / 4, y - size / 4, size / 12, 0, Math.PI * 2);
     ctx.fillStyle = color;
@@ -98,18 +95,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const renderPreview = async () => {
-    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current || !canvasPage5Ref.current) return;
-    
+    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
+
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
       const W = 600;
-      const H = 848; // A4 ratio
+      const H = 848;
       canvas.width = W;
       canvas.height = H;
 
-      // WrapText definition available for all pages
       const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
         const words = text.split(' ');
         let line = '';
@@ -132,7 +128,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
       };
 
-      // Background
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
 
@@ -143,13 +138,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       if (pageNum === 1) {
         ctx.fillStyle = headerGrad;
         ctx.fillRect(0, 0, W, 300);
-
-        // Decorative Patterns
-        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-        ctx.lineWidth = 1;
-        for(let i=0; i<W; i+=30) {
-          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i+200, 300); ctx.stroke();
-        }
 
         if (logoPreview) {
           try {
@@ -191,28 +179,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillStyle = headerGrad;
         ctx.fillRect(0, 0, W, 80);
         ctx.textAlign = 'left';
-
-        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
-          const words = text.split(' ');
-          let line = '';
-          const lines = [];
-          
-          for(let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            let metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-              lines.push(line);
-              line = words[n] + ' ';
-            } else { line = testLine; }
-          }
-          lines.push(line);
-
-          lines.forEach((l, i) => {
-            ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
-          });
-          
-          return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
-        };
 
         if (pageNum === 2) {
           ctx.fillStyle = data.corPrincipal;
@@ -314,8 +280,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             ctx.fillStyle = 'white';
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
             y = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50, 440);
-            ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 10, 440);
+            
+            // Highlighted "Valor Mensal"
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
+            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 15, 440);
             y += 80;
           } else {
             y += 50;
@@ -377,11 +346,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
     };
 
-    await renderPage(canvasRef.current, 1);
-    await renderPage(canvasPage2Ref.current, 2);
-    await renderPage(canvasPage3Ref.current, 3);
-    await renderPage(canvasPage4Ref.current, 4);
-    await renderPage(canvasPage5Ref.current, 5);
+    if (canvasRef.current) await renderPage(canvasRef.current, 1);
+    if (canvasPage2Ref.current) await renderPage(canvasPage2Ref.current, 2);
+    if (canvasPage3Ref.current) await renderPage(canvasPage3Ref.current, 3);
+    if (canvasPage4Ref.current) await renderPage(canvasPage4Ref.current, 4);
+    if (canvasPage5Ref.current && (data.incluirCriativos || data.incluirConfiguracao)) {
+      await renderPage(canvasPage5Ref.current, 5);
+    }
   };
 
   useEffect(() => {
@@ -444,7 +415,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.line(x-0.5, y+1, x+1.5, y-1);
       };
 
-      // PAGE 1: COVER
       drawGradientRect(0, 0, pageWidth, 90);
       doc.setDrawColor(255, 255, 255, 0.1);
       for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
@@ -484,7 +454,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFontSize(data.fontSizeBase * 1.2);
       doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 15, { align: 'center' });
 
-      // PAGE 2: THE PROBLEM & VISION
       doc.addPage();
       drawGradientRect(0, 0, pageWidth, 25);
       yPos = 45;
@@ -518,7 +487,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const solLines = doc.splitTextToSize(solText, contentWidth);
       doc.text(solLines, margin, yPos);
 
-      // PAGE 3: METHODOLOGY
       doc.addPage();
       drawGradientRect(0, 0, pageWidth, 25);
       yPos = 45;
@@ -559,7 +527,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFontSize(data.fontSizeBase * 0.8);
       doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
 
-      // PAGE 4: INVESTMENT & GUARANTEE
       doc.addPage();
       drawGradientRect(0, 0, pageWidth, 25);
       yPos = 45;
@@ -590,13 +557,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, 150, 35, 4, 4, 'F');
+        doc.roundedRect(margin, yPos, 160, 40, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(data.fontSizeBase * 1.5);
-        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 13);
-        doc.setFontSize(data.fontSizeBase * 0.9);
-        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 25);
-        yPos += 55;
+        doc.setFontSize(data.fontSizeBase * 1.6);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 15);
+        doc.setFontSize(data.fontSizeBase * 1.1);
+        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 28);
+        yPos += 60;
       } else {
         yPos += 20;
       }
@@ -704,7 +672,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
-          {/* Editor Sidebar */}
           <div className="space-y-6">
             <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-6">
               <h2 className="text-xl font-bold flex items-center gap-2"><Palette className="text-emerald-400" /> Identidade Visual</h2>
@@ -735,7 +702,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                       <button onClick={removeLogo} className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"><X size={12} /></button>
                     </div>
                   ) : (
-                    <button onClick={() => logoInputRef.current?.click()} className="h-16 w-16 rounded border-2 border-dashed border-white/10 flex items-center justify-center hover:border-emerald-500/50 transition-colors">
+                    <button onClick={() => logoInputRef.current?.click()} className="h-16 w-16 rounded border-2 border-dashed border-white/10 flex items-center justify-center hover:border-emerald-500/40 transition-colors">
                       <Upload size={20} className="text-gray-500" />
                     </button>
                   )}
@@ -820,14 +787,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                 GERAR PDF PROFISSIONAL
               </Button>
               
-              <Button variant="outline" onClick={() => setShowFullPreview(true)} className="lg:hidden w-full h-12 bg-white/5 border-white/10 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-white/10">
-                <Maximize2 size={18} className="text-emerald-400" />
-                Ver Prévia Completa
+              <Button variant="outline" onClick={() => setShowFullPreview(true)} className="w-full h-16 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold text-lg rounded-2xl shadow-lg shadow-emerald-500/20 transform hover:-translate-y-0.5 transition-all duration-300">
+                <Eye className="mr-2" /> VER PRÉVIA COMPLETA E DETALHADA
               </Button>
             </div>
           </div>
 
-          {/* Live Preview Column */}
           <div className="lg:sticky lg:top-24 space-y-6">
             <div className="bg-white/[0.03] border border-white/10 p-1.5 rounded-[2rem] shadow-2xl overflow-hidden group">
               <div className="bg-[#12121a] p-4 flex items-center justify-between border-b border-white/5">
@@ -840,10 +805,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     <span className="text-[10px] text-gray-500">{data.incluirCriativos || data.incluirConfiguracao ? '5' : '4'} páginas configuradas</span>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setShowFullPreview(true)} className="text-gray-400 hover:text-white gap-1 text-xs">
-                  <Maximize2 size={14} />
-                  Expandir
-                </Button>
               </div>
 
               <div className="p-6 bg-gray-900/50 backdrop-blur-sm space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
@@ -876,7 +837,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         </div>
       </main>
 
-      {/* Full Preview Modal */}
       {showFullPreview && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
           <button onClick={() => setShowFullPreview(false)} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50">
