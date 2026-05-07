@@ -502,7 +502,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           doc.circle(px, py, 1.5, 'F');
           doc.line(px, py + 1.5, px - 3, py + 5);
         }
+
+        // Small Instagram Icon Decoration
+        drawPDFInstagramIcon(pageWidth - 25, pageHeight - 25, 10, r, g, b);
       };
+
 
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
 
