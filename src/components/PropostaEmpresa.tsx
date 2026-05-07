@@ -95,48 +95,77 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const drawDecorativeElements = (ctx: CanvasRenderingContext2D, W: number, H: number, color: string) => {
-    // Top background patterns
     ctx.save();
-    ctx.globalAlpha = 0.05;
+    
+    // Background Grid
+    ctx.globalAlpha = 0.03;
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
-    
-    // Grid lines
-    for (let i = 0; i < W; i += 40) {
+    for (let i = 0; i < W; i += 30) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(i + 20, 100);
+      ctx.lineTo(i, H);
+      ctx.stroke();
+    }
+    for (let i = 0; i < H; i += 30) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(W, i);
       ctx.stroke();
     }
 
-    // Graph Vector (Trend Up)
-    ctx.globalAlpha = 0.1;
+    // Top Right: Result Graph (Lines)
+    ctx.globalAlpha = 0.15;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(W - 150, 150);
-    ctx.bezierCurveTo(W - 120, 140, W - 100, 110, W - 50, 80);
+    ctx.moveTo(W - 180, 100);
+    ctx.lineTo(W - 140, 80);
+    ctx.lineTo(W - 110, 90);
+    ctx.lineTo(W - 60, 40);
     ctx.stroke();
     
-    // Growth Points
-    [W-150, W-100, W-50].forEach((x, i) => {
+    // Points on graph
+    [ [W - 180, 100], [W - 140, 80], [W - 110, 90], [W - 60, 40] ].forEach(([x, y]) => {
       ctx.beginPath();
-      ctx.arc(x, 150 - (i * 35), 4, 0, Math.PI * 2);
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
     });
 
-    // People Flow Vector
+    // Bottom Left: Growth Bar Chart
+    ctx.globalAlpha = 0.12;
+    const bars = [30, 50, 40, 70, 60, 90];
+    bars.forEach((h, i) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(40 + (i * 25), H - 150, 15, -h);
+    });
+
+    // Middle/Floating: People Flow Icons (Simplified Silhouettes)
     ctx.globalAlpha = 0.08;
-    for (let i = 0; i < 5; i++) {
-      const x = 50 + (i * 30);
-      const y = H - 150 + (Math.sin(i) * 20);
+    for (let i = 0; i < 4; i++) {
+      const x = W - 100 - (i * 40);
+      const y = H - 200 + (i * 20);
+      // Head
       ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
       ctx.fill();
+      // Body
       ctx.beginPath();
-      ctx.moveTo(x, y + 5);
-      ctx.lineTo(x - 10, y + 20);
-      ctx.stroke();
+      ctx.moveTo(x - 10, y + 15);
+      ctx.quadraticCurveTo(x, y + 5, x + 10, y + 15);
+      ctx.lineTo(x + 10, y + 25);
+      ctx.lineTo(x - 10, y + 25);
+      ctx.closePath();
+      ctx.fill();
     }
+
+    // Modern Geometric Accents
+    ctx.globalAlpha = 0.05;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(50, 50, 100, 100);
+    ctx.beginPath();
+    ctx.arc(W - 50, H - 50, 80, 0, Math.PI * 2);
+    ctx.stroke();
     
     ctx.restore();
   };
@@ -216,9 +245,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.font = `bold ${data.fontSizeBase * 2.2}px Arial`;
         let curY = wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
 
+        // Graphics next to title in preview
+        ctx.beginPath();
+        ctx.strokeStyle = data.corPrincipal;
+        ctx.lineWidth = 3;
+        ctx.moveTo(W/2 - 60, curY + 10);
+        ctx.lineTo(W/2 + 60, curY + 10);
+        ctx.stroke();
+
         ctx.fillStyle = '#1a1a1a';
         ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
-        curY = wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, curY + 10, W - 60, 1.3, true);
+        curY = wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, curY + 25, W - 60, 1.3, true);
 
         ctx.fillStyle = '#666666';
         ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
@@ -466,52 +503,62 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
-
-        const opacity = 0.2;
+        const opacity = 0.3;
         const r = mixWithWhite(rgb.r, opacity);
         const g = mixWithWhite(rgb.g, opacity);
         const b = mixWithWhite(rgb.b, opacity);
         
         doc.setDrawColor(r, g, b);
         doc.setFillColor(r, g, b);
-        doc.setLineWidth(0.2);
+        doc.setLineWidth(0.1);
 
-        // Top background patterns (Grid)
-        for (let i = 0; i < pageWidth; i += 20) {
-          doc.line(i, 0, i + 15, 40);
+        // Background Grid
+        for (let i = 0; i < pageWidth; i += 15) {
+          doc.line(i, 0, i, pageHeight);
+        }
+        for (let i = 0; i < pageHeight; i += 15) {
+          doc.line(0, i, pageWidth, i);
         }
 
-        // Graph Vector (Trend Up) - Top Right
+        // Top Right: Result Graph (Lines)
         doc.setLineWidth(0.5);
         const gx = pageWidth - 60;
         const gy = 35;
-        doc.line(gx, gy, gx + 10, gy - 10);
-        doc.line(gx + 10, gy - 10, gx + 20, gy - 5);
-        doc.line(gx + 20, gy - 5, gx + 35, gy - 20);
+        doc.line(gx, gy, gx + 10, gy - 8);
+        doc.line(gx + 10, gy - 8, gx + 20, gy - 2);
+        doc.line(gx + 20, gy - 2, gx + 35, gy - 15);
         
         // Dots on graph
-        doc.circle(gx, gy, 0.8, 'F');
-        doc.circle(gx + 10, gy - 10, 0.8, 'F');
-        doc.circle(gx + 20, gy - 5, 0.8, 'F');
-        doc.circle(gx + 35, gy - 20, 0.8, 'F');
+        doc.circle(gx, gy, 1, 'F');
+        doc.circle(gx + 10, gy - 8, 1, 'F');
+        doc.circle(gx + 20, gy - 2, 1, 'F');
+        doc.circle(gx + 35, gy - 15, 1, 'F');
 
-        // People Flow (Bottom Left)
-        const po = 0.12;
-        const pr = mixWithWhite(rgb.r, po);
-        const pg = mixWithWhite(rgb.g, po);
-        const pb = mixWithWhite(rgb.b, po);
-        doc.setFillColor(pr, pg, pb);
-        doc.setDrawColor(pr, pg, pb);
-        
-        for (let i = 0; i < 5; i++) {
-          const px = 25 + (i * 15);
-          const py = pageHeight - 45;
-          doc.circle(px, py, 1.5, 'F');
-          doc.line(px, py + 1.5, px - 3, py + 5);
+        // Bottom Left: Growth Bar Chart
+        const barX = 20;
+        const barY = pageHeight - 40;
+        const bars = [10, 15, 12, 25, 20, 30];
+        bars.forEach((h, i) => {
+          doc.rect(barX + (i * 8), barY, 5, -h, 'F');
+        });
+
+        // People Icons (Silhouettes)
+        const pSize = 4;
+        for (let i = 0; i < 3; i++) {
+          const px = pageWidth - 40 - (i * 15);
+          const py = pageHeight - 50 + (i * 5);
+          // Head
+          doc.circle(px, py, 2, 'F');
+          // Body
+          doc.setLineWidth(1);
+          doc.line(px - 3, py + 5, px + 3, py + 5);
+          doc.line(px - 3, py + 5, px - 3, py + 10);
+          doc.line(px + 3, py + 5, px + 3, py + 10);
+          doc.line(px - 3, py + 10, px + 3, py + 10);
         }
 
-        // Small Instagram Icon Decoration
-        drawPDFInstagramIcon(pageWidth - 25, pageHeight - 25, 10, r, g, b);
+        // Small Instagram Icon Decoration (Bottom Right)
+        drawPDFInstagramIcon(pageWidth - 25, pageHeight - 25, 12, r, g, b);
       };
 
 
@@ -563,11 +610,27 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
 
+      // Page 1 Decorative Graphics around Title
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+      doc.setLineWidth(0.5);
+      doc.line(pageWidth / 2 - 30, yPos - 10, pageWidth / 2 + 30, yPos - 10);
+      
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, yPos, { align: 'center' });
       yPos += 15;
+      
+      // Floating Vector Icon (Result Chart) near title
+      const iconX = pageWidth - 40;
+      const iconY = yPos - 10;
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+      doc.setLineWidth(0.8);
+      doc.line(iconX, iconY, iconX + 5, iconY - 5);
+      doc.line(iconX + 5, iconY - 5, iconX + 10, iconY - 2);
+      doc.line(iconX + 10, iconY - 2, iconX + 15, iconY - 10);
+      doc.circle(iconX + 15, iconY - 10, 1, 'F');
+
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
       const destText = `EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`;
@@ -595,8 +658,15 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
       const title1Text = 'A GRANDE OPORTUNIDADE';
-      const title1Lines = doc.splitTextToSize(title1Text, contentWidth);
+      const title1Lines = doc.splitTextToSize(title1Text, contentWidth - 20);
       doc.text(title1Lines, margin, yPos);
+      
+      // Icon for Page 2
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+      doc.setLineWidth(0.5);
+      doc.rect(margin + 5, yPos + 2, 10, 10);
+      doc.line(margin + 5, yPos + 12, margin + 15, yPos + 2); // Trend up line in a box
+
       yPos += (title1Lines.length * 10) + 5;
       
       doc.setFont('helvetica', 'bold');
