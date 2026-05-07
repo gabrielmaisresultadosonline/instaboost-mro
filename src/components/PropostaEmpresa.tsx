@@ -385,6 +385,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, yPos, logoW, logoH);
           yPos += logoH + 25;
         } catch (e) {}
+      } else {
+        yPos += 20;
       }
 
       doc.setFont('helvetica', 'bold');
@@ -395,6 +397,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
       doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(data.fontSizeBase * 0.9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', pageWidth / 2, yPos, { align: 'center' });
 
       drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
@@ -408,24 +415,30 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('O DESAFIO DO MERCADO ATUAL', margin, yPos);
+      doc.text('A GRANDE OPORTUNIDADE', margin, yPos);
       yPos += 15;
       
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(data.fontSizeBase * 1.2);
+      doc.setTextColor(30, 30, 30);
+      doc.text('Mais Vendas e Engajamento sem Anúncios Pagos', margin, yPos);
+      yPos += 10;
+
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
-      const probText = "Atualmente, a maioria das empresas enfrenta o mesmo obstáculo: o alto custo de aquisição de clientes através de anúncios pagos. O mercado está saturado e a atenção do público está cada vez mais cara.";
+      const probText = "Atualmente, investir horrores em anúncios não é mais a única (nem a melhor) saída. O mercado está saturado e o custo por cliente só aumenta. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e mais clientes de forma estratégica, sem precisar de anúncios.";
       const probLines = doc.splitTextToSize(probText, contentWidth);
       doc.text(probLines, margin, yPos);
       yPos += probLines.length * 7 + 15;
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('NOSSA ABORDAGEM DISRUPTIVA', margin, yPos);
+      doc.text('ESTRATÉGIA 10X MAIS ASSERTIVA', margin, yPos);
       yPos += 10;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(60, 60, 60);
-      const solText = "Em vez de lutar por atenção aleatória, nós focamos no seu 'Público Alvo 3x Mais Assertivo'. Isso significa atrair pessoas que já demonstram interesse real em produtos como o seu, capturando a audiência qualificada dos seus concorrentes de forma ética e estratégica.";
+      const solText = "Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende, capturando a atenção de forma ética.";
       const solLines = doc.splitTextToSize(solText, contentWidth);
       doc.text(solLines, margin, yPos);
 
