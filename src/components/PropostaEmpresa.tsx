@@ -76,7 +76,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const renderPreview = async () => {
-    if (!canvasRef.current || !canvasPage2Ref.current) return;
+    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
     
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
       const ctx = canvas.getContext('2d');
@@ -91,12 +91,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
 
+      const headerGrad = ctx.createLinearGradient(0, 0, 0, pageNum === 1 ? 300 : 80);
+      headerGrad.addColorStop(0, data.corPrincipal);
+      headerGrad.addColorStop(1, data.corSecundaria);
+
       if (pageNum === 1) {
-        // Page 1 Header
-        const grad = ctx.createLinearGradient(0, 0, 0, 300);
-        grad.addColorStop(0, data.corPrincipal);
-        grad.addColorStop(1, data.corSecundaria);
-        ctx.fillStyle = grad;
+        ctx.fillStyle = headerGrad;
         ctx.fillRect(0, 0, W, 300);
 
         // Decorative Patterns
@@ -106,7 +106,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i+200, 300); ctx.stroke();
         }
 
-        // Logo
         if (logoPreview) {
           try {
             const img = new Image();
@@ -119,7 +118,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           } catch (e) {}
         }
 
-        // Title
         ctx.textAlign = 'center';
         ctx.fillStyle = data.corPrincipal;
         ctx.font = `bold ${data.fontSizeBase * 2.5}px Arial`;
@@ -129,7 +127,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
         ctx.fillText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560);
 
-        // Footer Page 1
         const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
         footerGrad.addColorStop(0, data.corPrincipal);
         footerGrad.addColorStop(1, data.corSecundaria);
@@ -140,20 +137,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillText(data.minhaEmpresa.toUpperCase() || 'MINHA MARCA', W/2, H-40);
 
       } else {
-        // Page 2
-        const headerGrad = ctx.createLinearGradient(0, 0, 0, 80);
-        headerGrad.addColorStop(0, data.corPrincipal);
-        headerGrad.addColorStop(1, data.corSecundaria);
         ctx.fillStyle = headerGrad;
         ctx.fillRect(0, 0, W, 80);
-
         ctx.textAlign = 'left';
-        ctx.fillStyle = data.corPrincipal;
-        ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-        ctx.fillText('POR QUE ESTA SOLUÇÃO?', 50, 150);
 
-        ctx.fillStyle = '#444444';
-        ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
         const wrapText = (text: string, x: number, y: number, maxWidth: number) => {
           const words = text.split(' ');
           let line = '';
@@ -170,39 +157,79 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           return y + data.fontSizeBase * 2;
         };
 
-        let y = wrapText("Sua empresa precisa de público qualificado que já consome seus concorrentes. Nossa metodologia foca em atrair essa audiência sem custos com anúncios.", 50, 200, 500);
-
-        [
-          "Atração de público 3x mais assertivo e nichado.",
-          "Aumento real de engajamento e novos clientes.",
-          "Estratégia orgânica: Pare de gastar com anúncios.",
-          `Garantia incondicional de ${data.periodoGarantia} dias para você.`
-        ].forEach((item) => {
-          drawCanvasIcon(ctx, 60, y, data.corPrincipal);
-          ctx.fillStyle = '#333333';
-          ctx.font = `bold ${data.fontSizeBase}px Arial`;
-          ctx.fillText(item, 80, y + 5);
-          y += 45;
-        });
-
-        if (data.incluirValor) {
-          y += 30;
+        if (pageNum === 2) {
           ctx.fillStyle = data.corPrincipal;
-          ctx.beginPath();
-          ctx.roundRect(50, y, 400, 100, 15);
-          ctx.fill();
+          ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+          ctx.fillText('O GRANDE PROBLEMA ATUAL', 50, 150);
           
-          ctx.fillStyle = 'white';
-          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-          ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45);
-          ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
-          ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 75);
+          ctx.fillStyle = '#444444';
+          ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+          let y = wrapText("Hoje, a maioria das empresas desperdiça milhares de reais em anúncios que não convertem, ou pior, tentam vender para quem não tem interesse. O custo por cliente está cada vez mais alto e a atenção das pessoas cada vez menor.", 50, 200, 500);
+
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
+          ctx.fillText('NOSSA SOLUÇÃO EXCLUSIVA', 50, y);
+          y += 40;
+
+          ctx.fillStyle = '#444444';
+          ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+          y = wrapText("Nós não vamos 'tentar' achar seu público. Nós vamos buscá-lo onde ele já está: nos seus concorrentes. Atraímos a audiência que já consome produtos similares ao seu, mas entregamos uma oferta impossível de ignorar.", 50, y, 500);
+        } else if (pageNum === 3) {
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+          ctx.fillText('METODOLOGIA EM 3 PASSOS', 50, 150);
+
+          let y = 220;
+          [
+            { t: "1. Mapeamento de Concorrentes", d: "Identificamos quem são os players que já possuem seu público." },
+            { t: "2. Extração e Atração", d: "Utilizamos ferramentas para atrair essa audiência de forma orgânica." },
+            { t: "3. Conversão Direta", d: "Transformamos seguidores e curiosos em clientes pagantes." }
+          ].forEach((item) => {
+            drawCanvasIcon(ctx, 60, y, data.corPrincipal);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText(item.t, 80, y + 5);
+            y += 25;
+            ctx.fillStyle = '#666666';
+            ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
+            y = wrapText(item.d, 80, y, 450);
+            y += 10;
+          });
+        } else if (pageNum === 4) {
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+          ctx.fillText('INVESTIMENTO E GARANTIA', 50, 150);
+
+          let y = 200;
+          if (data.incluirValor) {
+            ctx.fillStyle = data.corPrincipal;
+            ctx.beginPath();
+            ctx.roundRect(50, y, 500, 120, 15);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${data.fontSizeBase * 1.6}px Arial`;
+            ctx.fillText(`PLANO DE 30 DIAS: R$ ${data.valorServico}`, 80, y + 50);
+            ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
+            ctx.fillText("INVESTIMENTO MENSAL PARA RESULTADOS ESCALÁVEIS", 80, y + 85);
+            y += 160;
+          }
+
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
+          ctx.fillText(`RISCO ZERO: ${data.periodoGarantia} DIAS DE GARANTIA`, 50, y);
+          y += 30;
+          ctx.fillStyle = '#666666';
+          ctx.font = `${data.fontSizeBase * 1}px Arial`;
+          wrapText("Se em até 7 dias você não estiver satisfeito com a qualidade da audiência e o início dos trabalhos, devolvemos seu investimento integralmente.", 50, y, 500);
         }
       }
     };
 
     await renderPage(canvasRef.current, 1);
     await renderPage(canvasPage2Ref.current, 2);
+    await renderPage(canvasPage3Ref.current, 3);
+    await renderPage(canvasPage4Ref.current, 4);
   };
 
   useEffect(() => {
