@@ -305,9 +305,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text('Investimento para Resultados', margin + 15, y);
       y += 15;
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.text(`Proposta para 30 dias de acompanhamento focado em gerar ROI (Retorno sobre Investimento).`, margin, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      drawIcon(margin + 5, y - 2, 'chart');
+      doc.text('Investimento para Resultados', margin + 15, y);
+      y += 15;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(50, 50, 50);
+      doc.text(`Proposta para 30 dias de acompanhamento focado em gerar ROI massivo.`, margin, y);
       y += 12;
 
       if (data.incluirValor) {
