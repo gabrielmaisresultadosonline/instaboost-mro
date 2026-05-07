@@ -233,13 +233,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(18);
         doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.text('Bônus: Gestão de Conteúdo e Criativos', margin, y);
+        doc.text('Configuração de Redes e Conteúdo Profissional', margin, y);
         y += 10;
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
         doc.setTextColor(60, 60, 60);
-        const criativosText = `Além da prospecção ativa, incluiremos a criação de ${data.quantidadeCriativos} criativos profissionais por mês. Estes posts são desenhados com gatilhos mentais específicos para converter seguidores em compradores fiéis, elevando o nível profissional do seu perfil.`;
+        const criativosText = `Para agregar valor e passar autoridade, incluímos a configuração estratégica do seu perfil e a entrega de ${data.quantidadeCriativos} criativos mensais de alta performance. Nossa equipe cuida de toda a estética e comunicação visual, garantindo que sua marca tenha um posicionamento de mercado profissional e atrativo, focado em conversão.`;
         const criativosLines = doc.splitTextToSize(criativosText, contentWidth);
         doc.text(criativosLines, margin, y);
         y += criativosLines.length * 6 + 15;
