@@ -228,6 +228,27 @@ serve(async (req) => {
 
       return respond({ success: true });
     }
+    if (action === "updateOrderWhatsAppSent") {
+      const orderId = normalizeOrderId(body.orderId);
+      const whatsappSent = typeof body.whatsappSent === "boolean" ? body.whatsappSent : true;
+
+      if (!orderId) {
+        return respond({ success: false, error: "Pedido inválido" });
+      }
+
+      const { error } = await supabase
+        .from("mro_orders")
+        .update({ whatsapp_sent: whatsappSent, updated_at: new Date().toISOString() })
+        .eq("id", orderId);
+
+      if (error) {
+        console.error("[instagram-admin] updateOrderWhatsAppSent error", error);
+        return respond({ success: false, error: "Erro ao atualizar status do WhatsApp" });
+      }
+
+      return respond({ success: true });
+    }
+
 
     if (action === "deleteOrder") {
       const orderId = normalizeOrderId(body.orderId);
