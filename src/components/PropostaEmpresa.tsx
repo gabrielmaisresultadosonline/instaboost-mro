@@ -371,22 +371,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
             const wrapTextShort = (text: string, x: number, y: number, maxWidth: number) => {
-              const words = text.split(' ');
-              let line = '';
-              const lines = [];
-              for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                  lines.push(line);
-                  line = words[n] + ' ';
-                } else { line = testLine; }
-              }
-              lines.push(line);
-              lines.forEach((l, i) => {
-                ctx.fillText(l.trim(), x, y + (i * data.fontSizeBase * 1.3));
-              });
-              return y + (lines.length * data.fontSizeBase * 1.3);
+              return wrapText(text, x, y, maxWidth, 1.3, false);
             };
 
             wrapTextShort('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40, 460);
