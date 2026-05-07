@@ -743,8 +743,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(data.fontSizeBase * 1);
         doc.setTextColor(30, 30, 30);
-        doc.text(step.t, margin + 10, yPos);
-        yPos += 8;
+        const tLines = doc.splitTextToSize(step.t, contentWidth - 15);
+        doc.text(tLines, margin + 10, yPos);
+        yPos += (tLines.length * 6) + 2;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(data.fontSizeBase * 0.95);
         doc.setTextColor(70, 70, 70);
