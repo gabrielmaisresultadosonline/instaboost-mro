@@ -446,7 +446,55 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const rgb = hexToRgb(data.corPrincipal);
       const secondaryRgb = hexToRgb(data.corSecundaria);
 
+      const mixWithWhite = (val: number, opacity: number) => Math.floor(val * opacity + 255 * (1 - opacity));
+
+      const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
+        const opacity = 0.15;
+        const r = mixWithWhite(rgb.r, opacity);
+        const g = mixWithWhite(rgb.g, opacity);
+        const b = mixWithWhite(rgb.b, opacity);
+        
+        doc.setDrawColor(r, g, b);
+        doc.setFillColor(r, g, b);
+        doc.setLineWidth(0.2);
+
+        // Top background patterns (Grid)
+        for (let i = 0; i < pageWidth; i += 20) {
+          doc.line(i, 0, i + 15, 40);
+        }
+
+        // Graph Vector (Trend Up) - Top Right
+        doc.setLineWidth(0.5);
+        const gx = pageWidth - 60;
+        const gy = 35;
+        doc.line(gx, gy, gx + 10, gy - 10);
+        doc.line(gx + 10, gy - 10, gx + 20, gy - 5);
+        doc.line(gx + 20, gy - 5, gx + 35, gy - 20);
+        
+        // Dots on graph
+        doc.circle(gx, gy, 0.8, 'F');
+        doc.circle(gx + 10, gy - 10, 0.8, 'F');
+        doc.circle(gx + 20, gy - 5, 0.8, 'F');
+        doc.circle(gx + 35, gy - 20, 0.8, 'F');
+
+        // People Flow (Bottom Left)
+        const po = 0.08;
+        const pr = mixWithWhite(rgb.r, po);
+        const pg = mixWithWhite(rgb.g, po);
+        const pb = mixWithWhite(rgb.b, po);
+        doc.setFillColor(pr, pg, pb);
+        doc.setDrawColor(pr, pg, pb);
+        
+        for (let i = 0; i < 5; i++) {
+          const px = 25 + (i * 15);
+          const py = pageHeight - 45;
+          doc.circle(px, py, 1.5, 'F');
+          doc.line(px, py + 1.5, px - 3, py + 5);
+        }
+      };
+
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
+
         for (let i = 0; i < h; i += 0.5) {
           const ratio = i / h;
           const r = Math.floor(rgb.r * (1 - ratio) + secondaryRgb.r * ratio);
