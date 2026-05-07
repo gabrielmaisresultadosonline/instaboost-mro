@@ -591,27 +591,46 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
               <h2 className="text-xl font-bold flex items-center gap-2"><Package className="text-purple-400" /> Oferta & Valor</h2>
               
-              <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="space-y-0.5">
                     <Label>Exibir Valor no PDF</Label>
-                    <p className="text-[10px] text-gray-500">Ocultar se for negociar depois</p>
                   </div>
                   <Switch checked={data.incluirValor} onCheckedChange={v => update('incluirValor', v)} />
                 </div>
 
                 {data.incluirValor && (
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
                     <Label>Valor do Serviço (R$)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
                       <Input value={data.valorServico} onChange={e => update('valorServico', e.target.value)} placeholder="497,00" className="bg-white/5 pl-10" />
                     </div>
-                    <p className="text-[10px] text-emerald-500/80 italic font-medium">O PDF informará que este é um valor mensal para 30 dias.</p>
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Entrega de Conteúdo (Criativos)</Label>
+                  </div>
+                  <Switch checked={data.incluirCriativos} onCheckedChange={v => update('incluirCriativos', v)} />
+                </div>
+
+                {data.incluirCriativos && (
+                  <div className="space-y-2">
+                    <Label>Qtd. de Criativos (mensal)</Label>
+                    <Input value={data.quantidadeCriativos} onChange={e => update('quantidadeCriativos', e.target.value)} placeholder="12" className="bg-white/5" />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Configuração de Redes</Label>
+                  </div>
+                  <Switch checked={data.incluirConfiguracao} onCheckedChange={v => update('incluirConfiguracao', v)} />
+                </div>
+
+                <div className="space-y-2 pt-2">
                   <Label>Dias de Garantia</Label>
                   <Input value={data.periodoGarantia} onChange={e => update('periodoGarantia', e.target.value)} placeholder="7" className="bg-white/5" />
                 </div>
