@@ -191,22 +191,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           let testLine = line + words[n] + ' ';
           let metrics = ctx.measureText(testLine);
           if (metrics.width > maxWidth && n > 0) {
-            lines.push(line);
+            lines.push(line.trim());
             line = words[n] + ' ';
           } else { line = testLine; }
         }
-        lines.push(line);
+        lines.push(line.trim());
 
         const actualLineHeight = data.fontSizeBase * lineHeightMultiplier;
         lines.forEach((l, i) => {
-          const textLine = l.trim();
           let drawX = center ? W/2 : x;
-          if (center) {
-            ctx.textAlign = 'center';
-          } else {
-            ctx.textAlign = 'left';
-          }
-          ctx.fillText(textLine, drawX, y + (i * actualLineHeight));
+          ctx.textAlign = center ? 'center' : 'left';
+          ctx.fillText(l, drawX, y + (i * actualLineHeight));
         });
         
         return y + (lines.length * actualLineHeight);
