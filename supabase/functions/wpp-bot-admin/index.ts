@@ -215,8 +215,8 @@ const handler = async (req: Request): Promise<Response> => {
         // Preservar o número de telefone se o bot enviar null mas já tivermos um
         if (body.phone_number) {
           update.phone_number = body.phone_number;
-        } else if (currentSession?.phone_number && body.status !== "disconnected") {
-          // Se o bot está tentando conectar, mantemos o número anterior
+        } else if (currentSession?.phone_number) {
+          // Mantém o último número conhecido para não sumir da interface
           update.phone_number = currentSession.phone_number;
         }
         
