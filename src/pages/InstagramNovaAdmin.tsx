@@ -164,6 +164,8 @@ Participe também do nosso GRUPO DE AVISOS
   const [slowSendEnabled, setSlowSendEnabled] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [nextQueueRun, setNextQueueRun] = useState<Date | null>(null);
+  const [processedInSession, setProcessedInSession] = useState<Set<string>>(new Set());
+
 
 
   // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
@@ -405,11 +407,11 @@ Participe também do nosso GRUPO DE AVISOS
         (o.status === "paid" || o.status === "completed") && 
         o.whatsapp_sent !== true &&
         o.phone &&
+        !processedInSession.has(o.id) &&
         new Date(o.created_at) > sixHoursAgo
       );
 
       if (pendingWhatsAppOrders.length === 0) {
-        // Se não houver pedidos pendentes RECENTES, garantimos que a fila não mostre "ativa" erroneamente
         if (isProcessingQueue) setIsProcessingQueue(false);
         return;
       }
@@ -422,6 +424,9 @@ Participe também do nosso GRUPO DE AVISOS
       console.log(`[QUEUE] Processando envio lento para: ${orderToSend.username}`);
       
       try {
+        // Marcar como processado nesta sessão ANTES do envio para evitar reentrância em re-renders
+        setProcessedInSession(prev => new Set(prev).add(orderToSend.id));
+        
         await sendToCRMWebhook(orderToSend);
         
         // Calcular próximo intervalo (mínimo 3 min, máximo 5 min randomizado conforme pedido)
@@ -433,7 +438,7 @@ Participe também do nosso GRUPO DE AVISOS
         setNextQueueRun(nextRun);
         
         // Recarregar pedidos para atualizar o estado visual
-        loadOrders();
+        await loadOrders();
         
         console.log(`[QUEUE] Mensagem enviada. Próximo envio em ${Math.round(totalDelay/1000)}s (${nextRun.toLocaleTimeString()})`);
         
@@ -445,18 +450,17 @@ Participe também do nosso GRUPO DE AVISOS
         
       } catch (error) {
         console.error("[QUEUE] Erro ao processar fila (tentará novamente em 1 min):", error);
-        // Em caso de erro, espera 1 minuto antes de tentar novamente para não travar em loop infinito de erro
         setTimeout(() => {
           setIsProcessingQueue(false);
         }, 60000);
       }
     };
 
-    // Só inicia se não estiver esperando o intervalo
     if (!nextQueueRun) {
       processQueue();
     }
-  }, [slowSendEnabled, orders, isProcessingQueue, nextQueueRun, whatsappMode, isAuthenticated]);
+  }, [slowSendEnabled, orders, isProcessingQueue, nextQueueRun, whatsappMode, isAuthenticated, processedInSession]);
+
 
   const loadWebhookConfig = async () => {
     const token = getAdminSessionToken();
@@ -1115,6 +1119,27 @@ Participe também do nosso GRUPO DE AVISOS
       .replace(/{order_id}/g, order.id);
   };
 
+  const updateOrderWhatsAppSent = async (orderId: string, whatsappSent: boolean = true) => {
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { 
+          action: "updateOrderWhatsAppSent", 
+          token: getAdminSessionToken(), 
+          orderId, 
+          whatsappSent 
+        }
+      });
+
+      if (error || !response?.success) {
+        throw new Error(response?.error || error?.message || "Erro ao atualizar WhatsApp");
+      }
+      return true;
+    } catch (err) {
+      console.error("Error updating whatsapp_sent:", err);
+      return false;
+    }
+  };
+
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
     // Se for teste manual, força o envio independente do status 'whatsapp_sent'
     const isManualTest = isTest;
@@ -1126,6 +1151,22 @@ Participe também do nosso GRUPO DE AVISOS
       console.log(`[CRM] WhatsApp já enviado para o pedido ${order.id}, ignorando.`);
       return;
     }
+
+    // PROTEÇÃO ADICIONAL: Se for Reenviar (isManualTest && já foi enviado), pede confirmação/senha
+    if (isManualTest && order.whatsapp_sent) {
+      const confirmMsg = `Este pedido (${order.username}) já consta como ENVIADO no histórico.\n\nPara reenviar e ignorar o bloqueio de duplicidade, digite a SENHA de administrador:`;
+      const pass = prompt(confirmMsg);
+      
+      if (!pass) return; // Cancelou
+      
+      // Validar senha
+      if (pass !== loginPassword && pass !== "mroadmin") {
+        toast.error("Senha incorreta. Reenvio cancelado.");
+        return;
+      }
+      
+      console.log(`[CRM] Reenvio autorizado via senha para ${order.username}`);
+    }
     
     // Se for QR Code, enfileirar via wpp-bot-admin
     if (whatsappMode === "qrcode") {
@@ -1136,9 +1177,6 @@ Participe também do nosso GRUPO DE AVISOS
         // Garantir que estamos enviando o template correto de ACESSO (não o de remarketing)
         const accessMessage = formatWebhookMessage(webhookConfig.message_template, order);
         
-        // Usamos 'sendTest' no robô, pois ele gerencia a fila inteligentemente:
-        // - 10 segundos se não houver mensagens próximas
-        // - 3 a 5 minutos entre mensagens se a fila estiver ativa
         const response = await supabase.functions.invoke("wpp-bot-admin", {
           body: { 
             action: "sendTest", 
@@ -1159,15 +1197,9 @@ Participe também do nosso GRUPO DE AVISOS
             }
           }
           
-          // Atualizar no banco que foi enviado para o WhatsApp
-          const { error: updateError } = await supabase
-            .from("mro_orders")
-            .update({ whatsapp_sent: true })
-            .eq("id", order.id);
-            
-          if (updateError) console.error("Erro ao atualizar whatsapp_sent:", updateError);
+          // Atualizar no banco via Edge Function (mais seguro com RLS)
+          await updateOrderWhatsAppSent(order.id, true);
           
-          // Se for manual, recarrega para atualizar o badge
           if (isTest) loadOrders();
         } else {
           console.error("Erro no retorno do wpp-bot-admin:", response.data);
@@ -1200,16 +1232,13 @@ Participe também do nosso GRUPO DE AVISOS
       return;
     }
 
-    // Garantir formato internacional (DDI 55 para Brasil se não houver)
     if (phone.length <= 11 && !phone.startsWith("55")) {
       phone = `55${phone}`;
     }
 
     setIsSendingWebhook(order.id);
     try {
-      // Extrair o nome limpo do usuário (remover se for afiliado)
       let cleanName = order.username;
-      
       const messageText = formatWebhookMessage(webhookConfig.message_template, order);
 
       const response = await fetch("https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook", {
@@ -1220,18 +1249,19 @@ Participe também do nosso GRUPO DE AVISOS
           token: webhookConfig.token,
           to: phone,
           message: messageText,
-          variables: [cleanName, order.username, order.username, MEMBER_LINK], // Caso use template
+          variables: [cleanName, order.username, order.username, MEMBER_LINK],
           order_id: order.id
         })
       });
 
       const result = await response.json();
       
-      if (result.success) {
-        if (isTest) toast.success("Webhook enviado com sucesso!");
-        // Atualizar no banco que foi enviado
-        await supabase.from("mro_orders").update({ whatsapp_sent: true }).eq("id", order.id);
-        console.log("Webhook enviado com sucesso:", result);
+      if (result.success || result.duplicate) {
+        if (isTest) {
+          if (result.duplicate) toast.info("Este pedido já foi enviado via API anteriormente.");
+          else toast.success("Webhook enviado com sucesso!");
+        }
+        await updateOrderWhatsAppSent(order.id, true);
       } else {
         throw new Error(result.error || "Erro ao enviar webhook");
       }
@@ -1245,6 +1275,7 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   // Aprovar pagamento manualmente (reconhecer pagamento)
+
   const approveManually = async (order: MROOrder) => {
     if (!confirm(`Aprovar MANUALMENTE o pagamento de ${order.username}?\n\nIsso irá criar o acesso (se não existir) e enviar os emails.\nSe o usuário já foi criado manualmente, o sistema irá pular essa etapa e apenas confirmar.`)) {
       return;
