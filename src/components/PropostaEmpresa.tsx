@@ -86,11 +86,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       let y = 0;
 
       const rgb = hexToRgb(data.corPrincipal);
-      const secondaryRgb = {
-        r: Math.max(0, rgb.r - 40),
-        g: Math.max(0, rgb.g - 40),
-        b: Math.max(0, rgb.b - 40)
-      };
+      const secondaryRgb = hexToRgb(data.corSecundaria);
 
       // Helper functions for modern look
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
@@ -100,7 +96,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const g = Math.floor(rgb.g * (1 - ratio) + secondaryRgb.g * ratio);
           const b = Math.floor(rgb.b * (1 - ratio) + secondaryRgb.b * ratio);
           doc.setFillColor(r, g, b);
-          doc.rect(x, y + i, w, 1, 'F');
+          doc.rect(x, y + i, w, 1.2, 'F'); // Using 1.2 to avoid thin white lines
         }
       };
 
