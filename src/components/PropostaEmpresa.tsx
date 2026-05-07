@@ -253,7 +253,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      doc.text('Plano mensal de 30 dias de acompanhamento e prospecção ativa.', margin, y);
+      doc.text(`Solução completa de 30 dias de acompanhamento e prospecção ativa para gerar mais vendas e clientes.`, margin, y);
       y += 10;
 
       if (data.incluirValor) {
