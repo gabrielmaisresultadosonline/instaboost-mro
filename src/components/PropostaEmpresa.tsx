@@ -169,20 +169,26 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillRect(0, 0, W, 80);
         ctx.textAlign = 'left';
 
-        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5) => {
+        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
           const words = text.split(' ');
           let line = '';
+          const lines = [];
+          
           for(let n = 0; n < words.length; n++) {
             let testLine = line + words[n] + ' ';
             let metrics = ctx.measureText(testLine);
             if (metrics.width > maxWidth && n > 0) {
-              ctx.fillText(line, x, y);
+              lines.push(line);
               line = words[n] + ' ';
-              y += data.fontSizeBase * lineHeightMultiplier;
             } else { line = testLine; }
           }
-          ctx.fillText(line, x, y);
-          return y + data.fontSizeBase * lineHeightMultiplier;
+          lines.push(line);
+
+          lines.forEach((l, i) => {
+            ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
+          });
+          
+          return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
         };
 
         if (pageNum === 2) {
