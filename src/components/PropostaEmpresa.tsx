@@ -421,13 +421,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.2);
       doc.setTextColor(30, 30, 30);
-      doc.text('Mais Vendas e Engajamento sem Anúncios Pagos', margin, yPos);
+      doc.text('A Importância de uma Presença Digital Dominante', margin, yPos);
       yPos += 10;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
-      const probText = "Atualmente, investir horrores em anúncios não é mais a única (nem a melhor) saída. O mercado está saturado e o custo por cliente só aumenta. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e mais clientes de forma estratégica, sem precisar de anúncios.";
+      const probText = "Hoje, estar no Instagram não é uma opção, é a vitrine principal do seu negócio. Não ter um perfil profissional, ativo e com alcance constante significa perder clientes para o concorrente a cada minuto. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e autoridade, agregando valor real ao seu posicionamento digital.";
       const probLines = doc.splitTextToSize(probText, contentWidth);
       doc.text(probLines, margin, yPos);
       yPos += probLines.length * 7 + 15;
