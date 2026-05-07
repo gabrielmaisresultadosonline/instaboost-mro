@@ -171,9 +171,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const renderPreview = async () => {
-    // Adicionado async e await corretamente para resolver o erro de build
-
-
     if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
 
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
@@ -247,7 +244,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.font = `bold ${data.fontSizeBase * 2.2}px Arial`;
         let curY = wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
 
-        // Graphics next to title in preview
         ctx.beginPath();
         ctx.strokeStyle = data.corPrincipal;
         ctx.lineWidth = 3;
@@ -300,186 +296,158 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende. Nossa prospecção humana agrega valor real à sua marca.", 50, y, 500);
           
           drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
-        } else if (pageNum === 3) {
+        }
+
+        if (pageNum === 3) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          wrapText('METODOLOGIA NA PRÁTICA', 50, 140, 500);
+          wrapText('NOSSO MÉTODO DE ESCALA', 50, 150, 500);
+          
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+          wrapText('Fases da Estratégia de Crescimento', 50, 190, 500);
 
-          let y = 190;
-          [
-            { t: "1. Monitoramento Dedicado (10h/dia)", d: "Nossa equipe passa mais de 10 horas por dia focada no seu perfil, realizando prospecção direta e humana, respeitando todos os limites do Instagram." },
-            { t: "2. Conexões Reais e Massa", d: "Interagimos em massa com o público dos seus concorrentes, criando conexões que se transformam em seguidores e clientes reais." },
-            { t: "3. Conversão e Promoção", d: "Após a interação, enviamos mensagens estratégicas com sua promoção, desconto ou checkout, direto para quem tem interesse real." }
-          ].forEach((item) => {
-            drawCanvasIcon(ctx, 65, y, data.corPrincipal);
+          let y = 230;
+          const fases = [
+            { t: '1. Atração Qualificada', d: 'Busca ativa no público de concorrentes e perfis similares ao seu nicho.' },
+            { t: '2. Engajamento Real', d: 'Interações manuais que despertam a curiosidade e o desejo de conhecer sua marca.' },
+            { t: '3. Conversão & Retenção', d: 'Transformamos seguidores em clientes através de uma vitrine otimizada.' }
+          ];
+
+          fases.forEach((f) => {
+            drawCanvasIcon(ctx, 60, y + 5, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            y = wrapText(item.t, 85, y + 5, 460);
-            y += 5;
+            ctx.fillText(f.t, 80, y + 10);
+            y += 25;
             ctx.fillStyle = '#666666';
-            ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
-            y = wrapText(item.d, 85, y, 460);
-            y += 15;
+            ctx.font = `${data.fontSizeBase * 1}px Arial`;
+            y = wrapText(f.d, 80, y, 450);
+            y += 20;
           });
+        }
 
-          ctx.fillStyle = data.corPrincipal + '15';
-          ctx.beginPath();
-          ctx.roundRect(50, y, 500, 110, 15);
-          ctx.fill();
+        if (pageNum === 5 && (data.incluirCriativos || data.incluirConfiguracao)) {
           ctx.fillStyle = data.corPrincipal;
-          ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
-          wrapText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40, 460);
-          ctx.fillStyle = '#444444';
-          ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
-          wrapText("Sem gastos com tráfego pago, focando apenas em público 3x mais assertivo e nichado para o seu negócio.", 70, y + 65, 460);
+          ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+          wrapText('CRIATIVOS & OTIMIZAÇÃO', 50, 150, 500);
+          
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+          wrapText('Turbinando seus Resultados Visuais', 50, 190, 500);
 
-        } else if (pageNum === 4) {
-          if (data.incluirCriativos || data.incluirConfiguracao) {
-            ctx.fillStyle = data.corPrincipal;
-            ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-            wrapText('CRIATIVOS & OTIMIZAÇÃO', 50, 140, 500);
+          let y = 230;
+          if (data.incluirConfiguracao) {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText('CONFIGURAÇÃO E OTIMIZAÇÃO', 50, y);
+            y += 25;
+            ctx.fillStyle = '#666666';
+            ctx.font = `${data.fontSizeBase * 1}px Arial`;
+            y = wrapText('Analisamos sua Bio, destaques e link para garantir que cada novo visitante entenda sua oferta em segundos.', 50, y, 500);
+            y += 40;
+          }
+
+          if (data.incluirCriativos) {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText(`${data.quantidadeCriativos} CRIATIVOS ESTRATÉGICOS`, 50, y);
+            y += 25;
+            ctx.fillStyle = '#666666';
+            ctx.font = `${data.fontSizeBase * 1}px Arial`;
+            y = wrapText('Produzimos artes focadas em conversão (vendas) para que seu feed se torne uma máquina de vendas automática.', 50, y, 500);
+          }
+        }
+
+        if (pageNum === 4) {
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+          wrapText('INVESTIMENTO & GARANTIA', 50, 150, 500);
+          
+          let y = 200;
+          if (data.incluirConfiguracao || data.incluirCriativos) {
+            ctx.fillStyle = '#f8f9fa';
+            ctx.beginPath();
+            ctx.roundRect(50, y, 500, 140, 15);
+            ctx.fill();
+            ctx.strokeStyle = '#e9ecef';
+            ctx.stroke();
 
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-            wrapText('Design Estratégico & Autoridade Visual', 50, 180, 500);
+            const wrapTextShort = (text: string, x: number, y: number, maxWidth: number) => {
+              const words = text.split(' ');
+              let line = '';
+              const lines = [];
+              for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                  lines.push(line);
+                  line = words[n] + ' ';
+                } else { line = testLine; }
+              }
+              lines.push(line);
+              lines.forEach((l, i) => {
+                ctx.fillText(l.trim(), x, y + (i * data.fontSizeBase * 1.3));
+              });
+              return y + (lines.length * data.fontSizeBase * 1.3);
+            };
 
-            let y = 210;
+            wrapTextShort('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40, 460);
             
-            if (data.incluirCriativos) {
-              drawCanvasIcon(ctx, 65, y, data.corPrincipal);
-              ctx.fillStyle = '#1a1a1a';
-              ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-              y = wrapText(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, 85, y + 5, 460);
-              y += 5;
-              ctx.fillStyle = '#444444';
-              ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
-              y = wrapText("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", 85, y, 460);
-              y += 20;
-            }
-
+            y += 65;
             if (data.incluirConfiguracao) {
-              drawCanvasIcon(ctx, 65, y, data.corPrincipal);
-              ctx.fillStyle = '#1a1a1a';
-              ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-              y = wrapText('Otimização de Bio e Perfil (SEO Instagram)', 85, y + 5, 460);
-              y += 5;
               ctx.fillStyle = '#444444';
-              ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
-              y = wrapText("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", 85, y, 460);
-              y += 20;
+              ctx.font = `${data.fontSizeBase * 1}px Arial`;
+              y = wrapTextShort('• Configuração Profissional de Redes & Otimização de Perfil', 70, y, 460);
+              y += 5;
             }
-
-            ctx.fillStyle = data.corPrincipal + '10';
-            ctx.beginPath();
-            ctx.roundRect(50, y, 500, 100, 15);
-            ctx.fill();
-            ctx.fillStyle = data.corPrincipal;
-            ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
-            wrapText("POR QUE ESSA ETAPA É CRUCIAL?", 70, y + 35, 460);
-            ctx.fillStyle = '#444444';
-            ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
-            wrapText("Não adianta atrair o público certo se sua 'casa' (seu perfil) estiver desarrumada. A otimização e os criativos garantem que a primeira impressão seja de uma empresa líder de mercado.", 70, y + 60, 460);
-          } else {
-            // Se não houver criativos/config, renderizamos logo Investimento na P4
-            renderInvestimentoPage(ctx);
+            if (data.incluirCriativos) {
+              ctx.fillStyle = '#444444';
+              ctx.font = `${data.fontSizeBase * 1}px Arial`;
+              y = wrapTextShort(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, 70, y, 460);
+              y += 5;
+            }
+            y += 30;
           }
-        } else if (pageNum === 5) {
-          renderInvestimentoPage(ctx);
-        }
-      }
-    };
 
-    const renderInvestimentoPage = (ctx: CanvasRenderingContext2D) => {
-      ctx.fillStyle = data.corPrincipal;
-      ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-      ctx.textAlign = 'left';
-      ctx.fillText('SOLUÇÃO E INVESTIMENTO', 50, 140);
+          if (data.incluirValor) {
+            ctx.fillStyle = data.corPrincipal;
+            ctx.beginPath();
+            ctx.roundRect(50, y, 500, 120, 15);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+            ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
+            ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 75);
+            y += 140;
+          } else {
+            y += 50;
+          }
 
-      let y = 180;
-
-      if (data.incluirConfiguracao || data.incluirCriativos) {
-        ctx.fillStyle = '#f8f9fa';
-        ctx.beginPath();
-        ctx.roundRect(50, y, 500, 140, 15);
-        ctx.fill();
-        ctx.strokeStyle = '#e9ecef';
-        ctx.stroke();
-
-        ctx.fillStyle = '#1a1a1a';
-        ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-        const wrapText = (text: string, x: number, y: number, maxWidth: number) => {
-          const words = text.split(' ');
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
+          ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
+          y += 25;
+          ctx.fillStyle = '#666666';
+          ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+          const words = `Experimente nossa methodology por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`.split(' ');
           let line = '';
-          const lines = [];
           for(let n = 0; n < words.length; n++) {
             let testLine = line + words[n] + ' ';
-            let metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-              lines.push(line);
+            if (ctx.measureText(testLine).width > 500) {
+              ctx.fillText(line, 50, y);
               line = words[n] + ' ';
+              y += 20;
             } else { line = testLine; }
           }
-          lines.push(line);
-          lines.forEach((l, i) => {
-            ctx.fillText(l.trim(), x, y + (i * data.fontSizeBase * 1.3));
-          });
-          return y + (lines.length * data.fontSizeBase * 1.3);
-        };
-
-        wrapText('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40, 460);
-        
-        y += 65;
-        if (data.incluirConfiguracao) {
-          ctx.fillStyle = '#444444';
-          ctx.font = `${data.fontSizeBase * 1}px Arial`;
-          y = wrapText('• Configuração Profissional de Redes & Otimização de Perfil', 70, y, 460);
-          y += 5;
-        }
-        if (data.incluirCriativos) {
-          ctx.fillStyle = '#444444';
-          ctx.font = `${data.fontSizeBase * 1}px Arial`;
-          y = wrapText(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, 70, y, 460);
-          y += 5;
-        }
-        y += 30;
-      }
-
-      if (data.incluirValor) {
-        ctx.fillStyle = data.corPrincipal;
-        ctx.beginPath();
-        ctx.roundRect(50, y, 500, 120, 15);
-        ctx.fill();
-        
-        ctx.fillStyle = 'white';
-        ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-        ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45);
-        
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-        ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
-        ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 75);
-        y += 140;
-      } else {
-        y += 50;
-      }
-
-      ctx.fillStyle = '#1a1a1a';
-      ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
-      ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
-      y += 25;
-      ctx.fillStyle = '#666666';
-      ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-      const words = `Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`.split(' ');
-      let line = '';
-      for(let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + ' ';
-        if (ctx.measureText(testLine).width > 500) {
           ctx.fillText(line, 50, y);
-          line = words[n] + ' ';
-          y += 20;
-        } else { line = testLine; }
-      }
-      ctx.fillText(line, 50, y);
-
+        }
       }
     };
 
@@ -496,6 +464,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     const timer = setTimeout(renderPreview, 100);
     return () => clearTimeout(timer);
   }, [data, logoPreview]);
+
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
