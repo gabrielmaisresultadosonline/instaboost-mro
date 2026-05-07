@@ -164,6 +164,8 @@ Participe também do nosso GRUPO DE AVISOS
   const [slowSendEnabled, setSlowSendEnabled] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [nextQueueRun, setNextQueueRun] = useState<Date | null>(null);
+  const [processedInSession, setProcessedInSession] = useState<Set<string>>(new Set());
+
 
 
   // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
