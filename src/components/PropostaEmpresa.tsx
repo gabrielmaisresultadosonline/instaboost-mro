@@ -144,16 +144,16 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
         ctx.textAlign = 'center';
         ctx.fillStyle = data.corPrincipal;
-        ctx.font = `bold ${data.fontSizeBase * 2.5}px Arial`;
-        ctx.fillText('PROPOSTA ESTRATÉGICA', W/2, 500);
+        ctx.font = `bold ${data.fontSizeBase * 2.2}px Arial`;
+        wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
 
         ctx.fillStyle = '#1a1a1a';
-        ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
-        ctx.fillText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560);
+        ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
+        wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560, W - 60, 1.3, true);
 
         ctx.fillStyle = '#666666';
-        ctx.font = `${data.fontSizeBase * 1}px Arial`;
-        ctx.fillText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 600);
+        ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
+        wrapText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 610, W - 80, 1.2, true);
 
         const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
         footerGrad.addColorStop(0, data.corPrincipal);
