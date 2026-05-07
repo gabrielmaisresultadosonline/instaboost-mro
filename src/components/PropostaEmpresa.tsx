@@ -416,17 +416,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           y += 25;
           ctx.fillStyle = '#666666';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          const words = `Experimente nossa methodology por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`.split(' ');
-          let line = '';
-          for(let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            if (ctx.measureText(testLine).width > 500) {
-              ctx.fillText(line, 50, y);
-              line = words[n] + ' ';
-              y += 20;
-            } else { line = testLine; }
-          }
-          ctx.fillText(line, 50, y);
+          y = wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
         }
       }
     };
