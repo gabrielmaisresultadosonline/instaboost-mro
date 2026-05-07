@@ -22,6 +22,7 @@ interface PropostaData {
   corSecundaria: string;
   logoUrl: string | null;
   fontSizeBase: number;
+  periodoGarantia: string;
 }
 
 const defaultData: PropostaData = {
@@ -35,14 +36,17 @@ const defaultData: PropostaData = {
   corSecundaria: '#0f0f1a',
   logoUrl: null,
   fontSizeBase: 16,
+  periodoGarantia: '7',
 };
 
 export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   const [data, setData] = useState<PropostaData>(defaultData);
   const [generating, setGenerating] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [showFullPreview, setShowFullPreview] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasPage2Ref = useRef<HTMLCanvasElement>(null);
 
   const update = (field: keyof PropostaData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -55,106 +59,148 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     return { r, g, b };
   };
 
-  // Simplified drawIcon for canvas
   const drawCanvasIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, color: string) => {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(x, y, 10, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(x - 5, y);
-    ctx.lineTo(x + 5, y);
-    ctx.moveTo(x, y - 5);
-    ctx.lineTo(x, y + 5);
+    ctx.moveTo(x - 3, y);
+    ctx.lineTo(x - 1, y + 2);
+    ctx.lineTo(x + 3, y - 2);
     ctx.stroke();
   };
 
   const renderPreview = async () => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!canvasRef.current || !canvasPage2Ref.current) return;
+    
+    const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    const W = 500;
-    const H = 707;
-    canvas.width = W;
-    canvas.height = H;
+      const W = 600;
+      const H = 848; // A4 ratio
+      canvas.width = W;
+      canvas.height = H;
 
-    // Background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, H);
+      // Background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
 
-    // Header Gradient
-    const grad = ctx.createLinearGradient(0, 0, 0, 150);
-    grad.addColorStop(0, data.corPrincipal);
-    grad.addColorStop(1, data.corSecundaria);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, 150);
+      if (pageNum === 1) {
+        // Page 1 Header
+        const grad = ctx.createLinearGradient(0, 0, 0, 300);
+        grad.addColorStop(0, data.corPrincipal);
+        grad.addColorStop(1, data.corSecundaria);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, 300);
 
-    // Decorative circles
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    for(let i=0; i<10; i++) {
-      ctx.beginPath();
-      ctx.arc(Math.random()*W, Math.random()*150, 5 + Math.random()*15, 0, Math.PI*2);
-      ctx.fill();
-    }
+        // Decorative Patterns
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for(let i=0; i<W; i+=30) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i+200, 300); ctx.stroke();
+        }
 
-    // Logo
-    if (logoPreview) {
-      try {
-        const img = new Image();
-        img.src = logoPreview;
-        await new Promise((resolve) => { img.onload = resolve; });
-        const ratio = img.width / img.height;
-        const h = 60;
-        const w = h * ratio;
-        ctx.drawImage(img, (W-w)/2, 170, w, h);
-      } catch (e) {}
-    }
+        // Logo
+        if (logoPreview) {
+          try {
+            const img = new Image();
+            img.src = logoPreview;
+            await new Promise((resolve) => { img.onload = resolve; });
+            const ratio = img.width / img.height;
+            const h = 80;
+            const w = h * ratio;
+            ctx.drawImage(img, (W-w)/2, 350, w, h);
+          } catch (e) {}
+        }
 
-    // Title
-    ctx.textAlign = 'center';
-    ctx.fillStyle = data.corPrincipal;
-    ctx.font = `bold ${data.fontSizeBase * 2.5}px Arial`;
-    ctx.fillText('PROPOSTA ESTRATÉGICA', W/2, 280);
+        // Title
+        ctx.textAlign = 'center';
+        ctx.fillStyle = data.corPrincipal;
+        ctx.font = `bold ${data.fontSizeBase * 2.5}px Arial`;
+        ctx.fillText('PROPOSTA ESTRATÉGICA', W/2, 500);
 
-    ctx.fillStyle = '#333333';
-    ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
-    ctx.fillText(`PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 330);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
+        ctx.fillText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560);
 
-    // Content Simulation
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#666666';
-    ctx.font = `${data.fontSizeBase}px Arial`;
-    const lines = [
-      "Focamos 100% no público qualificado dos seus concorrentes.",
-      "Aumente seu engajamento e vendas de forma orgânica.",
-      "Garantia incondicional de 7 dias para sua segurança."
-    ];
-    lines.forEach((line, i) => {
-      drawCanvasIcon(ctx, 60, 400 + i*40, data.corPrincipal);
-      ctx.fillText(line, 80, 405 + i*40);
-    });
+        // Footer Page 1
+        const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
+        footerGrad.addColorStop(0, data.corPrincipal);
+        footerGrad.addColorStop(1, data.corSecundaria);
+        ctx.fillStyle = footerGrad;
+        ctx.fillRect(0, H-100, W, 100);
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+        ctx.fillText(data.minhaEmpresa.toUpperCase() || 'MINHA MARCA', W/2, H-40);
 
-    if (data.incluirValor) {
-      ctx.fillStyle = data.corPrincipal;
-      ctx.fillRect(50, 550, 200, 60);
-      ctx.fillStyle = 'white';
-      ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-      ctx.fillText(`R$ ${data.valorServico}`, 70, 590);
-    }
+      } else {
+        // Page 2
+        const headerGrad = ctx.createLinearGradient(0, 0, 0, 80);
+        headerGrad.addColorStop(0, data.corPrincipal);
+        headerGrad.addColorStop(1, data.corSecundaria);
+        ctx.fillStyle = headerGrad;
+        ctx.fillRect(0, 0, W, 80);
 
-    // Footer
-    const footerGrad = ctx.createLinearGradient(0, H-60, 0, H);
-    footerGrad.addColorStop(0, data.corPrincipal);
-    footerGrad.addColorStop(1, data.corSecundaria);
-    ctx.fillStyle = footerGrad;
-    ctx.fillRect(0, H-60, W, 60);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'white';
-    ctx.font = `bold ${data.fontSizeBase}px Arial`;
-    ctx.fillText(data.minhaEmpresa.toUpperCase() || 'MINHA MARCA', W/2, H-25);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = data.corPrincipal;
+        ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+        ctx.fillText('POR QUE ESTA SOLUÇÃO?', 50, 150);
+
+        ctx.fillStyle = '#444444';
+        ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+        const wrapText = (text: string, x: number, y: number, maxWidth: number) => {
+          const words = text.split(' ');
+          let line = '';
+          for(let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+              ctx.fillText(line, x, y);
+              line = words[n] + ' ';
+              y += data.fontSizeBase * 1.5;
+            } else { line = testLine; }
+          }
+          ctx.fillText(line, x, y);
+          return y + data.fontSizeBase * 2;
+        };
+
+        let y = wrapText("Sua empresa precisa de público qualificado que já consome seus concorrentes. Nossa metodologia foca em atrair essa audiência sem custos com anúncios.", 50, 200, 500);
+
+        [
+          "Atração de público 3x mais assertivo e nichado.",
+          "Aumento real de engajamento e novos clientes.",
+          "Estratégia orgânica: Pare de gastar com anúncios.",
+          `Garantia incondicional de ${data.periodoGarantia} dias para você.`
+        ].forEach((item) => {
+          drawCanvasIcon(ctx, 60, y, data.corPrincipal);
+          ctx.fillStyle = '#333333';
+          ctx.font = `bold ${data.fontSizeBase}px Arial`;
+          ctx.fillText(item, 80, y + 5);
+          y += 45;
+        });
+
+        if (data.incluirValor) {
+          y += 30;
+          ctx.fillStyle = data.corPrincipal;
+          ctx.beginPath();
+          ctx.roundRect(50, y, 400, 100, 15);
+          ctx.fill();
+          
+          ctx.fillStyle = 'white';
+          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
+          ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45);
+          ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
+          ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 75);
+        }
+      }
+    };
+
+    await renderPage(canvasRef.current, 1);
+    await renderPage(canvasPage2Ref.current, 2);
   };
 
   useEffect(() => {
