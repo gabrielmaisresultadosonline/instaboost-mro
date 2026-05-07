@@ -256,26 +256,34 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       const drawIcon = (x: number, y: number) => {
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.5);
-        doc.circle(x, y, 4, 'D');
-        doc.line(x-2, y, x+2, y);
-        doc.line(x, y-2, x, y+2);
+        doc.setFillColor(rgb.r, rgb.g, rgb.b);
+        doc.circle(x, y, 3, 'F');
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.4);
+        doc.line(x-1.5, y, x-0.5, y+1);
+        doc.line(x-0.5, y+1, x+1.5, y-1);
       };
 
       // Page 1
-      drawGradientRect(0, 0, pageWidth, 80);
-      y = 100;
+      drawGradientRect(0, 0, pageWidth, 90);
+      
+      // Decorative elements on Page 1
+      doc.setDrawColor(255, 255, 255, 0.1);
+      for(let i=0; i<pageWidth; i+=10) {
+        doc.line(i, 0, i+20, 90);
+      }
+
+      y = 110;
       if (data.logoUrl) {
         try {
           const img = new Image();
           img.src = data.logoUrl;
           await new Promise((resolve) => { img.onload = resolve; });
           const ratio = img.width / img.height;
-          const logoH = 30;
+          const logoH = 35;
           const logoW = logoH * ratio;
           doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, y, logoW, logoH);
-          y += logoH + 20;
+          y += logoH + 25;
         } catch (e) {}
       }
 
@@ -285,52 +293,71 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
       y += 15;
       doc.setFontSize(data.fontSizeBase * 1.5);
-      doc.setTextColor(60, 60, 60);
+      doc.setTextColor(30, 30, 30);
       doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
 
-      drawGradientRect(0, pageHeight - 30, pageWidth, 30);
+      drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
-      doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 12, { align: 'center' });
+      doc.setFontSize(data.fontSizeBase * 1.2);
+      doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 15, { align: 'center' });
 
       // Page 2
       doc.addPage();
-      drawGradientRect(0, 0, pageWidth, 20);
-      y = 40;
+      drawGradientRect(0, 0, pageWidth, 25);
+      y = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
-      doc.text('NOSSA METODOLOGIA', margin, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text('POR QUE ESTA SOLUÇÃO?', margin, y);
       y += 15;
+      
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(data.fontSizeBase * 0.8);
-      doc.setTextColor(50, 50, 50);
-      const txt = "Não dependemos de anúncios caros. Focamos no público qualificado dos seus concorrentes, trazendo leads reais e engajados para o seu negócio diariamente.";
-      const lines = doc.splitTextToSize(txt, contentWidth);
-      doc.text(lines, margin, y);
-      y += lines.length * 7 + 10;
+      doc.setFontSize(data.fontSizeBase * 0.9);
+      doc.setTextColor(60, 60, 60);
+      const introText = "Sua empresa precisa de público qualificado que já consome seus concorrentes. Nossa metodologia foca em atrair essa audiência nichada sem custos com anúncios, gerando engajamento real e vendas diárias.";
+      const introLines = doc.splitTextToSize(introText, contentWidth);
+      doc.text(introLines, margin, y);
+      y += introLines.length * 8 + 10;
 
-      [
-        "Inteligência de Mercado: Mapeamento de perfis referência.",
-        "Conexão Direta: Prospecção humana e personalizada.",
-        "Segurança Total: Processos que respeitam as normas."
-      ].forEach(item => {
-        drawIcon(margin + 4, y - 1);
-        doc.text(item, margin + 12, y);
-        y += 10;
+      const items = [
+        "Público 3x mais assertivo e altamente nichado.",
+        "Aumento exponencial de engajamento e alcance orgânico.",
+        "Conexão direta com quem já tem interesse no seu produto.",
+        `Garantia incondicional de ${data.periodoGarantia} dias para sua segurança.`
+      ];
+
+      items.forEach(item => {
+        drawIcon(margin + 3, y - 1);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setTextColor(40, 40, 40);
+        doc.text(item, margin + 10, y);
+        y += 12;
       });
 
       if (data.incluirValor) {
-        y += 10;
+        y += 15;
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.rect(margin, y, 80, 20, 'F');
+        doc.roundedRect(margin, y, 120, 30, 3, 3, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`VALOR: R$ ${data.valorServico}`, margin + 5, y + 13);
+        doc.setFontSize(data.fontSizeBase * 1.3);
+        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 8, y + 12);
+        doc.setFontSize(data.fontSizeBase * 0.7);
+        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 8, y + 22);
       }
+
+      // Final CTA
+      y += 50;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(data.fontSizeBase * 1.4);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text("VAMOS ESCALAR SEU NEGÓCIO?", pageWidth / 2, y, { align: 'center' });
 
       const fileName = `Proposta_${data.empresaDestino.replace(/\s+/g, '_')}.pdf`;
       doc.save(fileName);
       toast.success('Proposta gerada com sucesso!');
     } catch (err) {
+      console.error(err);
       toast.error('Erro ao gerar PDF');
     } finally {
       setGenerating(false);
