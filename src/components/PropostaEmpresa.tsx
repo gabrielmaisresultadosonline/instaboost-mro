@@ -153,19 +153,21 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
       doc.setTextColor(60, 60, 60);
-      const introText = `Atualmente, a maioria das empresas acredita que para vender no Instagram é necessário investir fortunas em tráfego pago (anúncios). No entanto, o custo por clique está cada vez mais alto e a assertividade diminuindo.`;
+      const introText = `Atualmente, a maioria das empresas acredita que para vender no Instagram é necessário investir fortunas em tráfego pago (anúncios). No entanto, o custo por clique está cada vez mais alto e a assertividade muitas vezes deixa a desejar.`;
       const introLines = doc.splitTextToSize(introText, contentWidth);
       doc.text(introLines, margin, y);
       y += introLines.length * 6 + 10;
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
-      doc.text('Nossa Metodologia: O Poder do Orgânico', margin, y);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text('Nossa Metodologia: 100% Orgânica e Humana', margin, y);
       y += 10;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      const methodText = `Diferente do tráfego pago comum, nossa metodologia foca no público extremamente qualificado dos seus CONCORRENTES. Nós não esperamos o cliente vir até você; nós vamos até ele de forma estratégica e humana.`;
+      doc.setTextColor(60, 60, 60);
+      const methodText = `Nossa metodologia é totalmente focada no orgânico, entregando resultados sem que você precise gastar fortunas em anúncios. O segredo está na assertividade: nós vamos direto no público dos seus CONCORRENTES como referência, buscando um público extremamente nichado e qualificado.`;
       const methodLines = doc.splitTextToSize(methodText, contentWidth);
       doc.text(methodLines, margin, y);
       y += methodLines.length * 6 + 15;
@@ -184,22 +186,22 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
-      doc.text('Ao mirar em quem já consome seus concorrentes, eliminamos o desperdício', margin + 10, y + 20);
-      doc.text('e focamos em pessoas com real intenção de compra agora.', margin + 10, y + 26);
+      doc.text('Ao buscar o público de quem já é referência no seu nicho, acertamos 10x mais', margin + 10, y + 20);
+      doc.text('o perfil do seu cliente ideal, sem desperdício de tempo ou dinheiro.', margin + 10, y + 26);
       y += 50;
 
       // --- PAGINA 3: COMO FAZEMOS ---
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('Como Executamos a Estratégia', margin, y);
+      doc.text('A Execução do Trabalho', margin, y);
       y += 12;
 
       const items = [
-        { title: 'Prospecção Direta Intensiva', desc: 'Passamos mais de 10 horas por dia monitorando e prospectando ativamente dentro do seu Instagram.' },
-        { title: 'Interações Humanizadas em Massa', desc: 'Criamos conexões reais com o público nichado através de interações estratégicas diárias.' },
-        { title: 'Conversão em Vendas', desc: 'Enviamos suas promoções, descontos ou links de checkout diretamente para potenciais clientes interessados.' },
-        { title: 'Respeito às Políticas', desc: 'Nossa metodologia é executada respeitando todos os limites do Instagram, garantindo a segurança da sua conta.' }
+        { title: 'Prospecção Direta Diária', desc: 'Nossa equipe passa mais de 10 horas por dia dedicada exclusivamente ao seu Instagram, fazendo a prospecção direta e manual.' },
+        { title: 'Interações e Conexões Reais', desc: 'Começamos interagindo em massa com o público-alvo para criar conexões verdadeiras e despertar o interesse genuíno pelo seu negócio.' },
+        { title: 'Abordagem Estratégica', desc: 'Após a interação inicial, enviamos mensagens com sua promoção, desconto, link de checkout ou o que você desejar comunicar.' },
+        { title: 'Metodologia Segura', desc: 'Esta prospecção não pode ser feita às pressas. Seguimos rigorosamente as políticas do Instagram para garantir a segurança da sua conta.' }
       ];
 
       items.forEach(item => {
