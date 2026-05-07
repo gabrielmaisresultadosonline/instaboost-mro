@@ -602,8 +602,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.2);
       doc.setTextColor(30, 30, 30);
-      doc.text('A Importância de uma Presença Digital Dominante', margin, yPos);
-      yPos += 10;
+      const subTitle1Text = 'A Importância de uma Presença Digital Dominante';
+      const subTitle1Lines = doc.splitTextToSize(subTitle1Text, contentWidth);
+      doc.text(subTitle1Lines, margin, yPos);
+      yPos += (subTitle1Lines.length * 8) + 2;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
