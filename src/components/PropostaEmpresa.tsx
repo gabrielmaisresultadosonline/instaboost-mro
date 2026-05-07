@@ -449,13 +449,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('METODOLOGIA DE RESULTADOS', margin, yPos);
+      doc.text('METODOLOGIA NA PRÁTICA', margin, yPos);
       yPos += 20;
 
       const steps = [
-        { t: "1. MAPEAMENTO E INTELIGÊNCIA", d: "Identificamos os perfis e canais onde seus potenciais clientes estão ativos agora. Analisamos o comportamento de compra e engajamento." },
-        { t: "2. EXTRAÇÃO E ATRAÇÃO ORGÂNICA", d: "Implementamos nossa tecnologia para atrair esses usuários qualificados para sua marca, sem depender de orçamentos crescentes em anúncios." },
-        { t: "3. ESCALABILIDADE DE VENDAS", d: "Criamos um fluxo constante de novos interessados chegando diariamente, permitindo que seu time foque apenas em fechar novos negócios." }
+        { t: "1. MONITORAMENTO DEDICADO (10H/DIA)", d: "Nossa equipe passa mais de 10 horas por dia focada no seu perfil, realizando prospecção direta e humana. Não é automação barata, é trabalho estratégico dedicado." },
+        { t: "2. CONEXÕES REAIS E INTERAÇÃO EM MASSA", d: "Buscamos o público dos seus concorrentes e interagimos de forma orgânica, criando conexões reais que se transformam em seguidores qualificados e clientes." },
+        { t: "3. PROSPECÇÃO DIRETA E CONVERSÃO", d: "Após a interação, enviamos mensagens com sua promoção, desconto ou link de checkout para quem realmente tem interesse no seu nicho." }
       ];
 
       steps.forEach(step => {
@@ -466,12 +466,22 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.text(step.t, margin + 10, yPos);
         yPos += 8;
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setFontSize(data.fontSizeBase * 0.95);
         doc.setTextColor(70, 70, 70);
         const dLines = doc.splitTextToSize(step.d, contentWidth - 15);
         doc.text(dLines, margin + 10, yPos);
         yPos += dLines.length * 6 + 12;
       });
+
+      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
+      doc.rect(margin, yPos, contentWidth, 30, 'F');
+      doc.setFont('helvetica', 'bolditalic');
+      doc.setFontSize(data.fontSizeBase * 0.9);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      doc.text("ESTRUTURA FOCO EM PÚBLICO 3X MAIS ASSERTIVO E NICHADO.", margin + 5, yPos + 12);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(data.fontSizeBase * 0.8);
+      doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
 
       // PAGE 4: INVESTMENT & GUARANTEE
       doc.addPage();
@@ -480,28 +490,49 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('INVESTIMENTO E PARCERIA', margin, yPos);
+      doc.text('SOLUÇÃO E INVESTIMENTO', margin, yPos);
       yPos += 20;
+
+      if (data.incluirConfiguracao || data.incluirCriativos) {
+        doc.setFillColor(248, 249, 250);
+        doc.roundedRect(margin, yPos, contentWidth, 35, 3, 3, 'F');
+        doc.setTextColor(30, 30, 30);
+        doc.setFontSize(data.fontSizeBase * 1.1);
+        doc.text('EXTRAS INCLUSOS NA PROPOSTA:', margin + 5, yPos + 10);
+        yPos += 18;
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        if (data.incluirConfiguracao) {
+          doc.text('• Otimização e Configuração de Redes Sociais', margin + 10, yPos);
+          yPos += 6;
+        }
+        if (data.incluirCriativos) {
+          doc.text(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, margin + 10, yPos);
+          yPos += 6;
+        }
+        yPos += 15;
+      }
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, 140, 35, 4, 4, 'F');
+        doc.roundedRect(margin, yPos, 150, 35, 4, 4, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(data.fontSizeBase * 1.4);
-        doc.text(`VALOR MENSAL: R$ ${data.valorServico}`, margin + 10, yPos + 13);
-        doc.setFontSize(data.fontSizeBase * 0.8);
-        doc.text("PLANO DE ACELERAÇÃO PARA 30 DIAS", margin + 10, yPos + 25);
+        doc.setFontSize(data.fontSizeBase * 1.5);
+        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 13);
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 25);
         yPos += 55;
+      } else {
+        yPos += 20;
       }
 
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.4);
-      doc.text(`GARANTIA DE SATISFAÇÃO: ${data.periodoGarantia} DIAS`, margin, yPos);
+      doc.text(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, margin, yPos);
       yPos += 12;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
       doc.setTextColor(60, 60, 60);
-      const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não ver o potencial de escala logo na primeira semana, devolvemos seu investimento sem burocracia.`;
+      const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não sentir o potencial de escala na primeira semana, devolvemos seu investimento integralmente.`;
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
       
@@ -509,7 +540,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.6);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text("VAMOS COMEÇAR HOJE?", pageWidth / 2, yPos, { align: 'center' });
+      doc.text("VAMOS COMEÇAR?", pageWidth / 2, yPos, { align: 'center' });
 
       const fileName = `Proposta_${data.empresaDestino.replace(/\s+/g, '_')}.pdf`;
       doc.save(fileName);
@@ -576,7 +607,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     </button>
                   )}
                   <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  <p className="text-xs text-gray-500 italic">PNG ou JPG com fundo transparente recomendado.</p>
+                  <p className="text-xs text-gray-500 italic">PNG ou JPG recomendado.</p>
                 </div>
               </div>
 
