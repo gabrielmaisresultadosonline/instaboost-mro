@@ -98,8 +98,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const renderPreview = async () => {
-    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current || !canvasPage5Ref.current) return;
-    
+    // Basic check for core pages, page 5 is optional
+    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
+
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
