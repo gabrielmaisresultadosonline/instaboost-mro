@@ -163,22 +163,24 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(32);
+      doc.setFontSize(36);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
+      doc.text('PROPOSTA', pageWidth / 2, y, { align: 'center' });
+      y += 12;
+      doc.text('ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
       
-      y += 14;
-      doc.setFontSize(18);
+      y += 16;
+      doc.setFontSize(22);
       doc.setTextColor(60, 60, 60);
       doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
 
       y += 45;
-      doc.setFontSize(15);
+      doc.setFontSize(16);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('Vendas e Engajamento de Alta Performance', pageWidth / 2, y, { align: 'center' });
       
-      y += 8;
-      doc.setFontSize(13);
+      y += 10;
+      doc.setFontSize(14);
       doc.setTextColor(100, 100, 100);
       doc.text('A estratégia definitiva para dominar o mercado orgânico.', pageWidth / 2, y, { align: 'center' });
 
