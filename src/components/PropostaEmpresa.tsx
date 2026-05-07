@@ -812,6 +812,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         yPos += 15;
       }
 
+      if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
         doc.roundedRect(margin, yPos, contentWidth, 40, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
@@ -828,6 +829,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         const investSubLines = doc.splitTextToSize(investSubText, contentWidth - 20);
         doc.text(investSubLines, margin + 10, nextY);
         yPos += 60;
+      } else {
         yPos += 20;
       }
 
