@@ -1090,8 +1090,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                 { ref: canvasRef, title: 'Capa da Proposta' },
                 { ref: canvasPage2Ref, title: 'Análise de Mercado' },
                 { ref: canvasPage3Ref, title: 'Metodologia de Resultados' },
-                { ref: canvasPage4Ref, title: 'Investimento e Garantia' },
-                ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, title: 'Criativos e Otimização' }] : [])
+                ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, title: 'Criativos e Otimização' }] : []),
+                { ref: canvasPage4Ref, title: 'Investimento e Garantia' }
               ].map((page, idx) => (
                 <div key={idx} className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col">
                   <div className="bg-gray-100 py-2 px-4 text-[10px] font-bold text-gray-400 border-b border-gray-200 flex justify-between">
