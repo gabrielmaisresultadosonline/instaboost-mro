@@ -689,7 +689,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       
       if (data.incluirConfiguracao || data.incluirCriativos) {
         doc.addPage();
+        drawPDFDecorativeElements(pageWidth, pageHeight);
         drawGradientRect(0, 0, pageWidth, 25);
+
         yPos = 45;
         doc.setTextColor(rgb.r, rgb.g, rgb.b);
         doc.setFontSize(data.fontSizeBase * 1.8);
