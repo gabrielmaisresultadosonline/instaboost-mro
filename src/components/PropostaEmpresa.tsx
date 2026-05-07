@@ -154,7 +154,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       canvas.width = W;
       canvas.height = H;
 
-      const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
+      const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.3, center = false) => {
         const words = text.split(' ');
         let line = '';
         const lines = [];
@@ -169,11 +169,19 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         }
         lines.push(line);
 
+        const actualLineHeight = data.fontSizeBase * lineHeightMultiplier;
         lines.forEach((l, i) => {
-          ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
+          const textLine = l.trim();
+          let drawX = center ? W/2 : x;
+          if (center) {
+            ctx.textAlign = 'center';
+          } else {
+            ctx.textAlign = 'left';
+          }
+          ctx.fillText(textLine, drawX, y + (i * actualLineHeight));
         });
         
-        return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
+        return y + (lines.length * actualLineHeight);
       };
 
       ctx.fillStyle = '#ffffff';
@@ -204,18 +212,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           drawInstagramIcon(ctx, W/2, 380, 60, data.corPrincipal);
         }
 
-        ctx.textAlign = 'center';
         ctx.fillStyle = data.corPrincipal;
         ctx.font = `bold ${data.fontSizeBase * 2.2}px Arial`;
-        wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
+        let curY = wrapText('PROPOSTA ESTRATÉGICA', W/2, 500, W - 100, 1.2, true);
 
         ctx.fillStyle = '#1a1a1a';
         ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
-        wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560, W - 60, 1.3, true);
+        curY = wrapText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, curY + 10, W - 60, 1.3, true);
 
         ctx.fillStyle = '#666666';
         ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
-        wrapText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 610, W - 80, 1.2, true);
+        wrapText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, curY + 10, W - 80, 1.2, true);
 
         const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
         footerGrad.addColorStop(0, data.corPrincipal);
@@ -325,18 +332,18 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           if (data.incluirValor) {
             ctx.fillStyle = data.corPrincipal;
             ctx.beginPath();
-            ctx.roundRect(50, y, 500, 110, 15);
+            ctx.roundRect(50, y, 500, 120, 15);
             ctx.fill();
             
             ctx.fillStyle = 'white';
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-            y = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50, 440);
+            let valY = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45, 440, 1.3);
             
             // Highlighted "Valor Mensal"
             ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
             ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
-            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 15, 440);
-            y += 80;
+            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, valY + 5, 440, 1.2);
+            y += 140;
           } else {
             y += 50;
           }
@@ -563,12 +570,16 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
-      doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 10;
+      const destText = `EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`;
+      const destLines = doc.splitTextToSize(destText, contentWidth);
+      doc.text(destLines, pageWidth / 2, yPos, { align: 'center' });
+      yPos += (destLines.length * 8);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 0.9);
       doc.setTextColor(100, 100, 100);
-      doc.text('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', pageWidth / 2, yPos, { align: 'center' });
+      const subTitleText = 'FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO';
+      const subTitleLines = doc.splitTextToSize(subTitleText, contentWidth);
+      doc.text(subTitleLines, pageWidth / 2, yPos, { align: 'center' });
 
       drawGradientRect(0, pageHeight - 35, pageWidth, 35);
       doc.setTextColor(255, 255, 255);
@@ -583,14 +594,18 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('A GRANDE OPORTUNIDADE', margin, yPos);
-      yPos += 15;
+      const title1Text = 'A GRANDE OPORTUNIDADE';
+      const title1Lines = doc.splitTextToSize(title1Text, contentWidth);
+      doc.text(title1Lines, margin, yPos);
+      yPos += (title1Lines.length * 10) + 5;
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.2);
       doc.setTextColor(30, 30, 30);
-      doc.text('A Importância de uma Presença Digital Dominante', margin, yPos);
-      yPos += 10;
+      const subTitle1Text = 'A Importância de uma Presença Digital Dominante';
+      const subTitle1Lines = doc.splitTextToSize(subTitle1Text, contentWidth);
+      doc.text(subTitle1Lines, margin, yPos);
+      yPos += (subTitle1Lines.length * 8) + 2;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
@@ -602,8 +617,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('ESTRATÉGIA 10X MAIS ASSERTIVA', margin, yPos);
-      yPos += 10;
+      const assertText = 'ESTRATÉGIA 10X MAIS ASSERTIVA';
+      const assertLines = doc.splitTextToSize(assertText, contentWidth);
+      doc.text(assertLines, margin, yPos);
+      yPos += (assertLines.length * 8) + 2;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(60, 60, 60);
       const solText = "Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende, capturando a atenção de forma ética e agregando valor à sua marca.";
@@ -688,9 +705,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(data.fontSizeBase * 1.6);
         doc.setFont('helvetica', 'bold');
-        doc.text(`INVESTIMENTO: R$ ${data.valorServico}`, margin + 10, yPos + 15);
+        const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
+        const investLines = doc.splitTextToSize(investText, 140);
+        doc.text(investLines, margin + 10, yPos + 12);
+        
         doc.setFontSize(data.fontSizeBase * 1.1);
-        doc.text("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", margin + 10, yPos + 28);
+        const investSubText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
+        const investSubLines = doc.splitTextToSize(investSubText, 140);
+        doc.text(investSubLines, margin + 10, yPos + 12 + (investLines.length * 8));
         yPos += 60;
       } else {
         yPos += 20;
