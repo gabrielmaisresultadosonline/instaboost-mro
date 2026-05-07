@@ -63,6 +63,25 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     return { r, g, b };
   };
 
+  const drawInstagramIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size / 10;
+    // Outer square
+    const radius = size / 4;
+    ctx.beginPath();
+    ctx.roundRect(x - size / 2, y - size / 2, size, size, radius);
+    ctx.stroke();
+    // Inner circle
+    ctx.beginPath();
+    ctx.arc(x, y, size / 4, 0, Math.PI * 2);
+    ctx.stroke();
+    // Small dot
+    ctx.beginPath();
+    ctx.arc(x + size / 4, y - size / 4, size / 12, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  };
+
   const drawCanvasIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, color: string) => {
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -118,6 +137,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             const w = h * ratio;
             ctx.drawImage(img, (W-w)/2, 350, w, h);
           } catch (e) {}
+        } else {
+          drawInstagramIcon(ctx, W/2, 380, 60, data.corPrincipal);
         }
 
         ctx.textAlign = 'center';
@@ -128,6 +149,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillStyle = '#1a1a1a';
         ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
         ctx.fillText(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase() || 'SUA EMPRESA'}`, W/2, 560);
+
+        ctx.fillStyle = '#666666';
+        ctx.font = `${data.fontSizeBase * 1}px Arial`;
+        ctx.fillText('FOCO EM VENDAS, ENGAJAMENTO E CRESCIMENTO ORGÂNICO', W/2, 600);
 
         const footerGrad = ctx.createLinearGradient(0, H-100, 0, H);
         footerGrad.addColorStop(0, data.corPrincipal);
@@ -143,7 +168,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillRect(0, 0, W, 80);
         ctx.textAlign = 'left';
 
-        const wrapText = (text: string, x: number, y: number, maxWidth: number) => {
+        const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5) => {
           const words = text.split(' ');
           let line = '';
           for(let n = 0; n < words.length; n++) {
@@ -152,78 +177,127 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             if (metrics.width > maxWidth && n > 0) {
               ctx.fillText(line, x, y);
               line = words[n] + ' ';
-              y += data.fontSizeBase * 1.5;
+              y += data.fontSizeBase * lineHeightMultiplier;
             } else { line = testLine; }
           }
           ctx.fillText(line, x, y);
-          return y + data.fontSizeBase * 2;
+          return y + data.fontSizeBase * lineHeightMultiplier;
         };
 
         if (pageNum === 2) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('O GRANDE PROBLEMA ATUAL', 50, 150);
+          ctx.fillText('A GRANDE OPORTUNIDADE', 50, 150);
           
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+          ctx.fillText('Mais Vendas e Engajamento sem Anúncios Pagos', 50, 190);
+
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          let y = wrapText("Hoje, a maioria das empresas desperdiça milhares de reais em anúncios que não convertem, ou pior, tentam vender para quem não tem interesse. O custo por cliente está cada vez mais alto e a atenção das pessoas cada vez menor.", 50, 200, 500);
+          let y = wrapText("Atualmente, investir horrores em anúncios não é mais a única (nem a melhor) saída. O mercado está saturado e o custo por cliente só aumenta. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e mais clientes de forma estratégica.", 50, 225, 500);
 
           ctx.fillStyle = data.corPrincipal;
-          ctx.font = `bold ${data.fontSizeBase * 1.5}px Arial`;
-          ctx.fillText('NOSSA SOLUÇÃO EXCLUSIVA', 50, y);
-          y += 40;
+          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
+          ctx.fillText('POR QUE NOSSA ESTRATÉGIA É 10X MAIS ASSERTIVA?', 50, y + 20);
+          y += 55;
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          y = wrapText("Nós não vamos 'tentar' achar seu público. Nós vamos buscá-lo onde ele já está: nos seus concorrentes. Atraímos a audiência que já consome produtos similares ao seu, mas entregamos uma oferta impossível de ignorar.", 50, y, 500);
+          y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende.", 50, y, 500);
+          
+          drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
         } else if (pageNum === 3) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('METODOLOGIA EM 3 PASSOS', 50, 150);
+          ctx.fillText('METODOLOGIA NA PRÁTICA', 50, 140);
 
-          let y = 220;
+          let y = 190;
           [
-            { t: "1. Mapeamento de Concorrentes", d: "Identificamos quem são os players que já possuem seu público." },
-            { t: "2. Extração e Atração", d: "Utilizamos ferramentas para atrair essa audiência de forma orgânica." },
-            { t: "3. Conversão Direta", d: "Transformamos seguidores e curiosos em clientes pagantes." }
+            { t: "1. Monitoramento Dedicado (10h/dia)", d: "Nossa equipe passa mais de 10 horas por dia focada no seu perfil, realizando prospecção direta e humana, respeitando todos os limites do Instagram." },
+            { t: "2. Conexões Reais e Massa", d: "Interagimos em massa com o público dos seus concorrentes, criando conexões que se transformam em seguidores e clientes reais." },
+            { t: "3. Conversão e Promoção", d: "Após a interação, enviamos mensagens estratégicas com sua promoção, desconto ou checkout, direto para quem tem interesse real." }
           ].forEach((item) => {
-            drawCanvasIcon(ctx, 60, y, data.corPrincipal);
+            drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(item.t, 80, y + 5);
-            y += 25;
+            ctx.fillText(item.t, 85, y + 5);
+            y += 30;
             ctx.fillStyle = '#666666';
-            ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
-            y = wrapText(item.d, 80, y, 450);
-            y += 10;
+            ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
+            y = wrapText(item.d, 85, y, 460);
+            y += 15;
           });
+
+          ctx.fillStyle = data.corPrincipal + '15';
+          ctx.beginPath();
+          ctx.roundRect(50, y, 500, 110, 15);
+          ctx.fill();
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
+          ctx.fillText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40);
+          ctx.fillStyle = '#444444';
+          ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
+          wrapText("Sem gastos com tráfego pago, focando apenas em público 3x mais assertivo e nichado para o seu negócio.", 70, y + 65, 460);
+
         } else if (pageNum === 4) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('INVESTIMENTO E GARANTIA', 50, 150);
+          ctx.fillText('SOLUÇÃO E INVESTIMENTO', 50, 140);
 
-          let y = 200;
+          let y = 180;
+
+          if (data.incluirConfiguracao || data.incluirCriativos) {
+            ctx.fillStyle = '#f8f9fa';
+            ctx.beginPath();
+            ctx.roundRect(50, y, 500, 140, 15);
+            ctx.fill();
+            ctx.strokeStyle = '#e9ecef';
+            ctx.stroke();
+
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+            ctx.fillText('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40);
+            
+            y += 65;
+            if (data.incluirConfiguracao) {
+              ctx.fillStyle = '#444444';
+              ctx.font = `${data.fontSizeBase * 1}px Arial`;
+              ctx.fillText('• Configuração Profissional de Redes & Otimização de Perfil', 70, y);
+              y += 25;
+            }
+            if (data.incluirCriativos) {
+              ctx.fillStyle = '#444444';
+              ctx.font = `${data.fontSizeBase * 1}px Arial`;
+              ctx.fillText(`• Criação de ${data.quantidadeCriativos} Criativos Estratégicos Mensais`, 70, y);
+              y += 25;
+            }
+            y += 30;
+          }
+
           if (data.incluirValor) {
             ctx.fillStyle = data.corPrincipal;
             ctx.beginPath();
-            ctx.roundRect(50, y, 500, 120, 15);
+            ctx.roundRect(50, y, 500, 110, 15);
             ctx.fill();
             
             ctx.fillStyle = 'white';
-            ctx.font = `bold ${data.fontSizeBase * 1.6}px Arial`;
-            ctx.fillText(`PLANO DE 30 DIAS: R$ ${data.valorServico}`, 80, y + 50);
-            ctx.font = `${data.fontSizeBase * 0.9}px Arial`;
-            ctx.fillText("INVESTIMENTO MENSAL PARA RESULTADOS ESCALÁVEIS", 80, y + 85);
-            y += 160;
+            ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+            ctx.fillText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50);
+            ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 85);
+            y += 150;
+          } else {
+            y += 50;
           }
 
           ctx.fillStyle = '#1a1a1a';
-          ctx.font = `bold ${data.fontSizeBase * 1.3}px Arial`;
-          ctx.fillText(`RISCO ZERO: ${data.periodoGarantia} DIAS DE GARANTIA`, 50, y);
-          y += 30;
+          ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
+          ctx.fillText(`GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`, 50, y);
+          y += 35;
           ctx.fillStyle = '#666666';
-          ctx.font = `${data.fontSizeBase * 1}px Arial`;
-          wrapText("Se em até 7 dias você não estiver satisfeito com a qualidade da audiência e o início dos trabalhos, devolvemos seu investimento integralmente.", 50, y, 500);
+          ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
+          wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
         }
       }
     };
