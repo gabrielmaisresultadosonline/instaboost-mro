@@ -570,8 +570,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
-      doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 10;
+      const destText = `EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`;
+      const destLines = doc.splitTextToSize(destText, contentWidth);
+      doc.text(destLines, pageWidth / 2, yPos, { align: 'center' });
+      yPos += (destLines.length * 8);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 0.9);
       doc.setTextColor(100, 100, 100);
