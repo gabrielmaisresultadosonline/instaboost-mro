@@ -134,12 +134,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       // --- CAPA ---
       // Background Gradient
-      drawGradientRect(0, 0, pageWidth, 60);
+      drawGradientRect(0, 0, pageWidth, 80);
       
       // Decorative Vectors on Cover
-      doc.setDrawColor(255, 255, 255, 0.2);
-      for(let i=0; i<10; i++) {
-        doc.circle(20 + i*20, 30 + (i%3)*5, 1 + (i%2), 'D');
+      doc.setDrawColor(255, 255, 255, 0.1);
+      for(let i=0; i<15; i++) {
+        doc.circle(10 + i*15, 40 + (i%4)*8, 2 + (i%3), 'D');
+        doc.line(0, i*10, pageWidth, i*5);
       }
 
       y = 80;
