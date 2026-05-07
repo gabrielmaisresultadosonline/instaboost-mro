@@ -109,6 +109,29 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       canvas.width = W;
       canvas.height = H;
 
+      // WrapText definition available for all pages
+      const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeightMultiplier = 1.5, center = false) => {
+        const words = text.split(' ');
+        let line = '';
+        const lines = [];
+        
+        for(let n = 0; n < words.length; n++) {
+          let testLine = line + words[n] + ' ';
+          let metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+          } else { line = testLine; }
+        }
+        lines.push(line);
+
+        lines.forEach((l, i) => {
+          ctx.fillText(l.trim(), center ? W/2 : x, y + (i * data.fontSizeBase * lineHeightMultiplier));
+        });
+        
+        return y + (lines.length * data.fontSizeBase * lineHeightMultiplier);
+      };
+
       // Background
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
