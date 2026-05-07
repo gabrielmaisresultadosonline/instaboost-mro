@@ -240,7 +240,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         } else if (pageNum === 3) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('METODOLOGIA NA PRÁTICA', 50, 140);
+          wrapText('METODOLOGIA NA PRÁTICA', 50, 140, 500);
 
           let y = 190;
           [
@@ -251,8 +251,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(item.t, 85, y + 5);
-            y += 30;
+            y = wrapText(item.t, 85, y + 5, 460);
+            y += 5;
             ctx.fillStyle = '#666666';
             ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
             y = wrapText(item.d, 85, y, 460);
@@ -265,7 +265,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.fill();
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
-          ctx.fillText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40);
+          wrapText("ESTRATÉGIA ORGÂNICA DE ALTA PERFORMANCE", 70, y + 40, 460);
           ctx.fillStyle = '#444444';
           ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
           wrapText("Sem gastos com tráfego pago, focando apenas em público 3x mais assertivo e nichado para o seu negócio.", 70, y + 65, 460);
@@ -273,7 +273,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         } else if (pageNum === 4) {
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-          ctx.fillText('SOLUÇÃO E INVESTIMENTO', 50, 140);
+          wrapText('SOLUÇÃO E INVESTIMENTO', 50, 140, 500);
 
           let y = 180;
 
