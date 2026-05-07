@@ -514,7 +514,7 @@ Participe também do nosso GRUPO DE AVISOS
             ...webhookConfig,
             kanban_labels: {
               ...kanbanLabels,
-              whatsapp_mode: whatsappMode,
+              whatsapp_mode: "qrcode",
               use_global_wpp: useGlobalWpp,
               slow_send_enabled: slowSendEnabled
             }
