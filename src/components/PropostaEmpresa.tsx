@@ -18,6 +18,7 @@ interface PropostaData {
   incluirValor: boolean;
   incluirCriativos: boolean;
   quantidadeCriativos: string;
+  incluirConfiguracao: boolean;
   corPrincipal: string;
   corSecundaria: string;
   logoUrl: string | null;
@@ -32,6 +33,7 @@ const defaultData: PropostaData = {
   incluirValor: true,
   incluirCriativos: false,
   quantidadeCriativos: '12',
+  incluirConfiguracao: false,
   corPrincipal: '#00d4aa',
   corSecundaria: '#0f0f1a',
   logoUrl: null,
