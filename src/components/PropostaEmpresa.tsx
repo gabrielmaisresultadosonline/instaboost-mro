@@ -94,7 +94,55 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     ctx.stroke();
   };
 
+  const drawDecorativeElements = (ctx: CanvasRenderingContext2D, W: number, H: number, color: string) => {
+    // Top background patterns
+    ctx.save();
+    ctx.globalAlpha = 0.05;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    
+    // Grid lines
+    for (let i = 0; i < W; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 20, 100);
+      ctx.stroke();
+    }
+
+    // Graph Vector (Trend Up)
+    ctx.globalAlpha = 0.1;
+    ctx.beginPath();
+    ctx.moveTo(W - 150, 150);
+    ctx.bezierCurveTo(W - 120, 140, W - 100, 110, W - 50, 80);
+    ctx.stroke();
+    
+    // Growth Points
+    [W-150, W-100, W-50].forEach((x, i) => {
+      ctx.beginPath();
+      ctx.arc(x, 150 - (i * 35), 4, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+
+    // People Flow Vector
+    ctx.globalAlpha = 0.08;
+    for (let i = 0; i < 5; i++) {
+      const x = 50 + (i * 30);
+      const y = H - 150 + (Math.sin(i) * 20);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x, y + 5);
+      ctx.lineTo(x - 10, y + 20);
+      ctx.stroke();
+    }
+    
+    ctx.restore();
+  };
+
   const renderPreview = async () => {
+
     if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
 
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
