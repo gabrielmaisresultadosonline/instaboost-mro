@@ -171,6 +171,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const renderPreview = async () => {
+    // Adicionado async e await corretamente para resolver o erro de build
+
 
     if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
 
