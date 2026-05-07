@@ -542,10 +542,15 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const logoW = logoH * ratio;
           doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, yPos, logoW, logoH);
           yPos += logoH + 25;
-        } catch (e) {}
+        } catch (e) {
+          drawPDFInstagramIcon(pageWidth / 2, yPos + 15, 20, rgb.r, rgb.g, rgb.b);
+          yPos += 45;
+        }
       } else {
-        yPos += 20;
+        drawPDFInstagramIcon(pageWidth / 2, yPos + 15, 20, rgb.r, rgb.g, rgb.b);
+        yPos += 45;
       }
+
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
