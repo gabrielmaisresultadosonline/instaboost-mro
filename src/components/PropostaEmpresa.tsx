@@ -460,7 +460,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
 
-        const opacity = 0.15;
+        const opacity = 0.2;
         const r = mixWithWhite(rgb.r, opacity);
         const g = mixWithWhite(rgb.g, opacity);
         const b = mixWithWhite(rgb.b, opacity);
