@@ -78,11 +78,13 @@ const Live = () => {
               setHlsReady(true);
               video.muted = false;
               video.volume = 1;
+              setIsMuted(false);
               const playPromise = video.play();
               if (playPromise !== undefined) {
                 playPromise.catch((error) => {
                   console.log("Autoplay with sound prevented, trying muted:", error);
                   video.muted = true;
+                  setIsMuted(true);
                   video.play().catch(e => console.error("Playback failed:", e));
                 });
               }
