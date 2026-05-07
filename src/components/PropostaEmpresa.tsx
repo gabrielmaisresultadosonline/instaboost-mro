@@ -332,12 +332,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           if (data.incluirValor) {
             ctx.fillStyle = data.corPrincipal;
             ctx.beginPath();
-            ctx.roundRect(50, y, 500, 110, 15);
+            ctx.roundRect(50, y, 500, 120, 15);
             ctx.fill();
             
             ctx.fillStyle = 'white';
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
-            y = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50, 440);
+            let valY = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 45, 440, 1.3);
             
             // Highlighted "Valor Mensal"
             ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
