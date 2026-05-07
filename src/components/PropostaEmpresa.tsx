@@ -343,8 +343,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, 85, y + 5);
-            y += 25;
+            y = wrapText(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, 85, y + 5, 460);
+            y += 5;
             ctx.fillStyle = '#444444';
             ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
             y = wrapText("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", 85, y, 460);
@@ -355,8 +355,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             drawCanvasIcon(ctx, 65, y, data.corPrincipal);
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
-            ctx.fillText('Otimização de Bio e Perfil (SEO Instagram)', 85, y + 5);
-            y += 25;
+            y = wrapText('Otimização de Bio e Perfil (SEO Instagram)', 85, y + 5, 460);
+            y += 5;
             ctx.fillStyle = '#444444';
             ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
             y = wrapText("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", 85, y, 460);
@@ -369,7 +369,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.fill();
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
-          ctx.fillText("POR QUE ESSA ETAPA É CRUCIAL?", 70, y + 35);
+          wrapText("POR QUE ESSA ETAPA É CRUCIAL?", 70, y + 35, 460);
           ctx.fillStyle = '#444444';
           ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
           wrapText("Não adianta atrair o público certo se sua 'casa' (seu perfil) estiver desarrumada. A otimização e os criativos garantem que a primeira impressão seja de uma empresa líder de mercado.", 70, y + 60, 460);
