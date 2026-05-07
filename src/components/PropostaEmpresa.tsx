@@ -779,6 +779,64 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setFontSize(data.fontSizeBase * 0.8);
       doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
 
+      if (data.incluirConfiguracao || data.incluirCriativos) {
+        doc.addPage();
+        drawPDFDecorativeElements(pageWidth, pageHeight);
+        drawGradientRect(0, 0, pageWidth, 25);
+
+        yPos = 45;
+        doc.setTextColor(rgb.r, rgb.g, rgb.b);
+        doc.setFontSize(data.fontSizeBase * 1.8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('CRIATIVOS & OTIMIZAÇÃO', margin, yPos);
+        yPos += 15;
+        
+        doc.setFontSize(data.fontSizeBase * 1.2);
+        doc.setTextColor(30, 30, 30);
+        doc.text('Design Estratégico & Autoridade Visual', margin, yPos);
+        yPos += 15;
+
+        if (data.incluirCriativos) {
+          drawIcon(margin + 3, yPos - 1);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 1);
+          doc.text(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, margin + 10, yPos);
+          yPos += 8;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.95);
+          doc.setTextColor(70, 70, 70);
+          const cLines = doc.splitTextToSize("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", contentWidth - 15);
+          doc.text(cLines, margin + 10, yPos);
+          yPos += cLines.length * 6 + 12;
+        }
+
+        if (data.incluirConfiguracao) {
+          drawIcon(margin + 3, yPos - 1);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 1);
+          doc.setTextColor(30, 30, 30);
+          doc.text('Otimização de Bio e Perfil (SEO Instagram)', margin + 10, yPos);
+          yPos += 8;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.95);
+          doc.setTextColor(70, 70, 70);
+          const bLines = doc.splitTextToSize("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", contentWidth - 15);
+          doc.text(bLines, margin + 10, yPos);
+          yPos += bLines.length * 6 + 12;
+        }
+
+        doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
+        doc.rect(margin, yPos, contentWidth, 30, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setTextColor(rgb.r, rgb.g, rgb.b);
+        doc.text("POR QUE ESSA ETAPA É CRUCIAL?", margin + 5, yPos + 12);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        doc.text("Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.", margin + 5, yPos + 20);
+        yPos += 45;
+      }
+
       doc.addPage();
       drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
@@ -838,66 +896,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não sentir o potencial de escala na primeira semana, devolvemos seu investimento integralmente.`;
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
-      
-      if (data.incluirConfiguracao || data.incluirCriativos) {
-        doc.addPage();
-        drawPDFDecorativeElements(pageWidth, pageHeight);
-        drawGradientRect(0, 0, pageWidth, 25);
+      yPos += 40;
 
-        yPos = 45;
-        doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.setFontSize(data.fontSizeBase * 1.8);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CRIATIVOS & OTIMIZAÇÃO', margin, yPos);
-        yPos += 15;
-        
-        doc.setFontSize(data.fontSizeBase * 1.2);
-        doc.setTextColor(30, 30, 30);
-        doc.text('Design Estratégico & Autoridade Visual', margin, yPos);
-        yPos += 15;
-
-        if (data.incluirCriativos) {
-          drawIcon(margin + 3, yPos - 1);
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(data.fontSizeBase * 1);
-          doc.text(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, margin + 10, yPos);
-          yPos += 8;
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(data.fontSizeBase * 0.95);
-          doc.setTextColor(70, 70, 70);
-          const cLines = doc.splitTextToSize("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", contentWidth - 15);
-          doc.text(cLines, margin + 10, yPos);
-          yPos += cLines.length * 6 + 12;
-        }
-
-        if (data.incluirConfiguracao) {
-          drawIcon(margin + 3, yPos - 1);
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(data.fontSizeBase * 1);
-          doc.setTextColor(30, 30, 30);
-          doc.text('Otimização de Bio e Perfil (SEO Instagram)', margin + 10, yPos);
-          yPos += 8;
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(data.fontSizeBase * 0.95);
-          doc.setTextColor(70, 70, 70);
-          const bLines = doc.splitTextToSize("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", contentWidth - 15);
-          doc.text(bLines, margin + 10, yPos);
-          yPos += bLines.length * 6 + 12;
-        }
-
-        doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
-        doc.rect(margin, yPos, contentWidth, 30, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(data.fontSizeBase * 0.9);
-        doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.text("POR QUE ESSA ETAPA É CRUCIAL?", margin + 5, yPos + 12);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(data.fontSizeBase * 0.8);
-        doc.text("Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.", margin + 5, yPos + 20);
-        yPos += 45;
-      } else {
-        yPos += 40;
-      }
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.6);
