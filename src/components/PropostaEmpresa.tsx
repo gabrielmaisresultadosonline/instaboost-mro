@@ -196,14 +196,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       y = 35;
 
       // Top Bar Gradient
-      drawGradientRect(0, 0, pageWidth, 20);
+      drawGradientRect(0, 0, pageWidth, 25);
       
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
+      doc.setFontSize(24);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       drawIcon(margin + 5, y - 2, 'chart');
-      doc.text('O Cenário Atual', margin + 15, y);
-      y += 15;
+      doc.text('O CENÁRIO ATUAL', margin + 15, y);
+      y += 18;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
