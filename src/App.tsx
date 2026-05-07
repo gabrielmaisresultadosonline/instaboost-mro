@@ -24,6 +24,7 @@ import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
 import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
 import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
+import DescontoAlunosRendaExtraAdmin from "./pages/DescontoAlunosRendaExtraAdmin";
 import DescontoAlunosRendaExtras from "./pages/DescontoAlunosRendaExtras";
 import DescontoAlunosRendaExtrasss from "./pages/DescontoAlunosRendaExtrasss";
 import DescontoAlunosRendaExtrass from "./pages/DescontoAlunosRendaExtrass";
@@ -239,6 +240,7 @@ const App = () => (
           <Route path="/rendaextraligacao/admin" element={<RendaExtraLigacaoAdmin />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
+          <Route path="/descontoalunosrendaextra/admin" element={<DescontoAlunosRendaExtraAdmin />} />
           <Route path="/descontoalunosrendaextras" element={<DescontoAlunosRendaExtras />} />
           <Route path="/descontoalunosrendaextrasss" element={<DescontoAlunosRendaExtrasss />} />
           <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />

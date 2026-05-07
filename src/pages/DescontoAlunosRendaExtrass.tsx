@@ -58,8 +58,10 @@ const DescontoAlunosRendaExtrass = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
+  const [isDiscountActive, setIsDiscountActive] = useState(true);
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   
-  // Popup de desconto encerrado - desativado nesta página
+  // Popup de desconto encerrado - agora controlado pelo banco de dados
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
   
   // Countdown para promoção - 8 horas a partir do primeiro acesso
@@ -165,9 +167,31 @@ const DescontoAlunosRendaExtrass = () => {
     }
   };
 
-  // Track PageView on mount
+  // Track PageView on mount and fetch settings
   useEffect(() => {
     trackPageView('Sales Page - Instagram MRO Promo 2');
+    
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("desconto_alunos_settings")
+          .select("is_active")
+          .single();
+        
+        if (!error && data) {
+          setIsDiscountActive(data.is_active);
+          if (!data.is_active) {
+            setShowDiscountEndedPopup(true);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+      } finally {
+        setIsSettingsLoading(false);
+      }
+    };
+    
+    fetchSettings();
   }, []);
 
   // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
@@ -271,8 +295,8 @@ const DescontoAlunosRendaExtrass = () => {
       `}</style>
       {/* Popup Desconto Encerrado */}
       {showDiscountEndedPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">
                 ⚠️ AVISO
@@ -284,24 +308,35 @@ const DescontoAlunosRendaExtrass = () => {
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
                 Desconto Encerrado!
               </h2>
-              <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
-                Aguarde um próximo desconto ou siga para página oficial para adquirir o plano hoje
+              <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">
+                Aguarde um próximo desconto para alunos renda extra.
+              </p>
+              <p className="text-red-400 font-bold text-sm sm:text-base">
+                Consulte os administradores para mais informações.
               </p>
             </div>
             
             <Button 
               onClick={() => window.location.href = '/instagram-nova'}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg py-5 rounded-xl shadow-lg shadow-green-500/30"
+              className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-bold text-lg py-5 rounded-xl border border-gray-600"
             >
-              Acessar Página <ArrowRight className="ml-2 w-5 h-5" />
+              Página Oficial <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             
-            <button 
-              onClick={() => setShowDiscountEndedPopup(false)}
-              className="mt-4 text-gray-400 hover:text-white text-sm underline"
-            >
-              Continuar na página mesmo assim
-            </button>
+            {!isDiscountActive ? (
+              <div className="mt-6 p-3 bg-red-950/30 border border-red-900/50 rounded-lg">
+                <p className="text-xs text-red-400">
+                  Esta oferta foi encerrada temporariamente pela administração.
+                </p>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowDiscountEndedPopup(false)}
+                className="mt-4 text-gray-400 hover:text-white text-sm underline"
+              >
+                Continuar na página mesmo assim
+              </button>
+            )}
           </div>
         </div>
       )}

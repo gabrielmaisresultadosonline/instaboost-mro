@@ -1361,6 +1361,24 @@ export type Database = {
           },
         ]
       }
+      desconto_alunos_settings: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
