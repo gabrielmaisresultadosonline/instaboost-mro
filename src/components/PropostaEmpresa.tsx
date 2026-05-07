@@ -617,32 +617,30 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             </div>
             
             <div className="space-y-12 pb-20 flex flex-col items-center">
-              <div className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
-                <canvas 
-                  width={600} 
-                  height={848} 
-                  style={{ width: '100%', height: 'auto' }}
-                  ref={(el) => {
-                    if (el && canvasRef.current) {
-                      const ctx = el.getContext('2d');
-                      if (ctx) ctx.drawImage(canvasRef.current, 0, 0);
-                    }
-                  }} 
-                />
-              </div>
-              <div className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
-                <canvas 
-                  width={600} 
-                  height={848} 
-                  style={{ width: '100%', height: 'auto' }}
-                  ref={(el) => {
-                    if (el && canvasPage2Ref.current) {
-                      const ctx = el.getContext('2d');
-                      if (ctx) ctx.drawImage(canvasPage2Ref.current, 0, 0);
-                    }
-                  }} 
-                />
-              </div>
+              {[
+                { ref: canvasRef, title: 'Capa da Proposta' },
+                { ref: canvasPage2Ref, title: 'Análise de Mercado' },
+                { ref: canvasPage3Ref, title: 'Metodologia de Resultados' },
+                { ref: canvasPage4Ref, title: 'Investimento e Garantia' }
+              ].map((page, idx) => (
+                <div key={idx} className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col">
+                  <div className="bg-gray-100 py-2 px-4 text-[10px] font-bold text-gray-400 border-b border-gray-200 flex justify-between">
+                    <span>PÁGINA {idx + 1}</span>
+                    <span>{page.title.toUpperCase()}</span>
+                  </div>
+                  <canvas 
+                    width={600} 
+                    height={848} 
+                    style={{ width: '100%', height: 'auto' }}
+                    ref={(el) => {
+                      if (el && page.ref.current) {
+                        const ctx = el.getContext('2d');
+                        if (ctx) ctx.drawImage(page.ref.current, 0, 0);
+                      }
+                    }} 
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>
