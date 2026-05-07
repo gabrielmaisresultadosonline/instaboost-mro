@@ -423,26 +423,72 @@ const Live = () => {
                 <span className="font-medium">{fakeViewers.toLocaleString()}</span>
               </div>
 
+              {/* Click to unmute overlay */}
+              {isMuted && isPlaying && (
+                <div 
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer z-10 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMute();
+                  }}
+                >
+                  <div className="bg-red-600 text-white px-5 sm:px-8 py-3 sm:py-4 rounded-full flex items-center gap-2 sm:gap-3 font-bold animate-pulse shadow-2xl border-2 border-white/20 hover:scale-105 transition-transform text-sm sm:text-base">
+                    <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
+                    CLIQUE PARA ATIVAR O ÁUDIO
+                  </div>
+                </div>
+              )}
+
               {/* Custom controls */}
               <div
-                className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+                className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-3 sm:px-4 py-3 sm:py-5 flex items-center justify-between transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}
               >
                 <div className="flex items-center gap-3">
-                  <button onClick={togglePlay} className="text-white hover:text-red-400 transition-colors">
-                    {isPlaying ? <Pause className="w-6 h-6 sm:w-7 sm:h-7" /> : <Play className="w-6 h-6 sm:w-7 sm:h-7" />}
+                  <button onClick={togglePlay} className="text-white hover:text-red-400 transition-colors filter drop-shadow-md">
+                    {isPlaying ? <Pause className="w-6 h-6 sm:w-8 sm:h-8" /> : <Play className="w-6 h-6 sm:w-8 sm:h-8" />}
                   </button>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <button onClick={() => changeVolume(-0.1)} className="text-white hover:text-red-400 transition-colors">
-                    <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                  <div className="w-12 sm:w-16 h-1 bg-white/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-white rounded-full" style={{ width: `${volume * 100}%` }} />
+                  
+                  <div className="flex items-center gap-2 group/volume">
+                    <button onClick={toggleMute} className="text-white hover:text-red-400 transition-colors">
+                      {isMuted || volume === 0 ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    </button>
+                    <div className="hidden sm:flex items-center gap-2 w-0 group-hover/volume:w-24 transition-all duration-300 overflow-hidden">
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="1" 
+                        step="0.1" 
+                        value={volume} 
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const video = videoRef.current;
+                          if (video) {
+                            video.volume = val;
+                            setVolume(val);
+                            video.muted = val === 0;
+                            setIsMuted(val === 0);
+                          }
+                        }}
+                        className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-red-500"
+                      />
+                    </div>
                   </div>
-                  <button onClick={() => changeVolume(0.1)} className="text-white hover:text-red-400 transition-colors">
-                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                  <button onClick={toggleFullscreen} className="text-white hover:text-red-400 transition-colors ml-1 sm:ml-2">
+                </div>
+
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="flex sm:hidden items-center gap-1 bg-black/50 rounded-full px-2 py-1">
+                    <button onClick={() => changeVolume(-0.1)} className="text-white p-1">
+                      <VolumeX className="w-4 h-4" />
+                    </button>
+                    <div className="w-8 h-1 bg-white/30 rounded-full overflow-hidden">
+                      <div className="h-full bg-red-500" style={{ width: `${volume * 100}%` }} />
+                    </div>
+                    <button onClick={() => changeVolume(0.1)} className="text-white p-1">
+                      <Volume2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <button onClick={toggleFullscreen} className="text-white hover:text-red-400 transition-colors filter drop-shadow-md">
                     <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                 </div>
