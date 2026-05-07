@@ -170,11 +170,16 @@ function attachClientHandlers(c) {
     console.log('❌ Desconectado:', reason);
     currentStatus = 'disconnected';
     currentQr = null;
-    currentPhone = null;
+    // Preservamos o telefone para não sumir do painel imediatamente
     await sendHeartbeat();
     try { await c.destroy(); } catch {}
     client = null;
-    console.log('💤 Cliente destruído. Aguardando novo comando "Gerar QR" do painel.');
+    console.log('💤 Cliente desconectado. O bot tentará reconectar automaticamente se houver sessão.');
+    
+    // Tenta reconectar após um delay se não houver um comando de logout pendente
+    setTimeout(() => {
+      autoInitialize();
+    }, 5000);
   });
 }
 
@@ -331,7 +336,19 @@ process.on('SIGINT', async () => {
 console.log('🚀 Bot WhatsApp pronto (Renda Extra v2)');
 console.log(`   Endpoint: ${ENDPOINT}`);
 console.log(`   Polling:  ${POLL_INTERVAL / 1000}s`);
-console.log('💤 Aguardando comando "Gerar QR" no painel /rendaextra2/admin...');
 
-// Heartbeat inicial para mostrar "desconectado" no painel
-sendHeartbeat();
+async function autoInitialize() {
+  if (initializing || (client && currentStatus === 'connected')) return;
+  
+  const sessionDir = path.join(AUTH_PATH, `session-${CLIENT_ID}`);
+  if (fs.existsSync(sessionDir)) {
+    console.log('📦 Sessão anterior encontrada. Tentando reconectar automaticamente...');
+    await startClientForQr({ wipe: false });
+  } else {
+    console.log('💤 Nenhuma sessão encontrada. Aguardando comando "Gerar QR" no painel.');
+    await sendHeartbeat();
+  }
+}
+
+// Inicialização automática ao ligar o bot
+autoInitialize();
