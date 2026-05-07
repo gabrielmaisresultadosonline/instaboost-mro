@@ -1115,7 +1115,29 @@ Participe também do nosso GRUPO DE AVISOS
       .replace(/{order_id}/g, order.id);
   };
 
+  const updateOrderWhatsAppSent = async (orderId: string, whatsappSent: boolean = true) => {
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { 
+          action: "updateOrderWhatsAppSent", 
+          token: getAdminSessionToken(), 
+          orderId, 
+          whatsappSent 
+        }
+      });
+
+      if (error || !response?.success) {
+        throw new Error(response?.error || error?.message || "Erro ao atualizar WhatsApp");
+      }
+      return true;
+    } catch (err) {
+      console.error("Error updating whatsapp_sent:", err);
+      return false;
+    }
+  };
+
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
+
     // Se for teste manual, força o envio independente do status 'whatsapp_sent'
     const isManualTest = isTest;
     
