@@ -407,11 +407,11 @@ Participe também do nosso GRUPO DE AVISOS
         (o.status === "paid" || o.status === "completed") && 
         o.whatsapp_sent !== true &&
         o.phone &&
+        !processedInSession.has(o.id) &&
         new Date(o.created_at) > sixHoursAgo
       );
 
       if (pendingWhatsAppOrders.length === 0) {
-        // Se não houver pedidos pendentes RECENTES, garantimos que a fila não mostre "ativa" erroneamente
         if (isProcessingQueue) setIsProcessingQueue(false);
         return;
       }
@@ -424,6 +424,9 @@ Participe também do nosso GRUPO DE AVISOS
       console.log(`[QUEUE] Processando envio lento para: ${orderToSend.username}`);
       
       try {
+        // Marcar como processado nesta sessão ANTES do envio para evitar reentrância em re-renders
+        setProcessedInSession(prev => new Set(prev).add(orderToSend.id));
+        
         await sendToCRMWebhook(orderToSend);
         
         // Calcular próximo intervalo (mínimo 3 min, máximo 5 min randomizado conforme pedido)
@@ -435,7 +438,7 @@ Participe também do nosso GRUPO DE AVISOS
         setNextQueueRun(nextRun);
         
         // Recarregar pedidos para atualizar o estado visual
-        loadOrders();
+        await loadOrders();
         
         console.log(`[QUEUE] Mensagem enviada. Próximo envio em ${Math.round(totalDelay/1000)}s (${nextRun.toLocaleTimeString()})`);
         
@@ -447,18 +450,17 @@ Participe também do nosso GRUPO DE AVISOS
         
       } catch (error) {
         console.error("[QUEUE] Erro ao processar fila (tentará novamente em 1 min):", error);
-        // Em caso de erro, espera 1 minuto antes de tentar novamente para não travar em loop infinito de erro
         setTimeout(() => {
           setIsProcessingQueue(false);
         }, 60000);
       }
     };
 
-    // Só inicia se não estiver esperando o intervalo
     if (!nextQueueRun) {
       processQueue();
     }
-  }, [slowSendEnabled, orders, isProcessingQueue, nextQueueRun, whatsappMode, isAuthenticated]);
+  }, [slowSendEnabled, orders, isProcessingQueue, nextQueueRun, whatsappMode, isAuthenticated, processedInSession]);
+
 
   const loadWebhookConfig = async () => {
     const token = getAdminSessionToken();
