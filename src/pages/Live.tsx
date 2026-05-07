@@ -122,11 +122,13 @@ const Live = () => {
     video.preload = "metadata"; // Carrega apenas o necessário inicialmente
     video.muted = false;
     video.volume = 1;
+    setIsMuted(false);
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch((error) => {
         console.log("Direct play with sound prevented, trying muted:", error);
         video.muted = true;
+        setIsMuted(true);
         video.play().catch(e => console.error("Playback failed:", e));
       });
     }
