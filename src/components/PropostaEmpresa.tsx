@@ -94,7 +94,55 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     ctx.stroke();
   };
 
+  const drawDecorativeElements = (ctx: CanvasRenderingContext2D, W: number, H: number, color: string) => {
+    // Top background patterns
+    ctx.save();
+    ctx.globalAlpha = 0.05;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    
+    // Grid lines
+    for (let i = 0; i < W; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 20, 100);
+      ctx.stroke();
+    }
+
+    // Graph Vector (Trend Up)
+    ctx.globalAlpha = 0.1;
+    ctx.beginPath();
+    ctx.moveTo(W - 150, 150);
+    ctx.bezierCurveTo(W - 120, 140, W - 100, 110, W - 50, 80);
+    ctx.stroke();
+    
+    // Growth Points
+    [W-150, W-100, W-50].forEach((x, i) => {
+      ctx.beginPath();
+      ctx.arc(x, 150 - (i * 35), 4, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+
+    // People Flow Vector
+    ctx.globalAlpha = 0.08;
+    for (let i = 0; i < 5; i++) {
+      const x = 50 + (i * 30);
+      const y = H - 150 + (Math.sin(i) * 20);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x, y + 5);
+      ctx.lineTo(x - 10, y + 20);
+      ctx.stroke();
+    }
+    
+    ctx.restore();
+  };
+
   const renderPreview = async () => {
+
     if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
 
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
@@ -130,6 +178,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
+      
+      drawDecorativeElements(ctx, W, H, data.corPrincipal);
+
 
       const headerGrad = ctx.createLinearGradient(0, 0, 0, pageNum === 1 ? 300 : 80);
       headerGrad.addColorStop(0, data.corPrincipal);
@@ -395,7 +446,70 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const rgb = hexToRgb(data.corPrincipal);
       const secondaryRgb = hexToRgb(data.corSecundaria);
 
+      const mixWithWhite = (val: number, opacity: number) => Math.floor(val * opacity + 255 * (1 - opacity));
+
+      const drawPDFInstagramIcon = (x: number, y: number, size: number, r: number, g: number, b: number) => {
+        doc.setDrawColor(r, g, b);
+        doc.setLineWidth(size / 10);
+        const radius = size / 4;
+        doc.roundedRect(x - size / 2, y - size / 2, size, size, radius, radius, 'S');
+        doc.circle(x, y, size / 4, 'S');
+        doc.setFillColor(r, g, b);
+        doc.circle(x + size / 4, y - size / 4, size / 12, 'F');
+      };
+
+      const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
+
+        const opacity = 0.2;
+        const r = mixWithWhite(rgb.r, opacity);
+        const g = mixWithWhite(rgb.g, opacity);
+        const b = mixWithWhite(rgb.b, opacity);
+        
+        doc.setDrawColor(r, g, b);
+        doc.setFillColor(r, g, b);
+        doc.setLineWidth(0.2);
+
+        // Top background patterns (Grid)
+        for (let i = 0; i < pageWidth; i += 20) {
+          doc.line(i, 0, i + 15, 40);
+        }
+
+        // Graph Vector (Trend Up) - Top Right
+        doc.setLineWidth(0.5);
+        const gx = pageWidth - 60;
+        const gy = 35;
+        doc.line(gx, gy, gx + 10, gy - 10);
+        doc.line(gx + 10, gy - 10, gx + 20, gy - 5);
+        doc.line(gx + 20, gy - 5, gx + 35, gy - 20);
+        
+        // Dots on graph
+        doc.circle(gx, gy, 0.8, 'F');
+        doc.circle(gx + 10, gy - 10, 0.8, 'F');
+        doc.circle(gx + 20, gy - 5, 0.8, 'F');
+        doc.circle(gx + 35, gy - 20, 0.8, 'F');
+
+        // People Flow (Bottom Left)
+        const po = 0.12;
+        const pr = mixWithWhite(rgb.r, po);
+        const pg = mixWithWhite(rgb.g, po);
+        const pb = mixWithWhite(rgb.b, po);
+        doc.setFillColor(pr, pg, pb);
+        doc.setDrawColor(pr, pg, pb);
+        
+        for (let i = 0; i < 5; i++) {
+          const px = 25 + (i * 15);
+          const py = pageHeight - 45;
+          doc.circle(px, py, 1.5, 'F');
+          doc.line(px, py + 1.5, px - 3, py + 5);
+        }
+
+        // Small Instagram Icon Decoration
+        drawPDFInstagramIcon(pageWidth - 25, pageHeight - 25, 10, r, g, b);
+      };
+
+
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
+
         for (let i = 0; i < h; i += 0.5) {
           const ratio = i / h;
           const r = Math.floor(rgb.r * (1 - ratio) + secondaryRgb.r * ratio);
@@ -416,7 +530,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       drawGradientRect(0, 0, pageWidth, 90);
+      drawPDFDecorativeElements(pageWidth, pageHeight);
       doc.setDrawColor(255, 255, 255, 0.1);
+
       for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
 
       let yPos = 110;
@@ -430,10 +546,15 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const logoW = logoH * ratio;
           doc.addImage(data.logoUrl, 'PNG', (pageWidth - logoW) / 2, yPos, logoW, logoH);
           yPos += logoH + 25;
-        } catch (e) {}
+        } catch (e) {
+          drawPDFInstagramIcon(pageWidth / 2, yPos + 15, 20, rgb.r, rgb.g, rgb.b);
+          yPos += 45;
+        }
       } else {
-        yPos += 20;
+        drawPDFInstagramIcon(pageWidth / 2, yPos + 15, 20, rgb.r, rgb.g, rgb.b);
+        yPos += 45;
       }
+
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
@@ -455,7 +576,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 15, { align: 'center' });
 
       doc.addPage();
+      drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
@@ -488,7 +611,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text(solLines, margin, yPos);
 
       doc.addPage();
+      drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
@@ -528,7 +653,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
 
       doc.addPage();
+      drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
@@ -582,7 +709,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       
       if (data.incluirConfiguracao || data.incluirCriativos) {
         doc.addPage();
+        drawPDFDecorativeElements(pageWidth, pageHeight);
         drawGradientRect(0, 0, pageWidth, 25);
+
         yPos = 45;
         doc.setTextColor(rgb.r, rgb.g, rgb.b);
         doc.setFontSize(data.fontSizeBase * 1.8);
