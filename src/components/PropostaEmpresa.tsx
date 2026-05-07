@@ -191,22 +191,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           let testLine = line + words[n] + ' ';
           let metrics = ctx.measureText(testLine);
           if (metrics.width > maxWidth && n > 0) {
-            lines.push(line);
+            lines.push(line.trim());
             line = words[n] + ' ';
           } else { line = testLine; }
         }
-        lines.push(line);
+        lines.push(line.trim());
 
         const actualLineHeight = data.fontSizeBase * lineHeightMultiplier;
         lines.forEach((l, i) => {
-          const textLine = l.trim();
           let drawX = center ? W/2 : x;
-          if (center) {
-            ctx.textAlign = 'center';
-          } else {
-            ctx.textAlign = 'left';
-          }
-          ctx.fillText(textLine, drawX, y + (i * actualLineHeight));
+          ctx.textAlign = center ? 'center' : 'left';
+          ctx.fillText(l, drawX, y + (i * actualLineHeight));
         });
         
         return y + (lines.length * actualLineHeight);
@@ -376,22 +371,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             ctx.fillStyle = '#1a1a1a';
             ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
             const wrapTextShort = (text: string, x: number, y: number, maxWidth: number) => {
-              const words = text.split(' ');
-              let line = '';
-              const lines = [];
-              for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                  lines.push(line);
-                  line = words[n] + ' ';
-                } else { line = testLine; }
-              }
-              lines.push(line);
-              lines.forEach((l, i) => {
-                ctx.fillText(l.trim(), x, y + (i * data.fontSizeBase * 1.3));
-              });
-              return y + (lines.length * data.fontSizeBase * 1.3);
+              return wrapText(text, x, y, maxWidth, 1.3, false);
             };
 
             wrapTextShort('EXTRAS INCLUSOS NA PROPOSTA:', 70, y + 40, 460);
@@ -436,17 +416,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           y += 25;
           ctx.fillStyle = '#666666';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          const words = `Experimente nossa methodology por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`.split(' ');
-          let line = '';
-          for(let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            if (ctx.measureText(testLine).width > 500) {
-              ctx.fillText(line, 50, y);
-              line = words[n] + ' ';
-              y += 20;
-            } else { line = testLine; }
-          }
-          ctx.fillText(line, 50, y);
+          y = wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
         }
       }
     };
@@ -844,18 +814,20 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       if (data.incluirValor) {
         doc.setFillColor(rgb.r, rgb.g, rgb.b);
-        doc.roundedRect(margin, yPos, 160, 40, 5, 5, 'F');
+        doc.roundedRect(margin, yPos, contentWidth, 40, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(data.fontSizeBase * 1.6);
+        
+        doc.setFontSize(data.fontSizeBase * 1.5);
         doc.setFont('helvetica', 'bold');
         const investText = `INVESTIMENTO: R$ ${data.valorServico}`;
-        const investLines = doc.splitTextToSize(investText, 140);
+        const investLines = doc.splitTextToSize(investText, contentWidth - 20);
         doc.text(investLines, margin + 10, yPos + 12);
         
-        doc.setFontSize(data.fontSizeBase * 1.1);
+        const nextY = yPos + 12 + (investLines.length * (data.fontSizeBase * 0.6));
+        doc.setFontSize(data.fontSizeBase * 1);
         const investSubText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
-        const investSubLines = doc.splitTextToSize(investSubText, 140);
-        doc.text(investSubLines, margin + 10, yPos + 12 + (investLines.length * 8));
+        const investSubLines = doc.splitTextToSize(investSubText, contentWidth - 20);
+        doc.text(investSubLines, margin + 10, nextY);
         yPos += 60;
       } else {
         yPos += 20;
