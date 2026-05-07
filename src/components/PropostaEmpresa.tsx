@@ -378,11 +378,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
     };
 
-    await renderPage(canvasRef.current, 1);
-    await renderPage(canvasPage2Ref.current, 2);
-    await renderPage(canvasPage3Ref.current, 3);
-    await renderPage(canvasPage4Ref.current, 4);
-    await renderPage(canvasPage5Ref.current, 5);
+    if (canvasRef.current) await renderPage(canvasRef.current, 1);
+    if (canvasPage2Ref.current) await renderPage(canvasPage2Ref.current, 2);
+    if (canvasPage3Ref.current) await renderPage(canvasPage3Ref.current, 3);
+    if (canvasPage4Ref.current) await renderPage(canvasPage4Ref.current, 4);
+    if (canvasPage5Ref.current && (data.incluirCriativos || data.incluirConfiguracao)) {
+      await renderPage(canvasPage5Ref.current, 5);
+    }
   };
 
   useEffect(() => {
