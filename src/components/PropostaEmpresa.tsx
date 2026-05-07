@@ -594,8 +594,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
       doc.setFont('helvetica', 'bold');
-      doc.text('A GRANDE OPORTUNIDADE', margin, yPos);
-      yPos += 15;
+      const title1Text = 'A GRANDE OPORTUNIDADE';
+      const title1Lines = doc.splitTextToSize(title1Text, contentWidth);
+      doc.text(title1Lines, margin, yPos);
+      yPos += (title1Lines.length * 10) + 5;
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.2);
