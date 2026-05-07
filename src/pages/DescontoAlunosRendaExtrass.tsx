@@ -167,31 +167,10 @@ const DescontoAlunosRendaExtrass = () => {
     }
   };
 
-  // Track PageView on mount and fetch settings
+  // Track PageView on mount
   useEffect(() => {
     trackPageView('Sales Page - Instagram MRO Promo 2');
-    
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("desconto_alunos_settings")
-          .select("is_active")
-          .single();
-        
-        if (!error && data) {
-          setIsDiscountActive(data.is_active);
-          if (!data.is_active) {
-            setShowDiscountEndedPopup(true);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching settings:", err);
-      } finally {
-        setIsSettingsLoading(false);
-      }
-    };
-    
-    fetchSettings();
+    setIsSettingsLoading(false);
   }, []);
 
   // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
