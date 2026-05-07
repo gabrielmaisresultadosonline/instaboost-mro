@@ -617,8 +617,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('ESTRATÉGIA 10X MAIS ASSERTIVA', margin, yPos);
-      yPos += 10;
+      const assertText = 'ESTRATÉGIA 10X MAIS ASSERTIVA';
+      const assertLines = doc.splitTextToSize(assertText, contentWidth);
+      doc.text(assertLines, margin, yPos);
+      yPos += (assertLines.length * 8) + 2;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(60, 60, 60);
       const solText = "Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende, capturando a atenção de forma ética e agregando valor à sua marca.";
