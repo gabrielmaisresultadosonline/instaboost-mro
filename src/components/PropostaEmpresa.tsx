@@ -556,7 +556,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, pageHeight - 15, { align: 'center' });
 
       doc.addPage();
+      drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.setFontSize(data.fontSizeBase * 1.8);
