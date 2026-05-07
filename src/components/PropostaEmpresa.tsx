@@ -503,7 +503,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
-        const opacity = 0.3;
+        const opacity = 0.2; // Reduzi opacidade para ser mais sutil
         const r = mixWithWhite(rgb.r, opacity);
         const g = mixWithWhite(rgb.g, opacity);
         const b = mixWithWhite(rgb.b, opacity);
@@ -512,53 +512,53 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFillColor(r, g, b);
         doc.setLineWidth(0.1);
 
-        // Background Grid
-        for (let i = 0; i < pageWidth; i += 15) {
+        // Background Grid - subtle
+        doc.setDrawColor(r, g, b, 0.2);
+        for (let i = 0; i < pageWidth; i += 20) {
           doc.line(i, 0, i, pageHeight);
         }
-        for (let i = 0; i < pageHeight; i += 15) {
+        for (let i = 0; i < pageHeight; i += 20) {
           doc.line(0, i, pageWidth, i);
         }
 
-        // Top Right: Result Graph (Lines)
-        doc.setLineWidth(0.5);
-        const gx = pageWidth - 60;
-        const gy = 35;
-        doc.line(gx, gy, gx + 10, gy - 8);
-        doc.line(gx + 10, gy - 8, gx + 20, gy - 2);
-        doc.line(gx + 20, gy - 2, gx + 35, gy - 15);
+        // Top Right: Result Graph (Lines) - Fixed position to avoid headers
+        doc.setLineWidth(0.4);
+        const gx = pageWidth - 50;
+        const gy = 55; // Lowered to avoid header gradient
+        doc.line(gx, gy, gx + 8, gy - 6);
+        doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
+        doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
         
-        // Dots on graph
-        doc.circle(gx, gy, 1, 'F');
-        doc.circle(gx + 10, gy - 8, 1, 'F');
-        doc.circle(gx + 20, gy - 2, 1, 'F');
-        doc.circle(gx + 35, gy - 15, 1, 'F');
+        doc.circle(gx, gy, 0.8, 'F');
+        doc.circle(gx + 8, gy - 6, 0.8, 'F');
+        doc.circle(gx + 16, gy - 2, 0.8, 'F');
+        doc.circle(gx + 28, gy - 12, 0.8, 'F');
 
-        // Bottom Left: Growth Bar Chart
-        const barX = 20;
-        const barY = pageHeight - 40;
-        const bars = [10, 15, 12, 25, 20, 30];
+        // Bottom Left: Growth Bar Chart - More side-aligned
+        const barX = 10;
+        const barY = pageHeight - 45;
+        const bars = [8, 12, 10, 20, 15, 25];
         bars.forEach((h, i) => {
-          doc.rect(barX + (i * 8), barY, 5, -h, 'F');
+          doc.rect(barX + (i * 6), barY, 4, -h, 'F');
         });
 
-        // People Icons (Silhouettes)
-        const pSize = 4;
+        // People Icons (Silhouettes) - Strategic placement
+        const pSize = 3;
         for (let i = 0; i < 3; i++) {
-          const px = pageWidth - 40 - (i * 15);
-          const py = pageHeight - 50 + (i * 5);
+          const px = pageWidth - 35 - (i * 12);
+          const py = pageHeight - 65;
           // Head
-          doc.circle(px, py, 2, 'F');
+          doc.circle(px, py, 1.5, 'F');
           // Body
-          doc.setLineWidth(1);
-          doc.line(px - 3, py + 5, px + 3, py + 5);
-          doc.line(px - 3, py + 5, px - 3, py + 10);
-          doc.line(px + 3, py + 5, px + 3, py + 10);
-          doc.line(px - 3, py + 10, px + 3, py + 10);
+          doc.setLineWidth(0.8);
+          doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
+          doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
+          doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
+          doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
         }
 
-        // Small Instagram Icon Decoration (Bottom Right)
-        drawPDFInstagramIcon(pageWidth - 25, pageHeight - 25, 12, r, g, b);
+        // Small Instagram Icon Decoration (Bottom Right corner area)
+        drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
       };
 
 
@@ -622,14 +622,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       
       // Floating Vector Icon (Result Chart) near title
-      const iconX = pageWidth - 40;
-      const iconY = yPos - 10;
-      doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-      doc.setLineWidth(0.8);
-      doc.line(iconX, iconY, iconX + 5, iconY - 5);
-      doc.line(iconX + 5, iconY - 5, iconX + 10, iconY - 2);
-      doc.line(iconX + 10, iconY - 2, iconX + 15, iconY - 10);
-      doc.circle(iconX + 15, iconY - 10, 1, 'F');
+      const iconX = pageWidth - 35;
+      const iconY = yPos - 25; // Subi o ícone para não sobrepor o texto da empresa
+      doc.setDrawColor(rgb.r, rgb.g, rgb.b, 0.4);
+      doc.setLineWidth(0.6);
+      doc.line(iconX, iconY, iconX + 4, iconY - 4);
+      doc.line(iconX + 4, iconY - 4, iconX + 8, iconY - 1);
+      doc.line(iconX + 8, iconY - 1, iconX + 12, iconY - 8);
+      doc.circle(iconX + 12, iconY - 8, 0.8, 'F');
 
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
