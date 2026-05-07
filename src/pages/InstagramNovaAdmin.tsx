@@ -4301,23 +4301,20 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
                   <div className="flex items-center gap-2">
-                    <Send className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs text-white">Usar API (Meta Direta)</span>
+                    <QrCode className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs text-white font-medium">Conexão por QR Code</span>
                   </div>
-                  <Switch 
-                    checked={whatsappMode === "api"}
-                    onCheckedChange={(checked) => setWhatsappMode(checked ? "api" : "none")}
-                  />
+                  <Badge className="bg-green-500/20 text-green-400 text-[10px] px-2 py-0">Ativo</Badge>
                 </div>
 
-                <div className="flex items-center justify-between p-2 bg-zinc-900/50 rounded border border-zinc-700/30">
+                <div className="flex items-center justify-between p-2 bg-zinc-900/10 rounded border border-zinc-700/10 opacity-50 grayscale pointer-events-none">
                   <div className="flex items-center gap-2">
-                    <QrCode className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs text-white">Usar QR Code (VPS Direto)</span>
+                    <Send className="w-4 h-4 text-zinc-400" />
+                    <span className="text-xs text-zinc-500">API WhatsApp (Indisponível)</span>
                   </div>
                   <Switch 
-                    checked={whatsappMode === "qrcode"}
-                    onCheckedChange={(checked) => setWhatsappMode(checked ? "qrcode" : "none")}
+                    disabled={true}
+                    checked={false}
                   />
                 </div>
 
