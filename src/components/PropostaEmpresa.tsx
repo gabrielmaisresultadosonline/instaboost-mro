@@ -19,6 +19,7 @@ interface PropostaData {
   incluirCriativos: boolean;
   quantidadeCriativos: string;
   corPrincipal: string;
+  corSecundaria: string;
   logoUrl: string | null;
 }
 
@@ -30,6 +31,7 @@ const defaultData: PropostaData = {
   incluirCriativos: false,
   quantidadeCriativos: '12',
   corPrincipal: '#00d4aa',
+  corSecundaria: '#0f0f1a',
   logoUrl: null,
 };
 
@@ -84,11 +86,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       let y = 0;
 
       const rgb = hexToRgb(data.corPrincipal);
-      const secondaryRgb = {
-        r: Math.max(0, rgb.r - 40),
-        g: Math.max(0, rgb.g - 40),
-        b: Math.max(0, rgb.b - 40)
-      };
+      const secondaryRgb = hexToRgb(data.corSecundaria);
 
       // Helper functions for modern look
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
@@ -98,7 +96,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const g = Math.floor(rgb.g * (1 - ratio) + secondaryRgb.g * ratio);
           const b = Math.floor(rgb.b * (1 - ratio) + secondaryRgb.b * ratio);
           doc.setFillColor(r, g, b);
-          doc.rect(x, y + i, w, 1, 'F');
+          doc.rect(x, y + i, w, 1.2, 'F'); // Using 1.2 to avoid thin white lines
         }
       };
 
@@ -136,12 +134,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       // --- CAPA ---
       // Background Gradient
-      drawGradientRect(0, 0, pageWidth, 60);
+      drawGradientRect(0, 0, pageWidth, 80);
       
       // Decorative Vectors on Cover
-      doc.setDrawColor(255, 255, 255, 0.2);
-      for(let i=0; i<10; i++) {
-        doc.circle(20 + i*20, 30 + (i%3)*5, 1 + (i%2), 'D');
+      doc.setDrawColor(255, 255, 255, 0.1);
+      for(let i=0; i<15; i++) {
+        doc.circle(10 + i*15, 40 + (i%4)*8, 2 + (i%3), 'D');
+        doc.line(0, i*10, pageWidth, i*5);
       }
 
       y = 80;
@@ -165,22 +164,24 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(32);
+      doc.setFontSize(36);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
+      doc.text('PROPOSTA', pageWidth / 2, y, { align: 'center' });
+      y += 12;
+      doc.text('ESTRATÉGICA', pageWidth / 2, y, { align: 'center' });
       
-      y += 14;
-      doc.setFontSize(18);
+      y += 16;
+      doc.setFontSize(22);
       doc.setTextColor(60, 60, 60);
       doc.text(`EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
 
       y += 45;
-      doc.setFontSize(15);
+      doc.setFontSize(16);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('Vendas e Engajamento de Alta Performance', pageWidth / 2, y, { align: 'center' });
       
-      y += 8;
-      doc.setFontSize(13);
+      y += 10;
+      doc.setFontSize(14);
       doc.setTextColor(100, 100, 100);
       doc.text('A estratégia definitiva para dominar o mercado orgânico.', pageWidth / 2, y, { align: 'center' });
 
@@ -195,14 +196,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       y = 35;
 
       // Top Bar Gradient
-      drawGradientRect(0, 0, pageWidth, 20);
+      drawGradientRect(0, 0, pageWidth, 25);
       
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
+      doc.setFontSize(24);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       drawIcon(margin + 5, y - 2, 'chart');
-      doc.text('O Cenário Atual', margin + 15, y);
-      y += 15;
+      doc.text('O CENÁRIO ATUAL', margin + 15, y);
+      y += 18;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
@@ -304,9 +305,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.text('Investimento para Resultados', margin + 15, y);
       y += 15;
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.text(`Proposta para 30 dias de acompanhamento focado em gerar ROI (Retorno sobre Investimento).`, margin, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(rgb.r, rgb.g, rgb.b);
+      drawIcon(margin + 5, y - 2, 'chart');
+      doc.text('Investimento para Resultados', margin + 15, y);
+      y += 15;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(50, 50, 50);
+      doc.text(`Proposta para 30 dias de acompanhamento focado em gerar ROI massivo.`, margin, y);
       y += 12;
 
       if (data.incluirValor) {
@@ -341,11 +350,15 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.setTextColor(60, 60, 60);
       doc.text('Estamos prontos para transformar o seu jogo digital.', margin, y);
       
-      y += 12;
+      y += 15;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
+      doc.setFontSize(16);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text(data.minhaEmpresa.toUpperCase(), margin, y);
+      doc.text('ESTAMOS PRONTOS PARA TRANSFORMAR O SEU JOGO DIGITAL.', pageWidth / 2, y, { align: 'center' });
+      
+      y += 15;
+      doc.setFontSize(18);
+      doc.text(data.minhaEmpresa.toUpperCase(), pageWidth / 2, y, { align: 'center' });
 
       // Download
       const fileName = `Proposta_Premium_${data.empresaDestino.replace(/\s+/g, '_') || 'Empresa'}.pdf`;
@@ -403,11 +416,20 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     <span className="text-[10px] text-gray-500">Logo</span>
                   </button>
                 )}
-                <div className="flex-1 space-y-1">
-                  <label className="text-xs text-gray-500 block">Cor Principal do PDF</label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="w-8 h-8 rounded cursor-pointer bg-transparent" />
-                    <Input value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="h-8 bg-white/5 border-white/10 text-xs" />
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-500 block">Cor 1 (Topo)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="w-6 h-6 rounded cursor-pointer bg-transparent" />
+                      <Input value={data.corPrincipal} onChange={e => update('corPrincipal', e.target.value)} className="h-7 bg-white/5 border-white/10 text-[10px] px-1" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-500 block">Cor 2 (Base)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={data.corSecundaria} onChange={e => update('corSecundaria', e.target.value)} className="w-6 h-6 rounded cursor-pointer bg-transparent" />
+                      <Input value={data.corSecundaria} onChange={e => update('corSecundaria', e.target.value)} className="h-7 bg-white/5 border-white/10 text-[10px] px-1" />
+                    </div>
                   </div>
                 </div>
                 <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
