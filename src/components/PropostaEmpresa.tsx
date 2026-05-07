@@ -47,6 +47,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasPage2Ref = useRef<HTMLCanvasElement>(null);
+  const canvasPage3Ref = useRef<HTMLCanvasElement>(null);
+  const canvasPage4Ref = useRef<HTMLCanvasElement>(null);
 
   const update = (field: keyof PropostaData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
