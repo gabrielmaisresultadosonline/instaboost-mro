@@ -191,11 +191,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           
           ctx.fillStyle = '#1a1a1a';
           ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
-          ctx.fillText('Mais Vendas e Engajamento sem Anúncios Pagos', 50, 190);
+          ctx.fillText('A Importância de uma Presença Digital Dominante', 50, 190);
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          let y = wrapText("Atualmente, investir horrores em anúncios não é mais a única (nem a melhor) saída. O mercado está saturado e o custo por cliente só aumenta. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e mais clientes de forma estratégica.", 50, 225, 500);
+          let y = wrapText("Hoje, estar no Instagram não é uma opção, é a vitrine principal do seu negócio. Não ter um perfil profissional, ativo e com alcance constante significa perder clientes para o concorrente a cada minuto.", 50, 225, 500);
 
           ctx.fillStyle = data.corPrincipal;
           ctx.font = `bold ${data.fontSizeBase * 1.4}px Arial`;
@@ -204,7 +204,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
           ctx.fillStyle = '#444444';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-          y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende.", 50, y, 500);
+          y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende. Nossa prospecção humana agrega valor real à sua marca.", 50, y, 500);
           
           drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
         } else if (pageNum === 3) {
