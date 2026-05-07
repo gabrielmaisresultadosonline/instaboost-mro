@@ -280,8 +280,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             ctx.fillStyle = 'white';
             ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
             y = wrapText(`INVESTIMENTO: R$ ${data.valorServico}`, 80, y + 50, 440);
-            ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
-            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 10, 440);
+            
+            // Highlighted "Valor Mensal"
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.font = `bold ${data.fontSizeBase * 1.25}px Arial`;
+            wrapText("VALOR MENSAL PARA 30 DIAS DE RESULTADOS", 80, y + 15, 440);
             y += 80;
           } else {
             y += 50;
