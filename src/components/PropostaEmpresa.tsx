@@ -51,6 +51,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   const canvasPage2Ref = useRef<HTMLCanvasElement>(null);
   const canvasPage3Ref = useRef<HTMLCanvasElement>(null);
   const canvasPage4Ref = useRef<HTMLCanvasElement>(null);
+  const canvasPage5Ref = useRef<HTMLCanvasElement>(null);
 
   const update = (field: keyof PropostaData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -97,7 +98,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   };
 
   const renderPreview = async () => {
-    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
+    if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current || !canvasPage5Ref.current) return;
     
     const renderPage = async (canvas: HTMLCanvasElement, pageNum: number) => {
       const ctx = canvas.getContext('2d');
@@ -298,6 +299,51 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.fillStyle = '#666666';
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
           wrapText(`Experimente nossa metodologia por ${data.periodoGarantia} dias. Se você não sentir que estamos atraindo o público certo e gerando valor, devolvemos seu dinheiro.`, 50, y, 500);
+        } else if (pageNum === 5) {
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1.8}px Arial`;
+          ctx.fillText('CRIATIVOS & OTIMIZAÇÃO', 50, 140);
+
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = `bold ${data.fontSizeBase * 1.2}px Arial`;
+          ctx.fillText('Design Estratégico & Autoridade Visual', 50, 180);
+
+          let y = 210;
+          
+          if (data.incluirCriativos) {
+            drawCanvasIcon(ctx, 65, y, data.corPrincipal);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, 85, y + 5);
+            y += 25;
+            ctx.fillStyle = '#444444';
+            ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
+            y = wrapText("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", 85, y, 460);
+            y += 20;
+          }
+
+          if (data.incluirConfiguracao) {
+            drawCanvasIcon(ctx, 65, y, data.corPrincipal);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = `bold ${data.fontSizeBase * 1.1}px Arial`;
+            ctx.fillText('Otimização de Bio e Perfil (SEO Instagram)', 85, y + 5);
+            y += 25;
+            ctx.fillStyle = '#444444';
+            ctx.font = `${data.fontSizeBase * 1.0}px Arial`;
+            y = wrapText("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", 85, y, 460);
+            y += 20;
+          }
+
+          ctx.fillStyle = data.corPrincipal + '10';
+          ctx.beginPath();
+          ctx.roundRect(50, y, 500, 100, 15);
+          ctx.fill();
+          ctx.fillStyle = data.corPrincipal;
+          ctx.font = `bold ${data.fontSizeBase * 1}px Arial`;
+          ctx.fillText("POR QUE ESSA ETAPA É CRUCIAL?", 70, y + 35);
+          ctx.fillStyle = '#444444';
+          ctx.font = `italic ${data.fontSizeBase * 0.9}px Arial`;
+          wrapText("Não adianta atrair o público certo se sua 'casa' (seu perfil) estiver desarrumada. A otimização e os criativos garantem que a primeira impressão seja de uma empresa líder de mercado.", 70, y + 60, 460);
         }
       }
     };
@@ -306,6 +352,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     await renderPage(canvasPage2Ref.current, 2);
     await renderPage(canvasPage3Ref.current, 3);
     await renderPage(canvasPage4Ref.current, 4);
+    await renderPage(canvasPage5Ref.current, 5);
   };
 
   useEffect(() => {
@@ -536,7 +583,64 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
       
-      yPos += garLines.length * 7 + 40;
+      if (data.incluirConfiguracao || data.incluirCriativos) {
+        doc.addPage();
+        drawGradientRect(0, 0, pageWidth, 25);
+        yPos = 45;
+        doc.setTextColor(rgb.r, rgb.g, rgb.b);
+        doc.setFontSize(data.fontSizeBase * 1.8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('CRIATIVOS & OTIMIZAÇÃO', margin, yPos);
+        yPos += 15;
+        
+        doc.setFontSize(data.fontSizeBase * 1.2);
+        doc.setTextColor(30, 30, 30);
+        doc.text('Design Estratégico & Autoridade Visual', margin, yPos);
+        yPos += 15;
+
+        if (data.incluirCriativos) {
+          drawIcon(margin + 3, yPos - 1);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 1);
+          doc.text(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, margin + 10, yPos);
+          yPos += 8;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.95);
+          doc.setTextColor(70, 70, 70);
+          const cLines = doc.splitTextToSize("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", contentWidth - 15);
+          doc.text(cLines, margin + 10, yPos);
+          yPos += cLines.length * 6 + 12;
+        }
+
+        if (data.incluirConfiguracao) {
+          drawIcon(margin + 3, yPos - 1);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 1);
+          doc.setTextColor(30, 30, 30);
+          doc.text('Otimização de Bio e Perfil (SEO Instagram)', margin + 10, yPos);
+          yPos += 8;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.95);
+          doc.setTextColor(70, 70, 70);
+          const bLines = doc.splitTextToSize("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", contentWidth - 15);
+          doc.text(bLines, margin + 10, yPos);
+          yPos += bLines.length * 6 + 12;
+        }
+
+        doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
+        doc.rect(margin, yPos, contentWidth, 30, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setTextColor(rgb.r, rgb.g, rgb.b);
+        doc.text("POR QUE ESSA ETAPA É CRUCIAL?", margin + 5, yPos + 12);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        doc.text("Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.", margin + 5, yPos + 20);
+        yPos += 45;
+      } else {
+        yPos += 40;
+      }
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.6);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
@@ -704,7 +808,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                   </div>
                   <div>
                     <span className="text-sm font-bold text-white block leading-none">Prévia em Tempo Real</span>
-                    <span className="text-[10px] text-gray-500">4 páginas configuradas</span>
+                    <span className="text-[10px] text-gray-500">{data.incluirCriativos || data.incluirConfiguracao ? '5' : '4'} páginas configuradas</span>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowFullPreview(true)} className="text-gray-400 hover:text-white gap-1 text-xs">
@@ -719,7 +823,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     { ref: canvasRef, label: 'PÁGINA 1: CAPA' },
                     { ref: canvasPage2Ref, label: 'PÁGINA 2: O PROBLEMA' },
                     { ref: canvasPage3Ref, label: 'PÁGINA 3: SOLUÇÃO' },
-                    { ref: canvasPage4Ref, label: 'PÁGINA 4: INVESTIMENTO' }
+                    { ref: canvasPage4Ref, label: 'PÁGINA 4: INVESTIMENTO' },
+                    ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, label: 'PÁGINA 5: EXTRAS' }] : [])
                   ].map((page, idx) => (
                     <div key={idx} className="relative group/page">
                       <canvas ref={page.ref} className="w-full h-auto rounded-lg shadow-2xl border border-white/5 transition-all duration-300" />
@@ -760,7 +865,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                 { ref: canvasRef, title: 'Capa da Proposta' },
                 { ref: canvasPage2Ref, title: 'Análise de Mercado' },
                 { ref: canvasPage3Ref, title: 'Metodologia de Resultados' },
-                { ref: canvasPage4Ref, title: 'Investimento e Garantia' }
+                { ref: canvasPage4Ref, title: 'Investimento e Garantia' },
+                ...(data.incluirCriativos || data.incluirConfiguracao ? [{ ref: canvasPage5Ref, title: 'Criativos e Otimização' }] : [])
               ].map((page, idx) => (
                 <div key={idx} className="w-full max-w-[600px] bg-white rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col">
                   <div className="bg-gray-100 py-2 px-4 text-[10px] font-bold text-gray-400 border-b border-gray-200 flex justify-between">
