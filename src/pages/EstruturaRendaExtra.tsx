@@ -1323,6 +1323,10 @@ const EstruturaRendaExtra = () => {
     return <ContratoGenerator onBack={() => setCurrentView('menu')} />;
   }
 
+  if (currentView === 'proposta-empresa') {
+    return <PropostaEmpresa onBack={() => setCurrentView('menu')} />;
+  }
+
   if (currentView === 'tutoriais') {
     return <EstruturaTutoriais onBack={() => setCurrentView('menu')} />;
   }
