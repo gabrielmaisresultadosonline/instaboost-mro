@@ -178,6 +178,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
+      
+      drawDecorativeElements(ctx, W, H, data.corPrincipal);
+
 
       const headerGrad = ctx.createLinearGradient(0, 0, 0, pageNum === 1 ? 300 : 80);
       headerGrad.addColorStop(0, data.corPrincipal);
