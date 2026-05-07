@@ -268,12 +268,32 @@ const Live = () => {
     }
   };
 
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    const newMuted = !video.muted;
+    video.muted = newMuted;
+    setIsMuted(newMuted);
+    if (!newMuted && video.volume === 0) {
+      video.volume = 0.5;
+      setVolume(0.5);
+    }
+  };
+
   const changeVolume = (delta: number) => {
     const video = videoRef.current;
     if (!video) return;
-    const newVol = Math.max(0, Math.min(1, video.volume + delta));
+    const currentVol = video.volume;
+    const newVol = Math.max(0, Math.min(1, currentVol + delta));
     video.volume = newVol;
     setVolume(newVol);
+    if (newVol > 0) {
+      video.muted = false;
+      setIsMuted(false);
+    } else {
+      video.muted = true;
+      setIsMuted(true);
+    }
   };
 
   const toggleFullscreen = () => {
