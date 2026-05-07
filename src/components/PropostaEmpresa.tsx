@@ -785,8 +785,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           drawIcon(margin + 3, yPos - 1);
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 1);
-          doc.text(`Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`, margin + 10, yPos);
-          yPos += 8;
+          const tText = `Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`;
+          const tLines = doc.splitTextToSize(tText, contentWidth - 15);
+          doc.text(tLines, margin + 10, yPos);
+          yPos += (tLines.length * 6) + 2;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.95);
           doc.setTextColor(70, 70, 70);
@@ -800,8 +802,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 1);
           doc.setTextColor(30, 30, 30);
-          doc.text('Otimização de Bio e Perfil (SEO Instagram)', margin + 10, yPos);
-          yPos += 8;
+          const bTitle = 'Otimização de Bio e Perfil (SEO Instagram)';
+          const btLines = doc.splitTextToSize(bTitle, contentWidth - 15);
+          doc.text(btLines, margin + 10, yPos);
+          yPos += (btLines.length * 6) + 2;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.95);
           doc.setTextColor(70, 70, 70);
