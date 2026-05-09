@@ -3616,14 +3616,14 @@ const CRM = () => {
             )}
 
             {activeTab === 'settings' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
                   <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações</h2>
-                    <p className="text-muted-foreground text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
+                    <h2 className="text-xl md:text-3xl font-bold tracking-tight text-primary">Configurações</h2>
+                    <p className="text-muted-foreground text-xs md:text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
