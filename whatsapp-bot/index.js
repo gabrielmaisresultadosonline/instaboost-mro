@@ -87,9 +87,10 @@ app.post('/send-voice', async (req, res) => {
     // 2. Transcodificar para OGG Opus usando FFmpeg (formato nativo WhatsApp)
     console.log(`🔧 [Bridge] Transcodificando via FFmpeg...`);
     try {
-      // Forçamos o codec libopus e o container ogg, otimizado para voz (voip)
-      await execAsync(`ffmpeg -i "${inputPath}" -c:a libopus -b:a 64k -vbr on -compression_level 10 -application voip "${outputPath}" -y`);
-      console.log(`✅ [Bridge] Transcodificação FFmpeg concluída.`);
+      // Forçamos OGG/Opus MONO 16kHz - obrigatório para WhatsApp Mobile reconhecer como voice note.
+      // Sem -ac 1 e -ar 16000 o áudio toca no Desktop mas falha no celular ("Este áudio não está mais disponível").
+      await execAsync(`ffmpeg -i "${inputPath}" -vn -map_metadata -1 -c:a libopus -b:a 32k -ar 16000 -ac 1 -application voip -frame_duration 60 -f ogg "${outputPath}" -y`);
+      console.log(`✅ [Bridge] Transcodificação FFmpeg concluída (mono 16kHz Opus).`);
     } catch (ffmpegErr) {
       console.error('⚠️ [Bridge] Falha no FFmpeg:', ffmpegErr.message);
       // Fallback: se o FFmpeg falhar, tentamos enviar o original se for compatível
