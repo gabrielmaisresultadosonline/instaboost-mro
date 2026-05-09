@@ -1206,6 +1206,7 @@ const CRM = () => {
                       </CardContent>
                     </Card>
                   </div>
+                  <div className="flex justify-end">
                     <Button 
                       onClick={handleSaveSettings} 
                       disabled={saving}
