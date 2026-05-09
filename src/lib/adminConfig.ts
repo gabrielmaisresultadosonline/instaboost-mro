@@ -337,7 +337,7 @@ export const saveModulesToCloud = async (
 ): Promise<boolean> => {
   try {
     const data = getAdminData();
-    const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : 'mro_admin_data';
+    const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : platform === 'estrutura' ? 'mro_estrutura_modules' : 'mro_admin_data';
     const localData = localStorage.getItem(storageKey);
     const parsedData = localData ? JSON.parse(localData) : data;
 

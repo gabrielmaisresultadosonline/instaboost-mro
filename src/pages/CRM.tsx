@@ -65,7 +65,9 @@ import {
   CreditCard,
   Copy,
   Pencil,
-  Camera
+  Camera,
+  LayoutList,
+  MessageCircle
 } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 const Instagram = (LucideIcons as any).Instagram || Camera;
@@ -79,6 +81,7 @@ import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
 import Broadcaster from "@/components/crm/Broadcaster";
+import ModuleManager from "@/components/admin/ModuleManager";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -1517,6 +1520,9 @@ const CRM = () => {
                     { id: 'templates', label: 'Templates', icon: FileText },
                     { id: 'ai-agent', label: 'Agente IA', icon: Bot },
                     { id: 'webhooks', label: 'Webhooks (API)', icon: Webhook },
+                    { id: 'tutorials', label: 'MRO Ferramenta', icon: Video },
+                    { id: 'zapmro', label: 'ZAPMRO', icon: MessageCircle },
+                    { id: 'estrutura', label: 'Estrutura', icon: LayoutList },
                     { id: 'settings', label: 'Ajustes', icon: Settings },
                   ].map((item) => (
                     <SidebarMenuItem key={item.id}>
@@ -1549,40 +1555,17 @@ const CRM = () => {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
-              <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
+              <h1 className="text-xl font-bold tracking-tight capitalize">
+                {activeTab === 'tutorials' ? 'MRO Ferramenta' : 
+                 activeTab === 'zapmro' ? 'ZAPMRO' : 
+                 activeTab === 'estrutura' ? 'Estrutura' : 
+                 activeTab === 'contact-list' ? 'Contatos' : 
+                 activeTab === 'contacts' ? 'Conversas' : 
+                 activeTab}
+              </h1>
             </div>
             {activeTab === 'contacts' && (
               <div className="flex items-center gap-3">
-                <div className="hidden md:flex items-center gap-3 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10 mr-2">
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      id="google-sync-header" 
-                      checked={metaSettings.google_auto_sync} 
-                      onCheckedChange={async (checked) => {
-                        setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                        const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
-                        await supabase.from('crm_settings').upsert({
-                          ...rest,
-                          google_auto_sync: checked,
-                          id: '00000000-0000-0000-0000-000000000001',
-                          updated_at: new Date().toISOString()
-                        });
-                        toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
-                      }}
-                    />
-                    <Label htmlFor="google-sync-header" className="text-[10px] font-bold uppercase cursor-pointer whitespace-nowrap">Sincronizar Google</Label>
-                  </div>
-                  <div className="h-4 w-px bg-primary/20" />
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-7 text-[10px] font-black hover:bg-primary/10"
-                    onClick={handleSyncGoogleContacts}
-                  >
-                    {googleContactsEnabled ? 'RECONECTAR' : 'CONECTAR GOOGLE'}
-                  </Button>
-                </div>
-
                 <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold">
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
@@ -1674,7 +1657,67 @@ const CRM = () => {
                               status.color === 'pink' && 'bg-pink-500'
                             )} />
                             {status.label}
-                          </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Módulos & Ferramentas</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie o conteúdo das ferramentas externas.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      {[
+                        { 
+                          label: 'MRO Ferramenta', 
+                          desc: 'Gerenciar tutoriais do Instagram', 
+                          path: '/mro-ferramenta', 
+                          tab: 'tutorials',
+                          icon: Video, 
+                          color: 'amber' 
+                        },
+                        { 
+                          label: 'ZAPMRO', 
+                          desc: 'Gerenciar tutoriais do WhatsApp', 
+                          path: '/zapmro', 
+                          tab: 'zapmro',
+                          icon: MessageCircle, 
+                          color: 'green' 
+                        },
+                        { 
+                          label: 'Estrutura Renda Extra', 
+                          desc: 'Gerenciar materiais e tutoriais', 
+                          path: '/estruturarendaextra', 
+                          tab: 'estrutura',
+                          icon: LayoutList, 
+                          color: 'purple' 
+                        },
+                      ].map((tool, i) => (
+                        <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800 cursor-pointer" onClick={() => setActiveTab(tool.tab)}>
+                          <CardHeader className="pb-2">
+                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-2", {
+                              "bg-amber-500/10 text-amber-500": tool.color === 'amber',
+                              "bg-green-500/10 text-green-500": tool.color === 'green',
+                              "bg-purple-500/10 text-purple-500": tool.color === 'purple',
+                            })}>
+                              <tool.icon className="w-5 h-5" />
+                            </div>
+                            <CardTitle className="text-base font-bold">{tool.label}</CardTitle>
+                            <CardDescription className="text-xs">{tool.desc}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <Button variant="ghost" size="sm" className="w-full justify-between hover:bg-muted group-hover:text-primary transition-colors h-8 text-xs font-bold p-0 px-2">
+                              Configurar Módulo
+                              <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                          </CardContent>
+                          <div className={cn("absolute bottom-0 left-0 h-1 w-full opacity-50", {
+                            "bg-amber-500": tool.color === 'amber',
+                            "bg-green-500": tool.color === 'green',
+                            "bg-purple-500": tool.color === 'purple',
+                          })} />
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value && c.last_interaction !== null).length}</Badge>
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
@@ -4058,6 +4101,30 @@ const CRM = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+              </ScrollArea>
+            )}
+            {(activeTab === 'tutorials' || activeTab === 'zapmro' || activeTab === 'estrutura') && (
+              <ScrollArea className="flex-1 p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">
+                        {activeTab === 'tutorials' ? 'Gerenciar MRO Ferramenta' : 
+                         activeTab === 'zapmro' ? 'Gerenciar ZAPMRO' : 'Gerenciar Estrutura'}
+                      </h2>
+                      <p className="text-muted-foreground text-sm">
+                        Configure os módulos, vídeos e materiais que aparecem na ferramenta.
+                      </p>
+                    </div>
+                  </div>
+
+                  <ModuleManager 
+                    downloadLink={activeTab === 'zapmro' ? metaSettings.vps_transcoder_url : ''} 
+                    onDownloadLinkChange={(val) => setMetaSettings({...metaSettings, vps_transcoder_url: val})}
+                    onSaveSettings={() => handleSaveSettings()}
+                    platform={activeTab === 'tutorials' ? 'mro' : activeTab === 'zapmro' ? 'zapmro' : 'estrutura'}
+                  />
+                </div>
               </ScrollArea>
             )}
           </main>
