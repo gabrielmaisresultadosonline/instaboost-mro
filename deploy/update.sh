@@ -138,13 +138,16 @@ echo ""
 echo "🧩 Verificando conflitos de Nginx..."
 
 # 🚨 RESOLVER CONFLITO: Remove ou altera o whatsapp-bridge se ele usar o mesmo domínio
+# Agora que o ia-mro já tem o proxy para /bridge na porta 3000, não precisamos do config antigo.
 WPP_BRIDGE_NGINX="/etc/nginx/sites-enabled/whatsapp-bridge"
 if [ -f "$WPP_BRIDGE_NGINX" ]; then
-    echo "⚠️  Detectado conflito em $WPP_BRIDGE_NGINX. Corrigindo..."
-    # Comenta o server_name conflitante e adiciona server_name _;
-    $SUDO sed -i "s/server_name $DOMAIN/server_name _;#/g" "$WPP_BRIDGE_NGINX"
-    $SUDO sed -i "s/server_name www.$DOMAIN//g" "$WPP_BRIDGE_NGINX"
+    echo "⚠️  Removendo configuração conflitante em $WPP_BRIDGE_NGINX..."
+    $SUDO rm -f "$WPP_BRIDGE_NGINX"
 fi
+
+# Remove também qualquer resquício de default ou configs duplicadas que possam conflitar
+$SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+
 
 # Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge
 echo "🛠️ Atualizando configuração Nginx..."
