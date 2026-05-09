@@ -219,6 +219,70 @@ const CRM = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const computeConversationStats = async () => {
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      const { data: monthMsgs } = await supabase
+        .from('crm_messages')
+        .select('contact_id, direction, created_at')
+        .gte('created_at', startOfMonth)
+        .order('created_at', { ascending: true })
+        .limit(20000);
+
+      const byContact: Record<string, any[]> = {};
+      (monthMsgs || []).forEach((m: any) => {
+        if (!m.contact_id) return;
+        (byContact[m.contact_id] = byContact[m.contact_id] || []).push(m);
+      });
+
+      const DAY = 24 * 60 * 60 * 1000;
+      let paidCount = 0;
+      Object.values(byContact).forEach((msgs) => {
+        let lastInbound = -Infinity;
+        let lastPaidStart = -Infinity;
+        for (const m of msgs) {
+          const t = new Date(m.created_at).getTime();
+          if (m.direction === 'inbound') {
+            lastInbound = t;
+          } else if (m.direction === 'outbound') {
+            const inFreeWindow = t - lastInbound < DAY;
+            const inPaidWindow = t - lastPaidStart < DAY;
+            if (!inFreeWindow && !inPaidWindow) {
+              paidCount++;
+              lastPaidStart = t;
+            }
+          }
+        }
+      });
+
+      const { data: recent } = await supabase
+        .from('crm_messages')
+        .select('contact_id, direction, created_at')
+        .eq('direction', 'inbound')
+        .gte('created_at', since24h)
+        .limit(10000);
+      const activeSet = new Set<string>();
+      (recent || []).forEach((m: any) => m.contact_id && activeSet.add(m.contact_id));
+
+      setConversationStats({
+        paidThisMonth: paidCount,
+        activeWindow24h: activeSet.size,
+        monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      });
+    } catch (e) {
+      console.error('Erro ao calcular estatísticas de conversas:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      computeConversationStats();
+    }
+  }, [activeTab]);
+
   useEffect(() => {
     if (metaSettings.vps_transcoder_url) {
       const checkVps = async () => {
