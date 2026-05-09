@@ -57,33 +57,109 @@ app.get('/', (req, res) => {
   });
 });
 
-// Endpoint para envio direto de áudio do CRM
+// Endpoint para envio direto de áudio do CRM (com transcodificação profissional)
 app.post('/send-voice', async (req, res) => {
-  const { to, audioUrl } = req.body;
-
-  if (!client || currentStatus !== 'connected') {
-    return res.status(503).json({ error: 'Bot não está conectado no WhatsApp' });
-  }
+  const { to, audioUrl, metaToken, phoneId } = req.body;
 
   if (!to || !audioUrl) {
     return res.status(400).json({ error: 'Parâmetros "to" e "audioUrl" obrigatórios' });
   }
 
+  const tempId = Math.random().toString(36).substring(7);
+  const inputPath = path.join(__dirname, `input_${tempId}`);
+  const outputPath = path.join(__dirname, `output_${tempId}.ogg`);
+
   try {
     const chatId = formatPhone(to);
-    console.log(`🎙️ [Bridge] Enviando áudio para ${chatId}...`);
+    console.log(`🎙️ [Bridge] Processando áudio para ${chatId}...`);
     
-    // Download do áudio via axios para garantir que temos o buffer
-    const mediaRes = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-    const mimetype = mediaRes.headers['content-type'] || 'audio/ogg';
-    const media = new MessageMedia(mimetype, Buffer.from(mediaRes.data).toString('base64'), 'voice.ogg');
+    // 1. Download do áudio
+    const response = await axios({
+      method: 'get',
+      url: audioUrl,
+      responseType: 'stream'
+    });
+    
+    const writer = fs.createWriteStream(inputPath);
+    response.data.pipe(writer);
+    
+    await new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+    });
 
-    await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
-    
-    res.json({ success: true, message: 'Áudio enviado com sucesso via Bridge' });
+    // 2. Transcodificar para OGG Opus usando FFmpeg (formato nativo WhatsApp)
+    console.log(`🔧 [Bridge] Transcodificando via FFmpeg...`);
+    try {
+      await execAsync(`ffmpeg -i "${inputPath}" -c:a libopus -b:a 64k -vbr on -compression_level 10 -application voip "${outputPath}" -y`);
+      console.log(`✅ [Bridge] Transcodificação concluída.`);
+    } catch (ffmpegErr) {
+      console.error('⚠️ [Bridge] Falha no FFmpeg, tentando usar arquivo original:', ffmpegErr.message);
+      // Se falhar o ffmpeg, tentamos usar o original mesmo
+      fs.copyFileSync(inputPath, outputPath);
+    }
+
+    const audioData = fs.readFileSync(outputPath);
+    const base64Audio = audioData.toString('base64');
+
+    // 3. Decidir como enviar (Meta API ou Bot Local)
+    if (metaToken && phoneId) {
+      console.log(`📤 [Bridge] Enviando via Meta Cloud API...`);
+      
+      // Upload para Meta
+      const formData = new FormData();
+      formData.append('messaging_product', 'whatsapp');
+      formData.append('type', 'audio');
+      
+      // Precisamos do blob para o FormData do Node-fetch ou similar
+      // Mas o Node-fetch padrão não lida bem com FormData e arquivos de forma simples
+      // Usaremos axios para o upload para a Meta que é mais fácil com buffers
+      const metaUploadForm = new (require('form-data'))();
+      metaUploadForm.append('messaging_product', 'whatsapp');
+      metaUploadForm.append('type', 'audio');
+      metaUploadForm.append('file', audioData, { filename: 'voice.ogg', contentType: 'audio/ogg' });
+
+      const uploadRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/media`, metaUploadForm, {
+        headers: {
+          ...metaUploadForm.getHeaders(),
+          'Authorization': `Bearer ${metaToken}`
+        }
+      });
+
+      const mediaId = uploadRes.data.id;
+      console.log(`✅ [Bridge] Upload concluído na Meta. ID: ${mediaId}`);
+
+      // Enviar mensagem
+      const sendRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/messages`, {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: to,
+        type: "audio",
+        audio: { id: mediaId, voice: true }
+      }, {
+        headers: { 'Authorization': `Bearer ${metaToken}` }
+      });
+
+      res.json({ success: true, messageId: sendRes.data.messages?.[0]?.id });
+    } else {
+      // Enviar via Bot Local (whatsapp-web.js)
+      if (!client || currentStatus !== 'connected') {
+        throw new Error('Bot não está conectado no WhatsApp para envio local');
+      }
+      
+      const media = new MessageMedia('audio/ogg', base64Audio, 'voice.ogg');
+      await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
+      res.json({ success: true, message: 'Áudio enviado via Bot Local' });
+    }
   } catch (err) {
-    console.error('❌ Erro no Bridge ao enviar áudio:', err.message);
+    console.error('❌ Erro no Bridge:', err.message);
     res.status(500).json({ error: err.message });
+  } finally {
+    // 4. Limpeza
+    try {
+      if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+      if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+    } catch (e) {}
   }
 });
 
