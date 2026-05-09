@@ -1506,22 +1506,37 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     let blob = await fileResponse.blob();
     
     // Determine MIME type and filename
-    let mimeType = blob.type;
-    let filename = type === 'audio' ? 'voice.ogg' : 
-                   type === 'image' ? 'image.jpg' : 
-                   type === 'video' ? 'video.mp4' : 'document.pdf';
+    let mimeType = fileResponse.headers.get('content-type') || blob.type;
+    let filename = 'file';
+    
+    const urlPath = new URL(mediaUrl).pathname;
+    const extension = urlPath.split('.').pop()?.toLowerCase();
 
-    // Meta is very strict: voice messages MUST be audio/ogg or audio/mpeg (for audio type)
-    // For voice=true, audio/ogg with opus is the standard.
     if (type === 'audio') {
-      const buffer = await blob.arrayBuffer();
-      // Meta Cloud API is extremely strict: voice messages MUST be audio/ogg; codecs=opus
-      // We force the Content-Type to EXACTLY 'audio/ogg; codecs=opus' for voice messages.
-      // This is the key to avoiding the "application/octet-stream" processing error.
-      mimeType = 'audio/ogg; codecs=opus';
-      blob = new Blob([buffer], { type: mimeType });
-      filename = 'voice.ogg';
-      console.log(`CRITICAL: Forced audio blob to ${mimeType} with .ogg filename for Meta delivery. Size: ${buffer.byteLength} bytes`);
+      // Logic for audio delivery to Meta
+      if (extension === 'ogg' || mimeType.includes('ogg')) {
+        mimeType = 'audio/ogg; codecs=opus';
+        filename = 'voice.ogg';
+      } else if (extension === 'mp3' || mimeType.includes('mpeg')) {
+        mimeType = 'audio/mpeg';
+        filename = 'voice.mp3';
+      } else if (extension === 'm4a' || extension === 'mp4' || mimeType.includes('mp4')) {
+        mimeType = 'audio/mp4';
+        filename = 'voice.m4a';
+      } else if (extension === 'webm' || mimeType.includes('webm')) {
+        // Meta doesn't explicitly support webm, but often accepts it if labeled as mpeg or mp4
+        // for internal transcoding. Let's try labeling it as audio/mpeg which is a common workaround.
+        mimeType = 'audio/mpeg'; 
+        filename = 'voice.mp3';
+        console.log(`WORKAROUND: Labeling webm as audio/mpeg for Meta processing.`);
+      } else {
+        mimeType = 'audio/mpeg';
+        filename = 'voice.mp3';
+      }
+      console.log(`Audio upload config - Mime: ${mimeType}, File: ${filename}, Extension: ${extension}`);
+    } else {
+      filename = type === 'image' ? 'image.jpg' : 
+                 type === 'video' ? 'video.mp4' : 'document.pdf';
     }
 
     const formData = new FormData();
