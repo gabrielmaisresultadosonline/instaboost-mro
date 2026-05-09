@@ -1246,7 +1246,8 @@ async function internalSendTemplate(
 }
 
 async function executeVisualNode(supabase: any, flow: any, node: any, contactId: string, waId: string) {
-  const { meta_access_token, meta_phone_number_id } = await getSettings(supabase)
+  const settings = await getSettings(supabase)
+  const { meta_access_token, meta_phone_number_id, vps_transcoder_url } = settings
   
   const { data: contact } = await supabase
     .from('crm_contacts')
@@ -1266,7 +1267,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       text: node.data.text
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
   } 
   else if (node.type === 'audio') {
@@ -1275,7 +1276,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         to: waId,
         audioUrl: node.data.audioUrl,
         isVoice: node.data.isPTT ?? true
-      }, contact)
+      }, contact, vps_transcoder_url)
       sendResult = await response.json();
     } else {
       console.error('Audio node missing URL');
@@ -1286,14 +1287,14 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       videoUrl: node.data.videoUrl
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
   }
   else if (node.type === 'image') {
     const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       imageUrl: node.data.imageUrl
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
   }
   else if (node.type === 'question') {
@@ -1304,7 +1305,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         id: b.id || `btn-${idx}`,
         text: b.text
       }))
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
     
     if (sendResult?.success) {
