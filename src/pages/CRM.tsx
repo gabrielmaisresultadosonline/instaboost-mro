@@ -1695,7 +1695,7 @@ const CRM = () => {
                                 size="sm" 
                                 variant="outline" 
                                 className="h-7 text-[10px] bg-background font-bold"
-                                onClick={handleConnectGoogle}
+                                onClick={handleSyncGoogleContacts}
                               >
                                 {googleContactsEnabled ? 'Reconectar' : 'Conectar Google'}
                               </Button>
