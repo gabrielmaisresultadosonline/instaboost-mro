@@ -68,7 +68,8 @@ import {
   Camera,
   LayoutList,
   MessageCircle,
-  Loader2
+  Loader2,
+  Info
 } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 const Instagram = (LucideIcons as any).Instagram || Camera;
@@ -99,6 +100,8 @@ import {
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const CRM = () => {
   const navigate = useNavigate();
