@@ -3431,6 +3431,42 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
+                      <CardHeader className="bg-muted/30 border-b p-4 md:p-6">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "p-2 rounded-lg",
+                            metaSettings.vps_status === 'online' ? "bg-green-100 text-green-600" : 
+                            metaSettings.vps_status === 'offline' ? "bg-red-100 text-red-600" : 
+                            "bg-primary/10 text-primary"
+                          )}>
+                            <RefreshCcw className={cn("w-5 h-5", metaSettings.vps_status === 'unknown' && "animate-spin")} />
+                          </div>
+                          <div>
+                            <CardTitle className="text-base md:text-lg">VPS Transcoder</CardTitle>
+                            <CardDescription className="text-[11px]">Áudio Profissional (Gravado).</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 md:p-6 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-muted-foreground">URL do VPS</Label>
+                          <div className="flex gap-2">
+                            <Input placeholder="http://ip:3000" className="bg-muted/30 border-none h-10 rounded-xl text-xs flex-1" value={metaSettings.vps_transcoder_url || ''} onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} />
+                            <Button variant="outline" size="sm" className="h-10 rounded-xl px-3 text-[10px]" onClick={async () => {
+                              if (!metaSettings.vps_transcoder_url) return;
+                              try {
+                                await fetch(metaSettings.vps_transcoder_url.replace(/\/$/, ''), { method: 'GET', mode: 'no-cors' });
+                                toast({ title: "VPS Online!" });
+                              } catch (err) {
+                                toast({ title: "VPS Offline", variant: "destructive" });
+                              }
+                            }}>TESTAR</Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
                       <CardHeader className="bg-muted/30 border-b p-4 md:p-6">
                         <div className="flex items-center gap-3">
