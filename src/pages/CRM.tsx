@@ -1612,13 +1612,56 @@ const CRM = () => {
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
-                        <div className="relative">
-                          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input 
-                            placeholder="Buscar contatos..." 
-                            className="pl-9 bg-muted/50 border-none h-10"
-                            onChange={e => setStatusFilter(e.target.value || 'all')} 
-                          />
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                              placeholder="Buscar contatos..." 
+                              className="pl-9 bg-muted/50 border-none h-10"
+                              onChange={e => setStatusFilter(e.target.value || 'all')} 
+                            />
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-primary" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Google Contatos</span>
+                              </div>
+                              <Badge variant={googleContactsEnabled ? "default" : "outline"} className="text-[10px] h-5">
+                                {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-1">
+                              <div className="flex items-center gap-2">
+                                <Switch 
+                                  id="google-sync" 
+                                  checked={metaSettings.google_auto_sync} 
+                                  onCheckedChange={async (checked) => {
+                                    setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                    const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                                    await supabase.from('crm_settings').upsert({
+                                      ...rest,
+                                      google_auto_sync: checked,
+                                      id: '00000000-0000-0000-0000-000000000001',
+                                      updated_at: new Date().toISOString()
+                                    });
+                                    toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                                  }}
+                                />
+                                <Label htmlFor="google-sync" className="text-[10px] font-medium cursor-pointer">Sincronizar automático</Label>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-7 text-[10px] bg-background font-bold"
+                                onClick={handleConnectGoogle}
+                              >
+                                {googleContactsEnabled ? 'Reconectar' : 'Conectar Google'}
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="tags" className="border-none">
