@@ -2594,7 +2594,44 @@ const CRM = () => {
                         <CardDescription>Registro de mensagens enviadas ou com erro.</CardDescription>
                       </CardHeader>
                       <CardContent className="p-0">
-                        <div className="overflow-x-auto">
+                        {/* Mobile cards */}
+                        <div className="md:hidden divide-y">
+                          {allScheduledMessages.filter(m => m.status !== 'pending').length > 0 ? (
+                            allScheduledMessages.filter(m => m.status !== 'pending')
+                              .sort((a, b) => new Date(b.scheduled_for).getTime() - new Date(a.scheduled_for).getTime())
+                              .slice(0, 20)
+                              .map((msg) => (
+                              <div key={msg.id} className="p-4 flex flex-col gap-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <p className="font-bold text-sm truncate min-w-0">{msg.crm_contacts?.name || msg.crm_contacts?.wa_id || 'Desconhecido'}</p>
+                                  <Badge 
+                                    variant={msg.status === 'sent' ? 'default' : 'destructive'}
+                                    className={cn(
+                                      "capitalize text-[10px] shrink-0",
+                                      msg.status === 'sent' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                    )}
+                                  >
+                                    {msg.status === 'sent' ? 'Enviado' : msg.status === 'canceled' ? 'Cancelado' : 'Erro'}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                  <Badge variant="outline" className="capitalize text-[10px]">
+                                    {msg.message_data?.action === 'sendMessage' ? 'Texto' : 
+                                     msg.message_data?.action === 'sendTemplate' ? 'Template' : 
+                                     msg.message_data?.action === 'startFlow' ? 'Fluxo' : msg.message_data?.action}
+                                  </Badge>
+                                  <span className="text-muted-foreground">{new Date(msg.scheduled_for).toLocaleString('pt-BR')}</span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center text-muted-foreground italic text-xs">
+                              Nenhum histórico encontrado.
+                            </div>
+                          )}
+                        </div>
+                        {/* Desktop table */}
+                        <div className="hidden md:block overflow-x-auto">
                           <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground border-b">
                               <tr>
