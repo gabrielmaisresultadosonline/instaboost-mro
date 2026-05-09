@@ -274,7 +274,7 @@ serve(async (req) => {
         .eq('wa_id', params.to)
         .single();
         
-      return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, params, contact);
+      return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, params, contact, settings?.vps_transcoder_url);
     }
 
     if (action === 'startFlow') {
