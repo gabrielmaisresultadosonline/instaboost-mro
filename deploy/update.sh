@@ -256,12 +256,22 @@ $SUDO nginx -t
 $SUDO systemctl restart nginx
 
 echo ""
+echo "✨ Verificação Final:"
+echo "📂 Pasta dist: $(ls -l $APP_DIR/dist/index.html)"
+echo "🔍 Conteúdo do index (primeiras linhas):"
+head -n 20 $APP_DIR/dist/index.html | grep -E "assets/index" || echo "⚠️  Nomes fixos não encontrados no index.html local"
+
+echo ""
 echo "✅ Atualização concluída!"
 echo "🌐 Frontend: https://$DOMAIN"
 echo "📝 Prompts MRO: https://$PROMPTS_DOMAIN"
 echo ""
+echo "🚀 IMPORTANTE: Se o site ainda mostrar a página branca ou erro 404:"
+echo "   1. No painel da CLOUDFLARE: Cache -> Purge Everything (Limpar tudo)"
+echo "   2. No seu NAVEGADOR: Pressione CTRL + SHIFT + R (Hard Refresh)"
+echo ""
 echo "🤖 Bot WhatsApp:"
 echo "   Status:  pm2 status wpp-bot-mro"
 echo "   Logs:    pm2 logs wpp-bot-mro"
-echo "   QR Code: pm2 logs wpp-bot-mro --lines 50"
+
 echo ""
