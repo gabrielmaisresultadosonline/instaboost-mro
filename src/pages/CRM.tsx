@@ -1056,86 +1056,192 @@ const CRM = () => {
 
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
-                <div className="flex-1 flex flex-col min-h-0 relative">
+                {/* Mobile sidebar for contacts list when no contact is selected */}
+                <div className={cn(
+                  "w-full lg:w-80 flex flex-col border-r bg-card overflow-hidden transition-all duration-300",
+                  selectedContact ? "hidden lg:flex" : "flex"
+                )}>
+                  <div className="p-4 border-b font-bold flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ListFilter className="w-4 h-4 text-primary" /> 
+                      <span>Conversas Recentes</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" title="Conectar Google">
+                        <LinkIcon className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" title="Novo Contato">
+                        <UserPlus className="h-4 w-4 text-primary" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-3 border-b">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Buscar conversa..." 
+                        className="pl-9 bg-muted/50 border-none h-9 rounded-xl text-xs"
+                        value={statusFilter === 'all' ? '' : statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value || 'all')}
+                      />
+                    </div>
+                  </div>
+                  <ScrollArea className="flex-1">
+                    {filteredContacts.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground text-sm">
+                        Nenhuma conversa encontrada.
+                      </div>
+                    ) : (
+                      filteredContacts.map(contact => (
+                        <div 
+                          key={contact.id} 
+                          onClick={() => openChat(contact)}
+                          className={cn(
+                            "p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-3 relative group",
+                            selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "border-l-4 border-l-transparent"
+                          )}
+                        >
+                          <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 shadow-sm">
+                            {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start">
+                              <p className="font-bold text-sm truncate pr-1">{contact.name || contact.wa_id}</p>
+                              {contact.last_interaction && (
+                                <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5">
+                                  {format(new Date(contact.last_interaction), "HH:mm", { locale: ptBR })}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate leading-tight mt-0.5">{contact.last_message || 'Inicie uma conversa'}</p>
+                          </div>
+                          {contact.unread_count > 0 && (
+                            <Badge className="bg-primary text-white rounded-full px-1.5 min-w-[20px] h-5 flex items-center justify-center shadow-sm">
+                              {contact.unread_count}
+                            </Badge>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </ScrollArea>
+                </div>
+
+                {/* Chat window */}
+                <div className={cn(
+                  "flex-1 flex flex-col min-h-0 relative",
+                  !selectedContact ? "hidden lg:flex" : "flex"
+                )}>
                   {selectedContact ? (
                     <>
-                      <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
+                      <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-20 sticky top-0">
                         <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-                          <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedContact(null)}>
+                          <Button variant="ghost" size="icon" className="lg:hidden shrink-0" onClick={() => setSelectedContact(null)}>
                             <ChevronLeft className="h-5 w-5" />
                           </Button>
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 hidden sm:flex">
+                            {selectedContact.name?.[0] || selectedContact.wa_id?.[0] || '?'}
+                          </div>
                           <div className="flex flex-col min-w-0">
                             <p className="font-bold text-sm md:text-base truncate">{selectedContact.name || selectedContact.wa_id}</p>
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                              <span className="text-[10px] md:text-xs text-muted-foreground font-medium uppercase tracking-wider">{getStatusLabel(selectedContact.status)}</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openContactInfo(selectedContact)}>
+                        <div className="flex items-center gap-1 md:gap-2">
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => openContactInfo(selectedContact)}>
                             <Info className="w-5 h-5" />
                           </Button>
                         </div>
                       </div>
-                      <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto h-full">
-                        <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
-                          {chatMessages.map((m, idx) => (
-                            <div key={m.id || idx} className={cn("flex w-full mb-1", m.direction === 'inbound' ? 'justify-start' : 'justify-end')}>
-                              <div className={cn("p-2.5 md:p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm", m.direction === 'inbound' ? 'bg-card text-card-foreground rounded-tl-none border' : 'bg-primary text-primary-foreground rounded-tr-none')}>
-                                <p className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                      
+                      <div className="flex-1 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat relative overflow-hidden flex flex-col">
+                        <div className="absolute inset-0 bg-background/90 backdrop-blur-[2px]"></div>
+                        <ScrollArea className="flex-1 relative z-10">
+                          <div className="p-4 md:p-8 space-y-6 max-w-4xl mx-auto flex flex-col">
+                            {chatMessages.length === 0 ? (
+                              <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-40 grayscale">
+                                <MessageCircle className="w-16 h-16 mb-4" />
+                                <p className="text-sm font-medium">Nenhuma mensagem nesta conversa</p>
                               </div>
-                            </div>
-                          ))}
+                            ) : (
+                              chatMessages.map((m, idx) => (
+                                <div key={m.id || idx} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", m.direction === 'inbound' ? 'justify-start' : 'justify-end')}>
+                                  <div className={cn(
+                                    "p-3 md:p-4 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-md relative group",
+                                    m.direction === 'inbound' 
+                                      ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
+                                      : 'bg-primary text-primary-foreground rounded-tr-none'
+                                  )}>
+                                    <p className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap font-medium">{m.content}</p>
+                                    <div className={cn(
+                                      "text-[9px] mt-1.5 opacity-60 flex items-center justify-end gap-1",
+                                      m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground/80'
+                                    )}>
+                                      {format(new Date(m.created_at), "HH:mm", { locale: ptBR })}
+                                      {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                            <div ref={scrollRef} />
+                          </div>
+                        </ScrollArea>
+                      </div>
+
+                      <div className="bg-card/80 backdrop-blur-md px-4 py-4 md:px-6 md:py-5 flex items-end gap-2 md:gap-4 border-t z-20 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+                        <div className="flex-1 relative group">
+                          <Textarea 
+                            value={newMessage} 
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            onKeyDown={(e) => { 
+                              if (e.key === 'Enter' && !e.shiftKey) { 
+                                e.preventDefault(); 
+                                handleSendMessage(); 
+                              } 
+                            }}
+                            placeholder="Escreva sua mensagem aqui..."
+                            className="bg-muted/50 border-none min-h-[48px] max-h-32 rounded-2xl text-sm md:text-base pr-12 transition-all focus-visible:ring-primary/20 focus-visible:bg-muted/80 py-3 resize-none scrollbar-none"
+                            rows={1}
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute right-2 bottom-1.5 h-9 w-9 rounded-xl text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <Smile className="w-5 h-5" />
+                          </Button>
                         </div>
-                      </ScrollArea>
-                      <div className="bg-card px-4 py-3 flex items-end gap-2 border-t shrink-0">
-                        <Textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                          placeholder="Digite uma mensagem..."
-                          className="bg-muted/50 border-none h-11 rounded-xl text-sm"
-                          rows={1}
-                        />
-                        <Button onClick={handleSendMessage} disabled={!newMessage.trim() || sendingMessage} className="h-11 w-11 rounded-full">
-                          {sendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                        <Button 
+                          onClick={handleSendMessage} 
+                          disabled={!newMessage.trim() || sendingMessage} 
+                          className="h-12 w-12 rounded-2xl shadow-lg shadow-primary/30 transition-all active:scale-95 shrink-0"
+                        >
+                          {sendingMessage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                         </Button>
                       </div>
                     </>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center bg-muted/5">
-                      <div className="text-center">
-                        <MessageSquare className="w-16 h-16 text-primary/30 mx-auto mb-4" />
-                        <h2 className="text-xl font-bold">Selecione uma conversa</h2>
-                        <p className="text-muted-foreground text-sm">Escolha um contato na barra lateral para iniciar.</p>
+                    <div className="flex-1 flex flex-col items-center justify-center bg-muted/5 p-8 text-center animate-in fade-in duration-500">
+                      <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-6 shadow-xl shadow-primary/5">
+                        <MessageSquare className="w-12 h-12" />
+                      </div>
+                      <h2 className="text-2xl font-black tracking-tight mb-2">Central de Atendimento</h2>
+                      <p className="text-muted-foreground text-sm md:text-base max-w-sm leading-relaxed">
+                        Selecione uma conversa na barra lateral para visualizar o histórico e enviar novas mensagens.
+                      </p>
+                      <div className="mt-8 flex gap-3">
+                        <Button variant="outline" className="rounded-xl px-6" onClick={() => setActiveTab('contact-list')}>
+                          <Users className="w-4 h-4 mr-2" /> Ver Contatos
+                        </Button>
+                        <Button className="rounded-xl px-6" onClick={() => setIsImportExportOpen(true)}>
+                          <LinkIcon className="w-4 h-4 mr-2" /> Conectar Google
+                        </Button>
                       </div>
                     </div>
                   )}
-                </div>
-                <div className="hidden lg:flex w-80 flex-col border-l bg-card overflow-hidden">
-                  <div className="p-4 border-b font-bold flex items-center gap-2">
-                    <ListFilter className="w-4 h-4" /> Conversas Recentes
-                  </div>
-                  <ScrollArea className="flex-1">
-                    {filteredContacts.map(contact => (
-                      <div 
-                        key={contact.id} 
-                        onClick={() => openChat(contact)}
-                        className={cn(
-                          "p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-3",
-                          selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : ""
-                        )}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                          {contact.name?.[0] || contact.wa_id?.[0] || '?'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm truncate">{contact.name || contact.wa_id}</p>
-                          <p className="text-xs text-muted-foreground truncate">{contact.last_message || 'Nenhuma mensagem'}</p>
-                        </div>
-                        {contact.unread_count > 0 && (
-                          <Badge className="bg-primary text-white rounded-full px-1.5 min-w-[20px] h-5 flex items-center justify-center">
-                            {contact.unread_count}
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
-                  </ScrollArea>
                 </div>
               </div>
             )}
