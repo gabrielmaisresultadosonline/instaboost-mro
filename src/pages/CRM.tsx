@@ -3452,6 +3452,7 @@ const CRM = () => {
                     </Card>
 
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
+                      <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-5 h-5" /></div>
                           <div>
