@@ -2693,17 +2693,17 @@ const CRM = () => {
             )}
 
             {activeTab === 'ai-agent' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+              <ScrollArea className="flex-1 bg-muted/5">
+                <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
                     <div>
-                      <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
                         <Bot className="w-6 h-6 text-primary" /> Agente de Inteligência Artificial
                       </h2>
-                      <p className="text-muted-foreground text-sm">Configure como a IA deve interagir com seus clientes.</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">Personalize o comportamento e as instruções da sua IA.</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="ai-agent-enabled" className="text-sm font-bold">Ativação Geral</Label>
+                    <div className="flex items-center gap-2 bg-muted/20 p-2 rounded-xl border sm:border-none w-full sm:w-auto justify-between sm:justify-start">
+                      <Label htmlFor="ai-agent-enabled" className="text-xs md:text-sm font-bold">Ativação Geral</Label>
                       <Switch 
                         id="ai-agent-enabled"
                         checked={metaSettings.ai_agent_enabled}
@@ -2712,17 +2712,17 @@ const CRM = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
-                      <CardHeader className="bg-zinc-50 dark:bg-zinc-900/50 border-b">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                      <CardHeader className="bg-zinc-50 dark:bg-zinc-900/50 border-b p-4 md:p-6">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2">
                           <LinkIcon className="w-4 h-4 text-zinc-600" /> Motor da IA
                         </CardTitle>
-                        <CardDescription>Conexão e Modo de Operação</CardDescription>
+                        <CardDescription className="text-xs">Conexão e Modo de Operação</CardDescription>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-6 flex-1">
+                      <CardContent className="p-4 md:p-6 space-y-6 flex-1">
                         <div className="space-y-2">
-                          <Label className="text-sm font-bold flex items-center gap-2">
+                          <Label className="text-xs md:text-sm font-bold flex items-center gap-2">
                             OpenAI API Key
                           </Label>
                           <Input 
@@ -2730,352 +2730,131 @@ const CRM = () => {
                             placeholder="sk-..."
                             value={metaSettings.openai_api_key}
                             onChange={(e) => setMetaSettings({...metaSettings, openai_api_key: e.target.value})}
+                            className="h-10 text-sm rounded-xl"
                           />
                           <p className="text-[10px] text-muted-foreground italic">Use uma chave da OpenAI (GPT-4o recomendado).</p>
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-sm font-bold flex items-center gap-2">
+                          <Label className="text-xs md:text-sm font-bold flex items-center gap-2">
                             <Zap className="w-4 h-4 text-amber-500" /> Modo de Operação
                           </Label>
                           <Select 
                             value={metaSettings.ai_operation_mode || 'chat'} 
                             onValueChange={(val) => setMetaSettings({...metaSettings, ai_operation_mode: val})}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10 text-sm rounded-xl">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="rounded-xl border-none shadow-xl">
                               <SelectItem value="chat">Apenas Conversar (I.A. Ativa)</SelectItem>
                               <SelectItem value="monitor">Apenas Qualificar (Passiva)</SelectItem>
                               <SelectItem value="hybrid">Híbrido (Conversa e Qualifica)</SelectItem>
                             </SelectContent>
                           </Select>
-                          <p className="text-[10px] text-muted-foreground italic">
-                            "Passiva" fará com que a IA não envie mensagens, apenas analise o contato.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
-                      <CardHeader className="bg-primary/5 border-b flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                            <Users className="w-5 h-5" /> Integração Google Contatos
-                          </CardTitle>
-                          <CardDescription>Sincronize seus contatos com o Google para backup e organização</CardDescription>
-                        </div>
-                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold">
-                          {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
-                              <div className="space-y-0.5">
-                                <Label className="text-sm font-bold flex items-center gap-2">
-                                  <RefreshCcw className="w-4 h-4" /> Sincronização Automática
-                                </Label>
-                                <p className="text-xs text-muted-foreground">Novos contatos serão enviados ao Google automaticamente.</p>
-                              </div>
-                              <Switch 
-                                checked={metaSettings.google_auto_sync} 
-                                onCheckedChange={async (checked) => {
-                                  setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                  const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
-                                  await supabase.from('crm_settings').upsert({
-                                    ...rest,
-                                    google_auto_sync: checked,
-                                    id: '00000000-0000-0000-0000-000000000001',
-                                    updated_at: new Date().toISOString()
-                                  });
-                                  toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
-                                }}
-                              />
-                            </div>
-                            
-                            <div className="flex gap-3">
-                              <Button 
-                                className="flex-1 font-bold h-11"
-                                onClick={handleConnectGoogle}
-                                variant={googleContactsEnabled ? "outline" : "default"}
-                              >
-                                {googleContactsEnabled ? 'Reconectar Conta Google' : 'Conectar Conta Google'}
-                              </Button>
-                              
-                              {googleContactsEnabled && (
-                                <Button 
-                                  className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
-                                  onClick={handleSyncGoogleContacts}
-                                >
-                                  <RefreshCcw className="w-4 h-4 mr-2" /> Sincronizar Agora
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-500/5 border border-blue-200 rounded-xl p-4 flex gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                              <Users className="w-5 h-5 text-blue-500" />
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="text-sm font-bold text-blue-700">Por que conectar?</h4>
-                              <p className="text-[11px] text-blue-600/80 leading-relaxed">
-                                Ao conectar sua conta Google, você pode importar contatos existentes e garantir que todos os seus leads do WhatsApp sejam salvos automaticamente na sua agenda do Google.
-                              </p>
-                            </div>
-                          </div>
                         </div>
                       </CardContent>
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
-                      <CardHeader className="bg-amber-50 dark:bg-amber-900/10 border-b">
-                        <CardTitle className="text-lg flex items-center gap-2 text-amber-700 dark:text-amber-500">
-                          <TrendingUp className="w-4 h-4" /> Estratégias e Gatilhos
+                      <CardHeader className="bg-amber-50 dark:bg-amber-900/10 border-b p-4 md:p-6">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-amber-700 dark:text-amber-500">
+                          <TrendingUp className="w-4 h-4" /> Gatilhos de Ativação
                         </CardTitle>
-                        <CardDescription>Quando e como o agente entra em ação</CardDescription>
+                        <CardDescription className="text-xs">Quando o agente entra em ação</CardDescription>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-6 flex-1">
+                      <CardContent className="p-4 md:p-6 space-y-6 flex-1">
                         <div className="space-y-2">
-                          <Label className="text-sm font-bold flex items-center gap-2">
-                            Gatilho de Ativação
-                          </Label>
+                          <Label className="text-xs md:text-sm font-bold">Gatilho Principal</Label>
                           <Select 
                             value={metaSettings.ai_agent_trigger || 'all'} 
                             onValueChange={(val) => setMetaSettings({...metaSettings, ai_agent_trigger: val})}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10 text-sm rounded-xl">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">Qualquer Mensagem (Sempre Ativo)</SelectItem>
-                              <SelectItem value="keyword">Mensagem Específica (Palavra-chave)</SelectItem>
-                              <SelectItem value="first_message">Primeira Mensagem do Cliente</SelectItem>
-                              <SelectItem value="manual">Ativação Manual apenas</SelectItem>
+                            <SelectContent className="rounded-xl border-none shadow-xl">
+                              <SelectItem value="all">Qualquer Mensagem</SelectItem>
+                              <SelectItem value="keyword">Palavra-chave</SelectItem>
+                              <SelectItem value="first_message">Primeira Mensagem</SelectItem>
+                              <SelectItem value="manual">Manual apenas</SelectItem>
                             </SelectContent>
                           </Select>
                           
                           {metaSettings.ai_agent_trigger === 'keyword' && (
-                            <div className="space-y-2 mt-2 animate-in fade-in slide-in-from-top-1">
-                              <Input 
-                                placeholder="Ex: #aula, oi, quero saber"
-                                value={metaSettings.ai_agent_trigger_keyword || ''}
-                                onChange={(e) => setMetaSettings({...metaSettings, ai_agent_trigger_keyword: e.target.value})}
-                              />
-                            </div>
+                            <Input 
+                              placeholder="Ex: #aula, oi, quero saber"
+                              value={metaSettings.ai_agent_trigger_keyword || ''}
+                              onChange={(e) => setMetaSettings({...metaSettings, ai_agent_trigger_keyword: e.target.value})}
+                              className="mt-2 h-10 text-sm rounded-xl"
+                            />
                           )}
                         </div>
 
-                        <div className="space-y-4 pt-4 border-t border-amber-100 dark:border-amber-900/20">
-                          <div className="flex items-center justify-between p-3 bg-indigo-500/5 rounded-xl border border-indigo-200">
-                            <div className="space-y-0.5">
-                              <Label className="text-xs font-bold flex items-center gap-2">
-                                <TrendingUp className="w-3.5 h-3.5 text-indigo-600" /> Auto-Estratégia
-                              </Label>
-                              <p className="text-[10px] text-muted-foreground">Gerar estratégias automáticas.</p>
-                            </div>
-                            <Switch 
-                              checked={metaSettings.auto_generate_strategy}
-                              onCheckedChange={(val) => setMetaSettings({...metaSettings, auto_generate_strategy: val})}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[11px] font-bold">Prompt de Estratégia</Label>
-                            <Textarea 
-                              rows={2}
-                              className="resize-none text-xs"
-                              placeholder="Como a IA deve gerar as estratégias..."
-                              value={metaSettings.strategy_generation_prompt}
-                              onChange={(e) => setMetaSettings({...metaSettings, strategy_generation_prompt: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="rounded-2xl shadow-sm border overflow-hidden md:col-span-2">
-                      <CardHeader className="bg-blue-50 dark:bg-blue-900/10 border-b flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                            <Clock className="w-4 h-4" /> Gestão de Horário Comercial
-                          </CardTitle>
-                          <CardDescription>Defina quando o agente deve avisar sobre ausência</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label className="text-xs font-bold">Ativar Função</Label>
-                          <Switch 
-                            checked={metaSettings.business_hours_enabled}
-                            onCheckedChange={(val) => setMetaSettings({...metaSettings, business_hours_enabled: val})}
-                          />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-1.5">
-                                <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> Início
-                                </Label>
-                                <Input 
-                                  type="time" 
-                                  className="h-10 text-sm"
-                                  value={metaSettings.business_hours_start}
-                                  onChange={(e) => setMetaSettings({...metaSettings, business_hours_start: e.target.value})}
-                                />
-                              </div>
-                              <div className="space-y-1.5">
-                                <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> Fim
-                                </Label>
-                                <Input 
-                                  type="time" 
-                                  className="h-10 text-sm"
-                                  value={metaSettings.business_hours_end}
-                                  onChange={(e) => setMetaSettings({...metaSettings, business_hours_end: e.target.value})}
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fuso Horário</Label>
-                              <Select 
-                                value={metaSettings.business_hours_tz} 
-                                onValueChange={(val) => setMetaSettings({...metaSettings, business_hours_tz: val})}
-                              >
-                                <SelectTrigger className="h-10 text-sm">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
-                                  <SelectItem value="Europe/Lisbon">Lisboa (GMT+0)</SelectItem>
-                                  <SelectItem value="UTC">UTC</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="md:col-span-2 space-y-2">
-                            <Label className="text-sm font-bold flex items-center gap-2">
-                              Mensagem de Ausência (Fora de Horário)
+                        <div className="flex items-center justify-between p-3 bg-indigo-50/5 rounded-xl border border-indigo-200/50">
+                          <div className="space-y-0.5">
+                            <Label className="text-xs font-bold flex items-center gap-2">
+                              Auto-Estratégia
                             </Label>
-                            <Textarea 
-                              rows={4}
-                              className="resize-none text-sm"
-                              placeholder="Nossos administradores não estão ativos no momento..."
-                              value={metaSettings.outside_hours_message}
-                              onChange={(e) => setMetaSettings({...metaSettings, outside_hours_message: e.target.value})}
-                            />
-                            <p className="text-[10px] text-muted-foreground italic">
-                              Esta mensagem será enviada pela IA caso ela seja acionada fora do horário comercial definido.
-                            </p>
+                            <p className="text-[10px] text-muted-foreground">Gerar estratégias automáticas.</p>
                           </div>
+                          <Switch 
+                            checked={metaSettings.auto_generate_strategy}
+                            onCheckedChange={(val) => setMetaSettings({...metaSettings, auto_generate_strategy: val})}
+                          />
                         </div>
                       </CardContent>
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden md:col-span-2">
-                      <CardHeader className="bg-primary/5 border-b">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Bot className="w-5 h-5 text-primary" /> Instruções do Agente (Cérebro)
-                        </CardTitle>
-                        <CardDescription>Defina a personalidade e o objetivo do seu robô</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <Label className="text-sm font-bold">Prompt do System</Label>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleImprovePrompt}
-                              disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95"
-                            >
-                              {improvingPrompt ? (
-                                <RefreshCcw className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
-                              )}
-                              Melhorar Prompt com I.A
-                            </Button>
+                      <CardHeader className="bg-primary/5 border-b p-4 md:p-6">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Bot className="w-5 h-5 text-primary" />
+                            <div>
+                              <CardTitle className="text-base md:text-lg">Instruções do Agente (Cérebro)</CardTitle>
+                              <CardDescription className="text-xs">Defina a personalidade e o objetivo do seu robô</CardDescription>
+                            </div>
                           </div>
-                          <Textarea 
-                            rows={10}
-                            className="resize-none font-mono text-xs leading-relaxed"
-                            placeholder="Ex: Você é um consultor de vendas especializado em..."
-                            value={metaSettings.ai_system_prompt}
-                            onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
-                          />
-                          <p className="text-[10px] text-muted-foreground">Instruções detalhadas de comportamento e conhecimento.</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleImprovePrompt}
+                            disabled={improvingPrompt}
+                            className="h-8 md:h-9 text-[10px] md:text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 rounded-xl w-full sm:w-auto"
+                          >
+                            {improvingPrompt ? (
+                              <RefreshCcw className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
+                            )}
+                            Melhorar Prompt com I.A
+                          </Button>
                         </div>
+                      </CardHeader>
+                      <CardContent className="p-4 md:p-6">
+                        <Textarea 
+                          rows={12}
+                          className="resize-none font-mono text-[11px] md:text-xs leading-relaxed bg-muted/10 rounded-xl"
+                          placeholder="Ex: Você é um consultor de vendas especializado em..."
+                          value={metaSettings.ai_system_prompt}
+                          onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
+                        />
                       </CardContent>
                     </Card>
                   </div>
 
-                  <Card className="rounded-2xl shadow-sm border overflow-hidden">
-                    <CardHeader className="bg-primary/5 border-b">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <GitBranch className="w-5 h-5 text-primary" /> Conhecimento dos Templates e Fluxos
-                      </CardTitle>
-                      <CardDescription>A IA saberá quais botões e caminhos estão disponíveis para enviar automaticamente.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="bg-blue-500/5 border border-blue-200 rounded-xl p-4 flex gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                          <Eye className="w-6 h-6 text-blue-500" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-blue-700">Visão Contextual Ativa</h4>
-                          <p className="text-sm text-blue-600/80 leading-relaxed">
-                            O agente IA analisa automaticamente todos os seus <strong>Templates</strong> e <strong>Fluxos Visuais</strong> ativos. 
-                            Ele entende o propósito de cada botão e pode escolher enviar um template específico se julgar necessário para o atendimento.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-8 space-y-4">
-                        <h4 className="font-bold text-sm flex items-center gap-2">
-                          <Settings className="w-4 h-4" /> Configurar Conhecimento Específico
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {templates.map((template) => (
-                            <div key={template.id} className="p-4 rounded-xl border bg-card/50 space-y-3">
-                              <div className="flex justify-between items-center">
-                                <span className="font-bold text-xs truncate max-w-[150px]">{template.name}</span>
-                                <Badge variant="outline" className="text-[9px]">{template.category}</Badge>
-                              </div>
-                              <Textarea 
-                                placeholder="Descreva quando usar e o que os botões deste template fazem..."
-                                className="text-[11px] min-h-[80px] bg-muted/20 border-none resize-none"
-                                defaultValue={template.knowledge_description || ''}
-                                onBlur={(e) => {
-                                  if (e.target.value !== (template.knowledge_description || '')) {
-                                    handleUpdateTemplateKnowledge(template.id, e.target.value);
-                                  }
-                                }}
-                              />
-                              {updatingKnowledge === template.id && (
-                                <div className="text-[9px] text-primary animate-pulse flex items-center gap-1">
-                                  <RefreshCcw className="w-2 h-2 animate-spin" /> Salvando...
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="mt-6 flex justify-end">
-                        <Button 
-                          onClick={handleSaveSettings} 
-                          disabled={saving}
-                          className="px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
-                        >
-                          <Save className="w-4 h-4 mr-2" /> Salvar Configurações da IA
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="flex justify-end sticky bottom-4 z-10">
+                    <Button 
+                      onClick={handleSaveSettings} 
+                      disabled={saving}
+                      size="lg"
+                      className="px-8 h-12 md:h-14 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform w-full sm:w-auto"
+                    >
+                      {saving ? <RefreshCcw className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                      Salvar Agente I.A
+                    </Button>
+                  </div>
                 </div>
               </ScrollArea>
             )}
