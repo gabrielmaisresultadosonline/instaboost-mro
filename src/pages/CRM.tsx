@@ -2362,7 +2362,7 @@ const CRM = () => {
                                               </div>
                                             </div>
                                           )}
-                                          {(m.message_text || m.content) && m.message_type !== 'reaction' && (
+                                          {(m.message_text || m.content) && m.message_type !== 'reaction' && m.message_type !== 'audio' && m.message_type !== 'voice' && !((m.message_text || m.content || '').trim() === '[Mensagem de Áudio]') && (
                                             <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
                                               {m.message_text || m.content}
                                             </div>
