@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import {
   Users, Search, Flame, Tag, Filter, Loader2, ChevronDown,
   Phone, MessageSquare, Star, UserCheck, UserPlus, BarChart3,
-  X, Save, Edit2
+  X, Save, Edit2, RefreshCw, Share2
 } from 'lucide-react';
 
 interface CRMContact {
