@@ -2693,16 +2693,16 @@ const CRM = () => {
             )}
 
             {activeTab === 'ai-agent' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <Bot className="w-6 h-6 text-primary" /> Agente de Inteligência Artificial
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-primary shrink-0" /> <span className="truncate">Agente de Inteligência Artificial</span>
                       </h2>
-                      <p className="text-muted-foreground text-sm">Configure como a IA deve interagir com seus clientes.</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">Configure como a IA deve interagir com seus clientes.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Label htmlFor="ai-agent-enabled" className="text-sm font-bold">Ativação Geral</Label>
                       <Switch 
                         id="ai-agent-enabled"
