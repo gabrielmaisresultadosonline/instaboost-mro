@@ -93,7 +93,7 @@ app.post('/send-voice', async (req, res) => {
         .toFormat('ogg')
         .audioCodec('libopus')
         .audioChannels(1)
-        .audioFrequency(16000)
+        .audioFrequency(48000)
         .on('start', (cmd) => console.log(`[${requestId}] Comando FFmpeg: ${cmd}`))
         .on('end', () => {
           console.log(`[${requestId}] ✅ Transcodificação concluída com sucesso.`);
@@ -113,7 +113,7 @@ app.post('/send-voice', async (req, res) => {
     form.append('type', 'audio');
     form.append('file', fs.createReadStream(outputPath), {
       filename: 'voice.ogg',
-      contentType: 'audio/ogg; codecs=opus'
+      contentType: 'audio/ogg'
     });
 
     const uploadRes = await axios.post(
