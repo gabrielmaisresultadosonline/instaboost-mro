@@ -367,6 +367,33 @@ const CRM = () => {
     window.location.href = url;
   };
 
+  const handleSyncGoogleContacts = async () => {
+    if (!googleContactsEnabled) {
+      handleConnectGoogle();
+      return;
+    }
+
+    toast({ title: "Sincronizando...", description: "Buscando seus contatos do Google." });
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'syncGoogleContacts' }
+      });
+      if (error) throw error;
+      if (data.success) {
+        toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
+        fetchContacts();
+      } else {
+        throw new Error(data.error || "Erro desconhecido");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
+      if (err.message?.includes('connect') || err.message?.includes('token')) {
+        handleConnectGoogle();
+      }
+    }
+  };
+
   const handleImprovePrompt = async () => {
     if (!metaSettings.ai_system_prompt?.trim() || improvingPrompt) {
       toast({ title: "Aviso", description: "Escreva algo no prompt primeiro para que eu possa melhorar." });
