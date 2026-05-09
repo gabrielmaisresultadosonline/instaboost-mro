@@ -50,7 +50,7 @@ echo ""
 echo "🤖 Configurando Bot WhatsApp..."
 
 # Instalar Chromium e libs necessárias para o Puppeteer/whatsapp-web.js
-if ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
+if ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
   echo "🌐 Instalando Chromium e dependências do Puppeteer..."
   $SUDO apt-get update
   $SUDO apt-get install -y \
@@ -61,7 +61,7 @@ if ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/
     libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 \
     libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 \
     libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
-    lsb-release wget xdg-utils 2>/dev/null || true
+    lsb-release wget xdg-utils --no-install-recommends 2>/dev/null || true
 fi
 
 # Instalar PM2 globalmente se não existir
@@ -119,19 +119,27 @@ ENVEOF
   cd "$APP_DIR"
 else
   echo "⚠️  Pasta whatsapp-bot/ não encontrada — pulando instalação do bot."
-  echo "   Caminho esperado: $WPP_BOT_DIR"
-  echo "   Conteúdo de $APP_DIR:"
-  ls -la "$APP_DIR" | head -20
+fi
+
+# ============= Bridge (Transcoder) =============
+if [ -f "$APP_DIR/scripts/vps-whatsapp-bridge.js" ]; then
+  echo "⚙️ Iniciando Bridge Transcoder..."
+  cd "$APP_DIR"
+  # Instalar dependências se necessário (na pasta raiz)
+  npm install express cors axios fluent-ffmpeg form-data uuid
+  
+  pm2 delete wpp-bridge-mro 2>/dev/null || true
+  pm2 start scripts/vps-whatsapp-bridge.js --name wpp-bridge-mro --time
+  pm2 save
 fi
 
 # ============= Nginx =============
 echo ""
 echo "🧩 Verificando Nginx..."
 
-# Só cria config Nginx se NÃO existir (preserva SSL/certbot)
-if [ ! -f "$NGINX_SITE" ]; then
-  echo "🛠️ Criando configuração Nginx inicial..."
-  $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
+# Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge
+echo "🛠️ Atualizando configuração Nginx..."
+$SUDO tee "$NGINX_SITE" > /dev/null <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -144,6 +152,28 @@ server {
     gzip_min_length 1024;
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
+
+    # Proxy para o Bridge (Transcoder de Áudio)
+    location /bridge {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        
+        # CORS Headers (Garante que o navegador permita)
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+        
+        if (\$request_method = 'OPTIONS') {
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+    }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)\$ {
         expires 1y;
@@ -160,11 +190,8 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 }
 EOF
-  $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
-  echo "✅ Nginx configurado. Rode: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
-else
-  echo "✅ Config Nginx já existe (preservando SSL/certbot)"
-fi
+$SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
+
 
 # ============= Subdomínio prompts.maisresultadosonline.com.br =============
 PROMPTS_DOMAIN="prompts.$DOMAIN"

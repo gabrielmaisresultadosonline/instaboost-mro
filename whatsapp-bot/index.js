@@ -113,7 +113,26 @@ function wipeAuthSession() {
   }
 }
 
+function getExecutablePath() {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
+  
+  const paths = [
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/usr/bin/google-chrome-stable'
+  ];
+  
+  for (const p of paths) {
+    if (fs.existsSync(p)) return p;
+  }
+  return undefined;
+}
+
 function buildClient() {
+  const executablePath = getExecutablePath();
+  console.log(`🔍 Usando Puppeteer em: ${executablePath || 'padrão do sistema'}`);
+
   return new Client({
     authStrategy: new LocalAuth({ clientId: CLIENT_ID, dataPath: AUTH_PATH }),
     webVersionCache: {
@@ -128,13 +147,9 @@ function buildClient() {
         '--disable-dev-shm-usage',
         '--disable-gpu',
         '--disable-extensions',
+        '--no-zygote',
       ],
-      executablePath:
-        process.env.PUPPETEER_EXECUTABLE_PATH ||
-        '/usr/bin/google-chrome' ||
-        '/usr/bin/chromium-browser' ||
-        '/usr/bin/chromium' ||
-        undefined,
+      executablePath,
     },
   });
 }
