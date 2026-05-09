@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2 } from 'lucide-react';
-import { Instagram } from 'lucide-react'; // This is just to test if the error persists. Actually, let's fix it properly.
+// Importação condicional ou ícone fallback para Instagram se não existir no lucide-react local
+import { Instagram as InstagramIcon } from 'lucide-react';
+
 
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
