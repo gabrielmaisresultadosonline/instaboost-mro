@@ -1491,15 +1491,15 @@ const CRM = () => {
             )}
           </header>
           
-          <main className="flex-1 overflow-hidden relative flex flex-col">
+          <main className="flex-1 overflow-hidden relative flex flex-col bg-background">
             {activeTab === 'dashboard' && (
-              <ScrollArea className="flex-1 p-8">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Métricas Gerais</h2>
-                    <p className="text-muted-foreground">Visão geral do desempenho da sua operação.</p>
+              <ScrollArea className="flex-1 p-4 md:p-8">
+                <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Métricas Gerais</h2>
+                    <p className="text-muted-foreground text-sm">Visão geral do desempenho da sua operação.</p>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {[
                       { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue' },
                       { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow' },
@@ -1508,13 +1508,28 @@ const CRM = () => {
                     ].map((stat, i) => (
                       <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                          <CardDescription className="font-bold text-xs uppercase tracking-wider">{stat.label}</CardDescription>
-                          <stat.icon className={`w-5 h-5 text-${stat.color}-500`} />
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{stat.label}</CardDescription>
+                          <stat.icon className={cn("w-4 h-4 md:w-5 md:h-5", {
+                            "text-blue-500": stat.color === 'blue',
+                            "text-yellow-500": stat.color === 'yellow',
+                            "text-purple-500": stat.color === 'purple',
+                            "text-green-500": stat.color === 'green',
+                          })} />
                         </CardHeader>
                         <CardContent>
-                          <div className="text-3xl font-black">{stat.value}</div>
-                          <div className={`mt-2 h-1 w-full bg-${stat.color}-500/10 rounded-full overflow-hidden`}>
-                            <div className={`h-full bg-${stat.color}-500 transition-all duration-1000`} style={{ width: '70%' }} />
+                          <div className="text-2xl md:text-3xl font-black">{stat.value}</div>
+                          <div className={cn("mt-2 h-1 w-full rounded-full overflow-hidden", {
+                            "bg-blue-500/10": stat.color === 'blue',
+                            "bg-yellow-500/10": stat.color === 'yellow',
+                            "bg-purple-500/10": stat.color === 'purple',
+                            "bg-green-500/10": stat.color === 'green',
+                          })}>
+                            <div className={cn("h-full transition-all duration-1000", {
+                              "bg-blue-500": stat.color === 'blue',
+                              "bg-yellow-500": stat.color === 'yellow',
+                              "bg-purple-500": stat.color === 'purple',
+                              "bg-green-500": stat.color === 'green',
+                            })} style={{ width: '70%' }} />
                           </div>
                         </CardContent>
                       </Card>
