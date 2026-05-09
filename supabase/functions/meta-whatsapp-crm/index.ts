@@ -453,10 +453,8 @@ serve(async (req) => {
         })
       }
     }
+    
 
-
-...
-    if (action === 'getGoogleAuthUrl') {
       const { google_client_id } = settings;
       if (!google_client_id) {
         throw new Error('Google Client ID não configurado nas configurações');
