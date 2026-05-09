@@ -785,7 +785,7 @@ const CRM = () => {
         .from('crm-media')
         .getPublicUrl(filePath);
 
-      if (type === 'audio' && metaSettings.vps_transcoder_url) {
+      if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
         
         // Check for mixed content issues
