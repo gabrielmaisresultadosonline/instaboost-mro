@@ -1523,11 +1523,12 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     }
 
     const formData = new FormData();
+    formData.append('messaging_product', 'whatsapp');
+    formData.append('type', type);
+    
+    // Create a file object with the correct name and type
     const file = new File([blob], filename, { type: mimeType });
     formData.append('file', file);
-    // Use the generic type (audio, image, etc.) as required by Meta's /media endpoint
-    formData.append('type', type);
-    formData.append('messaging_product', 'whatsapp');
 
     const response = await fetch(
       `https://graph.facebook.com/v20.0/${phoneNumberId}/media`,
