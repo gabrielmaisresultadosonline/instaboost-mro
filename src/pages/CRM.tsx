@@ -1542,7 +1542,7 @@ const CRM = () => {
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
-                  <div className="flex-1 overflow-x-auto p-4 flex gap-4 bg-muted/5">
+                  <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x">
                     {(kanbanStatuses.length > 0 ? kanbanStatuses : [
                       { value: 'new', label: 'Novo Lead', color: 'blue' },
                       { value: 'responded', label: 'Em Atendimento', color: 'yellow' },
