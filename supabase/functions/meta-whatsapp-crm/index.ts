@@ -692,8 +692,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   );
 
   const result = await response.json()
+  console.log('Meta Send Message Result:', JSON.stringify(result, null, 2));
+
   if (!response.ok) {
-    console.error('Meta API Error:', result)
+    console.error('Meta API Error Details:', result)
     return new Response(JSON.stringify({ success: false, error: result.error?.message, details: result }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
