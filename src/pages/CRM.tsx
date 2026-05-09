@@ -1500,7 +1500,7 @@ const CRM = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-screen w-full flex overflow-hidden bg-background">
+      <div className="h-[100dvh] w-full flex overflow-hidden bg-background">
         <Sidebar className="border-r shadow-sm">
           <SidebarHeader className="p-4 border-b flex items-center justify-center">
             <Logo size="sm" />
@@ -1551,7 +1551,7 @@ const CRM = () => {
         </Sidebar>
 
         <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
-          <header className="h-16 border-b flex items-center px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
@@ -1565,8 +1565,8 @@ const CRM = () => {
               </h1>
             </div>
             {activeTab === 'contacts' && (
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm">
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
@@ -1574,7 +1574,7 @@ const CRM = () => {
             )}
           </header>
           
-          <main className="flex-1 overflow-hidden relative flex flex-col bg-background">
+          <main className="flex-1 overflow-hidden relative flex flex-col bg-background h-full">
             {activeTab === 'dashboard' && (
               <ScrollArea className="flex-1 p-4 md:p-8">
                 <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1786,7 +1786,7 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm",
+                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm h-full",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
@@ -1827,7 +1827,7 @@ const CRM = () => {
                           </AccordionItem>
                         </Accordion>
                       </div>
-                      <ScrollArea className="flex-1 min-h-0">
+                      <ScrollArea className="flex-1 min-h-0 h-full overflow-y-auto">
                         {filteredContacts.length > 0 ? (
                           filteredContacts.map(contact => (
                             <button 
@@ -1987,6 +1987,8 @@ const CRM = () => {
                                     </div>
                                   )}
                                 </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
                                 {selectedContact.last_interaction && (
                                   <div className="flex items-center gap-1.5 mt-0.5">
                                     <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')} />
@@ -2079,7 +2081,7 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
+                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto h-full">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -2445,7 +2447,7 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+                                    <div className="flex items-center gap-1 sm:gap-2 w-full px-1">
                                       <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></Button>
                                       <div className="flex-1 relative flex items-center">
                                         <Input 
@@ -3490,8 +3492,8 @@ const CRM = () => {
                       </div>
                     </div>
                     
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto w-full">
+                      <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                           <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
                             <th className="px-6 py-4">Nome</th>
