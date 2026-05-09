@@ -2458,19 +2458,33 @@ const CRM = () => {
                                       </div>
                                       {!isRecording && (
                                         <div className="flex items-center gap-1">
-                                          <Button 
-                                            size="icon" 
-                                            variant="ghost" 
-                                            className="text-primary hover:bg-primary/10 h-11 w-11 shrink-0"
-                                            onClick={startRecording}
-                                          >
-                                            <Mic className="w-5 h-5" />
-                                          </Button>
+                                          <div className="relative">
+                                            <Button 
+                                              size="icon" 
+                                              variant="ghost" 
+                                              className={cn(
+                                                "h-11 w-11 shrink-0 rounded-full",
+                                                !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
+                                                  ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
+                                                  : "text-primary hover:bg-primary/10"
+                                              )}
+                                              onClick={startRecording}
+                                            >
+                                              <Mic className="w-5 h-5" />
+                                            </Button>
+                                            {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
+                                              <div className="absolute -top-1 -right-1">
+                                                <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
+                                                  <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
                                           <Button 
                                             size="icon" 
                                             onClick={handleSendMessage} 
                                             disabled={!newMessage.trim() || sendingMessage}
-                                            className="h-11 w-11 shrink-0 shadow-md"
+                                            className="h-11 w-11 shrink-0 shadow-md rounded-full"
                                           >
                                             <Send className="w-4 h-4" />
                                           </Button>
