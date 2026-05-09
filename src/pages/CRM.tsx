@@ -3428,7 +3428,7 @@ const CRM = () => {
                     
                     <div className="overflow-x-auto w-full">
                       {/* Mobile view of contacts as cards */}
-                      <div className="md:hidden divide-y">
+                      <div className="md:hidden divide-y divide-border">
                         {(() => {
                           const filtered = contacts.filter(c => {
                             const matchesSearch = statusFilter === 'all' || 
@@ -3443,7 +3443,7 @@ const CRM = () => {
 
                           if (displayContacts.length === 0) {
                             return (
-                              <div className="p-8 text-center text-muted-foreground italic text-xs">
+                              <div className="p-12 text-center text-muted-foreground italic text-xs">
                                 Nenhum contato encontrado.
                               </div>
                             );
@@ -3452,44 +3452,46 @@ const CRM = () => {
                           return (
                             <>
                               {displayContacts.map((contact) => (
-                                <div key={contact.id} className="p-4 flex flex-col gap-3">
-                                  <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                        {contact.name?.charAt(0) || <User className="w-5 h-5" />}
+                                <div key={contact.id} className="p-4 flex flex-col gap-4 bg-card/50 hover:bg-card transition-colors">
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                                        {contact.name?.charAt(0).toUpperCase() || <User className="w-5 h-5" />}
                                       </div>
-                                      <div className="flex flex-col">
-                                        <span className="font-bold text-sm">{contact.name || 'Sem nome'}</span>
-                                        <span className="text-xs text-muted-foreground font-mono">{contact.wa_id}</span>
+                                      <div className="flex flex-col overflow-hidden">
+                                        <span className="font-bold text-sm truncate">{contact.name || 'Sem nome'}</span>
+                                        <span className="text-xs text-muted-foreground font-mono truncate">{contact.wa_id}</span>
                                       </div>
                                     </div>
-                                    <div className="flex gap-1">
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                    <div className="flex gap-1 flex-shrink-0">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
                                         <MessageSquare className="w-4 h-4" />
                                       </Button>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => openContactInfo(contact)}>
                                         <Settings className="w-4 h-4" />
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex gap-2">
-                                      <Badge variant="secondary" className="text-[9px] uppercase font-bold">
+                                  
+                                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                    <div className="flex gap-1.5 flex-wrap">
+                                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0 uppercase font-bold tracking-tight">
                                         {contact.source_type === 'imported' ? 'Importado' : 'Sistema'}
                                       </Badge>
-                                      <Badge variant="outline" className={cn("capitalize text-[9px]", getStatusColor(contact.status))}>
+                                      <Badge variant="outline" className={cn("capitalize text-[9px] px-1.5 py-0 font-bold", getStatusColor(contact.status))}>
                                         {contact.status}
                                       </Badge>
                                     </div>
-                                    <span className="text-[10px] text-muted-foreground">
-                                      {contact.last_interaction ? new Date(contact.last_interaction).toLocaleDateString() : 'Nunca'}
-                                    </span>
+                                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground whitespace-nowrap">
+                                      <Clock className="w-3 h-3" />
+                                      <span>{contact.last_interaction ? new Date(contact.last_interaction).toLocaleDateString() : 'Nunca'}</span>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
                               {filtered.length > 10 && !showAllContacts && !isSearching && (
-                                <div className="p-4 bg-muted/5 flex justify-center">
-                                  <Button variant="ghost" size="sm" onClick={() => setShowAllContacts(true)} className="text-xs font-bold text-primary">
+                                <div className="p-6 bg-muted/5 flex justify-center border-t">
+                                  <Button variant="outline" size="sm" onClick={() => setShowAllContacts(true)} className="text-xs font-bold text-primary rounded-xl px-8 h-9 border-primary/20 hover:bg-primary/5">
                                     Ver Todos os {filtered.length} Contatos
                                   </Button>
                                 </div>
