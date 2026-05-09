@@ -135,7 +135,16 @@ fi
 
 # ============= Nginx =============
 echo ""
-echo "🧩 Verificando Nginx..."
+echo "🧩 Verificando conflitos de Nginx..."
+
+# 🚨 RESOLVER CONFLITO: Remove ou altera o whatsapp-bridge se ele usar o mesmo domínio
+WPP_BRIDGE_NGINX="/etc/nginx/sites-enabled/whatsapp-bridge"
+if [ -f "$WPP_BRIDGE_NGINX" ]; then
+    echo "⚠️  Detectado conflito em $WPP_BRIDGE_NGINX. Corrigindo..."
+    # Comenta o server_name conflitante e adiciona server_name _;
+    $SUDO sed -i "s/server_name $DOMAIN/server_name _;#/g" "$WPP_BRIDGE_NGINX"
+    $SUDO sed -i "s/server_name www.$DOMAIN//g" "$WPP_BRIDGE_NGINX"
+fi
 
 # Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge
 echo "🛠️ Atualizando configuração Nginx..."
