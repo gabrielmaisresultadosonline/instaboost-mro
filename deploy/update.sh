@@ -121,10 +121,15 @@ else
   echo "⚠️  Pasta whatsapp-bot/ não encontrada — pulando instalação do bot."
 fi
 
-# ============= Bridge (Removido - Agora integrado no Bot) =============
+# ============= Limpeza de Processos Antigos =============
 if [ -d "$WPP_BOT_DIR" ]; then
-  # Garante que o bridge antigo não esteja rodando para não ocupar a porta 3000
+  echo "🧹 Limpando processos antigos na porta 3000..."
+  # Tenta matar qualquer processo rodando na porta 3000 (bridge antigo ou bot travado)
+  $SUDO fuser -k 3000/tcp 2>/dev/null || true
+  
+  # Garante que processos PM2 antigos sejam removidos
   pm2 delete wpp-bridge-mro 2>/dev/null || true
+  pm2 delete wpp-bot 2>/dev/null || true
   pm2 save
 fi
 
