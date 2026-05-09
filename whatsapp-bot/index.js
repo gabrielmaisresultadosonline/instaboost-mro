@@ -2,28 +2,20 @@
  * Bot WhatsApp - Renda Extra v2 / I.A MRO
  * --------------------------------------------------------------
  * Conecta via whatsapp-web.js (LocalAuth + puppeteer headless),
- * envia o QR Code para a edge function `wpp-bot-admin` para que
- * apareça na página /rendaextra2/admin, e processa mensagens
- * pendentes da fila.
- *
- * IMPORTANTE: o bot NÃO inicializa o cliente WhatsApp automaticamente.
- * Ele aguarda o comando `request_qr` do painel para gerar o QR Code.
- * Quando o painel pede um novo QR, qualquer sessão anterior é apagada
- * para garantir que um novo QR seja gerado (anulando a conexão antiga).
- *
- * Rodando na VPS:
- *   pm2 start index.js --name wpp-bot-mro --time
- *   pm2 logs wpp-bot-mro
+ * processa mensagens da fila e atua como Bridge para áudios do CRM.
  */
 
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const fetch = require('node-fetch');
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
 
-// Defaults públicos do projeto Lovable Cloud (podem ser sobrescritos via .env)
+// Defaults públicos do projeto Lovable Cloud
 const DEFAULT_SUPABASE_URL = 'https://adljdeekwifwcdcgbpit.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbGpkZWVrd2lmd2NkY2dicGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMjk0MDMsImV4cCI6MjA4MDcwNTQwM30.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4';
@@ -34,11 +26,7 @@ const WPP_BOT_TOKEN = process.env.WPP_BOT_TOKEN || 'wpp-bot-default-token-change
 const POLL_INTERVAL = Math.max(2, parseInt(process.env.POLL_INTERVAL || '5', 10)) * 1000;
 const AUTH_PATH = './.wwebjs_auth';
 const CLIENT_ID = 'renda-extra-v2';
-
-if (!process.env.WPP_BOT_TOKEN) {
-  console.warn('⚠️  WPP_BOT_TOKEN não definido em .env — usando token padrão.');
-  console.warn('   Para produção defina o mesmo valor configurado em Lovable → Secrets → WPP_BOT_TOKEN.');
-}
+const PORT = process.env.PORT || 3000;
 
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/wpp-bot-admin`;
 
@@ -50,6 +38,57 @@ let initializing = false;
 
 let lastBackendError = null;
 let errorCount = 0;
+
+// ============= Express Server (Bridge) =============
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'online', 
+    bot_status: currentStatus,
+    phone: currentPhone,
+    service: 'WhatsApp Bot & Bridge MRO',
+    time: new Date().toISOString()
+  });
+});
+
+// Endpoint para envio direto de áudio do CRM
+app.post('/send-voice', async (req, res) => {
+  const { to, audioUrl } = req.body;
+
+  if (!client || currentStatus !== 'connected') {
+    return res.status(503).json({ error: 'Bot não está conectado no WhatsApp' });
+  }
+
+  if (!to || !audioUrl) {
+    return res.status(400).json({ error: 'Parâmetros "to" e "audioUrl" obrigatórios' });
+  }
+
+  try {
+    const chatId = formatPhone(to);
+    console.log(`🎙️ [Bridge] Enviando áudio para ${chatId}...`);
+    
+    // Download do áudio via axios para garantir que temos o buffer
+    const mediaRes = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+    const mimetype = mediaRes.headers['content-type'] || 'audio/ogg';
+    const media = new MessageMedia(mimetype, Buffer.from(mediaRes.data).toString('base64'), 'voice.ogg');
+
+    await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
+    
+    res.json({ success: true, message: 'Áudio enviado com sucesso via Bridge' });
+  } catch (err) {
+    console.error('❌ Erro no Bridge ao enviar áudio:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor Bridge rodando na porta ${PORT}`);
+});
+
+// ============= Bot Logic =============
 
 async function callBackend(action, extra = {}) {
   try {
@@ -67,18 +106,14 @@ async function callBackend(action, extra = {}) {
     if (!res.ok) {
       const text = await res.text();
       const errorMsg = `Backend ${action} ${res.status}: ${text.slice(0, 100)}`;
-      
-      // Só loga o erro se for diferente do último ou se já passou um tempo (throttling)
       if (errorMsg !== lastBackendError || errorCount % 10 === 0) {
         console.error(`⚠️  ${errorMsg}${errorCount > 0 ? ` (repetido ${errorCount}x)` : ''}`);
       }
-      
       lastBackendError = errorMsg;
       errorCount++;
       return null;
     }
 
-    // Sucesso: reseta controle de erros
     lastBackendError = null;
     errorCount = 0;
     return await res.json();
@@ -106,7 +141,7 @@ function wipeAuthSession() {
     const sessionDir = path.join(AUTH_PATH, `session-${CLIENT_ID}`);
     if (fs.existsSync(sessionDir)) {
       fs.rmSync(sessionDir, { recursive: true, force: true });
-      console.log('🧹 Sessão antiga apagada para gerar novo QR.');
+      console.log('🧹 Sessão antiga apagada.');
     }
   } catch (err) {
     console.error('Erro apagando sessão:', err.message);
@@ -115,24 +150,13 @@ function wipeAuthSession() {
 
 function getExecutablePath() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
-  
-  const paths = [
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
-    '/usr/bin/google-chrome-stable'
-  ];
-  
-  for (const p of paths) {
-    if (fs.existsSync(p)) return p;
-  }
+  const paths = ['/usr/bin/google-chrome', '/usr/bin/chromium-browser', '/usr/bin/chromium', '/usr/bin/google-chrome-stable'];
+  for (const p of paths) { if (fs.existsSync(p)) return p; }
   return undefined;
 }
 
 function buildClient() {
   const executablePath = getExecutablePath();
-  console.log(`🔍 Usando Puppeteer em: ${executablePath || 'padrão do sistema'}`);
-
   return new Client({
     authStrategy: new LocalAuth({ clientId: CLIENT_ID, dataPath: AUTH_PATH }),
     webVersionCache: {
@@ -141,14 +165,7 @@ function buildClient() {
     },
     puppeteer: {
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-extensions',
-        '--no-zygote',
-      ],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-zygote'],
       executablePath,
     },
   });
@@ -156,33 +173,18 @@ function buildClient() {
 
 function attachClientHandlers(c) {
   c.on('qr', async (qr) => {
-    console.log('\n📱 QR Code recebido — enviando para o painel /rendaextra2/admin\n');
+    console.log('📱 Novo QR Code recebido.');
     qrcodeTerminal.generate(qr, { small: true });
     currentQr = qr;
     currentStatus = 'connecting';
     await sendHeartbeat();
   });
 
-  c.on('authenticated', () => {
-    console.log('✅ Autenticado com sucesso!');
-    currentStatus = 'connecting';
-    currentQr = null;
-  });
-
   c.on('ready', async () => {
     currentStatus = 'connected';
     currentQr = null;
-    try {
-      currentPhone = c.info?.wid?.user || null;
-    } catch {}
-    console.log(`🚀 Bot conectado! Telefone: ${currentPhone || 'desconhecido'}`);
-    await sendHeartbeat();
-  });
-
-  c.on('auth_failure', async (msg) => {
-    console.error('❌ Falha na autenticação:', msg);
-    currentStatus = 'disconnected';
-    currentQr = null;
+    try { currentPhone = c.info?.wid?.user || null; } catch {}
+    console.log(`🚀 Bot conectado! (${currentPhone})`);
     await sendHeartbeat();
   });
 
@@ -190,49 +192,32 @@ function attachClientHandlers(c) {
     console.log('❌ Desconectado:', reason);
     currentStatus = 'disconnected';
     currentQr = null;
-    // Preservamos o telefone para não sumir do painel imediatamente
     await sendHeartbeat();
     try { await c.destroy(); } catch {}
     client = null;
-    console.log('💤 Cliente desconectado. O bot tentará reconectar automaticamente se houver sessão.');
-    
-    // Tenta reconectar após um delay se não houver um comando de logout pendente
-    setTimeout(() => {
-      autoInitialize();
-    }, 5000);
+    setTimeout(() => autoInitialize(), 5000);
   });
 }
 
 async function startClientForQr({ wipe = true } = {}) {
-  if (initializing) {
-    console.log('⏳ Já está inicializando, ignorando comando duplicado.');
-    return;
-  }
-  if (client && currentStatus === 'connected') {
-    console.log('🔄 Conexão atual será encerrada para gerar novo QR.');
-    try { await client.logout(); } catch {}
-    try { await client.destroy(); } catch {}
-    client = null;
-  } else if (client) {
+  if (initializing) return;
+  if (client) {
     try { await client.destroy(); } catch {}
     client = null;
   }
-
   if (wipe) wipeAuthSession();
 
   initializing = true;
   currentStatus = 'connecting';
-  currentQr = null;
-  currentPhone = null;
   await sendHeartbeat();
 
-  console.log('🚀 Iniciando cliente WhatsApp para gerar QR Code...');
+  console.log('🚀 Iniciando cliente WhatsApp...');
   client = buildClient();
   attachClientHandlers(client);
   try {
     await client.initialize();
   } catch (err) {
-    console.error('Erro ao inicializar cliente:', err.message);
+    console.error('Erro ao inicializar:', err.message);
     currentStatus = 'disconnected';
     await sendHeartbeat();
     client = null;
@@ -258,118 +243,77 @@ async function processPending() {
   if (!data || !data.success) return;
 
   const cmd = data.commands || {};
-
   if (cmd.request_logout) {
-    console.log('🔌 Logout solicitado pelo painel.');
     if (client) {
-      try { await client.logout(); } catch (err) { console.error('Erro no logout:', err.message); }
+      try { await client.logout(); } catch {}
       try { await client.destroy(); } catch {}
       client = null;
     }
     wipeAuthSession();
     currentStatus = 'disconnected';
-    currentPhone = null;
-    currentQr = null;
     await callBackend('botAckCommand', { cleared: 'logout' });
     await sendHeartbeat();
     return;
   }
 
   if (cmd.request_qr) {
-    console.log('📲 Comando "Gerar QR" recebido do painel.');
     await callBackend('botAckCommand', { cleared: 'qr' });
     await startClientForQr({ wipe: true });
     return;
   }
 
-  // Se não estiver conectado, não tenta processar mensagens, mas continua
-  // verificando comandos (request_qr, request_logout) acima.
   if (currentStatus !== 'connected' || !client) return;
 
   const messages = data.messages || [];
   for (const msg of messages) {
-    // Verifica se o cliente ainda está vivo antes de cada mensagem
     if (!client || currentStatus !== 'connected') break;
 
     const chatId = formatPhone(msg.phone);
     if (!chatId) {
-      await callBackend('botUpdateMessage', {
-        message_id: msg.id,
-        status: 'failed',
-        error_message: 'Telefone inválido',
-      });
+      await callBackend('botUpdateMessage', { message_id: msg.id, status: 'failed', error_message: 'Telefone inválido' });
       continue;
     }
 
     try {
-      // Pequena validação extra para evitar o erro de "Execution context destroyed"
-      // Tentamos buscar o ID do número apenas se o cliente parecer estar pronto
-      const numberId = await client.getNumberId(chatId.replace('@c.us', ''));
-      
-      if (!numberId) {
-        await callBackend('botUpdateMessage', {
-          message_id: msg.id,
-          status: 'failed',
-          error_message: 'Número não está no WhatsApp',
-        });
-        continue;
+      if (msg.message_type === 'audio' || msg.message_type === 'voice') {
+        const media = await MessageMedia.fromUrl(msg.media_url);
+        await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
+      } else if (msg.message_type === 'image' || msg.message_type === 'video' || msg.message_type === 'document') {
+        const media = await MessageMedia.fromUrl(msg.media_url);
+        await client.sendMessage(chatId, media, { caption: msg.message });
+      } else {
+        await client.sendMessage(chatId, msg.message);
       }
 
-      await client.sendMessage(numberId._serialized, msg.message);
       await callBackend('botUpdateMessage', { message_id: msg.id, status: 'sent' });
-      console.log(`✉️  Enviado para ${msg.phone}`);
-      
-      // Delay entre mensagens para evitar bloqueio
+      console.log(`✉️ Enviado para ${msg.phone} (${msg.message_type || 'text'})`);
       await new Promise((r) => setTimeout(r, 2000 + Math.random() * 3000));
     } catch (err) {
-      const isNavError = err.message?.includes('Execution context was destroyed') || 
-                         err.message?.includes('Target closed') ||
-                         err.message?.includes('Protocol error');
-      
-      if (isNavError) {
-        console.warn('⚠️  Conexão do navegador instável. Tentando recuperar...');
-        // Forçamos uma verificação de estado se o erro for grave
-        break;
-      }
-
       console.error(`❌ Erro enviando para ${msg.phone}:`, err.message);
-      await callBackend('botUpdateMessage', {
-        message_id: msg.id,
-        status: 'failed',
-        error_message: err.message?.slice(0, 500) || 'Erro desconhecido',
-      });
+      await callBackend('botUpdateMessage', { message_id: msg.id, status: 'failed', error_message: err.message?.slice(0, 500) });
     }
   }
 }
 
-// Loop de polling — mantém heartbeat e escuta comandos do painel
 setInterval(async () => {
   await sendHeartbeat();
   await processPending();
 }, POLL_INTERVAL);
 
 process.on('SIGINT', async () => {
-  console.log('\n👋 Encerrando bot...');
   try { if (client) await client.destroy(); } catch {}
   process.exit(0);
 });
 
-console.log('🚀 Bot WhatsApp pronto (Renda Extra v2)');
-console.log(`   Endpoint: ${ENDPOINT}`);
-console.log(`   Polling:  ${POLL_INTERVAL / 1000}s`);
-
 async function autoInitialize() {
   if (initializing || (client && currentStatus === 'connected')) return;
-  
   const sessionDir = path.join(AUTH_PATH, `session-${CLIENT_ID}`);
   if (fs.existsSync(sessionDir)) {
-    console.log('📦 Sessão anterior encontrada. Tentando reconectar automaticamente...');
+    console.log('📦 Sessão anterior encontrada. Tentando reconectar...');
     await startClientForQr({ wipe: false });
   } else {
-    console.log('💤 Nenhuma sessão encontrada. Aguardando comando "Gerar QR" no painel.');
     await sendHeartbeat();
   }
 }
 
-// Inicialização automática ao ligar o bot
 autoInitialize();
