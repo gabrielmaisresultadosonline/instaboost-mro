@@ -262,6 +262,7 @@ const App = () => (
           <Route path="/mrocriativo/webhook.php" element={<MROCriativoWebhook />} />
           <Route path="/mrocriativo/oauth.php" element={<MROCriativoOAuth />} />
           <Route path="/google-callback" element={<GoogleContactsCallback />} />
+          <Route path="/google-callback2" element={<GoogleContactsCallback />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
