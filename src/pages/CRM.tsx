@@ -683,7 +683,7 @@ const CRM = () => {
 
       recorder.start();
       setMediaRecorder(recorder);
-      setIsRecordingAudio(true);
+      setIsRecording(true);
       setRecordingDuration(0);
       recordingTimerRef.current = setInterval(() => {
         setRecordingDuration(prev => prev + 1);
