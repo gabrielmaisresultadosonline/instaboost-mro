@@ -768,8 +768,20 @@ const CRM = () => {
 
       if (type === 'audio' && metaSettings.vps_transcoder_url) {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
+        
+        // Check for mixed content issues
+        if (window.location.protocol === 'https:' && metaSettings.vps_transcoder_url.startsWith('http://')) {
+          console.warn("Mixed Content Warning: Connecting to HTTP VPS from HTTPS site may be blocked by the browser.");
+          toast({ 
+            title: "Aviso de Segurança (Mixed Content)", 
+            description: "Seu navegador pode bloquear o áudio porque o VPS usa HTTP e o CRM usa HTTPS. Tente usar HTTPS no VPS ou autorize conteúdo inseguro no navegador.",
+            variant: "destructive"
+          });
+        }
+
         try {
-          const response = await fetch(`${metaSettings.vps_transcoder_url.replace(/\/$/, '')}/send-voice`, {
+          const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+          const response = await fetch(`${vpsUrl}/send-voice`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -781,16 +793,24 @@ const CRM = () => {
           });
           
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error || 'Erro no VPS');
+          if (!response.ok) {
+            console.error("VPS returned error:", result);
+            throw new Error(result.error || result.details || 'Erro no processamento do VPS');
+          }
           
           setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
           await fetchMessages(selectedContact.id);
-          toast({ title: "Áudio Profissional enviado via VPS!" });
+          toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e enviado como mensagem de voz." });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
         } catch (vpsErr: any) {
           console.error("VPS Error, falling back to standard send:", vpsErr);
-          // Don't throw, fallback to standard function
+          toast({ 
+            title: "VPS indisponível", 
+            description: "O áudio será enviado pelo método padrão (pode não aparecer como gravado na hora). Erro: " + vpsErr.message,
+            variant: "destructive"
+          });
+          // Fallback to standard function
         }
       }
 
