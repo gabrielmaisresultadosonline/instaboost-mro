@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { 
   Sparkles, 
@@ -47,6 +48,7 @@ import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
 // import ActiveClientsSection from "@/components/ActiveClientsSection"; // Removed as requested
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
+import { MessageCircle as WhatsAppIcon } from "lucide-react";
 
 interface SalesSettings {
   whatsappNumber: string;
@@ -140,6 +142,15 @@ const VendasCompleta = () => {
       try {
         const { data, error } = await supabase.functions.invoke('modules-storage', { body: { action: 'load-call-settings' } });
         if (!error && data?.success && data?.data?.salesPageSettings) setSalesSettings(data.data.salesPageSettings);
+        
+        // Also load global WhatsApp settings
+        const { data: waData } = await supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single();
+        if (waData?.whatsapp_number) {
+          setSalesSettings(prev => ({
+            ...prev,
+            whatsappNumber: waData.whatsapp_number
+          }));
+        }
       } catch (err) { console.error('Error loading sales settings:', err); }
     };
     loadSettings();
