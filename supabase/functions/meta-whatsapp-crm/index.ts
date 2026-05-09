@@ -614,9 +614,11 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, audioUrl, 'audio');
     if (metaMediaId) {
       body.audio = { id: metaMediaId };
+      if (isVoice) body.audio.voice = true;
     } else {
       // Direct link fallback often fails with Meta's security, but we keep it as last resort
       body.audio = { link: audioUrl };
+      if (isVoice) body.audio.voice = true;
     }
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
