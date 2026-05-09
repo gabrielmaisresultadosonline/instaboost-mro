@@ -68,7 +68,8 @@ import {
   Camera,
   LayoutList,
   MessageCircle,
-  Loader2
+  Loader2,
+  Info
 } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 const Instagram = (LucideIcons as any).Instagram || Camera;
@@ -99,6 +100,8 @@ import {
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const CRM = () => {
   const navigate = useNavigate();
@@ -134,7 +137,9 @@ const CRM = () => {
     outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
     google_auto_sync: false,
     vps_transcoder_url: '',
-    vps_status: 'unknown' as 'unknown' | 'online' | 'offline'
+    vps_status: 'unknown' as 'unknown' | 'online' | 'offline',
+    important_instructions: '',
+    read_templates_enabled: true
   });
 
   const [metrics, setMetrics] = useState<any>({
@@ -742,33 +747,62 @@ const CRM = () => {
                       <p className="text-muted-foreground text-sm">Gerencie todos os seus leads e contatos em um só lugar.</p>
                     </div>
                   </div>
-                  <Card>
-                    <CardHeader className="p-4 border-b">
-                      <div className="flex items-center gap-2">
-                        <Search className="w-4 h-4 text-muted-foreground" />
-                        <Input 
-                          placeholder="Pesquisar contatos..." 
-                          className="max-w-sm border-none shadow-none focus-visible:ring-0"
-                          value={statusFilter === 'all' ? '' : statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value || 'all')}
-                        />
+                  <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                    <CardHeader className="p-4 border-b bg-muted/20">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 w-full sm:max-w-md">
+                          <Search className="w-4 h-4 text-muted-foreground" />
+                          <Input 
+                            placeholder="Pesquisar por nome ou número..." 
+                            className="border-none shadow-none focus-visible:ring-0 bg-transparent"
+                            value={statusFilter === 'all' ? '' : statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value || 'all')}
+                          />
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <Button variant="outline" size="sm" className="flex-1 sm:flex-none rounded-xl">
+                            <Download className="w-4 h-4 mr-2" /> Exportar
+                          </Button>
+                          <Button size="sm" className="flex-1 sm:flex-none rounded-xl">
+                            <Plus className="w-4 h-4 mr-2" /> Novo Contato
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                        {filteredContacts.map(contact => (
-                          <Card key={contact.id} className="overflow-hidden hover:shadow-md transition-all cursor-pointer" onClick={() => openChat(contact)}>
-                            <CardContent className="p-4 flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 md:p-6 bg-muted/5">
+                        {filteredContacts.length === 0 ? (
+                          <div className="col-span-full py-12 text-center text-muted-foreground">
+                            Nenhum contato encontrado.
+                          </div>
+                        ) : filteredContacts.map(contact => (
+                          <Card key={contact.id} className="overflow-hidden hover:shadow-lg transition-all cursor-pointer border-zinc-100 dark:border-zinc-800 group rounded-2xl" onClick={() => openChat(contact)}>
+                            <CardContent className="p-5 flex flex-col gap-4">
+                              <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-transform">
+                                  {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <Badge className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", getStatusColor(contact.status))}>
+                                    {getStatusLabel(contact.status)}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
-                                <p className="text-xs text-muted-foreground">{contact.wa_id}</p>
+                              <div className="min-w-0">
+                                <p className="font-black text-sm truncate">{contact.name || contact.wa_id}</p>
+                                <p className="text-xs text-muted-foreground font-medium">{contact.wa_id}</p>
                               </div>
-                              <Badge className={getStatusColor(contact.status)}>
-                                {getStatusLabel(contact.status)}
-                              </Badge>
+                              <div className="flex items-center gap-2 pt-2 border-t mt-1">
+                                <Button variant="ghost" size="sm" className="flex-1 h-8 text-[10px] font-bold rounded-lg hover:bg-primary/10 hover:text-primary">
+                                  <MessageCircle className="w-3 h-3 mr-1.5" /> Conversar
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 rounded-lg hover:bg-muted" onClick={(e) => {
+                                  e.stopPropagation();
+                                  openContactInfo(contact);
+                                }}>
+                                  <Info className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
                             </CardContent>
                           </Card>
                         ))}
@@ -858,32 +892,59 @@ const CRM = () => {
                   </ScrollArea>
                 ) : (
                   <ScrollArea className="flex-1 p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {templates.map(template => (
-                        <Card key={template.id} className="hover:shadow-md transition-all">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-sm font-bold truncate max-w-[150px]">{template.name}</CardTitle>
-                              <Badge variant={template.status === 'APPROVED' ? "default" : "secondary"}>
-                                {template.status}
-                              </Badge>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                      {templates.map(template => {
+                        const bodyComponent = template.components?.find((c: any) => c.type === 'BODY');
+                        const headerComponent = template.components?.find((c: any) => c.type === 'HEADER');
+                        const footerComponent = template.components?.find((c: any) => c.type === 'FOOTER');
+                        const buttonsComponent = template.components?.find((c: any) => c.type === 'BUTTONS');
+                        
+                        return (
+                          <Card key={template.id} className="hover:shadow-lg transition-all border-zinc-200 dark:border-zinc-800 flex flex-col h-full bg-card group overflow-hidden">
+                            <div className="aspect-[4/3] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden shrink-0">
+                              {headerComponent?.format === 'IMAGE' ? (
+                                <img 
+                                  src={headerComponent.example?.header_handle?.[0] || template.header_url || "https://maisonline.com.br/wp-content/uploads/2023/07/mais-resultados-online.png"} 
+                                  alt={template.name}
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
+                              ) : headerComponent?.format === 'VIDEO' ? (
+                                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                                  <Play className="w-12 h-12 text-white/50" />
+                                </div>
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <FileText className="w-12 h-12 text-zinc-300" />
+                                </div>
+                              )}
+                              <div className="absolute top-2 right-2">
+                                <Badge variant={template.status === 'APPROVED' ? "default" : "secondary"} className="shadow-sm">
+                                  {template.status}
+                                </Badge>
+                              </div>
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-xs text-muted-foreground line-clamp-3 mb-4 min-h-[48px]">
-                              {template.components?.find((c: any) => c.type === 'BODY')?.text}
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => {
-                                setPreviewTemplate(template);
-                                setIsFlowEditorOpen(false); // Using similar dialog structure
-                              }}>
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            <CardHeader className="p-4 pb-2">
+                              <CardTitle className="text-sm font-black truncate text-primary">{template.name}</CardTitle>
+                              <CardDescription className="text-[10px] uppercase font-bold tracking-widest">{template.category}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+                              <p className="text-xs text-muted-foreground line-clamp-3 mb-4 italic leading-relaxed">
+                                "{bodyComponent?.text}"
+                              </p>
+                              <div className="flex justify-between items-center gap-2 pt-2 border-t mt-auto">
+                                <Badge variant="outline" className="text-[9px] h-5 bg-muted/30">{template.language}</Badge>
+                                <div className="flex gap-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => {
+                                    setPreviewTemplate(template);
+                                  }}>
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 )}
@@ -903,21 +964,45 @@ const CRM = () => {
                       </Card>
                     ) : (
                       allScheduledMessages.map(msg => (
-                        <Card key={msg.id} className="p-4 flex items-center justify-between">
+                        <Card key={msg.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-md transition-all border-l-4 border-l-primary">
                           <div className="flex items-center gap-4">
-                            <div className="p-2 rounded-full bg-primary/10 text-primary">
+                            <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
                               <Clock className="w-5 h-5" />
                             </div>
-                            <div>
-                              <p className="font-bold">Para: {msg.crm_contacts?.name || msg.crm_contacts?.wa_id}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
-                              </p>
+                            <div className="min-w-0">
+                              <p className="font-black text-sm md:text-base truncate">Para: {msg.crm_contacts?.name || msg.crm_contacts?.wa_id}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Calendar className="w-3 h-3 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground font-medium">
+                                  {format(new Date(msg.scheduled_for), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-[9px] uppercase tracking-tighter h-4">
+                                  {msg.type === 'template' ? 'Template' : msg.type === 'flow' ? 'Fluxo' : 'Mensagem'}
+                                </Badge>
+                                <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                                  {msg.content || msg.template_id || msg.flow_id}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                          <Badge variant={msg.status === 'pending' ? "outline" : "default"}>
-                            {msg.status === 'pending' ? 'Pendente' : msg.status}
-                          </Badge>
+                          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+                            <Badge variant={msg.status === 'pending' ? "outline" : "default"} className={cn(
+                              "text-[10px] font-bold uppercase",
+                              msg.status === 'pending' ? "border-amber-500 text-amber-500 bg-amber-500/10" : "bg-emerald-500 text-white"
+                            )}>
+                              {msg.status === 'pending' ? 'Pendente' : msg.status === 'sent' ? 'Enviado' : msg.status}
+                            </Badge>
+                            <Button variant="ghost" size="icon" className="text-destructive h-8 w-8 hover:bg-destructive/10" onClick={async () => {
+                              if (confirm('Deseja cancelar este agendamento?')) {
+                                await supabase.from('crm_scheduled_messages').delete().eq('id', msg.id);
+                                fetchAllScheduledMessages();
+                              }
+                            }}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </Card>
                       ))
                     )}
@@ -1109,6 +1194,47 @@ const CRM = () => {
                     </CardContent>
                   </Card>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                      <CardHeader className="bg-primary/5 border-b p-4">
+                        <CardTitle className="text-sm md:text-base flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-primary" /> Instruções Importantes
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <Textarea 
+                          rows={6}
+                          className="resize-none font-mono text-[11px] md:text-xs leading-relaxed bg-muted/10 rounded-xl"
+                          placeholder="Instruções específicas sobre o que a IA deve ou não fazer..."
+                          value={metaSettings.important_instructions}
+                          onChange={(e) => setMetaSettings({...metaSettings, important_instructions: e.target.value})}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                      <CardHeader className="bg-primary/5 border-b p-4">
+                        <CardTitle className="text-sm md:text-base flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-primary" /> Conhecimento dos Templates
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-xs font-bold">Leitura de Templates</Label>
+                            <p className="text-[10px] text-muted-foreground">Permitir que a IA utilize o conteúdo dos templates aprovados.</p>
+                          </div>
+                          <Switch 
+                            checked={metaSettings.read_templates_enabled}
+                            onCheckedChange={(val) => setMetaSettings({...metaSettings, read_templates_enabled: val})}
+                          />
+                        </div>
+                        <p className="text-[11px] bg-muted/30 p-3 rounded-lg italic text-muted-foreground border border-dashed">
+                          O agente analisará automaticamente os templates aprovados para sugerir respostas baseadas neles quando for pertinente.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                   <div className="flex justify-end">
                     <Button 
                       onClick={handleSaveSettings} 
