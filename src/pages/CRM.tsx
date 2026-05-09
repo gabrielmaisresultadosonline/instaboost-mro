@@ -1165,7 +1165,47 @@ const CRM = () => {
                     </CardContent>
                   </Card>
 
-                  <div className="flex justify-end">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                      <CardHeader className="bg-primary/5 border-b p-4">
+                        <CardTitle className="text-sm md:text-base flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-primary" /> Instruções Importantes
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <Textarea 
+                          rows={6}
+                          className="resize-none font-mono text-[11px] md:text-xs leading-relaxed bg-muted/10 rounded-xl"
+                          placeholder="Instruções específicas sobre o que a IA deve ou não fazer..."
+                          value={metaSettings.important_instructions}
+                          onChange={(e) => setMetaSettings({...metaSettings, important_instructions: e.target.value})}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                      <CardHeader className="bg-primary/5 border-b p-4">
+                        <CardTitle className="text-sm md:text-base flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-primary" /> Conhecimento dos Templates
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-xs font-bold">Leitura de Templates</Label>
+                            <p className="text-[10px] text-muted-foreground">Permitir que a IA utilize o conteúdo dos templates aprovados.</p>
+                          </div>
+                          <Switch 
+                            checked={metaSettings.read_templates_enabled}
+                            onCheckedChange={(val) => setMetaSettings({...metaSettings, read_templates_enabled: val})}
+                          />
+                        </div>
+                        <p className="text-[11px] bg-muted/30 p-3 rounded-lg italic text-muted-foreground border border-dashed">
+                          O agente analisará automaticamente os templates aprovados para sugerir respostas baseadas neles quando for pertinente.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                     <Button 
                       onClick={handleSaveSettings} 
                       disabled={saving}
