@@ -3492,8 +3492,8 @@ const CRM = () => {
                       </div>
                     </div>
                     
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto w-full">
+                      <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                           <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
                             <th className="px-6 py-4">Nome</th>
