@@ -1,28 +1,15 @@
-As requested, I will create a new page `/mrocriativo` that serves as the entry point for the "Sistema IA para Gestão e Automação de Instagram". This page will feature a professional sales landing page for the MVP, highlighting the AI-driven features like profile analysis, strategy generation, creative creation, and automated scheduling via Meta Business Suite.
+Implement improvements for the WhatsApp audio bridge (VPS) and enhance the Google Contacts sync UI.
 
-### 1. New Page Creation
-- Create `src/pages/MROCriativo.tsx`: A high-conversion landing page using the project's premium design system (gradients, glassmorphism, Lucide icons).
-- Section 1: Hero with the specified objective and "Connect Instagram" CTA (simulated OAuth flow for MVP).
-- Section 2: Features breakdown (IA Analysis, Strategic Organization, Content Strategies, Automatic Creatives, High-Performance Posts, Captions/CTA, Approval Screen, Scheduling).
-- Section 3: "How it works" steps based on the flow (OAuth -> Reading -> Optimization -> Strategies -> Post Generation -> Approval -> Auto-posting).
-- Section 4: Pricing/CTA (MVP access).
+### Technical Details
+- Add `cors` to `package.json` and the VPS bridge script to allow cross-origin requests.
+- Improve `scripts/vps-whatsapp-bridge.js` with better file extension handling and more detailed logging.
+- Update `src/pages/CRM.tsx` to make Google Sync options more prominent and improve VPS error reporting.
+- Provide clear commands for the user to update and restart their VPS server.
 
-### 2. Integration with Existing System
-- Add the route `/mrocriativo` to `src/App.tsx`.
-- Connect the CTA on this new page to existing tools (like `ProfileSearch` or a new MVP dashboard flow).
-- Since the user mentioned "Initially SEM App Review della Meta", I will implement the login/connection flow using the existing "Development Mode" pattern (adding users as testers).
-
-### 3. Technical Implementation
-- Use `framer-motion` for smooth animations (consistent with other premium pages in the project).
-- Implement a dashboard-style preview on the sales page to show how the "Approval Screen" and "Scheduling Calendar" look.
-- Ensure the page is fully responsive for mobile and desktop.
-
-### 4. MVP Flow Simulation
-- The page will include placeholders for the "Tester/Developer" addition instructions in the onboarding flow, as requested in point 9 of the specifications.
-
----
-**Technical Details**
-- **File:** `src/pages/MROCriativo.tsx` (New)
-- **Route:** `/mrocriativo`
-- **Dependencies:** `lucide-react`, `framer-motion`, `sonner`
-- **Authentication:** Meta OAuth simulation via the project's existing API patterns.
+### Steps
+1. **Update dependencies**: Add `cors` to `package.json`.
+2. **Refine VPS Bridge**: Update `scripts/vps-whatsapp-bridge.js` to include CORS middleware, use proper temporary file extensions, and add detailed console logs for debugging.
+3. **Enhance UI**:
+    - Make the "Google Contacts" connection and "Auto-Sync" switch more visible in the Contacts tab.
+    - Add a validation in `CRM.tsx` to warn about Mixed Content (HTTP vs HTTPS) when using the VPS transcoder.
+4. **Finalize**: Provide instructions for the user to sync changes to their VPS and restart the service.

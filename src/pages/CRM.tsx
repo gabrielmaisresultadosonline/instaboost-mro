@@ -768,8 +768,20 @@ const CRM = () => {
 
       if (type === 'audio' && metaSettings.vps_transcoder_url) {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
+        
+        // Check for mixed content issues
+        if (window.location.protocol === 'https:' && metaSettings.vps_transcoder_url.startsWith('http://')) {
+          console.warn("Mixed Content Warning: Connecting to HTTP VPS from HTTPS site may be blocked by the browser.");
+          toast({ 
+            title: "Aviso de Segurança (Mixed Content)", 
+            description: "Seu navegador pode bloquear o áudio porque o VPS usa HTTP e o CRM usa HTTPS. Tente usar HTTPS no VPS ou autorize conteúdo inseguro no navegador.",
+            variant: "destructive"
+          });
+        }
+
         try {
-          const response = await fetch(`${metaSettings.vps_transcoder_url.replace(/\/$/, '')}/send-voice`, {
+          const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+          const response = await fetch(`${vpsUrl}/send-voice`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -781,16 +793,24 @@ const CRM = () => {
           });
           
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error || 'Erro no VPS');
+          if (!response.ok) {
+            console.error("VPS returned error:", result);
+            throw new Error(result.error || result.details || 'Erro no processamento do VPS');
+          }
           
           setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
           await fetchMessages(selectedContact.id);
-          toast({ title: "Áudio Profissional enviado via VPS!" });
+          toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e enviado como mensagem de voz." });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
         } catch (vpsErr: any) {
           console.error("VPS Error, falling back to standard send:", vpsErr);
-          // Don't throw, fallback to standard function
+          toast({ 
+            title: "VPS indisponível", 
+            description: "O áudio será enviado pelo método padrão (pode não aparecer como gravado na hora). Erro: " + vpsErr.message,
+            variant: "destructive"
+          });
+          // Fallback to standard function
         }
       }
 
@@ -3255,49 +3275,56 @@ const CRM = () => {
                       <h2 className="text-2xl font-bold tracking-tight">Lista de Contatos</h2>
                       <p className="text-muted-foreground text-sm">Gerencie todos os seus contatos salvos e importados.</p>
                     </div>
-                    <div className="flex flex-col md:flex-row gap-2 items-center">
-                      <div className="flex items-center gap-3 px-4 py-1.5 bg-muted/50 rounded-xl border">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold uppercase text-muted-foreground leading-none mb-1">Google Contatos</span>
-                          <div className="flex items-center gap-2">
-                            <Switch 
-                              id="google-sync-list" 
-                              checked={metaSettings.google_auto_sync} 
-                              onCheckedChange={async (checked) => {
-                                setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
-                                await supabase.from('crm_settings').upsert({
-                                  ...rest,
-                                  google_auto_sync: checked,
-                                  id: '00000000-0000-0000-0000-000000000001',
-                                  updated_at: new Date().toISOString()
-                                });
-                                toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
-                              }}
-                            />
-                            <Label htmlFor="google-sync-list" className="text-[10px] font-medium whitespace-nowrap">Sincronizar automático</Label>
+                    <div className="flex flex-col md:flex-row gap-3 items-center">
+                      <div className="flex flex-col md:flex-row items-center gap-3 px-4 py-2 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm">
+                        <div className="flex items-center gap-2 pr-4 md:border-r border-primary/10">
+                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold uppercase text-primary leading-none mb-1">Google Contatos</span>
+                            <div className="flex items-center gap-2">
+                              <Switch 
+                                id="google-sync-list" 
+                                checked={metaSettings.google_auto_sync} 
+                                onCheckedChange={async (checked) => {
+                                  setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                  const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                                  await supabase.from('crm_settings').upsert({
+                                    ...rest,
+                                    google_auto_sync: checked,
+                                    id: '00000000-0000-0000-0000-000000000001',
+                                    updated_at: new Date().toISOString()
+                                  });
+                                  toast({ title: checked ? "Sincronização automática ativada" : "Sincronização automática desativada" });
+                                }}
+                              />
+                              <Label htmlFor="google-sync-list" className="text-[11px] font-bold cursor-pointer whitespace-nowrap">Sincronizar automático</Label>
+                            </div>
                           </div>
                         </div>
-                        <div className="w-px h-8 bg-border mx-1" />
                         <Button 
-                          variant="ghost" 
+                          variant="default" 
                           size="sm"
                           className={cn(
-                            "h-8 text-[11px] font-bold",
-                            googleContactsEnabled ? "text-primary" : "text-muted-foreground"
+                            "h-9 text-xs font-bold rounded-xl px-5 shadow-sm",
+                            googleContactsEnabled ? "bg-white text-primary border border-primary/20 hover:bg-primary/5" : "bg-primary text-white"
                           )}
                           onClick={handleSyncGoogleContacts}
                         >
-                          <RefreshCcw className={cn("w-3.5 h-3.5 mr-1.5", googleContactsEnabled && "text-primary")} />
-                          {googleContactsEnabled ? 'Sincronizar Agora' : 'Conectar Google'}
+                          <RefreshCcw className={cn("w-3.5 h-3.5 mr-2", googleContactsEnabled && "animate-spin-slow")} />
+                          {googleContactsEnabled ? 'SINCRONIZAR AGORA' : 'CONECTAR GOOGLE'}
                         </Button>
                       </div>
-                      <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-11">
-                        <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
-                      </Button>
-                      <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-11">
-                        <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
-                      </Button>
+                      
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-11 rounded-xl">
+                          <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
+                        </Button>
+                        <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-11 rounded-xl shadow-lg shadow-primary/20">
+                          <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -3500,10 +3527,52 @@ const CRM = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="p-6 space-y-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
-                          <Input placeholder="http://seu-vps:3000" className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.vps_transcoder_url} onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} />
-                          <p className="text-[10px] text-muted-foreground">Configurar para que os áudios gravados no chat apareçam como "mensagem de voz" circular no WhatsApp.</p>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="http://seu-ip-vps:3000" 
+                                className="bg-muted/30 border-none h-11 rounded-xl flex-1" 
+                                value={metaSettings.vps_transcoder_url || ''} 
+                                onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} 
+                              />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-11 rounded-xl px-4 font-bold text-xs"
+                                onClick={async () => {
+                                  if (!metaSettings.vps_transcoder_url) {
+                                    toast({ title: "Digite a URL primeiro", variant: "destructive" });
+                                    return;
+                                  }
+                                  try {
+                                    const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+                                    const res = await fetch(url, { method: 'GET', mode: 'cors' });
+                                    const data = await res.json();
+                                    if (data.status === 'online') {
+                                      toast({ title: "VPS Online!", description: "Conexão estabelecida com sucesso." });
+                                    } else {
+                                      throw new Error("Resposta inválida");
+                                    }
+                                  } catch (err: any) {
+                                    toast({ 
+                                      title: "Falha na Conexão", 
+                                      description: "Não foi possível alcançar o VPS. Verifique se o servidor está rodando e se o CORS está ativo.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                              >
+                                TESTAR
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                              <strong>Dica Profissional:</strong> O VPS converte áudios para o formato nativo do WhatsApp (OGG Opus). Isso garante o microfone azul (gravado na hora).
+                            </p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
