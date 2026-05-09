@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
     status: 'online', 
     service: 'WhatsApp Audio Bridge', 
     ffmpeg: 'ready',
-    mode: 'Professional Transcoder'
+    mode: 'Professional Transcoder (V2.1 - Opus 48kHz + 2s Delay)'
   });
 });
 
