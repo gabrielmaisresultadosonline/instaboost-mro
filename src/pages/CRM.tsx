@@ -1555,7 +1555,14 @@ const CRM = () => {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
-              <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
+              <h1 className="text-xl font-bold tracking-tight capitalize">
+                {activeTab === 'tutorials' ? 'MRO Ferramenta' : 
+                 activeTab === 'zapmro' ? 'ZAPMRO' : 
+                 activeTab === 'estrutura' ? 'Estrutura' : 
+                 activeTab === 'contact-list' ? 'Contatos' : 
+                 activeTab === 'contacts' ? 'Conversas' : 
+                 activeTab}
+              </h1>
             </div>
             {activeTab === 'contacts' && (
               <div className="flex items-center gap-3">
