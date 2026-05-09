@@ -1757,47 +1757,6 @@ const CRM = () => {
                               onChange={e => setStatusFilter(e.target.value || 'all')} 
                             />
                           </div>
-                          
-                          <div className="flex flex-col gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-primary" />
-                                <span className="text-xs font-bold uppercase tracking-wider">Google Contatos</span>
-                              </div>
-                              <Badge variant={googleContactsEnabled ? "default" : "outline"} className="text-[10px] h-5">
-                                {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex items-center justify-between mt-1">
-                              <div className="flex items-center gap-2">
-                                <Switch 
-                                  id="google-sync" 
-                                  checked={metaSettings.google_auto_sync} 
-                                  onCheckedChange={async (checked) => {
-                                    setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                    const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
-                                    await supabase.from('crm_settings').upsert({
-                                      ...rest,
-                                      google_auto_sync: checked,
-                                      id: '00000000-0000-0000-0000-000000000001',
-                                      updated_at: new Date().toISOString()
-                                    });
-                                    toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
-                                  }}
-                                />
-                                <Label htmlFor="google-sync" className="text-[10px] font-medium cursor-pointer">Sincronizar automático</Label>
-                              </div>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-7 text-[10px] bg-background font-bold"
-                                onClick={handleSyncGoogleContacts}
-                              >
-                                {googleContactsEnabled ? 'Reconectar' : 'Conectar Google'}
-                              </Button>
-                            </div>
-                          </div>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="tags" className="border-none">
@@ -2820,6 +2779,79 @@ const CRM = () => {
                           <p className="text-[10px] text-muted-foreground italic">
                             "Passiva" fará com que a IA não envie mensagens, apenas analise o contato.
                           </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
+                      <CardHeader className="bg-primary/5 border-b flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                            <Users className="w-5 h-5" /> Integração Google Contatos
+                          </CardTitle>
+                          <CardDescription>Sincronize seus contatos com o Google para backup e organização</CardDescription>
+                        </div>
+                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold">
+                          {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
+                        </Badge>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
+                              <div className="space-y-0.5">
+                                <Label className="text-sm font-bold flex items-center gap-2">
+                                  <RefreshCcw className="w-4 h-4" /> Sincronização Automática
+                                </Label>
+                                <p className="text-xs text-muted-foreground">Novos contatos serão enviados ao Google automaticamente.</p>
+                              </div>
+                              <Switch 
+                                checked={metaSettings.google_auto_sync} 
+                                onCheckedChange={async (checked) => {
+                                  setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                  const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
+                                  await supabase.from('crm_settings').upsert({
+                                    ...rest,
+                                    google_auto_sync: checked,
+                                    id: '00000000-0000-0000-0000-000000000001',
+                                    updated_at: new Date().toISOString()
+                                  });
+                                  toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex gap-3">
+                              <Button 
+                                className="flex-1 font-bold h-11"
+                                onClick={handleConnectGoogle}
+                                variant={googleContactsEnabled ? "outline" : "default"}
+                              >
+                                {googleContactsEnabled ? 'Reconectar Conta Google' : 'Conectar Conta Google'}
+                              </Button>
+                              
+                              {googleContactsEnabled && (
+                                <Button 
+                                  className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
+                                  onClick={handleSyncGoogleContacts}
+                                >
+                                  <RefreshCcw className="w-4 h-4 mr-2" /> Sincronizar Agora
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="bg-blue-500/5 border border-blue-200 rounded-xl p-4 flex gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                              <Users className="w-5 h-5 text-blue-500" />
+                            </div>
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-bold text-blue-700">Por que conectar?</h4>
+                              <p className="text-[11px] text-blue-600/80 leading-relaxed">
+                                Ao conectar sua conta Google, você pode importar contatos existentes e garantir que todos os seus leads do WhatsApp sejam salvos automaticamente na sua agenda do Google.
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
