@@ -1757,7 +1757,6 @@ const CRM = () => {
                               onChange={e => setStatusFilter(e.target.value || 'all')} 
                             />
                           </div>
-                          
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="tags" className="border-none">
