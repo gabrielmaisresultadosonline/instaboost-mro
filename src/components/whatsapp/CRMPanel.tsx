@@ -300,9 +300,32 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
             <BarChart3 className="w-5 h-5 text-[#00a884]" />
             <span className="text-white font-semibold text-sm">CRM</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-white/40 hover:text-white hover:bg-white/10 h-7">
-            <Filter className="w-3.5 h-3.5 mr-1" /> Filtros
-          </Button>
+          <div className="flex items-center gap-1">
+            {googleConnected ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={syncContacts} 
+                disabled={syncingGoogle}
+                className="text-white/40 hover:text-[#00a884] hover:bg-[#00a884]/10 h-7 text-[10px]"
+              >
+                {syncingGoogle ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                Sincronizar
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={connectGoogle}
+                className="text-white/40 hover:text-[#4285F4] hover:bg-[#4285F4]/10 h-7 text-[10px]"
+              >
+                <Share2 className="w-3 h-3 mr-1" /> Conectar Google
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-white/40 hover:text-white hover:bg-white/10 h-7">
+              <Filter className="w-3.5 h-3.5 mr-1" /> Filtros
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
