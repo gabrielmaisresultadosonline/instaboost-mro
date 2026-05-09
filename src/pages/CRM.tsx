@@ -2693,16 +2693,16 @@ const CRM = () => {
             )}
 
             {activeTab === 'ai-agent' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <Bot className="w-6 h-6 text-primary" /> Agente de Inteligência Artificial
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-primary shrink-0" /> <span className="truncate">Agente de Inteligência Artificial</span>
                       </h2>
-                      <p className="text-muted-foreground text-sm">Configure como a IA deve interagir com seus clientes.</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">Configure como a IA deve interagir com seus clientes.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Label htmlFor="ai-agent-enabled" className="text-sm font-bold">Ativação Geral</Label>
                       <Switch 
                         id="ai-agent-enabled"
@@ -2759,14 +2759,14 @@ const CRM = () => {
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
-                      <CardHeader className="bg-primary/5 border-b flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                            <Users className="w-5 h-5" /> Integração Google Contatos
+                      <CardHeader className="bg-primary/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+                        <div className="min-w-0">
+                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-primary">
+                            <Users className="w-5 h-5 shrink-0" /> <span className="truncate">Integração Google Contatos</span>
                           </CardTitle>
-                          <CardDescription>Sincronize seus contatos com o Google para backup e organização</CardDescription>
+                          <CardDescription className="text-xs">Sincronize seus contatos com o Google para backup e organização</CardDescription>
                         </div>
-                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold">
+                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold shrink-0 self-start sm:self-auto">
                           {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
                         </Badge>
                       </CardHeader>
@@ -2897,14 +2897,14 @@ const CRM = () => {
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden md:col-span-2">
-                      <CardHeader className="bg-blue-50 dark:bg-blue-900/10 border-b flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                            <Clock className="w-4 h-4" /> Gestão de Horário Comercial
+                      <CardHeader className="bg-blue-50 dark:bg-blue-900/10 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+                        <div className="min-w-0">
+                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                            <Clock className="w-4 h-4 shrink-0" /> <span className="truncate">Gestão de Horário Comercial</span>
                           </CardTitle>
-                          <CardDescription>Defina quando o agente deve avisar sobre ausência</CardDescription>
+                          <CardDescription className="text-xs">Defina quando o agente deve avisar sobre ausência</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                           <Label className="text-xs font-bold">Ativar Função</Label>
                           <Switch 
                             checked={metaSettings.business_hours_enabled}
@@ -2983,16 +2983,16 @@ const CRM = () => {
                         </CardTitle>
                         <CardDescription>Defina a personalidade e o objetivo do seu robô</CardDescription>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-4">
+                      <CardContent className="p-4 md:p-6 space-y-4">
                         <div className="space-y-2">
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                             <Label className="text-sm font-bold">Prompt do System</Label>
                             <Button 
                               variant="outline" 
                               size="sm" 
                               onClick={handleImprovePrompt}
                               disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95"
+                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 self-start sm:self-auto"
                             >
                               {improvingPrompt ? (
                                 <RefreshCcw className="w-3 h-3 animate-spin" />
@@ -3616,14 +3616,14 @@ const CRM = () => {
             )}
 
             {activeTab === 'settings' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
                   <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações</h2>
-                    <p className="text-muted-foreground text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
+                    <h2 className="text-xl md:text-3xl font-bold tracking-tight text-primary">Configurações</h2>
+                    <p className="text-muted-foreground text-xs md:text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
@@ -3634,7 +3634,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-5">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Token Permanente</Label>
                           <Input type="password" placeholder="EAA..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
@@ -3667,7 +3667,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-5">
                         <div className="space-y-4">
                           <div className="space-y-2">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
@@ -3725,7 +3725,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-6">
+                      <CardContent className="p-4 md:p-6 space-y-6">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
                           <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
@@ -3744,7 +3744,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-5">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client ID</Label>
                           <Input 
@@ -3826,7 +3826,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-8">
+                      <CardContent className="p-4 md:p-6 space-y-8">
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho dos Atalhos (Modelos/Fluxos)</Label>
