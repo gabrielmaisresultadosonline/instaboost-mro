@@ -935,21 +935,45 @@ const CRM = () => {
                       </Card>
                     ) : (
                       allScheduledMessages.map(msg => (
-                        <Card key={msg.id} className="p-4 flex items-center justify-between">
+                        <Card key={msg.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-md transition-all border-l-4 border-l-primary">
                           <div className="flex items-center gap-4">
-                            <div className="p-2 rounded-full bg-primary/10 text-primary">
+                            <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
                               <Clock className="w-5 h-5" />
                             </div>
-                            <div>
-                              <p className="font-bold">Para: {msg.crm_contacts?.name || msg.crm_contacts?.wa_id}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
-                              </p>
+                            <div className="min-w-0">
+                              <p className="font-black text-sm md:text-base truncate">Para: {msg.crm_contacts?.name || msg.crm_contacts?.wa_id}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Calendar className="w-3 h-3 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground font-medium">
+                                  {format(new Date(msg.scheduled_for), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-[9px] uppercase tracking-tighter h-4">
+                                  {msg.type === 'template' ? 'Template' : msg.type === 'flow' ? 'Fluxo' : 'Mensagem'}
+                                </Badge>
+                                <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                                  {msg.content || msg.template_id || msg.flow_id}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                          <Badge variant={msg.status === 'pending' ? "outline" : "default"}>
-                            {msg.status === 'pending' ? 'Pendente' : msg.status}
-                          </Badge>
+                          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+                            <Badge variant={msg.status === 'pending' ? "outline" : "default"} className={cn(
+                              "text-[10px] font-bold uppercase",
+                              msg.status === 'pending' ? "border-amber-500 text-amber-500 bg-amber-500/10" : "bg-emerald-500 text-white"
+                            )}>
+                              {msg.status === 'pending' ? 'Pendente' : msg.status === 'sent' ? 'Enviado' : msg.status}
+                            </Badge>
+                            <Button variant="ghost" size="icon" className="text-destructive h-8 w-8 hover:bg-destructive/10" onClick={async () => {
+                              if (confirm('Deseja cancelar este agendamento?')) {
+                                await supabase.from('crm_scheduled_messages').delete().eq('id', msg.id);
+                                fetchAllScheduledMessages();
+                              }
+                            }}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </Card>
                       ))
                     )}
