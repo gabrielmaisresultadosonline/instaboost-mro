@@ -16,7 +16,7 @@ import {
   Loader2,
   CheckCircle,
   Upload,
-  Camera
+  Instagram
 } from "lucide-react";
 import logoMro from '@/assets/logo-mro-2.png';
 
@@ -369,7 +369,7 @@ const TesteGratisUsuario = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="relative">
-              <Camera className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
+              <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
               <Input
                 type="text"
                 placeholder="@seu.instagram"
@@ -460,7 +460,7 @@ const TesteGratisUsuario = () => {
           {/* Screenshot Request Card - Highlighted */}
           <Card className="mb-6 bg-zinc-900 border-yellow-500 border-2 shadow-lg shadow-yellow-500/20">
             <CardHeader className="text-center">
-              <Camera className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+              <Instagram className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
               <CardTitle className="text-2xl text-white">📸 Envie um Print do seu Perfil</CardTitle>
               <CardDescription className="text-gray-400">
                 Para liberar seu acesso, precisamos de um print do perfil do Instagram que você está utilizando.

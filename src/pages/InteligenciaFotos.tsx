@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Sparkles, Image, History, Shield, Zap, Star } from "lucide-react";
+import { Instagram, Sparkles, Image, History, Shield, Zap, Star } from "lucide-react";
 
 const InteligenciaFotos = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -101,7 +101,7 @@ const InteligenciaFotos = () => {
           <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
             <CardContent className="p-6 text-center">
               <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Camera className="w-6 h-6 text-emerald-400" />
+                <Instagram className="w-6 h-6 text-emerald-400" />
               </div>
               <h3 className="font-semibold mb-2 text-white">Suba Sua Foto</h3>
               <p className="text-slate-400 text-sm">

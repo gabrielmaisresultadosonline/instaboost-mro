@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Camera, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
+import { Sparkles, Instagram, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
 import promptsAreaPreview from "@/assets/prompts-area-preview.png";
 import { toast } from "sonner";
 import { trackPageView, trackViewContent } from "@/lib/facebookTracking";
@@ -194,7 +194,7 @@ const PromptsIN = () => {
           {[
             { step: "01", title: "Choose a Prompt", desc: "Browse categories and find the perfect prompt for your needs.", icon: Layers },
             { step: "02", title: "Copy & Paste", desc: "Copy the ready-made prompt and paste it in Google Gemini (100% FREE), ChatGPT, Midjourney, or any other AI.", icon: Zap },
-            { step: "03", title: "Photo Ready!", desc: "Get a high-quality professional photo ready to use.", icon: Camera },
+            { step: "03", title: "Photo Ready!", desc: "Get a high-quality professional photo ready to use.", icon: Instagram },
           ].map((item, i) => (
             <div key={i} className="relative bg-gradient-to-b from-white/[0.04] to-transparent border border-white/[0.06] rounded-2xl p-8 text-center group hover:border-purple-500/30 transition-all">
               <div className="text-5xl font-black text-purple-500/10 absolute top-4 right-4">{item.step}</div>
@@ -250,7 +250,7 @@ const PromptsIN = () => {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { icon: Camera, title: "Professional Photos", desc: "Optimized prompts to generate realistic, high-quality photos with any AI." },
+            { icon: Instagram, title: "Professional Photos", desc: "Optimized prompts to generate realistic, high-quality photos with any AI." },
             { icon: Wand2, title: "Super Easy to Use", desc: "Copy and paste directly into AI. No configuration, no hassle. Instant results." },
             { icon: Star, title: "Always Updated", desc: "New prompts added frequently. The most complete and up-to-date prompt library." },
             { icon: Shield, title: "Instant Access", desc: "Sign up and instantly access all prompts. No waiting, no approval needed." },

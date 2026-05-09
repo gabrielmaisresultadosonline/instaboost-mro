@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Camera, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
+import { Sparkles, Instagram, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
 import promptsAreaPreview from "@/assets/prompts-area-preview.png";
 import { toast } from "sonner";
 
@@ -192,7 +192,7 @@ const PromptsMRO = () => {
           {[
             { step: "01", title: "Escolha o Prompt", desc: "Navegue pelas categorias e encontre o prompt ideal para o que você precisa.", icon: Layers },
             { step: "02", title: "Copie e Cole", desc: "Copie o prompt pronto e cole no Google Gemini (Nano Banana) que é 100% GRÁTIS, ou em outras IAs como ChatGPT, Midjourney, etc.", icon: Zap },
-            { step: "03", title: "Foto Pronta!", desc: "Receba uma foto profissional de alta qualidade pronta para usar.", icon: Camera },
+            { step: "03", title: "Foto Pronta!", desc: "Receba uma foto profissional de alta qualidade pronta para usar.", icon: Instagram },
           ].map((item, i) => (
             <div key={i} className="relative bg-gradient-to-b from-white/[0.04] to-transparent border border-white/[0.06] rounded-2xl p-8 text-center group hover:border-purple-500/30 transition-all">
               <div className="text-5xl font-black text-purple-500/10 absolute top-4 right-4">{item.step}</div>
@@ -248,7 +248,7 @@ const PromptsMRO = () => {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { icon: Camera, title: "Fotos Profissionais", desc: "Prompts otimizados para gerar fotos realistas e de alta qualidade com qualquer IA." },
+            { icon: Instagram, title: "Fotos Profissionais", desc: "Prompts otimizados para gerar fotos realistas e de alta qualidade com qualquer IA." },
             { icon: Wand2, title: "Super Fácil de Usar", desc: "Copie e cole direto na IA. Sem configuração, sem complicação. Resultados imediatos." },
             { icon: Star, title: "Sempre Atualizado", desc: "Novos prompts adicionados frequentemente. A área mais completa e atualizada do Brasil." },
             { icon: Shield, title: "Acesso Imediato", desc: "Cadastre-se e acesse instantaneamente todos os prompts. Sem espera, sem aprovação." },

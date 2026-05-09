@@ -948,7 +948,7 @@ export default function Membro() {
         {!hasInstagram && (
           <Card className="glass-card border-primary/30 max-w-lg mx-auto mb-8">
             <CardHeader className="text-center">
-              <Camera className="w-12 h-12 text-pink-500 mx-auto mb-2" />
+              <Instagram className="w-12 h-12 text-pink-500 mx-auto mb-2" />
               <CardTitle>Adicione seu Instagram</CardTitle>
               <CardDescription>
                 Digite o @ do Instagram que você quer analisar e receber estratégias

@@ -56,7 +56,7 @@ const benefits = [
     description: "Planejamento completo com calendário de conteúdo"
   },
   {
-    icon: Camera,
+    icon: Instagram,
     title: "Bio Otimizada",
     description: "Sugestões para tornar seu perfil profissional de verdade"
   }
@@ -501,7 +501,7 @@ export default function Vendas() {
               Membros do plano mensal têm acesso a valor promocional exclusivo.
             </p>
             <Button variant="outline" onClick={openInstagram} className="gap-2">
-              <Camera className="w-4 h-4" />
+              <Instagram className="w-4 h-4" />
               @maisresultadosonline
             </Button>
           </CardContent>

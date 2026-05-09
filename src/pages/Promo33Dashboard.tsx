@@ -442,7 +442,7 @@ export default function Promo33Dashboard() {
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-                          <Camera className="w-5 h-5 text-white" />
+                          <Instagram className="w-5 h-5 text-white" />
                         </div>
                         <div className="text-left">
                           <h3 className="text-white font-bold">Ferramenta de Instagram</h3>
@@ -614,7 +614,7 @@ export default function Promo33Dashboard() {
               <Card className="bg-gray-900/50 border-gray-800 mb-8">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
-                    <Camera className="w-5 h-5 text-pink-500" />
+                    <Instagram className="w-5 h-5 text-pink-500" />
                     Adicione seu Instagram
                   </CardTitle>
                   <CardDescription className="text-gray-400">

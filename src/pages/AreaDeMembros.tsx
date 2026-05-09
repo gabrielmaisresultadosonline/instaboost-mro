@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Camera, MessageCircle, Home, Wand2 } from "lucide-react";
+import { Instagram, MessageCircle, Home, Wand2 } from "lucide-react";
 
 const AreaDeMembros = () => {
   return (
@@ -22,8 +22,8 @@ const AreaDeMembros = () => {
               size="xl" 
               className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
             >
-              <Camera className="h-6 w-6" />
-              Ferramenta para Camera
+              <Instagram className="h-6 w-6" />
+              Ferramenta para Instagram
             </Button>
           </Link>
 
@@ -66,7 +66,7 @@ const AreaDeMembros = () => {
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
           >
-            <Camera className="h-5 w-5" />
+            <Instagram className="h-5 w-5" />
             <span>@maisresultadosonline</span>
           </a>
         </div>

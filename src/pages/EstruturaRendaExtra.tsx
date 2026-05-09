@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
@@ -1090,7 +1090,7 @@ const EstruturaRendaExtra = () => {
                 {[
                   { label: 'Crie sua Logomarca', icon: <PenTool className="h-5 w-5" />, hoverGradient: 'hover:from-rose-500 hover:via-fuchsia-500 hover:to-violet-500', hoverShadow: 'hover:shadow-rose-500/35', action: () => setShowLogoPopup(true) },
                   { label: 'Posts Creator', icon: <Image className="h-5 w-5" />, hoverGradient: 'hover:from-purple-600 hover:via-pink-500 hover:to-orange-400', hoverShadow: 'hover:shadow-purple-500/35', action: () => setCurrentView('posts-creator') },
-                  { label: 'Gerando sua Foto Profissional', icon: <Camera className="h-5 w-5" />, hoverGradient: 'hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500', hoverShadow: 'hover:shadow-emerald-500/35', action: () => {
+                  { label: 'Gerando sua Foto Profissional', icon: <Instagram className="h-5 w-5" />, hoverGradient: 'hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500', hoverShadow: 'hover:shadow-emerald-500/35', action: () => {
                     const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
                     sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
                     navigate('/prompts/dashboard');
