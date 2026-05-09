@@ -1491,10 +1491,15 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     let blob = await fileResponse.blob();
     
     // Ensure audio is sent with a supported MIME type for Meta
-    // If it's webm, we'll try to label it as audio/ogg which Meta accepts if it's Opus
-    if (blob.type.includes('webm') || mediaUrl.endsWith('.webm') || blob.type === 'application/octet-stream') {
-      console.log(`Re-labeling blob from ${blob.type} to audio/ogg for Meta compatibility`);
-      blob = new Blob([await blob.arrayBuffer()], { type: 'audio/ogg' });
+    // Meta is very strict: voice messages MUST be audio/ogg with opus codec
+    // Browsers often record in audio/webm. We re-label it and Meta usually accepts it if it's Opus inside.
+    const isWebm = blob.type.toLowerCase().includes('webm') || mediaUrl.toLowerCase().endsWith('.webm');
+    const isOctet = blob.type === 'application/octet-stream';
+    
+    if (isWebm || isOctet || (type === 'audio' && !blob.type.includes('ogg') && !blob.type.includes('opus'))) {
+      console.log(`Re-labeling blob for Meta compatibility. Original type: ${blob.type}, target: audio/ogg`);
+      const buffer = await blob.arrayBuffer();
+      blob = new Blob([buffer], { type: 'audio/ogg' });
     }
 
     const formData = new FormData();
