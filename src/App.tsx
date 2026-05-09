@@ -111,6 +111,7 @@ import MROCriativoPrivacy from "./pages/MROCriativoPrivacy";
 import MROCriativoCallback from "./pages/MROCriativoCallback";
 import MROCriativoWebhook from "./pages/MROCriativoWebhook";
 import MROCriativoOAuth from "./pages/MROCriativoOAuth";
+import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 
 
 
@@ -260,6 +261,7 @@ const App = () => (
           <Route path="/mrocriativo/callback.php" element={<MROCriativoCallback />} />
           <Route path="/mrocriativo/webhook.php" element={<MROCriativoWebhook />} />
           <Route path="/mrocriativo/oauth.php" element={<MROCriativoOAuth />} />
+          <Route path="/google-callback" element={<GoogleContactsCallback />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
