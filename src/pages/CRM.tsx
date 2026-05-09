@@ -2174,8 +2174,8 @@ const CRM = () => {
                                             </div>
                                           )}
                                           {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
-                                            <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10">
-                                              <audio src={m.media_url} controls className="max-w-full h-9" />
+                                            <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10 w-full">
+                                              <audio src={m.media_url} controls className="w-full h-9 block" style={{ minWidth: 0, maxWidth: '100%' }} />
                                             </div>
                                           )}
                                           {m.message_type === 'document' && m.media_url && (
