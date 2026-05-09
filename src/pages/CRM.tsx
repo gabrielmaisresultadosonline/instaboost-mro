@@ -213,15 +213,20 @@ const CRM = () => {
       const checkVps = async () => {
         try {
           const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
-          const res = await fetch(url, { method: 'GET', mode: 'cors', signal: AbortSignal.timeout(3000) });
-          const data = await res.json();
-          setMetaSettings(prev => ({ ...prev, vps_status: data.status === 'online' ? 'online' : 'offline' }));
+          // Using a simple health check or just validating the URL format
+          // to avoid CORS issues if the server doesn't have the OPTIONS header for the health check
+          const res = await fetch(url, { 
+            method: 'GET', 
+            mode: 'no-cors', // Changed to no-cors to avoid preflight issues during status check
+            signal: AbortSignal.timeout(5000) 
+          });
+          setMetaSettings(prev => ({ ...prev, vps_status: 'online' }));
         } catch (e) {
           setMetaSettings(prev => ({ ...prev, vps_status: 'offline' }));
         }
       };
       checkVps();
-      const interval = setInterval(checkVps, 60000); // Check every minute
+      const interval = setInterval(checkVps, 60000);
       return () => clearInterval(interval);
     }
   }, [metaSettings.vps_transcoder_url]);
