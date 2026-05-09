@@ -1488,13 +1488,20 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     if (!fileResponse.ok) throw new Error(`Failed to fetch media: ${mediaUrl}`);
     let blob = await fileResponse.blob();
     
-    // Fix for webm to ogg conversion if necessary, or at least force correct MIME type for Meta
-    if (blob.type === 'audio/webm' || mediaUrl.endsWith('.webm')) {
+    // Ensure audio is sent with a supported MIME type for Meta
+    // If it's webm, we'll try to label it as audio/ogg which Meta accepts if it's Opus
+    if (blob.type.includes('webm') || mediaUrl.endsWith('.webm') || blob.type === 'application/octet-stream') {
+      console.log(`Re-labeling blob from ${blob.type} to audio/ogg for Meta compatibility`);
       blob = new Blob([await blob.arrayBuffer()], { type: 'audio/ogg' });
     }
 
     const formData = new FormData();
-    formData.append('file', blob);
+    // Providing a filename with correct extension is crucial for Meta to accept the media
+    const filename = type === 'audio' ? 'voice.ogg' : 
+                     type === 'image' ? 'image.jpg' : 
+                     type === 'video' ? 'video.mp4' : 'document.pdf';
+    
+    formData.append('file', blob, filename);
     formData.append('type', type);
     formData.append('messaging_product', 'whatsapp');
 
