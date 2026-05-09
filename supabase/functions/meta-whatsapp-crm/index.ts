@@ -720,11 +720,16 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       await supabase.from('crm_messages').insert({
         contact_id: contact.id,
         direction: 'outbound',
-        content: text || `[${body.type}]`,
+        content: audioUrl ? (isVoice ? "[Áudio]" : "[Arquivo de Áudio]") : 
+                 imageUrl ? "[Imagem]" : 
+                 videoUrl ? "[Vídeo]" : 
+                 documentUrl ? `[Documento: ${fileName}]` : 
+                 buttons ? (headerText || text || "[Interativo]") : text,
         message_type: body.type,
         media_url: mediaUrlToStore,
         meta_message_id: result.messages[0].id,
-        status: 'sent'
+        status: 'sent',
+        metadata: { is_voice: isVoice }
       })
       await supabase.from('crm_contacts').update({ 
         total_messages_sent: (contact.total_messages_sent || 0) + 1,
