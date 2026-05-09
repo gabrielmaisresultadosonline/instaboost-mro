@@ -49,12 +49,12 @@ npm run build
 echo ""
 echo "🤖 Configurando Bot WhatsApp..."
 
-# Instalar Chromium e libs necessárias para o Puppeteer/whatsapp-web.js
-if ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
-  echo "🌐 Instalando Chromium e dependências do Puppeteer..."
+# Instalar Chromium, FFmpeg e libs necessárias para o Puppeteer/whatsapp-web.js
+if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v google-chrome >/dev/null 2>&1; then
+  echo "🌐 Instalando Chromium, FFmpeg e dependências..."
   $SUDO apt-get update
   $SUDO apt-get install -y \
-    chromium-browser \
+    chromium-browser ffmpeg \
     ca-certificates fonts-liberation libappindicator3-1 libasound2 \
     libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
     libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 \
