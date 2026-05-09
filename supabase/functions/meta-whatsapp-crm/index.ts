@@ -1518,14 +1518,14 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
       blob = new Blob([buffer], { type: 'audio/ogg' });
       mimeType = 'audio/ogg';
       filename = 'voice.ogg';
-      console.log(`Re-labeled audio blob to audio/ogg for Meta compatibility.`);
+      console.log(`Re-labeled audio blob to audio/ogg for Meta compatibility. Size: ${buffer.byteLength} bytes`);
     }
 
     const formData = new FormData();
-    // Create a new File object from the blob to ensure filename and type are passed correctly
+    // Use the explicit mimeType and filename to ensure Meta receives the correct metadata
     const file = new File([blob], filename, { type: mimeType });
     formData.append('file', file);
-    formData.append('type', type);
+    formData.append('type', mimeType === 'audio/ogg' ? 'audio/ogg' : type);
     formData.append('messaging_product', 'whatsapp');
 
     const response = await fetch(
