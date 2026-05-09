@@ -117,7 +117,7 @@ app.post('/send-voice', async (req, res) => {
     });
 
     const uploadRes = await axios.post(
-      `https://graph.facebook.com/v20.0/${phone}/media`,
+      `https://graph.facebook.com/v21.0/${phone}/media`,
       form,
       {
         headers: {
@@ -130,10 +130,14 @@ app.post('/send-voice', async (req, res) => {
     const mediaId = uploadRes.data.id;
     console.log(`[${requestId}] 🆔 Media ID gerado: ${mediaId}`);
 
+    // Aguardar 2 segundos para garantir que a Meta processe o arquivo
+    console.log(`[${requestId}] ⏳ Aguardando 2 segundos para processamento da Meta...`);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // 4. Enviar PTT (Mensagem de Voz)
     console.log(`[${requestId}] 💬 Enviando mensagem de voz final...`);
     const sendRes = await axios.post(
-      `https://graph.facebook.com/v20.0/${phone}/messages`,
+      `https://graph.facebook.com/v21.0/${phone}/messages`,
       {
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
