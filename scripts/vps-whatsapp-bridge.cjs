@@ -5,9 +5,11 @@
  */
 
 try {
+  // Tenta carregar o dotenv apenas se ele estiver disponível
   require('dotenv').config();
 } catch (e) {
-  console.log('⚠️ Dotenv não encontrado, continuando com env vars do sistema');
+  // Silencia o erro se o módulo não estiver instalado no ambiente global do PM2
+  // Isso evita que o processo trave no servidor se o npm install ainda não terminou
 }
 const express = require('express');
 const cors = require('cors');
