@@ -3141,14 +3141,14 @@ const CRM = () => {
 
                   <Accordion type="single" collapsible className="w-full space-y-4">
                     <AccordionItem value="templates-list" className="border-none">
-                      <AccordionTrigger className="bg-card p-6 rounded-2xl border shadow-sm hover:no-underline">
-                        <div className="flex flex-col items-start text-left">
-                          <h3 className="text-xl font-bold tracking-tight">Lista de Templates</h3>
-                          <p className="text-muted-foreground text-sm font-normal">Clique para ver e gerenciar seus templates.</p>
+                      <AccordionTrigger className="bg-card p-4 md:p-6 rounded-2xl border shadow-sm hover:no-underline [&[data-state=open]>div>h3]:text-primary transition-all">
+                        <div className="flex flex-col items-start text-left gap-1">
+                          <h3 className="text-lg md:text-xl font-bold tracking-tight">Lista de Templates</h3>
+                          <p className="text-muted-foreground text-xs md:text-sm font-normal">Clique para ver e gerenciar seus templates.</p>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                      <AccordionContent className="pt-4 md:pt-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-6">
                           {templates.length > 0 ? (
                             templates.map((template) => {
                               const header = template.components?.find((c: any) => c.type === 'HEADER');
