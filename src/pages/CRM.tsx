@@ -142,6 +142,12 @@ const CRM = () => {
     qualified_count: 0,
     sales_count: 0
   });
+  const [conversationStats, setConversationStats] = useState({
+    paidThisMonth: 0,
+    activeWindow24h: 0,
+    monthLabel: ''
+  });
+  const CONVERSATION_COST = 0.33;
   const [flows, setFlows] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
@@ -212,6 +218,70 @@ const CRM = () => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const computeConversationStats = async () => {
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      const { data: monthMsgs } = await supabase
+        .from('crm_messages')
+        .select('contact_id, direction, created_at')
+        .gte('created_at', startOfMonth)
+        .order('created_at', { ascending: true })
+        .limit(20000);
+
+      const byContact: Record<string, any[]> = {};
+      (monthMsgs || []).forEach((m: any) => {
+        if (!m.contact_id) return;
+        (byContact[m.contact_id] = byContact[m.contact_id] || []).push(m);
+      });
+
+      const DAY = 24 * 60 * 60 * 1000;
+      let paidCount = 0;
+      Object.values(byContact).forEach((msgs) => {
+        let lastInbound = -Infinity;
+        let lastPaidStart = -Infinity;
+        for (const m of msgs) {
+          const t = new Date(m.created_at).getTime();
+          if (m.direction === 'inbound') {
+            lastInbound = t;
+          } else if (m.direction === 'outbound') {
+            const inFreeWindow = t - lastInbound < DAY;
+            const inPaidWindow = t - lastPaidStart < DAY;
+            if (!inFreeWindow && !inPaidWindow) {
+              paidCount++;
+              lastPaidStart = t;
+            }
+          }
+        }
+      });
+
+      const { data: recent } = await supabase
+        .from('crm_messages')
+        .select('contact_id, direction, created_at')
+        .eq('direction', 'inbound')
+        .gte('created_at', since24h)
+        .limit(10000);
+      const activeSet = new Set<string>();
+      (recent || []).forEach((m: any) => m.contact_id && activeSet.add(m.contact_id));
+
+      setConversationStats({
+        paidThisMonth: paidCount,
+        activeWindow24h: activeSet.size,
+        monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      });
+    } catch (e) {
+      console.error('Erro ao calcular estatísticas de conversas:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      computeConversationStats();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (metaSettings.vps_transcoder_url) {
@@ -1608,6 +1678,62 @@ const CRM = () => {
                         </CardContent>
                       </Card>
                     ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <Card className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20">
+                      <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
+                        <div className="min-w-0">
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-orange-700 dark:text-orange-400">
+                            Conversas Pagas (Iniciadas por mim)
+                          </CardDescription>
+                          <p className="text-[10px] text-muted-foreground mt-0.5 capitalize truncate">
+                            {conversationStats.monthLabel || 'Este mês'} · R$ {CONVERSATION_COST.toFixed(2).replace('.', ',')} por conversa
+                          </p>
+                        </div>
+                        <DollarSign className="w-5 h-5 text-orange-500 shrink-0" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <div className="text-2xl md:text-3xl font-black text-orange-600 dark:text-orange-400">
+                            R$ {(conversationStats.paidThisMonth * CONVERSATION_COST).toFixed(2).replace('.', ',')}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] font-bold border-orange-300 text-orange-700 dark:text-orange-400">
+                            {conversationStats.paidThisMonth} conv.
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-2">
+                          Conta apenas conversas iniciadas por você fora da janela de 24h. Zera todo mês, mantendo histórico.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20">
+                      <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
+                        <div className="min-w-0">
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                            Janela 24h Aberta (grátis)
+                          </CardDescription>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Conversas que você ainda pode responder sem cobrança
+                          </p>
+                        </div>
+                        <Clock className="w-5 h-5 text-emerald-500 shrink-0" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                            {conversationStats.activeWindow24h}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] font-bold border-emerald-300 text-emerald-700 dark:text-emerald-400">
+                            ativas
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-2">
+                          Contatos que enviaram mensagem nas últimas 24h. Você pode enviar mensagens livres a esses sem nova cobrança.
+                        </p>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </ScrollArea>
