@@ -2897,14 +2897,14 @@ const CRM = () => {
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden md:col-span-2">
-                      <CardHeader className="bg-blue-50 dark:bg-blue-900/10 border-b flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                            <Clock className="w-4 h-4" /> Gestão de Horário Comercial
+                      <CardHeader className="bg-blue-50 dark:bg-blue-900/10 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+                        <div className="min-w-0">
+                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                            <Clock className="w-4 h-4 shrink-0" /> <span className="truncate">Gestão de Horário Comercial</span>
                           </CardTitle>
-                          <CardDescription>Defina quando o agente deve avisar sobre ausência</CardDescription>
+                          <CardDescription className="text-xs">Defina quando o agente deve avisar sobre ausência</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                           <Label className="text-xs font-bold">Ativar Função</Label>
                           <Switch 
                             checked={metaSettings.business_hours_enabled}
