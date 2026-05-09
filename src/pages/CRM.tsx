@@ -2181,12 +2181,8 @@ const CRM = () => {
                             {selectedContact ? (
                               <>
                                 <div className="flex flex-col gap-2 p-3 bg-muted/20 rounded-xl border border-border/50">
-                                  {!metaSettings.ai_agent_enabled && (
-                                    <div className="flex items-center gap-2 px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-lg mb-1">
-                                      <AlertCircle className="w-3 h-3 text-yellow-500" />
-                                      <span className="text-[9px] font-bold text-yellow-600 uppercase">Atenção: Robô Desativado Geral</span>
-                                    </div>
-                                  )}
+                                  {/* Atenção: Robô Desativado Geral hidden as requested */}
+
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                       <div className="flex items-center gap-2">
