@@ -3494,41 +3494,33 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
-                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
-                      <CardHeader className="bg-muted/30 border-b">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-5 h-5" /></div>
-                          <div>
-                            <CardTitle className="text-lg">Configurações de IA</CardTitle>
-                            <CardDescription className="text-[11px]">Chave de API e configurações globais.</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-6">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
-                          <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
-                          <p className="text-[10px] text-muted-foreground">A ativação geral do robô deve ser feita na aba <strong>Agente IA</strong>.</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+            {activeTab === 'settings' && (
+              <ScrollArea className="flex-1 bg-muted/5">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Ajustes e Configurações</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Gerencie integrações e a aparência do seu CRM.</p>
+                    </div>
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
-                      <CardHeader className="bg-muted/30 border-b">
+                      <CardHeader className="bg-muted/30 border-b p-4 md:p-6">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-primary/10 text-primary"><Users className="w-5 h-5" /></div>
                           <div>
-                            <CardTitle className="text-lg">Google Contatos</CardTitle>
-                            <CardDescription className="text-[11px]">Sincronize seus contatos do Google em tempo real.</CardDescription>
+                            <CardTitle className="text-base md:text-lg">Google Contatos</CardTitle>
+                            <CardDescription className="text-[11px]">Credenciais da API do Google Cloud.</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-4">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client ID</Label>
                           <Input 
                             placeholder="Seu Google Client ID" 
-                            className="bg-muted/30 border-none h-11 rounded-xl" 
+                            className="bg-muted/30 border-none h-11 rounded-xl text-sm" 
                             value={metaSettings.google_client_id || ''} 
                             onChange={e => setMetaSettings({...metaSettings, google_client_id: e.target.value})} 
                           />
@@ -3538,127 +3530,100 @@ const CRM = () => {
                           <Input 
                             type="password"
                             placeholder="Seu Google Client Secret" 
-                            className="bg-muted/30 border-none h-11 rounded-xl" 
+                            className="bg-muted/30 border-none h-11 rounded-xl text-sm" 
                             value={metaSettings.google_client_secret || ''} 
                             onChange={e => setMetaSettings({...metaSettings, google_client_secret: e.target.value})} 
                           />
                         </div>
-                        <div className="flex flex-col gap-3 pt-2">
-                          <Button 
-                            variant="default" 
-                            className="w-full h-11 rounded-xl font-bold bg-primary hover:scale-[1.02] transition-transform"
-                            onClick={handleSaveSettings}
-                            disabled={saving}
-                          >
-                            <Save className="w-4 h-4 mr-2" />
-                            {saving ? 'Salvando...' : 'Salvar Dados do Google'}
-                          </Button>
-                          
-                          {metaSettings.google_client_id && (
-                            <div className="pt-4 border-t border-muted-foreground/10 space-y-3">
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase text-center">Integração do Navegador</p>
-                              <Button 
-                                variant={googleContactsEnabled ? "outline" : "secondary"} 
-                                className="w-full h-11 rounded-xl font-bold border-primary/20"
-                                onClick={() => {
-                                  const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
-                                  const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                                  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-                                  window.location.href = url;
-                                }}
-                              >
-                                <Users className="w-4 h-4 mr-2" />
-                                {googleContactsEnabled ? 'Reconectar Navegador' : 'Conectar Navegador'}
-                              </Button>
-                              
-                              {googleContactsEnabled && (
-                                <Button 
-                                  variant="ghost" 
-                                  className="w-full h-11 rounded-xl font-bold text-destructive hover:bg-destructive/5"
-                                  onClick={() => {
-                                    localStorage.removeItem('google_contacts_connected');
-                                    localStorage.removeItem('google_contacts_auth_code');
-                                    setGoogleContactsEnabled(false);
-                                    toast({ title: "Desconectado", description: "Conexão do navegador removida" });
-                                  }}
-                                >
-                                  Desconectar Navegador
-                                </Button>
-                              )}
-                            </div>
-                          )}
-                        </div>
                         <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                          * URL de redirecionamento autorizada: <code className="text-primary font-bold">{window.location.origin}/google-callback</code>
+                          * Redirecionamento: <code className="text-primary font-bold break-all">{window.location.origin}/google-callback</code>
                         </p>
                       </CardContent>
                     </Card>
 
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
-
-                      <CardHeader className="bg-muted/30 border-b">
+                      <CardHeader className="bg-muted/30 border-b p-4 md:p-6">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-primary/10 text-primary"><Zap className="w-5 h-5" /></div>
                           <div>
-                            <CardTitle className="text-lg">Customização da Interface</CardTitle>
-                            <CardDescription className="text-[11px]">Ajuste o tamanho dos botões e etiquetas.</CardDescription>
+                            <CardTitle className="text-base md:text-lg">Interface do Chat</CardTitle>
+                            <CardDescription className="text-[11px]">Tamanhos globais dos elementos.</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-8">
-                        <div className="space-y-4">
+                      <CardContent className="p-4 md:p-6 space-y-6">
+                        <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho dos Atalhos (Modelos/Fluxos)</Label>
+                            <Label className="text-xs font-bold text-muted-foreground">Atalhos (Botões)</Label>
                             <Badge variant="secondary" className="text-[10px]">{metaSettings.shortcut_size}%</Badge>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-[10px] text-muted-foreground">Menor</span>
+                          <div className="flex items-center gap-3">
                             <input 
                               type="range" 
-                              min="70" 
-                              max="150" 
-                              step="5"
+                              min="70" max="150" step="5"
                               value={metaSettings.shortcut_size || 100} 
                               onChange={e => setMetaSettings({...metaSettings, shortcut_size: parseInt(e.target.value)})}
                               className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                             />
-                            <span className="text-[10px] text-muted-foreground">Maior</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }} className="px-2 rounded-md border-primary/20 bg-primary/5 text-primary pointer-events-none">Exemplo Atalho</Button>
                           </div>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho das Etiquetas (Status/Filtros)</Label>
+                            <Label className="text-xs font-bold text-muted-foreground">Etiquetas (Status)</Label>
                             <Badge variant="secondary" className="text-[10px]">{metaSettings.tag_size}%</Badge>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-[10px] text-muted-foreground">Menor</span>
+                          <div className="flex items-center gap-3">
                             <input 
                               type="range" 
-                              min="70" 
-                              max="150" 
-                              step="5"
+                              min="70" max="150" step="5"
                               value={metaSettings.tag_size || 100} 
                               onChange={e => setMetaSettings({...metaSettings, tag_size: parseInt(e.target.value)})}
                               className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                             />
-                            <span className="text-[10px] text-muted-foreground">Maior</span>
                           </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline" style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }} className="px-1.2 font-bold pointer-events-none">Exemplo Etiqueta</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card lg:col-span-1 md:col-span-2">
+                      <CardHeader className="bg-blue-50/50 dark:bg-blue-900/10 border-b p-4 md:p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500"><Clock className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-base md:text-lg">Horário Comercial</CardTitle>
+                            <CardDescription className="text-[11px]">Gestão de ausência automática.</CardDescription>
                           </div>
+                          <Switch 
+                            checked={metaSettings.business_hours_enabled}
+                            onCheckedChange={(val) => setMetaSettings({...metaSettings, business_hours_enabled: val})}
+                            className="ml-auto"
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 md:p-6 space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Início</Label>
+                            <Input type="time" className="h-10 text-sm rounded-xl" value={metaSettings.business_hours_start} onChange={(e) => setMetaSettings({...metaSettings, business_hours_start: e.target.value})} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fim</Label>
+                            <Input type="time" className="h-10 text-sm rounded-xl" value={metaSettings.business_hours_end} onChange={(e) => setMetaSettings({...metaSettings, business_hours_end: e.target.value})} />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground">Mensagem de Ausência</Label>
+                          <Textarea rows={3} className="resize-none text-xs rounded-xl" placeholder="Nossos administradores não estão ativos..." value={metaSettings.outside_hours_message} onChange={(e) => setMetaSettings({...metaSettings, outside_hours_message: e.target.value})} />
                         </div>
                       </CardContent>
                     </Card>
                   </div>
 
-                  <div className="flex justify-end pt-4">
-                    <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-10 h-14 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                  <div className="flex justify-end sticky bottom-4 z-10">
+                    <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-10 h-12 md:h-14 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform w-full sm:w-auto">
                       {saving ? <RefreshCcw className="mr-3 h-5 w-5 animate-spin" /> : <Save className="mr-3 h-5 w-5" />}
-                      Salvar Configurações
+                      Salvar Ajustes
                     </Button>
                   </div>
                 </div>
