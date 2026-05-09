@@ -52,7 +52,7 @@ app.post('/send-voice', async (req, res) => {
   }
 
   const requestId = uuidv4();
-  const inputPath = path.join(TEMP_DIR, `${requestId}_input`);
+  const inputPath = path.join(TEMP_DIR, `${requestId}_input.bin`);
   const outputPath = path.join(TEMP_DIR, `${requestId}_voice.ogg`);
 
   try {
