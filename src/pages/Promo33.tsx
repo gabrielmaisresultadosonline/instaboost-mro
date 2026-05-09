@@ -241,7 +241,7 @@ export default function Promo33() {
             {[
               { step: '1', icon: UserPlus, title: 'Faça seu cadastro', desc: 'Crie sua conta em menos de 1 minuto' },
               { step: '2', icon: CreditCard, title: 'Realize o pagamento', desc: 'Apenas R$33 por mês - cancele quando quiser' },
-              { step: '3', icon: Camera, title: 'Adicione seu Instagram', desc: 'Perfil que você precisa crescer' },
+              { step: '3', icon: Camera, title: 'Adicione seu Camera', desc: 'Perfil que você precisa crescer' },
               { step: '4', icon: Brain, title: 'Utilize nossa I.A', desc: 'Inteligência focada para o seu crescimento' },
             ].map((item, index) => (
               <div key={index} className="flex items-start gap-4 bg-black/50 border border-gray-800 rounded-xl p-5 hover:border-yellow-500/50 transition-colors">
@@ -332,7 +332,7 @@ export default function Promo33() {
             Comece Agora Mesmo
           </h2>
           <p className="text-gray-400 mb-8">
-            Junte-se a centenas de empreendedores que já estão crescendo no Instagram
+            Junte-se a centenas de empreendedores que já estão crescendo no Camera
           </p>
           
           <Button 

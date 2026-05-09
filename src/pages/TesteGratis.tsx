@@ -746,7 +746,7 @@ const TesteGratis = () => {
             
             <div>
               <Label htmlFor="instagram" className="flex items-center gap-2 text-gray-300 text-sm">
-                <Instagram className="w-4 h-4" /> Instagram (sem @)
+                <Camera className="w-4 h-4" /> Instagram (sem @)
               </Label>
               <div className="relative mt-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
