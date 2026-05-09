@@ -3320,38 +3320,40 @@ const CRM = () => {
             )}
 
             {activeTab === 'contact-list' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">Lista de Contatos</h2>
-                      <p className="text-muted-foreground text-sm">Gerencie todos os seus contatos salvos e importados.</p>
+              <ScrollArea className="flex-1 p-2 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
+                    <div className="w-full md:w-auto">
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Lista de Contatos</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Gerencie todos os seus contatos salvos e importados.</p>
                     </div>
-                    <div className="flex flex-col md:flex-row gap-3 items-center">
-                      <div className="flex flex-col md:flex-row items-center gap-3 px-4 py-2 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm">
-                        <div className="flex items-center gap-2 pr-4 md:border-r border-primary/10">
-                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold uppercase text-primary leading-none mb-1">Google Contatos</span>
-                            <div className="flex items-center gap-2">
-                              <Switch 
-                                id="google-sync-list" 
-                                checked={metaSettings.google_auto_sync} 
-                                onCheckedChange={async (checked) => {
-                                  setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                  const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
-                                  await supabase.from('crm_settings').upsert({
-                                    ...rest,
-                                    google_auto_sync: checked,
-                                    id: '00000000-0000-0000-0000-000000000001',
-                                    updated_at: new Date().toISOString()
-                                  });
-                                  toast({ title: checked ? "Sincronização automática ativada" : "Sincronização automática desativada" });
-                                }}
-                              />
-                              <Label htmlFor="google-sync-list" className="text-[11px] font-bold cursor-pointer whitespace-nowrap">Sincronizar automático</Label>
+                    <div className="flex flex-col w-full md:w-auto gap-3 items-stretch md:items-center">
+                      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 px-3 py-3 md:px-4 md:py-2 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm">
+                        <div className="flex items-center justify-between md:justify-start gap-2 pr-0 md:pr-4 md:border-r border-primary/10">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm flex-shrink-0">
+                              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold uppercase text-primary leading-none mb-1">Google Contatos</span>
+                              <div className="flex items-center gap-2">
+                                <Switch 
+                                  id="google-sync-list" 
+                                  checked={metaSettings.google_auto_sync} 
+                                  onCheckedChange={async (checked) => {
+                                    setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                    const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
+                                    await supabase.from('crm_settings').upsert({
+                                      ...rest,
+                                      google_auto_sync: checked,
+                                      id: '00000000-0000-0000-0000-000000000001',
+                                      updated_at: new Date().toISOString()
+                                    });
+                                    toast({ title: checked ? "Sincronização automática ativada" : "Sincronização automática desativada" });
+                                  }}
+                                />
+                                <Label htmlFor="google-sync-list" className="text-[11px] font-bold cursor-pointer whitespace-nowrap">Sincronizar automático</Label>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -3359,7 +3361,7 @@ const CRM = () => {
                           variant="default" 
                           size="sm"
                           className={cn(
-                            "h-9 text-xs font-bold rounded-xl px-5 shadow-sm",
+                            "h-9 text-[10px] md:text-xs font-bold rounded-xl px-5 shadow-sm w-full md:w-auto",
                             googleContactsEnabled ? "bg-white text-primary border border-primary/20 hover:bg-primary/5" : "bg-primary text-white"
                           )}
                           onClick={handleSyncGoogleContacts}
@@ -3369,11 +3371,11 @@ const CRM = () => {
                         </Button>
                       </div>
                       
-                      <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-11 rounded-xl">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full">
+                        <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-10 md:h-11 rounded-xl text-xs flex-1">
                           <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
                         </Button>
-                        <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-11 rounded-xl shadow-lg shadow-primary/20">
+                        <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-10 md:h-11 rounded-xl shadow-lg shadow-primary/20 text-xs flex-1">
                           <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
                         </Button>
                       </div>
@@ -3386,19 +3388,19 @@ const CRM = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input 
                           placeholder="Pesquisar por nome ou número..." 
-                          className="pl-9 bg-background"
+                          className="pl-9 bg-background h-10 rounded-xl"
                           value={statusFilter === 'all' ? '' : statusFilter}
                           onChange={e => setStatusFilter(e.target.value || 'all')}
                         />
                       </div>
                       
-                      <div className="flex items-center gap-2 w-full md:w-auto">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">Filtrar Origem:</span>
-                        <div className="flex bg-muted p-1 rounded-lg">
+                      <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Filtrar Origem:</span>
+                        <div className="flex bg-muted p-1 rounded-lg w-full sm:w-auto">
                           <Button 
                             variant={sourceFilter === 'all' ? 'secondary' : 'ghost'} 
                             size="sm" 
-                            className="text-[10px] h-7 px-3"
+                            className="text-[9px] h-7 px-3 flex-1 sm:flex-none"
                             onClick={() => setSourceFilter('all')}
                           >
                             Todos
@@ -3406,7 +3408,7 @@ const CRM = () => {
                           <Button 
                             variant={sourceFilter === 'system' ? 'secondary' : 'ghost'} 
                             size="sm" 
-                            className="text-[10px] h-7 px-3"
+                            className="text-[9px] h-7 px-3 flex-1 sm:flex-none"
                             onClick={() => setSourceFilter('system')}
                           >
                             Sistema
@@ -3414,7 +3416,7 @@ const CRM = () => {
                           <Button 
                             variant={sourceFilter === 'imported' ? 'secondary' : 'ghost'} 
                             size="sm" 
-                            className="text-[10px] h-7 px-3"
+                            className="text-[9px] h-7 px-3 flex-1 sm:flex-none"
                             onClick={() => setSourceFilter('imported')}
                           >
                             Importados
@@ -3424,7 +3426,80 @@ const CRM = () => {
                     </div>
                     
                     <div className="overflow-x-auto w-full">
-                      <table className="w-full text-left border-collapse min-w-[800px]">
+                      {/* Mobile view of contacts as cards */}
+                      <div className="md:hidden divide-y">
+                        {(() => {
+                          const filtered = contacts.filter(c => {
+                            const matchesSearch = statusFilter === 'all' || 
+                              c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
+                              c.wa_id?.includes(statusFilter);
+                            const matchesSource = sourceFilter === 'all' || c.source_type === sourceFilter;
+                            return matchesSearch && matchesSource;
+                          });
+                          
+                          const isSearching = statusFilter !== 'all';
+                          const displayContacts = (showAllContacts || isSearching) ? filtered : filtered.slice(0, 10);
+
+                          if (displayContacts.length === 0) {
+                            return (
+                              <div className="p-8 text-center text-muted-foreground italic text-xs">
+                                Nenhum contato encontrado.
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <>
+                              {displayContacts.map((contact) => (
+                                <div key={contact.id} className="p-4 flex flex-col gap-3">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                        {contact.name?.charAt(0) || <User className="w-5 h-5" />}
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="font-bold text-sm">{contact.name || 'Sem nome'}</span>
+                                        <span className="text-xs text-muted-foreground font-mono">{contact.wa_id}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                        <MessageSquare className="w-4 h-4" />
+                                      </Button>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                        <Settings className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex gap-2">
+                                      <Badge variant="secondary" className="text-[9px] uppercase font-bold">
+                                        {contact.source_type === 'imported' ? 'Importado' : 'Sistema'}
+                                      </Badge>
+                                      <Badge variant="outline" className={cn("capitalize text-[9px]", getStatusColor(contact.status))}>
+                                        {contact.status}
+                                      </Badge>
+                                    </div>
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {contact.last_interaction ? new Date(contact.last_interaction).toLocaleDateString() : 'Nunca'}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                              {filtered.length > 10 && !showAllContacts && !isSearching && (
+                                <div className="p-4 bg-muted/5 flex justify-center">
+                                  <Button variant="ghost" size="sm" onClick={() => setShowAllContacts(true)} className="text-xs font-bold text-primary">
+                                    Ver Todos os {filtered.length} Contatos
+                                  </Button>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Desktop view of contacts as table */}
+                      <table className="hidden md:table w-full text-left border-collapse min-w-[800px]">
                         <thead>
                           <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
                             <th className="px-6 py-4">Nome</th>
