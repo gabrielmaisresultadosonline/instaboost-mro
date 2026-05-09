@@ -1647,8 +1647,9 @@ const CRM = () => {
                               status.color === 'indigo' && 'bg-indigo-500',
                               status.color === 'pink' && 'bg-pink-500'
                             )} />
-                  </div>
-                  <div className="flex items-center gap-2">
+                            {status.label}
+                          </div>
+                          <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value && c.last_interaction !== null).length}</Badge>
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
                               <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
