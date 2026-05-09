@@ -128,10 +128,9 @@ fi
 echo ""
 echo "🧩 Verificando Nginx..."
 
-# Só cria config Nginx se NÃO existir (preserva SSL/certbot)
-if [ ! -f "$NGINX_SITE" ]; then
-  echo "🛠️ Criando configuração Nginx inicial..."
-  $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
+# Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge
+echo "🛠️ Atualizando configuração Nginx..."
+$SUDO tee "$NGINX_SITE" > /dev/null <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -144,6 +143,28 @@ server {
     gzip_min_length 1024;
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
+
+    # Proxy para o Bridge (Transcoder de Áudio)
+    location /bridge {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        
+        # CORS Headers (Garante que o navegador permita)
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+        
+        if (\$request_method = 'OPTIONS') {
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+    }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)\$ {
         expires 1y;
@@ -160,11 +181,8 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 }
 EOF
-  $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
-  echo "✅ Nginx configurado. Rode: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
-else
-  echo "✅ Config Nginx já existe (preservando SSL/certbot)"
-fi
+$SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
+
 
 # ============= Subdomínio prompts.maisresultadosonline.com.br =============
 PROMPTS_DOMAIN="prompts.$DOMAIN"
