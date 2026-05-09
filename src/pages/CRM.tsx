@@ -342,6 +342,7 @@ const CRM = () => {
       const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
       const { error } = await supabase.from('crm_settings').upsert({
         ...rest,
+        google_auto_sync: metaSettings.google_auto_sync,
         id: '00000000-0000-0000-0000-000000000001',
         strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas". As perguntas devem ser diretas para copiar e colar.',
         updated_at: new Date().toISOString()
