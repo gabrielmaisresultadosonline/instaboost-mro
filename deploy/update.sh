@@ -43,7 +43,10 @@ echo "📦 Instalando dependências do frontend..."
 npm install
 
 echo "🔨 Fazendo build do frontend..."
+# Limpa o dist antigo para garantir que não fiquem arquivos velhos (cache buster)
+rm -rf dist
 npm run build
+
 
 # ============= Bot WhatsApp (whatsapp-web.js) =============
 echo ""
