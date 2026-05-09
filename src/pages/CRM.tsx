@@ -1987,6 +1987,8 @@ const CRM = () => {
                                     </div>
                                   )}
                                 </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
                                 {selectedContact.last_interaction && (
                                   <div className="flex items-center gap-1.5 mt-0.5">
                                     <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')} />
