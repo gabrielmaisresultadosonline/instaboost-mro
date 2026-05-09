@@ -1526,7 +1526,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     const file = new File([blob], filename, { type: mimeType });
     formData.append('file', file);
     // For audio, Meta expects the type to be 'audio/ogg' specifically for voice messages
-    formData.append('type', type === 'audio' ? 'audio/ogg' : mimeType);
+    formData.append('type', 'audio/ogg');
     formData.append('messaging_product', 'whatsapp');
 
     const response = await fetch(
