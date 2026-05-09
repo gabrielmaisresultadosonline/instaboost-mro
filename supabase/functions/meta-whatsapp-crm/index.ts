@@ -476,8 +476,8 @@ serve(async (req) => {
     if (action === 'exchangeGoogleCode') {
       const { code, redirectPath } = params;
       const { google_client_id, google_client_secret } = settings;
-      const origin = req.headers.get('origin') || 'https://ia-mro.lovable.app';
-      const redirectUri = `${origin}${redirectPath || '/google-callback'}`;
+      const origin = req.headers.get('origin') || 'https://maisresultadosonline.com.br';
+      const redirectUri = `${origin}${redirectPath || (origin.includes('maisresultadosonline.com.br') ? '/google-callback2' : '/google-callback')}`;
 
       const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
