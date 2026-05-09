@@ -1486,8 +1486,13 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     console.log(`Uploading media to Meta from URL: ${mediaUrl}`);
     const fileResponse = await fetch(mediaUrl);
     if (!fileResponse.ok) throw new Error(`Failed to fetch media: ${mediaUrl}`);
-    const blob = await fileResponse.blob();
+    let blob = await fileResponse.blob();
     
+    // Fix for webm to ogg conversion if necessary, or at least force correct MIME type for Meta
+    if (blob.type === 'audio/webm' || mediaUrl.endsWith('.webm')) {
+      blob = new Blob([await blob.arrayBuffer()], { type: 'audio/ogg' });
+    }
+
     const formData = new FormData();
     formData.append('file', blob);
     formData.append('type', type);
