@@ -129,7 +129,7 @@ serve(async (req) => {
                       content = `[List Reply] ${message.interactive.list_reply.title}`
                     }
                   } else if (message.type === 'audio') {
-                    content = `[Audio Message]`
+                    content = `[Mensagem de Áudio]`
                     if (meta_access_token) {
                       media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.audio.id, 'audio')
                     }
