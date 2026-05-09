@@ -3089,23 +3089,25 @@ const CRM = () => {
             )}
 
             {activeTab === 'templates' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex flex-col md:flex-row justify-between md:items-center bg-card p-6 rounded-2xl border shadow-sm gap-4">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
-                      <p className="text-muted-foreground text-sm">Gerencie seus modelos oficiais aprovados pela Meta.</p>
+              <ScrollArea className="flex-1 p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
+                    <div className="space-y-1">
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Gerencie seus modelos oficiais aprovados pela Meta.</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates} className="h-10">
-                        <RefreshCcw className={cn("w-4 h-4 mr-2", syncingTemplates && "animate-spin")} />
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates} className="flex-1 sm:flex-none h-10 text-xs md:text-sm">
+                        <RefreshCcw className={cn("w-3.5 h-3.5 md:w-4 md:h-4 mr-2", syncingTemplates && "animate-spin")} />
                         Sincronizar Meta
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button className="h-10 bg-primary shadow-lg shadow-primary/20"><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
+                          <Button className="flex-1 sm:flex-none h-10 bg-primary shadow-lg shadow-primary/20 text-xs md:text-sm">
+                            <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" /> Novo Template
+                          </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-6xl h-[90vh] p-0 border-none rounded-3xl overflow-hidden shadow-2xl">
+                        <DialogContent className="max-w-6xl w-[95vw] md:w-full h-[90vh] p-0 border-none rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
                           <ScrollArea className="h-full">
                             <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
                           </ScrollArea>
