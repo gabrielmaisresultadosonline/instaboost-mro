@@ -455,6 +455,7 @@ serve(async (req) => {
     }
     
 
+    if (action === 'getGoogleAuthUrl') {
       const { google_client_id } = settings;
       if (!google_client_id) {
         throw new Error('Google Client ID não configurado nas configurações');
@@ -468,6 +469,8 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ success: true, authUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
       })
     }
 
