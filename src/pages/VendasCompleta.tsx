@@ -646,16 +646,6 @@ const VendasCompleta = () => {
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent" />
         <div className="max-w-6xl mx-auto relative z-10">
-          {/* Botão Garantir Acesso acima do preço */}
-          <div className="flex justify-center mb-12">
-            <Button 
-              size="lg"
-              onClick={scrollToPricing}
-              className="bg-amber-500 hover:bg-amber-600 text-black font-black text-xl px-12 py-8 rounded-full shadow-2xl shadow-amber-500/20 hover:scale-105 transition-all animate-pulse"
-            >
-              GARANTIR ACESSO AGORA
-            </Button>
-          </div>
 
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
