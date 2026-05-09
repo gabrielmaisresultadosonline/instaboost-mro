@@ -3527,10 +3527,52 @@ const CRM = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="p-6 space-y-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
-                          <Input placeholder="http://seu-vps:3000" className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.vps_transcoder_url} onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} />
-                          <p className="text-[10px] text-muted-foreground">Configurar para que os áudios gravados no chat apareçam como "mensagem de voz" circular no WhatsApp.</p>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="http://seu-ip-vps:3000" 
+                                className="bg-muted/30 border-none h-11 rounded-xl flex-1" 
+                                value={metaSettings.vps_transcoder_url || ''} 
+                                onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} 
+                              />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-11 rounded-xl px-4 font-bold text-xs"
+                                onClick={async () => {
+                                  if (!metaSettings.vps_transcoder_url) {
+                                    toast({ title: "Digite a URL primeiro", variant: "destructive" });
+                                    return;
+                                  }
+                                  try {
+                                    const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+                                    const res = await fetch(url, { method: 'GET', mode: 'cors' });
+                                    const data = await res.json();
+                                    if (data.status === 'online') {
+                                      toast({ title: "VPS Online!", description: "Conexão estabelecida com sucesso." });
+                                    } else {
+                                      throw new Error("Resposta inválida");
+                                    }
+                                  } catch (err: any) {
+                                    toast({ 
+                                      title: "Falha na Conexão", 
+                                      description: "Não foi possível alcançar o VPS. Verifique se o servidor está rodando e se o CORS está ativo.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                              >
+                                TESTAR
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                              <strong>Dica Profissional:</strong> O VPS converte áudios para o formato nativo do WhatsApp (OGG Opus). Isso garante o microfone azul (gravado na hora).
+                            </p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
