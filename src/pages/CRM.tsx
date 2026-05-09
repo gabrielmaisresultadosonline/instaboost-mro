@@ -681,15 +681,16 @@ const CRM = () => {
     setChatMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      // Use a fixed extension for audio recordings to ensure Meta's API handles it correctly
-      const fileExt = file instanceof File ? file.name.split('.').pop() : 'ogg';
+      // Use ogg extension for audio recordings and ensure proper MIME type
+      const isAudio = type === 'audio';
+      const fileExt = file instanceof File ? file.name.split('.').pop() : (isAudio ? 'ogg' : 'bin');
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
-          contentType: type === 'audio' ? 'audio/ogg; codecs=opus' : (file instanceof File ? file.type : undefined),
+          contentType: isAudio ? 'audio/ogg' : (file instanceof File ? file.type : undefined),
           upsert: true
         });
 
