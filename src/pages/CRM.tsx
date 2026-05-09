@@ -106,11 +106,13 @@ const CRM = () => {
     meta_waba_id: '',
     meta_app_id: '',
     meta_app_secret: '',
+    google_client_id: '',
+    google_client_secret: '',
     openai_api_key: '',
     ai_agent_enabled: false,
     ai_operation_mode: 'chat',
     auto_generate_strategy: false,
-    strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas".',
+    strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho \"### Perguntas para Eliminar Dúvidas\".',
     ai_system_prompt: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.',
     ai_agent_trigger: 'all',
     ai_agent_trigger_keyword: '',
@@ -125,6 +127,7 @@ const CRM = () => {
     business_hours_tz: 'America/Sao_Paulo',
     outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.'
   });
+
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,
     responded_count: 0,
@@ -184,6 +187,7 @@ const CRM = () => {
   const [webhooks, setWebhooks] = useState<any[]>([]);
   const [isNewWebhookDialogOpen, setIsNewWebhookDialogOpen] = useState(false);
   const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '', is_active: true, default_status: 'new' });
+  const [googleContactsEnabled, setGoogleContactsEnabled] = useState(localStorage.getItem('google_contacts_connected') === 'true');
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
