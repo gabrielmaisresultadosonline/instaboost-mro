@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,8 +8,9 @@ import { toast } from '@/hooks/use-toast';
 import {
   Users, Search, Flame, Tag, Filter, Loader2, ChevronDown,
   Phone, MessageSquare, Star, UserCheck, UserPlus, BarChart3,
-  X, Save, Edit2
+  X, Save, Edit2, RefreshCw, Share2, Settings2, CheckCircle2
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 interface CRMContact {
   id: string;
@@ -57,6 +59,71 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
   const [saving, setSaving] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [syncingGoogle, setSyncingGoogle] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(localStorage.getItem("google_contacts_connected") === "true");
+  const [autoSync, setAutoSync] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data: settings } = await supabase
+          .from('crm_settings')
+          .select('google_auto_sync')
+          .eq('id', '00000000-0000-0000-0000-000000000001')
+          .single();
+        if (settings) setAutoSync(settings.google_auto_sync || false);
+      } catch (e) {
+        console.error("Error fetching sync settings:", e);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const toggleAutoSync = async (enabled: boolean) => {
+    setAutoSync(enabled);
+    try {
+      await callProxy('updateSettings', { google_auto_sync: enabled });
+      toast({ title: enabled ? "Sincronização Automática Ativada" : "Sincronização Automática Desativada" });
+    } catch (e) {
+      toast({ title: "Erro ao atualizar", variant: "destructive" });
+    }
+  };
+
+  const connectGoogle = async () => {
+    try {
+      const result = await callProxy('getGoogleAuthUrl');
+      if (result.authUrl) {
+        window.location.href = result.authUrl;
+      } else {
+        toast({ title: "Erro", description: "URL de autenticação não gerada.", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Erro ao conectar Google:", error);
+      toast({ title: "Erro", description: "Falha ao iniciar conexão com Google.", variant: "destructive" });
+    }
+  };
+
+  const syncContacts = async () => {
+    setSyncingGoogle(true);
+    try {
+      const result = await callProxy('syncGoogleContacts');
+      if (result.success) {
+        toast({ title: "Sucesso", description: `${result.count} contatos sincronizados!` });
+        await loadContacts();
+      } else {
+        toast({ title: "Erro", description: result.error || "Falha na sincronização", variant: "destructive" });
+      }
+    } catch (error: any) {
+      console.error("Erro ao sincronizar:", error);
+      if (error.message?.includes("Google account not connected")) {
+        setGoogleConnected(false);
+        localStorage.removeItem("google_contacts_connected");
+      }
+      toast({ title: "Erro na sincronização", description: error.message || "Tente reconectar sua conta.", variant: "destructive" });
+    } finally {
+      setSyncingGoogle(false);
+    }
+  };
 
   const loadContacts = async () => {
     setLoading(true);
@@ -262,10 +329,50 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
             <BarChart3 className="w-5 h-5 text-[#00a884]" />
             <span className="text-white font-semibold text-sm">CRM</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-white/40 hover:text-white hover:bg-white/10 h-7">
-            <Filter className="w-3.5 h-3.5 mr-1" /> Filtros
-          </Button>
+          <div className="flex items-center gap-1">
+            {googleConnected ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={syncContacts} 
+                disabled={syncingGoogle}
+                className="text-white/40 hover:text-[#00a884] hover:bg-[#00a884]/10 h-7 text-[10px]"
+              >
+                {syncingGoogle ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                Sincronizar
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={connectGoogle}
+                className="text-white/40 hover:text-[#4285F4] hover:bg-[#4285F4]/10 h-7 text-[10px]"
+              >
+                <Share2 className="w-3 h-3 mr-1" /> Conectar Google
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-white/40 hover:text-white hover:bg-white/10 h-7">
+              <Filter className="w-3.5 h-3.5 mr-1" /> Filtros
+            </Button>
+          </div>
         </div>
+
+        {googleConnected && (
+          <div className="px-4 py-2 bg-[#202c33]/50 border-b border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] text-white/60">Google Conectado</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-white/40">Sincronizar Automático</span>
+              <Switch 
+                checked={autoSync} 
+                onCheckedChange={toggleAutoSync}
+                className="scale-75 data-[state=checked]:bg-[#00a884]"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-2 mb-3">

@@ -18,6 +18,17 @@ serve(async (req) => {
 
   try {
     const { action, ...params } = await req.json()
+    if (action === 'updateSettings') {
+      const { ...newSettings } = params
+      const { error } = await supabase
+        .from('crm_settings')
+        .update(newSettings)
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+      
+      return new Response(JSON.stringify({ success: !error, error }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
     // Get Meta Settings
     const { data: settings } = await supabase
@@ -26,13 +37,10 @@ serve(async (req) => {
       .eq('id', '00000000-0000-0000-0000-000000000001')
       .single()
 
-    if (!settings?.meta_access_token) {
-      throw new Error('Meta API credentials not configured')
-    }
-
-    const { meta_access_token, meta_phone_number_id } = settings
+    const { meta_access_token, meta_phone_number_id } = settings || {}
 
     if (action === 'getTemplates') {
+      if (!meta_access_token) throw new Error('Meta API credentials not configured');
       const { meta_waba_id } = settings
       console.log(`Fetching templates for WABA ${meta_waba_id}...`);
       
@@ -441,6 +449,21 @@ serve(async (req) => {
       }
     }
 
+
+    if (action === 'getGoogleAuthUrl') {
+      const { google_client_id } = settings;
+      if (!google_client_id) {
+        throw new Error('Google Client ID não configurado nas configurações');
+      }
+
+      const redirectUri = `${req.headers.get('origin') || 'https://ia-mro.lovable.app'}/google-callback`;
+      const scope = 'https://www.googleapis.com/auth/contacts.readonly';
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${google_client_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+
+      return new Response(JSON.stringify({ success: true, authUrl }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (action === 'exchangeGoogleCode') {
       const { code } = params;
