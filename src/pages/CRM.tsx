@@ -4096,6 +4096,30 @@ const CRM = () => {
                 </Dialog>
               </ScrollArea>
             )}
+            {(activeTab === 'tutorials' || activeTab === 'zapmro' || activeTab === 'estrutura') && (
+              <ScrollArea className="flex-1 p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">
+                        {activeTab === 'tutorials' ? 'Gerenciar MRO Ferramenta' : 
+                         activeTab === 'zapmro' ? 'Gerenciar ZAPMRO' : 'Gerenciar Estrutura'}
+                      </h2>
+                      <p className="text-muted-foreground text-sm">
+                        Configure os módulos, vídeos e materiais que aparecem na ferramenta.
+                      </p>
+                    </div>
+                  </div>
+
+                  <ModuleManager 
+                    downloadLink={activeTab === 'zapmro' ? metaSettings.vps_transcoder_url : ''} 
+                    onDownloadLinkChange={(val) => setMetaSettings({...metaSettings, vps_transcoder_url: val})}
+                    onSaveSettings={() => handleSaveSettings()}
+                    platform={activeTab === 'tutorials' ? 'mro' : activeTab === 'zapmro' ? 'zapmro' : 'estrutura'}
+                  />
+                </div>
+              </ScrollArea>
+            )}
           </main>
         </SidebarInset>
       </div>
