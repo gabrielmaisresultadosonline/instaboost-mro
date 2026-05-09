@@ -3394,8 +3394,45 @@ const CRM = () => {
               </ScrollArea>
             )}
 
-                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
-                      <CardHeader className="bg-muted/30 border-b">
+            {activeTab === 'settings' && (
+              <ScrollArea className="flex-1 bg-muted/5">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Ajustes e Configurações</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Gerencie integrações e a aparência do seu CRM.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+                      <CardHeader className="bg-muted/30 border-b p-4 md:p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><MessageSquare className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-base md:text-lg">WhatsApp API</CardTitle>
+                            <CardDescription className="text-[11px]">Meta Business Platform.</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 md:p-6 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-muted-foreground">Access Token</Label>
+                          <Input type="password" placeholder="EAA..." className="bg-muted/30 border-none h-10 rounded-xl text-xs" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-muted-foreground">Phone ID</Label>
+                          <Input placeholder="Ex: 109..." className="bg-muted/30 border-none h-10 rounded-xl text-xs" value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-muted-foreground">WABA ID</Label>
+                          <Input placeholder="Ex: 105..." className="bg-muted/30 border-none h-10 rounded-xl text-xs" value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+                      <CardHeader className="bg-muted/30 border-b p-4 md:p-6">
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "p-2 rounded-lg",
@@ -3406,47 +3443,25 @@ const CRM = () => {
                             <RefreshCcw className={cn("w-5 h-5", metaSettings.vps_status === 'unknown' && "animate-spin")} />
                           </div>
                           <div>
-                            <CardTitle className="text-lg">Transcoder Profissional (VPS)</CardTitle>
-                            <CardDescription className="text-[11px]">Conversão de áudio profissional para PTT (Gravado na hora).</CardDescription>
+                            <CardTitle className="text-base md:text-lg">VPS Transcoder</CardTitle>
+                            <CardDescription className="text-[11px]">Áudio Profissional (Gravado).</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
-                            <div className="flex gap-2">
-                              <Input 
-                                placeholder="http://seu-ip-vps:3000" 
-                                className="bg-muted/30 border-none h-11 rounded-xl flex-1" 
-                                value={metaSettings.vps_transcoder_url || ''} 
-                                onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} 
-                              />
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-11 rounded-xl px-4 font-bold text-xs"
-                                onClick={async () => {
-                                  if (!metaSettings.vps_transcoder_url) {
-                                    toast({ title: "Digite a URL primeiro", variant: "destructive" });
-                                    return;
-                                  }
-                                  try {
-                                    const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
-                                    await fetch(url, { method: 'GET', mode: 'no-cors' });
-                                    toast({ title: "Sinal detectado!", description: "A URL respondeu. Agora você pode SALVAR as configurações." });
-                                  } catch (err: any) {
-                                    toast({ 
-                                      title: "Falha na Conexão", 
-                                      description: "Não foi possível alcançar o VPS.",
-                                      variant: "destructive"
-                                    });
-                                  }
-                                }}
-                              >
-                                TESTAR
-                              </Button>
-                            </div>
+                      <CardContent className="p-4 md:p-6 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-muted-foreground">URL do VPS</Label>
+                          <div className="flex gap-2">
+                            <Input placeholder="http://ip:3000" className="bg-muted/30 border-none h-10 rounded-xl text-xs flex-1" value={metaSettings.vps_transcoder_url || ''} onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} />
+                            <Button variant="outline" size="sm" className="h-10 rounded-xl px-3 text-[10px]" onClick={async () => {
+                              if (!metaSettings.vps_transcoder_url) return;
+                              try {
+                                await fetch(metaSettings.vps_transcoder_url.replace(/\/$/, ''), { method: 'GET', mode: 'no-cors' });
+                                toast({ title: "VPS Online!" });
+                              } catch (err) {
+                                toast({ title: "VPS Offline", variant: "destructive" });
+                              }
+                            }}>TESTAR</Button>
                           </div>
                         </div>
                       </CardContent>
