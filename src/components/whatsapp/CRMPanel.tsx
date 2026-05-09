@@ -60,6 +60,33 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
   const [showFilters, setShowFilters] = useState(false);
   const [syncingGoogle, setSyncingGoogle] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(localStorage.getItem("google_contacts_connected") === "true");
+  const [autoSync, setAutoSync] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data: settings } = await supabase
+          .from('crm_settings')
+          .select('google_auto_sync')
+          .eq('id', '00000000-0000-0000-0000-000000000001')
+          .single();
+        if (settings) setAutoSync(settings.google_auto_sync || false);
+      } catch (e) {
+        console.error("Error fetching sync settings:", e);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const toggleAutoSync = async (enabled: boolean) => {
+    setAutoSync(enabled);
+    try {
+      await callProxy('update-crm-settings', { google_auto_sync: enabled });
+      toast({ title: enabled ? "Sincronização Automática Ativada" : "Sincronização Automática Desativada" });
+    } catch (e) {
+      toast({ title: "Erro ao atualizar", variant: "destructive" });
+    }
+  };
 
   const connectGoogle = async () => {
     try {
