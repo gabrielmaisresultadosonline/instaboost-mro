@@ -532,7 +532,7 @@ export default function Membro() {
       if (Object.keys(dbUpdates).length > 0) {
         await supabase
           .from('paid_users')
-          .update(dbUpdates)
+          .update(dbUpdates as any)
           .eq('id', user.id);
       }
     } catch (error) {

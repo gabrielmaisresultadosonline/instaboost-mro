@@ -15,8 +15,7 @@ import {
   Users,
   Loader2,
   CheckCircle,
-  Upload,
-  Instagram
+  Upload
 } from "lucide-react";
 import logoMro from '@/assets/logo-mro-2.png';
 
