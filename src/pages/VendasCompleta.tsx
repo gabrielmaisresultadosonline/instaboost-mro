@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { 
   Sparkles, 
@@ -47,6 +48,7 @@ import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
 // import ActiveClientsSection from "@/components/ActiveClientsSection"; // Removed as requested
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
+import { MessageCircle as WhatsAppIcon } from "lucide-react";
 
 interface SalesSettings {
   whatsappNumber: string;
@@ -140,6 +142,15 @@ const VendasCompleta = () => {
       try {
         const { data, error } = await supabase.functions.invoke('modules-storage', { body: { action: 'load-call-settings' } });
         if (!error && data?.success && data?.data?.salesPageSettings) setSalesSettings(data.data.salesPageSettings);
+        
+        // Also load global WhatsApp settings
+        const { data: waData } = await supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single();
+        if (waData?.whatsapp_number) {
+          setSalesSettings(prev => ({
+            ...prev,
+            whatsappNumber: waData.whatsapp_number
+          }));
+        }
       } catch (err) { console.error('Error loading sales settings:', err); }
     };
     loadSettings();
@@ -221,8 +232,14 @@ const VendasCompleta = () => {
             >
               Fazer Login
             </a>
-            <Button onClick={scrollToPricing} className="bg-amber-500 hover:bg-amber-600 text-black font-bold">
-              Garantir Acesso
+            <Button 
+              onClick={() => {
+                trackLead("Instagram Nova - Header WhatsApp");
+                window.location.href = "/whatsapp";
+              }} 
+              className="bg-[#25D366] hover:bg-[#128C7E] text-white font-bold"
+            >
+              Falar no WhatsApp
             </Button>
           </div>
         </div>
@@ -847,6 +864,20 @@ const VendasCompleta = () => {
         </div>
       </section>
 
+      {/* WhatsApp Link to Landing Page */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => {
+            trackLead("Instagram Nova - Floating WhatsApp");
+            window.location.href = "/whatsapp";
+          }}
+          className="w-16 h-16 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300"
+          title="Falar no WhatsApp"
+        >
+          <WhatsAppIcon className="w-8 h-8" />
+        </button>
+      </div>
+
       {/* Final CTA */}
       <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto text-center">
@@ -854,8 +885,11 @@ const VendasCompleta = () => {
             Pronto para <span className="text-amber-400">Escalar</span> seu Instagram?
           </h2>
           <p className="text-xl text-gray-400 mb-10">Junte-se a milhares de empreendedores que já transformaram seus perfis com a V7+ Plus</p>
-          <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
-            onClick={scrollToPricing}>
+          <Button size="lg" className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#128C7E] hover:to-[#075E54] text-white font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
+            onClick={() => {
+              trackLead("Instagram Nova - Final CTA WhatsApp");
+              window.location.href = "/whatsapp";
+            }}>
             <span className="flex items-center justify-center gap-2 flex-wrap text-center">
               <span>GARANTIR MEU ACESSO AGORA</span>
               <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />

@@ -83,24 +83,25 @@ const WhatsAppAdmin = () => {
   const handleLogin = async () => {
     setLoginLoading(true);
 
-    const { data: response, error } = await supabase.rpc("whatsapp_admin_login", {
-      login_email: email,
-      login_password: password,
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: { 
+        action: "login",
+        email: email,
+        password: password,
+      },
     });
 
-    const result = response as { success?: boolean; token?: string; error?: string } | null;
-
-    if (error || !result?.success || !result.token) {
-      toast.error(result?.error || error?.message || "Email ou senha incorretos");
+    if (error || !response?.success || !response?.token) {
+      toast.error(response?.error || error?.message || "Email ou senha incorretos");
       setLoginLoading(false);
       return;
     }
 
-    localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, result.token);
-    setSessionToken(result.token);
+    localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, response.token);
+    setSessionToken(response.token);
     setAuthenticated(true);
     toast.success("Login realizado com sucesso!");
-    await fetchAdminData(result.token);
+    await fetchAdminData(response.token);
     setLoginLoading(false);
   };
 
