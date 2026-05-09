@@ -3394,41 +3394,6 @@ const CRM = () => {
               </ScrollArea>
             )}
 
-            {activeTab === 'settings' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-                  <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações</h2>
-                    <p className="text-muted-foreground text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
-                      <CardHeader className="bg-muted/30 border-b">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><MessageSquare className="w-5 h-5" /></div>
-                          <div>
-                            <CardTitle className="text-lg">WhatsApp API</CardTitle>
-                            <CardDescription className="text-[11px]">Conecte com a plataforma Business da Meta.</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Token Permanente</Label>
-                          <Input type="password" placeholder="EAA..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number ID</Label>
-                          <Input placeholder="Ex: 109..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Account ID (WABA)</Label>
-                          <Input placeholder="Ex: 105..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
@@ -3468,14 +3433,12 @@ const CRM = () => {
                                   }
                                   try {
                                     const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
-                                    // Use no-cors for the test to avoid preflight issues if the server isn't fully CORS-ready
-                                    // even if it won't let us read the JSON, getting a successful response (opaque) is a sign of life
                                     await fetch(url, { method: 'GET', mode: 'no-cors' });
                                     toast({ title: "Sinal detectado!", description: "A URL respondeu. Agora você pode SALVAR as configurações." });
                                   } catch (err: any) {
                                     toast({ 
                                       title: "Falha na Conexão", 
-                                      description: "Não foi possível alcançar o VPS. Verifique se o servidor está rodando.",
+                                      description: "Não foi possível alcançar o VPS.",
                                       variant: "destructive"
                                     });
                                   }
@@ -3484,11 +3447,6 @@ const CRM = () => {
                                 TESTAR
                               </Button>
                             </div>
-                          </div>
-                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
-                              <strong>Dica Profissional:</strong> O VPS converte áudios para o formato nativo do WhatsApp (OGG Opus). Isso garante o microfone azul (gravado na hora).
-                            </p>
                           </div>
                         </div>
                       </CardContent>
