@@ -621,6 +621,16 @@ serve(async (req) => {
         });
     }
 
+    throw new Error(`Unhandled action: ${action}`);
+  } catch (error: any) {
+    console.error('Error in Edge Function:', error);
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    });
+  }
+});
+
 
     // Handle Body Variables
     if (bodyComponent && bodyComponent.text) {
