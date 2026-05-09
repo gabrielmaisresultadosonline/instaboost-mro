@@ -3374,6 +3374,76 @@ const CRM = () => {
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><Users className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">Google Contatos</CardTitle>
+                            <CardDescription className="text-[11px]">Sincronize seus contatos do Google em tempo real.</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client ID</Label>
+                          <Input 
+                            placeholder="Seu Google Client ID" 
+                            className="bg-muted/30 border-none h-11 rounded-xl" 
+                            value={metaSettings.google_client_id || ''} 
+                            onChange={e => setMetaSettings({...metaSettings, google_client_id: e.target.value})} 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client Secret</Label>
+                          <Input 
+                            type="password"
+                            placeholder="Seu Google Client Secret" 
+                            className="bg-muted/30 border-none h-11 rounded-xl" 
+                            value={metaSettings.google_client_secret || ''} 
+                            onChange={e => setMetaSettings({...metaSettings, google_client_secret: e.target.value})} 
+                          />
+                        </div>
+                        <div className="flex flex-col gap-3 pt-2">
+                          <Button 
+                            variant={googleContactsEnabled ? "outline" : "default"} 
+                            className="w-full h-11 rounded-xl font-bold"
+                            onClick={() => {
+                              if (!metaSettings.google_client_id) {
+                                toast({ title: "Erro", description: "Preencha o Google Client ID primeiro", variant: "destructive" });
+                                return;
+                              }
+                              const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+                              const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
+                              const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+                              window.location.href = url;
+                            }}
+                          >
+                            <Users className="w-4 h-4 mr-2" />
+                            {googleContactsEnabled ? 'Reconectar Google' : 'Conectar com Google'}
+                          </Button>
+                          {googleContactsEnabled && (
+                            <Button 
+                              variant="destructive" 
+                              className="w-full h-11 rounded-xl font-bold"
+                              onClick={() => {
+                                localStorage.removeItem('google_contacts_connected');
+                                localStorage.removeItem('google_contacts_auth_code');
+                                setGoogleContactsEnabled(false);
+                                toast({ title: "Desconectado", description: "Sincronização removida localmente" });
+                              }}
+                            >
+                              Desconectar Google Contatos
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                          * URL de redirecionamento autorizada: <code className="text-primary font-bold">{window.location.origin}/google-callback</code>
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-primary/10 text-primary"><Zap className="w-5 h-5" /></div>
                           <div>
                             <CardTitle className="text-lg">Customização da Interface</CardTitle>
