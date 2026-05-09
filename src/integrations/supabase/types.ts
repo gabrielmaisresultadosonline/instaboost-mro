@@ -1104,6 +1104,8 @@ export type Database = {
           business_hours_start: string | null
           business_hours_tz: string | null
           created_at: string | null
+          google_client_id: string | null
+          google_client_secret: string | null
           id: string
           initial_auto_response_enabled: boolean | null
           initial_flow_id: string | null
@@ -1134,6 +1136,8 @@ export type Database = {
           business_hours_start?: string | null
           business_hours_tz?: string | null
           created_at?: string | null
+          google_client_id?: string | null
+          google_client_secret?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
           initial_flow_id?: string | null
@@ -1164,6 +1168,8 @@ export type Database = {
           business_hours_start?: string | null
           business_hours_tz?: string | null
           created_at?: string | null
+          google_client_id?: string | null
+          google_client_secret?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
           initial_flow_id?: string | null
