@@ -747,33 +747,62 @@ const CRM = () => {
                       <p className="text-muted-foreground text-sm">Gerencie todos os seus leads e contatos em um só lugar.</p>
                     </div>
                   </div>
-                  <Card>
-                    <CardHeader className="p-4 border-b">
-                      <div className="flex items-center gap-2">
-                        <Search className="w-4 h-4 text-muted-foreground" />
-                        <Input 
-                          placeholder="Pesquisar contatos..." 
-                          className="max-w-sm border-none shadow-none focus-visible:ring-0"
-                          value={statusFilter === 'all' ? '' : statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value || 'all')}
-                        />
+                  <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                    <CardHeader className="p-4 border-b bg-muted/20">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 w-full sm:max-w-md">
+                          <Search className="w-4 h-4 text-muted-foreground" />
+                          <Input 
+                            placeholder="Pesquisar por nome ou número..." 
+                            className="border-none shadow-none focus-visible:ring-0 bg-transparent"
+                            value={statusFilter === 'all' ? '' : statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value || 'all')}
+                          />
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <Button variant="outline" size="sm" className="flex-1 sm:flex-none rounded-xl">
+                            <Download className="w-4 h-4 mr-2" /> Exportar
+                          </Button>
+                          <Button size="sm" className="flex-1 sm:flex-none rounded-xl">
+                            <Plus className="w-4 h-4 mr-2" /> Novo Contato
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                        {filteredContacts.map(contact => (
-                          <Card key={contact.id} className="overflow-hidden hover:shadow-md transition-all cursor-pointer" onClick={() => openChat(contact)}>
-                            <CardContent className="p-4 flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 md:p-6 bg-muted/5">
+                        {filteredContacts.length === 0 ? (
+                          <div className="col-span-full py-12 text-center text-muted-foreground">
+                            Nenhum contato encontrado.
+                          </div>
+                        ) : filteredContacts.map(contact => (
+                          <Card key={contact.id} className="overflow-hidden hover:shadow-lg transition-all cursor-pointer border-zinc-100 dark:border-zinc-800 group rounded-2xl" onClick={() => openChat(contact)}>
+                            <CardContent className="p-5 flex flex-col gap-4">
+                              <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-transform">
+                                  {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <Badge className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", getStatusColor(contact.status))}>
+                                    {getStatusLabel(contact.status)}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
-                                <p className="text-xs text-muted-foreground">{contact.wa_id}</p>
+                              <div className="min-w-0">
+                                <p className="font-black text-sm truncate">{contact.name || contact.wa_id}</p>
+                                <p className="text-xs text-muted-foreground font-medium">{contact.wa_id}</p>
                               </div>
-                              <Badge className={getStatusColor(contact.status)}>
-                                {getStatusLabel(contact.status)}
-                              </Badge>
+                              <div className="flex items-center gap-2 pt-2 border-t mt-1">
+                                <Button variant="ghost" size="sm" className="flex-1 h-8 text-[10px] font-bold rounded-lg hover:bg-primary/10 hover:text-primary">
+                                  <MessageCircle className="w-3 h-3 mr-1.5" /> Conversar
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 rounded-lg hover:bg-muted" onClick={(e) => {
+                                  e.stopPropagation();
+                                  openContactInfo(contact);
+                                }}>
+                                  <Info className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
                             </CardContent>
                           </Card>
                         ))}
