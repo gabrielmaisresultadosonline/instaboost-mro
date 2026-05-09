@@ -374,7 +374,11 @@ export default function ApiWhatsAppAccess() {
         setRecordedAudioBlob(null);
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      let mimeType = 'audio/ogg; codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm; codecs=opus';
+      }
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
       mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
       mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); };
