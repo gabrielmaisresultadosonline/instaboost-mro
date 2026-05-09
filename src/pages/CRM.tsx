@@ -242,6 +242,24 @@ const CRM = () => {
     }
   };
 
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('crm_settings').upsert({
+        id: metaSettings.id || undefined,
+        ...metaSettings,
+        updated_at: new Date().toISOString()
+      });
+      if (error) throw error;
+      toast({ title: "Configurações salvas!" });
+      fetchData();
+    } catch (err) {
+      toast({ title: "Erro ao salvar", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleLogout = () => {
     logoutAdmin();
     navigate('/crm/login');
