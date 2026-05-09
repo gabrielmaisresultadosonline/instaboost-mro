@@ -125,7 +125,8 @@ const CRM = () => {
     business_hours_start: '08:00',
     business_hours_end: '18:00',
     business_hours_tz: 'America/Sao_Paulo',
-    outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.'
+    outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
+    google_auto_sync: false
   });
 
   const [metrics, setMetrics] = useState<any>({
