@@ -2252,30 +2252,73 @@ const CRM = () => {
                                   </div>
                                 </div>
                                 {isPreviewingAudio && recordedAudioUrl ? (
-                                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20">
-                                    <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
-                                    <div className="flex gap-2">
-                                      <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive"><XCircle className="w-5 h-5" /></Button>
-                                      <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 text-white"><Send className="w-5 h-5" /></Button>
+                                  <div className="flex flex-col gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="flex items-center gap-3">
+                                      <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
+                                      <div className="flex gap-2">
+                                        <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive hover:bg-destructive/10"><XCircle className="w-5 h-5" /></Button>
+                                        <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/20"><Send className="w-5 h-5" /></Button>
+                                      </div>
                                     </div>
+                                    <p className="text-[10px] text-center text-muted-foreground font-medium uppercase tracking-tighter">Clique no verde para enviar ou no vermelho para descartar</p>
                                   </div>
                                 ) : (
                                   <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
+                                    {isRecording && (
+                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                                          <span className="text-xs font-bold text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
+                                        </div>
+                                        <span className="text-xs font-mono font-bold text-red-600">
+                                          {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                                        </span>
+                                      </div>
+                                    )}
                                     <div className="flex items-center gap-1.5 sm:gap-2 w-full">
-                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground"><ImageIcon className="w-5 h-5" /></Button>
-                                      <Input 
-                                        placeholder="Mensagem..." 
-                                        value={newMessage} 
-                                        onChange={e => setNewMessage(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                        className="bg-muted/50 border-none flex-1"
-                                      />
-                                      <Button size="icon" onClick={handleSendMessage} disabled={!newMessage.trim() || sendingMessage}>
-                                        <Send className="w-4 h-4" />
-                                      </Button>
-                                      <Button size="icon" variant={isRecording ? 'destructive' : 'ghost'} onClick={isRecording ? stopRecording : startRecording}>
-                                        {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                                      </Button>
+                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></Button>
+                                      <div className="flex-1 relative flex items-center">
+                                        <Input 
+                                          placeholder={isRecording ? "Gravando..." : "Escreva sua mensagem..."}
+                                          value={newMessage} 
+                                          disabled={isRecording}
+                                          onChange={e => setNewMessage(e.target.value)}
+                                          onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
+                                          className="bg-muted/50 border-none h-11 pr-10 rounded-xl"
+                                        />
+                                        {isRecording && (
+                                          <div className="absolute right-3 flex items-center gap-2">
+                                            <Button 
+                                              size="icon" 
+                                              variant="ghost" 
+                                              className="h-8 w-8 text-red-500 hover:bg-red-50"
+                                              onClick={stopRecording}
+                                            >
+                                              <StopCircle className="w-5 h-5" />
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {!isRecording && (
+                                        <div className="flex items-center gap-1">
+                                          <Button 
+                                            size="icon" 
+                                            variant="ghost" 
+                                            className="text-primary hover:bg-primary/10 h-11 w-11 shrink-0"
+                                            onClick={startRecording}
+                                          >
+                                            <Mic className="w-5 h-5" />
+                                          </Button>
+                                          <Button 
+                                            size="icon" 
+                                            onClick={handleSendMessage} 
+                                            disabled={!newMessage.trim() || sendingMessage}
+                                            className="h-11 w-11 shrink-0 shadow-md"
+                                          >
+                                            <Send className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 )}
