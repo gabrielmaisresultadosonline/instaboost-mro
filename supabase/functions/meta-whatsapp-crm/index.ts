@@ -1516,7 +1516,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
       // Logic for audio delivery to Meta
       // Meta has strict requirements for audio/ogg; codecs=opus for voice messages
       if (extension === 'ogg' || mimeType.includes('ogg')) {
-        mimeType = 'audio/ogg; codecs=opus';
+        mimeType = 'audio/ogg';
         filename = 'voice.ogg';
       } else if (extension === 'mp3' || mimeType.includes('mpeg')) {
         mimeType = 'audio/mpeg';
@@ -1529,11 +1529,11 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
         // Forcing audio/ogg; codecs=opus even if it's webm is a common trick that works 
         // because Meta's processor is often more lenient than its validator, 
         // OR we can try audio/mpeg as a fallback.
-        mimeType = 'audio/ogg; codecs=opus'; 
+        mimeType = 'audio/ogg'; 
         filename = 'voice.ogg';
-        console.log(`WORKAROUND: Labeling webm as audio/ogg; codecs=opus for Meta voice message delivery.`);
+        console.log(`WORKAROUND: Labeling webm as audio/ogg for Meta voice message delivery.`);
       } else {
-        mimeType = 'audio/ogg; codecs=opus';
+        mimeType = 'audio/ogg';
         filename = 'voice.ogg';
       }
       console.log(`Audio upload config - Mime: ${mimeType}, File: ${filename}, Extension: ${extension}`);
