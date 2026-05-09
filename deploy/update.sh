@@ -121,15 +121,10 @@ else
   echo "⚠️  Pasta whatsapp-bot/ não encontrada — pulando instalação do bot."
 fi
 
-# ============= Bridge (Transcoder) =============
-if [ -f "$APP_DIR/scripts/vps-whatsapp-bridge.js" ]; then
-  echo "⚙️ Iniciando Bridge Transcoder..."
-  cd "$APP_DIR"
-  # Instalar dependências se necessário (na pasta raiz)
-  npm install express cors axios fluent-ffmpeg form-data uuid
-  
+# ============= Bridge (Removido - Agora integrado no Bot) =============
+if [ -d "$WPP_BOT_DIR" ]; then
+  # Garante que o bridge antigo não esteja rodando para não ocupar a porta 3000
   pm2 delete wpp-bridge-mro 2>/dev/null || true
-  pm2 start scripts/vps-whatsapp-bridge.js --name wpp-bridge-mro --time
   pm2 save
 fi
 
