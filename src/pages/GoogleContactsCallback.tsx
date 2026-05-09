@@ -22,8 +22,9 @@ const GoogleContactsCallback = () => {
       }
 
       if (code) {
+        const redirectPath = window.location.pathname; // Capture if it was /google-callback or /google-callback2
         const { data, error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'exchangeGoogleCode', code }
+          body: { action: 'exchangeGoogleCode', code, redirectPath }
         });
 
         if (invokeError || !data?.success) {

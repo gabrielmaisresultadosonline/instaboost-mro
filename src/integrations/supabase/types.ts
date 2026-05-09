@@ -742,6 +742,7 @@ export type Database = {
           current_step_index: number | null
           custom_labels: string[] | null
           flow_state: string | null
+          google_sync_account_id: string | null
           id: string
           is_qualified: boolean | null
           last_ai_strategy: string | null
@@ -767,6 +768,7 @@ export type Database = {
           current_step_index?: number | null
           custom_labels?: string[] | null
           flow_state?: string | null
+          google_sync_account_id?: string | null
           id?: string
           is_qualified?: boolean | null
           last_ai_strategy?: string | null
@@ -792,6 +794,7 @@ export type Database = {
           current_step_index?: number | null
           custom_labels?: string[] | null
           flow_state?: string | null
+          google_sync_account_id?: string | null
           id?: string
           is_qualified?: boolean | null
           last_ai_strategy?: string | null
@@ -813,6 +816,13 @@ export type Database = {
             columns: ["current_flow_id"]
             isOneToOne: false
             referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_google_sync_account_id_fkey"
+            columns: ["google_sync_account_id"]
+            isOneToOne: false
+            referencedRelation: "crm_google_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -956,6 +966,36 @@ export type Database = {
           trigger_keyword?: string | null
           trigger_keywords?: string[] | null
           trigger_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crm_google_accounts: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          email: string
+          expiry_date: number | null
+          id: string
+          refresh_token: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string | null
+          email: string
+          expiry_date?: number | null
+          id?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          email?: string
+          expiry_date?: number | null
+          id?: string
+          refresh_token?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -389,7 +389,10 @@ const CRM = () => {
       toast({ title: "Aviso", description: "Configure o Google Client ID nas configurações primeiro.", variant: "destructive" });
       return;
     }
-    const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+    const origin = window.location.origin;
+    // Check if we are on the specific custom domain to use callback2
+    const redirectPath = window.location.hostname.includes('maisresultadosonline.com.br') ? '/google-callback2' : '/google-callback';
+    const redirectUri = encodeURIComponent(origin + redirectPath);
     const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts.readonly');
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
     window.location.href = url;
@@ -1835,7 +1838,14 @@ const CRM = () => {
                               )}
                             >
                               <div className="flex justify-between items-start w-full">
-                                <p className="font-bold truncate text-sm flex-1 hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
+                                <p className="font-bold truncate text-sm flex-1 hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>
+                                  {contact.name || contact.wa_id}
+                                  {contact.google_sync_account_id && (
+                                    <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                       <span className="text-[6px] font-bold text-white">G</span>
+                                    </span>
+                                  )}
+                                </p>
                                 <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
@@ -1910,6 +1920,12 @@ const CRM = () => {
                                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
                                   <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 truncate" onClick={() => openContactInfo(selectedContact)}>
                                     <span className="truncate">{selectedContact.name || selectedContact.wa_id}</span>
+                                    {selectedContact.google_sync_account_id && (
+                                      <span className="w-4 h-4 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[7px] font-bold text-white">G</span>
+                                      </span>
+                                    )}
+
                                     <Badge 
                                       variant="outline" 
                                       style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}

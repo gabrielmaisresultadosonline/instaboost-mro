@@ -8,8 +8,9 @@ import { toast } from '@/hooks/use-toast';
 import {
   Users, Search, Flame, Tag, Filter, Loader2, ChevronDown,
   Phone, MessageSquare, Star, UserCheck, UserPlus, BarChart3,
-  X, Save, Edit2, RefreshCw, Share2, Settings2, CheckCircle2
+  X, Save, Edit2, RefreshCw, Share2, Settings2, CheckCircle2, Plus
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
 interface CRMContact {
@@ -61,6 +62,8 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
   const [showFilters, setShowFilters] = useState(false);
   const [syncingGoogle, setSyncingGoogle] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(localStorage.getItem("google_contacts_connected") === "true");
+  const [googleAccounts, setGoogleAccounts] = useState<any[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [autoSync, setAutoSync] = useState(false);
 
   useEffect(() => {
@@ -77,7 +80,22 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
       }
     };
     fetchSettings();
+    fetchGoogleAccounts();
   }, []);
+
+  const fetchGoogleAccounts = async () => {
+    try {
+      const { data } = await supabase.from('crm_google_accounts').select('*');
+      if (data) {
+        setGoogleAccounts(data);
+        if (data.length > 0 && !selectedAccountId) {
+          setSelectedAccountId(data[0].id);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching google accounts:", e);
+    }
+  };
 
   const toggleAutoSync = async (enabled: boolean) => {
     setAutoSync(enabled);
@@ -104,9 +122,13 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
   };
 
   const syncContacts = async () => {
+    if (googleAccounts.length === 0) {
+      toast({ title: "Erro", description: "Nenhuma conta Google conectada.", variant: "destructive" });
+      return;
+    }
     setSyncingGoogle(true);
     try {
-      const result = await callProxy('syncGoogleContacts');
+      const result = await callProxy('syncGoogleContacts', { accountId: selectedAccountId });
       if (result.success) {
         toast({ title: "Sucesso", description: `${result.count} contatos sincronizados!` });
         await loadContacts();
@@ -199,6 +221,16 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
             Salvar
           </Button>
+        </div>
+        <div className="px-4 py-2 border-b border-white/5 flex gap-2">
+           <Button 
+             variant="ghost" 
+             size="sm" 
+             onClick={() => callProxy('saveToGoogle', { contactId: editingContact.id, accountId: selectedAccountId })}
+             className="flex-1 text-white/60 hover:text-[#4285F4] hover:bg-[#4285F4]/10 h-8 text-xs"
+           >
+             <Share2 className="w-3.5 h-3.5 mr-2" /> Sincronizar p/ Google
+           </Button>
         </div>
 
         <ScrollArea className="flex-1">
@@ -330,7 +362,31 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
             <span className="text-white font-semibold text-sm">CRM</span>
           </div>
           <div className="flex items-center gap-1">
-            {googleConnected ? (
+            {googleAccounts.length > 0 && (
+              <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                <SelectTrigger className="h-7 w-[120px] bg-[#2a3942] border-0 text-[10px] text-white/70">
+                  <SelectValue placeholder="Conta Google" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#232d36] border-white/10">
+                  {googleAccounts.map(acc => (
+                    <SelectItem key={acc.id} value={acc.id} className="text-white text-xs">
+                      {acc.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={connectGoogle}
+              className="text-white/40 hover:text-[#4285F4] hover:bg-[#4285F4]/10 h-7 text-[10px]"
+            >
+              <Plus className="w-3 h-3 mr-1" /> Add Google
+            </Button>
+
+            {googleAccounts.length > 0 && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -341,15 +397,6 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
                 {syncingGoogle ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
                 Sincronizar
               </Button>
-            ) : (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={connectGoogle}
-                className="text-white/40 hover:text-[#4285F4] hover:bg-[#4285F4]/10 h-7 text-[10px]"
-              >
-                <Share2 className="w-3 h-3 mr-1" /> Conectar Google
-              </Button>
             )}
             <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-white/40 hover:text-white hover:bg-white/10 h-7">
               <Filter className="w-3.5 h-3.5 mr-1" /> Filtros
@@ -357,7 +404,7 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
           </div>
         </div>
 
-        {googleConnected && (
+        {googleAccounts.length > 0 && (
           <div className="px-4 py-2 bg-[#202c33]/50 border-b border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -450,8 +497,16 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
                   className="flex items-center gap-3 px-4 py-3 hover:bg-[#202c33] cursor-pointer group"
                   onClick={() => setEditingContact(contact)}
                 >
-                  <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 relative">
+                  <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 relative overflow-hidden">
                     <Users className="w-5 h-5 text-white/40" />
+                    {(contact as any).google_sync_account_id && (
+                      <div className="absolute bottom-0 right-0 bg-[#4285F4] p-0.5 rounded-tl-sm">
+                         <div className="w-2 h-2 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-[6px] font-bold text-[#4285F4]">G</span>
+                         </div>
+                      </div>
+                    )}
+
                     {contact.is_hot_lead && (
                       <Flame className="w-3.5 h-3.5 text-orange-400 absolute -top-1 -right-1" />
                     )}
