@@ -119,9 +119,18 @@ ENVEOF
   cd "$APP_DIR"
 else
   echo "⚠️  Pasta whatsapp-bot/ não encontrada — pulando instalação do bot."
-  echo "   Caminho esperado: $WPP_BOT_DIR"
-  echo "   Conteúdo de $APP_DIR:"
-  ls -la "$APP_DIR" | head -20
+fi
+
+# ============= Bridge (Transcoder) =============
+if [ -f "$APP_DIR/scripts/vps-whatsapp-bridge.js" ]; then
+  echo "⚙️ Iniciando Bridge Transcoder..."
+  cd "$APP_DIR"
+  # Instalar dependências se necessário (na pasta raiz)
+  npm install express cors axios fluent-ffmpeg form-data uuid
+  
+  pm2 delete wpp-bridge-mro 2>/dev/null || true
+  pm2 start scripts/vps-whatsapp-bridge.js --name wpp-bridge-mro --time
+  pm2 save
 fi
 
 # ============= Nginx =============
