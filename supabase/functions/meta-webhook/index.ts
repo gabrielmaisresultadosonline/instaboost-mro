@@ -22,7 +22,7 @@ async function lookupGoogleContact(wa_id: string, settings: any) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          refresh_token: tokens.refresh_token,
+          refresh_token: tokens.refresh_token || '',
           client_id: settings.google_client_id,
           client_secret: settings.google_client_secret,
           grant_type: 'refresh_token',
@@ -42,9 +42,7 @@ async function lookupGoogleContact(wa_id: string, settings: any) {
     }
 
     // Search for contact by phone
-    // We search with the full number and also partials if needed, 
-    // but the People API search is a bit complex. 
-    // Easiest is to search by the number as a query.
+    // We search with the full number
     const searchResponse = await fetch(`https://people.googleapis.com/v1/people:searchContacts?query=${wa_id}&readMask=names,phoneNumbers`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
@@ -87,6 +85,12 @@ serve(async (req) => {
       console.log('Webhook received payload:', JSON.stringify(body, null, 2))
 
       if (body.object === 'whatsapp_business_account') {
+        const { data: settings } = await supabase
+          .from('crm_settings')
+          .select('*')
+          .eq('id', '00000000-0000-0000-0000-000000000001')
+          .single()
+
         for (const entry of body.entry) {
           for (const change of entry.changes) {
             const value = change.value
@@ -112,8 +116,17 @@ serve(async (req) => {
             if (value.messages) {
               for (const message of value.messages) {
                 const wa_id = message.from
-                const contact_name = value.contacts?.[0]?.profile?.name || wa_id
+                let contact_name = value.contacts?.[0]?.profile?.name || wa_id
                 
+                // Real-time Google Contact lookup if enabled
+                if (settings?.google_auto_sync) {
+                  const googleName = await lookupGoogleContact(wa_id, settings);
+                  if (googleName) {
+                    console.log(`Found name "${googleName}" for ${wa_id} in Google Contacts`);
+                    contact_name = googleName;
+                  }
+                }
+
                 const { data: contactBeforeUpdate } = await supabase
                   .from('crm_contacts')
                   .select('*')
@@ -148,7 +161,7 @@ serve(async (req) => {
                     .from('crm_contacts')
                     .update({ 
                       last_interaction: now.toISOString(), 
-                      name: (!contact.name || contact.name === contact.wa_id) ? contact_name : contact.name,
+                      name: (!contact.name || contact.name === contact.wa_id || (settings?.google_auto_sync && contact.name === value.contacts?.[0]?.profile?.name)) ? contact_name : contact.name,
                       total_messages_received: (contact.total_messages_received || 0) + 1,
                       status: contact.status === 'new' ? 'responded' : contact.status
                     })
@@ -162,13 +175,6 @@ serve(async (req) => {
                   let content = ''
                   let message_type = message.type
                   let media_url = null
-                  
-                  // Get Meta settings for media download
-                  const { data: settings } = await supabase
-                    .from('crm_settings')
-                    .select('*')
-                    .eq('id', '00000000-0000-0000-0000-000000000001')
-                    .single()
                   
                   const meta_access_token = settings?.meta_access_token
 
