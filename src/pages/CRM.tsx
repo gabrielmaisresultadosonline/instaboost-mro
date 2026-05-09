@@ -2857,7 +2857,7 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
-
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
                       <CardHeader className="bg-amber-50 dark:bg-amber-900/10 border-b">
                         <CardTitle className="text-lg flex items-center gap-2 text-amber-700 dark:text-amber-500">
                           <TrendingUp className="w-4 h-4" /> Estratégias e Gatilhos
