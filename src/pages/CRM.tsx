@@ -3227,7 +3227,7 @@ const CRM = () => {
                             "h-8 text-[11px] font-bold",
                             googleContactsEnabled ? "text-primary" : "text-muted-foreground"
                           )}
-                          onClick={handleConnectGoogle}
+                          onClick={handleSyncGoogleContacts}
                         >
                           <RefreshCcw className={cn("w-3.5 h-3.5 mr-1.5", googleContactsEnabled && "text-primary")} />
                           {googleContactsEnabled ? 'Sincronizar Agora' : 'Conectar Google'}
