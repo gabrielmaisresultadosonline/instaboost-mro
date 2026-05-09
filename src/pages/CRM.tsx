@@ -137,7 +137,9 @@ const CRM = () => {
     outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
     google_auto_sync: false,
     vps_transcoder_url: '',
-    vps_status: 'unknown' as 'unknown' | 'online' | 'offline'
+    vps_status: 'unknown' as 'unknown' | 'online' | 'offline',
+    important_instructions: '',
+    read_templates_enabled: true
   });
 
   const [metrics, setMetrics] = useState<any>({
