@@ -222,6 +222,16 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
             Salvar
           </Button>
         </div>
+        <div className="px-4 py-2 border-b border-white/5 flex gap-2">
+           <Button 
+             variant="ghost" 
+             size="sm" 
+             onClick={() => callProxy('saveToGoogle', { contactId: editingContact.id, accountId: selectedAccountId })}
+             className="flex-1 text-white/60 hover:text-[#4285F4] hover:bg-[#4285F4]/10 h-8 text-xs"
+           >
+             <Share2 className="w-3.5 h-3.5 mr-2" /> Sincronizar p/ Google
+           </Button>
+        </div>
 
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4 max-w-lg mx-auto">
