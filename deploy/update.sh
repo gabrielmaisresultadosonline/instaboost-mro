@@ -3,7 +3,7 @@
 # =============================================================
 # Script de Atualização - I.A MRO
 # Para Ubuntu LTS 22.04 (VPS Hostinger)
-# Inclui: Frontend + Bot WhatsApp (whatsapp-web.js)
+# Nota: Removido proxy_pass Lovable (flock.js) e configurado SSL 443.
 # =============================================================
 
 set -e
@@ -152,13 +152,26 @@ fi
 $SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
 
-# Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge
-echo "🛠️ Atualizando configuração Nginx..."
+# Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge e SSL
+echo "🛠️ Atualizando configuração Nginx (80 e 443)..."
 $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
 server {
     listen 80;
     listen [::]:80;
     server_name $DOMAIN www.$DOMAIN;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name $DOMAIN www.$DOMAIN;
+
+    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
     root $APP_DIR/dist;
     index index.html;
 
@@ -177,7 +190,7 @@ server {
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
         
-        # CORS Headers (Garante que o navegador permita)
+        # CORS Headers
         add_header 'Access-Control-Allow-Origin' '*' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
