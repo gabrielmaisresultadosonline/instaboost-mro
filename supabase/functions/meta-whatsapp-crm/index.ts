@@ -471,8 +471,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
-      })
-    }
 
     if (action === 'exchangeGoogleCode') {
       const { code, redirectPath } = params;
