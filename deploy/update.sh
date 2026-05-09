@@ -208,48 +208,18 @@ EOF
 $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
 
 
-# ============= Subdomínio prompts.maisresultadosonline.com.br =============
-PROMPTS_DOMAIN="prompts.$DOMAIN"
-PROMPTS_NGINX="/etc/nginx/sites-available/prompts-mro"
+# ============= REMOVER PROXYS LOVABLE ANTIGOS =============
+echo "🧹 Removendo possíveis proxys residuais da Lovable..."
+# Remove tanto a versão singular quanto plural se existirem
+$SUDO rm -f /etc/nginx/sites-enabled/prompt-mro 2>/dev/null || true
+$SUDO rm -f /etc/nginx/sites-available/prompt-mro 2>/dev/null || true
+$SUDO rm -f /etc/nginx/sites-enabled/prompts-mro 2>/dev/null || true
+$SUDO rm -f /etc/nginx/sites-available/prompts-mro 2>/dev/null || true
 
-if [ ! -f "$PROMPTS_NGINX" ]; then
-  echo "🛠️ Criando configuração Nginx para $PROMPTS_DOMAIN..."
-  $SUDO tee "$PROMPTS_NGINX" > /dev/null <<EOF
-server {
-    listen 80;
-    listen [::]:80;
-    server_name $PROMPTS_DOMAIN;
-    root $APP_DIR/dist;
-    index index.html;
+# Garante que não sobrou nenhum outro arquivo apontando pro domínio no sites-enabled
+# exceto o ia-mro que estamos configurando agora.
+grep -l "maisresultadosonline.com.br" /etc/nginx/sites-enabled/* 2>/dev/null | grep -v "$APP_NAME" | xargs $SUDO rm -f 2>/dev/null || true
 
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_proxied expired no-cache no-store private auth;
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
-
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # SPA routing
-    location / {
-        try_files \$uri \$uri/ /index.html;
-    }
-
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-}
-EOF
-
-  $SUDO ln -sf "$PROMPTS_NGINX" "/etc/nginx/sites-enabled/prompts-mro"
-  echo "✅ Nginx configurado para $PROMPTS_DOMAIN"
-  echo ""
-  echo "⚠️  Rode o comando abaixo para ativar SSL no subdomínio:"
-  echo "   sudo certbot --nginx -d $PROMPTS_DOMAIN"
-fi
 
 echo "🔄 Reiniciando Nginx..."
 $SUDO nginx -t
