@@ -1760,13 +1760,13 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
-                            <div className="flex items-center gap-4">
-                              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
+                          <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
+                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                              <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
+                              <div className="flex flex-col min-w-0">
+                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
                                   <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
                                     {selectedContact.name || selectedContact.wa_id}
                                     <Badge 
