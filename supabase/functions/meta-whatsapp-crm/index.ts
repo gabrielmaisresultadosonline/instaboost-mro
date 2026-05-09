@@ -613,9 +613,18 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     body.type = "audio"
     const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, audioUrl, 'audio');
     if (metaMediaId) {
-      body.audio = { id: metaMediaId, voice: !!isVoice };
+      body.audio = { id: metaMediaId }; // audio object only supports 'id' or 'link'
+      // Note: 'voice: true' is only for 'audio' messages sent as PTT. 
+      // Meta docs say: "For audio messages, the only supported sub-fields are id or link."
+      // Actually, voice field is used for templates or specific types, 
+      // but for individual messages, let's stick to the core structure first.
+      if (isVoice) {
+        // Some Meta API versions/docs suggest audio: { id, voice: true } works for PTT
+        body.audio.voice = true;
+      }
     } else {
-      body.audio = { link: audioUrl, voice: !!isVoice };
+      body.audio = { link: audioUrl };
+      if (isVoice) body.audio.voice = true;
     }
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
@@ -696,7 +705,12 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
 
   if (!response.ok) {
     console.error('Meta API Error Details:', result)
-    return new Response(JSON.stringify({ success: false, error: result.error?.message, details: result }), {
+    // Return a failed response so the frontend/caller knows it didn't send
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: result.error?.message || 'Erro na API da Meta', 
+      details: result 
+    }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
@@ -1508,7 +1522,9 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
                      type === 'image' ? 'image.jpg' : 
                      type === 'video' ? 'video.mp4' : 'document.pdf';
     
-    formData.append('file', blob, filename);
+    // Create a new File object from the blob to ensure filename is passed correctly in multipart/form-data
+    const file = new File([blob], filename, { type: blob.type });
+    formData.append('file', file);
     formData.append('type', type);
     formData.append('messaging_product', 'whatsapp');
 
