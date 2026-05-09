@@ -1650,7 +1650,67 @@ const CRM = () => {
                               status.color === 'pink' && 'bg-pink-500'
                             )} />
                             {status.label}
-                          </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Módulos & Ferramentas</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie o conteúdo das ferramentas externas.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      {[
+                        { 
+                          label: 'MRO Ferramenta', 
+                          desc: 'Gerenciar tutoriais do Instagram', 
+                          path: '/mro-ferramenta', 
+                          tab: 'tutorials',
+                          icon: Video, 
+                          color: 'amber' 
+                        },
+                        { 
+                          label: 'ZAPMRO', 
+                          desc: 'Gerenciar tutoriais do WhatsApp', 
+                          path: '/zapmro', 
+                          tab: 'zapmro',
+                          icon: MessageCircle, 
+                          color: 'green' 
+                        },
+                        { 
+                          label: 'Estrutura Renda Extra', 
+                          desc: 'Gerenciar materiais e tutoriais', 
+                          path: '/estruturarendaextra', 
+                          tab: 'estrutura',
+                          icon: LayoutList, 
+                          color: 'purple' 
+                        },
+                      ].map((tool, i) => (
+                        <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800 cursor-pointer" onClick={() => setActiveTab(tool.tab)}>
+                          <CardHeader className="pb-2">
+                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-2", {
+                              "bg-amber-500/10 text-amber-500": tool.color === 'amber',
+                              "bg-green-500/10 text-green-500": tool.color === 'green',
+                              "bg-purple-500/10 text-purple-500": tool.color === 'purple',
+                            })}>
+                              <tool.icon className="w-5 h-5" />
+                            </div>
+                            <CardTitle className="text-base font-bold">{tool.label}</CardTitle>
+                            <CardDescription className="text-xs">{tool.desc}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <Button variant="ghost" size="sm" className="w-full justify-between hover:bg-muted group-hover:text-primary transition-colors h-8 text-xs font-bold p-0 px-2">
+                              Configurar Módulo
+                              <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                          </CardContent>
+                          <div className={cn("absolute bottom-0 left-0 h-1 w-full opacity-50", {
+                            "bg-amber-500": tool.color === 'amber',
+                            "bg-green-500": tool.color === 'green',
+                            "bg-purple-500": tool.color === 'purple',
+                          })} />
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value && c.last_interaction !== null).length}</Badge>
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
