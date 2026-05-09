@@ -1516,11 +1516,11 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     if (type === 'audio') {
       const buffer = await blob.arrayBuffer();
       // Meta Cloud API is extremely strict: voice messages MUST be audio/ogg; codecs=opus
-      // Base audio/ogg is NOT supported.
+      // We must set the Content-Type to EXACTLY 'audio/ogg; codecs=opus' for voice messages.
       mimeType = 'audio/ogg; codecs=opus';
       blob = new Blob([buffer], { type: mimeType });
       filename = 'voice.ogg';
-      console.log(`Re-labeled audio blob to ${mimeType} for Meta compatibility. Size: ${buffer.byteLength} bytes`);
+      console.log(`Forced audio blob to ${mimeType} for Meta delivery. Size: ${buffer.byteLength} bytes`);
     }
 
     const formData = new FormData();
