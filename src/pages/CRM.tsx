@@ -596,12 +596,13 @@ const CRM = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Try to use a format that Meta likes (OGG/Opus) or fallback to WebM/Opus
+      // Use audio/ogg with codecs=opus as primary choice for Meta compatibility
       let mimeType = 'audio/ogg; codecs=opus';
       if (!MediaRecorder.isTypeSupported(mimeType)) {
+        // Fallback to webm if ogg is not supported (Chrome on non-Android usually supports webm)
         mimeType = 'audio/webm; codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = ''; // Let the browser decide if standard types aren't explicitly supported
+          mimeType = ''; // Browser default
         }
       }
       
@@ -614,7 +615,10 @@ const CRM = () => {
       };
       
       recorder.onstop = () => {
-        const audioBlob = new Blob(chunks, { type: mimeType });
+        // Ensure the blob uses a compatible type for Meta even if browser recorded as webm
+        // We'll treat it as audio/ogg for the upload if it was opus
+        const actualType = recorder.mimeType || mimeType || 'audio/ogg';
+        const audioBlob = new Blob(chunks, { type: actualType });
         console.log(`Audio recorded with type: ${audioBlob.type}, size: ${audioBlob.size} bytes`);
         const audioUrl = URL.createObjectURL(audioBlob);
         
@@ -681,16 +685,20 @@ const CRM = () => {
     setChatMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      // Use ogg extension for audio recordings and ensure proper MIME type
+      // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
-      const fileExt = file instanceof File ? file.name.split('.').pop() : (isAudio ? 'ogg' : 'bin');
+      // For recordings, we want to force .ogg and audio/ogg; codecs=opus for Meta voice messages
+      const fileExt = isAudio ? 'ogg' : (file instanceof File ? file.name.split('.').pop() : 'bin');
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
+
+      // Meta is extremely picky: it wants audio/ogg; codecs=opus
+      const contentType = isAudio ? 'audio/ogg; codecs=opus' : (file instanceof File ? file.type : undefined);
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
-          contentType: isAudio ? 'audio/ogg' : (file instanceof File ? file.type : undefined),
+          contentType: contentType,
           upsert: true
         });
 
