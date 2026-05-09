@@ -613,18 +613,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     body.type = "audio"
     const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, audioUrl, 'audio');
     if (metaMediaId) {
-      body.audio = { id: metaMediaId }; // audio object only supports 'id' or 'link'
-      // Note: 'voice: true' is only for 'audio' messages sent as PTT. 
-      // Meta docs say: "For audio messages, the only supported sub-fields are id or link."
-      // Actually, voice field is used for templates or specific types, 
-      // but for individual messages, let's stick to the core structure first.
-      if (isVoice) {
-        // Some Meta API versions/docs suggest audio: { id, voice: true } works for PTT
-        body.audio.voice = true;
-      }
+      body.audio = { id: metaMediaId };
     } else {
+      // Direct link fallback often fails with Meta's security, but we keep it as last resort
       body.audio = { link: audioUrl };
-      if (isVoice) body.audio.voice = true;
     }
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
