@@ -359,7 +359,7 @@ const CRM = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+      const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
       const { error } = await supabase.from('crm_settings').upsert({
         ...rest,
         google_auto_sync: metaSettings.google_auto_sync,
@@ -1562,7 +1562,7 @@ const CRM = () => {
                       checked={metaSettings.google_auto_sync} 
                       onCheckedChange={async (checked) => {
                         setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                        const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                        const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
                         await supabase.from('crm_settings').upsert({
                           ...rest,
                           google_auto_sync: checked,
@@ -1777,7 +1777,7 @@ const CRM = () => {
                                   checked={metaSettings.google_auto_sync} 
                                   onCheckedChange={async (checked) => {
                                     setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                    const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                                    const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
                                     await supabase.from('crm_settings').upsert({
                                       ...rest,
                                       google_auto_sync: checked,
@@ -3322,7 +3322,7 @@ const CRM = () => {
                                 checked={metaSettings.google_auto_sync} 
                                 onCheckedChange={async (checked) => {
                                   setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                  const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                                  const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
                                   await supabase.from('crm_settings').upsert({
                                     ...rest,
                                     google_auto_sync: checked,
