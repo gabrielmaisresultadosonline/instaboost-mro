@@ -2482,7 +2482,52 @@ const CRM = () => {
                         <CardDescription>Mensagens aguardando o horário de envio.</CardDescription>
                       </CardHeader>
                       <CardContent className="p-0">
-                        <div className="overflow-x-auto">
+                        {/* Mobile cards */}
+                        <div className="md:hidden divide-y">
+                          {allScheduledMessages.filter(m => m.status === 'pending').length > 0 ? (
+                            allScheduledMessages.filter(m => m.status === 'pending').map((msg) => (
+                              <div key={msg.id} className="p-4 flex flex-col gap-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-sm truncate">{msg.crm_contacts?.name || msg.crm_contacts?.wa_id || 'Desconhecido'}</p>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                      {msg.message_data?.text || msg.message_data?.templateName || msg.message_data?.flowId || '-'}
+                                    </p>
+                                  </div>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0"
+                                    onClick={async () => {
+                                      if (confirm('Deseja cancelar este agendamento?')) {
+                                        await supabase.from('crm_scheduled_messages').update({ status: 'canceled' }).eq('id', msg.id);
+                                        fetchAllScheduledMessages();
+                                      }
+                                    }}
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                  <Badge variant="outline" className="capitalize text-[10px]">
+                                    {msg.message_data?.action === 'sendMessage' ? 'Texto' : 
+                                     msg.message_data?.action === 'sendTemplate' ? 'Template' : 
+                                     msg.message_data?.action === 'startFlow' ? 'Fluxo' : msg.message_data?.action}
+                                  </Badge>
+                                  <span className="text-muted-foreground font-medium">
+                                    {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center text-muted-foreground italic text-xs">
+                              Nenhum agendamento pendente encontrado.
+                            </div>
+                          )}
+                        </div>
+                        {/* Desktop table */}
+                        <div className="hidden md:block overflow-x-auto">
                           <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground border-b">
                               <tr>
