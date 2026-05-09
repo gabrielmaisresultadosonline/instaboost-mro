@@ -84,8 +84,16 @@ app.post('/send-voice', async (req, res) => {
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor Bridge rodando na porta ${PORT}`);
+});
+
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(`❌ Porta ${PORT} já está em uso. O bot continuará tentando inicializar o WhatsApp, mas o envio de áudio via CRM pode falhar até que o processo antigo seja encerrado.`);
+  } else {
+    console.error('❌ Erro no servidor Express:', e);
+  }
 });
 
 // ============= Bot Logic =============
