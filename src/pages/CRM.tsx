@@ -603,9 +603,15 @@ const CRM = () => {
       };
       
       recorder.onstop = () => {
-        const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus') 
-          ? 'audio/ogg; codecs=opus' 
-          : 'audio/webm; codecs=opus';
+        // WhatsApp Meta is very strict: voice messages MUST be audio/ogg with opus codec
+        // We try to use audio/ogg if supported, otherwise audio/webm
+        let mimeType = 'audio/webm; codecs=opus';
+        if (MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')) {
+          mimeType = 'audio/ogg; codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+          mimeType = 'audio/ogg';
+        }
+        
         const audioBlob = new Blob(chunks, { type: mimeType });
         console.log(`Audio recorded with type: ${audioBlob.type}, size: ${audioBlob.size} bytes`);
         const audioUrl = URL.createObjectURL(audioBlob);
