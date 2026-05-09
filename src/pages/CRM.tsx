@@ -597,18 +597,24 @@ const CRM = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       // Determine the best supported mimeType for the browser
-      let mimeType = 'audio/ogg; codecs=opus';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'audio/webm; codecs=opus';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = 'audio/mp4';
-          if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = ''; // Browser default
-          }
+      const mimeTypes = [
+        'audio/ogg; codecs=opus',
+        'audio/webm; codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/aac',
+        'audio/mpeg'
+      ];
+      
+      let mimeType = '';
+      for (const type of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
         }
       }
       
-      console.log(`Starting recorder with mimeType: ${mimeType}`);
+      console.log(`Starting recorder with mimeType: ${mimeType || 'default'}`);
       const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       const chunks: Blob[] = [];
       
@@ -617,11 +623,10 @@ const CRM = () => {
       };
       
       recorder.onstop = () => {
-        // Meta requires audio/ogg; codecs=opus for voice messages.
-        // Even if recorded as webm, we'll label it as ogg for the Edge Function 
-        // which will then ensure the correct headers for Meta.
-        const audioBlob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
-        console.log(`Audio recording stopped. Chunks: ${chunks.length}, Size: ${audioBlob.size} bytes`);
+        // Use the actual mimeType recorded by the browser
+        const recordedType = recorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(chunks, { type: recordedType });
+        console.log(`Audio recording stopped. Chunks: ${chunks.length}, Size: ${audioBlob.size} bytes, Type: ${recordedType}`);
         const audioUrl = URL.createObjectURL(audioBlob);
         
         setRecordedAudioBlob(audioBlob);
