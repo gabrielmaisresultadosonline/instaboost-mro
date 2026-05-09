@@ -1990,7 +1990,7 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                      "p-2.5 md:p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
                                       m.direction === 'inbound' 
                                         ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
                                         : 'bg-primary text-primary-foreground rounded-tr-none'
