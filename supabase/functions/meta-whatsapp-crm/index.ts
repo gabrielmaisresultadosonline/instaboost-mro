@@ -714,7 +714,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       await supabase.from('crm_messages').insert({
         contact_id: contact.id,
         direction: 'outbound',
-        content: audioUrl ? (isVoice ? "[Áudio]" : "[Arquivo de Áudio]") : 
+        content: audioUrl ? "[Mensagem de Áudio]" : 
                  imageUrl ? "[Imagem]" : 
                  videoUrl ? "[Vídeo]" : 
                  documentUrl ? `[Documento: ${fileName}]` : 
