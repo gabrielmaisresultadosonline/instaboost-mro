@@ -1508,7 +1508,9 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
                      type === 'image' ? 'image.jpg' : 
                      type === 'video' ? 'video.mp4' : 'document.pdf';
     
-    formData.append('file', blob, filename);
+    // Create a new File object from the blob to ensure filename is passed correctly in multipart/form-data
+    const file = new File([blob], filename, { type: blob.type });
+    formData.append('file', file);
     formData.append('type', type);
     formData.append('messaging_product', 'whatsapp');
 
