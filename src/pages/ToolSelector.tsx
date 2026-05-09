@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2 } from 'lucide-react';
-// Importação condicional ou ícone fallback para Instagram se não existir no lucide-react local
-import { Instagram as InstagramIcon } from 'lucide-react';
+import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera } from 'lucide-react';
+// Use Camera as fallback if Instagram is not available in some lucide versions
+import * as LucideIcons from 'lucide-react';
+const InstagramIcon = (LucideIcons as any).Instagram || Camera;
 
 
 import logoMro from '@/assets/logo-mro.png';
@@ -36,7 +37,7 @@ const ToolSelector = () => {
       name: 'Ferramenta para Instagram',
       subtitle: 'NÃO GASTE COM ANÚNCIOS',
       description: 'Aumente seu engajamento e seguidores organicamente',
-      icon: Instagram,
+      icon: InstagramIcon,
       color: 'from-pink-500 to-purple-600',
       hoverColor: 'hover:from-pink-600 hover:to-purple-700',
       borderColor: 'border-pink-500/30',
@@ -258,7 +259,7 @@ const ToolSelector = () => {
                 className="w-full p-4 rounded-xl border-2 border-gray-600 hover:border-pink-500/50 bg-gray-700/50 hover:bg-gray-700 transition-all duration-300 flex items-center gap-4 group"
               >
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Instagram className="w-6 h-6 text-white" />
+                  <InstagramIcon className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
                   <h4 className="text-white font-bold">MRO Instagram</h4>
