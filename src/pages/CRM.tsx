@@ -766,20 +766,47 @@ const CRM = () => {
         .from('crm-media')
         .getPublicUrl(filePath);
 
-      const params: any = { action: 'sendMessage', to: selectedContact.wa_id };
-      if (type === 'audio') {
-        params.audioUrl = publicUrl;
-        params.isVoice = isVoice;
-      } else if (type === 'image') {
-        params.imageUrl = publicUrl;
-      } else if (type === 'video') {
-        params.videoUrl = publicUrl;
-      } else if (type === 'document') {
-        params.documentUrl = publicUrl;
-        params.fileName = file instanceof File ? file.name : 'document';
+      if (type === 'audio' && metaSettings.vps_transcoder_url) {
+        console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
+        try {
+          const response = await fetch(`${metaSettings.vps_transcoder_url.replace(/\/$/, '')}/send-voice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: selectedContact.wa_id,
+              audioUrl: publicUrl,
+              metaToken: metaSettings.meta_access_token,
+              phoneId: metaSettings.meta_phone_number_id
+            })
+          });
+          
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Erro no VPS');
+          
+          setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+          await fetchMessages(selectedContact.id);
+          toast({ title: "Áudio Profissional enviado via VPS!" });
+          setSendingMessage(false);
+          return; // Exit early as VPS handled it
+        } catch (vpsErr: any) {
+          console.error("VPS Error, falling back to standard send:", vpsErr);
+          // Don't throw, fallback to standard function
+        }
       }
 
-      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { body: params });
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { 
+        body: { 
+          action: 'sendMessage', 
+          to: selectedContact.wa_id,
+          audioUrl: type === 'audio' ? publicUrl : undefined,
+          imageUrl: type === 'image' ? publicUrl : undefined,
+          videoUrl: type === 'video' ? publicUrl : undefined,
+          documentUrl: type === 'document' ? publicUrl : undefined,
+          fileName: type === 'document' ? (file instanceof File ? file.name : 'document') : undefined,
+          isVoice: type === 'audio' ? isVoice : undefined
+        } 
+      });
+      
       if (error) throw error;
       if (!data.success) throw new Error(data.error);
 
