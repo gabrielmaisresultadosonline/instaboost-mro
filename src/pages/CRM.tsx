@@ -1767,12 +1767,12 @@ const CRM = () => {
                               </Button>
                               <div className="flex flex-col min-w-0">
                                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-                                  <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
-                                    {selectedContact.name || selectedContact.wa_id}
+                                  <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 truncate" onClick={() => openContactInfo(selectedContact)}>
+                                    <span className="truncate">{selectedContact.name || selectedContact.wa_id}</span>
                                     <Badge 
                                       variant="outline" 
-                                      style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${10 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                      className="font-normal opacity-60"
+                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className="font-normal opacity-60 shrink-0 hidden sm:inline-flex"
                                     >
                                       Info
                                     </Badge>
