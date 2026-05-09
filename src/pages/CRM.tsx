@@ -3320,16 +3320,17 @@ const CRM = () => {
             )}
 
             {activeTab === 'contact-list' && (
-              <ScrollArea className="flex-1 p-2 md:p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
-                    <div className="w-full md:w-auto">
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-20">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-6">
+                    <div className="w-full lg:w-auto">
                       <h2 className="text-xl md:text-2xl font-bold tracking-tight">Lista de Contatos</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Gerencie todos os seus contatos salvos e importados.</p>
                     </div>
-                    <div className="flex flex-col w-full md:w-auto gap-3 items-stretch md:items-center">
-                      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 px-3 py-3 md:px-4 md:py-2 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm">
-                        <div className="flex items-center justify-between md:justify-start gap-2 pr-0 md:pr-4 md:border-r border-primary/10">
+                    
+                    <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-4 items-stretch sm:items-center">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 px-3 py-3 md:px-4 md:py-2 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm flex-1 lg:flex-none">
+                        <div className="flex items-center justify-between sm:justify-start gap-3 sm:pr-4 sm:border-r border-primary/10">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm flex-shrink-0">
                               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
@@ -3361,7 +3362,7 @@ const CRM = () => {
                           variant="default" 
                           size="sm"
                           className={cn(
-                            "h-9 text-[10px] md:text-xs font-bold rounded-xl px-5 shadow-sm w-full md:w-auto",
+                            "h-9 text-[10px] md:text-xs font-bold rounded-xl px-5 shadow-sm w-full sm:w-auto",
                             googleContactsEnabled ? "bg-white text-primary border border-primary/20 hover:bg-primary/5" : "bg-primary text-white"
                           )}
                           onClick={handleSyncGoogleContacts}
@@ -3371,12 +3372,12 @@ const CRM = () => {
                         </Button>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-2 w-full">
-                        <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-10 md:h-11 rounded-xl text-xs flex-1">
-                          <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
+                      <div className="flex flex-row gap-2 w-full sm:w-auto">
+                        <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-10 md:h-11 rounded-xl text-[11px] md:text-xs flex-1 sm:flex-none sm:px-4">
+                          <FileUp className="w-4 h-4 sm:mr-2 flex-shrink-0" /> <span className="hidden xs:inline">Importar/Exportar</span><span className="xs:hidden">Imp/Exp</span>
                         </Button>
-                        <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-10 md:h-11 rounded-xl shadow-lg shadow-primary/20 text-xs flex-1">
-                          <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
+                        <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-10 md:h-11 rounded-xl shadow-lg shadow-primary/20 text-[11px] md:text-xs flex-1 sm:flex-none sm:px-4">
+                          <UserPlus className="w-4 h-4 sm:mr-2 flex-shrink-0" /> <span className="hidden xs:inline">Novo Contato</span><span className="xs:hidden">Novo</span>
                         </Button>
                       </div>
                     </div>
@@ -3427,7 +3428,7 @@ const CRM = () => {
                     
                     <div className="overflow-x-auto w-full">
                       {/* Mobile view of contacts as cards */}
-                      <div className="md:hidden divide-y">
+                      <div className="md:hidden divide-y divide-border">
                         {(() => {
                           const filtered = contacts.filter(c => {
                             const matchesSearch = statusFilter === 'all' || 
@@ -3442,7 +3443,7 @@ const CRM = () => {
 
                           if (displayContacts.length === 0) {
                             return (
-                              <div className="p-8 text-center text-muted-foreground italic text-xs">
+                              <div className="p-12 text-center text-muted-foreground italic text-xs">
                                 Nenhum contato encontrado.
                               </div>
                             );
@@ -3451,44 +3452,46 @@ const CRM = () => {
                           return (
                             <>
                               {displayContacts.map((contact) => (
-                                <div key={contact.id} className="p-4 flex flex-col gap-3">
-                                  <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                        {contact.name?.charAt(0) || <User className="w-5 h-5" />}
+                                <div key={contact.id} className="p-4 flex flex-col gap-4 bg-card/50 hover:bg-card transition-colors">
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                                        {contact.name?.charAt(0).toUpperCase() || <User className="w-5 h-5" />}
                                       </div>
-                                      <div className="flex flex-col">
-                                        <span className="font-bold text-sm">{contact.name || 'Sem nome'}</span>
-                                        <span className="text-xs text-muted-foreground font-mono">{contact.wa_id}</span>
+                                      <div className="flex flex-col overflow-hidden">
+                                        <span className="font-bold text-sm truncate">{contact.name || 'Sem nome'}</span>
+                                        <span className="text-xs text-muted-foreground font-mono truncate">{contact.wa_id}</span>
                                       </div>
                                     </div>
-                                    <div className="flex gap-1">
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                    <div className="flex gap-1 flex-shrink-0">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
                                         <MessageSquare className="w-4 h-4" />
                                       </Button>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => openContactInfo(contact)}>
                                         <Settings className="w-4 h-4" />
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex gap-2">
-                                      <Badge variant="secondary" className="text-[9px] uppercase font-bold">
+                                  
+                                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                    <div className="flex gap-1.5 flex-wrap">
+                                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0 uppercase font-bold tracking-tight">
                                         {contact.source_type === 'imported' ? 'Importado' : 'Sistema'}
                                       </Badge>
-                                      <Badge variant="outline" className={cn("capitalize text-[9px]", getStatusColor(contact.status))}>
+                                      <Badge variant="outline" className={cn("capitalize text-[9px] px-1.5 py-0 font-bold", getStatusColor(contact.status))}>
                                         {contact.status}
                                       </Badge>
                                     </div>
-                                    <span className="text-[10px] text-muted-foreground">
-                                      {contact.last_interaction ? new Date(contact.last_interaction).toLocaleDateString() : 'Nunca'}
-                                    </span>
+                                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground whitespace-nowrap">
+                                      <Clock className="w-3 h-3" />
+                                      <span>{contact.last_interaction ? new Date(contact.last_interaction).toLocaleDateString() : 'Nunca'}</span>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
                               {filtered.length > 10 && !showAllContacts && !isSearching && (
-                                <div className="p-4 bg-muted/5 flex justify-center">
-                                  <Button variant="ghost" size="sm" onClick={() => setShowAllContacts(true)} className="text-xs font-bold text-primary">
+                                <div className="p-6 bg-muted/5 flex justify-center border-t">
+                                  <Button variant="outline" size="sm" onClick={() => setShowAllContacts(true)} className="text-xs font-bold text-primary rounded-xl px-8 h-9 border-primary/20 hover:bg-primary/5">
                                     Ver Todos os {filtered.length} Contatos
                                   </Button>
                                 </div>
