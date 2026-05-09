@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   MessageCircle, 
   Send, 
-  Instagram, 
+  Camera, 
   Facebook, 
   Users, 
   CheckCircle,
