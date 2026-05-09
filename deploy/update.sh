@@ -43,7 +43,10 @@ echo "📦 Instalando dependências do frontend..."
 npm install
 
 echo "🔨 Fazendo build do frontend..."
+# Limpa o dist antigo para garantir que não fiquem arquivos velhos (cache buster)
+rm -rf dist
 npm run build
+
 
 # ============= Bot WhatsApp (whatsapp-web.js) =============
 echo ""
@@ -138,13 +141,16 @@ echo ""
 echo "🧩 Verificando conflitos de Nginx..."
 
 # 🚨 RESOLVER CONFLITO: Remove ou altera o whatsapp-bridge se ele usar o mesmo domínio
+# Agora que o ia-mro já tem o proxy para /bridge na porta 3000, não precisamos do config antigo.
 WPP_BRIDGE_NGINX="/etc/nginx/sites-enabled/whatsapp-bridge"
 if [ -f "$WPP_BRIDGE_NGINX" ]; then
-    echo "⚠️  Detectado conflito em $WPP_BRIDGE_NGINX. Corrigindo..."
-    # Comenta o server_name conflitante e adiciona server_name _;
-    $SUDO sed -i "s/server_name $DOMAIN/server_name _;#/g" "$WPP_BRIDGE_NGINX"
-    $SUDO sed -i "s/server_name www.$DOMAIN//g" "$WPP_BRIDGE_NGINX"
+    echo "⚠️  Removendo configuração conflitante em $WPP_BRIDGE_NGINX..."
+    $SUDO rm -f "$WPP_BRIDGE_NGINX"
 fi
+
+# Remove também qualquer resquício de default ou configs duplicadas que possam conflitar
+$SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+
 
 # Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge
 echo "🛠️ Atualizando configuração Nginx..."
@@ -250,12 +256,22 @@ $SUDO nginx -t
 $SUDO systemctl restart nginx
 
 echo ""
+echo "✨ Verificação Final:"
+echo "📂 Pasta dist: $(ls -l $APP_DIR/dist/index.html)"
+echo "🔍 Conteúdo do index (primeiras linhas):"
+head -n 20 $APP_DIR/dist/index.html | grep -E "assets/index" || echo "⚠️  Nomes fixos não encontrados no index.html local"
+
+echo ""
 echo "✅ Atualização concluída!"
 echo "🌐 Frontend: https://$DOMAIN"
 echo "📝 Prompts MRO: https://$PROMPTS_DOMAIN"
 echo ""
+echo "🚀 IMPORTANTE: Se o site ainda mostrar a página branca ou erro 404:"
+echo "   1. No painel da CLOUDFLARE: Cache -> Purge Everything (Limpar tudo)"
+echo "   2. No seu NAVEGADOR: Pressione CTRL + SHIFT + R (Hard Refresh)"
+echo ""
 echo "🤖 Bot WhatsApp:"
 echo "   Status:  pm2 status wpp-bot-mro"
 echo "   Logs:    pm2 logs wpp-bot-mro"
-echo "   QR Code: pm2 logs wpp-bot-mro --lines 50"
+
 echo ""
