@@ -604,12 +604,10 @@ const CRM = () => {
       
       recorder.onstop = () => {
         // WhatsApp Meta is very strict: voice messages MUST be audio/ogg with opus codec
-        // We try to use audio/ogg if supported, otherwise audio/webm
-        let mimeType = 'audio/webm; codecs=opus';
-        if (MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')) {
-          mimeType = 'audio/ogg; codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
-          mimeType = 'audio/ogg';
+        // We MUST use audio/ogg for Meta to deliver as a voice message (PTT)
+        let mimeType = 'audio/ogg; codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/webm; codecs=opus';
         }
         
         const audioBlob = new Blob(chunks, { type: mimeType });
