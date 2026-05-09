@@ -497,8 +497,16 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
                   className="flex items-center gap-3 px-4 py-3 hover:bg-[#202c33] cursor-pointer group"
                   onClick={() => setEditingContact(contact)}
                 >
-                  <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 relative">
+                  <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 relative overflow-hidden">
                     <Users className="w-5 h-5 text-white/40" />
+                    {(contact as any).google_sync_account_id && (
+                      <div className="absolute bottom-0 right-0 bg-[#4285F4] p-0.5 rounded-tl-sm">
+                         <div className="w-2 h-2 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-[6px] font-bold text-[#4285F4]">G</span>
+                         </div>
+                      </div>
+                    )}
+
                     {contact.is_hot_lead && (
                       <Flame className="w-3.5 h-3.5 text-orange-400 absolute -top-1 -right-1" />
                     )}
