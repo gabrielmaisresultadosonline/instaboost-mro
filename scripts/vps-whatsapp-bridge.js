@@ -1,10 +1,14 @@
-const express = require('express');
-const axios = require('axios');
-const ffmpeg = require('fluent-ffmpeg');
-const fs = require('fs');
-const path = require('path');
-const FormData = require('form-data');
-const { v4: uuidv4 } = require('uuid');
+import express from 'express';
+import axios from 'axios';
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs';
+import path from 'path';
+import FormData from 'form-data';
+import { v4 as uuidv4 } from 'uuid';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * VPS WhatsApp Bridge - Audio Transcoder & Sender
