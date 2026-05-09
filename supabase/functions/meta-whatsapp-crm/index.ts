@@ -619,8 +619,10 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
     }
-...
-              
+
+    if (action === 'sendTemplate') {
+      const { to, templateName, languageCode, components: manualComponents } = params
+
               finalComponents.push({
                 type: "header",
                 parameters: [{ type, [type]: mediaObj }]
