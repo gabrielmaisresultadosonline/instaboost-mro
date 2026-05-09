@@ -37,13 +37,10 @@ serve(async (req) => {
       .eq('id', '00000000-0000-0000-0000-000000000001')
       .single()
 
-    if (!settings?.meta_access_token) {
-      throw new Error('Meta API credentials not configured')
-    }
-
-    const { meta_access_token, meta_phone_number_id } = settings
+    const { meta_access_token, meta_phone_number_id } = settings || {}
 
     if (action === 'getTemplates') {
+      if (!meta_access_token) throw new Error('Meta API credentials not configured');
       const { meta_waba_id } = settings
       console.log(`Fetching templates for WABA ${meta_waba_id}...`);
       
