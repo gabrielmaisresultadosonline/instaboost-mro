@@ -1104,6 +1104,7 @@ export type Database = {
           business_hours_start: string | null
           business_hours_tz: string | null
           created_at: string | null
+          google_auto_sync: boolean | null
           google_client_id: string | null
           google_client_secret: string | null
           id: string
@@ -1136,6 +1137,7 @@ export type Database = {
           business_hours_start?: string | null
           business_hours_tz?: string | null
           created_at?: string | null
+          google_auto_sync?: boolean | null
           google_client_id?: string | null
           google_client_secret?: string | null
           id?: string
@@ -1168,6 +1170,7 @@ export type Database = {
           business_hours_start?: string | null
           business_hours_tz?: string | null
           created_at?: string | null
+          google_auto_sync?: boolean | null
           google_client_id?: string | null
           google_client_secret?: string | null
           id?: string
