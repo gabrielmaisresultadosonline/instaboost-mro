@@ -595,7 +595,18 @@ const CRM = () => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      
+      // Try to use a format that Meta likes (OGG/Opus) or fallback to WebM/Opus
+      let mimeType = 'audio/ogg; codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm; codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/webm'; // Last resort
+        }
+      }
+      
+      console.log(`Starting recorder with mimeType: ${mimeType}`);
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks: Blob[] = [];
       
       recorder.ondataavailable = (e) => {
@@ -603,13 +614,6 @@ const CRM = () => {
       };
       
       recorder.onstop = () => {
-        // WhatsApp Meta is very strict: voice messages MUST be audio/ogg with opus codec
-        // We MUST use audio/ogg for Meta to deliver as a voice message (PTT)
-        let mimeType = 'audio/ogg; codecs=opus';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = 'audio/webm; codecs=opus';
-        }
-        
         const audioBlob = new Blob(chunks, { type: mimeType });
         console.log(`Audio recorded with type: ${audioBlob.type}, size: ${audioBlob.size} bytes`);
         const audioUrl = URL.createObjectURL(audioBlob);
