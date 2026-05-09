@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,13 @@ const CRMLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('crm_email');
+    const savedPassword = localStorage.getItem('crm_password');
+    if (savedEmail) setEmail(savedEmail);
+    if (savedPassword) setPassword(savedPassword);
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -24,6 +31,9 @@ const CRMLogin = () => {
     const result = await loginAdmin(email, password);
 
     if (result.success) {
+      localStorage.setItem('crm_email', email);
+      localStorage.setItem('crm_password', password);
+      
       toast({
         title: "Login realizado!",
         description: "Bem-vindo ao CRM Meta",
