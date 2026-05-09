@@ -1500,31 +1500,30 @@ async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl:
 
 async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, mediaUrl: string, type: string) {
   try {
-    console.log(`Uploading media to Meta from URL: ${mediaUrl}`);
+    console.log(`Uploading media to Meta from URL: ${mediaUrl} (Type: ${type})`);
     const fileResponse = await fetch(mediaUrl);
     if (!fileResponse.ok) throw new Error(`Failed to fetch media: ${mediaUrl}`);
     let blob = await fileResponse.blob();
     
-    // Ensure audio is sent with a supported MIME type for Meta
+    // Determine MIME type and filename
+    let mimeType = blob.type;
+    let filename = type === 'audio' ? 'voice.ogg' : 
+                   type === 'image' ? 'image.jpg' : 
+                   type === 'video' ? 'video.mp4' : 'document.pdf';
+
     // Meta is very strict: voice messages MUST be audio/ogg with opus codec
-    // Browsers often record in audio/webm. We re-label it and Meta usually accepts it if it's Opus inside.
-    const isWebm = blob.type.toLowerCase().includes('webm') || mediaUrl.toLowerCase().endsWith('.webm');
-    const isOctet = blob.type === 'application/octet-stream';
-    
-    if (isWebm || isOctet || (type === 'audio' && !blob.type.includes('ogg') && !blob.type.includes('opus'))) {
-      console.log(`Re-labeling blob for Meta compatibility. Original type: ${blob.type}, target: audio/ogg`);
+    if (type === 'audio') {
+      // Re-label to audio/ogg for Meta compatibility
       const buffer = await blob.arrayBuffer();
       blob = new Blob([buffer], { type: 'audio/ogg' });
+      mimeType = 'audio/ogg';
+      filename = 'voice.ogg';
+      console.log(`Re-labeled audio blob to audio/ogg for Meta compatibility.`);
     }
 
     const formData = new FormData();
-    // Providing a filename with correct extension is crucial for Meta to accept the media
-    const filename = type === 'audio' ? 'voice.ogg' : 
-                     type === 'image' ? 'image.jpg' : 
-                     type === 'video' ? 'video.mp4' : 'document.pdf';
-    
-    // Create a new File object from the blob to ensure filename is passed correctly in multipart/form-data
-    const file = new File([blob], filename, { type: blob.type });
+    // Create a new File object from the blob to ensure filename and type are passed correctly
+    const file = new File([blob], filename, { type: mimeType });
     formData.append('file', file);
     formData.append('type', type);
     formData.append('messaging_product', 'whatsapp');
@@ -1539,8 +1538,12 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     );
 
     const data = await response.json();
-    if (!response.ok) throw new Error(`Meta media upload failed: ${JSON.stringify(data)}`);
+    if (!response.ok) {
+      console.error('Meta Media Upload Error response:', JSON.stringify(data, null, 2));
+      throw new Error(`Meta media upload failed: ${data.error?.message || JSON.stringify(data)}`);
+    }
     
+    console.log(`Media uploaded successfully to Meta. ID: ${data.id}`);
     return data.id;
   } catch (error) {
     console.error('Error uploading media to Meta:', error);
