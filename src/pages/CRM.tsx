@@ -2463,14 +2463,14 @@ const CRM = () => {
               </div>
             )}
             {activeTab === 'scheduling' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">Agendamentos</h2>
-                      <p className="text-muted-foreground text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight">Agendamentos</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
                     </div>
-                    <Button variant="outline" onClick={fetchAllScheduledMessages}>
+                    <Button variant="outline" onClick={fetchAllScheduledMessages} className="shrink-0 self-start sm:self-auto">
                       <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
                     </Button>
                   </div>
@@ -2482,7 +2482,52 @@ const CRM = () => {
                         <CardDescription>Mensagens aguardando o horário de envio.</CardDescription>
                       </CardHeader>
                       <CardContent className="p-0">
-                        <div className="overflow-x-auto">
+                        {/* Mobile cards */}
+                        <div className="md:hidden divide-y">
+                          {allScheduledMessages.filter(m => m.status === 'pending').length > 0 ? (
+                            allScheduledMessages.filter(m => m.status === 'pending').map((msg) => (
+                              <div key={msg.id} className="p-4 flex flex-col gap-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-sm truncate">{msg.crm_contacts?.name || msg.crm_contacts?.wa_id || 'Desconhecido'}</p>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                      {msg.message_data?.text || msg.message_data?.templateName || msg.message_data?.flowId || '-'}
+                                    </p>
+                                  </div>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0"
+                                    onClick={async () => {
+                                      if (confirm('Deseja cancelar este agendamento?')) {
+                                        await supabase.from('crm_scheduled_messages').update({ status: 'canceled' }).eq('id', msg.id);
+                                        fetchAllScheduledMessages();
+                                      }
+                                    }}
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                  <Badge variant="outline" className="capitalize text-[10px]">
+                                    {msg.message_data?.action === 'sendMessage' ? 'Texto' : 
+                                     msg.message_data?.action === 'sendTemplate' ? 'Template' : 
+                                     msg.message_data?.action === 'startFlow' ? 'Fluxo' : msg.message_data?.action}
+                                  </Badge>
+                                  <span className="text-muted-foreground font-medium">
+                                    {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center text-muted-foreground italic text-xs">
+                              Nenhum agendamento pendente encontrado.
+                            </div>
+                          )}
+                        </div>
+                        {/* Desktop table */}
+                        <div className="hidden md:block overflow-x-auto">
                           <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground border-b">
                               <tr>
@@ -2549,7 +2594,44 @@ const CRM = () => {
                         <CardDescription>Registro de mensagens enviadas ou com erro.</CardDescription>
                       </CardHeader>
                       <CardContent className="p-0">
-                        <div className="overflow-x-auto">
+                        {/* Mobile cards */}
+                        <div className="md:hidden divide-y">
+                          {allScheduledMessages.filter(m => m.status !== 'pending').length > 0 ? (
+                            allScheduledMessages.filter(m => m.status !== 'pending')
+                              .sort((a, b) => new Date(b.scheduled_for).getTime() - new Date(a.scheduled_for).getTime())
+                              .slice(0, 20)
+                              .map((msg) => (
+                              <div key={msg.id} className="p-4 flex flex-col gap-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <p className="font-bold text-sm truncate min-w-0">{msg.crm_contacts?.name || msg.crm_contacts?.wa_id || 'Desconhecido'}</p>
+                                  <Badge 
+                                    variant={msg.status === 'sent' ? 'default' : 'destructive'}
+                                    className={cn(
+                                      "capitalize text-[10px] shrink-0",
+                                      msg.status === 'sent' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                    )}
+                                  >
+                                    {msg.status === 'sent' ? 'Enviado' : msg.status === 'canceled' ? 'Cancelado' : 'Erro'}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                  <Badge variant="outline" className="capitalize text-[10px]">
+                                    {msg.message_data?.action === 'sendMessage' ? 'Texto' : 
+                                     msg.message_data?.action === 'sendTemplate' ? 'Template' : 
+                                     msg.message_data?.action === 'startFlow' ? 'Fluxo' : msg.message_data?.action}
+                                  </Badge>
+                                  <span className="text-muted-foreground">{new Date(msg.scheduled_for).toLocaleString('pt-BR')}</span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center text-muted-foreground italic text-xs">
+                              Nenhum histórico encontrado.
+                            </div>
+                          )}
+                        </div>
+                        {/* Desktop table */}
+                        <div className="hidden md:block overflow-x-auto">
                           <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground border-b">
                               <tr>
@@ -2610,14 +2692,14 @@ const CRM = () => {
             )}
 
             {activeTab === 'flows' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
-                      <p className="text-muted-foreground text-sm">Crie gatilhos e sequências automáticas de mensagens inteligentes.</p>
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Crie gatilhos e sequências automáticas de mensagens inteligentes.</p>
                     </div>
-                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
+                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 shrink-0 self-start sm:self-auto">
                       <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
                     </Button>
                   </div>
