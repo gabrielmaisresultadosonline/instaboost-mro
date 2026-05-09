@@ -274,7 +274,7 @@ serve(async (req) => {
         .eq('wa_id', params.to)
         .single();
         
-      return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, params, contact);
+      return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, params, contact, settings?.vps_transcoder_url);
     }
 
     if (action === 'startFlow') {
@@ -721,9 +721,52 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // sanitizeMetaLink removed as we now use uploadMediaToMeta for all media types to ensure delivery
 
-async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any) {
+async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any, vpsTranscoderUrl?: string) {
   const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText, isVoice } = params
   
+  // Se for áudio e tivermos um transcoder VPS configurado, delegamos para ele
+  if (audioUrl && isVoice && vpsTranscoderUrl) {
+    console.log(`Delegating audio transcoding and sending to VPS: ${vpsTranscoderUrl}`);
+    try {
+      const vpsResponse = await fetch(`${vpsTranscoderUrl.replace(/\/$/, '')}/send-voice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          audioUrl,
+          metaToken: meta_access_token,
+          phoneId: meta_phone_number_id
+        })
+      });
+
+      const vpsResult = await vpsResponse.json();
+      if (vpsResponse.ok && vpsResult.success) {
+        // Registrar a mensagem no banco local mesmo enviando via VPS
+        if (contact) {
+          await supabase.from('crm_messages').insert({
+            contact_id: contact.id,
+            direction: 'outbound',
+            content: "[Mensagem de Áudio]",
+            message_type: 'audio',
+            media_url: audioUrl,
+            meta_message_id: vpsResult.messageId,
+            status: 'sent',
+            metadata: { is_voice: true, via_vps: true }
+          });
+        }
+        return new Response(JSON.stringify({ success: true, result: vpsResult }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } else {
+        console.error('VPS Transcoder error:', vpsResult);
+        // Se o VPS falhar, continuamos para o fluxo normal como fallback
+      }
+    } catch (vpsErr) {
+      console.error('Failed to call VPS Transcoder:', vpsErr);
+      // Fallback para o fluxo normal
+    }
+  }
+
   let body: any = {
     messaging_product: "whatsapp",
     recipient_type: "individual",
@@ -1203,7 +1246,8 @@ async function internalSendTemplate(
 }
 
 async function executeVisualNode(supabase: any, flow: any, node: any, contactId: string, waId: string) {
-  const { meta_access_token, meta_phone_number_id } = await getSettings(supabase)
+  const settings = await getSettings(supabase)
+  const { meta_access_token, meta_phone_number_id, vps_transcoder_url } = settings
   
   const { data: contact } = await supabase
     .from('crm_contacts')
@@ -1223,7 +1267,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       text: node.data.text
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
   } 
   else if (node.type === 'audio') {
@@ -1232,7 +1276,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         to: waId,
         audioUrl: node.data.audioUrl,
         isVoice: node.data.isPTT ?? true
-      }, contact)
+      }, contact, vps_transcoder_url)
       sendResult = await response.json();
     } else {
       console.error('Audio node missing URL');
@@ -1243,14 +1287,14 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       videoUrl: node.data.videoUrl
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
   }
   else if (node.type === 'image') {
     const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       imageUrl: node.data.imageUrl
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
   }
   else if (node.type === 'question') {
@@ -1261,7 +1305,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         id: b.id || `btn-${idx}`,
         text: b.text
       }))
-    }, contact)
+    }, contact, vps_transcoder_url)
     sendResult = await response.json();
     
     if (sendResult?.success) {

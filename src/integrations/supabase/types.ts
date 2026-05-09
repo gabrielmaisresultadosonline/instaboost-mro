@@ -1147,6 +1147,7 @@ export type Database = {
           strategy_generation_prompt: string | null
           tag_size: number | null
           updated_at: string | null
+          vps_transcoder_url: string | null
           webhook_verify_token: string | null
         }
         Insert: {
@@ -1180,6 +1181,7 @@ export type Database = {
           strategy_generation_prompt?: string | null
           tag_size?: number | null
           updated_at?: string | null
+          vps_transcoder_url?: string | null
           webhook_verify_token?: string | null
         }
         Update: {
@@ -1213,6 +1215,7 @@ export type Database = {
           strategy_generation_prompt?: string | null
           tag_size?: number | null
           updated_at?: string | null
+          vps_transcoder_url?: string | null
           webhook_verify_token?: string | null
         }
         Relationships: [

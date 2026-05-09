@@ -126,7 +126,8 @@ const CRM = () => {
     business_hours_end: '18:00',
     business_hours_tz: 'America/Sao_Paulo',
     outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
-    google_auto_sync: false
+    google_auto_sync: false,
+    vps_transcoder_url: ''
   });
 
   const [metrics, setMetrics] = useState<any>({
@@ -3427,6 +3428,25 @@ const CRM = () => {
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Account ID (WABA)</Label>
                           <Input placeholder="Ex: 105..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><RefreshCcw className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">Transcoder Profissional (VPS)</CardTitle>
+                            <CardDescription className="text-[11px]">Conversão de áudio profissional para PTT (Gravado na hora).</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
+                          <Input placeholder="http://seu-vps:3000" className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.vps_transcoder_url} onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} />
+                          <p className="text-[10px] text-muted-foreground">Configurar para que os áudios gravados no chat apareçam como "mensagem de voz" circular no WhatsApp.</p>
                         </div>
                       </CardContent>
                     </Card>
