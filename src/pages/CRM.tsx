@@ -3552,7 +3552,14 @@ const CRM = () => {
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><RefreshCcw className="w-5 h-5" /></div>
+                          <div className={cn(
+                            "p-2 rounded-lg",
+                            metaSettings.vps_status === 'online' ? "bg-green-100 text-green-600" : 
+                            metaSettings.vps_status === 'offline' ? "bg-red-100 text-red-600" : 
+                            "bg-primary/10 text-primary"
+                          )}>
+                            <RefreshCcw className={cn("w-5 h-5", metaSettings.vps_status === 'unknown' && "animate-spin")} />
+                          </div>
                           <div>
                             <CardTitle className="text-lg">Transcoder Profissional (VPS)</CardTitle>
                             <CardDescription className="text-[11px]">Conversão de áudio profissional para PTT (Gravado na hora).</CardDescription>
