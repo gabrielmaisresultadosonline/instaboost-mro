@@ -81,25 +81,45 @@ server {
     root $APP_DIR/dist;
     index index.html;
 
-    # Gzip compression
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
 
+    # Proxy para o Bridge (Transcoder de Áudio)
+    location /bridge {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        
+        # CORS Headers
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+        
+        if (\$request_method = 'OPTIONS') {
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+    }
+
     # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)\$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # SPA routing - all routes go to index.html
+    # SPA routing
     location / {
         try_files \$uri \$uri/ /index.html;
     }
 
-    # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
