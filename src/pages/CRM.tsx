@@ -601,12 +601,12 @@ const CRM = () => {
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = 'audio/webm; codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = 'audio/webm'; // Last resort
+          mimeType = ''; // Let the browser decide if standard types aren't explicitly supported
         }
       }
       
       console.log(`Starting recorder with mimeType: ${mimeType}`);
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       const chunks: Blob[] = [];
       
       recorder.ondataavailable = (e) => {
@@ -681,14 +681,16 @@ const CRM = () => {
     setChatMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      const fileExt = file instanceof File ? file.name.split('.').pop() : (isVoice ? 'ogg' : 'bin');
+      // Use a fixed extension for audio recordings to ensure Meta's API handles it correctly
+      const fileExt = file instanceof File ? file.name.split('.').pop() : 'ogg';
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
-          contentType: type === 'audio' ? 'audio/ogg' : (file instanceof File ? file.type : undefined)
+          contentType: type === 'audio' ? 'audio/ogg' : (file instanceof File ? file.type : undefined),
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
