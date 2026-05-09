@@ -181,8 +181,12 @@ function buildClient() {
 
 function attachClientHandlers(c) {
   c.on('qr', async (qr) => {
-    console.log('📱 Novo QR Code recebido.');
-    qrcodeTerminal.generate(qr, { small: true });
+    // Only show QR in terminal if we don't have a phone connected yet
+    // This reduces spam in logs
+    if (!currentPhone) {
+      console.log('📱 Novo QR Code recebido.');
+      qrcodeTerminal.generate(qr, { small: true });
+    }
     currentQr = qr;
     currentStatus = 'connecting';
     await sendHeartbeat();
@@ -316,10 +320,13 @@ process.on('SIGINT', async () => {
 async function autoInitialize() {
   if (initializing || (client && currentStatus === 'connected')) return;
   const sessionDir = path.join(AUTH_PATH, `session-${CLIENT_ID}`);
+  // Only auto-initialize if we have a session. 
+  // Don't auto-start and generate QR codes indefinitely if no session exists.
   if (fs.existsSync(sessionDir)) {
     console.log('📦 Sessão anterior encontrada. Tentando reconectar...');
     await startClientForQr({ wipe: false });
   } else {
+    console.log('ℹ️ Nenhuma sessão encontrada. Aguardando comando para gerar QR Code.');
     await sendHeartbeat();
   }
 }
