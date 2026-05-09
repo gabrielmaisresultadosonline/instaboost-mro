@@ -3,7 +3,7 @@
 # =============================================================
 # Script de Atualização - I.A MRO
 # Para Ubuntu LTS 22.04 (VPS Hostinger)
-# Inclui: Frontend + Bot WhatsApp (whatsapp-web.js)
+# Nota: Removido proxy_pass Lovable (flock.js) e configurado SSL 443.
 # =============================================================
 
 set -e
