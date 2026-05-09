@@ -1491,15 +1491,15 @@ const CRM = () => {
             )}
           </header>
           
-          <main className="flex-1 overflow-hidden relative flex flex-col">
+          <main className="flex-1 overflow-hidden relative flex flex-col bg-background">
             {activeTab === 'dashboard' && (
-              <ScrollArea className="flex-1 p-8">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Métricas Gerais</h2>
-                    <p className="text-muted-foreground">Visão geral do desempenho da sua operação.</p>
+              <ScrollArea className="flex-1 p-4 md:p-8">
+                <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Métricas Gerais</h2>
+                    <p className="text-muted-foreground text-sm">Visão geral do desempenho da sua operação.</p>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {[
                       { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue' },
                       { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow' },
@@ -1508,13 +1508,28 @@ const CRM = () => {
                     ].map((stat, i) => (
                       <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                          <CardDescription className="font-bold text-xs uppercase tracking-wider">{stat.label}</CardDescription>
-                          <stat.icon className={`w-5 h-5 text-${stat.color}-500`} />
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{stat.label}</CardDescription>
+                          <stat.icon className={cn("w-4 h-4 md:w-5 md:h-5", {
+                            "text-blue-500": stat.color === 'blue',
+                            "text-yellow-500": stat.color === 'yellow',
+                            "text-purple-500": stat.color === 'purple',
+                            "text-green-500": stat.color === 'green',
+                          })} />
                         </CardHeader>
                         <CardContent>
-                          <div className="text-3xl font-black">{stat.value}</div>
-                          <div className={`mt-2 h-1 w-full bg-${stat.color}-500/10 rounded-full overflow-hidden`}>
-                            <div className={`h-full bg-${stat.color}-500 transition-all duration-1000`} style={{ width: '70%' }} />
+                          <div className="text-2xl md:text-3xl font-black">{stat.value}</div>
+                          <div className={cn("mt-2 h-1 w-full rounded-full overflow-hidden", {
+                            "bg-blue-500/10": stat.color === 'blue',
+                            "bg-yellow-500/10": stat.color === 'yellow',
+                            "bg-purple-500/10": stat.color === 'purple',
+                            "bg-green-500/10": stat.color === 'green',
+                          })}>
+                            <div className={cn("h-full transition-all duration-1000", {
+                              "bg-blue-500": stat.color === 'blue',
+                              "bg-yellow-500": stat.color === 'yellow',
+                              "bg-purple-500": stat.color === 'purple',
+                              "bg-green-500": stat.color === 'green',
+                            })} style={{ width: '70%' }} />
                           </div>
                         </CardContent>
                       </Card>
@@ -1527,7 +1542,7 @@ const CRM = () => {
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
-                  <div className="flex-1 overflow-x-auto p-4 flex gap-4 bg-muted/5">
+                  <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x">
                     {(kanbanStatuses.length > 0 ? kanbanStatuses : [
                       { value: 'new', label: 'Novo Lead', color: 'blue' },
                       { value: 'responded', label: 'Em Atendimento', color: 'yellow' },
@@ -1538,7 +1553,7 @@ const CRM = () => {
                     ]).map(status => (
                       <div 
                         key={status.value} 
-                        className="w-72 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card" 
+                        className="w-72 md:w-80 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card snap-center" 
                         onDragOver={e => e.preventDefault()} 
                         onDrop={() => handleDrop(status.value)}
                       >
@@ -1745,19 +1760,19 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
-                            <div className="flex items-center gap-4">
-                              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
+                          <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
+                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                              <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
-                                    {selectedContact.name || selectedContact.wa_id}
+                              <div className="flex flex-col min-w-0">
+                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+                                  <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 truncate" onClick={() => openContactInfo(selectedContact)}>
+                                    <span className="truncate">{selectedContact.name || selectedContact.wa_id}</span>
                                     <Badge 
                                       variant="outline" 
-                                      style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${10 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                      className="font-normal opacity-60"
+                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className="font-normal opacity-60 shrink-0 hidden sm:inline-flex"
                                     >
                                       Info
                                     </Badge>
@@ -1975,7 +1990,7 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                      "p-2.5 md:p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
                                       m.direction === 'inbound' 
                                         ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
                                         : 'bg-primary text-primary-foreground rounded-tr-none'
@@ -2252,30 +2267,73 @@ const CRM = () => {
                                   </div>
                                 </div>
                                 {isPreviewingAudio && recordedAudioUrl ? (
-                                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20">
-                                    <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
-                                    <div className="flex gap-2">
-                                      <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive"><XCircle className="w-5 h-5" /></Button>
-                                      <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 text-white"><Send className="w-5 h-5" /></Button>
+                                  <div className="flex flex-col gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="flex items-center gap-3">
+                                      <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
+                                      <div className="flex gap-2">
+                                        <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive hover:bg-destructive/10"><XCircle className="w-5 h-5" /></Button>
+                                        <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/20"><Send className="w-5 h-5" /></Button>
+                                      </div>
                                     </div>
+                                    <p className="text-[10px] text-center text-muted-foreground font-medium uppercase tracking-tighter">Clique no verde para enviar ou no vermelho para descartar</p>
                                   </div>
                                 ) : (
                                   <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
+                                    {isRecording && (
+                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                                          <span className="text-xs font-bold text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
+                                        </div>
+                                        <span className="text-xs font-mono font-bold text-red-600">
+                                          {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                                        </span>
+                                      </div>
+                                    )}
                                     <div className="flex items-center gap-1.5 sm:gap-2 w-full">
-                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground"><ImageIcon className="w-5 h-5" /></Button>
-                                      <Input 
-                                        placeholder="Mensagem..." 
-                                        value={newMessage} 
-                                        onChange={e => setNewMessage(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                        className="bg-muted/50 border-none flex-1"
-                                      />
-                                      <Button size="icon" onClick={handleSendMessage} disabled={!newMessage.trim() || sendingMessage}>
-                                        <Send className="w-4 h-4" />
-                                      </Button>
-                                      <Button size="icon" variant={isRecording ? 'destructive' : 'ghost'} onClick={isRecording ? stopRecording : startRecording}>
-                                        {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                                      </Button>
+                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></Button>
+                                      <div className="flex-1 relative flex items-center">
+                                        <Input 
+                                          placeholder={isRecording ? "Gravando..." : "Escreva sua mensagem..."}
+                                          value={newMessage} 
+                                          disabled={isRecording}
+                                          onChange={e => setNewMessage(e.target.value)}
+                                          onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
+                                          className="bg-muted/50 border-none h-11 pr-10 rounded-xl"
+                                        />
+                                        {isRecording && (
+                                          <div className="absolute right-3 flex items-center gap-2">
+                                            <Button 
+                                              size="icon" 
+                                              variant="ghost" 
+                                              className="h-8 w-8 text-red-500 hover:bg-red-50"
+                                              onClick={stopRecording}
+                                            >
+                                              <StopCircle className="w-5 h-5" />
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {!isRecording && (
+                                        <div className="flex items-center gap-1">
+                                          <Button 
+                                            size="icon" 
+                                            variant="ghost" 
+                                            className="text-primary hover:bg-primary/10 h-11 w-11 shrink-0"
+                                            onClick={startRecording}
+                                          >
+                                            <Mic className="w-5 h-5" />
+                                          </Button>
+                                          <Button 
+                                            size="icon" 
+                                            onClick={handleSendMessage} 
+                                            disabled={!newMessage.trim() || sendingMessage}
+                                            className="h-11 w-11 shrink-0 shadow-md"
+                                          >
+                                            <Send className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 )}
