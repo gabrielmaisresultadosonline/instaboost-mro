@@ -50,7 +50,7 @@ echo ""
 echo "🤖 Configurando Bot WhatsApp..."
 
 # Instalar Chromium e libs necessárias para o Puppeteer/whatsapp-web.js
-if ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
+if ! command -v google-chrome >/dev/null 2>&1 && ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
   echo "🌐 Instalando Chromium e dependências do Puppeteer..."
   $SUDO apt-get update
   $SUDO apt-get install -y \
@@ -61,7 +61,7 @@ if ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/
     libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 \
     libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 \
     libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
-    lsb-release wget xdg-utils 2>/dev/null || true
+    lsb-release wget xdg-utils --no-install-recommends 2>/dev/null || true
 fi
 
 # Instalar PM2 globalmente se não existir
