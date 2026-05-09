@@ -2463,14 +2463,14 @@ const CRM = () => {
               </div>
             )}
             {activeTab === 'scheduling' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">Agendamentos</h2>
-                      <p className="text-muted-foreground text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight">Agendamentos</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
                     </div>
-                    <Button variant="outline" onClick={fetchAllScheduledMessages}>
+                    <Button variant="outline" onClick={fetchAllScheduledMessages} className="shrink-0 self-start sm:self-auto">
                       <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
                     </Button>
                   </div>
