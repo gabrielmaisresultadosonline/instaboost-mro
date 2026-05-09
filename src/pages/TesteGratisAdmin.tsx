@@ -822,7 +822,7 @@ const TesteGratisAdmin = () => {
                               </TableCell>
                               <TableCell className="text-pink-400">
                                 <div className="flex items-center gap-1">
-                                  <Instagram className="w-3 h-3" />
+                                  <Camera className="w-3 h-3" />
                                   @{reg.instagram_username}
                                 </div>
                               </TableCell>

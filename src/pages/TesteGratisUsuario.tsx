@@ -369,7 +369,7 @@ const TesteGratisUsuario = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="relative">
-              <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
+              <Camera className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
               <Input
                 type="text"
                 placeholder="@seu.instagram"

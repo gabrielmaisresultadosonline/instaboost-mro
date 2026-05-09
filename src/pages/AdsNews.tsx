@@ -163,7 +163,7 @@ const AdsNews = () => {
   const benefits = [
     "Leads no seu WhatsApp o dia todo",
     "Anúncios para WhatsApp, Telegram e Sites",
-    "Todos os posicionamentos: Facebook, Instagram, WhatsApp Status",
+    "Todos os posicionamentos: Facebook, Camera, WhatsApp Status",
     "Criamos os anúncios e criativos para você - tudo incluso",
     "Sem dor de cabeça - apenas passe as informações"
   ];
@@ -362,7 +362,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Camera className="h-8 w-8 text-pink-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Instagram</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Camera</h3>
                 <p className="text-gray-600">Feed, Stories e Reels patrocinados</p>
               </CardContent>
             </Card>
@@ -744,7 +744,7 @@ const AdsNews = () => {
               className="h-14 mx-auto mb-6"
             />
             <p className="text-gray-400 text-lg mb-2">
-              Ads News - Anúncios para WhatsApp, Facebook e Instagram
+              Ads News - Anúncios para WhatsApp, Facebook e Camera
             </p>
             <p className="text-gray-500 text-sm">
               Transformando negócios através de tráfego pago inteligente

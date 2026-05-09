@@ -23,7 +23,7 @@ const AreaDeMembros = () => {
               className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
             >
               <Camera className="h-6 w-6" />
-              Ferramenta para Instagram
+              Ferramenta para Camera
             </Button>
           </Link>
 

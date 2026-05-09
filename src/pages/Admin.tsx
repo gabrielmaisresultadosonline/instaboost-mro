@@ -348,7 +348,7 @@ const Admin = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-4">
               <div className="glass-card p-4 text-center">
-                <Instagram className="w-6 h-6 mx-auto text-pink-500 mb-2" />
+                <Camera className="w-6 h-6 mx-auto text-pink-500 mb-2" />
                 <p className="text-2xl font-bold">{totalSyncedProfiles}</p>
                 <p className="text-xs text-muted-foreground">Perfis Instagram Total</p>
               </div>
@@ -418,7 +418,7 @@ const Admin = () => {
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <Instagram className="w-4 h-4 inline mr-1" />
+                    <Camera className="w-4 h-4 inline mr-1" />
                     Instagram
                   </button>
                   <button
@@ -808,7 +808,7 @@ const Admin = () => {
               <div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2">
                 {filteredSyncedProfiles.length === 0 ? (
                   <div className="glass-card p-12 text-center">
-                    <Instagram className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <Camera className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">
                       {searchTerm 
                         ? 'Nenhum perfil encontrado com esse termo' 

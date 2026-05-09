@@ -29,7 +29,7 @@ const ToolSelector = () => {
   const tools: ToolOption[] = [
     {
       id: 'instagram',
-      name: 'Ferramenta para Instagram',
+      name: 'Ferramenta para Camera',
       subtitle: 'NÃO GASTE COM ANÚNCIOS',
       description: 'Aumente seu engajamento e seguidores organicamente',
       icon: Camera,
@@ -248,7 +248,7 @@ const ToolSelector = () => {
 
             {/* Options */}
             <div className="space-y-3">
-              {/* MRO Instagram */}
+              {/* MRO Camera */}
               <button
                 onClick={() => handleMembersSelect('instagram')}
                 className="w-full p-4 rounded-xl border-2 border-gray-600 hover:border-pink-500/50 bg-gray-700/50 hover:bg-gray-700 transition-all duration-300 flex items-center gap-4 group"
@@ -257,8 +257,8 @@ const ToolSelector = () => {
                   <Camera className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-white font-bold">MRO Instagram</h4>
-                  <p className="text-sm text-gray-400">Ferramenta para Instagram</p>
+                  <h4 className="text-white font-bold">MRO Camera</h4>
+                  <p className="text-sm text-gray-400">Ferramenta para Camera</p>
                 </div>
               </button>
 
