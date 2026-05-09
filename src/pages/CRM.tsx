@@ -1500,7 +1500,7 @@ const CRM = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-screen w-full flex overflow-hidden bg-background">
+      <div className="h-[100dvh] w-full flex overflow-hidden bg-background">
         <Sidebar className="border-r shadow-sm">
           <SidebarHeader className="p-4 border-b flex items-center justify-center">
             <Logo size="sm" />
@@ -1574,7 +1574,7 @@ const CRM = () => {
             )}
           </header>
           
-          <main className="flex-1 overflow-hidden relative flex flex-col bg-background">
+          <main className="flex-1 overflow-hidden relative flex flex-col bg-background h-full">
             {activeTab === 'dashboard' && (
               <ScrollArea className="flex-1 p-4 md:p-8">
                 <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1786,7 +1786,7 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm",
+                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm h-full",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
@@ -2445,7 +2445,7 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+                                    <div className="flex items-center gap-1 sm:gap-2 w-full px-1">
                                       <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></Button>
                                       <div className="flex-1 relative flex items-center">
                                         <Input 
