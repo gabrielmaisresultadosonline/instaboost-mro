@@ -65,7 +65,9 @@ import {
   CreditCard,
   Copy,
   Pencil,
-  Camera
+  Camera,
+  LayoutList,
+  MessageCircle
 } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 const Instagram = (LucideIcons as any).Instagram || Camera;
