@@ -671,7 +671,7 @@ const CRM = () => {
     const optimisticMessage = {
       id: `temp-media-${Date.now()}`,
       contact_id: selectedContact.id,
-      content: isVoice ? '[Áudio...]' : `[${type.toUpperCase()}...]`,
+      content: isVoice ? '[Mensagem de Áudio...]' : `[${type.toUpperCase()}...]`,
       direction: 'outbound',
       message_type: type,
       created_at: new Date().toISOString(),
