@@ -1920,6 +1920,12 @@ const CRM = () => {
                                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
                                   <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 truncate" onClick={() => openContactInfo(selectedContact)}>
                                     <span className="truncate">{selectedContact.name || selectedContact.wa_id}</span>
+                                    {selectedContact.google_sync_account_id && (
+                                      <span className="w-4 h-4 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[7px] font-bold text-white">G</span>
+                                      </span>
+                                    )}
+
                                     <Badge 
                                       variant="outline" 
                                       style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
