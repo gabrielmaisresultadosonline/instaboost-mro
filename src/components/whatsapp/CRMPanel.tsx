@@ -7,8 +7,9 @@ import { toast } from '@/hooks/use-toast';
 import {
   Users, Search, Flame, Tag, Filter, Loader2, ChevronDown,
   Phone, MessageSquare, Star, UserCheck, UserPlus, BarChart3,
-  X, Save, Edit2, RefreshCw, Share2
+  X, Save, Edit2, RefreshCw, Share2, Settings2, CheckCircle2
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 interface CRMContact {
   id: string;
