@@ -766,20 +766,47 @@ const CRM = () => {
         .from('crm-media')
         .getPublicUrl(filePath);
 
-      const params: any = { action: 'sendMessage', to: selectedContact.wa_id };
-      if (type === 'audio') {
-        params.audioUrl = publicUrl;
-        params.isVoice = isVoice;
-      } else if (type === 'image') {
-        params.imageUrl = publicUrl;
-      } else if (type === 'video') {
-        params.videoUrl = publicUrl;
-      } else if (type === 'document') {
-        params.documentUrl = publicUrl;
-        params.fileName = file instanceof File ? file.name : 'document';
+      if (type === 'audio' && metaSettings.vps_transcoder_url) {
+        console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
+        try {
+          const response = await fetch(`${metaSettings.vps_transcoder_url.replace(/\/$/, '')}/send-voice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: selectedContact.wa_id,
+              audioUrl: publicUrl,
+              metaToken: metaSettings.meta_access_token,
+              phoneId: metaSettings.meta_phone_number_id
+            })
+          });
+          
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Erro no VPS');
+          
+          setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+          await fetchMessages(selectedContact.id);
+          toast({ title: "Áudio Profissional enviado via VPS!" });
+          setSendingMessage(false);
+          return; // Exit early as VPS handled it
+        } catch (vpsErr: any) {
+          console.error("VPS Error, falling back to standard send:", vpsErr);
+          // Don't throw, fallback to standard function
+        }
       }
 
-      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { body: params });
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { 
+        body: { 
+          action: 'sendMessage', 
+          to: selectedContact.wa_id,
+          audioUrl: type === 'audio' ? publicUrl : undefined,
+          imageUrl: type === 'image' ? publicUrl : undefined,
+          videoUrl: type === 'video' ? publicUrl : undefined,
+          documentUrl: type === 'document' ? publicUrl : undefined,
+          fileName: type === 'document' ? (file instanceof File ? file.name : 'document') : undefined,
+          isVoice: type === 'audio' ? isVoice : undefined
+        } 
+      });
+      
       if (error) throw error;
       if (!data.success) throw new Error(data.error);
 
@@ -1488,10 +1515,40 @@ const CRM = () => {
               <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
             </div>
             {activeTab === 'contacts' && (
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-3 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10 mr-2">
+                  <div className="flex items-center gap-2">
+                    <Switch 
+                      id="google-sync-header" 
+                      checked={metaSettings.google_auto_sync} 
+                      onCheckedChange={async (checked) => {
+                        setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                        const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                        await supabase.from('crm_settings').upsert({
+                          ...rest,
+                          google_auto_sync: checked,
+                          id: '00000000-0000-0000-0000-000000000001',
+                          updated_at: new Date().toISOString()
+                        });
+                        toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                      }}
+                    />
+                    <Label htmlFor="google-sync-header" className="text-[10px] font-bold uppercase cursor-pointer whitespace-nowrap">Sincronizar Google</Label>
+                  </div>
+                  <div className="h-4 w-px bg-primary/20" />
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-7 text-[10px] font-black hover:bg-primary/10"
+                    onClick={handleSyncGoogleContacts}
+                  >
+                    {googleContactsEnabled ? 'RECONECTAR' : 'CONECTAR GOOGLE'}
+                  </Button>
+                </div>
+
+                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold">
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                  {kanbanView ? 'Lista' : 'Kanban'}
+                  {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
               </div>
             )}
