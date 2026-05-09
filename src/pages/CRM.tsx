@@ -2174,8 +2174,8 @@ const CRM = () => {
                                             </div>
                                           )}
                                           {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
-                                            <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10">
-                                              <audio src={m.media_url} controls className="max-w-full h-9" />
+                                            <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10 w-full">
+                                              <audio src={m.media_url} controls className="w-full h-9 block" style={{ minWidth: 0, maxWidth: '100%' }} />
                                             </div>
                                           )}
                                           {m.message_type === 'document' && m.media_url && (
@@ -2264,17 +2264,17 @@ const CRM = () => {
                             </div>
                           </ScrollArea>
                           
-                          <div className="p-4 bg-card border-t shadow-lg z-10 space-y-3">
+                          <div className="p-2 sm:p-3 md:p-4 bg-card border-t shadow-lg z-10 space-y-2 sm:space-y-3">
                             {selectedContact ? (
                               <>
-                                <div className="flex flex-col gap-2 p-3 bg-muted/20 rounded-xl border border-border/50">
+                                <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
                                   {/* Atenção: Robô Desativado Geral hidden as requested */}
 
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex items-center gap-2">
-                                        <Bot className={cn("w-4 h-4", selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary" : "text-muted-foreground")} />
-                                        <span className="text-[11px] font-bold">Assistente IA</span>
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                      <div className="flex items-center gap-1.5 sm:gap-2">
+                                        <Bot className={cn("w-4 h-4 shrink-0", selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary" : "text-muted-foreground")} />
+                                        <span className="text-[10px] sm:text-[11px] font-bold">Assistente IA</span>
                                         <Switch 
                                           checked={selectedContact.ai_active}
                                           disabled={!metaSettings.ai_agent_enabled}
@@ -2283,10 +2283,10 @@ const CRM = () => {
                                           }}
                                         />
                                       </div>
-                                      <div className="w-px h-4 bg-border" />
-                                      <div className="flex items-center gap-2">
-                                        <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
-                                        <span className="text-[11px] font-bold">Estratégias IA</span>
+                                      <div className="w-px h-4 bg-border hidden sm:block" />
+                                      <div className="flex items-center gap-1.5 sm:gap-2">
+                                        <TrendingUp className={cn("w-4 h-4 shrink-0", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
+                                        <span className="text-[10px] sm:text-[11px] font-bold">Estratégias IA</span>
                                         <Switch 
                                           checked={selectedContact.ai_strategy_active}
                                           onCheckedChange={async (val: boolean) => {
@@ -2297,8 +2297,8 @@ const CRM = () => {
                                     </div>
                                     <Dialog>
                                       <DialogTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                                          <TrendingUp className="w-3 h-3 mr-1" /> Gerar Estratégia
+                                        <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0">
+                                          <TrendingUp className="w-3 h-3 mr-1" /> <span className="hidden xs:inline">Gerar </span>Estratégia
                                         </Button>
                                       </DialogTrigger>
                                       <DialogContent className="sm:max-w-[500px]">
