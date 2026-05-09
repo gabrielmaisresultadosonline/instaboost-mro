@@ -49,7 +49,7 @@ import {
   LayoutDashboard,
   Menu,
   ChevronLeft,
-  Instagram,
+  Camera,
   Facebook,
   Link as LinkIcon,
   UserPlus,
@@ -4094,7 +4094,7 @@ const CRM = () => {
             <div className="grid grid-cols-1 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                  <Instagram className="w-3 h-3" /> Instagram
+                  <Camera className="w-3 h-3" /> Instagram
                 </Label>
                 <Input 
                   value={contactToView?.metadata?.instagram || ''} 
