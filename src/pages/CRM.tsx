@@ -661,52 +661,29 @@ const CRM = () => {
 
   const startRecording = async () => {
     try {
+      // Audio Recording logic
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Determine the best supported mimeType for the browser
-      const mimeTypes = [
-        'audio/ogg; codecs=opus',
-        'audio/webm; codecs=opus',
-        'audio/webm',
-        'audio/mp4',
-        'audio/aac',
-        'audio/mpeg'
-      ];
-      
-      let mimeType = '';
-      for (const type of mimeTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
-        }
-      }
-      
-      console.log(`Starting recorder with mimeType: ${mimeType || 'default'}`);
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
-      
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-      
-      recorder.onstop = () => {
-        // Use the actual mimeType recorded by the browser
-        const recordedType = recorder.mimeType || 'audio/webm';
+
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = async () => {
+        const recordedType = recorder.mimeType || 'audio/ogg';
         const audioBlob = new Blob(chunks, { type: recordedType });
-        console.log(`Audio recording stopped. Chunks: ${chunks.length}, Size: ${audioBlob.size} bytes, Type: ${recordedType}`);
-        const audioUrl = URL.createObjectURL(audioBlob);
+        console.log(`Audio recording stopped. Size: ${audioBlob.size} bytes, Type: ${recordedType}`);
         
+        const audioUrl = URL.createObjectURL(audioBlob);
         setRecordedAudioBlob(audioBlob);
         setRecordedAudioUrl(audioUrl);
         setIsPreviewingAudio(true);
         
+        // Finalize stream
         stream.getTracks().forEach(track => track.stop());
       };
-      
-      setAudioChunks(chunks);
-      setMediaRecorder(recorder);
+
       recorder.start();
-      setIsRecording(true);
+      setMediaRecorder(recorder);
+      setIsRecordingAudio(true);
       setRecordingDuration(0);
       recordingTimerRef.current = setInterval(() => {
         setRecordingDuration(prev => prev + 1);
