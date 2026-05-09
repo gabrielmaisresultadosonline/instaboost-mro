@@ -2759,14 +2759,14 @@ const CRM = () => {
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
-                      <CardHeader className="bg-primary/5 border-b flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                            <Users className="w-5 h-5" /> Integração Google Contatos
+                      <CardHeader className="bg-primary/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+                        <div className="min-w-0">
+                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-primary">
+                            <Users className="w-5 h-5 shrink-0" /> <span className="truncate">Integração Google Contatos</span>
                           </CardTitle>
-                          <CardDescription>Sincronize seus contatos com o Google para backup e organização</CardDescription>
+                          <CardDescription className="text-xs">Sincronize seus contatos com o Google para backup e organização</CardDescription>
                         </div>
-                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold">
+                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold shrink-0 self-start sm:self-auto">
                           {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
                         </Badge>
                       </CardHeader>
