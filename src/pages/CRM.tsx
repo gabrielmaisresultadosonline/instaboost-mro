@@ -208,6 +208,24 @@ const CRM = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (metaSettings.vps_transcoder_url) {
+      const checkVps = async () => {
+        try {
+          const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+          const res = await fetch(url, { method: 'GET', mode: 'cors', signal: AbortSignal.timeout(3000) });
+          const data = await res.json();
+          setMetaSettings(prev => ({ ...prev, vps_status: data.status === 'online' ? 'online' : 'offline' }));
+        } catch (e) {
+          setMetaSettings(prev => ({ ...prev, vps_status: 'offline' }));
+        }
+      };
+      checkVps();
+      const interval = setInterval(checkVps, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [metaSettings.vps_transcoder_url]);
+
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
