@@ -781,12 +781,14 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } else {
-        console.error('VPS Transcoder error:', vpsResult);
-        // Se o VPS falhar, continuamos para o fluxo normal como fallback
+        console.error('VPS Transcoder error response:', vpsResult);
+        // Se o VPS retornar HTML (configuração de Nginx errada), logamos o aviso
+        if (typeof vpsResult === 'string' && vpsResult.includes('<!doctype html>')) {
+          console.error('VPS returned HTML instead of JSON. Check Nginx /bridge configuration.');
+        }
       }
     } catch (vpsErr) {
       console.error('Failed to call VPS Transcoder:', vpsErr);
-      // Fallback para o fluxo normal
     }
   }
 
