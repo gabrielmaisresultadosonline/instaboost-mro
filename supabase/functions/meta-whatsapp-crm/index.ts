@@ -692,8 +692,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   );
 
   const result = await response.json()
+  console.log('Meta Send Message Result:', JSON.stringify(result, null, 2));
+
   if (!response.ok) {
-    console.error('Meta API Error:', result)
+    console.error('Meta API Error Details:', result)
     return new Response(JSON.stringify({ success: false, error: result.error?.message, details: result }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
@@ -1488,13 +1490,25 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     if (!fileResponse.ok) throw new Error(`Failed to fetch media: ${mediaUrl}`);
     let blob = await fileResponse.blob();
     
-    // Fix for webm to ogg conversion if necessary, or at least force correct MIME type for Meta
-    if (blob.type === 'audio/webm' || mediaUrl.endsWith('.webm')) {
-      blob = new Blob([await blob.arrayBuffer()], { type: 'audio/ogg' });
+    // Ensure audio is sent with a supported MIME type for Meta
+    // Meta is very strict: voice messages MUST be audio/ogg with opus codec
+    // Browsers often record in audio/webm. We re-label it and Meta usually accepts it if it's Opus inside.
+    const isWebm = blob.type.toLowerCase().includes('webm') || mediaUrl.toLowerCase().endsWith('.webm');
+    const isOctet = blob.type === 'application/octet-stream';
+    
+    if (isWebm || isOctet || (type === 'audio' && !blob.type.includes('ogg') && !blob.type.includes('opus'))) {
+      console.log(`Re-labeling blob for Meta compatibility. Original type: ${blob.type}, target: audio/ogg`);
+      const buffer = await blob.arrayBuffer();
+      blob = new Blob([buffer], { type: 'audio/ogg' });
     }
 
     const formData = new FormData();
-    formData.append('file', blob);
+    // Providing a filename with correct extension is crucial for Meta to accept the media
+    const filename = type === 'audio' ? 'voice.ogg' : 
+                     type === 'image' ? 'image.jpg' : 
+                     type === 'video' ? 'video.mp4' : 'document.pdf';
+    
+    formData.append('file', blob, filename);
     formData.append('type', type);
     formData.append('messaging_product', 'whatsapp');
 

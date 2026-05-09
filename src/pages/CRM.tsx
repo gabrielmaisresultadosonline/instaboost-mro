@@ -584,8 +584,11 @@ const CRM = () => {
       };
       
       recorder.onstop = () => {
-        const mimeType = 'audio/ogg; codecs=opus';
+        const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus') 
+          ? 'audio/ogg; codecs=opus' 
+          : 'audio/webm; codecs=opus';
         const audioBlob = new Blob(chunks, { type: mimeType });
+        console.log(`Audio recorded with type: ${audioBlob.type}, size: ${audioBlob.size} bytes`);
         const audioUrl = URL.createObjectURL(audioBlob);
         
         setRecordedAudioBlob(audioBlob);
