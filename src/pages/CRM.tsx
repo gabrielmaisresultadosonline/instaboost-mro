@@ -733,6 +733,242 @@ const CRM = () => {
               </ScrollArea>
             )}
 
+            {activeTab === 'contact-list' && (
+              <ScrollArea className="flex-1 p-4 md:p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Lista de Contatos</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie todos os seus leads e contatos em um só lugar.</p>
+                    </div>
+                  </div>
+                  <Card>
+                    <CardHeader className="p-4 border-b">
+                      <div className="flex items-center gap-2">
+                        <Search className="w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="Pesquisar contatos..." 
+                          className="max-w-sm border-none shadow-none focus-visible:ring-0"
+                          value={statusFilter === 'all' ? '' : statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value || 'all')}
+                        />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                        {filteredContacts.map(contact => (
+                          <Card key={contact.id} className="overflow-hidden hover:shadow-md transition-all cursor-pointer" onClick={() => openChat(contact)}>
+                            <CardContent className="p-4 flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
+                                <p className="text-xs text-muted-foreground">{contact.wa_id}</p>
+                              </div>
+                              <Badge className={getStatusColor(contact.status)}>
+                                {getStatusLabel(contact.status)}
+                              </Badge>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </ScrollArea>
+            )}
+
+            {activeTab === 'broadcast' && (
+              <div className="flex-1 overflow-hidden">
+                <Broadcaster templates={templates} flows={flows} contacts={contacts} />
+              </div>
+            )}
+
+            {activeTab === 'flows' && (
+              <div className="flex-1 h-full relative">
+                <div className="p-4 border-b flex justify-between items-center">
+                  <h2 className="text-xl font-bold">Fluxos de Automação</h2>
+                  <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }}>
+                    <Plus className="w-4 h-4 mr-2" /> Novo Fluxo
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                  {flows.map(flow => (
+                    <Card key={flow.id} className="hover:shadow-md transition-all">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg">{flow.name}</CardTitle>
+                          <Badge variant={flow.is_active ? "default" : "secondary"}>
+                            {flow.is_active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex justify-between items-center mt-4">
+                          <Button variant="outline" size="sm" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
+                            <Pencil className="w-4 h-4 mr-2" /> Editar
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-destructive" onClick={async () => {
+                            if (confirm('Deseja excluir este fluxo?')) {
+                              await supabase.from('crm_flows').delete().eq('id', flow.id);
+                              fetchData();
+                            }
+                          }}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                {isFlowEditorOpen && (
+                  <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+                    <FlowEditor 
+                      flow={editingFlow} 
+                      onSave={handleSaveFlow} 
+                      onClose={() => setIsFlowEditorOpen(false)} 
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'templates' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="p-4 border-b flex justify-between items-center shrink-0">
+                  <h2 className="text-xl font-bold">Templates do WhatsApp</h2>
+                  <Button onClick={() => { setPreviewTemplate(null); setPreviewMedia(null); setShowTemplates(false); }}>
+                    <Plus className="w-4 h-4 mr-2" /> Novo Template
+                  </Button>
+                </div>
+                {!showTemplates ? (
+                  <ScrollArea className="flex-1">
+                    <TemplateBuilder 
+                      onSave={async (temp) => {
+                        const { error } = await supabase.from('crm_templates').insert([temp]);
+                        if (error) toast({ title: "Erro ao salvar template", variant: "destructive" });
+                        else {
+                          toast({ title: "Template criado com sucesso!" });
+                          setShowTemplates(true);
+                          fetchData();
+                        }
+                      }}
+                    />
+                  </ScrollArea>
+                ) : (
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {templates.map(template => (
+                        <Card key={template.id} className="hover:shadow-md transition-all">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <CardTitle className="text-sm font-bold truncate max-w-[150px]">{template.name}</CardTitle>
+                              <Badge variant={template.status === 'APPROVED' ? "default" : "secondary"}>
+                                {template.status}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-xs text-muted-foreground line-clamp-3 mb-4 min-h-[48px]">
+                              {template.components?.find((c: any) => c.type === 'BODY')?.text}
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                setPreviewTemplate(template);
+                                setIsFlowEditorOpen(false); // Using similar dialog structure
+                              }}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'scheduling' && (
+              <ScrollArea className="flex-1 p-4 md:p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold">Agendamentos</h2>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {allScheduledMessages.length === 0 ? (
+                      <Card className="p-12 text-center text-muted-foreground">
+                        Nenhuma mensagem agendada no momento.
+                      </Card>
+                    ) : (
+                      allScheduledMessages.map(msg => (
+                        <Card key={msg.id} className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-full bg-primary/10 text-primary">
+                              <Clock className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="font-bold">Para: {msg.crm_contacts?.name || msg.crm_contacts?.wa_id}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant={msg.status === 'pending' ? "outline" : "default"}>
+                            {msg.status === 'pending' ? 'Pendente' : msg.status}
+                          </Badge>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
+            {activeTab === 'webhooks' && (
+              <ScrollArea className="flex-1 p-4 md:p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-2xl font-bold">Webhooks de Entrada</h2>
+                      <p className="text-muted-foreground">Conecte ferramentas externas como Typeform ou Hotmart.</p>
+                    </div>
+                    <Button onClick={() => setIsNewWebhookDialogOpen(true)}>
+                      <Plus className="w-4 h-4 mr-2" /> Novo Webhook
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {webhooks.map(webhook => (
+                      <Card key={webhook.id} className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-bold text-lg">{webhook.name}</p>
+                            <p className="text-xs font-mono text-muted-foreground mt-1">ID: {webhook.id}</p>
+                          </div>
+                          <Switch 
+                            checked={webhook.is_active} 
+                            onCheckedChange={() => toggleWebhookStatus(webhook.id, webhook.is_active)} 
+                          />
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/functions/v1/webhook-handler?id=${webhook.id}&token=${webhook.secret_token}`);
+                            toast({ title: "Link copiado!" });
+                          }}>
+                            <Copy className="w-4 h-4 mr-2" /> Copiar Link
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteWebhook(webhook.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 <div className="flex-1 flex flex-col min-h-0 relative">
@@ -746,6 +982,11 @@ const CRM = () => {
                           <div className="flex flex-col min-w-0">
                             <p className="font-bold text-sm md:text-base truncate">{selectedContact.name || selectedContact.wa_id}</p>
                           </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => openContactInfo(selectedContact)}>
+                            <Info className="w-5 h-5" />
+                          </Button>
                         </div>
                       </div>
                       <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto h-full">
@@ -776,14 +1017,46 @@ const CRM = () => {
                       <div className="text-center">
                         <MessageSquare className="w-16 h-16 text-primary/30 mx-auto mb-4" />
                         <h2 className="text-xl font-bold">Selecione uma conversa</h2>
+                        <p className="text-muted-foreground text-sm">Escolha um contato na barra lateral para iniciar.</p>
                       </div>
                     </div>
                   )}
+                </div>
+                <div className="hidden lg:flex w-80 flex-col border-l bg-card overflow-hidden">
+                  <div className="p-4 border-b font-bold flex items-center gap-2">
+                    <ListFilter className="w-4 h-4" /> Conversas Recentes
+                  </div>
+                  <ScrollArea className="flex-1">
+                    {filteredContacts.map(contact => (
+                      <div 
+                        key={contact.id} 
+                        onClick={() => openChat(contact)}
+                        className={cn(
+                          "p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors flex items-center gap-3",
+                          selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : ""
+                        )}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                          {contact.name?.[0] || contact.wa_id?.[0] || '?'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm truncate">{contact.name || contact.wa_id}</p>
+                          <p className="text-xs text-muted-foreground truncate">{contact.last_message || 'Nenhuma mensagem'}</p>
+                        </div>
+                        {contact.unread_count > 0 && (
+                          <Badge className="bg-primary text-white rounded-full px-1.5 min-w-[20px] h-5 flex items-center justify-center">
+                            {contact.unread_count}
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </ScrollArea>
                 </div>
               </div>
             )}
 
             {activeTab === 'ai-agent' && (
+
               <ScrollArea className="flex-1 bg-muted/5">
                 <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
