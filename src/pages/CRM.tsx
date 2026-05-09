@@ -715,7 +715,7 @@ const CRM = () => {
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
-          contentType: contentType,
+          contentType: isAudio ? 'audio/ogg; codecs=opus' : contentType,
           upsert: true
         });
 
