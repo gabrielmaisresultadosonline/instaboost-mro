@@ -116,6 +116,10 @@ function wipeAuthSession() {
 function buildClient() {
   return new Client({
     authStrategy: new LocalAuth({ clientId: CLIENT_ID, dataPath: AUTH_PATH }),
+    webVersionCache: {
+      type: 'remote',
+      remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+    },
     puppeteer: {
       headless: true,
       args: [
@@ -127,6 +131,7 @@ function buildClient() {
       ],
       executablePath:
         process.env.PUPPETEER_EXECUTABLE_PATH ||
+        '/usr/bin/google-chrome' ||
         '/usr/bin/chromium-browser' ||
         '/usr/bin/chromium' ||
         undefined,
@@ -303,10 +308,11 @@ async function processPending() {
       await new Promise((r) => setTimeout(r, 2000 + Math.random() * 3000));
     } catch (err) {
       const isNavError = err.message?.includes('Execution context was destroyed') || 
-                         err.message?.includes('Target closed');
+                         err.message?.includes('Target closed') ||
+                         err.message?.includes('Protocol error');
       
       if (isNavError) {
-        console.warn('⚠️  Conexão do navegador instável (context destroyed). Interrompendo envio.');
+        console.warn('⚠️  Conexão do navegador instável. Tentando recuperar...');
         // Forçamos uma verificação de estado se o erro for grave
         break;
       }
