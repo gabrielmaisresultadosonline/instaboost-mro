@@ -960,6 +960,30 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_google_tokens: {
+        Row: {
+          access_token: string
+          expires_at: string | null
+          id: string
+          refresh_token: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       crm_messages: {
         Row: {
           contact_id: string | null
@@ -1104,6 +1128,7 @@ export type Database = {
           business_hours_start: string | null
           business_hours_tz: string | null
           created_at: string | null
+          google_auto_sync: boolean | null
           google_client_id: string | null
           google_client_secret: string | null
           id: string
@@ -1136,6 +1161,7 @@ export type Database = {
           business_hours_start?: string | null
           business_hours_tz?: string | null
           created_at?: string | null
+          google_auto_sync?: boolean | null
           google_client_id?: string | null
           google_client_secret?: string | null
           id?: string
@@ -1168,6 +1194,7 @@ export type Database = {
           business_hours_start?: string | null
           business_hours_tz?: string | null
           created_at?: string | null
+          google_auto_sync?: boolean | null
           google_client_id?: string | null
           google_client_secret?: string | null
           id?: string

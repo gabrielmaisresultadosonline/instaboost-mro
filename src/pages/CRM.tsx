@@ -125,7 +125,8 @@ const CRM = () => {
     business_hours_start: '08:00',
     business_hours_end: '18:00',
     business_hours_tz: 'America/Sao_Paulo',
-    outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.'
+    outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
+    google_auto_sync: false
   });
 
   const [metrics, setMetrics] = useState<any>({
@@ -341,6 +342,7 @@ const CRM = () => {
       const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
       const { error } = await supabase.from('crm_settings').upsert({
         ...rest,
+        google_auto_sync: metaSettings.google_auto_sync,
         id: '00000000-0000-0000-0000-000000000001',
         strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas". As perguntas devem ser diretas para copiar e colar.',
         updated_at: new Date().toISOString()
@@ -352,6 +354,44 @@ const CRM = () => {
       toast({ title: "Erro ao salvar", variant: "destructive" });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleConnectGoogle = () => {
+    if (!metaSettings.google_client_id) {
+      toast({ title: "Aviso", description: "Configure o Google Client ID nas configurações primeiro.", variant: "destructive" });
+      return;
+    }
+    const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+    const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts.readonly');
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+    window.location.href = url;
+  };
+
+  const handleSyncGoogleContacts = async () => {
+    if (!googleContactsEnabled) {
+      handleConnectGoogle();
+      return;
+    }
+
+    toast({ title: "Sincronizando...", description: "Buscando seus contatos do Google." });
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'syncGoogleContacts' }
+      });
+      if (error) throw error;
+      if (data.success) {
+        toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
+        fetchContacts();
+      } else {
+        throw new Error(data.error || "Erro desconhecido");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
+      if (err.message?.includes('connect') || err.message?.includes('token')) {
+        handleConnectGoogle();
+      }
     }
   };
 
@@ -1612,13 +1652,56 @@ const CRM = () => {
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
-                        <div className="relative">
-                          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input 
-                            placeholder="Buscar contatos..." 
-                            className="pl-9 bg-muted/50 border-none h-10"
-                            onChange={e => setStatusFilter(e.target.value || 'all')} 
-                          />
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                              placeholder="Buscar contatos..." 
+                              className="pl-9 bg-muted/50 border-none h-10"
+                              onChange={e => setStatusFilter(e.target.value || 'all')} 
+                            />
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-primary" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Google Contatos</span>
+                              </div>
+                              <Badge variant={googleContactsEnabled ? "default" : "outline"} className="text-[10px] h-5">
+                                {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-1">
+                              <div className="flex items-center gap-2">
+                                <Switch 
+                                  id="google-sync" 
+                                  checked={metaSettings.google_auto_sync} 
+                                  onCheckedChange={async (checked) => {
+                                    setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                    const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                                    await supabase.from('crm_settings').upsert({
+                                      ...rest,
+                                      google_auto_sync: checked,
+                                      id: '00000000-0000-0000-0000-000000000001',
+                                      updated_at: new Date().toISOString()
+                                    });
+                                    toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                                  }}
+                                />
+                                <Label htmlFor="google-sync" className="text-[10px] font-medium cursor-pointer">Sincronizar automático</Label>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-7 text-[10px] bg-background font-bold"
+                                onClick={handleSyncGoogleContacts}
+                              >
+                                {googleContactsEnabled ? 'Reconectar' : 'Conectar Google'}
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="tags" className="border-none">
@@ -3114,29 +3197,47 @@ const CRM = () => {
                       <h2 className="text-2xl font-bold tracking-tight">Lista de Contatos</h2>
                       <p className="text-muted-foreground text-sm">Gerencie todos os seus contatos salvos e importados.</p>
                     </div>
-                    <div className="flex gap-2">
-                      {googleContactsEnabled && (
+                    <div className="flex flex-col md:flex-row gap-2 items-center">
+                      <div className="flex items-center gap-3 px-4 py-1.5 bg-muted/50 rounded-xl border">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground leading-none mb-1">Google Contatos</span>
+                          <div className="flex items-center gap-2">
+                            <Switch 
+                              id="google-sync-list" 
+                              checked={metaSettings.google_auto_sync} 
+                              onCheckedChange={async (checked) => {
+                                setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
+                                await supabase.from('crm_settings').upsert({
+                                  ...rest,
+                                  google_auto_sync: checked,
+                                  id: '00000000-0000-0000-0000-000000000001',
+                                  updated_at: new Date().toISOString()
+                                });
+                                toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                              }}
+                            />
+                            <Label htmlFor="google-sync-list" className="text-[10px] font-medium whitespace-nowrap">Sincronizar automático</Label>
+                          </div>
+                        </div>
+                        <div className="w-px h-8 bg-border mx-1" />
                         <Button 
-                          variant="outline" 
-                          className="border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-                          onClick={() => {
-                            if (!metaSettings.google_client_id) {
-                              toast({ title: "Erro", description: "Configure o Client ID nas configurações primeiro", variant: "destructive" });
-                              return;
-                            }
-                            const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
-                            const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-                            window.location.href = url;
-                          }}
+                          variant="ghost" 
+                          size="sm"
+                          className={cn(
+                            "h-8 text-[11px] font-bold",
+                            googleContactsEnabled ? "text-primary" : "text-muted-foreground"
+                          )}
+                          onClick={handleSyncGoogleContacts}
                         >
-                          <RefreshCcw className="w-4 h-4 mr-2" /> Sincronizar Google
+                          <RefreshCcw className={cn("w-3.5 h-3.5 mr-1.5", googleContactsEnabled && "text-primary")} />
+                          {googleContactsEnabled ? 'Sincronizar Agora' : 'Conectar Google'}
                         </Button>
-                      )}
-                      <Button variant="outline" onClick={() => setIsImportExportOpen(true)}>
+                      </div>
+                      <Button variant="outline" onClick={() => setIsImportExportOpen(true)} className="h-11">
                         <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
                       </Button>
-                      <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary">
+                      <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary h-11">
                         <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
                       </Button>
                     </div>

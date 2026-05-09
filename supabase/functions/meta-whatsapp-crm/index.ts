@@ -442,6 +442,129 @@ serve(async (req) => {
     }
 
 
+    if (action === 'exchangeGoogleCode') {
+      const { code } = params;
+      const { google_client_id, google_client_secret } = settings;
+      
+      if (!google_client_id || !google_client_secret) {
+        throw new Error('Google Client ID or Secret not configured');
+      }
+
+      const redirectUri = `${req.headers.get('origin') || 'http://localhost:3000'}/google-callback`;
+      
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code,
+          client_id: google_client_id,
+          client_secret: google_client_secret,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('Google Token Exchange Error:', data);
+        throw new Error(data.error_description || 'Failed to exchange Google code');
+      }
+
+      const { access_token, refresh_token, expires_in } = data;
+      const expires_at = new Date(Date.now() + expires_in * 1000).toISOString();
+
+      await supabase.from('crm_google_tokens').upsert({
+        access_token,
+        refresh_token,
+        expires_at,
+        updated_at: new Date().toISOString()
+      });
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'syncGoogleContacts') {
+      // Logic to fetch contacts from Google People API
+      // and update crm_contacts
+      const { data: tokens } = await supabase.from('crm_google_tokens').select('*').single();
+      if (!tokens?.access_token) throw new Error('Google account not connected');
+
+      let accessToken = tokens.access_token;
+
+      // Check if expired
+      if (new Date(tokens.expires_at) < new Date()) {
+        console.log('Refreshing Google access token...');
+        const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            refresh_token: tokens.refresh_token,
+            client_id: settings.google_client_id,
+            client_secret: settings.google_client_secret,
+            grant_type: 'refresh_token',
+          }),
+        });
+
+        const refreshData = await refreshResponse.json();
+        if (!refreshResponse.ok) throw new Error('Failed to refresh Google token');
+
+        accessToken = refreshData.access_token;
+        const expires_at = new Date(Date.now() + refreshData.expires_in * 1000).toISOString();
+
+        await supabase.from('crm_google_tokens').update({
+          access_token: accessToken,
+          expires_at,
+          updated_at: new Date().toISOString()
+        }).eq('id', tokens.id);
+      }
+
+      const contactsResponse = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+
+      const contactsData = await contactsResponse.json();
+      if (!contactsResponse.ok) throw new Error('Failed to fetch Google contacts');
+
+      const googleContacts = contactsData.connections || [];
+      console.log(`Found ${googleContacts.length} contacts in Google.`);
+
+      for (const person of googleContacts) {
+        const name = person.names?.[0]?.displayName;
+        const phoneNumbers = person.phoneNumbers || [];
+        
+        for (const phoneObj of phoneNumbers) {
+          // Clean phone number (remove +, spaces, etc)
+          const rawPhone = phoneObj.value.replace(/\D/g, '');
+          if (!rawPhone) continue;
+
+          // Upsert into crm_contacts
+          // We assume wa_id is just the digits
+          const { data: existing } = await supabase.from('crm_contacts').select('*').eq('wa_id', rawPhone).maybeSingle();
+          
+          if (existing) {
+            // Update name only if it's currently the same as wa_id or null
+            if (!existing.name || existing.name === existing.wa_id) {
+              await supabase.from('crm_contacts').update({ name }).eq('id', existing.id);
+            }
+          } else {
+            await supabase.from('crm_contacts').insert({
+              wa_id: rawPhone,
+              name: name || rawPhone,
+              status: 'new',
+              source_type: 'imported',
+              ai_active: true
+            });
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, count: googleContacts.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (action === 'improvePrompt') {
       const { prompt } = params;
       const openaiApiKey = settings.openai_api_key;
