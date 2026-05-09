@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
     status: 'online', 
     service: 'WhatsApp Audio Bridge', 
     ffmpeg: 'ready',
-    mode: 'Professional Transcoder'
+    mode: 'Professional Transcoder (V2.1 - Opus 48kHz + 2s Delay)'
   });
 });
 
@@ -93,7 +93,7 @@ app.post('/send-voice', async (req, res) => {
         .toFormat('ogg')
         .audioCodec('libopus')
         .audioChannels(1)
-        .audioFrequency(16000)
+        .audioFrequency(48000)
         .on('start', (cmd) => console.log(`[${requestId}] Comando FFmpeg: ${cmd}`))
         .on('end', () => {
           console.log(`[${requestId}] ✅ Transcodificação concluída com sucesso.`);
@@ -113,11 +113,11 @@ app.post('/send-voice', async (req, res) => {
     form.append('type', 'audio');
     form.append('file', fs.createReadStream(outputPath), {
       filename: 'voice.ogg',
-      contentType: 'audio/ogg; codecs=opus'
+      contentType: 'audio/ogg'
     });
 
     const uploadRes = await axios.post(
-      `https://graph.facebook.com/v20.0/${phone}/media`,
+      `https://graph.facebook.com/v21.0/${phone}/media`,
       form,
       {
         headers: {
@@ -130,10 +130,14 @@ app.post('/send-voice', async (req, res) => {
     const mediaId = uploadRes.data.id;
     console.log(`[${requestId}] 🆔 Media ID gerado: ${mediaId}`);
 
+    // Aguardar 2 segundos para garantir que a Meta processe o arquivo
+    console.log(`[${requestId}] ⏳ Aguardando 2 segundos para processamento da Meta...`);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // 4. Enviar PTT (Mensagem de Voz)
     console.log(`[${requestId}] 💬 Enviando mensagem de voz final...`);
     const sendRes = await axios.post(
-      `https://graph.facebook.com/v20.0/${phone}/messages`,
+      `https://graph.facebook.com/v21.0/${phone}/messages`,
       {
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
