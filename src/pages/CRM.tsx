@@ -648,9 +648,10 @@ const CRM = () => {
   };
 
   const sendRecordedAudio = async () => {
-    if (recordedAudioBlob) {
-      await handleSendMedia(recordedAudioBlob, 'audio', true);
-      cancelAudioPreview();
+    if (recordedAudioBlob && !sendingMessage) {
+      const blob = recordedAudioBlob;
+      cancelAudioPreview(); // Clear preview immediately to feel fast
+      await handleSendMedia(blob, 'audio', true);
     }
   };
 
