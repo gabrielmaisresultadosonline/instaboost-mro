@@ -18,6 +18,17 @@ serve(async (req) => {
 
   try {
     const { action, ...params } = await req.json()
+    if (action === 'updateSettings') {
+      const { ...newSettings } = params
+      const { error } = await supabase
+        .from('crm_settings')
+        .update(newSettings)
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+      
+      return new Response(JSON.stringify({ success: !error, error }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
     // Get Meta Settings
     const { data: settings } = await supabase
