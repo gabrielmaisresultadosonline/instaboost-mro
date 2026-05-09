@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * VPS WhatsApp Bridge - Audio Transcoder & Sender (Professional Version)
+ * VPS WhatsApp Bridge - Audio Transcoder & Sender (Professional Version V2.2)
  * 
  * Requisitos:
  * 1. Node.js (v18+)
@@ -31,13 +31,15 @@ if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
-// Health check
+// Health check with basic info
 app.get('/', (req, res) => {
   res.json({ 
     status: 'online', 
     service: 'WhatsApp Audio Bridge', 
+    version: '2.2',
     ffmpeg: 'ready',
-    mode: 'Professional Transcoder (V2.1 - Opus 48kHz + 2s Delay)'
+    server_time: new Date().toISOString(),
+    temp_dir_writable: fs.accessSync(TEMP_DIR, fs.constants.W_OK) === undefined
   });
 });
 
@@ -57,22 +59,22 @@ app.post('/send-voice', async (req, res) => {
     return res.status(400).json({ error: 'Meta Token ou Phone ID não configurados no VPS' });
   }
 
-  const requestId = uuidv4();
-  // Usar .bin temporário para garantir que o download funcione idependente da fonte
+  const requestId = uuidv4().substring(0, 8);
   const inputPath = path.join(TEMP_DIR, `${requestId}_input.bin`);
   const outputPath = path.join(TEMP_DIR, `${requestId}_voice.ogg`);
 
   try {
-    console.log(`\n[${new Date().toISOString()}] [${requestId}] 🚀 NOVO PEDIDO`);
-    console.log(`[${requestId}] 📱 Para: ${to}`);
-    console.log(`[${requestId}] 🔗 Download: ${audioUrl}`);
+    console.log(`\n[${new Date().toLocaleTimeString()}] [${requestId}] 🚀 NOVO PEDIDO DE ÁUDIO`);
+    console.log(`[${requestId}] 📱 Destino: ${to}`);
+    console.log(`[${requestId}] 🔗 URL Origem: ${audioUrl}`);
 
     // 1. Baixar o áudio
+    console.log(`[${requestId}] ⏳ Baixando arquivo...`);
     const response = await axios({
       method: 'get',
       url: audioUrl,
       responseType: 'stream',
-      timeout: 15000
+      timeout: 20000
     });
 
     const writer = fs.createWriteStream(inputPath);
@@ -86,17 +88,18 @@ app.post('/send-voice', async (req, res) => {
       });
     });
 
-    // 2. Transcodificar Professionalmente (OGG Opus)
-    console.log(`[${requestId}] ⚙️ Transcodificando para OGG Opus (PTT Style)...`);
+    // 2. Transcodificar (OGG Opus - Requisito WhatsApp PTT)
+    console.log(`[${requestId}] ⚙️ Transcodificando (libopus, 48kHz, mono)...`);
     await new Promise((resolve, reject) => {
       ffmpeg(inputPath)
         .toFormat('ogg')
         .audioCodec('libopus')
         .audioChannels(1)
         .audioFrequency(48000)
-        .on('start', (cmd) => console.log(`[${requestId}] Comando FFmpeg: ${cmd}`))
+        .audioBitrate('32k')
+        .on('start', (cmd) => console.log(`[${requestId}] Executando: ffmpeg ...`))
         .on('end', () => {
-          console.log(`[${requestId}] ✅ Transcodificação concluída com sucesso.`);
+          console.log(`[${requestId}] ✅ Transcodificação concluída.`);
           resolve();
         })
         .on('error', (err) => {
@@ -106,8 +109,8 @@ app.post('/send-voice', async (req, res) => {
         .save(outputPath);
     });
 
-    // 3. Upload para Meta
-    console.log(`[${requestId}] 📤 Fazendo upload para a Meta Cloud API...`);
+    // 3. Upload para Meta Media API
+    console.log(`[${requestId}] 📤 Fazendo upload para Meta API...`);
     const form = new FormData();
     form.append('messaging_product', 'whatsapp');
     form.append('type', 'audio');
@@ -128,14 +131,15 @@ app.post('/send-voice', async (req, res) => {
     );
 
     const mediaId = uploadRes.data.id;
-    console.log(`[${requestId}] 🆔 Media ID gerado: ${mediaId}`);
+    console.log(`[${requestId}] 🆔 Media ID: ${mediaId}`);
 
-    // Aguardar 2 segundos para garantir que a Meta processe o arquivo
-    console.log(`[${requestId}] ⏳ Aguardando 2 segundos para processamento da Meta...`);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // 4. Delay de Segurança (Crítico para Meta processar o upload)
+    const delayMs = 2500;
+    console.log(`[${requestId}] ⏳ Aguardando ${delayMs}ms para processamento...`);
+    await new Promise(resolve => setTimeout(resolve, delayMs));
 
-    // 4. Enviar PTT (Mensagem de Voz)
-    console.log(`[${requestId}] 💬 Enviando mensagem de voz final...`);
+    // 5. Enviar Mensagem Final (Voice/PTT mode)
+    console.log(`[${requestId}] 💬 Enviando mensagem de voz...`);
     const sendRes = await axios.post(
       `https://graph.facebook.com/v21.0/${phone}/messages`,
       {
@@ -145,7 +149,7 @@ app.post('/send-voice', async (req, res) => {
         type: 'audio',
         audio: {
           id: mediaId,
-          voice: true // Isso faz aparecer como "gravado na hora"
+          voice: true // Crucial: Ativa o modo de visualização "Gravado"
         }
       },
       {
@@ -157,38 +161,43 @@ app.post('/send-voice', async (req, res) => {
     );
 
     const messageId = sendRes.data.messages[0].id;
-    console.log(`[${requestId}] ✨ SUCESSO! Message ID: ${messageId}`);
+    console.log(`[${requestId}] ✨ SUCESSO ABSOLUTO! Message ID: ${messageId}`);
     
-    res.json({ success: true, messageId, mediaId });
+    res.json({ 
+      success: true, 
+      messageId, 
+      mediaId,
+      requestId 
+    });
 
   } catch (error) {
     const errorData = error.response?.data || error.message;
-    console.error(`[${requestId}] ❌ FALHA CRÍTICA:`, JSON.stringify(errorData, null, 2));
+    console.error(`[${requestId}] ❌ ERRO NO PROCESSO:`, JSON.stringify(errorData, null, 2));
     res.status(500).json({ 
-      error: 'Falha no processamento do áudio no VPS', 
-      details: errorData 
+      error: 'Falha no VPS WhatsApp Bridge', 
+      details: errorData,
+      requestId
     });
   } finally {
-    // Cleanup arquivos temporários
+    // Cleanup arquivos temporários após 1 minuto para garantir segurança
     setTimeout(() => {
       [inputPath, outputPath].forEach(file => {
         if (fs.existsSync(file)) {
           fs.unlink(file, (err) => {
-            if (err) console.error(`[${requestId}] Erro ao limpar arquivo temp:`, err);
+            if (err) console.error(`[${requestId}] Erro cleanup:`, err.message);
           });
         }
       });
-    }, 10000); // Aguarda 10s para garantir que o upload terminou
+    }, 60000);
   }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n==================================================`);
-  console.log(`🚀 WHATSAPP AUDIO BRIDGE - VPS ATIVO`);
-  console.log(`📅 Data: ${new Date().toLocaleString()}`);
+  console.log(`🚀 WHATSAPP AUDIO BRIDGE ATIVO`);
   console.log(`🌐 Porta: ${PORT}`);
-  console.log(`📦 Modo: ES Modules (import/export)`);
-  console.log(`📂 Pasta Temp: ${TEMP_DIR}`);
+  console.log(`🛠️ Versão: 2.2 (Profissional PTT)`);
+  console.log(`📅 Início: ${new Date().toLocaleString()}`);
   console.log(`==================================================\n`);
-  console.log(`Aguardando solicitações do CRM...`);
+  console.log(`Pronto para transcodificar e enviar áudios.`);
 });

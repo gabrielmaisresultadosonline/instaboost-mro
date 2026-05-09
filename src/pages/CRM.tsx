@@ -127,7 +127,8 @@ const CRM = () => {
     business_hours_tz: 'America/Sao_Paulo',
     outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
     google_auto_sync: false,
-    vps_transcoder_url: ''
+    vps_transcoder_url: '',
+    vps_status: 'unknown' as 'unknown' | 'online' | 'offline'
   });
 
   const [metrics, setMetrics] = useState<any>({
@@ -206,6 +207,24 @@ const CRM = () => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (metaSettings.vps_transcoder_url) {
+      const checkVps = async () => {
+        try {
+          const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+          const res = await fetch(url, { method: 'GET', mode: 'cors', signal: AbortSignal.timeout(3000) });
+          const data = await res.json();
+          setMetaSettings(prev => ({ ...prev, vps_status: data.status === 'online' ? 'online' : 'offline' }));
+        } catch (e) {
+          setMetaSettings(prev => ({ ...prev, vps_status: 'offline' }));
+        }
+      };
+      checkVps();
+      const interval = setInterval(checkVps, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [metaSettings.vps_transcoder_url]);
 
 
   useEffect(() => {
@@ -766,7 +785,7 @@ const CRM = () => {
         .from('crm-media')
         .getPublicUrl(filePath);
 
-      if (type === 'audio' && metaSettings.vps_transcoder_url) {
+      if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
         
         // Check for mixed content issues
@@ -2439,19 +2458,33 @@ const CRM = () => {
                                       </div>
                                       {!isRecording && (
                                         <div className="flex items-center gap-1">
-                                          <Button 
-                                            size="icon" 
-                                            variant="ghost" 
-                                            className="text-primary hover:bg-primary/10 h-11 w-11 shrink-0"
-                                            onClick={startRecording}
-                                          >
-                                            <Mic className="w-5 h-5" />
-                                          </Button>
+                                          <div className="relative">
+                                            <Button 
+                                              size="icon" 
+                                              variant="ghost" 
+                                              className={cn(
+                                                "h-11 w-11 shrink-0 rounded-full",
+                                                !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
+                                                  ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
+                                                  : "text-primary hover:bg-primary/10"
+                                              )}
+                                              onClick={startRecording}
+                                            >
+                                              <Mic className="w-5 h-5" />
+                                            </Button>
+                                            {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
+                                              <div className="absolute -top-1 -right-1">
+                                                <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
+                                                  <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
                                           <Button 
                                             size="icon" 
                                             onClick={handleSendMessage} 
                                             disabled={!newMessage.trim() || sendingMessage}
-                                            className="h-11 w-11 shrink-0 shadow-md"
+                                            className="h-11 w-11 shrink-0 shadow-md rounded-full"
                                           >
                                             <Send className="w-4 h-4" />
                                           </Button>
@@ -3519,7 +3552,14 @@ const CRM = () => {
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><RefreshCcw className="w-5 h-5" /></div>
+                          <div className={cn(
+                            "p-2 rounded-lg",
+                            metaSettings.vps_status === 'online' ? "bg-green-100 text-green-600" : 
+                            metaSettings.vps_status === 'offline' ? "bg-red-100 text-red-600" : 
+                            "bg-primary/10 text-primary"
+                          )}>
+                            <RefreshCcw className={cn("w-5 h-5", metaSettings.vps_status === 'unknown' && "animate-spin")} />
+                          </div>
                           <div>
                             <CardTitle className="text-lg">Transcoder Profissional (VPS)</CardTitle>
                             <CardDescription className="text-[11px]">Conversão de áudio profissional para PTT (Gravado na hora).</CardDescription>
