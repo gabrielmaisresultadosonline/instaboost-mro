@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import axios from 'axios';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
@@ -20,6 +21,7 @@ const __dirname = path.dirname(__filename);
  */
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
@@ -50,7 +52,7 @@ app.post('/send-voice', async (req, res) => {
   }
 
   const requestId = uuidv4();
-  const inputPath = path.join(TEMP_DIR, `${requestId}_input`);
+  const inputPath = path.join(TEMP_DIR, `${requestId}_input.bin`);
   const outputPath = path.join(TEMP_DIR, `${requestId}_voice.ogg`);
 
   try {
