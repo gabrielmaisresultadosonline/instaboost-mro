@@ -1551,7 +1551,7 @@ const CRM = () => {
         </Sidebar>
 
         <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
-          <header className="h-16 border-b flex items-center px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
@@ -1565,8 +1565,8 @@ const CRM = () => {
               </h1>
             </div>
             {activeTab === 'contacts' && (
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm">
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
@@ -1827,7 +1827,7 @@ const CRM = () => {
                           </AccordionItem>
                         </Accordion>
                       </div>
-                      <ScrollArea className="flex-1 min-h-0">
+                      <ScrollArea className="flex-1 min-h-0 h-full overflow-y-auto">
                         {filteredContacts.length > 0 ? (
                           filteredContacts.map(contact => (
                             <button 
@@ -2081,7 +2081,7 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
+                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto h-full">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
