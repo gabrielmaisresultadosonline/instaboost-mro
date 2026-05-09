@@ -82,7 +82,7 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
   const toggleAutoSync = async (enabled: boolean) => {
     setAutoSync(enabled);
     try {
-      await callProxy('update-crm-settings', { google_auto_sync: enabled });
+      await callProxy('updateSettings', { google_auto_sync: enabled });
       toast({ title: enabled ? "Sincronização Automática Ativada" : "Sincronização Automática Desativada" });
     } catch (e) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
