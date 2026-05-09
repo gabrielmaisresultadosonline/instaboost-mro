@@ -3344,35 +3344,47 @@ const CRM = () => {
                         </div>
                         <div className="flex flex-col gap-3 pt-2">
                           <Button 
-                            variant={googleContactsEnabled ? "outline" : "default"} 
-                            className="w-full h-11 rounded-xl font-bold"
-                            onClick={() => {
-                              if (!metaSettings.google_client_id) {
-                                toast({ title: "Erro", description: "Preencha o Google Client ID primeiro", variant: "destructive" });
-                                return;
-                              }
-                              const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
-                              const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                              const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-                              window.location.href = url;
-                            }}
+                            variant="default" 
+                            className="w-full h-11 rounded-xl font-bold bg-primary hover:scale-[1.02] transition-transform"
+                            onClick={handleSaveSettings}
+                            disabled={saving}
                           >
-                            <Users className="w-4 h-4 mr-2" />
-                            {googleContactsEnabled ? 'Reconectar Google' : 'Conectar com Google'}
+                            <Save className="w-4 h-4 mr-2" />
+                            {saving ? 'Salvando...' : 'Salvar Dados do Google'}
                           </Button>
-                          {googleContactsEnabled && (
-                            <Button 
-                              variant="destructive" 
-                              className="w-full h-11 rounded-xl font-bold"
-                              onClick={() => {
-                                localStorage.removeItem('google_contacts_connected');
-                                localStorage.removeItem('google_contacts_auth_code');
-                                setGoogleContactsEnabled(false);
-                                toast({ title: "Desconectado", description: "Sincronização removida localmente" });
-                              }}
-                            >
-                              Desconectar Google Contatos
-                            </Button>
+                          
+                          {metaSettings.google_client_id && (
+                            <div className="pt-4 border-t border-muted-foreground/10 space-y-3">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase text-center">Integração do Navegador</p>
+                              <Button 
+                                variant={googleContactsEnabled ? "outline" : "secondary"} 
+                                className="w-full h-11 rounded-xl font-bold border-primary/20"
+                                onClick={() => {
+                                  const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+                                  const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
+                                  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+                                  window.location.href = url;
+                                }}
+                              >
+                                <Users className="w-4 h-4 mr-2" />
+                                {googleContactsEnabled ? 'Reconectar Navegador' : 'Conectar Navegador'}
+                              </Button>
+                              
+                              {googleContactsEnabled && (
+                                <Button 
+                                  variant="ghost" 
+                                  className="w-full h-11 rounded-xl font-bold text-destructive hover:bg-destructive/5"
+                                  onClick={() => {
+                                    localStorage.removeItem('google_contacts_connected');
+                                    localStorage.removeItem('google_contacts_auth_code');
+                                    setGoogleContactsEnabled(false);
+                                    toast({ title: "Desconectado", description: "Conexão do navegador removida" });
+                                  }}
+                                >
+                                  Desconectar Navegador
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground italic leading-relaxed">
