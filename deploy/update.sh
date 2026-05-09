@@ -227,14 +227,19 @@ $SUDO systemctl restart nginx
 
 echo ""
 echo "✨ Verificação Final:"
-echo "📂 Pasta dist: $(ls -l $APP_DIR/dist/index.html)"
+echo "📂 Pasta dist: $(ls -ld $APP_DIR/dist/index.html 2>/dev/null || echo '❌ dist não encontrada')"
 echo "🔍 Conteúdo do index (primeiras linhas):"
 head -n 20 $APP_DIR/dist/index.html | grep -E "assets/index" || echo "⚠️  Nomes fixos não encontrados no index.html local"
 
 echo ""
+echo "🧪 Teste de Conectividade Local:"
+# Testa se o nginx está servindo o arquivo certo sem o proxy do Lovable
+curl -s http://localhost | grep -q "flock" && echo "❌ ERRO: Conteúdo Lovable detectado!" || echo "✅ OK: Conteúdo Lovable removido."
+curl -s http://localhost | grep -q "assets/index.js" && echo "✅ OK: Assets corretos detectados." || echo "❌ ERRO: Assets não encontrados no HTML servido."
+
+echo ""
 echo "✅ Atualização concluída!"
-echo "🌐 Frontend: https://$DOMAIN"
-echo "📝 Prompts MRO: https://$PROMPTS_DOMAIN"
+echo "🌐 Site: https://$DOMAIN"
 echo ""
 echo "🚀 IMPORTANTE: Se o site ainda mostrar a página branca ou erro 404:"
 echo "   1. No painel da CLOUDFLARE: Cache -> Purge Everything (Limpar tudo)"
