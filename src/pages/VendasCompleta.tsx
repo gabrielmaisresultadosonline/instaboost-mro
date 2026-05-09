@@ -894,10 +894,10 @@ const VendasCompleta = () => {
             Pronto para <span className="text-amber-400">Escalar</span> seu Instagram?
           </h2>
           <p className="text-xl text-gray-400 mb-10">Junte-se a milhares de empreendedores que já transformaram seus perfis com a V7+ Plus</p>
-          <Button size="lg" className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#128C7E] hover:to-[#075E54] text-white font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
+          <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
             onClick={() => {
-              trackLead("Instagram Nova - Final CTA WhatsApp");
-              window.location.href = "/whatsapp";
+              trackLead("Instagram Nova - Final CTA Scroll");
+              scrollToPricing();
             }}>
             <span className="flex items-center justify-center gap-2 flex-wrap text-center">
               <span>GARANTIR MEU ACESSO AGORA</span>
