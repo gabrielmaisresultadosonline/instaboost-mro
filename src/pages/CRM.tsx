@@ -1553,7 +1553,7 @@ const CRM = () => {
                     ]).map(status => (
                       <div 
                         key={status.value} 
-                        className="w-72 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card" 
+                        className="w-72 md:w-80 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card snap-center" 
                         onDragOver={e => e.preventDefault()} 
                         onDrop={() => handleDrop(status.value)}
                       >
