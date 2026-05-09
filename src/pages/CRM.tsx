@@ -417,18 +417,37 @@ const CRM = () => {
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedContact || sendingMessage) return;
+    
+    const textToSend = newMessage.trim();
+    setNewMessage('');
     setSendingMessage(true);
+    
+    // Optimistic update
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`,
+      contact_id: selectedContact.id,
+      content: textToSend,
+      direction: 'outbound',
+      message_type: 'text',
+      created_at: new Date().toISOString(),
+      isOptimistic: true
+    };
+    setChatMessages(prev => [...prev, optimisticMessage]);
+
     try {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'sendMessage', to: selectedContact.wa_id, text: newMessage }
+        body: { action: 'sendMessage', to: selectedContact.wa_id, text: textToSend }
       });
       if (error) throw error;
       if (!data.success) {
         throw new Error(data.error || "Erro ao enviar mensagem pela Meta");
       }
+      // Remove optimistic and fetch real
+      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       await fetchMessages(selectedContact.id);
-      setNewMessage('');
     } catch (err: any) {
+      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      setNewMessage(textToSend); // Restore text on failure
       toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
     } finally {
       setSendingMessage(false);
@@ -638,6 +657,20 @@ const CRM = () => {
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false) => {
     if (!selectedContact) return;
     setSendingMessage(true);
+    
+    // Optimistic update for media
+    const optimisticMessage = {
+      id: `temp-media-${Date.now()}`,
+      contact_id: selectedContact.id,
+      content: isVoice ? '[Áudio...]' : `[${type.toUpperCase()}...]`,
+      direction: 'outbound',
+      message_type: type,
+      created_at: new Date().toISOString(),
+      isOptimistic: true,
+      media_url: file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || '')
+    };
+    setChatMessages(prev => [...prev, optimisticMessage]);
+
     try {
       const fileExt = file instanceof File ? file.name.split('.').pop() : (isVoice ? 'ogg' : 'bin');
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
@@ -672,9 +705,11 @@ const CRM = () => {
       if (error) throw error;
       if (!data.success) throw new Error(data.error);
 
+      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       await fetchMessages(selectedContact.id);
       toast({ title: "Mídia enviada!" });
     } catch (err: any) {
+      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
     } finally {
       setSendingMessage(false);
@@ -1886,7 +1921,8 @@ const CRM = () => {
                                       "p-2.5 md:p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
                                       m.direction === 'inbound' 
                                         ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
-                                        : 'bg-primary text-primary-foreground rounded-tr-none'
+                                        : 'bg-primary text-primary-foreground rounded-tr-none',
+                                      m.isOptimistic && 'opacity-70 grayscale-[0.5]'
                                     )}>
                                       {isTemplate && template ? (
                                         <div className="overflow-hidden rounded-xl bg-white dark:bg-zinc-900 shadow-lg border border-border/50 max-w-[300px]">
