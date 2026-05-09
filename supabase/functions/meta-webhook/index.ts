@@ -6,6 +6,60 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
+async function lookupGoogleContact(wa_id: string, settings: any) {
+  if (!settings?.google_auto_sync) return null;
+
+  try {
+    const { data: tokens } = await supabase.from('crm_google_tokens').select('*').maybeSingle();
+    if (!tokens?.access_token) return null;
+
+    let accessToken = tokens.access_token;
+
+    // Refresh if needed
+    if (new Date(tokens.expires_at) < new Date()) {
+      console.log('Refreshing Google token in webhook...');
+      const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          refresh_token: tokens.refresh_token,
+          client_id: settings.google_client_id,
+          client_secret: settings.google_client_secret,
+          grant_type: 'refresh_token',
+        }),
+      });
+
+      const refreshData = await refreshResponse.json();
+      if (refreshResponse.ok) {
+        accessToken = refreshData.access_token;
+        const expires_at = new Date(Date.now() + refreshData.expires_in * 1000).toISOString();
+        await supabase.from('crm_google_tokens').update({
+          access_token: accessToken,
+          expires_at,
+          updated_at: new Date().toISOString()
+        }).eq('id', tokens.id);
+      }
+    }
+
+    // Search for contact by phone
+    // We search with the full number and also partials if needed, 
+    // but the People API search is a bit complex. 
+    // Easiest is to search by the number as a query.
+    const searchResponse = await fetch(`https://people.googleapis.com/v1/people:searchContacts?query=${wa_id}&readMask=names,phoneNumbers`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    const searchData = await searchResponse.json();
+    if (searchResponse.ok && searchData.results && searchData.results.length > 0) {
+      const person = searchData.results[0].person;
+      return person.names?.[0]?.displayName || null;
+    }
+  } catch (err) {
+    console.error('Error in lookupGoogleContact:', err);
+  }
+  return null;
+}
+
 serve(async (req) => {
   const url = new URL(req.url)
 
