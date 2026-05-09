@@ -116,7 +116,7 @@ const MROCriativo = () => {
           >
             <Button size="xl" variant="gradient" className="w-full sm:w-auto px-8 py-7 text-lg group" onClick={() => document.getElementById('login')?.scrollIntoView({ behavior: 'smooth' })}>
               CONECTAR INSTAGRAM
-              <Camera className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
+              <Instagram className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
             </Button>
             <Button size="xl" variant="outline" className="w-full sm:w-auto px-8 py-7 text-lg border-white/10 hover:bg-white/5" onClick={() => document.getElementById('funciona')?.scrollIntoView({ behavior: 'smooth' })}>
               VER COMO FUNCIONA
@@ -248,7 +248,7 @@ const MROCriativo = () => {
                     {activeTab === 'analise' && (
                       <div className="space-y-6">
                         <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                          <Camera className="w-12 h-12 text-primary" />
+                          <Instagram className="w-12 h-12 text-primary" />
                         </div>
                         <h3 className="text-2xl font-bold">Lendo Perfil...</h3>
                         <div className="space-y-2 max-w-xs">

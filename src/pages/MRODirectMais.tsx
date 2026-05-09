@@ -191,7 +191,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 mb-5 shadow-2xl shadow-purple-500/30">
-            <Camera className="h-10 w-10 text-white" />
+            <Instagram className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">MRO Direct+</h1>
           <p className="text-gray-400 mt-2">Automação Inteligente de DMs via Instagram</p>
@@ -200,7 +200,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
         <Card className="bg-gray-900/80 border-white/10 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-lg flex items-center gap-2">
-              <Camera className="h-5 w-5 text-purple-400" /> Conectar Instagram
+              <Instagram className="h-5 w-5 text-purple-400" /> Conectar Instagram
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -219,7 +219,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
               </div>
             )}
             <Button onClick={handleLogin} disabled={loading} className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-base">
-              {loading ? <><Loader2 className="h-5 w-5 animate-spin mr-2" />Conectando...</> : <><Camera className="h-5 w-5 mr-2" />Entrar com Instagram<ArrowRight className="h-4 w-4 ml-2" /></>}
+              {loading ? <><Loader2 className="h-5 w-5 animate-spin mr-2" />Conectando...</> : <><Instagram className="h-5 w-5 mr-2" />Entrar com Instagram<ArrowRight className="h-4 w-4 ml-2" /></>}
             </Button>
             <p className="text-xs text-gray-500 text-center">Seu perfil precisa ser <strong className="text-gray-400">Business</strong> ou <strong className="text-gray-400">Creator</strong>.</p>
           </CardContent>
@@ -1095,7 +1095,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                 <img src={profile.profile_picture_url} className="h-8 w-8 rounded-full ring-2 ring-purple-500" alt="" />
               ) : (
                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Camera className="h-4 w-4 text-white" />
+                  <Instagram className="h-4 w-4 text-white" />
                 </div>
               )}
               <div className="hidden sm:block">
@@ -1170,7 +1170,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                     <img src={profile.profile_picture_url} className="h-16 w-16 rounded-full ring-3 ring-purple-500/50 shadow-lg" alt="" />
                   ) : (
                     <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                      <Camera className="h-8 w-8 text-white" />
+                      <Instagram className="h-8 w-8 text-white" />
                     </div>
                   )}
                   <div className="flex-1">

@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
-import { Camera, Download, History, LogOut, Sparkles, Image, Loader2, Save, Trash2 } from "lucide-react";
+import { Instagram, Download, History, LogOut, Sparkles, Image, Loader2, Save, Trash2 } from "lucide-react";
 
 interface Template {
   id: string;
@@ -429,7 +429,7 @@ const InteligenciaFotosDashboard = () => {
                   </div>
                 ) : (
                   <label className="cursor-pointer">
-                    <Camera className="w-12 h-12 text-purple-400 mx-auto mb-2" />
+                    <Instagram className="w-12 h-12 text-purple-400 mx-auto mb-2" />
                     <p className="text-purple-200 text-sm">Clique para enviar sua foto</p>
                     <p className="text-purple-400 text-xs mt-1">Rosto ou corpo inteiro</p>
                     <input

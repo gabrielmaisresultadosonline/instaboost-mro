@@ -4,7 +4,11 @@
  * Atua como Bridge para áudios do CRM no VPS.
  */
 
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch (e) {
+  console.log('⚠️ Dotenv não encontrado, continuando com env vars do sistema');
+}
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -15,7 +19,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001; // Alterado para 3001 para evitar conflito com porta 3000 do bot principal
 
 app.get('/', (req, res) => {
   res.json({ 

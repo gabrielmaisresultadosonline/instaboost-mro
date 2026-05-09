@@ -758,7 +758,7 @@ const AdsNewsAdmin = () => {
                             )}
                             {order.clientData.instagram && (
                               <div className="flex items-center gap-1 text-gray-400">
-                                <Camera className="h-3 w-3" />
+                                <Instagram className="h-3 w-3" />
                                 {order.clientData.instagram}
                               </div>
                             )}

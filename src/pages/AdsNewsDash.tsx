@@ -1140,7 +1140,7 @@ const AdsNewsDash = () => {
 
               <div>
                 <Label className="flex items-center gap-2 text-white">
-                  <Camera className="h-4 w-4 text-pink-400" />
+                  <Instagram className="h-4 w-4 text-pink-400" />
                   Instagram
                 </Label>
                 <Input
@@ -1207,7 +1207,7 @@ const AdsNewsDash = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label className="flex items-center gap-2 text-white">
-                    <Camera className="h-4 w-4 text-pink-400" />
+                    <Instagram className="h-4 w-4 text-pink-400" />
                     Concorrente 1 - Link do Instagram
                   </Label>
                   <Input
@@ -1220,7 +1220,7 @@ const AdsNewsDash = () => {
 
                 <div>
                   <Label className="flex items-center gap-2 text-white">
-                    <Camera className="h-4 w-4 text-pink-400" />
+                    <Instagram className="h-4 w-4 text-pink-400" />
                     Concorrente 2 - Link do Instagram
                   </Label>
                   <Input
