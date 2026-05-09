@@ -152,8 +152,15 @@ fi
 $SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
 
-# Só cria config Nginx se NÃO existir ou se precisarmos atualizar para incluir o /bridge e SSL
-echo "🛠️ Atualizando configuração Nginx (80 e 443)..."
+# SÓ atualiza Nginx se o usuário permitir ou se for necessário para o /bridge
+echo "🛠️  Configurando Nginx para servir o build LOCAL (Sem Proxys Lovable)..."
+
+# Garante que NENHUM outro arquivo na sites-enabled aponte para o domínio
+# Isso evita que o antigo 'prompt-mro' ou 'prompts-mro' (proxys) voltem à vida
+$SUDO find /etc/nginx/sites-enabled/ -type l -exec grep -l "$DOMAIN" {} + | xargs -r $SUDO rm -f
+$SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+
+# Cria a configuração limpa e direta
 $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
 server {
     listen 80;
@@ -175,13 +182,9 @@ server {
     root $APP_DIR/dist;
     index index.html;
 
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_proxied expired no-cache no-store private auth;
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
-
-    # Proxy para o Bridge (Transcoder de Áudio) - Suporte a /bridge e /bridge/
+    # SEGURANÇA: NUNCA adicionar proxy_pass para lovable aqui
+    
+    # Bridge para Áudio (Porta 3000)
     location /bridge/ {
         proxy_pass http://127.0.0.1:3000/;
         proxy_http_version 1.1;
@@ -189,30 +192,11 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
-        
-        # CORS Headers para chamadas diretas do navegador
-        add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
-        
-        if (\$request_method = 'OPTIONS') {
-            add_header 'Access-Control-Allow-Origin' '*';
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
-            add_header 'Access-Control-Max-Age' 1728000;
-            add_header 'Content-Type' 'text/plain; charset=utf-8';
-            add_header 'Content-Length' 0;
-            return 204;
-        }
     }
 
-    location /bridge {
-        proxy_pass http://127.0.0.1:3000/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
+    # SPA Routing (O coração do funcionamento local)
+    location / {
+        try_files \$uri \$uri/ /index.html;
     }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)\$ {
@@ -220,35 +204,18 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
-    # SPA routing
-    location / {
-        try_files \$uri \$uri/ /index.html;
-    }
-
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
 }
 EOF
+
+# Ativa a configuração
 $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
 
-
-# ============= REMOVER PROXYS LOVABLE ANTIGOS =============
-echo "🧹 Removendo possíveis proxys residuais da Lovable..."
-# Remove tanto a versão singular quanto plural se existirem
-$SUDO rm -f /etc/nginx/sites-enabled/prompt-mro 2>/dev/null || true
-$SUDO rm -f /etc/nginx/sites-available/prompt-mro 2>/dev/null || true
-$SUDO rm -f /etc/nginx/sites-enabled/prompts-mro 2>/dev/null || true
-$SUDO rm -f /etc/nginx/sites-available/prompts-mro 2>/dev/null || true
-
-# Garante que não sobrou nenhum outro arquivo apontando pro domínio no sites-enabled
-# exceto o ia-mro que estamos configurando agora.
-grep -l "maisresultadosonline.com.br" /etc/nginx/sites-enabled/* 2>/dev/null | grep -v "$APP_NAME" | xargs $SUDO rm -f 2>/dev/null || true
-
-
 echo "🔄 Reiniciando Nginx..."
-$SUDO nginx -t
-$SUDO systemctl restart nginx
+$SUDO nginx -t && $SUDO systemctl restart nginx
+
 
 echo ""
 echo "✨ Verificação Final:"

@@ -781,11 +781,19 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } else {
-        console.error('VPS Transcoder error response:', vpsResult);
-        // Se o VPS retornar HTML (configuração de Nginx errada), logamos o aviso
-        if (typeof vpsResult === 'string' && vpsResult.includes('<!doctype html>')) {
-          console.error('VPS returned HTML instead of JSON. Check Nginx /bridge configuration.');
+        const errorText = await vpsResponse.text();
+        console.error(`VPS Transcoder error (${vpsResponse.status}):`, errorText.substring(0, 500));
+        
+        if (errorText.includes('<!doctype html>') || errorText.includes('<html')) {
+          console.error('CRITICAL: VPS returned HTML. Nginx is likely routing /bridge to the SPA (index.html) instead of the bot (port 3000).');
+          throw new Error('Erro de infraestrutura: O servidor de áudio está retornando a página do site em vez de processar o áudio. Verifique as rotas do Nginx.');
         }
+        
+        let errorJson;
+        try { errorJson = JSON.parse(errorText); } catch (e) { errorJson = { error: errorText }; }
+        return new Response(JSON.stringify({ success: false, error: 'Erro no servidor de áudio VPS', details: errorJson }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
     } catch (vpsErr) {
       console.error('Failed to call VPS Transcoder:', vpsErr);

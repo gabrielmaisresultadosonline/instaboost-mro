@@ -66,41 +66,39 @@ app.post('/send-voice', async (req, res) => {
   }
 
   const tempId = Math.random().toString(36).substring(7);
-  const inputPath = path.join(__dirname, `input_${tempId}`);
+  // Adicionamos extensões para ajudar o FFmpeg a detectar os formatos
+  const inputPath = path.join(__dirname, `input_${tempId}.tmp`);
   const outputPath = path.join(__dirname, `output_${tempId}.ogg`);
 
   try {
     const chatId = formatPhone(to);
-    console.log(`🎙️ [Bridge] Processando áudio para ${chatId}...`);
+    console.log(`🎙️ [Bridge] Processando áudio para ${chatId}. URL: ${audioUrl.substring(0, 50)}...`);
     
     // 1. Download do áudio
     const response = await axios({
       method: 'get',
       url: audioUrl,
-      responseType: 'stream'
+      responseType: 'arraybuffer' // Usar arraybuffer é mais seguro para arquivos pequenos
     });
     
-    const writer = fs.createWriteStream(inputPath);
-    response.data.pipe(writer);
-    
-    await new Promise((resolve, reject) => {
-      writer.on('finish', resolve);
-      writer.on('error', reject);
-    });
+    fs.writeFileSync(inputPath, response.data);
+    console.log(`✅ [Bridge] Download concluído (${response.data.length} bytes).`);
 
     // 2. Transcodificar para OGG Opus usando FFmpeg (formato nativo WhatsApp)
     console.log(`🔧 [Bridge] Transcodificando via FFmpeg...`);
     try {
+      // Forçamos o codec libopus e o container ogg, otimizado para voz (voip)
       await execAsync(`ffmpeg -i "${inputPath}" -c:a libopus -b:a 64k -vbr on -compression_level 10 -application voip "${outputPath}" -y`);
-      console.log(`✅ [Bridge] Transcodificação concluída.`);
+      console.log(`✅ [Bridge] Transcodificação FFmpeg concluída.`);
     } catch (ffmpegErr) {
-      console.error('⚠️ [Bridge] Falha no FFmpeg, tentando usar arquivo original:', ffmpegErr.message);
-      // Se falhar o ffmpeg, tentamos usar o original mesmo
+      console.error('⚠️ [Bridge] Falha no FFmpeg:', ffmpegErr.message);
+      // Fallback: se o FFmpeg falhar, tentamos enviar o original se for compatível
       fs.copyFileSync(inputPath, outputPath);
     }
 
     const audioData = fs.readFileSync(outputPath);
     const base64Audio = audioData.toString('base64');
+
 
     // 3. Decidir como enviar (Meta API ou Bot Local)
     if (metaToken && phoneId) {
