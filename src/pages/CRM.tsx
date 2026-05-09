@@ -596,13 +596,15 @@ const CRM = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Use audio/ogg with codecs=opus as primary choice for Meta compatibility
+      // Determine the best supported mimeType for the browser
       let mimeType = 'audio/ogg; codecs=opus';
       if (!MediaRecorder.isTypeSupported(mimeType)) {
-        // Fallback to webm if ogg is not supported (Chrome on non-Android usually supports webm)
         mimeType = 'audio/webm; codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = ''; // Browser default
+          mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ''; // Browser default
+          }
         }
       }
       
@@ -615,11 +617,11 @@ const CRM = () => {
       };
       
       recorder.onstop = () => {
-        // Ensure the blob uses a compatible type for Meta even if browser recorded as webm
-        // We'll treat it as audio/ogg for the upload if it was opus
-        const actualType = recorder.mimeType || mimeType || 'audio/ogg';
-        const audioBlob = new Blob(chunks, { type: actualType });
-        console.log(`Audio recorded with type: ${audioBlob.type}, size: ${audioBlob.size} bytes`);
+        // Meta requires audio/ogg; codecs=opus for voice messages.
+        // Even if recorded as webm, we'll label it as ogg for the Edge Function 
+        // which will then ensure the correct headers for Meta.
+        const audioBlob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+        console.log(`Audio recording stopped. Chunks: ${chunks.length}, Size: ${audioBlob.size} bytes`);
         const audioUrl = URL.createObjectURL(audioBlob);
         
         setRecordedAudioBlob(audioBlob);
@@ -638,6 +640,7 @@ const CRM = () => {
         setRecordingDuration(prev => prev + 1);
       }, 1000);
     } catch (err) {
+      console.error('Error starting recording:', err);
       toast({ title: "Erro ao acessar microfone", variant: "destructive" });
     }
   };
