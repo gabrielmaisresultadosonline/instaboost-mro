@@ -27,9 +27,9 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
     rollupOptions: {
       output: {
-        entryFileNames: `assets/[name].js`,
+        entryFileNames: `assets/index.js`,
         chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`,
+        assetFileNames: `assets/index.[ext]`,
       },
     },
   },
