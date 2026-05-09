@@ -863,32 +863,59 @@ const CRM = () => {
                   </ScrollArea>
                 ) : (
                   <ScrollArea className="flex-1 p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {templates.map(template => (
-                        <Card key={template.id} className="hover:shadow-md transition-all">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-sm font-bold truncate max-w-[150px]">{template.name}</CardTitle>
-                              <Badge variant={template.status === 'APPROVED' ? "default" : "secondary"}>
-                                {template.status}
-                              </Badge>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                      {templates.map(template => {
+                        const bodyComponent = template.components?.find((c: any) => c.type === 'BODY');
+                        const headerComponent = template.components?.find((c: any) => c.type === 'HEADER');
+                        const footerComponent = template.components?.find((c: any) => c.type === 'FOOTER');
+                        const buttonsComponent = template.components?.find((c: any) => c.type === 'BUTTONS');
+                        
+                        return (
+                          <Card key={template.id} className="hover:shadow-lg transition-all border-zinc-200 dark:border-zinc-800 flex flex-col h-full bg-card group overflow-hidden">
+                            <div className="aspect-[4/3] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden shrink-0">
+                              {headerComponent?.format === 'IMAGE' ? (
+                                <img 
+                                  src={headerComponent.example?.header_handle?.[0] || template.header_url || "https://maisonline.com.br/wp-content/uploads/2023/07/mais-resultados-online.png"} 
+                                  alt={template.name}
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
+                              ) : headerComponent?.format === 'VIDEO' ? (
+                                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                                  <Play className="w-12 h-12 text-white/50" />
+                                </div>
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <FileText className="w-12 h-12 text-zinc-300" />
+                                </div>
+                              )}
+                              <div className="absolute top-2 right-2">
+                                <Badge variant={template.status === 'APPROVED' ? "default" : "secondary"} className="shadow-sm">
+                                  {template.status}
+                                </Badge>
+                              </div>
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-xs text-muted-foreground line-clamp-3 mb-4 min-h-[48px]">
-                              {template.components?.find((c: any) => c.type === 'BODY')?.text}
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => {
-                                setPreviewTemplate(template);
-                                setIsFlowEditorOpen(false); // Using similar dialog structure
-                              }}>
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            <CardHeader className="p-4 pb-2">
+                              <CardTitle className="text-sm font-black truncate text-primary">{template.name}</CardTitle>
+                              <CardDescription className="text-[10px] uppercase font-bold tracking-widest">{template.category}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+                              <p className="text-xs text-muted-foreground line-clamp-3 mb-4 italic leading-relaxed">
+                                "{bodyComponent?.text}"
+                              </p>
+                              <div className="flex justify-between items-center gap-2 pt-2 border-t mt-auto">
+                                <Badge variant="outline" className="text-[9px] h-5 bg-muted/30">{template.language}</Badge>
+                                <div className="flex gap-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => {
+                                    setPreviewTemplate(template);
+                                  }}>
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 )}
