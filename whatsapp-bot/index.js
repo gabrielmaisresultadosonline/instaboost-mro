@@ -14,6 +14,9 @@ const fetch = require('node-fetch');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
 
 // Defaults públicos do projeto Lovable Cloud
 const DEFAULT_SUPABASE_URL = 'https://adljdeekwifwcdcgbpit.supabase.co';
