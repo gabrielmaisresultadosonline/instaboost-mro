@@ -357,6 +357,23 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
           </div>
         </div>
 
+        {googleConnected && (
+          <div className="px-4 py-2 bg-[#202c33]/50 border-b border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] text-white/60">Google Conectado</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-white/40">Sincronizar Automático</span>
+              <Switch 
+                checked={autoSync} 
+                onCheckedChange={toggleAutoSync}
+                className="scale-75 data-[state=checked]:bg-[#00a884]"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-5 gap-2 mb-3">
           {[
