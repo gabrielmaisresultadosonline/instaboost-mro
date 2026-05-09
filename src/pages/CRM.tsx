@@ -662,8 +662,20 @@ const CRM = () => {
   const startRecording = async () => {
     try {
       // Audio Recording logic
+      const getSupportedMimeType = () => {
+        const types = [
+          'audio/ogg; codecs=opus',
+          'audio/webm; codecs=opus',
+          'audio/webm',
+          'audio/aac',
+          'audio/mp4'
+        ];
+        return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+      };
+
+      const mimeType = getSupportedMimeType();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => chunks.push(e.data);
@@ -759,7 +771,7 @@ const CRM = () => {
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
-          contentType: isAudio ? 'audio/ogg' : contentType,
+          contentType: contentType || 'application/octet-stream',
           upsert: true
         });
 
