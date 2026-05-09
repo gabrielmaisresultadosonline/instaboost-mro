@@ -620,23 +620,6 @@ serve(async (req) => {
         });
     }
 
-    if (action === 'sendTemplate') {
-      const { to, templateName, languageCode, components: manualComponents } = params
-
-              finalComponents.push({
-                type: "header",
-                parameters: [{ type, [type]: mediaObj }]
-              });
-            }
-         }
-      } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
-        const headerText = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.text || contact?.name || 'Cliente';
-        finalComponents.push({
-          type: "header",
-          parameters: [{ type: "text", text: headerText }]
-        });
-      }
-    }
 
     // Handle Body Variables
     if (bodyComponent && bodyComponent.text) {
