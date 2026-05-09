@@ -21,11 +21,18 @@ const GoogleContactsCallback = () => {
       }
 
       if (code) {
-        console.log("Google Auth Code recebido:", code);
-        
-        // Simular salvamento temporário ou processamento
-        // Futuramente isso será enviado para uma Edge Function
-        localStorage.setItem("google_contacts_auth_code", code);
+        const { data, error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'exchangeGoogleCode', code }
+        });
+
+        if (invokeError || !data?.success) {
+          console.error("Erro ao trocar código Google:", invokeError || data?.error);
+          setStatus("error");
+          toast.error("Erro ao sincronizar com o Google.");
+          setTimeout(() => navigate("/crm"), 3000);
+          return;
+        }
+
         localStorage.setItem("google_contacts_connected", "true");
 
         setStatus("success");
