@@ -2983,16 +2983,16 @@ const CRM = () => {
                         </CardTitle>
                         <CardDescription>Defina a personalidade e o objetivo do seu robô</CardDescription>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-4">
+                      <CardContent className="p-4 md:p-6 space-y-4">
                         <div className="space-y-2">
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                             <Label className="text-sm font-bold">Prompt do System</Label>
                             <Button 
                               variant="outline" 
                               size="sm" 
                               onClick={handleImprovePrompt}
                               disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95"
+                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 self-start sm:self-auto"
                             >
                               {improvingPrompt ? (
                                 <RefreshCcw className="w-3 h-3 animate-spin" />
