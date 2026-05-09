@@ -3089,23 +3089,25 @@ const CRM = () => {
             )}
 
             {activeTab === 'templates' && (
-              <ScrollArea className="flex-1 p-8 bg-muted/5">
-                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex flex-col md:flex-row justify-between md:items-center bg-card p-6 rounded-2xl border shadow-sm gap-4">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
-                      <p className="text-muted-foreground text-sm">Gerencie seus modelos oficiais aprovados pela Meta.</p>
+              <ScrollArea className="flex-1 p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
+                    <div className="space-y-1">
+                      <h2 className="text-xl md:text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Gerencie seus modelos oficiais aprovados pela Meta.</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates} className="h-10">
-                        <RefreshCcw className={cn("w-4 h-4 mr-2", syncingTemplates && "animate-spin")} />
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates} className="flex-1 sm:flex-none h-10 text-xs md:text-sm">
+                        <RefreshCcw className={cn("w-3.5 h-3.5 md:w-4 md:h-4 mr-2", syncingTemplates && "animate-spin")} />
                         Sincronizar Meta
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button className="h-10 bg-primary shadow-lg shadow-primary/20"><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
+                          <Button className="flex-1 sm:flex-none h-10 bg-primary shadow-lg shadow-primary/20 text-xs md:text-sm">
+                            <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" /> Novo Template
+                          </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-6xl h-[90vh] p-0 border-none rounded-3xl overflow-hidden shadow-2xl">
+                        <DialogContent className="max-w-6xl w-[95vw] md:w-full h-[90vh] p-0 border-none rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
                           <ScrollArea className="h-full">
                             <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
                           </ScrollArea>
@@ -3139,14 +3141,14 @@ const CRM = () => {
 
                   <Accordion type="single" collapsible className="w-full space-y-4">
                     <AccordionItem value="templates-list" className="border-none">
-                      <AccordionTrigger className="bg-card p-6 rounded-2xl border shadow-sm hover:no-underline">
-                        <div className="flex flex-col items-start text-left">
-                          <h3 className="text-xl font-bold tracking-tight">Lista de Templates</h3>
-                          <p className="text-muted-foreground text-sm font-normal">Clique para ver e gerenciar seus templates.</p>
+                      <AccordionTrigger className="bg-card p-4 md:p-6 rounded-2xl border shadow-sm hover:no-underline [&[data-state=open]>div>h3]:text-primary transition-all">
+                        <div className="flex flex-col items-start text-left gap-1">
+                          <h3 className="text-lg md:text-xl font-bold tracking-tight">Lista de Templates</h3>
+                          <p className="text-muted-foreground text-xs md:text-sm font-normal">Clique para ver e gerenciar seus templates.</p>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                      <AccordionContent className="pt-4 md:pt-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-6">
                           {templates.length > 0 ? (
                             templates.map((template) => {
                               const header = template.components?.find((c: any) => c.type === 'HEADER');
@@ -3183,34 +3185,36 @@ const CRM = () => {
                                           <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
                                       </div>
-                              </div>
-                              <div className="flex justify-between items-center gap-2">
-                                <CardTitle className="text-base truncate font-bold flex items-center gap-2">
-                                  {template.name}
-                                  {template.is_carousel && <Layers className="w-3 h-3 text-primary" />}
-                                  {template.is_pix && <CreditCard className="w-3 h-3 text-amber-500" />}
-                                </CardTitle>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-9 w-9 rounded-xl text-primary hover:text-white hover:bg-primary shadow-sm hover:shadow-primary/20 transition-all border border-primary/10 active:scale-95"
-                                  title="Copiar texto fácil (sem aspas)"
-                                  onClick={() => {
-                                    const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text || '';
-                                    copyToClipboard(bodyText, "Texto do Template");
-                                  }}
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.category}</Badge>
-                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.language}</Badge>
-                                {template.is_pix && (
-                                  <Badge variant="outline" className="text-[9px] font-bold bg-amber-500/10 text-amber-600 border-amber-200">PIX</Badge>
-                                )}
-                              </div>
-                            </CardHeader>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-2">
+                                      <CardTitle className="text-sm md:text-base truncate font-bold flex items-center gap-1.5 min-w-0">
+                                        <span className="truncate">{template.name}</span>
+                                        <div className="flex gap-1 shrink-0">
+                                          {template.is_carousel && <Layers className="w-3 h-3 text-primary" />}
+                                          {template.is_pix && <CreditCard className="w-3 h-3 text-amber-500" />}
+                                        </div>
+                                      </CardTitle>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 md:h-9 md:w-9 shrink-0 rounded-xl text-primary hover:text-white hover:bg-primary shadow-sm hover:shadow-primary/20 transition-all border border-primary/10 active:scale-95"
+                                        title="Copiar texto fácil (sem aspas)"
+                                        onClick={() => {
+                                          const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text || '';
+                                          copyToClipboard(bodyText, "Texto do Template");
+                                        }}
+                                      >
+                                        <Copy className="h-3.5 w-3.5 md:h-4 md:h-4" />
+                                      </Button>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                      <Badge variant="outline" className="text-[8px] md:text-[9px] font-bold bg-muted/50 border-none px-1.5 py-0 md:py-0.5">{template.category}</Badge>
+                                      <Badge variant="outline" className="text-[8px] md:text-[9px] font-bold bg-muted/50 border-none px-1.5 py-0 md:py-0.5">{template.language}</Badge>
+                                      {template.is_pix && (
+                                        <Badge variant="outline" className="text-[8px] md:text-[9px] font-bold bg-amber-500/10 text-amber-600 border-amber-200 px-1.5 py-0 md:py-0.5">PIX</Badge>
+                                      )}
+                                    </div>
+                                  </CardHeader>
                             <CardContent className="p-4 flex-1 flex flex-col justify-between gap-4">
                               <div className="bg-muted/20 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/50 relative">
                                 <div className="absolute top-2 right-2 w-4 h-4 text-muted-foreground/30"><MessageSquare className="w-full h-full" /></div>
@@ -3233,21 +3237,21 @@ const CRM = () => {
                                     })}
                                   </div>
                                 )}
-                                <div className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4">
+                                <div className="text-[12px] md:text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4 md:line-clamp-6">
                                   "{body?.text}"
                                 </div>
                                 {template.is_pix && template.pix_code && (
                                   <Button 
                                     variant="outline" 
                                     size="sm" 
-                                    className="w-full mt-3 h-8 text-[10px] bg-amber-50/50 hover:bg-amber-100 dark:bg-amber-900/10 dark:hover:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 gap-2"
+                                    className="w-full mt-3 h-8 text-[9px] md:text-[10px] bg-amber-50/50 hover:bg-amber-100 dark:bg-amber-900/10 dark:hover:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 gap-1.5 md:gap-2 px-2"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       navigator.clipboard.writeText(template.pix_code);
                                       toast({ title: "PIX Copiado!", description: "Chave PIX copiada para a área de transferência." });
                                     }}
                                   >
-                                    <Copy className="w-3 h-3" /> Copiar PIX
+                                    <Copy className="w-2.5 h-2.5 md:w-3 md:h-3 shrink-0" /> <span className="truncate">Copiar PIX</span>
                                   </Button>
                                 )}
                               </div>
