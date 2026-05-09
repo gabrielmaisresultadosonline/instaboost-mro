@@ -49,7 +49,6 @@ import {
   LayoutDashboard,
   Menu,
   ChevronLeft,
-  Instagram,
   Facebook,
   Link as LinkIcon,
   UserPlus,
@@ -65,8 +64,11 @@ import {
   Layers,
   CreditCard,
   Copy,
-  Pencil
+  Pencil,
+  Camera
 } from "lucide-react";
+import * as LucideIcons from 'lucide-react';
+const Instagram = (LucideIcons as any).Instagram || Camera;
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
