@@ -1559,36 +1559,6 @@ const CRM = () => {
             </div>
             {activeTab === 'contacts' && (
               <div className="flex items-center gap-3">
-                <div className="hidden md:flex items-center gap-3 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10 mr-2">
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      id="google-sync-header" 
-                      checked={metaSettings.google_auto_sync} 
-                      onCheckedChange={async (checked) => {
-                        setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                        const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
-                        await supabase.from('crm_settings').upsert({
-                          ...rest,
-                          google_auto_sync: checked,
-                          id: '00000000-0000-0000-0000-000000000001',
-                          updated_at: new Date().toISOString()
-                        });
-                        toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
-                      }}
-                    />
-                    <Label htmlFor="google-sync-header" className="text-[10px] font-bold uppercase cursor-pointer whitespace-nowrap">Sincronizar Google</Label>
-                  </div>
-                  <div className="h-4 w-px bg-primary/20" />
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-7 text-[10px] font-black hover:bg-primary/10"
-                    onClick={handleSyncGoogleContacts}
-                  >
-                    {googleContactsEnabled ? 'RECONECTAR' : 'CONECTAR GOOGLE'}
-                  </Button>
-                </div>
-
                 <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold">
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
