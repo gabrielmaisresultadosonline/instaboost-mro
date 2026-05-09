@@ -1679,6 +1679,62 @@ const CRM = () => {
                       </Card>
                     ))}
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <Card className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20">
+                      <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
+                        <div className="min-w-0">
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-orange-700 dark:text-orange-400">
+                            Conversas Pagas (Iniciadas por mim)
+                          </CardDescription>
+                          <p className="text-[10px] text-muted-foreground mt-0.5 capitalize truncate">
+                            {conversationStats.monthLabel || 'Este mês'} · R$ {CONVERSATION_COST.toFixed(2).replace('.', ',')} por conversa
+                          </p>
+                        </div>
+                        <DollarSign className="w-5 h-5 text-orange-500 shrink-0" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <div className="text-2xl md:text-3xl font-black text-orange-600 dark:text-orange-400">
+                            R$ {(conversationStats.paidThisMonth * CONVERSATION_COST).toFixed(2).replace('.', ',')}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] font-bold border-orange-300 text-orange-700 dark:text-orange-400">
+                            {conversationStats.paidThisMonth} conv.
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-2">
+                          Conta apenas conversas iniciadas por você fora da janela de 24h. Zera todo mês, mantendo histórico.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20">
+                      <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
+                        <div className="min-w-0">
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                            Janela 24h Aberta (grátis)
+                          </CardDescription>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Conversas que você ainda pode responder sem cobrança
+                          </p>
+                        </div>
+                        <Clock className="w-5 h-5 text-emerald-500 shrink-0" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                            {conversationStats.activeWindow24h}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] font-bold border-emerald-300 text-emerald-700 dark:text-emerald-400">
+                            ativas
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-2">
+                          Contatos que enviaram mensagem nas últimas 24h. Você pode enviar mensagens livres a esses sem nova cobrança.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               </ScrollArea>
             )}
