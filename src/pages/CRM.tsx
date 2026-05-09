@@ -81,6 +81,7 @@ import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
 import Broadcaster from "@/components/crm/Broadcaster";
+import ModuleManager from "@/components/admin/ModuleManager";
 import { 
   SidebarProvider, 
   Sidebar, 
