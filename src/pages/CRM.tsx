@@ -142,6 +142,12 @@ const CRM = () => {
     qualified_count: 0,
     sales_count: 0
   });
+  const [conversationStats, setConversationStats] = useState({
+    paidThisMonth: 0,
+    activeWindow24h: 0,
+    monthLabel: ''
+  });
+  const CONVERSATION_COST = 0.33;
   const [flows, setFlows] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
