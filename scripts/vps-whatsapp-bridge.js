@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import axios from 'axios';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
