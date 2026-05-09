@@ -3078,6 +3078,24 @@ const CRM = () => {
                       <p className="text-muted-foreground text-sm">Gerencie todos os seus contatos salvos e importados.</p>
                     </div>
                     <div className="flex gap-2">
+                      {googleContactsEnabled && (
+                        <Button 
+                          variant="outline" 
+                          className="border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                          onClick={() => {
+                            if (!metaSettings.google_client_id) {
+                              toast({ title: "Erro", description: "Configure o Client ID nas configurações primeiro", variant: "destructive" });
+                              return;
+                            }
+                            const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+                            const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
+                            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+                            window.location.href = url;
+                          }}
+                        >
+                          <RefreshCcw className="w-4 h-4 mr-2" /> Sincronizar Google
+                        </Button>
+                      )}
                       <Button variant="outline" onClick={() => setIsImportExportOpen(true)}>
                         <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
                       </Button>
