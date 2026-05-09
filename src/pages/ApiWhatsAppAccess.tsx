@@ -401,7 +401,7 @@ export default function ApiWhatsAppAccess() {
     return new Promise<void>((resolve) => {
       mediaRecorderRef.current!.onstop = () => {
         mediaRecorderRef.current?.stream.getTracks().forEach(t => t.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorderRef.current?.mimeType || 'audio/ogg' });
         audioChunksRef.current = [];
 
         if (audioBlob.size < 1000) {
