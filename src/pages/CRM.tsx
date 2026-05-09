@@ -3634,7 +3634,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-5">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Token Permanente</Label>
                           <Input type="password" placeholder="EAA..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
@@ -3667,7 +3667,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-5">
                         <div className="space-y-4">
                           <div className="space-y-2">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
@@ -3725,7 +3725,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-6">
+                      <CardContent className="p-4 md:p-6 space-y-6">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
                           <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
@@ -3744,7 +3744,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-5">
+                      <CardContent className="p-4 md:p-6 space-y-5">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client ID</Label>
                           <Input 
@@ -3826,7 +3826,7 @@ const CRM = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6 space-y-8">
+                      <CardContent className="p-4 md:p-6 space-y-8">
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho dos Atalhos (Modelos/Fluxos)</Label>
