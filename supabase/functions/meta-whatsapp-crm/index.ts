@@ -1198,11 +1198,13 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    // Process delay in real-time for any delay up to 25 seconds to ensure exact timing
-    // Any delay longer than 25s will be scheduled via database to avoid function timeout
-    if (delayMs <= 25000) {
+    // Process delay in real-time for any delay up to 60 seconds to ensure exact timing
+    // Any delay longer than 60s will be scheduled via database to avoid function timeout
+    if (delayMs <= 60000) {
       if (delayMs > 0) {
         console.log(`Waiting ${delayMs}ms for flow delay...`);
+        // If it's a small delay, just wait.
+        // For delays > 10s, we might want to update the contact's next_execution_time immediately
         await sleep(delayMs);
       }
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
