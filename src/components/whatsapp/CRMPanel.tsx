@@ -57,6 +57,44 @@ export default function CRMPanel({ callProxy, onSelectContact }: CRMPanelProps) 
   const [saving, setSaving] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [syncingGoogle, setSyncingGoogle] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(localStorage.getItem("google_contacts_connected") === "true");
+
+  const connectGoogle = async () => {
+    try {
+      const result = await callProxy('getGoogleAuthUrl');
+      if (result.authUrl) {
+        window.location.href = result.authUrl;
+      } else {
+        toast({ title: "Erro", description: "URL de autenticação não gerada.", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Erro ao conectar Google:", error);
+      toast({ title: "Erro", description: "Falha ao iniciar conexão com Google.", variant: "destructive" });
+    }
+  };
+
+  const syncContacts = async () => {
+    setSyncingGoogle(true);
+    try {
+      const result = await callProxy('syncGoogleContacts');
+      if (result.success) {
+        toast({ title: "Sucesso", description: `${result.count} contatos sincronizados!` });
+        await loadContacts();
+      } else {
+        toast({ title: "Erro", description: result.error || "Falha na sincronização", variant: "destructive" });
+      }
+    } catch (error: any) {
+      console.error("Erro ao sincronizar:", error);
+      if (error.message?.includes("Google account not connected")) {
+        setGoogleConnected(false);
+        localStorage.removeItem("google_contacts_connected");
+      }
+      toast({ title: "Erro na sincronização", description: error.message || "Tente reconectar sua conta.", variant: "destructive" });
+    } finally {
+      setSyncingGoogle(false);
+    }
+  };
 
   const loadContacts = async () => {
     setLoading(true);
