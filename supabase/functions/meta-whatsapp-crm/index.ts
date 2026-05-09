@@ -1512,9 +1512,10 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
                    type === 'video' ? 'video.mp4' : 'document.pdf';
 
     // Meta is very strict: voice messages MUST be audio/ogg with opus codec
+    // IMPORTANT: The MIME type for voice messages MUST be audio/ogg
     if (type === 'audio') {
-      // Re-label to audio/ogg for Meta compatibility
       const buffer = await blob.arrayBuffer();
+      // Even if the original was webm, we "re-wrap" it as audio/ogg for Meta's API
       blob = new Blob([buffer], { type: 'audio/ogg' });
       mimeType = 'audio/ogg';
       filename = 'voice.ogg';
@@ -1522,10 +1523,10 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     }
 
     const formData = new FormData();
-    // Use the explicit mimeType and filename to ensure Meta receives the correct metadata
     const file = new File([blob], filename, { type: mimeType });
     formData.append('file', file);
-    formData.append('type', mimeType === 'audio/ogg' ? 'audio/ogg' : type);
+    // For audio, Meta expects the type to be 'audio/ogg' specifically for voice messages
+    formData.append('type', type === 'audio' ? 'audio/ogg' : mimeType);
     formData.append('messaging_product', 'whatsapp');
 
     const response = await fetch(
