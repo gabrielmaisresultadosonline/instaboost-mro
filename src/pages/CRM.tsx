@@ -355,6 +355,17 @@ const CRM = () => {
     }
   };
 
+  const handleConnectGoogle = () => {
+    if (!metaSettings.google_client_id) {
+      toast({ title: "Aviso", description: "Configure o Google Client ID nas configurações primeiro.", variant: "destructive" });
+      return;
+    }
+    const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+    const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts.readonly');
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+    window.location.href = url;
+  };
+
   const handleImprovePrompt = async () => {
     if (!metaSettings.ai_system_prompt?.trim() || improvingPrompt) {
       toast({ title: "Aviso", description: "Escreva algo no prompt primeiro para que eu possa melhorar." });
