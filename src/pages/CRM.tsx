@@ -695,13 +695,22 @@ const CRM = () => {
     try {
       // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
-      // For recordings, we want to force .ogg and audio/ogg; codecs=opus for Meta voice messages
-      const fileExt = isAudio ? 'ogg' : (file instanceof File ? file.name.split('.').pop() : 'bin');
+      // Determine extension based on real mime type
+      let fileExt = 'bin';
+      let contentType = file instanceof File ? file.type : (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
+      
+      if (isAudio) {
+        if (contentType?.includes('ogg')) fileExt = 'ogg';
+        else if (contentType?.includes('webm')) fileExt = 'webm';
+        else if (contentType?.includes('mp4') || contentType?.includes('aac')) fileExt = 'm4a';
+        else if (contentType?.includes('mpeg')) fileExt = 'mp3';
+        else fileExt = 'ogg'; // Default to ogg
+      } else if (file instanceof File) {
+        fileExt = file.name.split('.').pop() || 'bin';
+      }
+
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
-
-      // Meta is extremely picky: it wants audio/ogg; codecs=opus
-      const contentType = isAudio ? 'audio/ogg; codecs=opus' : (file instanceof File ? file.type : undefined);
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
