@@ -290,6 +290,7 @@ const CRM = () => {
     try {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
       const { data: monthMsgs } = await supabase
@@ -307,9 +308,13 @@ const CRM = () => {
 
       const DAY = 24 * 60 * 60 * 1000;
       let paidCount = 0;
+      let paidWeek = 0;
+      
       Object.values(byContact).forEach((msgs) => {
         let lastInbound = -Infinity;
         let lastPaidStart = -Infinity;
+        const weekTime = new Date(startOfWeek).getTime();
+        
         for (const m of msgs) {
           const t = new Date(m.created_at).getTime();
           if (m.direction === 'inbound') {
@@ -319,6 +324,7 @@ const CRM = () => {
             const inPaidWindow = t - lastPaidStart < DAY;
             if (!inFreeWindow && !inPaidWindow) {
               paidCount++;
+              if (t >= weekTime) paidWeek++;
               lastPaidStart = t;
             }
           }
@@ -331,13 +337,25 @@ const CRM = () => {
         .eq('direction', 'inbound')
         .gte('created_at', since24h)
         .limit(10000);
+      
       const activeSet = new Set<string>();
       (recent || []).forEach((m: any) => m.contact_id && activeSet.add(m.contact_id));
+
+      const { data: recentWeek } = await supabase
+        .from('crm_messages')
+        .select('contact_id')
+        .eq('direction', 'inbound')
+        .gte('created_at', startOfWeek)
+        .limit(10000);
+      const activeWeekSet = new Set<string>();
+      (recentWeek || []).forEach((m: any) => m.contact_id && activeWeekSet.add(m.contact_id));
 
       setConversationStats({
         paidThisMonth: paidCount,
         activeWindow24h: activeSet.size,
-        monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+        monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        paidThisWeek: paidWeek,
+        activeThisWeek: activeWeekSet.size
       });
 
       // Calcular dados do gráfico (últimos 7 dias)
