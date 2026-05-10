@@ -2045,25 +2045,31 @@ const CRM = () => {
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                            Janela 24h Aberta (grátis)
+                            Resumo Semanal (7 dias)
                           </CardDescription>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Conversas que você ainda pode responder sem cobrança
+                            Performance da última semana
                           </p>
                         </div>
-                        <Clock className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <Calendar className="w-5 h-5 text-emerald-500 shrink-0" />
                       </CardHeader>
                       <CardContent>
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400">
-                            {conversationStats.activeWindow24h}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Pagas</p>
+                            <div className="text-xl font-black text-emerald-600">
+                              {conversationStats.paidThisWeek}
+                            </div>
                           </div>
-                          <Badge variant="outline" className="text-[10px] font-bold border-emerald-300 text-emerald-700 dark:text-emerald-400">
-                            ativas
-                          </Badge>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Ativas</p>
+                            <div className="text-xl font-black text-emerald-600">
+                              {conversationStats.activeThisWeek}
+                            </div>
+                          </div>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Contatos que enviaram mensagem nas últimas 24h. Clique para ver a lista.
+                          Contatos únicos que interagiram nos últimos 7 dias.
                         </p>
                       </CardContent>
                     </Card>
