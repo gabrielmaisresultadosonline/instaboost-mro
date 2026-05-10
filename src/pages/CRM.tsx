@@ -1965,7 +1965,7 @@ const CRM = () => {
                       { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue', type: 'sent' },
                       { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow', type: 'responded' },
                       { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple', type: 'qualified' },
-                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green', type: 'sales' },
+                      { label: 'Conversas 24h (Hoje)', value: conversationStats.activeWindow24h, icon: Clock, color: 'green', type: 'active_today' },
                     ].map((stat, i) => (
                       <Card 
                         key={i} 
@@ -1973,7 +1973,7 @@ const CRM = () => {
                         onClick={() => {
                           if (stat.type === 'responded') setStatusFilter('responded');
                           else if (stat.type === 'qualified') setStatusFilter('qualified');
-                          else if (stat.type === 'sales') setStatusFilter('closed');
+                          else if (stat.type === 'active_today') handleOpenMetricsList('active');
                           else setStatusFilter('all');
                           setActiveTab('contacts');
                         }}
