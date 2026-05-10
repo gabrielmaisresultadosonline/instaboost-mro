@@ -42,6 +42,57 @@ let initializing = false;
 let lastBackendError = null;
 let errorCount = 0;
 
+function ffmpegEscape(filePath) {
+  return `"${String(filePath).replace(/"/g, '\\"')}"`;
+}
+
+async function transcodeToWhatsAppVoice(inputPath, outputPath) {
+  await execAsync([
+    'ffmpeg',
+    '-y',
+    '-i', ffmpegEscape(inputPath),
+    '-vn',
+    '-map_metadata', '-1',
+    '-ac', '1',
+    '-ar', '48000',
+    '-c:a', 'libopus',
+    '-b:a', '32k',
+    '-vbr', 'on',
+    '-compression_level', '10',
+    '-application', 'voip',
+    '-frame_duration', '20',
+    '-avoid_negative_ts', 'make_zero',
+    '-f', 'ogg',
+    ffmpegEscape(outputPath)
+  ].join(' '));
+}
+
+async function createVoiceMediaFromUrl(audioUrl) {
+  const tempId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const inputPath = path.join(__dirname, `input_${tempId}.tmp`);
+  const outputPath = path.join(__dirname, `voice_${tempId}.ogg`);
+
+  try {
+    const response = await axios({
+      method: 'get',
+      url: audioUrl,
+      responseType: 'arraybuffer',
+      timeout: 30000,
+      maxContentLength: 20 * 1024 * 1024
+    });
+
+    fs.writeFileSync(inputPath, response.data);
+    await transcodeToWhatsAppVoice(inputPath, outputPath);
+
+    return MessageMedia.fromFilePath(outputPath);
+  } finally {
+    try {
+      if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+      if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+    } catch (e) {}
+  }
+}
+
 // ============= Express Server (Bridge) =============
 const app = express();
 app.use(cors());
@@ -59,16 +110,15 @@ app.get('/', (req, res) => {
 
 // Endpoint para envio direto de áudio do CRM (com transcodificação profissional)
 app.post('/send-voice', async (req, res) => {
-  const { to, audioUrl, metaToken, phoneId } = req.body;
+  const { to, audioUrl } = req.body;
 
   if (!to || !audioUrl) {
     return res.status(400).json({ error: 'Parâmetros "to" e "audioUrl" obrigatórios' });
   }
 
   const tempId = Math.random().toString(36).substring(7);
-  // Adicionamos extensões para ajudar o FFmpeg a detectar os formatos
   const inputPath = path.join(__dirname, `input_${tempId}.tmp`);
-  const outputPath = path.join(__dirname, `output_${tempId}.ogg`);
+  const outputPath = path.join(__dirname, `voice_${tempId}.ogg`);
 
   try {
     const chatId = formatPhone(to);
@@ -84,64 +134,18 @@ app.post('/send-voice', async (req, res) => {
     fs.writeFileSync(inputPath, response.data);
     console.log(`✅ [Bridge] Download concluído (${response.data.length} bytes).`);
 
-    // 2. Transcodificar para OGG Opus usando FFmpeg (formato nativo WhatsApp)
+    // 2. Transcodificar para OGG Opus usando FFmpeg (formato nativo de áudio gravado do WhatsApp)
     console.log(`🔧 [Bridge] Transcodificando via FFmpeg...`);
-    try {
-      // WhatsApp Mobile é mais rígido: OGG precisa ser Opus real, mono, 48kHz e MIME com codecs=opus.
-      await execAsync(`ffmpeg -i "${inputPath}" -vn -map_metadata -1 -c:a libopus -b:a 32k -ar 48000 -ac 1 -application voip -frame_duration 20 -f ogg "${outputPath}" -y`);
-      console.log(`✅ [Bridge] Transcodificação FFmpeg concluída (OGG Opus mono 48kHz).`);
-    } catch (ffmpegErr) {
-      console.error('⚠️ [Bridge] Falha no FFmpeg:', ffmpegErr.message);
-      // Fallback: se o FFmpeg falhar, tentamos enviar o original se for compatível
-      fs.copyFileSync(inputPath, outputPath);
+    await transcodeToWhatsAppVoice(inputPath, outputPath);
+    console.log(`✅ [Bridge] Transcodificação FFmpeg concluída (OGG Opus mono 48kHz).`);
+
+    if (!client || currentStatus !== 'connected') {
+      throw new Error('Bot não está conectado no WhatsApp para envio local');
     }
 
-    const audioData = fs.readFileSync(outputPath);
-    const base64Audio = audioData.toString('base64');
-
-
-    // 3. Decidir como enviar (Meta API ou Bot Local)
-    if (metaToken && phoneId) {
-      console.log(`📤 [Bridge] Enviando via Meta Cloud API...`);
-      
-      // Upload para Meta
-      const metaUploadForm = new (require('form-data'))();
-      metaUploadForm.append('messaging_product', 'whatsapp');
-      metaUploadForm.append('type', 'audio');
-      metaUploadForm.append('file', audioData, { filename: 'voice.ogg', contentType: 'audio/ogg; codecs=opus' });
-
-      const uploadRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/media`, metaUploadForm, {
-        headers: {
-          ...metaUploadForm.getHeaders(),
-          'Authorization': `Bearer ${metaToken}`
-        }
-      });
-
-      const mediaId = uploadRes.data.id;
-      console.log(`✅ [Bridge] Upload concluído na Meta. ID: ${mediaId}`);
-
-      // Enviar mensagem
-      const sendRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/messages`, {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: to,
-        type: "audio",
-        audio: { id: mediaId }
-      }, {
-        headers: { 'Authorization': `Bearer ${metaToken}` }
-      });
-
-      res.json({ success: true, messageId: sendRes.data.messages?.[0]?.id });
-    } else {
-      // Enviar via Bot Local (whatsapp-web.js)
-      if (!client || currentStatus !== 'connected') {
-        throw new Error('Bot não está conectado no WhatsApp para envio local');
-      }
-      
-      const media = new MessageMedia('audio/ogg; codecs=opus', base64Audio, 'voice.ogg');
-      await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
-      res.json({ success: true, message: 'Áudio enviado via Bot Local' });
-    }
+    const media = MessageMedia.fromFilePath(outputPath);
+    await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
+    res.json({ success: true, message: 'Áudio enviado como gravação de voz via Bot Local' });
   } catch (err) {
     console.error('❌ Erro no Bridge:', err.message);
     res.status(500).json({ error: err.message });
@@ -358,7 +362,7 @@ async function processPending() {
 
     try {
       if (msg.message_type === 'audio' || msg.message_type === 'voice') {
-        const media = await MessageMedia.fromUrl(msg.media_url);
+        const media = await createVoiceMediaFromUrl(msg.media_url);
         await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
       } else if (msg.message_type === 'image' || msg.message_type === 'video' || msg.message_type === 'document') {
         const media = await MessageMedia.fromUrl(msg.media_url);
