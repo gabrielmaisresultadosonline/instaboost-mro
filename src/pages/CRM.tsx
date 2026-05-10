@@ -99,6 +99,62 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+const encodeAudioBufferToWav = (audioBuffer: AudioBuffer) => {
+  const channels = Math.min(audioBuffer.numberOfChannels, 2);
+  const sampleRate = audioBuffer.sampleRate;
+  const samples = audioBuffer.length;
+  const bytesPerSample = 2;
+  const blockAlign = channels * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + samples * blockAlign);
+  const view = new DataView(buffer);
+  const writeString = (offset: number, value: string) => {
+    for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i));
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + samples * blockAlign, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, samples * blockAlign, true);
+
+  let offset = 44;
+  const channelData = Array.from({ length: channels }, (_, index) => audioBuffer.getChannelData(index));
+  for (let i = 0; i < samples; i++) {
+    for (let channel = 0; channel < channels; channel++) {
+      const sample = Math.max(-1, Math.min(1, channelData[channel][i]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      offset += 2;
+    }
+  }
+
+  return buffer;
+};
+
+const createMobilePlayableAudioBlob = async (audioBlob: Blob) => {
+  const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+  if (!AudioContextCtor) return null;
+
+  const context = new AudioContextCtor();
+  try {
+    const sourceBuffer = await audioBlob.arrayBuffer();
+    const decoded = await context.decodeAudioData(sourceBuffer.slice(0));
+    return new Blob([encodeAudioBufferToWav(decoded)], { type: 'audio/wav' });
+  } catch (error) {
+    console.warn('Não foi possível gerar cópia WAV para o histórico mobile:', error);
+    return null;
+  } finally {
+    context.close?.();
+  }
+};
+
 const CRM = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -344,6 +400,11 @@ const CRM = () => {
               if (prev.find(m => m.id === newMessage.id)) return prev;
               return [...prev, newMessage];
             });
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedMessage = payload.new;
+          if (selectedContactRef.current && updatedMessage.contact_id === selectedContactRef.current.id) {
+            setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
           }
         }
         fetchContacts();
@@ -813,11 +874,12 @@ const CRM = () => {
     if (!selectedContact) return;
     setSendingMessage(true);
     const localPreviewUrl = previewUrl || (file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || URL.createObjectURL(file)));
+    const selectedContactId = selectedContact.id;
     
     // Optimistic update for media
     const optimisticMessage = {
       id: `temp-media-${Date.now()}`,
-      contact_id: selectedContact.id,
+      contact_id: selectedContactId,
       content: isVoice ? '[Mensagem de Áudio...]' : `[${type.toUpperCase()}...]`,
       direction: 'outbound',
       message_type: type,
@@ -831,14 +893,14 @@ const CRM = () => {
       const { data: savedMessage, error: persistError } = await supabase
         .from('crm_messages')
         .insert({
-          contact_id: selectedContact.id,
+          contact_id: selectedContactId,
           direction: 'outbound',
-          message_type: isVoice ? 'voice' : 'audio',
-          content: '',
+          message_type: 'audio',
+          content: '[Mensagem de Áudio]',
           media_url: publicUrl,
           status: 'sent',
           meta_message_id: metaMsgId,
-          metadata: { source, original_mime: contentType || null }
+          metadata: { source, original_mime: contentType || null, is_voice: isVoice }
         })
         .select()
         .single();
@@ -847,12 +909,14 @@ const CRM = () => {
 
       await supabase.from('crm_contacts')
         .update({ last_interaction: new Date().toISOString() })
-        .eq('id', selectedContact.id);
+        .eq('id', selectedContactId);
 
-      setChatMessages(prev => {
-        const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
-        return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
-      });
+      if (selectedContactRef.current?.id === selectedContactId) {
+        setChatMessages(prev => {
+          const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
+          return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
+        });
+      }
       return savedMessage;
     };
 
@@ -888,6 +952,23 @@ const CRM = () => {
       const { data: { publicUrl } } = supabase.storage
         .from('crm-media')
         .getPublicUrl(filePath);
+
+      let historyAudioUrl = publicUrl;
+      let historyContentType = contentType;
+      if (isAudio) {
+        const wavBlob = await createMobilePlayableAudioBlob(file);
+        if (wavBlob) {
+          const wavPath = `chat-media/history_${fileName.replace(/\.[^.]+$/, '')}.wav`;
+          const { error: wavUploadError } = await supabase.storage
+            .from('crm-media')
+            .upload(wavPath, wavBlob, { contentType: 'audio/wav', upsert: true });
+          if (!wavUploadError) {
+            const { data: { publicUrl: wavPublicUrl } } = supabase.storage.from('crm-media').getPublicUrl(wavPath);
+            historyAudioUrl = wavPublicUrl;
+            historyContentType = 'audio/wav';
+          }
+        }
+      }
 
       if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
@@ -933,7 +1014,7 @@ const CRM = () => {
 
         if (vpsResult) {
           const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
-          await persistOutboundAudio(publicUrl, metaMsgId, 'vps_bridge', contentType);
+          await persistOutboundAudio(historyAudioUrl, metaMsgId, 'vps_bridge', historyContentType);
           toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
@@ -959,9 +1040,9 @@ const CRM = () => {
       setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       if (type === 'audio') {
         const metaMsgId = data?.messageId || data?.messages?.[0]?.id || data?.result?.messages?.[0]?.id || null;
-        await persistOutboundAudio(publicUrl, metaMsgId, 'standard_send', contentType);
+        await persistOutboundAudio(historyAudioUrl, metaMsgId, 'standard_send', historyContentType);
       }
-      await fetchMessages(selectedContact.id);
+      await fetchMessages(selectedContactId);
       toast({ title: "Mídia enviada!" });
     } catch (err: any) {
       setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
