@@ -902,30 +902,30 @@ const CRM = () => {
           });
         }
 
-        try {
-          const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
-          const response = await fetch(`${vpsUrl}/send-voice`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: selectedContact.wa_id,
-              audioUrl: publicUrl,
-              metaToken: metaSettings.meta_access_token,
-              phoneId: metaSettings.meta_phone_number_id
-            })
-          });
-          
-          const result = await response.json();
-          if (!response.ok) {
-            console.error("VPS returned error:", result);
-            throw new Error(result.error || result.details || 'Erro no processamento do VPS');
-          }
-          
+        const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+        const response = await fetch(`${vpsUrl}/send-voice`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: selectedContact.wa_id,
+            audioUrl: publicUrl,
+            metaToken: metaSettings.meta_access_token,
+            phoneId: metaSettings.meta_phone_number_id
+          })
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
           const metaMsgId = result?.messageId || result?.messages?.[0]?.id || null;
           await persistOutboundAudio(publicUrl, metaMsgId, 'vps_bridge', contentType);
-          toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e enviado como mensagem de voz." });
+          toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
+        }
+
+        try {
+          console.error("VPS returned error:", result);
+          throw new Error(result.error || result.details || 'Erro no processamento do VPS');
         } catch (vpsErr: any) {
           console.error("VPS Error, falling back to standard send:", vpsErr);
           toast({ 
