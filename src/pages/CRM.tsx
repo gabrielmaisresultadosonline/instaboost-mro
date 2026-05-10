@@ -1014,6 +1014,8 @@ const CRM = () => {
             body: JSON.stringify({
               to: selectedContact.wa_id,
               audioUrl: publicUrl,
+              metaToken: metaSettings.meta_access_token,
+              phoneId: metaSettings.meta_phone_number_id,
               sendAsVoice: true
             })
           });
@@ -1024,10 +1026,10 @@ const CRM = () => {
             throw new Error(vpsResult.error || vpsResult.details || 'Erro no processamento do VPS');
           }
         } catch (vpsErr: any) {
-          console.error("VPS Error; áudio não enviado para evitar incompatibilidade no celular:", vpsErr);
+          console.error("VPS/Meta Error; áudio não enviado para evitar incompatibilidade no celular:", vpsErr);
           toast({ 
-            title: "Bot do WhatsApp desconectado", 
-            description: "O áudio não foi enviado porque o bridge não está conectado no WhatsApp. Reative o QR/bot e tente novamente. Erro: " + vpsErr.message,
+            title: "Erro no transcoder da Meta", 
+            description: "O áudio foi salvo no histórico, mas a Meta API não aceitou o envio convertido. Erro: " + vpsErr.message,
             variant: "destructive"
           });
           await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
