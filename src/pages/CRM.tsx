@@ -270,6 +270,8 @@ const CRM = () => {
   const [isEditStatusDialogOpen, setIsEditStatusDialogOpen] = useState(false);
   const [editingStatus, setEditingStatus] = useState<any>(null);
   const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
+  const [isSyncingContacts, setIsSyncingContacts] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
