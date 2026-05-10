@@ -42,6 +42,57 @@ let initializing = false;
 let lastBackendError = null;
 let errorCount = 0;
 
+function ffmpegEscape(filePath) {
+  return `"${String(filePath).replace(/"/g, '\\"')}"`;
+}
+
+async function transcodeToWhatsAppVoice(inputPath, outputPath) {
+  await execAsync([
+    'ffmpeg',
+    '-y',
+    '-i', ffmpegEscape(inputPath),
+    '-vn',
+    '-map_metadata', '-1',
+    '-ac', '1',
+    '-ar', '48000',
+    '-c:a', 'libopus',
+    '-b:a', '32k',
+    '-vbr', 'on',
+    '-compression_level', '10',
+    '-application', 'voip',
+    '-frame_duration', '20',
+    '-avoid_negative_ts', 'make_zero',
+    '-f', 'ogg',
+    ffmpegEscape(outputPath)
+  ].join(' '));
+}
+
+async function createVoiceMediaFromUrl(audioUrl) {
+  const tempId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const inputPath = path.join(__dirname, `input_${tempId}.tmp`);
+  const outputPath = path.join(__dirname, `voice_${tempId}.ogg`);
+
+  try {
+    const response = await axios({
+      method: 'get',
+      url: audioUrl,
+      responseType: 'arraybuffer',
+      timeout: 30000,
+      maxContentLength: 20 * 1024 * 1024
+    });
+
+    fs.writeFileSync(inputPath, response.data);
+    await transcodeToWhatsAppVoice(inputPath, outputPath);
+
+    return MessageMedia.fromFilePath(outputPath);
+  } finally {
+    try {
+      if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+      if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+    } catch (e) {}
+  }
+}
+
 // ============= Express Server (Bridge) =============
 const app = express();
 app.use(cors());
