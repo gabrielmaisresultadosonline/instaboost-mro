@@ -2781,6 +2781,12 @@ const CRM = () => {
                                 <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
                                   {/* Atenção: Robô Desativado Geral hidden as requested */}
 
+                                  {selectedContact.last_interaction && (new Date().getTime() - new Date(selectedContact.last_interaction).getTime()) > 4 * 60 * 60 * 1000 && (
+                                    <div className="flex items-center gap-2 p-2 mb-2 bg-orange-500/10 border border-orange-500/20 rounded-lg animate-pulse">
+                                      <AlertCircle className="w-4 h-4 text-orange-600" />
+                                      <p className="text-[10px] font-bold text-orange-700 uppercase">Atenção: Mais de 4h sem resposta. Considere gerar uma estratégia de gancho.</p>
+                                    </div>
+                                  )}
                                   <div className="flex items-center justify-between gap-2 flex-wrap">
                                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                                       <div className="flex items-center gap-1.5 sm:gap-2">
