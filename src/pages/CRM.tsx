@@ -2093,10 +2093,20 @@ const CRM = () => {
                             <Area 
                               type="monotone" 
                               dataKey="pagos" 
+                              name="Conversas Pagas"
                               stroke="rgb(249, 115, 22)" 
                               strokeWidth={3}
                               fillOpacity={1} 
                               fill="url(#colorPagos)" 
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="ativos" 
+                              name="Janela Grátis"
+                              stroke="rgb(16, 185, 129)" 
+                              strokeWidth={3}
+                              fillOpacity={1} 
+                              fill="url(#colorAtivos)" 
                             />
                           </AreaChart>
                         </ResponsiveContainer>
