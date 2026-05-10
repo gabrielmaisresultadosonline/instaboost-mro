@@ -624,7 +624,7 @@ const CRM = () => {
         ...rest,
         google_auto_sync: metaSettings.google_auto_sync,
         id: '00000000-0000-0000-0000-000000000001',
-        strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas". As perguntas devem ser diretas para copiar e colar.',
+        strategy_generation_prompt: 'Analise o histórico acima e gere uma análise detalhada. Destaque pontos positivos da conversa e sugira o que dizer daqui para frente para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho \"### Perguntas para Eliminar Dúvidas\". As perguntas devem ser diretas para copiar e colar.',
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
       if (error) throw error;
