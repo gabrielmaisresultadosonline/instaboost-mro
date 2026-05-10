@@ -390,6 +390,15 @@ const CRM = () => {
     }
     fetchData();
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App visível, atualizando dados...');
+        fetchData();
+        fetchContacts();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const messageChannel = supabase
       .channel('crm_global_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_messages' }, (payload) => {
