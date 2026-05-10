@@ -336,6 +336,39 @@ const CRM = () => {
         activeWindow24h: activeSet.size,
         monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
       });
+
+      // Calcular dados do gráfico (últimos 7 dias)
+      const chartData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayLabel = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        
+        const dayPaid = Object.values(byContact).reduce((acc, msgs) => {
+          let count = 0;
+          let lastInbound = -Infinity;
+          let lastPaidStart = -Infinity;
+          msgs.forEach(m => {
+            const mt = new Date(m.created_at).getTime();
+            const mDate = m.created_at.split('T')[0];
+            if (m.direction === 'inbound') {
+              lastInbound = mt;
+            } else if (m.direction === 'outbound') {
+              const inFreeWindow = mt - lastInbound < DAY;
+              const inPaidWindow = mt - lastPaidStart < DAY;
+              if (!inFreeWindow && !inPaidWindow) {
+                if (mDate === dateStr) count++;
+                lastPaidStart = mt;
+              }
+            }
+          });
+          return acc + count;
+        }, 0);
+
+        chartData.push({ name: dayLabel, pagos: dayPaid });
+      }
+      setMetricsChartData(chartData);
+
     } catch (e) {
       console.error('Erro ao calcular estatísticas de conversas:', e);
     }
