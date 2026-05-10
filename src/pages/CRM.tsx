@@ -989,6 +989,7 @@ const CRM = () => {
             historyContentType = 'audio/wav';
           }
         }
+        await persistOutboundAudio(historyAudioUrl, null, 'history_saved_before_send', historyContentType, 'sending');
       }
 
       if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
@@ -1035,7 +1036,7 @@ const CRM = () => {
 
         if (vpsResult) {
           const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
-          await persistOutboundAudio(historyAudioUrl, metaMsgId, 'vps_bridge', historyContentType);
+          await updatePersistedAudio('sent', 'vps_bridge', metaMsgId);
           toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
@@ -1061,7 +1062,7 @@ const CRM = () => {
       setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       if (type === 'audio') {
         const metaMsgId = data?.messageId || data?.messages?.[0]?.id || data?.result?.messages?.[0]?.id || null;
-        await persistOutboundAudio(historyAudioUrl, metaMsgId, 'standard_send', historyContentType);
+        await updatePersistedAudio('sent', 'standard_send', metaMsgId);
       }
       await fetchMessages(selectedContactId);
       toast({ title: "Mídia enviada!" });
