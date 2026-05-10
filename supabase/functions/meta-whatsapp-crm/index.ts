@@ -3,7 +3,88 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+}
+
+const jsonResponse = (data: unknown, status = 200) => new Response(JSON.stringify(data), {
+  status,
+  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+})
+
+const normalizePhone = (raw: string) => {
+  let digits = String(raw || '').replace(/\D/g, '')
+  if (digits.length === 10 || digits.length === 11) digits = `55${digits}`
+  if (digits.length === 13 && digits.startsWith('55') && digits[4] === '9') digits = `${digits.slice(0, 4)}${digits.slice(5)}`
+  return digits
+}
+
+const guessMedia = (params: any) => {
+  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg', fileName: 'audio.ogg' }
+  if (params.imageUrl) return { type: 'image', url: params.imageUrl, mime: 'image/jpeg', fileName: 'image.jpg' }
+  if (params.videoUrl) return { type: 'video', url: params.videoUrl, mime: 'video/mp4', fileName: 'video.mp4' }
+  if (params.documentUrl) return { type: 'document', url: params.documentUrl, mime: 'application/octet-stream', fileName: params.fileName || 'document' }
+  return null
+}
+
+async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, media: { type: string; url: string; mime: string; fileName: string }) {
+  const mediaResponse = await fetch(media.url)
+  if (!mediaResponse.ok) throw new Error(`Falha ao baixar mídia (${mediaResponse.status})`)
+  const contentType = mediaResponse.headers.get('content-type') || media.mime
+  const blob = new Blob([await mediaResponse.arrayBuffer()], { type: contentType })
+  const form = new FormData()
+  form.append('messaging_product', 'whatsapp')
+  form.append('type', media.type)
+  form.append('file', blob, media.fileName)
+
+  const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: form,
+  })
+  const uploadResult = await uploadResponse.json().catch(() => ({}))
+  if (!uploadResponse.ok) throw new Error(uploadResult?.error?.message || 'Erro ao subir mídia na Meta')
+  return uploadResult.id
+}
+
+async function handleInternalSendMessage(supabase: any, phoneNumberId: string, accessToken: string, params: any, contact: any) {
+  if (!phoneNumberId || !accessToken) throw new Error('Credenciais Meta não configuradas')
+  const to = normalizePhone(params.to)
+  if (!to) throw new Error('Telefone inválido')
+
+  const media = guessMedia(params)
+  const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
+  if (media) {
+    const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
+    payload.type = media.type
+    payload[media.type] = media.type === 'document' ? { id: mediaId, filename: media.fileName } : { id: mediaId }
+  } else {
+    payload.type = 'text'
+    payload.text = { preview_url: true, body: String(params.text || '') }
+  }
+
+  const response = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(result?.error?.message || 'Erro ao enviar mensagem pela Meta')
+
+  if (contact && !params.skipLocalSave) {
+    await supabase.from('crm_messages').insert({
+      contact_id: contact.id,
+      direction: 'outbound',
+      message_type: media?.type || 'text',
+      content: media ? (params.text || `[${media.type}]`) : params.text,
+      media_url: media?.url || null,
+      status: 'sent',
+      meta_message_id: result?.messages?.[0]?.id || null,
+      metadata: media?.type === 'audio' ? { is_voice: !!params.isVoice } : {},
+    })
+    await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contact.id)
+  }
+
+  return jsonResponse({ success: true, result, messageId: result?.messages?.[0]?.id || null })
 }
 
 serve(async (req) => {
