@@ -362,7 +362,7 @@ async function processPending() {
 
     try {
       if (msg.message_type === 'audio' || msg.message_type === 'voice') {
-        const media = await MessageMedia.fromUrl(msg.media_url);
+        const media = await createVoiceMediaFromUrl(msg.media_url);
         await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
       } else if (msg.message_type === 'image' || msg.message_type === 'video' || msg.message_type === 'document') {
         const media = await MessageMedia.fromUrl(msg.media_url);
