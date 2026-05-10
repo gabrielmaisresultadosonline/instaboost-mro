@@ -1060,12 +1060,11 @@ const CRM = () => {
           action: 'sendMessage', 
           to: selectedContact.wa_id,
           audioUrl: type === 'audio' ? publicUrl : undefined,
-          isVoice: type === 'audio',
           imageUrl: type === 'image' ? publicUrl : undefined,
           videoUrl: type === 'video' ? publicUrl : undefined,
           documentUrl: type === 'document' ? publicUrl : undefined,
           fileName: type === 'document' ? (file instanceof File ? file.name : 'document') : undefined,
-          isVoice: type === 'audio' ? isVoice : undefined,
+          isVoice: type === 'audio',
           skipLocalSave: type === 'audio' ? true : undefined
         } 
       });
