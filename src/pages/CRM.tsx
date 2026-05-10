@@ -98,6 +98,7 @@ import {
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 const encodeAudioBufferToWav = (audioBuffer: AudioBuffer) => {
   const channels = Math.min(audioBuffer.numberOfChannels, 2);
