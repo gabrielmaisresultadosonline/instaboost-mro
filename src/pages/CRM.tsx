@@ -99,6 +99,62 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+const encodeAudioBufferToWav = (audioBuffer: AudioBuffer) => {
+  const channels = Math.min(audioBuffer.numberOfChannels, 2);
+  const sampleRate = audioBuffer.sampleRate;
+  const samples = audioBuffer.length;
+  const bytesPerSample = 2;
+  const blockAlign = channels * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + samples * blockAlign);
+  const view = new DataView(buffer);
+  const writeString = (offset: number, value: string) => {
+    for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i));
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + samples * blockAlign, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, samples * blockAlign, true);
+
+  let offset = 44;
+  const channelData = Array.from({ length: channels }, (_, index) => audioBuffer.getChannelData(index));
+  for (let i = 0; i < samples; i++) {
+    for (let channel = 0; channel < channels; channel++) {
+      const sample = Math.max(-1, Math.min(1, channelData[channel][i]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      offset += 2;
+    }
+  }
+
+  return buffer;
+};
+
+const createMobilePlayableAudioBlob = async (audioBlob: Blob) => {
+  const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+  if (!AudioContextCtor) return null;
+
+  const context = new AudioContextCtor();
+  try {
+    const sourceBuffer = await audioBlob.arrayBuffer();
+    const decoded = await context.decodeAudioData(sourceBuffer.slice(0));
+    return new Blob([encodeAudioBufferToWav(decoded)], { type: 'audio/wav' });
+  } catch (error) {
+    console.warn('Não foi possível gerar cópia WAV para o histórico mobile:', error);
+    return null;
+  } finally {
+    context.close?.();
+  }
+};
+
 const CRM = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
