@@ -1060,6 +1060,7 @@ const CRM = () => {
           action: 'sendMessage', 
           to: selectedContact.wa_id,
           audioUrl: type === 'audio' ? publicUrl : undefined,
+          isVoice: type === 'audio',
           imageUrl: type === 'image' ? publicUrl : undefined,
           videoUrl: type === 'video' ? publicUrl : undefined,
           documentUrl: type === 'document' ? publicUrl : undefined,
