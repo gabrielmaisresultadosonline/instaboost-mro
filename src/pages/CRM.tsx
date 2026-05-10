@@ -273,6 +273,10 @@ const CRM = () => {
   const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
   const [isSyncingContacts, setIsSyncingContacts] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
+  const [isMetricsListOpen, setIsMetricsListOpen] = useState(false);
+  const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | null>(null);
+  const [metricsListData, setMetricsListData] = useState<any[]>([]);
+  const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
