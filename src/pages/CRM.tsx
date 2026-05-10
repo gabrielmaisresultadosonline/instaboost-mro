@@ -1932,12 +1932,22 @@ const CRM = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {[
-                      { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue' },
-                      { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow' },
-                      { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple' },
-                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green' },
+                      { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue', type: 'sent' },
+                      { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow', type: 'responded' },
+                      { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple', type: 'qualified' },
+                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green', type: 'sales' },
                     ].map((stat, i) => (
-                      <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800">
+                      <Card 
+                        key={i} 
+                        className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800 cursor-pointer"
+                        onClick={() => {
+                          if (stat.type === 'responded') setStatusFilter('responded');
+                          else if (stat.type === 'qualified') setStatusFilter('qualified');
+                          else if (stat.type === 'sales') setStatusFilter('closed');
+                          else setStatusFilter('all');
+                          setActiveTab('contacts');
+                        }}
+                      >
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{stat.label}</CardDescription>
                           <stat.icon className={cn("w-4 h-4 md:w-5 md:h-5", {
