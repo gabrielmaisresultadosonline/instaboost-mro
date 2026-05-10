@@ -1968,7 +1968,10 @@ const CRM = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <Card className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20">
+                    <Card 
+                      className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20 cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => handleOpenMetricsList('paid')}
+                    >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-orange-700 dark:text-orange-400">
@@ -1990,12 +1993,15 @@ const CRM = () => {
                           </Badge>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Conta apenas conversas iniciadas por você fora da janela de 24h. Zera todo mês, mantendo histórico.
+                          Conta apenas conversas iniciadas por você fora da janela de 24h. Clique para ver a lista.
                         </p>
                       </CardContent>
                     </Card>
 
-                    <Card className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20">
+                    <Card 
+                      className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20 cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => handleOpenMetricsList('active')}
+                    >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -2017,10 +2023,63 @@ const CRM = () => {
                           </Badge>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Contatos que enviaram mensagem nas últimas 24h. Você pode enviar mensagens livres a esses sem nova cobrança.
+                          Contatos que enviaram mensagem nas últimas 24h. Clique para ver a lista.
                         </p>
                       </CardContent>
                     </Card>
+                  </div>
+
+                  <Card className="p-6">
+                    <CardHeader className="px-0 pt-0">
+                      <CardTitle className="text-lg font-bold flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-primary" />
+                        Histórico de Conversas Pagas
+                      </CardTitle>
+                      <CardDescription>Envios realizados nos últimos 7 dias</CardDescription>
+                    </CardHeader>
+                    <CardContent className="px-0 pb-0 pt-4">
+                      <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={metricsChartData}>
+                            <defs>
+                              <linearGradient id="colorPagos" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="rgb(249, 115, 22)" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="rgb(249, 115, 22)" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                            <XAxis 
+                              dataKey="name" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{fontSize: 10}}
+                              dy={10}
+                            />
+                            <YAxis 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{fontSize: 10}}
+                            />
+                            <RechartsTooltip 
+                              contentStyle={{ 
+                                borderRadius: '12px', 
+                                border: 'none', 
+                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
+                              }}
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="pagos" 
+                              stroke="rgb(249, 115, 22)" 
+                              strokeWidth={3}
+                              fillOpacity={1} 
+                              fill="url(#colorPagos)" 
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
                   </div>
                 </div>
               </ScrollArea>
