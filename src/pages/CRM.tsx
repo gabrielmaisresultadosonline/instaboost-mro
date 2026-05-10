@@ -888,6 +888,26 @@ const CRM = () => {
             throw new Error(result.error || result.details || 'Erro no processamento do VPS');
           }
           
+          // Persist outbound audio in our own history (VPS bridge does not write to crm_messages)
+          try {
+            const metaMsgId = result?.messageId || result?.messages?.[0]?.id || null;
+            await supabase.from('crm_messages').insert({
+              contact_id: selectedContact.id,
+              direction: 'outbound',
+              message_type: isVoice ? 'voice' : 'audio',
+              content: '',
+              media_url: publicUrl,
+              status: 'sent',
+              meta_message_id: metaMsgId,
+              metadata: { source: 'vps_bridge', original_mime: contentType }
+            });
+            await supabase.from('crm_contacts')
+              .update({ last_message_at: new Date().toISOString(), last_message_preview: '🎤 Mensagem de áudio' })
+              .eq('id', selectedContact.id);
+          } catch (persistErr) {
+            console.error('Falha ao salvar áudio no histórico:', persistErr);
+          }
+
           setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
           await fetchMessages(selectedContact.id);
           toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e enviado como mensagem de voz." });
