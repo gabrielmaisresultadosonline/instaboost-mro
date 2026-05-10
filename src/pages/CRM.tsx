@@ -3177,10 +3177,10 @@ const CRM = () => {
                             </div>
                             
                             <div className="flex gap-3">
-                              <Button 
+                               <Button 
                                 className="flex-1 font-bold h-11"
                                 onClick={handleConnectGoogle}
-                                variant={googleContactsEnabled ? "outline" : "default"}
+                                variant="outline"
                               >
                                 {googleContactsEnabled ? 'Reconectar Conta Google' : 'Conectar Conta Google'}
                               </Button>
