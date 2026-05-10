@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { isAdminLoggedIn, logoutAdmin } from '@/lib/adminConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -174,7 +175,7 @@ const CRM = () => {
     ai_agent_enabled: false,
     ai_operation_mode: 'chat',
     auto_generate_strategy: false,
-    strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho \"### Perguntas para Eliminar Dúvidas\".',
+    strategy_generation_prompt: 'Analise o histórico acima e gere uma análise detalhada. Destaque pontos positivos da conversa e sugira o que dizer daqui para frente para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho \"### Perguntas para Eliminar Dúvidas\".',
     ai_system_prompt: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.',
     ai_agent_trigger: 'all',
     ai_agent_trigger_keyword: '',
@@ -272,6 +273,10 @@ const CRM = () => {
   const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
   const [isSyncingContacts, setIsSyncingContacts] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
+  const [isMetricsListOpen, setIsMetricsListOpen] = useState(false);
+  const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | null>(null);
+  const [metricsListData, setMetricsListData] = useState<any[]>([]);
+  const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -331,8 +336,118 @@ const CRM = () => {
         activeWindow24h: activeSet.size,
         monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
       });
+
+      // Calcular dados do gráfico (últimos 7 dias)
+      const chartData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayLabel = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        
+        let dayPaid = 0;
+        let dayActive = 0;
+
+        Object.values(byContact).forEach((msgs) => {
+          let lastInbound = -Infinity;
+          let lastPaidStart = -Infinity;
+          let contactPaidForDay = false;
+          let contactActiveForDay = false;
+
+          msgs.forEach(m => {
+            const mt = new Date(m.created_at).getTime();
+            const mDate = m.created_at.split('T')[0];
+            
+            if (m.direction === 'inbound') {
+              lastInbound = mt;
+              if (mDate === dateStr) contactActiveForDay = true;
+            } else if (m.direction === 'outbound') {
+              const inFreeWindow = mt - lastInbound < DAY;
+              const inPaidWindow = mt - lastPaidStart < DAY;
+              if (!inFreeWindow && !inPaidWindow) {
+                if (mDate === dateStr) contactPaidForDay = true;
+                lastPaidStart = mt;
+              }
+            }
+          });
+          
+          if (contactPaidForDay) dayPaid++;
+          if (contactActiveForDay) dayActive++;
+        });
+
+        chartData.push({ name: dayLabel, pagos: dayPaid, ativos: dayActive });
+      }
+      setMetricsChartData(chartData);
+
     } catch (e) {
       console.error('Erro ao calcular estatísticas de conversas:', e);
+    }
+  };
+
+  const handleOpenMetricsList = async (type: 'paid' | 'active') => {
+    setMetricsListType(type);
+    setIsMetricsListOpen(true);
+    setMetricsListData([]);
+
+    try {
+      if (type === 'paid') {
+        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+        const { data: monthMsgs } = await supabase
+          .from('crm_messages')
+          .select('contact_id, direction, created_at, content')
+          .gte('created_at', startOfMonth)
+          .order('created_at', { ascending: true });
+
+        const byContact: Record<string, any[]> = {};
+        (monthMsgs || []).forEach((m: any) => {
+          if (!m.contact_id) return;
+          (byContact[m.contact_id] = byContact[m.contact_id] || []).push(m);
+        });
+
+        const DAY = 24 * 60 * 60 * 1000;
+        const paidContactIds = new Set<string>();
+        Object.entries(byContact).forEach(([cid, msgs]) => {
+          let lastInbound = -Infinity;
+          let lastPaidStart = -Infinity;
+          for (const m of msgs) {
+            const t = new Date(m.created_at).getTime();
+            if (m.direction === 'inbound') {
+              lastInbound = t;
+            } else if (m.direction === 'outbound') {
+              const inFreeWindow = t - lastInbound < DAY;
+              const inPaidWindow = t - lastPaidStart < DAY;
+              if (!inFreeWindow && !inPaidWindow) {
+                paidContactIds.add(cid);
+                lastPaidStart = t;
+              }
+            }
+          }
+        });
+
+        const { data: contactDetails } = await supabase
+          .from('crm_contacts')
+          .select('id, name, wa_id, status')
+          .in('id', Array.from(paidContactIds));
+        
+        setMetricsListData(contactDetails || []);
+      } else {
+        const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: recent } = await supabase
+          .from('crm_messages')
+          .select('contact_id')
+          .eq('direction', 'inbound')
+          .gte('created_at', since24h);
+        
+        const activeIds = Array.from(new Set((recent || []).map(m => m.contact_id).filter(id => id)));
+        
+        const { data: contactDetails } = await supabase
+          .from('crm_contacts')
+          .select('id, name, wa_id, status')
+          .in('id', activeIds);
+          
+        setMetricsListData(contactDetails || []);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -518,7 +633,7 @@ const CRM = () => {
         ...rest,
         google_auto_sync: metaSettings.google_auto_sync,
         id: '00000000-0000-0000-0000-000000000001',
-        strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas". As perguntas devem ser diretas para copiar e colar.',
+        strategy_generation_prompt: 'Analise o histórico acima e gere uma análise detalhada. Destaque pontos positivos da conversa e sugira o que dizer daqui para frente para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho \"### Perguntas para Eliminar Dúvidas\". As perguntas devem ser diretas para copiar e colar.',
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
       if (error) throw error;
@@ -1826,12 +1941,22 @@ const CRM = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {[
-                      { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue' },
-                      { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow' },
-                      { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple' },
-                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green' },
+                      { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue', type: 'sent' },
+                      { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow', type: 'responded' },
+                      { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple', type: 'qualified' },
+                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green', type: 'sales' },
                     ].map((stat, i) => (
-                      <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800">
+                      <Card 
+                        key={i} 
+                        className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800 cursor-pointer"
+                        onClick={() => {
+                          if (stat.type === 'responded') setStatusFilter('responded');
+                          else if (stat.type === 'qualified') setStatusFilter('qualified');
+                          else if (stat.type === 'sales') setStatusFilter('closed');
+                          else setStatusFilter('all');
+                          setActiveTab('contacts');
+                        }}
+                      >
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{stat.label}</CardDescription>
                           <stat.icon className={cn("w-4 h-4 md:w-5 md:h-5", {
@@ -1862,7 +1987,10 @@ const CRM = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <Card className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20">
+                    <Card 
+                      className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20 cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => handleOpenMetricsList('paid')}
+                    >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-orange-700 dark:text-orange-400">
@@ -1884,12 +2012,15 @@ const CRM = () => {
                           </Badge>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Conta apenas conversas iniciadas por você fora da janela de 24h. Zera todo mês, mantendo histórico.
+                          Conta apenas conversas iniciadas por você fora da janela de 24h. Clique para ver a lista.
                         </p>
                       </CardContent>
                     </Card>
 
-                    <Card className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20">
+                    <Card 
+                      className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20 cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => handleOpenMetricsList('active')}
+                    >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -1911,11 +2042,77 @@ const CRM = () => {
                           </Badge>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Contatos que enviaram mensagem nas últimas 24h. Você pode enviar mensagens livres a esses sem nova cobrança.
+                          Contatos que enviaram mensagem nas últimas 24h. Clique para ver a lista.
                         </p>
                       </CardContent>
                     </Card>
                   </div>
+
+                  <Card className="p-6">
+                    <CardHeader className="px-0 pt-0">
+                      <CardTitle className="text-lg font-bold flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-primary" />
+                        Histórico de Conversas Pagas
+                      </CardTitle>
+                      <CardDescription>Envios realizados nos últimos 7 dias</CardDescription>
+                    </CardHeader>
+                    <CardContent className="px-0 pb-0 pt-4">
+                      <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={metricsChartData}>
+                            <defs>
+                              <linearGradient id="colorPagos" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="rgb(249, 115, 22)" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="rgb(249, 115, 22)" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorAtivos" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="rgb(16, 185, 129)" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="rgb(16, 185, 129)" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                            <XAxis 
+                              dataKey="name" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{fontSize: 10}}
+                              dy={10}
+                            />
+                            <YAxis 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{fontSize: 10}}
+                            />
+                            <RechartsTooltip 
+                              contentStyle={{ 
+                                borderRadius: '12px', 
+                                border: 'none', 
+                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
+                              }}
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="pagos" 
+                              name="Conversas Pagas"
+                              stroke="rgb(249, 115, 22)" 
+                              strokeWidth={3}
+                              fillOpacity={1} 
+                              fill="url(#colorPagos)" 
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="ativos" 
+                              name="Janela Grátis"
+                              stroke="rgb(16, 185, 129)" 
+                              strokeWidth={3}
+                              fillOpacity={1} 
+                              fill="url(#colorAtivos)" 
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </ScrollArea>
             )}
@@ -2584,6 +2781,12 @@ const CRM = () => {
                                 <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
                                   {/* Atenção: Robô Desativado Geral hidden as requested */}
 
+                                  {selectedContact.last_interaction && (new Date().getTime() - new Date(selectedContact.last_interaction).getTime()) > 4 * 60 * 60 * 1000 && (
+                                    <div className="flex items-center gap-2 p-2 mb-2 bg-orange-500/10 border border-orange-500/20 rounded-lg animate-pulse">
+                                      <AlertCircle className="w-4 h-4 text-orange-600" />
+                                      <p className="text-[10px] font-bold text-orange-700 uppercase">Atenção: Mais de 4h sem resposta. Considere gerar uma estratégia de gancho.</p>
+                                    </div>
+                                  )}
                                   <div className="flex items-center justify-between gap-2 flex-wrap">
                                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                                       <div className="flex items-center gap-1.5 sm:gap-2">
@@ -4841,6 +5044,59 @@ const CRM = () => {
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
               Agendar agora
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isMetricsListOpen} onOpenChange={setIsMetricsListOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              {metricsListType === 'paid' ? (
+                <><DollarSign className="w-5 h-5 text-orange-500" /> Conversas Pagas (Mês)</>
+              ) : (
+                <><Clock className="w-5 h-5 text-emerald-500" /> Janela 24h Aberta (Grátis)</>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {metricsListType === 'paid' 
+                ? "Lista de contatos que iniciaram uma nova cobrança este mês." 
+                : "Contatos com janela de resposta gratuita ativa."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-2">
+                {metricsListData.length > 0 ? metricsListData.map((contact) => (
+                  <div 
+                    key={contact.id} 
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setSelectedContact(contact);
+                      setActiveTab('contacts');
+                      setIsMetricsListOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{contact.name || contact.wa_id}</p>
+                        <p className="text-[10px] text-muted-foreground">{contact.wa_id}</p>
+                      </div>
+                    </div>
+                    <Badge className={cn("text-[10px] uppercase font-black", getStatusColor(contact.status))}>
+                      {getStatusLabel(contact.status)}
+                    </Badge>
+                  </div>
+                )) : (
+                  <div className="text-center py-10 opacity-50">Nenhum contato encontrado.</div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsMetricsListOpen(false)} className="w-full rounded-xl">Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

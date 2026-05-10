@@ -705,6 +705,50 @@ serve(async (req) => {
         });
     }
 
+    if (action === 'processInactivity') {
+      console.log('Processing inactivity for CRM contacts...');
+      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+      
+      // Find contacts that sent a message, but we haven't replied in 4+ hours
+      // and that have AI active and are not in a flow
+      const { data: idleContacts } = await supabase
+        .from('crm_contacts')
+        .select('id, wa_id, last_interaction')
+        .eq('ai_active', true)
+        .is('current_flow_id', null)
+        .lt('last_interaction', fourHoursAgo)
+        .limit(10); // Batch process
+      
+      if (idleContacts) {
+        for (const contact of idleContacts) {
+          // Verify last message was inbound (customer)
+          const { data: lastMsg } = await supabase
+            .from('crm_messages')
+            .select('direction')
+            .eq('contact_id', contact.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+            
+          if (lastMsg?.direction === 'inbound') {
+            console.log(`Contact ${contact.wa_id} has been idle for 4h after customer message. Generating hook strategy.`);
+            
+            // Trigger strategy generation with custom instruction for inactivity
+            const customPrompt = "O cliente enviou uma mensagem há mais de 4 horas e não obteve resposta. Analise o histórico e gere uma mensagem de 'gancho' curta e altamente persuasiva para reengajar esse cliente agora e trazê-lo de volta para a conversa.";
+            
+            await supabase.functions.invoke('generate-strategy', {
+              body: { 
+                contactId: contact.id,
+                customInstruction: customPrompt
+              }
+            }).catch(e => console.error(`Error generating inactivity strategy for ${contact.id}:`, e));
+          }
+        }
+      }
+      
+      return jsonResponse({ success: true, processed: idleContacts?.length || 0 });
+    }
+
     throw new Error(`Unhandled action: ${action}`);
   } catch (error: any) {
     console.error('Error in Edge Function:', error);
