@@ -559,20 +559,33 @@ const CRM = () => {
       return;
     }
 
-    toast({ title: "Sincronizando...", description: "Buscando seus contatos do Google." });
+    setIsSyncingContacts(true);
+    setSyncProgress(10);
+    
     try {
+      setSyncProgress(30);
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'syncGoogleContacts' }
       });
+      
+      setSyncProgress(70);
+      
       if (error) throw error;
       if (data.success) {
-        toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
-        fetchContacts();
+        setSyncProgress(100);
+        setTimeout(() => {
+          setIsSyncingContacts(false);
+          setSyncProgress(0);
+          toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
+          fetchContacts();
+        }, 500);
       } else {
         throw new Error(data.error || "Erro desconhecido");
       }
     } catch (err: any) {
       console.error(err);
+      setIsSyncingContacts(false);
+      setSyncProgress(0);
       toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
       if (err.message?.includes('connect') || err.message?.includes('token')) {
         handleConnectGoogle();
