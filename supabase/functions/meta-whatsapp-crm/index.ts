@@ -19,7 +19,7 @@ const normalizePhone = (raw: string) => {
 }
 
 const guessMedia = (params: any) => {
-  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg', fileName: 'audio.ogg' }
+  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg', fileName: 'voice.ogg' }
   if (params.imageUrl) return { type: 'image', url: params.imageUrl, mime: 'image/jpeg', fileName: 'image.jpg' }
   if (params.videoUrl) return { type: 'video', url: params.videoUrl, mime: 'video/mp4', fileName: 'video.mp4' }
   if (params.documentUrl) return { type: 'document', url: params.documentUrl, mime: 'application/octet-stream', fileName: params.fileName || 'document' }
@@ -56,7 +56,9 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (media) {
     const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
     payload.type = media.type
-    payload[media.type] = media.type === 'document' ? { id: mediaId, filename: media.fileName } : { id: mediaId }
+    payload[media.type] = media.type === 'document' 
+      ? { id: mediaId, filename: media.fileName } 
+      : (media.type === 'audio' ? { id: mediaId, voice: true } : { id: mediaId })
   } else {
     payload.type = 'text'
     payload.text = { preview_url: true, body: String(params.text || '') }

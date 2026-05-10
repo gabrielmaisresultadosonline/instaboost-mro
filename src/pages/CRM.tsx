@@ -390,6 +390,15 @@ const CRM = () => {
     }
     fetchData();
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App visível, atualizando dados...');
+        fetchData();
+        fetchContacts();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const messageChannel = supabase
       .channel('crm_global_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_messages' }, (payload) => {
@@ -418,6 +427,7 @@ const CRM = () => {
       .subscribe();
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       supabase.removeChannel(messageChannel);
     };
   }, [navigate]);
@@ -1054,7 +1064,7 @@ const CRM = () => {
           videoUrl: type === 'video' ? publicUrl : undefined,
           documentUrl: type === 'document' ? publicUrl : undefined,
           fileName: type === 'document' ? (file instanceof File ? file.name : 'document') : undefined,
-          isVoice: type === 'audio' ? isVoice : undefined,
+          isVoice: type === 'audio',
           skipLocalSave: type === 'audio' ? true : undefined
         } 
       });

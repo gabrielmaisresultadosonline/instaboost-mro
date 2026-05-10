@@ -160,7 +160,7 @@ app.post('/send-voice', async (req, res) => {
       recipient_type: 'individual',
       to: recipient,
       type: 'audio',
-      audio: { id: mediaId }
+      audio: { id: mediaId, voice: true }
     }, {
       headers: { Authorization: `Bearer ${metaToken}`, 'Content-Type': 'application/json' },
       timeout: 30000
