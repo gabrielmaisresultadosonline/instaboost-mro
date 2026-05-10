@@ -2455,12 +2455,12 @@ const CRM = () => {
                                           )}
                                           {m.message_type === 'video' && m.media_url && (
                                             <div 
-                                              className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer"
+                                              className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer max-w-fit"
                                               onClick={() => setPreviewMedia({ url: m.media_url, type: 'video' })}
                                             >
-                                              <video src={m.media_url} className="max-w-full h-auto rounded-lg shadow-inner" />
+                                              <video src={m.media_url} className="max-h-[180px] w-auto object-cover rounded-lg shadow-inner" />
                                               <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                                                <Play className="w-12 h-12 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
+                                                <Play className="w-10 h-10 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
                                               </div>
                                             </div>
                                           )}
