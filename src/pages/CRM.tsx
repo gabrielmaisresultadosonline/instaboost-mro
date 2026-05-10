@@ -198,12 +198,15 @@ const CRM = () => {
     sent_count: 0,
     responded_count: 0,
     qualified_count: 0,
-    sales_count: 0
+    sales_count: 0,
+    conv_24h_count: 0 // Nova métrica: conversas 24h
   });
   const [conversationStats, setConversationStats] = useState({
     paidThisMonth: 0,
     activeWindow24h: 0,
-    monthLabel: ''
+    monthLabel: '',
+    paidThisWeek: 0,
+    activeThisWeek: 0
   });
   const CONVERSATION_COST = 0.33;
   const [flows, setFlows] = useState<any[]>([]);
@@ -274,7 +277,7 @@ const CRM = () => {
   const [isSyncingContacts, setIsSyncingContacts] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [isMetricsListOpen, setIsMetricsListOpen] = useState(false);
-  const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | null>(null);
+  const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | 'weekly_paid' | 'weekly_active' | null>(null);
   const [metricsListData, setMetricsListData] = useState<any[]>([]);
   const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
 
@@ -287,6 +290,7 @@ const CRM = () => {
     try {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
       const { data: monthMsgs } = await supabase
@@ -304,9 +308,13 @@ const CRM = () => {
 
       const DAY = 24 * 60 * 60 * 1000;
       let paidCount = 0;
+      let paidWeek = 0;
+      
       Object.values(byContact).forEach((msgs) => {
         let lastInbound = -Infinity;
         let lastPaidStart = -Infinity;
+        const weekTime = new Date(startOfWeek).getTime();
+        
         for (const m of msgs) {
           const t = new Date(m.created_at).getTime();
           if (m.direction === 'inbound') {
@@ -316,6 +324,7 @@ const CRM = () => {
             const inPaidWindow = t - lastPaidStart < DAY;
             if (!inFreeWindow && !inPaidWindow) {
               paidCount++;
+              if (t >= weekTime) paidWeek++;
               lastPaidStart = t;
             }
           }
@@ -328,13 +337,25 @@ const CRM = () => {
         .eq('direction', 'inbound')
         .gte('created_at', since24h)
         .limit(10000);
+      
       const activeSet = new Set<string>();
       (recent || []).forEach((m: any) => m.contact_id && activeSet.add(m.contact_id));
+
+      const { data: recentWeek } = await supabase
+        .from('crm_messages')
+        .select('contact_id')
+        .eq('direction', 'inbound')
+        .gte('created_at', startOfWeek)
+        .limit(10000);
+      const activeWeekSet = new Set<string>();
+      (recentWeek || []).forEach((m: any) => m.contact_id && activeWeekSet.add(m.contact_id));
 
       setConversationStats({
         paidThisMonth: paidCount,
         activeWindow24h: activeSet.size,
-        monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+        monthLabel: now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        paidThisWeek: paidWeek,
+        activeThisWeek: activeWeekSet.size
       });
 
       // Calcular dados do gráfico (últimos 7 dias)
@@ -383,32 +404,40 @@ const CRM = () => {
     }
   };
 
-  const handleOpenMetricsList = async (type: 'paid' | 'active') => {
-    setMetricsListType(type);
+  const handleOpenMetricsList = async (type: 'paid' | 'active' | 'weekly_paid' | 'weekly_active') => {
+    setMetricsListType(type as any);
     setIsMetricsListOpen(true);
     setMetricsListData([]);
 
     try {
-      if (type === 'paid') {
-        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-        const { data: monthMsgs } = await supabase
+      const now = new Date();
+      const DAY = 24 * 60 * 60 * 1000;
+      let startTime: string;
+      
+      if (type === 'paid' || type === 'active') {
+        startTime = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      } else {
+        startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      if (type === 'paid' || type === 'weekly_paid') {
+        const { data: msgs } = await supabase
           .from('crm_messages')
-          .select('contact_id, direction, created_at, content')
-          .gte('created_at', startOfMonth)
+          .select('contact_id, direction, created_at')
+          .gte('created_at', startTime)
           .order('created_at', { ascending: true });
 
         const byContact: Record<string, any[]> = {};
-        (monthMsgs || []).forEach((m: any) => {
+        (msgs || []).forEach((m: any) => {
           if (!m.contact_id) return;
           (byContact[m.contact_id] = byContact[m.contact_id] || []).push(m);
         });
 
-        const DAY = 24 * 60 * 60 * 1000;
         const paidContactIds = new Set<string>();
-        Object.entries(byContact).forEach(([cid, msgs]) => {
+        Object.entries(byContact).forEach(([cid, cMsgs]) => {
           let lastInbound = -Infinity;
           let lastPaidStart = -Infinity;
-          for (const m of msgs) {
+          for (const m of cMsgs) {
             const t = new Date(m.created_at).getTime();
             if (m.direction === 'inbound') {
               lastInbound = t;
@@ -430,12 +459,12 @@ const CRM = () => {
         
         setMetricsListData(contactDetails || []);
       } else {
-        const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const filterTime = (type === 'active') ? new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() : startTime;
         const { data: recent } = await supabase
           .from('crm_messages')
           .select('contact_id')
           .eq('direction', 'inbound')
-          .gte('created_at', since24h);
+          .gte('created_at', filterTime);
         
         const activeIds = Array.from(new Set((recent || []).map(m => m.contact_id).filter(id => id)));
         
@@ -1944,7 +1973,7 @@ const CRM = () => {
                       { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue', type: 'sent' },
                       { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow', type: 'responded' },
                       { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple', type: 'qualified' },
-                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green', type: 'sales' },
+                      { label: 'Conversas 24h (Hoje)', value: conversationStats.activeWindow24h, icon: Clock, color: 'green', type: 'active_today' },
                     ].map((stat, i) => (
                       <Card 
                         key={i} 
@@ -1952,7 +1981,7 @@ const CRM = () => {
                         onClick={() => {
                           if (stat.type === 'responded') setStatusFilter('responded');
                           else if (stat.type === 'qualified') setStatusFilter('qualified');
-                          else if (stat.type === 'sales') setStatusFilter('closed');
+                          else if (stat.type === 'active_today') handleOpenMetricsList('active');
                           else setStatusFilter('all');
                           setActiveTab('contacts');
                         }}
@@ -2019,30 +2048,35 @@ const CRM = () => {
 
                     <Card 
                       className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20 cursor-pointer hover:shadow-md transition-all"
-                      onClick={() => handleOpenMetricsList('active')}
                     >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                            Janela 24h Aberta (grátis)
+                            Resumo Semanal (7 dias)
                           </CardDescription>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Conversas que você ainda pode responder sem cobrança
+                            Performance da última semana
                           </p>
                         </div>
-                        <Clock className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <Calendar className="w-5 h-5 text-emerald-500 shrink-0" />
                       </CardHeader>
                       <CardContent>
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400">
-                            {conversationStats.activeWindow24h}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1 cursor-pointer hover:bg-emerald-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_paid')}>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Pagas</p>
+                            <div className="text-xl font-black text-emerald-600">
+                              {conversationStats.paidThisWeek}
+                            </div>
                           </div>
-                          <Badge variant="outline" className="text-[10px] font-bold border-emerald-300 text-emerald-700 dark:text-emerald-400">
-                            ativas
-                          </Badge>
+                          <div className="space-y-1 cursor-pointer hover:bg-emerald-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_active')}>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Ativas</p>
+                            <div className="text-xl font-black text-emerald-600">
+                              {conversationStats.activeThisWeek}
+                            </div>
+                          </div>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Contatos que enviaram mensagem nas últimas 24h. Clique para ver a lista.
+                          Contatos únicos que interagiram nos últimos 7 dias. Clique nos números para ver a lista.
                         </p>
                       </CardContent>
                     </Card>
@@ -5051,16 +5085,16 @@ const CRM = () => {
         <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              {metricsListType === 'paid' ? (
-                <><DollarSign className="w-5 h-5 text-orange-500" /> Conversas Pagas (Mês)</>
-              ) : (
-                <><Clock className="w-5 h-5 text-emerald-500" /> Janela 24h Aberta (Grátis)</>
-              )}
+              {metricsListType === 'paid' && <><DollarSign className="w-5 h-5 text-orange-500" /> Conversas Pagas (Mês)</>}
+              {metricsListType === 'active' && <><Clock className="w-5 h-5 text-emerald-500" /> Janela 24h Aberta (Grátis)</>}
+              {metricsListType === 'weekly_paid' && <><DollarSign className="w-5 h-5 text-emerald-500" /> Pagas (Semanal)</>}
+              {metricsListType === 'weekly_active' && <><Clock className="w-5 h-5 text-emerald-500" /> Ativas (Semanal)</>}
             </DialogTitle>
             <DialogDescription>
-              {metricsListType === 'paid' 
-                ? "Lista de contatos que iniciaram uma nova cobrança este mês." 
-                : "Contatos com janela de resposta gratuita ativa."}
+              {metricsListType === 'paid' && "Lista de contatos que iniciaram uma nova cobrança este mês."}
+              {metricsListType === 'active' && "Contatos com janela de resposta gratuita ativa."}
+              {metricsListType === 'weekly_paid' && "Contatos que geraram cobrança nos últimos 7 dias."}
+              {metricsListType === 'weekly_active' && "Contatos únicos que interagiram na última semana."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
