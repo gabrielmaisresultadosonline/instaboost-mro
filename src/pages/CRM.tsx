@@ -345,6 +345,11 @@ const CRM = () => {
               return [...prev, newMessage];
             });
           }
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedMessage = payload.new;
+          if (selectedContactRef.current && updatedMessage.contact_id === selectedContactRef.current.id) {
+            setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
+          }
         }
         fetchContacts();
       })
