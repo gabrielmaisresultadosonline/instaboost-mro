@@ -2381,7 +2381,7 @@ const CRM = () => {
                                       {isTemplate && template ? (
                                         <div className="overflow-hidden rounded-xl bg-white dark:bg-zinc-900 shadow-lg border border-border/50 max-w-[300px]">
                                           {template.components?.find((c: any) => c.type === 'HEADER')?.format !== 'NONE' && (
-                                            <div className="aspect-video bg-muted/20 flex items-center justify-center relative overflow-hidden border-b border-border/10">
+                                            <div className="max-h-[150px] aspect-video bg-muted/20 flex items-center justify-center relative overflow-hidden border-b border-border/10">
                                               {(() => {
                                                 const header = template.components.find((c: any) => c.type === 'HEADER');
                                                 let mediaUrl = m.media_url || header?.example?.header_handle?.[0];
@@ -2395,7 +2395,7 @@ const CRM = () => {
                                                     <div className="w-full h-full relative cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'video' })}>
                                                       <video src={mediaUrl} className="w-full h-full object-cover" />
                                                       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                                        <Play className="w-10 h-10 text-white" />
+                                                        <Play className="w-8 h-8 text-white" />
                                                       </div>
                                                     </div>
                                                   );
@@ -2428,11 +2428,11 @@ const CRM = () => {
                                       ) : (
                                         <>
                                           {m.message_type === 'image' && m.media_url && !/^\d+$/.test(m.media_url.toString()) && (
-                                            <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
+                                            <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 max-w-fit">
                                               <img 
                                                 src={m.media_url} 
                                                 alt="Mídia" 
-                                                className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
+                                                className="max-h-[180px] w-auto object-cover cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
                                                 onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })} 
                                               />
                                             </div>
@@ -2455,12 +2455,12 @@ const CRM = () => {
                                           )}
                                           {m.message_type === 'video' && m.media_url && (
                                             <div 
-                                              className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer"
+                                              className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer max-w-fit"
                                               onClick={() => setPreviewMedia({ url: m.media_url, type: 'video' })}
                                             >
-                                              <video src={m.media_url} className="max-w-full h-auto rounded-lg shadow-inner" />
+                                              <video src={m.media_url} className="max-h-[180px] w-auto object-cover rounded-lg shadow-inner" />
                                               <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                                                <Play className="w-12 h-12 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
+                                                <Play className="w-10 h-10 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
                                               </div>
                                             </div>
                                           )}
