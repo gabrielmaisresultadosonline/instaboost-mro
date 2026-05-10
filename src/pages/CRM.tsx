@@ -534,9 +534,18 @@ const CRM = () => {
       return;
     }
     // Para o domínio oficial, usamos o callback2. Para qualquer outro (como lovable.app), usamos o callback original.
-    const redirectPath = window.location.origin.includes('maisresultadosonline.com.br') ? '/google-callback2' : '/google-callback';
+    // No Lovable, usamos o domínio de preview. No domínio oficial, usamos o callback2.
+    const redirectPath = window.location.origin.includes('lovable.app') ? '/google-callback' : '/google-callback2';
     const redirectUri = encodeURIComponent(window.location.origin + redirectPath);
-    const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts.readonly');
+    
+    // Escopos: incluímos o de email/profile para identificar a conta e o de contatos para sincronizar
+    const scopes = [
+      'https://www.googleapis.com/auth/contacts.readonly',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ].join(' ');
+    
+    const scope = encodeURIComponent(scopes);
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
     window.location.href = url;
   };
