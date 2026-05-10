@@ -345,6 +345,16 @@ function formatPhone(raw) {
   return `${digits}@c.us`;
 }
 
+function formatMetaPhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length === 10 || digits.length === 11) digits = '55' + digits;
+  if (digits.length === 13 && digits.startsWith('55') && digits[4] === '9') {
+    digits = digits.slice(0, 4) + digits.slice(5);
+  }
+  return digits;
+}
+
 async function processPending() {
   const data = await callBackend('botFetchPending');
   if (!data || !data.success) return;
