@@ -1024,14 +1024,14 @@ const CRM = () => {
             throw new Error(vpsResult.error || vpsResult.details || 'Erro no processamento do VPS');
           }
         } catch (vpsErr: any) {
-          console.error("VPS Error, falling back to standard send:", vpsErr);
+          console.error("VPS Error; áudio não enviado para evitar incompatibilidade no celular:", vpsErr);
           toast({ 
-            title: "VPS indisponível", 
-            description: "Não enviei pelo método padrão para não quebrar o áudio no celular. Corrija o VPS e tente novamente. Erro: " + vpsErr.message,
+            title: "Bot do WhatsApp desconectado", 
+            description: "O áudio não foi enviado porque o bridge não está conectado no WhatsApp. Reative o QR/bot e tente novamente. Erro: " + vpsErr.message,
             variant: "destructive"
           });
           await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
-          throw vpsErr;
+          return;
         }
 
         if (vpsResult) {
@@ -1052,7 +1052,8 @@ const CRM = () => {
           videoUrl: type === 'video' ? publicUrl : undefined,
           documentUrl: type === 'document' ? publicUrl : undefined,
           fileName: type === 'document' ? (file instanceof File ? file.name : 'document') : undefined,
-          isVoice: type === 'audio' ? isVoice : undefined
+          isVoice: type === 'audio' ? isVoice : undefined,
+          skipLocalSave: type === 'audio' ? true : undefined
         } 
       });
       
