@@ -4532,7 +4532,26 @@ const CRM = () => {
         />
       )}
 
-      <Dialog open={isContactInfoOpen} onOpenChange={setIsContactInfoOpen}>
+
+      <Dialog open={isSyncingContacts} onOpenChange={setIsSyncingContacts}>
+        <DialogContent className="sm:max-w-md text-center py-10">
+          <DialogHeader className="items-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <RefreshCcw className="w-8 h-8 text-primary animate-spin" />
+            </div>
+            <DialogTitle className="text-xl">Sincronizando Contatos</DialogTitle>
+            <DialogDescription>
+              Aguarde enquanto buscamos seus contatos do Google...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <Progress value={syncProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+              {syncProgress < 100 ? 'Sincronizando...' : 'Concluído!'}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
         <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader className="items-center pb-4 border-b">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
