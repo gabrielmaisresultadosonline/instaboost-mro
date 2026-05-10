@@ -112,8 +112,10 @@ serve(async (req) => {
         `${m.direction === 'inbound' ? 'CLIENTE' : 'ATENDENTE'}: ${m.content}`
       ).join('\n') || 'Sem histórico de mensagens.';
 
+      const { customInstruction }: any = await req.json().catch(() => ({}));
+      
       const crmSystemPrompt = `
-        ${settings?.strategy_generation_prompt || 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente.'}
+        ${customInstruction || settings?.strategy_generation_prompt || 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente.'}
         
         CONTEXTO DO CLIENTE:
         Nome: ${contact.name || 'Desconhecido'}
