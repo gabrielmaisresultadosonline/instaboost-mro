@@ -277,7 +277,7 @@ const CRM = () => {
   const [isSyncingContacts, setIsSyncingContacts] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [isMetricsListOpen, setIsMetricsListOpen] = useState(false);
-  const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | null>(null);
+  const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | 'weekly_paid' | 'weekly_active' | null>(null);
   const [metricsListData, setMetricsListData] = useState<any[]>([]);
   const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
 
