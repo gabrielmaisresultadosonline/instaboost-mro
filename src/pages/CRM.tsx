@@ -2080,7 +2080,6 @@ const CRM = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  </div>
                 </div>
               </ScrollArea>
             )}
