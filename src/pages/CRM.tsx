@@ -374,6 +374,74 @@ const CRM = () => {
     }
   };
 
+  const handleOpenMetricsList = async (type: 'paid' | 'active') => {
+    setMetricsListType(type);
+    setIsMetricsListOpen(true);
+    setMetricsListData([]);
+
+    try {
+      if (type === 'paid') {
+        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+        const { data: monthMsgs } = await supabase
+          .from('crm_messages')
+          .select('contact_id, direction, created_at, content')
+          .gte('created_at', startOfMonth)
+          .order('created_at', { ascending: true });
+
+        const byContact: Record<string, any[]> = {};
+        (monthMsgs || []).forEach((m: any) => {
+          if (!m.contact_id) return;
+          (byContact[m.contact_id] = byContact[m.contact_id] || []).push(m);
+        });
+
+        const DAY = 24 * 60 * 60 * 1000;
+        const paidContactIds = new Set<string>();
+        Object.entries(byContact).forEach(([cid, msgs]) => {
+          let lastInbound = -Infinity;
+          let lastPaidStart = -Infinity;
+          for (const m of msgs) {
+            const t = new Date(m.created_at).getTime();
+            if (m.direction === 'inbound') {
+              lastInbound = t;
+            } else if (m.direction === 'outbound') {
+              const inFreeWindow = t - lastInbound < DAY;
+              const inPaidWindow = t - lastPaidStart < DAY;
+              if (!inFreeWindow && !inPaidWindow) {
+                paidContactIds.add(cid);
+                lastPaidStart = t;
+              }
+            }
+          }
+        });
+
+        const { data: contactDetails } = await supabase
+          .from('crm_contacts')
+          .select('id, name, wa_id, status')
+          .in('id', Array.from(paidContactIds));
+        
+        setMetricsListData(contactDetails || []);
+      } else {
+        const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: recent } = await supabase
+          .from('crm_messages')
+          .select('contact_id')
+          .eq('direction', 'inbound')
+          .gte('created_at', since24h);
+        
+        const activeIds = Array.from(new Set((recent || []).map(m => m.contact_id).filter(id => id)));
+        
+        const { data: contactDetails } = await supabase
+          .from('crm_contacts')
+          .select('id, name, wa_id, status')
+          .in('id', activeIds);
+          
+        setMetricsListData(contactDetails || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'dashboard') {
       computeConversationStats();
