@@ -5085,16 +5085,16 @@ const CRM = () => {
         <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              {metricsListType === 'paid' ? (
-                <><DollarSign className="w-5 h-5 text-orange-500" /> Conversas Pagas (Mês)</>
-              ) : (
-                <><Clock className="w-5 h-5 text-emerald-500" /> Janela 24h Aberta (Grátis)</>
-              )}
+              {metricsListType === 'paid' && <><DollarSign className="w-5 h-5 text-orange-500" /> Conversas Pagas (Mês)</>}
+              {metricsListType === 'active' && <><Clock className="w-5 h-5 text-emerald-500" /> Janela 24h Aberta (Grátis)</>}
+              {metricsListType === 'weekly_paid' && <><DollarSign className="w-5 h-5 text-emerald-500" /> Pagas (Semanal)</>}
+              {metricsListType === 'weekly_active' && <><Clock className="w-5 h-5 text-emerald-500" /> Ativas (Semanal)</>}
             </DialogTitle>
             <DialogDescription>
-              {metricsListType === 'paid' 
-                ? "Lista de contatos que iniciaram uma nova cobrança este mês." 
-                : "Contatos com janela de resposta gratuita ativa."}
+              {metricsListType === 'paid' && "Lista de contatos que iniciaram uma nova cobrança este mês."}
+              {metricsListType === 'active' && "Contatos com janela de resposta gratuita ativa."}
+              {metricsListType === 'weekly_paid' && "Contatos que geraram cobrança nos últimos 7 dias."}
+              {metricsListType === 'weekly_active' && "Contatos únicos que interagiram na última semana."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
