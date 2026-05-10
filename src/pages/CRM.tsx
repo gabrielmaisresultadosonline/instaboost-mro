@@ -4532,7 +4532,6 @@ const CRM = () => {
         />
       )}
 
-
       <Dialog open={isSyncingContacts} onOpenChange={setIsSyncingContacts}>
         <DialogContent className="sm:max-w-md text-center py-10">
           <DialogHeader className="items-center">
@@ -4552,6 +4551,8 @@ const CRM = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isContactInfoOpen} onOpenChange={setIsContactInfoOpen}>
         <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader className="items-center pb-4 border-b">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
