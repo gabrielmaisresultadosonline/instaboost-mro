@@ -5008,6 +5008,59 @@ const CRM = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={isMetricsListOpen} onOpenChange={setIsMetricsListOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              {metricsListType === 'paid' ? (
+                <><DollarSign className="w-5 h-5 text-orange-500" /> Conversas Pagas (Mês)</>
+              ) : (
+                <><Clock className="w-5 h-5 text-emerald-500" /> Janela 24h Aberta (Grátis)</>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {metricsListType === 'paid' 
+                ? "Lista de contatos que iniciaram uma nova cobrança este mês." 
+                : "Contatos com janela de resposta gratuita ativa."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-2">
+                {metricsListData.length > 0 ? metricsListData.map((contact) => (
+                  <div 
+                    key={contact.id} 
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setSelectedContact(contact);
+                      setActiveTab('contacts');
+                      setIsMetricsListOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{contact.name || contact.wa_id}</p>
+                        <p className="text-[10px] text-muted-foreground">{contact.wa_id}</p>
+                      </div>
+                    </div>
+                    <Badge className={cn("text-[10px] uppercase font-black", getStatusColor(contact.status))}>
+                      {getStatusLabel(contact.status)}
+                    </Badge>
+                  </div>
+                )) : (
+                  <div className="text-center py-10 opacity-50">Nenhum contato encontrado.</div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsMetricsListOpen(false)} className="w-full rounded-xl">Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
