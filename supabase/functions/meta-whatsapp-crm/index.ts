@@ -643,28 +643,56 @@ serve(async (req) => {
         }
       }
 
-      const contactsResponse = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers', {
-        headers: { 'Authorization': `Bearer ${accessToken}` },
-      });
-      const contactsData = await contactsResponse.json();
-      
       let count = 0;
-      if (contactsData.connections) {
-        for (const person of contactsData.connections) {
-          const name = person.names?.[0]?.displayName;
-          const phone = person.phoneNumbers?.[0]?.value?.replace(/\D/g, '');
-          
-          if (phone) {
-            const { error: upsertError } = await supabase.from('crm_contacts').upsert({
+      let nextPageToken = null;
+      
+      do {
+        const url = new URL('https://people.googleapis.com/v1/people/me/connections');
+        url.searchParams.set('personFields', 'names,phoneNumbers');
+        url.searchParams.set('pageSize', '1000');
+        if (nextPageToken) url.searchParams.set('pageToken', nextPageToken);
+
+        const contactsResponse = await fetch(url.toString(), {
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
+        
+        if (!contactsResponse.ok) {
+          const err = await contactsResponse.json();
+          console.error('People API Error:', err);
+          break;
+        }
+
+        const contactsData = await contactsResponse.json();
+        nextPageToken = contactsData.nextPageToken;
+
+        if (contactsData.connections) {
+          const upsertBatch = [];
+          for (const person of contactsData.connections) {
+            const name = person.names?.[0]?.displayName;
+            // Get all phone numbers for this person
+            const phones = person.phoneNumbers?.map((p: any) => p.value?.replace(/\D/g, '')).filter(Boolean) || [];
+            
+            for (const phone of phones) {
+              upsertBatch.push({
                 wa_id: phone,
                 name: name || null,
                 google_sync_account_id: account.id,
                 updated_at: new Date().toISOString()
-            }, { onConflict: 'wa_id' });
-            if (!upsertError) count++;
+              });
+            }
+          }
+
+          if (upsertBatch.length > 0) {
+            // Upsert in chunks to avoid database limits
+            for (let i = 0; i < upsertBatch.length; i += 100) {
+              const chunk = upsertBatch.slice(i, i + 100);
+              const { error: upsertError } = await supabase.from('crm_contacts').upsert(chunk, { onConflict: 'wa_id' });
+              if (!upsertError) count += chunk.length;
+              else console.error('Upsert Error:', upsertError);
+            }
           }
         }
-      }
+      } while (nextPageToken);
 
       return new Response(JSON.stringify({ success: true, count }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
