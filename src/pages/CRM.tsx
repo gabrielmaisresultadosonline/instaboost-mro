@@ -801,14 +801,18 @@ const CRM = () => {
   const sendRecordedAudio = async () => {
     if (recordedAudioBlob && !sendingMessage) {
       const blob = recordedAudioBlob;
-      cancelAudioPreview(); // Clear preview immediately to feel fast
-      await handleSendMedia(blob, 'audio', true);
+      const previewUrl = recordedAudioUrl || URL.createObjectURL(blob);
+      setRecordedAudioBlob(null);
+      setRecordedAudioUrl(null);
+      setIsPreviewingAudio(false);
+      await handleSendMedia(blob, 'audio', true, previewUrl);
     }
   };
 
-  const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false) => {
+  const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
     if (!selectedContact) return;
     setSendingMessage(true);
+    const localPreviewUrl = previewUrl || (file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || URL.createObjectURL(file)));
     
     // Optimistic update for media
     const optimisticMessage = {
@@ -819,16 +823,45 @@ const CRM = () => {
       message_type: type,
       created_at: new Date().toISOString(),
       isOptimistic: true,
-      media_url: file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || '')
+      media_url: localPreviewUrl
     };
     setChatMessages(prev => [...prev, optimisticMessage]);
+
+    const persistOutboundAudio = async (publicUrl: string, metaMsgId: string | null, source: string, contentType?: string) => {
+      const { data: savedMessage, error: persistError } = await supabase
+        .from('crm_messages')
+        .insert({
+          contact_id: selectedContact.id,
+          direction: 'outbound',
+          message_type: isVoice ? 'voice' : 'audio',
+          content: '',
+          media_url: publicUrl,
+          status: 'sent',
+          meta_message_id: metaMsgId,
+          metadata: { source, original_mime: contentType || null }
+        })
+        .select()
+        .single();
+
+      if (persistError) throw persistError;
+
+      await supabase.from('crm_contacts')
+        .update({ last_interaction: new Date().toISOString() })
+        .eq('id', selectedContact.id);
+
+      setChatMessages(prev => {
+        const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
+        return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
+      });
+      return savedMessage;
+    };
 
     try {
       // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
       // Determine extension based on real mime type
       let fileExt = 'bin';
-      let contentType = file instanceof File ? file.type : (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
+      let contentType = file.type || (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
       
       if (isAudio) {
         if (contentType?.includes('ogg')) fileExt = 'ogg';
@@ -888,28 +921,8 @@ const CRM = () => {
             throw new Error(result.error || result.details || 'Erro no processamento do VPS');
           }
           
-          // Persist outbound audio in our own history (VPS bridge does not write to crm_messages)
-          try {
-            const metaMsgId = result?.messageId || result?.messages?.[0]?.id || null;
-            await supabase.from('crm_messages').insert({
-              contact_id: selectedContact.id,
-              direction: 'outbound',
-              message_type: isVoice ? 'voice' : 'audio',
-              content: '',
-              media_url: publicUrl,
-              status: 'sent',
-              meta_message_id: metaMsgId,
-              metadata: { source: 'vps_bridge', original_mime: contentType }
-            });
-            await supabase.from('crm_contacts')
-              .update({ last_interaction: new Date().toISOString() })
-              .eq('id', selectedContact.id);
-          } catch (persistErr) {
-            console.error('Falha ao salvar áudio no histórico:', persistErr);
-          }
-
-          setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-          await fetchMessages(selectedContact.id);
+          const metaMsgId = result?.messageId || result?.messages?.[0]?.id || null;
+          await persistOutboundAudio(publicUrl, metaMsgId, 'vps_bridge', contentType);
           toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e enviado como mensagem de voz." });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
@@ -941,6 +954,10 @@ const CRM = () => {
       if (!data.success) throw new Error(data.error);
 
       setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      if (type === 'audio') {
+        const metaMsgId = data?.messageId || data?.messages?.[0]?.id || data?.result?.messages?.[0]?.id || null;
+        await persistOutboundAudio(publicUrl, metaMsgId, 'standard_send', contentType);
+      }
       await fetchMessages(selectedContact.id);
       toast({ title: "Mídia enviada!" });
     } catch (err: any) {
