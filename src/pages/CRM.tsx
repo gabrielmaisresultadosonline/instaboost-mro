@@ -427,6 +427,7 @@ const CRM = () => {
       .subscribe();
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       supabase.removeChannel(messageChannel);
     };
   }, [navigate]);
