@@ -2048,7 +2048,6 @@ const CRM = () => {
 
                     <Card 
                       className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20 cursor-pointer hover:shadow-md transition-all"
-                      onClick={() => handleOpenMetricsList('active')}
                     >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
@@ -2063,13 +2062,13 @@ const CRM = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1">
+                          <div className="space-y-1 cursor-pointer hover:bg-emerald-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_paid')}>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Pagas</p>
                             <div className="text-xl font-black text-emerald-600">
                               {conversationStats.paidThisWeek}
                             </div>
                           </div>
-                          <div className="space-y-1">
+                          <div className="space-y-1 cursor-pointer hover:bg-emerald-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_active')}>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Ativas</p>
                             <div className="text-xl font-black text-emerald-600">
                               {conversationStats.activeThisWeek}
@@ -2077,7 +2076,7 @@ const CRM = () => {
                           </div>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2">
-                          Contatos únicos que interagiram nos últimos 7 dias.
+                          Contatos únicos que interagiram nos últimos 7 dias. Clique nos números para ver a lista.
                         </p>
                       </CardContent>
                     </Card>
