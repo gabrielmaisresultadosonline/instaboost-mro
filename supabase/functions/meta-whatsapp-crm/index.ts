@@ -657,7 +657,7 @@ serve(async (req) => {
         });
         
         if (!contactsResponse.ok) {
-          const err = await contactsResponse.json();
+          const err = await contactsResponse.json().catch(() => ({}));
           console.error('People API Error:', err);
           break;
         }
@@ -669,10 +669,17 @@ serve(async (req) => {
           const upsertBatch = [];
           for (const person of contactsData.connections) {
             const name = person.names?.[0]?.displayName;
-            // Get all phone numbers for this person
             const phones = person.phoneNumbers?.map((p: any) => p.value?.replace(/\D/g, '')).filter(Boolean) || [];
             
-            for (const phone of phones) {
+            for (let phone of phones) {
+              // Basic validation for WhatsApp format (at least 10 digits)
+              if (phone.length < 10) continue;
+              
+              // Normalize Brazilian numbers if needed (already handled by normalizePhone in some places but let's be safe)
+              if (phone.length === 10 || phone.length === 11) {
+                if (!phone.startsWith('55')) phone = `55${phone}`;
+              }
+
               upsertBatch.push({
                 wa_id: phone,
                 name: name || null,
@@ -683,12 +690,14 @@ serve(async (req) => {
           }
 
           if (upsertBatch.length > 0) {
-            // Upsert in chunks to avoid database limits
             for (let i = 0; i < upsertBatch.length; i += 100) {
               const chunk = upsertBatch.slice(i, i + 100);
               const { error: upsertError } = await supabase.from('crm_contacts').upsert(chunk, { onConflict: 'wa_id' });
-              if (!upsertError) count += chunk.length;
-              else console.error('Upsert Error:', upsertError);
+              if (!upsertError) {
+                count += chunk.length;
+              } else {
+                console.error('Upsert Error:', upsertError);
+              }
             }
           }
         }
