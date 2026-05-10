@@ -56,7 +56,9 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (media) {
     const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
     payload.type = media.type
-    payload[media.type] = media.type === 'document' ? { id: mediaId, filename: media.fileName } : { id: mediaId }
+    payload[media.type] = media.type === 'document' 
+      ? { id: mediaId, filename: media.fileName } 
+      : (media.type === 'audio' ? { id: mediaId, voice: true } : { id: mediaId })
   } else {
     payload.type = 'text'
     payload.text = { preview_url: true, body: String(params.text || '') }

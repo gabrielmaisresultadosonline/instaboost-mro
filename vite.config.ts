@@ -27,9 +27,7 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
     rollupOptions: {
       output: {
-        entryFileNames: `assets/index.js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/index.[ext]`,
+        // Use default hashing for better cache busting
       },
     },
   },
