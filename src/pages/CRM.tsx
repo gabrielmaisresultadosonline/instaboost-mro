@@ -344,28 +344,37 @@ const CRM = () => {
         const dateStr = date.toISOString().split('T')[0];
         const dayLabel = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         
-        const dayPaid = Object.values(byContact).reduce((acc, msgs) => {
-          let count = 0;
+        let dayPaid = 0;
+        let dayActive = 0;
+
+        Object.values(byContact).forEach((msgs) => {
           let lastInbound = -Infinity;
           let lastPaidStart = -Infinity;
+          let contactPaidForDay = false;
+          let contactActiveForDay = false;
+
           msgs.forEach(m => {
             const mt = new Date(m.created_at).getTime();
             const mDate = m.created_at.split('T')[0];
+            
             if (m.direction === 'inbound') {
               lastInbound = mt;
+              if (mDate === dateStr) contactActiveForDay = true;
             } else if (m.direction === 'outbound') {
               const inFreeWindow = mt - lastInbound < DAY;
               const inPaidWindow = mt - lastPaidStart < DAY;
               if (!inFreeWindow && !inPaidWindow) {
-                if (mDate === dateStr) count++;
+                if (mDate === dateStr) contactPaidForDay = true;
                 lastPaidStart = mt;
               }
             }
           });
-          return acc + count;
-        }, 0);
+          
+          if (contactPaidForDay) dayPaid++;
+          if (contactActiveForDay) dayActive++;
+        });
 
-        chartData.push({ name: dayLabel, pagos: dayPaid });
+        chartData.push({ name: dayLabel, pagos: dayPaid, ativos: dayActive });
       }
       setMetricsChartData(chartData);
 
