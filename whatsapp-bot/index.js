@@ -138,7 +138,7 @@ app.post('/send-voice', async (req, res) => {
         throw new Error('Bot não está conectado no WhatsApp para envio local');
       }
       
-      const media = new MessageMedia('audio/ogg', base64Audio, 'voice.ogg');
+      const media = new MessageMedia('audio/ogg; codecs=opus', base64Audio, 'voice.ogg');
       await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
       res.json({ success: true, message: 'Áudio enviado via Bot Local' });
     }
