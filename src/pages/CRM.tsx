@@ -902,7 +902,7 @@ const CRM = () => {
               metadata: { source: 'vps_bridge', original_mime: contentType }
             });
             await supabase.from('crm_contacts')
-              .update({ last_message_at: new Date().toISOString(), last_message_preview: '🎤 Mensagem de áudio' })
+              .update({ last_interaction: new Date().toISOString() })
               .eq('id', selectedContact.id);
           } catch (persistErr) {
             console.error('Falha ao salvar áudio no histórico:', persistErr);
