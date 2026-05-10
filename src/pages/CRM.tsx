@@ -3429,22 +3429,39 @@ const CRM = () => {
                               />
                             </div>
                             
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                <Button 
                                 className="flex-1 font-bold h-11"
                                 onClick={handleConnectGoogle}
                                 variant="outline"
                               >
-                                {googleContactsEnabled ? 'Reconectar Conta Google' : 'Conectar Conta Google'}
+                                {googleContactsEnabled ? 'Conectar outra Conta' : 'Conectar Conta Google'}
                               </Button>
-                              
+
                               {googleContactsEnabled && (
-                                <Button 
-                                  className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
-                                  onClick={handleSyncGoogleContacts}
-                                >
-                                  <RefreshCcw className="w-4 h-4 mr-2" /> Sincronizar Agora
-                                </Button>
+                                <>
+                                  <Button 
+                                    className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
+                                    onClick={handleSyncGoogleContacts}
+                                    disabled={isSyncingContacts}
+                                  >
+                                    <RefreshCcw className={cn("w-4 h-4 mr-2", isSyncingContacts && "animate-spin")} /> 
+                                    {isSyncingContacts ? 'Sincronizando...' : 'Sincronizar Agora'}
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    className="h-11 px-3 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    title="Deslogar Google"
+                                    onClick={() => {
+                                      localStorage.removeItem('google_contacts_connected');
+                                      localStorage.removeItem('google_contacts_auth_code');
+                                      setGoogleContactsEnabled(false);
+                                      toast({ title: "Google Desconectado" });
+                                    }}
+                                  >
+                                    <LogOut className="w-4 h-4" />
+                                  </Button>
+                                </>
                               )}
                             </div>
                           </div>
