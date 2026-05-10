@@ -198,12 +198,15 @@ const CRM = () => {
     sent_count: 0,
     responded_count: 0,
     qualified_count: 0,
-    sales_count: 0
+    sales_count: 0,
+    conv_24h_count: 0 // Nova métrica: conversas 24h
   });
   const [conversationStats, setConversationStats] = useState({
     paidThisMonth: 0,
     activeWindow24h: 0,
-    monthLabel: ''
+    monthLabel: '',
+    paidThisWeek: 0,
+    activeThisWeek: 0
   });
   const CONVERSATION_COST = 0.33;
   const [flows, setFlows] = useState<any[]>([]);
