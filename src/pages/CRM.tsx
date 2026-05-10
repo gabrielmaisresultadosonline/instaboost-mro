@@ -167,7 +167,7 @@ const CRM = () => {
     meta_waba_id: '',
     meta_app_id: '',
     meta_app_secret: '',
-    google_client_id: '',
+    google_client_id: '811195616147-3v5531d27p0v61st1e75m6lshk1m1n7f.apps.googleusercontent.com',
     google_client_secret: '',
     openai_api_key: '',
     ai_agent_enabled: false,
