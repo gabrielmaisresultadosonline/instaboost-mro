@@ -98,6 +98,7 @@ import {
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 const encodeAudioBufferToWav = (audioBuffer: AudioBuffer) => {
   const channels = Math.min(audioBuffer.numberOfChannels, 2);
@@ -269,6 +270,8 @@ const CRM = () => {
   const [isEditStatusDialogOpen, setIsEditStatusDialogOpen] = useState(false);
   const [editingStatus, setEditingStatus] = useState<any>(null);
   const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
+  const [isSyncingContacts, setIsSyncingContacts] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -556,20 +559,33 @@ const CRM = () => {
       return;
     }
 
-    toast({ title: "Sincronizando...", description: "Buscando seus contatos do Google." });
+    setIsSyncingContacts(true);
+    setSyncProgress(10);
+    
     try {
+      setSyncProgress(30);
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'syncGoogleContacts' }
       });
+      
+      setSyncProgress(70);
+      
       if (error) throw error;
       if (data.success) {
-        toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
-        fetchContacts();
+        setSyncProgress(100);
+        setTimeout(() => {
+          setIsSyncingContacts(false);
+          setSyncProgress(0);
+          toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
+          fetchContacts();
+        }, 500);
       } else {
         throw new Error(data.error || "Erro desconhecido");
       }
     } catch (err: any) {
       console.error(err);
+      setIsSyncingContacts(false);
+      setSyncProgress(0);
       toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
       if (err.message?.includes('connect') || err.message?.includes('token')) {
         handleConnectGoogle();
@@ -4515,6 +4531,26 @@ const CRM = () => {
           onClose={() => setPreviewMedia(null)} 
         />
       )}
+
+      <Dialog open={isSyncingContacts} onOpenChange={setIsSyncingContacts}>
+        <DialogContent className="sm:max-w-md text-center py-10">
+          <DialogHeader className="items-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <RefreshCcw className="w-8 h-8 text-primary animate-spin" />
+            </div>
+            <DialogTitle className="text-xl">Sincronizando Contatos</DialogTitle>
+            <DialogDescription>
+              Aguarde enquanto buscamos seus contatos do Google...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <Progress value={syncProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+              {syncProgress < 100 ? 'Sincronizando...' : 'Concluído!'}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isContactInfoOpen} onOpenChange={setIsContactInfoOpen}>
         <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
