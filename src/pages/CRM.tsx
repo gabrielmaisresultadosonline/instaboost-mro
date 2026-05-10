@@ -3747,7 +3747,7 @@ const CRM = () => {
                           size="sm"
                           className={cn(
                             "h-9 text-[10px] md:text-xs font-bold rounded-xl px-5 shadow-sm w-full sm:w-auto",
-                            googleContactsEnabled ? "bg-white text-primary border border-primary/20 hover:bg-primary/5" : "bg-primary text-white"
+                            googleContactsEnabled ? "bg-white text-primary border border-primary/20 hover:bg-primary/5" : "bg-primary/90 text-white"
                           )}
                           onClick={handleSyncGoogleContacts}
                         >
