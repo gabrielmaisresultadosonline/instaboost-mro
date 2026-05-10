@@ -87,10 +87,9 @@ app.post('/send-voice', async (req, res) => {
     // 2. Transcodificar para OGG Opus usando FFmpeg (formato nativo WhatsApp)
     console.log(`🔧 [Bridge] Transcodificando via FFmpeg...`);
     try {
-      // Forçamos OGG/Opus MONO 16kHz - obrigatório para WhatsApp Mobile reconhecer como voice note.
-      // Sem -ac 1 e -ar 16000 o áudio toca no Desktop mas falha no celular ("Este áudio não está mais disponível").
-      await execAsync(`ffmpeg -i "${inputPath}" -vn -map_metadata -1 -c:a libopus -b:a 32k -ar 16000 -ac 1 -application voip -frame_duration 60 -f ogg "${outputPath}" -y`);
-      console.log(`✅ [Bridge] Transcodificação FFmpeg concluída (mono 16kHz Opus).`);
+      // WhatsApp Mobile é mais rígido: OGG precisa ser Opus real, mono, 48kHz e MIME com codecs=opus.
+      await execAsync(`ffmpeg -i "${inputPath}" -vn -map_metadata -1 -c:a libopus -b:a 32k -ar 48000 -ac 1 -application voip -frame_duration 20 -f ogg "${outputPath}" -y`);
+      console.log(`✅ [Bridge] Transcodificação FFmpeg concluída (OGG Opus mono 48kHz).`);
     } catch (ffmpegErr) {
       console.error('⚠️ [Bridge] Falha no FFmpeg:', ffmpegErr.message);
       // Fallback: se o FFmpeg falhar, tentamos enviar o original se for compatível
@@ -106,17 +105,10 @@ app.post('/send-voice', async (req, res) => {
       console.log(`📤 [Bridge] Enviando via Meta Cloud API...`);
       
       // Upload para Meta
-      const formData = new FormData();
-      formData.append('messaging_product', 'whatsapp');
-      formData.append('type', 'audio');
-      
-      // Precisamos do blob para o FormData do Node-fetch ou similar
-      // Mas o Node-fetch padrão não lida bem com FormData e arquivos de forma simples
-      // Usaremos axios para o upload para a Meta que é mais fácil com buffers
       const metaUploadForm = new (require('form-data'))();
       metaUploadForm.append('messaging_product', 'whatsapp');
       metaUploadForm.append('type', 'audio');
-      metaUploadForm.append('file', audioData, { filename: 'voice.ogg', contentType: 'audio/ogg' });
+      metaUploadForm.append('file', audioData, { filename: 'voice.ogg', contentType: 'audio/ogg; codecs=opus' });
 
       const uploadRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/media`, metaUploadForm, {
         headers: {
@@ -134,7 +126,7 @@ app.post('/send-voice', async (req, res) => {
         recipient_type: "individual",
         to: to,
         type: "audio",
-        audio: { id: mediaId, voice: true }
+        audio: { id: mediaId }
       }, {
         headers: { 'Authorization': `Bearer ${metaToken}` }
       });
@@ -146,7 +138,7 @@ app.post('/send-voice', async (req, res) => {
         throw new Error('Bot não está conectado no WhatsApp para envio local');
       }
       
-      const media = new MessageMedia('audio/ogg', base64Audio, 'voice.ogg');
+      const media = new MessageMedia('audio/ogg; codecs=opus', base64Audio, 'voice.ogg');
       await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
       res.json({ success: true, message: 'Áudio enviado via Bot Local' });
     }
