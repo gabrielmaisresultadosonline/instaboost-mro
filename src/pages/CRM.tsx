@@ -1014,8 +1014,7 @@ const CRM = () => {
             body: JSON.stringify({
               to: selectedContact.wa_id,
               audioUrl: publicUrl,
-              metaToken: metaSettings.meta_access_token,
-              phoneId: metaSettings.meta_phone_number_id
+              sendAsVoice: true
             })
           });
           
@@ -1028,10 +1027,11 @@ const CRM = () => {
           console.error("VPS Error, falling back to standard send:", vpsErr);
           toast({ 
             title: "VPS indisponível", 
-            description: "O áudio será enviado pelo método padrão (pode não aparecer como gravado na hora). Erro: " + vpsErr.message,
+            description: "Não enviei pelo método padrão para não quebrar o áudio no celular. Corrija o VPS e tente novamente. Erro: " + vpsErr.message,
             variant: "destructive"
           });
-          // Fallback to standard function
+          await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
+          throw vpsErr;
         }
 
         if (vpsResult) {
