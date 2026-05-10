@@ -818,6 +818,7 @@ const CRM = () => {
     if (!selectedContact) return;
     setSendingMessage(true);
     const localPreviewUrl = previewUrl || (file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || URL.createObjectURL(file)));
+    const selectedContactId = selectedContact.id;
     
     // Optimistic update for media
     const optimisticMessage = {
@@ -836,14 +837,14 @@ const CRM = () => {
       const { data: savedMessage, error: persistError } = await supabase
         .from('crm_messages')
         .insert({
-          contact_id: selectedContact.id,
+          contact_id: selectedContactId,
           direction: 'outbound',
-          message_type: isVoice ? 'voice' : 'audio',
-          content: '',
+          message_type: 'audio',
+          content: '[Mensagem de Áudio]',
           media_url: publicUrl,
           status: 'sent',
           meta_message_id: metaMsgId,
-          metadata: { source, original_mime: contentType || null }
+          metadata: { source, original_mime: contentType || null, is_voice: isVoice }
         })
         .select()
         .single();
@@ -854,10 +855,12 @@ const CRM = () => {
         .update({ last_interaction: new Date().toISOString() })
         .eq('id', selectedContact.id);
 
-      setChatMessages(prev => {
-        const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
-        return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
-      });
+      if (selectedContactRef.current?.id === selectedContactId) {
+        setChatMessages(prev => {
+          const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
+          return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
+        });
+      }
       return savedMessage;
     };
 
