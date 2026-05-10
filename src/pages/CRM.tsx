@@ -704,36 +704,43 @@ const CRM = () => {
     }
 
     setIsSyncingContacts(true);
-    setSyncProgress(10);
+    setSyncProgress(5);
     
     try {
-      setSyncProgress(30);
+      // Inicia a sincronização chamando a função
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'syncGoogleContacts' }
       });
       
-      setSyncProgress(70);
-      
       if (error) throw error;
+      
       if (data.success) {
         setSyncProgress(100);
-        setTimeout(() => {
-          setIsSyncingContacts(false);
-          setSyncProgress(0);
-          toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
-          fetchContacts();
-        }, 500);
+        toast({ 
+          title: "Sincronização concluída!", 
+          description: `${data.count} contatos com WhatsApp foram processados.` 
+        });
+        
+        // Atualiza a lista local de contatos
+        await fetchContacts();
       } else {
-        throw new Error(data.error || "Erro desconhecido");
+        throw new Error(data.error || "Erro desconhecido na sincronização");
       }
     } catch (err: any) {
-      console.error(err);
-      setIsSyncingContacts(false);
-      setSyncProgress(0);
-      toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
-      if (err.message?.includes('connect') || err.message?.includes('token')) {
+      console.error('Erro na sincronização Google:', err);
+      toast({ 
+        title: "Erro na sincronização", 
+        description: err.message, 
+        variant: "destructive" 
+      });
+      if (err.message?.includes('token') || err.message?.includes('auth')) {
         handleConnectGoogle();
       }
+    } finally {
+      setTimeout(() => {
+        setIsSyncingContacts(false);
+        setSyncProgress(0);
+      }, 1000);
     }
   };
 
@@ -3429,22 +3436,39 @@ const CRM = () => {
                               />
                             </div>
                             
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                <Button 
                                 className="flex-1 font-bold h-11"
                                 onClick={handleConnectGoogle}
                                 variant="outline"
                               >
-                                {googleContactsEnabled ? 'Reconectar Conta Google' : 'Conectar Conta Google'}
+                                {googleContactsEnabled ? 'Conectar outra Conta' : 'Conectar Conta Google'}
                               </Button>
-                              
+
                               {googleContactsEnabled && (
-                                <Button 
-                                  className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
-                                  onClick={handleSyncGoogleContacts}
-                                >
-                                  <RefreshCcw className="w-4 h-4 mr-2" /> Sincronizar Agora
-                                </Button>
+                                <>
+                                  <Button 
+                                    className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
+                                    onClick={handleSyncGoogleContacts}
+                                    disabled={isSyncingContacts}
+                                  >
+                                    <RefreshCcw className={cn("w-4 h-4 mr-2", isSyncingContacts && "animate-spin")} /> 
+                                    {isSyncingContacts ? 'Sincronizando...' : 'Sincronizar Agora'}
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    className="h-11 px-3 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    title="Deslogar Google"
+                                    onClick={() => {
+                                      localStorage.removeItem('google_contacts_connected');
+                                      localStorage.removeItem('google_contacts_auth_code');
+                                      setGoogleContactsEnabled(false);
+                                      toast({ title: "Google Desconectado" });
+                                    }}
+                                  >
+                                    <LogOut className="w-4 h-4" />
+                                  </Button>
+                                </>
                               )}
                             </div>
                           </div>
