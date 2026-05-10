@@ -704,36 +704,43 @@ const CRM = () => {
     }
 
     setIsSyncingContacts(true);
-    setSyncProgress(10);
+    setSyncProgress(5);
     
     try {
-      setSyncProgress(30);
+      // Inicia a sincronização chamando a função
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'syncGoogleContacts' }
       });
       
-      setSyncProgress(70);
-      
       if (error) throw error;
+      
       if (data.success) {
         setSyncProgress(100);
-        setTimeout(() => {
-          setIsSyncingContacts(false);
-          setSyncProgress(0);
-          toast({ title: "Sucesso!", description: `${data.count} contatos sincronizados.` });
-          fetchContacts();
-        }, 500);
+        toast({ 
+          title: "Sincronização concluída!", 
+          description: `${data.count} contatos com WhatsApp foram processados.` 
+        });
+        
+        // Atualiza a lista local de contatos
+        await fetchContacts();
       } else {
-        throw new Error(data.error || "Erro desconhecido");
+        throw new Error(data.error || "Erro desconhecido na sincronização");
       }
     } catch (err: any) {
-      console.error(err);
-      setIsSyncingContacts(false);
-      setSyncProgress(0);
-      toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
-      if (err.message?.includes('connect') || err.message?.includes('token')) {
+      console.error('Erro na sincronização Google:', err);
+      toast({ 
+        title: "Erro na sincronização", 
+        description: err.message, 
+        variant: "destructive" 
+      });
+      if (err.message?.includes('token') || err.message?.includes('auth')) {
         handleConnectGoogle();
       }
+    } finally {
+      setTimeout(() => {
+        setIsSyncingContacts(false);
+        setSyncProgress(0);
+      }, 1000);
     }
   };
 
