@@ -103,17 +103,18 @@ app.get('/', (req, res) => {
     status: 'online', 
     bot_status: currentStatus,
     phone: currentPhone,
-    service: 'WhatsApp Bot & Bridge MRO',
+    service: 'WhatsApp Bot & Meta Audio Bridge MRO',
+    bridge_mode: 'meta_api',
     time: new Date().toISOString()
   });
 });
 
 // Endpoint para envio direto de áudio do CRM (com transcodificação profissional)
 app.post('/send-voice', async (req, res) => {
-  const { to, audioUrl } = req.body;
+  const { to, audioUrl, metaToken, phoneId } = req.body;
 
-  if (!to || !audioUrl) {
-    return res.status(400).json({ error: 'Parâmetros "to" e "audioUrl" obrigatórios' });
+  if (!to || !audioUrl || !metaToken || !phoneId) {
+    return res.status(400).json({ error: 'Parâmetros "to", "audioUrl", "metaToken" e "phoneId" obrigatórios' });
   }
 
   const tempId = Math.random().toString(36).substring(7);
@@ -121,8 +122,8 @@ app.post('/send-voice', async (req, res) => {
   const outputPath = path.join(__dirname, `voice_${tempId}.ogg`);
 
   try {
-    const chatId = formatPhone(to);
-    console.log(`🎙️ [Bridge] Processando áudio para ${chatId}. URL: ${audioUrl.substring(0, 50)}...`);
+    const recipient = formatMetaPhone(to);
+    console.log(`🎙️ [Bridge] Processando áudio via Meta API para ${recipient}. URL: ${audioUrl.substring(0, 50)}...`);
     
     // 1. Download do áudio
     const response = await axios({
@@ -139,13 +140,33 @@ app.post('/send-voice', async (req, res) => {
     await transcodeToWhatsAppVoice(inputPath, outputPath);
     console.log(`✅ [Bridge] Transcodificação FFmpeg concluída (OGG Opus mono 48kHz).`);
 
-    if (!client || currentStatus !== 'connected') {
-      throw new Error('Bot não está conectado no WhatsApp para envio local');
-    }
+    const audioData = fs.readFileSync(outputPath);
+    const formData = new (require('form-data'))();
+    formData.append('messaging_product', 'whatsapp');
+    formData.append('type', 'audio');
+    formData.append('file', audioData, { filename: 'voice.ogg', contentType: 'audio/ogg; codecs=opus' });
 
-    const media = MessageMedia.fromFilePath(outputPath);
-    await client.sendMessage(chatId, media, { sendAudioAsVoice: true });
-    res.json({ success: true, message: 'Áudio enviado como gravação de voz via Bot Local' });
+    const uploadRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/media`, formData, {
+      headers: { ...formData.getHeaders(), Authorization: `Bearer ${metaToken}` },
+      timeout: 30000
+    });
+
+    const mediaId = uploadRes.data?.id;
+    if (!mediaId) throw new Error('Meta não retornou ID da mídia convertida');
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+
+    const sendRes = await axios.post(`https://graph.facebook.com/v20.0/${phoneId}/messages`, {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: recipient,
+      type: 'audio',
+      audio: { id: mediaId }
+    }, {
+      headers: { Authorization: `Bearer ${metaToken}`, 'Content-Type': 'application/json' },
+      timeout: 30000
+    });
+
+    res.json({ success: true, message: 'Áudio convertido e enviado via Meta API', messageId: sendRes.data?.messages?.[0]?.id, mediaId });
   } catch (err) {
     console.error('❌ Erro no Bridge:', err.message);
     res.status(500).json({ error: err.message });
@@ -322,6 +343,16 @@ function formatPhone(raw) {
     digits = '55' + digits;
   }
   return `${digits}@c.us`;
+}
+
+function formatMetaPhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length === 10 || digits.length === 11) digits = '55' + digits;
+  if (digits.length === 13 && digits.startsWith('55') && digits[4] === '9') {
+    digits = digits.slice(0, 4) + digits.slice(5);
+  }
+  return digits;
 }
 
 async function processPending() {
