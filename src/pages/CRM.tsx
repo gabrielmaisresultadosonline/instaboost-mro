@@ -2428,11 +2428,11 @@ const CRM = () => {
                                       ) : (
                                         <>
                                           {m.message_type === 'image' && m.media_url && !/^\d+$/.test(m.media_url.toString()) && (
-                                            <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
+                                            <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 max-w-fit">
                                               <img 
                                                 src={m.media_url} 
                                                 alt="Mídia" 
-                                                className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
+                                                className="max-h-[180px] w-auto object-cover cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
                                                 onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })} 
                                               />
                                             </div>
