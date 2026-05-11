@@ -1162,6 +1162,9 @@ const CRM = () => {
     try {
       // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
+      const uploadId = `upload-${Date.now()}`;
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 10 }));
+      
       // Determine extension based on real mime type
       let fileExt = 'bin';
       let contentType = file.type || (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
@@ -1179,6 +1182,8 @@ const CRM = () => {
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
 
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 30 }));
+
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
@@ -1187,6 +1192,7 @@ const CRM = () => {
         });
 
       if (uploadError) throw uploadError;
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 60 }));
 
       const { data: { publicUrl } } = supabase.storage
         .from('crm-media')
@@ -1209,6 +1215,8 @@ const CRM = () => {
         }
         await persistOutboundAudio(historyAudioUrl, null, 'history_saved_before_send', historyContentType, 'sending');
       }
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 80 }));
+
 
       if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
