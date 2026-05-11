@@ -527,6 +527,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       name: flowName,
       trigger_type: triggerType,
       trigger_keywords: triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
+      trigger_tag: triggerTag,
       is_active: isActive,
       nodes,
       edges,
