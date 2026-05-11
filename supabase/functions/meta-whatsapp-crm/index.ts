@@ -107,9 +107,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   form.append('file', blob, fileName)
   form.append('type', media.type)
 
-  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}`);
-
-  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}, fileName=${fileName}`);
+  console.log(`[UPLOAD] Enviando para Meta PTT: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}, fileName=${fileName}`);
 
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
     method: 'POST',
