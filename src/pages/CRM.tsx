@@ -2853,8 +2853,8 @@ const CRM = () => {
                                       <p className="text-[10px] font-bold text-orange-700 uppercase">Atenção: Mais de 4h sem resposta. Considere gerar uma estratégia de gancho.</p>
                                     </div>
                                   )}
-                                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap opacity-0 pointer-events-none absolute h-0 w-0 overflow-hidden">
                                       <div className="flex items-center gap-1.5 sm:gap-2">
                                         <Bot className={cn("w-4 h-4 shrink-0", selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary" : "text-muted-foreground")} />
                                         <span className="text-[10px] sm:text-[11px] font-bold">Assistente IA</span>
@@ -2880,8 +2880,13 @@ const CRM = () => {
                                     </div>
                                     <Dialog>
                                       <DialogTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0">
-                                          <Bot className="w-3.5 h-3.5 mr-1" /> <span className="hidden xs:inline">Analises </span>IA
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          className="h-8 text-[11px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-xl px-4"
+                                          disabled={!metaSettings.openai_api_key}
+                                        >
+                                          <Bot className="w-4 h-4 mr-2" /> <span>Analises IA</span>
                                         </Button>
                                       </DialogTrigger>
                                       <DialogContent className="sm:max-w-[600px] rounded-3xl">
