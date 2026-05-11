@@ -1279,6 +1279,7 @@ export type Database = {
           color: string
           created_at: string | null
           id: string
+          is_starred: boolean | null
           label: string
           sort_order: number
           updated_at: string | null
@@ -1288,6 +1289,7 @@ export type Database = {
           color?: string
           created_at?: string | null
           id?: string
+          is_starred?: boolean | null
           label: string
           sort_order?: number
           updated_at?: string | null
@@ -1297,6 +1299,7 @@ export type Database = {
           color?: string
           created_at?: string | null
           id?: string
+          is_starred?: boolean | null
           label?: string
           sort_order?: number
           updated_at?: string | null
