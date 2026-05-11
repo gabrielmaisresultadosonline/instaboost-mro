@@ -614,6 +614,8 @@ serve(async (req) => {
       const { accountId } = params;
       let account;
       
+      console.log(`[SYNC] Invocando syncGoogleContacts. accountId: ${accountId || 'recente'}`);
+      
       if (accountId) {
         const { data } = await supabase.from('crm_google_accounts').select('*').eq('id', accountId).single();
         account = data;
@@ -622,12 +624,17 @@ serve(async (req) => {
         account = data;
       }
 
-      if (!account) throw new Error('Nenhuma conta Google conectada');
+      if (!account) {
+        console.error('[SYNC] Nenhuma conta Google conectada encontrada.');
+        throw new Error('Nenhuma conta Google conectada');
+      }
+
+      console.log(`[SYNC] Usando conta: ${account.email}`);
 
       // Refresh token if expired
       let accessToken = account.access_token;
       if (Date.now() >= (account.expiry_date || 0)) {
-        console.log("Refreshing Google token...");
+        console.log("[SYNC] Refreshing Google token...");
         const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -641,16 +648,22 @@ serve(async (req) => {
         const refreshTokens = await refreshResponse.json();
         if (refreshResponse.ok) {
           accessToken = refreshTokens.access_token;
+          console.log("[SYNC] Token atualizado com sucesso.");
           await supabase.from('crm_google_accounts').update({
             access_token: accessToken,
             expiry_date: Date.now() + (refreshTokens.expires_in * 1000),
             updated_at: new Date().toISOString()
           }).eq('id', account.id);
+        } else {
+          console.error("[SYNC] Falha ao atualizar token:", refreshTokens);
         }
       }
 
       let count = 0;
+      let totalFetched = 0;
       let nextPageToken = null;
+      
+      console.log("[SYNC] Iniciando busca de contatos na People API...");
       
       do {
         const url = new URL('https://people.googleapis.com/v1/people/me/connections');
@@ -664,24 +677,31 @@ serve(async (req) => {
         
         if (!contactsResponse.ok) {
           const err = await contactsResponse.json().catch(() => ({}));
-          console.error('People API Error:', err);
+          console.error('[SYNC] People API Error:', err);
           break;
         }
 
         const contactsData = await contactsResponse.json();
         nextPageToken = contactsData.nextPageToken;
 
-        if (contactsData.connections) {
+        const connections = contactsData.connections || [];
+        totalFetched += connections.length;
+        console.log(`[SYNC] Página buscada: ${connections.length} conexões. Total até agora: ${totalFetched}`);
+
+        if (connections.length > 0) {
           const upsertBatch = [];
-          for (const person of contactsData.connections) {
+          for (const person of connections) {
             const name = person.names?.[0]?.displayName;
-            const phones = person.phoneNumbers?.map((p: any) => p.value?.replace(/\D/g, '')).filter(Boolean) || [];
+            const phoneNumbers = person.phoneNumbers || [];
             
-            for (let phone of phones) {
+            for (const p of phoneNumbers) {
+              let phone = p.value?.replace(/\D/g, '');
+              if (!phone) continue;
+              
               // Basic validation for WhatsApp format (at least 10 digits)
               if (phone.length < 10) continue;
               
-              // Normalize Brazilian numbers if needed (already handled by normalizePhone in some places but let's be safe)
+              // Normalize Brazilian numbers
               if (phone.length === 10 || phone.length === 11) {
                 if (!phone.startsWith('55')) phone = `55${phone}`;
               }
@@ -696,20 +716,23 @@ serve(async (req) => {
           }
 
           if (upsertBatch.length > 0) {
+            console.log(`[SYNC] Tentando upsert de batch com ${upsertBatch.length} registros...`);
             for (let i = 0; i < upsertBatch.length; i += 100) {
               const chunk = upsertBatch.slice(i, i + 100);
               const { error: upsertError } = await supabase.from('crm_contacts').upsert(chunk, { onConflict: 'wa_id' });
               if (!upsertError) {
                 count += chunk.length;
               } else {
-                console.error('Upsert Error:', upsertError);
+                console.error('[SYNC] Upsert Error:', upsertError);
               }
             }
           }
         }
       } while (nextPageToken);
 
-      return new Response(JSON.stringify({ success: true, count }), {
+      console.log(`[SYNC] Finalizado. Total de conexões People API: ${totalFetched}. Total de registros/upserts em crm_contacts: ${count}`);
+
+      return new Response(JSON.stringify({ success: true, count, totalFetched }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
