@@ -3129,8 +3129,24 @@ const CRM = () => {
                                             </div>
                                           )}
                                           {(m.message_text || m.content) && m.message_type !== 'reaction' && m.message_type !== 'audio' && m.message_type !== 'voice' && !((m.message_text || m.content || '').trim() === '[Mensagem de Áudio]') && (
-                                            <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
-                                              {m.message_text || m.content}
+                                            <div className="space-y-2">
+                                              <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
+                                                {m.message_text || m.content}
+                                              </div>
+                                              
+                                              {/* Botões Interativos no Histórico */}
+                                              {m.metadata?.interactive?.action?.buttons && (
+                                                <div className="flex flex-col gap-1.5 mt-2 border-t border-border/10 pt-2">
+                                                  {m.metadata.interactive.action.buttons.map((btn: any, bIdx: number) => (
+                                                    <div 
+                                                      key={bIdx} 
+                                                      className="flex items-center justify-center p-2 rounded-lg bg-background/50 border border-border/20 text-[11px] font-bold text-primary shadow-sm"
+                                                    >
+                                                      {btn.reply?.title || btn.text}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              )}
                                             </div>
                                           )}
                                           {m.message_type === 'unsupported' && (
