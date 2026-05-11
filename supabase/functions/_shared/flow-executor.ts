@@ -56,13 +56,21 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         return { success: true, message: 'End of flow at delay' };
       }
     } else if (node.type === 'wait_response' || node.type === 'question') {
+      // Send the content of the node (the question text/buttons)
+      const text = node.data?.text || node.data?.content || node.data?.question;
+      if (text) {
+        await supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'sendMessage', to: waId, text, contactId }
+        });
+      }
+
       console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
       await supabase.from('crm_contacts').update({
         flow_state: 'waiting_response',
         next_execution_time: null // Stop the scheduler from re-running this node
       }).eq('id', contactId);
       
-      return { success: true, message: 'Waiting for user response' };
+      return { success: true, message: 'Sent question and waiting for user response' };
     }
 
     // Find next node based on handle or standard connection
