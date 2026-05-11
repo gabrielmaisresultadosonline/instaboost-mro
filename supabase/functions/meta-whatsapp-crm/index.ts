@@ -33,6 +33,25 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
     console.error("OpenAI API Key não configurada");
     return { success: false, error: "AI logic missing key" };
   }
+
+  if (sourceMessageId) {
+    await wait(5000);
+    const { data: latestInboundAfterWait } = await supabase
+      .from('crm_messages')
+      .select('meta_message_id, content')
+      .eq('contact_id', contact.id)
+      .eq('direction', 'inbound')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestInboundAfterWait?.meta_message_id && latestInboundAfterWait.meta_message_id !== sourceMessageId) {
+      console.log(`[AI-AGENT] Newer inbound message arrived for ${waId}. Skipping stale response for ${sourceMessageId}.`);
+      return { success: true, skipped: 'newer_message_waiting' };
+    }
+
+    messageText = latestInboundAfterWait?.content || messageText;
+  }
   
   // 1. Obter texto se não fornecido (pegar última mensagem do cliente)
   let messageText = text;
