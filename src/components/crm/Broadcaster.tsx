@@ -296,6 +296,22 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
                 </div>
               </div>
 
+              {targetType === 'tag' && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label className="text-xs md:text-sm">Selecione a Etiqueta</Label>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="h-10 md:h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] text-xs md:text-sm">
+                      <SelectValue placeholder="Escolha uma etiqueta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map(s => (
+                        <SelectItem key={s.id} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {targetType === 'uploaded' && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
