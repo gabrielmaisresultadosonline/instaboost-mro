@@ -277,7 +277,7 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
 
   if (contact && (isAiHandling || (hasActiveFlow && (isInAiNode || isAiActive)))) {
     console.log(`[WEBHOOK] CAPTURING message from ${waId} for AI Agent. State: ${contact.flow_state}, Node: ${contact.current_node_id}, AI Active: ${contact.ai_active}`);
-    const result = await processAiAgentResponse(supabase, contact, waId, text);
+    const result = await processAiAgentResponse(supabase, contact, waId, text, message.id);
     return jsonResponse(result);
   } else if (contact && contact.ai_active && contact.flow_state === 'idle') {
     console.log(`[WEBHOOK] Contact ${waId} has AI active and is idle. Calling Global AI Agent...`);
@@ -698,12 +698,12 @@ serve(async (req) => {
               results.push({ contactId: contact.id, result: res });
 
               // Se o nó executado foi um Agente IA, processamos a resposta imediatamente
-              if (res?.message?.includes('AI handling state')) {
+                if (res?.message?.includes('AI handling state')) {
                 console.log(`[SCHEDULED] Node resulted in AI handling state. Triggering AI response for ${contact.wa_id}`);
                 // Re-fetch contact to get updated flow_state and metadata from executeVisualNode
                 const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contact.id).single();
                 if (updatedContact) {
-                  await processAiAgentResponse(supabase, updatedContact, contact.wa_id);
+                    await processAiAgentResponse(supabase, updatedContact, contact.wa_id);
                 }
               }
             } else {
