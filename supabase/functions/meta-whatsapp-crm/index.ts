@@ -41,15 +41,15 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contactForSave.id);
   }
 
+  // Busca contato SEM filtrar por idle, para permitir que a IA Global funcione mesmo se o contato estiver em estado idle
   const { data: contact } = await supabase
     .from('crm_contacts')
     .select('*')
     .eq('wa_id', waId)
-    .neq('flow_state', 'idle')
     .single();
 
   if (contact && contact.flow_state === 'ai_handling') {
-    console.log(`[WEBHOOK] Contact ${waId} is in AI handling state. Calling AI Agent...`);
+    console.log(`[WEBHOOK] Contact ${waId} is in AI handling state (Flow AI Agent). Calling AI Agent...`);
     
     // 1. Obter contexto da conversa
     const { data: recentMessages } = await supabase
