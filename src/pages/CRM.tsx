@@ -2720,7 +2720,7 @@ const CRM = () => {
                                 )}
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                               {kanbanStatuses.filter(s => s.is_starred).map(status => (
                                 <Button 
                                   key={status.id}
