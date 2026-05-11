@@ -200,12 +200,15 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     await supabase.from('crm_messages').insert({
       contact_id: contact.id,
       direction: 'outbound',
-      message_type: media?.type || 'text',
-      content: media ? (params.text || `[${media.type}]`) : params.text,
+      message_type: params.interactive ? 'interactive' : (media?.type || 'text'),
+      content: media ? (params.text || `[${media.type}]`) : (params.interactive?.body?.text || params.text),
       media_url: media?.url || null,
       status: 'sent',
       meta_message_id: result?.messages?.[0]?.id || null,
-      metadata: media?.type === 'audio' ? { is_voice: !!params.isVoice } : {},
+      metadata: { 
+        ...(media?.type === 'audio' ? { is_voice: !!params.isVoice } : {}),
+        ...(params.interactive ? { interactive: params.interactive } : {})
+      },
     })
     await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contact.id)
   }
