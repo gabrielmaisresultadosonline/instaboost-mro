@@ -652,6 +652,17 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               <Button variant="outline" className="justify-start gap-2 border-amber-600/20 hover:bg-amber-600/10" onClick={() => addNode('jump')}>
                 <GitBranch className="w-4 h-4 text-amber-600" /> Pular p/ Fluxo
               </Button>
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2 border-violet-500/20 bg-violet-50/30 hover:bg-violet-500/10 group transition-all" 
+                onClick={() => addNode('aiAgent')}
+              >
+                <BrainCircuit className="w-4 h-4 text-violet-500 group-hover:rotate-12 transition-transform" /> 
+                <div className="flex flex-col items-start text-left">
+                  <span className="text-violet-700 font-semibold">Agente I.A</span>
+                  <span className="text-[8px] text-violet-600/60 uppercase">Qualificador Inteligente</span>
+                </div>
+              </Button>
             </div>
           </div>
 
