@@ -147,7 +147,6 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       }).eq('id', contactId);
       
       return { success: true, message: 'Contact moved to AI handling state' };
-    }
     } else if (node.type === 'crmAction') {
       const action = node.data?.action;
       const statusValue = node.data?.statusValue;
