@@ -1033,7 +1033,18 @@ serve(async (req) => {
             })
             .eq('id', contactId)
           
-          return jsonResponse(await executeVisualNode(supabase, flow, nextNode, contactId, waId))
+          const res: any = await executeVisualNode(supabase, flow, nextNode, contactId, waId);
+          
+          // Se o próximo nó é um Agente IA, processamos a resposta imediatamente
+          if (res?.message?.includes('AI handling state')) {
+            console.log(`[CONTINUE-FLOW] Moved to AI handling state. Triggering AI response for ${waId}`);
+            const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
+            if (updatedContact) {
+              await processAiAgentResponse(supabase, updatedContact, waId);
+            }
+          }
+          
+          return jsonResponse(res)
         }
 
         // No more nodes, finish flow
