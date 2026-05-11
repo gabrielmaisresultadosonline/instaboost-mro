@@ -2087,6 +2087,7 @@ const CRM = () => {
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
                 {activeTab === 'contact-list' ? 'Contatos' : 
                  activeTab === 'contacts' ? 'Conversas' : 
+                 activeTab === 'google-synced' ? 'Sincronizados Google' :
                  activeTab}
             </div>
             {activeTab === 'contacts' && (
