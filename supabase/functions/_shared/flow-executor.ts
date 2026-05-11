@@ -49,31 +49,35 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       return { success: true, message: 'Waiting for user response' };
     }
 
-    // Find next node
+    // Find next node based on handle or standard connection
     const edge = flow.edges?.find((e: any) => e.source === node.id);
+    
     if (edge) {
       const nextNode = flow.nodes?.find((n: any) => n.id === edge.target);
       if (nextNode) {
+        // Use delayAfter from node data or default to 2s to prevent race conditions in Meta/DB
         const delay = parseInt(node.data?.delayAfter || '2');
-        if (delay > 0) {
-          const nextTime = new Date(Date.now() + delay * 1000).toISOString();
-          await supabase.from('crm_contacts').update({
-            current_node_id: nextNode.id,
-            next_execution_time: nextTime,
-            flow_state: 'running'
-          }).eq('id', contactId);
-          return { success: true, message: 'Next node scheduled' };
-        } else {
-          return await executeVisualNode(supabase, flow, nextNode, contactId, waId);
-        }
+        
+        console.log(`Scheduling next node ${nextNode.id} with ${delay}s delay`);
+        
+        const nextTime = new Date(Date.now() + delay * 1000).toISOString();
+        await supabase.from('crm_contacts').update({
+          current_node_id: nextNode.id,
+          next_execution_time: nextTime,
+          flow_state: 'running'
+        }).eq('id', contactId);
+        
+        return { success: true, message: 'Next node scheduled', nextNodeId: nextNode.id };
       }
     }
 
-    // End of flow or no transition
+    // End of flow or no transition - set to idle
+    console.log(`End of flow reached for contact ${contactId}`);
     await supabase.from('crm_contacts').update({
       flow_state: 'idle',
       current_flow_id: null,
-      current_node_id: null
+      current_node_id: null,
+      next_execution_time: null
     }).eq('id', contactId);
 
     return { success: true };
@@ -91,5 +95,5 @@ export async function processStep(supabase: any, step: any, contactId: string, w
   // Legacy step processor
   console.log(`Executing legacy step ${step.id} for contact ${contactId}`);
   // ... basic implementation to avoid errors
-  return new Response(JSON.stringify({ success: true }));
+  return { success: true };
 }
