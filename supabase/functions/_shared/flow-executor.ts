@@ -155,13 +155,23 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         }
       }).eq('id', contactId);
       
+      // Se tiver uma mensagem inicial configurada no nó, envia antes de disparar a IA
+      const initialMessage = node.data?.initialMessage || "";
+      if (initialMessage) {
+        console.log(`[EXECUTOR] Sending AI Agent initial message: ${initialMessage}`);
+        await supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'sendMessage', to: waId, text: initialMessage, contactId }
+        });
+      }
+
       // Dispara a primeira resposta da IA imediatamente, passando o gatilho (se houver) como contexto
       const triggerMessage = node.data?.triggerMessage || "";
       await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { 
           action: 'processAiAgent', 
           contactId, 
-          waId,
+          waId: waId,
+          to: waId,
           text: triggerMessage 
         }
       });

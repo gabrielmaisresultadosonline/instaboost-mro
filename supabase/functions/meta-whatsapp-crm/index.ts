@@ -1260,16 +1260,7 @@ serve(async (req) => {
       });
     }
 
-    if (action === 'saveToGoogle') {
-        const { contactId, accountId } = params;
-        const { data: contact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
-        if (!contact) throw new Error('Contato não encontrado');
-
-        let account;
-        if (accountId || contact.google_sync_account_id) {
-            const { data } = await supabase.from('crm_google_accounts').select('*').eq('id', accountId || contact.google_sync_account_id).single();
-            account = data;
-    } else if (action === 'processAiAgent') {
+    if (action === 'processAiAgent') {
       const { data: contact } = await supabase
         .from('crm_contacts')
         .select('*')
@@ -1281,6 +1272,17 @@ serve(async (req) => {
       const result = await processAiAgentResponse(supabase, contact, params.to || params.waId, params.text);
       return jsonResponse(result);
     }
+
+    if (action === 'saveToGoogle') {
+        const { contactId, accountId } = params;
+        const { data: contact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
+        if (!contact) throw new Error('Contato não encontrado');
+
+        let account;
+        if (accountId || contact.google_sync_account_id) {
+            const { data } = await supabase.from('crm_google_accounts').select('*').eq('id', accountId || contact.google_sync_account_id).single();
+            account = data;
+        }
 
         if (!account) throw new Error('Nenhuma conta Google vinculada a este contato');
 
