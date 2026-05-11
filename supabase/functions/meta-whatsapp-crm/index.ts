@@ -313,7 +313,7 @@ serve(async (req) => {
       
       const { data: contactsToProcess, error: fetchError } = await supabase
         .from('crm_contacts')
-        .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction, flow_state')
+        .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction, flow_state, next_execution_time')
         .neq('flow_state', 'idle')
         .or(`next_execution_time.lte.${now},flow_state.eq.waiting_response`)
         .limit(20);
@@ -323,9 +323,9 @@ serve(async (req) => {
       const results = [];
       if (contactsToProcess) {
         for (const contact of contactsToProcess) {
-          // Se estiver em delay (next_execution_time definido), processa apenas se o tempo já passou
+          // IMPORTANTE: Respeitar o delay INDIVIDUAL de cada conversa
           if (contact.next_execution_time && new Date(contact.next_execution_time) > new Date()) {
-            console.log(`[DELAY-SKIP] Contato ${contact.wa_id} ainda em delay.`);
+            console.log(`[DELAY-SKIP] Contato ${contact.wa_id} ainda aguardando seu tempo específico: ${contact.next_execution_time}`);
             continue;
           }
 
