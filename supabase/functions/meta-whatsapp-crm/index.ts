@@ -117,7 +117,6 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (!to) throw new Error('Telefone inválido')
 
   const media = guessMedia(params)
-  // Se for áudio enviado pelo fluxo com isVoice: true, a Meta requer o envio via upload para aparecer como gravado na hora
   const isVoice = params.isVoice === true;
   const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
   
@@ -137,7 +136,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     
     payload.type = media.type;
     if (media.type === 'audio') {
-      // Para enviar como mensagem de voz (aquela que aparece com a barra de reprodução e foto), a Meta exige o campo "audio" com ID.
+      // Para enviar como mensagem de voz (gravado na hora), usamos o campo "audio" com ID.
       payload.audio = { id: mediaId };
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
