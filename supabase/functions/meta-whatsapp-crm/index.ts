@@ -1093,8 +1093,10 @@ serve(async (req) => {
         .eq('flow_state', 'waiting_response')
         .single();
 
+      console.log(`[WEBHOOK] Mensagem de ${waId}. Estado do fluxo: ${contact ? 'waiting_response' : 'idle/other'}`);
+
       if (contact && contact.current_flow_id) {
-        console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow...`);
+        console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow from node ${contact.current_node_id}...`);
         // We use a small fetch to ourselves or call continueFlow logic
         const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
         if (flow) {
