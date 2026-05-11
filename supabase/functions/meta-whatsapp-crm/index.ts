@@ -45,10 +45,170 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     .from('crm_contacts')
     .select('*')
     .eq('wa_id', waId)
-    .eq('flow_state', 'waiting_response')
+    .neq('flow_state', 'idle')
     .single();
 
-  if (contact && contact.current_flow_id) {
+  if (contact && contact.flow_state === 'ai_handling') {
+    console.log(`[WEBHOOK] Contact ${waId} is in AI handling state. Calling AI Agent...`);
+    
+    // 1. Obter contexto da conversa
+    const { data: recentMessages } = await supabase
+      .from('crm_messages')
+      .select('content, direction')
+      .eq('contact_id', contact.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+      
+    const history = (recentMessages || [])
+      .reverse()
+      .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+      .join('\n');
+      
+    const aiPrompt = contact.metadata?.ai_agent_prompt || "Você é um assistente prestativo.";
+    const labelOnTransfer = contact.metadata?.ai_agent_label_on_transfer || "";
+    
+    // 2. Chamar DeepSeek
+    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+    if (!DEEPSEEK_API_KEY) {
+      console.error("DEEPSEEK_API_KEY não configurada");
+      return jsonResponse({ success: false, error: "AI logic missing key" });
+    }
+    
+    const systemPrompt = `${aiPrompt}
+    
+    REGRAS ADICIONAIS:
+    1. Responda de forma curta e direta no WhatsApp.
+    2. Se você identificar que o cliente precisa de atendimento humano ou se ele pedir para falar com um atendente, ou se o objetivo da sua tarefa foi concluído e agora um humano deve intervir, responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
+    3. Nunca saia do personagem.`;
+    
+    const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${text}` }
+        ],
+        temperature: 0.7
+      }),
+    });
+    
+    const aiData = await aiResponse.json();
+    const reply = aiData.choices?.[0]?.message?.content || "";
+    
+    if (reply.includes('[[TRANSFER_TO_HUMAN]]')) {
+      console.log(`[AI-AGENT] AI decided to transfer contact ${waId} to human.`);
+      
+      // Encontrar o próximo nó via handle "human_transfer"
+      const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
+      if (flow) {
+        const currentNodeId = contact.current_node_id;
+        const transferEdge = flow.edges?.find((e: any) => e.source === currentNodeId && e.sourceHandle === 'human_transfer');
+        
+        if (transferEdge) {
+          const nextNode = flow.nodes?.find((n: any) => n.id === transferEdge.target);
+          if (nextNode) {
+            // Aplicar etiqueta se configurada
+            const updateData: any = {
+              flow_state: 'running',
+              current_node_id: nextNode.id,
+              last_flow_interaction: new Date().toISOString(),
+              ai_active: false
+            };
+            
+            if (labelOnTransfer) {
+              updateData.status = labelOnTransfer;
+            }
+            
+            await supabase.from('crm_contacts').update(updateData).eq('id', contact.id);
+            await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+            return jsonResponse({ success: true, action: 'transferred' });
+          }
+        }
+      }
+      
+      // Fallback: apenas desativa IA e marca como human
+      await supabase.from('crm_contacts').update({ 
+        flow_state: 'idle', 
+        ai_active: false,
+        status: labelOnTransfer || 'human'
+      }).eq('id', contact.id);
+      
+    } else if (reply) {
+      // Enviar resposta da IA
+      const { data: settings } = await supabase.from('crm_settings').select('meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
+      if (settings) {
+        await handleInternalSendMessage(
+          supabase, 
+          settings.meta_phone_number_id, 
+          settings.meta_access_token, 
+          { to: waId, text: reply }, 
+          contact,
+          settings.vps_transcoder_url
+        );
+      }
+    }
+    
+    return jsonResponse({ success: true });
+  } else if (contact && contact.ai_active && contact.flow_state === 'idle') {
+    console.log(`[WEBHOOK] Contact ${waId} has AI active and is idle. Calling Global AI Agent...`);
+    
+    // Obter histórico e settings
+    const { data: recentMessages } = await supabase
+      .from('crm_messages')
+      .select('content, direction')
+      .eq('contact_id', contact.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+      
+    const history = (recentMessages || [])
+      .reverse()
+      .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+      .join('\n');
+      
+    const { data: settings } = await supabase.from('crm_settings').select('*').single();
+    if (settings && settings.ai_agent_enabled) {
+      const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+      if (DEEPSEEK_API_KEY) {
+        const systemPrompt = settings.ai_system_prompt || "Você é um assistente prestativo.";
+        
+        const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Histórico:\n${history}\n\nCliente: ${text}` }
+            ],
+            temperature: 0.7
+          }),
+        });
+        
+        const aiData = await aiResponse.json();
+        const reply = aiData.choices?.[0]?.message?.content || "";
+        
+        if (reply) {
+          await handleInternalSendMessage(
+            supabase, 
+            settings.meta_phone_number_id, 
+            settings.meta_access_token, 
+            { to: waId, text: reply }, 
+            contact,
+            settings.vps_transcoder_url
+          );
+        }
+      }
+    }
+    return jsonResponse({ success: true });
+
     console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow...`);
     const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
     if (flow) {
