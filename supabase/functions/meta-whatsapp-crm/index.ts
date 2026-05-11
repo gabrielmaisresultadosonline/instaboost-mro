@@ -923,7 +923,18 @@ serve(async (req) => {
           status: (flow.trigger_tag && flow.trigger_tag !== 'none') ? flow.trigger_tag : undefined
         }).eq('id', contactId)
         
-        return jsonResponse(await executeVisualNode(supabase, flow, startNode, contactId, waId))
+        const res: any = await executeVisualNode(supabase, flow, startNode, contactId, waId);
+        
+        // Se o fluxo começou em um nó de Agente IA, processamos a resposta imediatamente
+        if (res?.message?.includes('AI handling state')) {
+          console.log(`[START-FLOW] Started in AI handling state. Triggering AI response for ${waId}`);
+          const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
+          if (updatedContact) {
+            await processAiAgentResponse(supabase, updatedContact, waId);
+          }
+        }
+        
+        return jsonResponse(res)
       } else {
         await supabase.from('crm_contacts').update({
           current_flow_id: flowId,
