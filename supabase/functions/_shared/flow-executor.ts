@@ -155,19 +155,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         }
       }).eq('id', contactId);
       
-      // Dispara a primeira resposta da IA imediatamente, passando o gatilho (se houver) como contexto
-      const triggerMessage = node.data?.triggerMessage || "";
-      await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { 
-          action: 'processAiAgent', 
-          contactId, 
-          waId: waId,
-          to: waId,
-          text: triggerMessage 
-        }
-      });
-
-      return { success: true, message: 'Contact moved to AI handling state and initial AI response triggered' };
+      return { success: true, message: 'Contact moved to AI handling state' };
     } else if (node.type === 'crmAction') {
       const action = node.data?.action;
       const statusValue = node.data?.statusValue;

@@ -116,6 +116,19 @@ serve(async (req) => {
             if (value.messages) {
               for (const message of value.messages) {
                 const wa_id = message.from
+                if (message.id) {
+                  const { data: alreadyHandled } = await supabase
+                    .from('crm_messages')
+                    .select('id')
+                    .eq('meta_message_id', message.id)
+                    .maybeSingle()
+
+                  if (alreadyHandled) {
+                    console.log(`[WEBHOOK] Duplicate inbound message ${message.id} ignored for ${wa_id}`)
+                    continue
+                  }
+                }
+
                 let contact_name = value.contacts?.[0]?.profile?.name || wa_id
                 
                 // Real-time Google Contact lookup if enabled
@@ -266,9 +279,17 @@ serve(async (req) => {
                     return new Response('OK - Flow Continued', { status: 200 })
                   }
 
-                  // 1.1 Check if contact is in AI Agent handling state (within a flow)
-                  if (contact.flow_state === 'ai_handling') {
-                    console.log(`[WEBHOOK] Contact ${wa_id} is in AI handling state. Invoking AI logic in meta-whatsapp-crm...`);
+                  // 1.1 Check if contact is in an AI Agent node (even if older executions left state as "running")
+                  const isCurrentAiNode = !!contact.current_flow_id && String(contact.current_node_id || '').includes('aiAgent');
+                  const normalizedStatus = String(contact.status || '').toLowerCase();
+                  const isHumanHandoff = normalizedStatus.includes('human') || normalizedStatus.includes('humano');
+                  const shouldHandleFlowAi = contact.flow_state === 'ai_handling' || (isCurrentAiNode && !isHumanHandoff);
+
+                  if (shouldHandleFlowAi) {
+                    console.log(`[WEBHOOK] Contact ${wa_id} is in flow AI node/state (${contact.flow_state}/${contact.current_node_id}). Invoking AI logic in meta-whatsapp-crm...`);
+                    if (contact.flow_state !== 'ai_handling' || contact.ai_active !== true) {
+                      await supabase.from('crm_contacts').update({ flow_state: 'ai_handling', ai_active: true }).eq('id', contact.id);
+                    }
                     await supabase.functions.invoke('meta-whatsapp-crm', {
                       body: { 
                         action: 'processWebhook', 
@@ -338,7 +359,7 @@ serve(async (req) => {
                     if (triggeredFlow) {
                       console.log(`Triggering flow ${triggeredFlow.name} for contact ${wa_id}`);
                       await supabase.functions.invoke('meta-whatsapp-crm', {
-                        body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id }
+                        body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id, text: content }
                       })
                       
                       return new Response('OK - Flow Triggered', { status: 200 })
