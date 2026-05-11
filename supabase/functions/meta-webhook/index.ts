@@ -337,21 +337,9 @@ serve(async (req) => {
 
                     if (triggeredFlow) {
                       console.log(`Triggering flow ${triggeredFlow.name} for contact ${wa_id}`);
-                      const { data: startFlowResult } = await supabase.functions.invoke('meta-whatsapp-crm', {
+                      await supabase.functions.invoke('meta-whatsapp-crm', {
                         body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id }
                       })
-                      
-                      // Se o fluxo começou em um nó de Agente IA, processamos a mensagem atual imediatamente
-                      if (startFlowResult?.message?.includes('AI handling state')) {
-                        console.log(`[TRIGGER] Flow started in AI handling state. Processing trigger message...`);
-                        await supabase.functions.invoke('meta-whatsapp-crm', {
-                          body: { 
-                            action: 'processWebhook', 
-                            entry: body.entry,
-                            skipSave: true 
-                          }
-                        });
-                      }
                       
                       return new Response('OK - Flow Triggered', { status: 200 })
                     }
