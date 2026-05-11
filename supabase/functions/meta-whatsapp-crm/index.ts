@@ -200,6 +200,19 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
   const hasActiveFlow = !!contact?.current_flow_id;
 
   if (contact && (isAiHandling || (hasActiveFlow && (isInAiNode || isAiActive)))) {
+    // MODIFICAÇÃO: Proteção contra processamento múltiplo da mesma mensagem (idempotência)
+    const { data: alreadyProcessed } = await supabase
+      .from('crm_messages')
+      .select('id')
+      .eq('meta_message_id', message.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (alreadyProcessed && !skipSave) {
+      console.log(`[WEBHOOK] Message ${message.id} already processed. Skipping AI trigger.`);
+      return jsonResponse({ success: true, message: 'Already processed' });
+    }
+
     console.log(`[WEBHOOK] CAPTURING message from ${waId} for AI Agent. State: ${contact.flow_state}, Node: ${contact.current_node_id}, AI Active: ${contact.ai_active}`);
     const result = await processAiAgentResponse(supabase, contact, waId, text);
     return jsonResponse(result);
