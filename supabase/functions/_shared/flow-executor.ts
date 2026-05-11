@@ -80,9 +80,13 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
     } else if (node.type === 'template') {
       const templateName = node.data?.templateName;
       if (templateName) {
-        await supabase.functions.invoke('meta-whatsapp-crm', {
+        console.log(`[EXECUTOR] Enviando template ${templateName} para ${waId}`);
+        const { error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
           body: { action: 'sendTemplate', to: waId, templateName, languageCode: node.data?.language || 'pt_BR', contactId }
         });
+        if (invokeError) {
+          console.error(`[EXECUTOR] Erro ao invocar sendTemplate:`, invokeError);
+        }
       }
 
       // Se houver um nó de timeout conectado a este template, configuramos a espera
