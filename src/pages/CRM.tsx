@@ -5829,6 +5829,22 @@ const CRM = () => {
                   <SelectItem value="indigo">Índigo</SelectItem>
                   <SelectItem value="pink">Rosa</SelectItem>
                 </SelectContent>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-bold flex items-center gap-2">
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-500", editingStatus?.is_starred && "text-yellow-500 fill-yellow-500")} /> 
+              Destacar no Chat
+            </Label>
+            <p className="text-[10px] text-muted-foreground">Exibir como botão fixo no cabeçalho da conversa.</p>
+          </div>
+          <Switch 
+            checked={editingStatus?.is_starred || false}
+            onCheckedChange={(val) => setEditingStatus({...editingStatus, is_starred: val})}
+          />
+        </div>
               </Select>
             </div>
           </div>
@@ -5844,18 +5860,6 @@ const CRM = () => {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Editar Etiqueta</DialogTitle>
             <DialogDescription>Altere as informações da etapa do funil.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome da Etiqueta</Label>
-              <Input 
-                placeholder="Nome..." 
-                value={editingStatus?.label || ''}
-                onChange={e => setEditingStatus({...editingStatus, label: e.target.value})}
-                className="rounded-xl h-11"
-              />
-            </div>
-            <div className="space-y-2">
               <Label>Cor da Etiqueta</Label>
               <Select value={editingStatus?.color} onValueChange={val => setEditingStatus({...editingStatus, color: val})}>
                 <SelectTrigger className="h-11 rounded-xl">
@@ -5871,6 +5875,22 @@ const CRM = () => {
                   <SelectItem value="indigo">Índigo</SelectItem>
                   <SelectItem value="pink">Rosa</SelectItem>
                 </SelectContent>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-bold flex items-center gap-2">
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-500", editingStatus?.is_starred && "text-yellow-500 fill-yellow-500")} /> 
+              Destacar no Chat
+            </Label>
+            <p className="text-[10px] text-muted-foreground">Exibir como botão fixo no cabeçalho da conversa.</p>
+          </div>
+          <Switch 
+            checked={editingStatus?.is_starred || false}
+            onCheckedChange={(val) => setEditingStatus({...editingStatus, is_starred: val})}
+          />
+        </div>
               </Select>
             </div>
           </div>
