@@ -1278,8 +1278,8 @@ serve(async (req) => {
     // Legacy action block removed to prevent duplication with main processScheduled at line 332
 
     if (action === 'processWebhook') {
-      const { entry } = params;
-      return await handleProcessWebhook(supabase, entry);
+      const { entry, skipSave } = params;
+      return await handleProcessWebhook(supabase, entry, skipSave);
     }
 
 
