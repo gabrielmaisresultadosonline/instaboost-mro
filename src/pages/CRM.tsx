@@ -2633,13 +2633,13 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
-                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                          <div className="p-3 md:p-4 border-b flex flex-col md:flex-row md:justify-between md:items-center gap-3 bg-card/80 backdrop-blur-md shadow-sm z-10 shrink-0">
+                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 w-full">
                               <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
                               <div className="flex flex-col min-w-0">
-                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-wrap sm:flex-nowrap">
                                   <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 truncate" onClick={() => openContactInfo(selectedContact)}>
                                     <span className="truncate">{selectedContact.name || selectedContact.wa_id}</span>
                                     {selectedContact.google_sync_account_id && (
@@ -2720,7 +2720,7 @@ const CRM = () => {
                                 )}
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                               {kanbanStatuses.filter(s => s.is_starred).map(status => (
                                 <Button 
                                   key={status.id}
@@ -2746,7 +2746,7 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 sticky top-14 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300">
+                          <div className="bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300 shrink-0">
                             <div className="flex items-center gap-1.5 min-w-0">
                               <button 
                                 onClick={() => setShowTemplates(!showTemplates)}
@@ -2809,7 +2809,7 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto h-full">
+                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -3085,7 +3085,7 @@ const CRM = () => {
                             </div>
                           </ScrollArea>
                           
-                          <div className="p-2 sm:p-3 md:p-4 bg-card border-t shadow-lg z-10 space-y-2 sm:space-y-3">
+                          <div className="p-2 sm:p-3 md:p-4 bg-card border-t shadow-lg z-10 space-y-2 sm:space-y-3 shrink-0">
                             {selectedContact ? (
                               <>
                                 <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
