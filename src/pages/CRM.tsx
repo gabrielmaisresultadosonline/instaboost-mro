@@ -832,6 +832,11 @@ const CRM = () => {
   const fetchMessages = async (contactId: string) => {
     const { data } = await supabase.from('crm_messages').select('*').eq('contact_id', contactId).order('created_at', { ascending: true });
     setChatMessages(data || []);
+    
+    // Marcar como lido ao buscar mensagens se este for o contato selecionado
+    if (selectedContactRef.current?.id === contactId) {
+      await supabase.from('crm_contacts').update({ last_read_at: new Date().toISOString() }).eq('id', contactId);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -2597,24 +2602,39 @@ const CRM = () => {
                                 selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/50 border-l-4 border-l-transparent"
                               )}
                             >
-                              <div className="flex justify-between items-start w-full">
-                                <p className="font-bold truncate text-sm flex-1 flex items-center gap-2">
-                                  {contact.name || contact.wa_id}
-                                  {contact.google_sync_account_id && (
-                                    <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
-                                       <span className="text-[6px] font-bold text-white">G</span>
-                                    </span>
+                              <div className="flex justify-between items-start w-full gap-2">
+                                <div className="flex-1 min-w-0 flex items-center gap-2">
+                                  {contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && (
+                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" title="Nova mensagem" />
                                   )}
-                                </p>
-                                <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                                  <p className={cn(
+                                    "font-bold truncate text-sm flex items-center gap-2",
+                                    contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-foreground" : "text-foreground/80"
+                                  )}>
+                                    {contact.name || contact.wa_id}
+                                    {contact.google_sync_account_id && (
+                                      <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[6px] font-bold text-white">G</span>
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                                <span className={cn(
+                                  "text-[10px] shrink-0 ml-2",
+                                  contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-blue-600 font-bold" : "text-muted-foreground"
+                                )}>
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center mt-1">
                                   <Badge 
                                     variant="outline" 
                                     style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                    className={cn("px-2 capitalize font-black shadow-sm", getStatusColor(contact.status))}
+                                    className={cn(
+                                      "px-2 capitalize font-black shadow-sm", 
+                                      getStatusColor(contact.status),
+                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-blue-500/20"
+                                    )}
                                   >
                                     {getStatusLabel(contact.status)}
                                   </Badge>

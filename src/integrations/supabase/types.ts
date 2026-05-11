@@ -751,6 +751,7 @@ export type Database = {
           last_ai_strategy: string | null
           last_flow_interaction: string | null
           last_interaction: string | null
+          last_read_at: string | null
           metadata: Json | null
           name: string | null
           next_execution_time: string | null
@@ -781,6 +782,7 @@ export type Database = {
           last_ai_strategy?: string | null
           last_flow_interaction?: string | null
           last_interaction?: string | null
+          last_read_at?: string | null
           metadata?: Json | null
           name?: string | null
           next_execution_time?: string | null
@@ -811,6 +813,7 @@ export type Database = {
           last_ai_strategy?: string | null
           last_flow_interaction?: string | null
           last_interaction?: string | null
+          last_read_at?: string | null
           metadata?: Json | null
           name?: string | null
           next_execution_time?: string | null
