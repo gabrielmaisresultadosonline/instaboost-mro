@@ -2517,7 +2517,7 @@ const CRM = () => {
                                     }}
                                     title={selectedContact.ai_active ? "Desativar IA para este contato" : "Ativar IA para este contato"}
                                   >
-                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active && "fill-primary/20")} />
+                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active && metaSettings.ai_agent_enabled && "fill-primary/20")} />
                                   </Button>
 
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
