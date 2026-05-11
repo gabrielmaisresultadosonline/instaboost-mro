@@ -84,7 +84,7 @@ const normalizePhone = (raw: string) => {
 }
 
 const guessMedia = (params: any) => {
-  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg', fileName: 'voice.ogg' }
+  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg; codecs=opus', fileName: 'voice.ogg' }
   if (params.imageUrl) return { type: 'image', url: params.imageUrl, mime: 'image/jpeg', fileName: 'image.jpg' }
   if (params.videoUrl) return { type: 'video', url: params.videoUrl, mime: 'video/mp4', fileName: 'video.mp4' }
   if (params.documentUrl) return { type: 'document', url: params.documentUrl, mime: 'application/octet-stream', fileName: params.fileName || 'document' }
@@ -99,6 +99,10 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   const form = new FormData()
   form.append('messaging_product', 'whatsapp')
   form.append('type', media.type)
+  // Ensure audio is recognized as voice message
+  if (media.type === 'audio') {
+    form.set('type', 'audio');
+  }
   form.append('file', blob, media.fileName)
 
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
@@ -1001,7 +1005,19 @@ serve(async (req) => {
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
             // Important: Update next_execution_time to null to prevent double execution
-            await supabase.from('crm_contacts').update({ next_execution_time: null }).eq('id', contact.id);
+            // Use a transaction-like update to ensure we only process if it's still due
+            const { data: updatedContact, error: updateError } = await supabase
+              .from('crm_contacts')
+              .update({ next_execution_time: null })
+              .eq('id', contact.id)
+              .lte('next_execution_time', now) // Only if it hasn't been cleared yet
+              .select();
+
+            if (updateError || !updatedContact || updatedContact.length === 0) {
+              console.log(`Contact ${contact.wa_id} already being processed or execution time cleared.`);
+              continue;
+            }
+
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
           } else {
