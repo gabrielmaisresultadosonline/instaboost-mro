@@ -4892,73 +4892,92 @@ const CRM = () => {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
                     <div className="min-w-0">
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <Zap className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 shrink-0" /> <span>Histórico de Análises IA</span>
+                        <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 shrink-0" /> <span>Histórico Global de Análises IA</span>
                       </h2>
-                      <p className="text-muted-foreground text-xs md:text-sm">Veja todas as estratégias e relatórios gerados pela Inteligência Artificial.</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">Registro cronológico de todas as estratégias e análises geradas.</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {contacts.filter(c => (c.ai_strategy_history || []).length > 0).length > 0 ? (
-                      contacts
-                        .filter(c => (c.ai_strategy_history || []).length > 0)
-                        .map(contact => (
-                          <Card key={contact.id} className="rounded-2xl border shadow-sm overflow-hidden flex flex-col h-[450px]">
-                            <CardHeader className="bg-muted/30 border-b p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <User className="w-4 h-4 text-primary" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <CardTitle className="text-sm font-bold truncate max-w-[150px]">{contact.name || contact.wa_id}</CardTitle>
-                                    <p className="text-[10px] text-muted-foreground">{contact.wa_id}</p>
-                                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    {(() => {
+                      // Create a flattened, sorted list of all analyses from all contacts
+                      const allAnalyses = contacts.flatMap(contact => 
+                        (contact.ai_strategy_history || []).map((analysis: any) => ({
+                          ...analysis,
+                          contactId: contact.id,
+                          contactName: contact.name || contact.wa_id,
+                          waId: contact.wa_id,
+                          contactStatus: contact.status,
+                          contactObj: contact
+                        }))
+                      ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                      if (allAnalyses.length === 0) {
+                        return (
+                          <div className="col-span-full py-20 text-center bg-card rounded-3xl border-2 border-dashed">
+                            <Zap className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                            <p className="font-bold text-muted-foreground">Nenhuma análise foi gerada ainda.</p>
+                            <p className="text-xs text-muted-foreground/60 mt-1">Gere análises diretamente nas conversas com os clientes.</p>
+                          </div>
+                        );
+                      }
+
+                      return allAnalyses.map((item, i) => (
+                        <Card key={`${item.contactId}-${i}`} className="rounded-2xl border shadow-sm overflow-hidden flex flex-col h-[280px] hover:shadow-md transition-all group">
+                          <CardHeader className="bg-muted/30 border-b p-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                  <User className="w-3.5 h-3.5 text-primary" />
                                 </div>
-                                <Badge className={cn("text-[8px] uppercase px-1.5 h-4", getStatusColor(contact.status))}>
-                                  {getStatusLabel(contact.status)}
-                                </Badge>
+                                <div className="min-w-0">
+                                  <CardTitle className="text-xs font-bold truncate">{item.contactName}</CardTitle>
+                                  <p className="text-[9px] text-muted-foreground">{item.waId}</p>
+                                </div>
                               </div>
-                            </CardHeader>
-                            <CardContent className="p-0 flex-1 overflow-hidden">
-                              <ScrollArea className="h-full">
-                                <div className="p-4 space-y-4">
-                                  {(contact.ai_strategy_history || []).map((analysis: any, i: number) => (
-                                    <div key={i} className="space-y-2 border-b border-border/50 pb-3 last:border-0 last:pb-0">
-                                      <div className="flex justify-between items-center">
-                                        <Badge variant="secondary" className="text-[9px] font-bold h-4">{analysis.type || 'Estratégia'}</Badge>
-                                        <span className="text-[9px] text-muted-foreground">{new Date(analysis.created_at).toLocaleString('pt-BR')}</span>
-                                      </div>
-                                      <p className="text-xs leading-relaxed text-zinc-600 line-clamp-4 italic">
-                                        {analysis.strategy}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </ScrollArea>
-                            </CardContent>
-                            <div className="p-3 bg-muted/10 border-t mt-auto">
+                              <Badge variant="outline" className="text-[8px] uppercase px-1.5 h-4 shrink-0">
+                                {item.type || 'Estratégia'}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent 
+                            className="p-4 flex-1 cursor-pointer overflow-hidden relative"
+                            onClick={() => setSelectedAnalysis(item)}
+                          >
+                            <p className="text-xs leading-relaxed text-zinc-600 italic line-clamp-6">
+                              {item.strategy}
+                            </p>
+                            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+                          </CardContent>
+                          <div className="p-3 bg-muted/10 border-t flex items-center justify-between gap-2">
+                            <span className="text-[9px] text-muted-foreground font-mono">
+                              {new Date(item.created_at).toLocaleDateString('pt-BR')} {new Date(item.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}
+                            </span>
+                            <div className="flex gap-1">
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="w-full text-[10px] font-bold h-8 gap-2"
+                                className="text-[9px] font-bold h-7 px-2 gap-1 hover:bg-primary/10"
                                 onClick={() => {
-                                  setSelectedContact(contact);
+                                  setSelectedContact(item.contactObj);
                                   setActiveTab('contacts');
                                 }}
                               >
-                                <MessageSquare className="w-3 h-3" /> Ver Conversa Completa
+                                <MessageSquare className="w-3 h-3" /> Chat
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-[9px] font-bold h-7 px-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                                onClick={() => setSelectedAnalysis(item)}
+                              >
+                                <Eye className="w-3 h-3" /> Ver
                               </Button>
                             </div>
-                          </Card>
-                        ))
-                    ) : (
-                      <div className="col-span-full py-20 text-center bg-card rounded-3xl border-2 border-dashed">
-                        <Zap className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                        <p className="font-bold text-muted-foreground">Nenhuma análise foi gerada ainda.</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">Gere análises diretamente nas conversas com os clientes.</p>
-                      </div>
-                    )}
+                          </div>
+                        </Card>
+                      ));
+                    })()}
                   </div>
                 </div>
               </ScrollArea>
