@@ -102,6 +102,48 @@ serve(async (req) => {
 
   try {
     const { action, ...params } = await req.json()
+    if (action === 'processScheduled') {
+      console.log('Processing scheduled flow nodes...');
+      const now = new Date().toISOString();
+      
+      const { data: contactsToProcess, error: fetchError } = await supabase
+        .from('crm_contacts')
+        .select('id, wa_id, current_flow_id, current_node_id')
+        .neq('flow_state', 'idle')
+        .lte('next_execution_time', now)
+        .limit(20);
+        
+      if (fetchError) throw fetchError;
+      
+      const results = [];
+      if (contactsToProcess) {
+        for (const contact of contactsToProcess) {
+          console.log(`Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id}`);
+          
+          const { data: flow } = await supabase
+            .from('crm_flows')
+            .select('*')
+            .eq('id', contact.current_flow_id)
+            .single();
+            
+          if (!flow) {
+            await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
+            continue;
+          }
+          
+          const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
+          if (currentNode) {
+            const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
+            results.push({ contactId: contact.id, result: res });
+          } else {
+            await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
+          }
+        }
+      }
+      
+      return jsonResponse({ success: true, processed: results.length });
+    }
+
     if (action === 'updateSettings') {
       const { ...newSettings } = params
       const { error } = await supabase
