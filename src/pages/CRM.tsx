@@ -5644,9 +5644,7 @@ const CRM = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
-  );
-};
+
       <Dialog open={isNewStatusDialogOpen} onOpenChange={setIsNewStatusDialogOpen}>
         <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
           <DialogHeader>
@@ -5730,4 +5728,8 @@ const CRM = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </SidebarProvider>
+  );
+};
+
 export default CRM;
