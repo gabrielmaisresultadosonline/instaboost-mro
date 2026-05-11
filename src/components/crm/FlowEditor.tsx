@@ -946,10 +946,10 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                           onValueChange={(val) => {
                             const status = availableStatuses.find(s => s.value === val);
                             if (status) {
-                              updateNodeData(selectedNode.id, { 
-                                statusValue: val,
-                                statusLabel: status.label
-                              });
+                              setNodes((nds) => nds.map((node) => 
+                                node.id === selectedNode.id ? { ...node, data: { ...node.data, statusValue: val, statusLabel: status.label } } : node
+                              ));
+                              setSelectedNode((prev: any) => ({ ...prev, data: { ...prev.data, statusValue: val, statusLabel: status.label } }));
                             }
                           }}
                         >
