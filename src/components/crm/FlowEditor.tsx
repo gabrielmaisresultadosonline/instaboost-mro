@@ -351,6 +351,35 @@ const ButtonEdge = ({
   );
 };
 
+const AIAgentNode = ({ data }: any) => (
+  <Card className="min-w-[250px] border-violet-500 shadow-md">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-violet-500 text-white rounded-t-lg">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <BrainCircuit className="w-3 h-3" /> Agente I.A
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3 space-y-3">
+      <div className="bg-violet-50 p-2 rounded border border-violet-100">
+        <p className="text-[9px] text-violet-700 font-bold uppercase mb-1">Prompt do Agente:</p>
+        <p className="text-[10px] text-muted-foreground line-clamp-3 italic">
+          {data.prompt || 'Configure o prompt nas configurações ao lado...'}
+        </p>
+      </div>
+      <div className="relative flex items-center justify-between bg-emerald-50 text-emerald-700 px-3 py-2 rounded border border-emerald-100 text-[10px] font-medium group">
+        <span className="flex items-center gap-1"><UserCog className="w-3 h-3" /> Direcionar Humano</span>
+        <Handle 
+          type="source" 
+          position={Position.Right} 
+          id="human_transfer" 
+          className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white !-right-4"
+        />
+      </div>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
