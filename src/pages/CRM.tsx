@@ -340,8 +340,8 @@ const CRM = () => {
         .select('contact_id, direction, created_at')
         .eq('direction', 'inbound')
         .gte('created_at', since24h)
-        .limit(10000);
-      
+        .limit(1000);
+
       const activeSet = new Set<string>();
       (recent || []).forEach((m: any) => m.contact_id && activeSet.add(m.contact_id));
 
