@@ -1005,7 +1005,19 @@ serve(async (req) => {
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
             // Important: Update next_execution_time to null to prevent double execution
-            await supabase.from('crm_contacts').update({ next_execution_time: null }).eq('id', contact.id);
+            // Use a transaction-like update to ensure we only process if it's still due
+            const { data: updatedContact, error: updateError } = await supabase
+              .from('crm_contacts')
+              .update({ next_execution_time: null })
+              .eq('id', contact.id)
+              .lte('next_execution_time', now) // Only if it hasn't been cleared yet
+              .select();
+
+            if (updateError || !updatedContact || updatedContact.length === 0) {
+              console.log(`Contact ${contact.wa_id} already being processed or execution time cleared.`);
+              continue;
+            }
+
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
           } else {
