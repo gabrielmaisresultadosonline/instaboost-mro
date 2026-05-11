@@ -92,14 +92,22 @@ const guessMedia = (params: any) => {
 }
 
 async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, media: { type: string; url: string; mime: string; fileName: string }) {
+  console.log(`[UPLOAD] Baixando mídia: ${media.url}`);
   const mediaResponse = await fetch(media.url)
   if (!mediaResponse.ok) throw new Error(`Falha ao baixar mídia (${mediaResponse.status})`)
-  const contentType = mediaResponse.headers.get('content-type') || media.mime
-  const blob = new Blob([await mediaResponse.arrayBuffer()], { type: 'audio/ogg; codecs=opus' })
+  
+  const arrayBuffer = await mediaResponse.arrayBuffer();
+  // Para áudio, forçamos o tipo e nome que a Meta espera para PTT (Push To Talk)
+  const contentType = media.type === 'audio' ? 'audio/ogg' : (mediaResponse.headers.get('content-type') || media.mime);
+  const fileName = media.type === 'audio' ? 'voice.ogg' : media.fileName;
+  
+  const blob = new Blob([arrayBuffer], { type: contentType })
   const form = new FormData()
   form.append('messaging_product', 'whatsapp')
-  form.append('type', 'audio')
-  form.append('file', blob, 'voice.ogg')
+  form.append('file', blob, fileName)
+  form.append('type', media.type)
+
+  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}`);
 
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
     method: 'POST',
@@ -107,7 +115,10 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     body: form,
   })
   const uploadResult = await uploadResponse.json().catch(() => ({}))
-  if (!uploadResponse.ok) throw new Error(uploadResult?.error?.message || 'Erro ao subir mídia na Meta')
+  if (!uploadResponse.ok) {
+    console.error(`[UPLOAD] Erro Meta:`, JSON.stringify(uploadResult));
+    throw new Error(uploadResult?.error?.message || 'Erro ao subir mídia na Meta');
+  }
   return uploadResult.id
 }
 
