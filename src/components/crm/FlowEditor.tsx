@@ -241,45 +241,8 @@ const CRMActionNode = ({ data }: any) => (
   </Card>
 );
 
-const TemplateNode = ({ data }: any) => (
-  <Card className="min-w-[220px] border-blue-600 shadow-md overflow-hidden">
-    <Handle type="target" position={Position.Top} />
-    <CardHeader className="p-3 bg-blue-600 text-white flex flex-row items-center justify-between">
-      <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <FileText className="w-3 h-3" /> Template Meta
-      </CardTitle>
-      {data.status === 'APPROVED' && (
-        <Badge className="bg-emerald-500 text-white border-none text-[8px] h-4">Aprovado</Badge>
-      )}
-    </CardHeader>
-    <CardContent className="p-3 space-y-2">
-      <div>
-        <p className="text-[10px] font-bold text-blue-700 truncate">{data.templateName || 'Selecione um template...'}</p>
-        <div className="flex gap-1 mt-1">
-          {data.language && <Badge variant="secondary" className="text-[8px] h-3 px-1">{data.language}</Badge>}
-          {data.category && <Badge variant="outline" className="text-[8px] h-3 px-1">{data.category}</Badge>}
-        </div>
-      </div>
-      {data.bodyText && (
-        <p className="text-[9px] text-muted-foreground line-clamp-3 italic bg-slate-50 p-1.5 rounded border border-slate-100">
-          "{data.bodyText}"
-        </p>
-      )}
-      {data.anyResponse && (
-        <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group mt-1">
-          <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Qualquer resposta</span>
-          <Handle 
-            type="source" 
-            position={Position.Right} 
-            id="any_response" 
-            className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
-          />
-        </div>
-      )}
-    </CardContent>
-    <Handle type="source" position={Position.Bottom} />
-  </Card>
-);
+// TemplateNode is defined later with enhanced styling
+
 
 const JumpNode = ({ data }: any) => (
   <Card className="min-w-[200px] border-amber-600 shadow-md">
