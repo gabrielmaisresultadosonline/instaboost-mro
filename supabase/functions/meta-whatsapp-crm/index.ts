@@ -487,13 +487,16 @@ serve(async (req) => {
     }
 
     if (action === 'sendMessage') {
+      console.log(`[ACTION] sendMessage iniciado para: ${params.to}`);
       const { data: contact } = await supabase
         .from('crm_contacts')
         .select('*')
         .eq('wa_id', params.to)
         .single();
         
-      return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, params, contact, settings?.vps_transcoder_url);
+      const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, params, contact, settings?.vps_transcoder_url);
+      console.log(`[ACTION] sendMessage finalizado para ${params.to}. Status: ${response.status}`);
+      return response;
     }
 
     if (action === 'startFlow') {
