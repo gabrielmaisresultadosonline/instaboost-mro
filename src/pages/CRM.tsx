@@ -1267,10 +1267,17 @@ const CRM = () => {
           const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
           await updatePersistedAudio('sent', 'vps_bridge', metaMsgId);
           toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
+          setMediaUploadProgress(prev => {
+            const next = { ...prev };
+            delete next[selectedContactId];
+            return next;
+          });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
         }
       }
+
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 90 }));
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { 
         body: { 
