@@ -3730,32 +3730,48 @@ const CRM = () => {
                         <CardDescription>Defina a personalidade e o objetivo do seu robô</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 md:p-6 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                            <Label className="text-sm font-bold">Prompt do System</Label>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleImprovePrompt}
-                              disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 self-start sm:self-auto"
-                            >
-                              {improvingPrompt ? (
-                                <RefreshCcw className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
-                              )}
-                              Melhorar Prompt com I.A
-                            </Button>
+                        <div className="space-y-6">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-bold flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" /> O que sua empresa vende?
+                            </Label>
+                            <Textarea 
+                              rows={4}
+                              className="resize-none text-xs leading-relaxed bg-muted/30 border-none rounded-xl"
+                              placeholder="Descreva detalhadamente seus produtos, serviços e diferenciais para que a IA gere estratégias mais precisas..."
+                              value={metaSettings.business_description}
+                              onChange={(e) => setMetaSettings({...metaSettings, business_description: e.target.value})}
+                            />
+                            <p className="text-[10px] text-muted-foreground italic">Esse resumo será usado pela IA para entender o contexto das suas vendas.</p>
                           </div>
-                          <Textarea 
-                            rows={10}
-                            className="resize-none font-mono text-xs leading-relaxed"
-                            placeholder="Ex: Você é um consultor de vendas especializado em..."
-                            value={metaSettings.ai_system_prompt}
-                            onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
-                          />
-                          <p className="text-[10px] text-muted-foreground">Instruções detalhadas de comportamento e conhecimento.</p>
+
+                          <div className="space-y-2">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                              <Label className="text-sm font-bold">Prompt do System</Label>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleImprovePrompt}
+                                disabled={improvingPrompt}
+                                className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 self-start sm:self-auto"
+                              >
+                                {improvingPrompt ? (
+                                  <RefreshCcw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                )}
+                                Melhorar Prompt com I.A
+                              </Button>
+                            </div>
+                            <Textarea 
+                              rows={8}
+                              className="resize-none font-mono text-xs leading-relaxed bg-muted/30 border-none rounded-xl"
+                              placeholder="Ex: Você é um consultor de vendas especializado em..."
+                              value={metaSettings.ai_system_prompt}
+                              onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
+                            />
+                            <p className="text-[10px] text-muted-foreground">Instruções detalhadas de comportamento e conhecimento.</p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
