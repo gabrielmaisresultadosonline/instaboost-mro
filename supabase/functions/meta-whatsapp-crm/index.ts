@@ -971,7 +971,7 @@ serve(async (req) => {
         .eq('id', contactId)
         .single();
         
-      if (currentContact?.flow_state === 'running' || currentContact?.flow_state === 'waiting_response') {
+      if (currentContact?.flow_state === 'running' || currentContact?.flow_state === 'waiting_response' || currentContact?.flow_state === 'ai_handling') {
         return new Response(JSON.stringify({ success: true, message: 'Flow already active' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -1002,11 +1002,11 @@ serve(async (req) => {
         const res: any = await executeVisualNode(supabase, flow, startNode, contactId, waId);
         
         // Se o fluxo começou em um nó de Agente IA, processamos a resposta imediatamente
-        if (res?.message?.includes('AI handling state')) {
+        if (res?.message?.includes('AI handling state') && params.text) {
           console.log(`[START-FLOW] Started in AI handling state. Triggering AI response for ${waId}`);
           const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
           if (updatedContact) {
-            await processAiAgentResponse(supabase, updatedContact, waId);
+            await processAiAgentResponse(supabase, updatedContact, waId, params.text);
           }
         }
         
@@ -1112,11 +1112,11 @@ serve(async (req) => {
           const res: any = await executeVisualNode(supabase, flow, nextNode, contactId, waId);
           
           // Se o próximo nó é um Agente IA, processamos a resposta imediatamente
-          if (res?.message?.includes('AI handling state')) {
+          if (res?.message?.includes('AI handling state') && text) {
             console.log(`[CONTINUE-FLOW] Moved to AI handling state. Triggering AI response for ${waId}`);
             const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
             if (updatedContact) {
-              await processAiAgentResponse(supabase, updatedContact, waId);
+              await processAiAgentResponse(supabase, updatedContact, waId, text);
             }
           }
           
