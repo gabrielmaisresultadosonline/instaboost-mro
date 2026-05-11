@@ -302,7 +302,7 @@ const CRM = () => {
         .select('contact_id, direction, created_at')
         .gte('created_at', startOfMonth)
         .order('created_at', { ascending: true })
-        .limit(20000);
+        .limit(2000);
 
       const byContact: Record<string, any[]> = {};
       (monthMsgs || []).forEach((m: any) => {
