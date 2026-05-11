@@ -411,7 +411,7 @@ serve(async (req) => {
           status: (flow.trigger_tag && flow.trigger_tag !== 'none') ? flow.trigger_tag : undefined
         }).eq('id', contactId)
         
-        return await executeVisualNode(supabase, flow, startNode, contactId, waId)
+        return jsonResponse(await executeVisualNode(supabase, flow, startNode, contactId, waId))
       } else {
         await supabase.from('crm_contacts').update({
           current_flow_id: flowId,
