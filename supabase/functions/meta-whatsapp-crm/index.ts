@@ -50,12 +50,15 @@ async function handleProcessWebhook(supabase: any, entry: any) {
          if (nextEdge) {
            const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target);
            if (nextNode) {
-             await supabase.from('crm_contacts').update({
-               current_node_id: nextNode.id,
-               flow_state: 'running',
-               last_flow_interaction: new Date().toISOString()
-             }).eq('id', contact.id);
-             await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+            const { data: updated } = await supabase.from('crm_contacts').update({
+              current_node_id: nextNode.id,
+              flow_state: 'running',
+              last_flow_interaction: new Date().toISOString()
+            }).eq('id', contact.id).eq('flow_state', 'waiting_response').select();
+            
+            if (updated && updated.length > 0) {
+              await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+            }
            }
          }
       }
