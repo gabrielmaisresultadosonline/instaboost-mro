@@ -851,7 +851,24 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                         value={selectedNode.data.delay as number} 
                         onChange={(e) => updateNodeData(selectedNode.id, { delay: parseInt(e.target.value) })}
                         className="text-xs h-8"
-                    />
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Unidade</Label>
+                      <Select 
+                        value={selectedNode.data.unit as string} 
+                        onValueChange={(val) => updateNodeData(selectedNode.id, { unit: val })}
+                      >
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="segundos">Segundos</SelectItem>
+                          <SelectItem value="minutos">Minutos</SelectItem>
+                          <SelectItem value="horas">Horas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 
@@ -890,24 +907,6 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                       <p className="text-[10px] text-emerald-600/80 leading-relaxed">
                         Quando a IA decidir que um humano deve intervir, ela seguirá pela saída lateral, aplicará a etiqueta e parará o atendimento automático.
                       </p>
-                    </div>
-                  </div>
-                )}
-                    <div className="space-y-2">
-                      <Label className="text-xs">Unidade</Label>
-                      <Select 
-                        value={selectedNode.data.unit as string} 
-                        onValueChange={(val) => updateNodeData(selectedNode.id, { unit: val })}
-                      >
-                        <SelectTrigger className="text-xs h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="segundos">Segundos</SelectItem>
-                          <SelectItem value="minutos">Minutos</SelectItem>
-                          <SelectItem value="horas">Horas</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </div>
                 )}
