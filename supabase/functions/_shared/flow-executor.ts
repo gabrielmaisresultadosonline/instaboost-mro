@@ -128,7 +128,24 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         console.log(`Delay node ${node.id}: Scheduled next node ${edge.target} at ${nextExecution}`);
         return { success: true, message: `Delay scheduled for ${waitTime}s` };
       }
-    }
+      }
+    } else if (node.type === 'crmAction') {
+      const action = node.data?.action;
+      const statusValue = node.data?.statusValue;
+      
+      console.log(`[EXECUTOR] Executing CRM Action: ${action} for contact ${contactId}`);
+      
+      if (action === 'Adicionar Etiqueta' && statusValue) {
+        await supabase.from('crm_contacts').update({ status: statusValue }).eq('id', contactId);
+      } else if (action === 'Mudar Status: Ganho') {
+        await supabase.from('crm_contacts').update({ status: 'closed' }).eq('id', contactId);
+      } else if (action === 'Mudar Status: Perdido') {
+        await supabase.from('crm_contacts').update({ status: 'lost' }).eq('id', contactId);
+      } else if (action === 'Humanizar Atendimento') {
+        await supabase.from('crm_contacts').update({ status: 'human', ai_agent_enabled: false }).eq('id', contactId);
+      } else if (action === 'Notificar Agente') {
+        // Implement logic if needed
+      }
 
     // Find next node based on handle or standard connection
     // BUT: If the current node was a question/wait_response, we ALREADY handled its state transition in the webhook
