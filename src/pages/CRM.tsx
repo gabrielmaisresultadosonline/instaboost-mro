@@ -4862,6 +4862,83 @@ const CRM = () => {
                 </Dialog>
               </ScrollArea>
             )}
+            {activeTab === 'ai-analysis' && (
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <Zap className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 shrink-0" /> <span>Histórico de Análises IA</span>
+                      </h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Veja todas as estratégias e relatórios gerados pela Inteligência Artificial.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {contacts.filter(c => (c.ai_strategy_history || []).length > 0).length > 0 ? (
+                      contacts
+                        .filter(c => (c.ai_strategy_history || []).length > 0)
+                        .map(contact => (
+                          <Card key={contact.id} className="rounded-2xl border shadow-sm overflow-hidden flex flex-col h-[450px]">
+                            <CardHeader className="bg-muted/30 border-b p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <User className="w-4 h-4 text-primary" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <CardTitle className="text-sm font-bold truncate max-w-[150px]">{contact.name || contact.wa_id}</CardTitle>
+                                    <p className="text-[10px] text-muted-foreground">{contact.wa_id}</p>
+                                  </div>
+                                </div>
+                                <Badge className={cn("text-[8px] uppercase px-1.5 h-4", getStatusColor(contact.status))}>
+                                  {getStatusLabel(contact.status)}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-0 flex-1 overflow-hidden">
+                              <ScrollArea className="h-full">
+                                <div className="p-4 space-y-4">
+                                  {(contact.ai_strategy_history || []).map((analysis: any, i: number) => (
+                                    <div key={i} className="space-y-2 border-b border-border/50 pb-3 last:border-0 last:pb-0">
+                                      <div className="flex justify-between items-center">
+                                        <Badge variant="secondary" className="text-[9px] font-bold h-4">{analysis.type || 'Estratégia'}</Badge>
+                                        <span className="text-[9px] text-muted-foreground">{new Date(analysis.created_at).toLocaleString('pt-BR')}</span>
+                                      </div>
+                                      <p className="text-xs leading-relaxed text-zinc-600 line-clamp-4 italic">
+                                        {analysis.strategy}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            </CardContent>
+                            <div className="p-3 bg-muted/10 border-t mt-auto">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="w-full text-[10px] font-bold h-8 gap-2"
+                                onClick={() => {
+                                  setSelectedContact(contact);
+                                  setActiveTab('contacts');
+                                }}
+                              >
+                                <MessageSquare className="w-3 h-3" /> Ver Conversa Completa
+                              </Button>
+                            </div>
+                          </Card>
+                        ))
+                    ) : (
+                      <div className="col-span-full py-20 text-center bg-card rounded-3xl border-2 border-dashed">
+                        <Zap className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                        <p className="font-bold text-muted-foreground">Nenhuma análise foi gerada ainda.</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Gere análises diretamente nas conversas com os clientes.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
           </main>
         </SidebarInset>
       </div>
