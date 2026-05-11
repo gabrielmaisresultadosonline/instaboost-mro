@@ -54,7 +54,11 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
 
   const media = guessMedia(params)
   const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
-  if (media) {
+  
+  if (params.interactive) {
+    payload.type = 'interactive';
+    payload.interactive = params.interactive;
+  } else if (media) {
     const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
     payload.type = media.type
     payload[media.type] = media.type === 'document' 
