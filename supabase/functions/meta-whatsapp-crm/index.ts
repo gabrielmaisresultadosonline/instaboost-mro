@@ -67,10 +67,12 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     const aiPrompt = contact.metadata?.ai_agent_prompt || "Você é um assistente prestativo.";
     const labelOnTransfer = contact.metadata?.ai_agent_label_on_transfer || "";
     
-    // 2. Chamar DeepSeek
-    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-    if (!DEEPSEEK_API_KEY) {
-      console.error("DEEPSEEK_API_KEY não configurada");
+    // 2. Chamar OpenAI conforme configurado no CRM
+    const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
+    const OPENAI_API_KEY = settings?.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+
+    if (!OPENAI_API_KEY) {
+      console.error("OpenAI API Key não configurada");
       return jsonResponse({ success: false, error: "AI logic missing key" });
     }
     
@@ -81,14 +83,14 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     2. Se você identificar que o cliente precisa de atendimento humano ou se ele pedir para falar com um atendente, ou se o objetivo da sua tarefa foi concluído e agora um humano deve intervir, responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
     3. Nunca saia do personagem.`;
     
-    const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${text}` }
@@ -172,18 +174,18 @@ async function handleProcessWebhook(supabase: any, entry: any) {
       
     const { data: settings } = await supabase.from('crm_settings').select('*').single();
     if (settings && settings.ai_agent_enabled) {
-      const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-      if (DEEPSEEK_API_KEY) {
+      const OPENAI_API_KEY = settings.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+      if (OPENAI_API_KEY) {
         const systemPrompt = settings.ai_system_prompt || "Você é um assistente prestativo.";
         
-        const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek-chat',
+            model: 'gpt-4o-mini',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: `Histórico:\n${history}\n\nCliente: ${text}` }
