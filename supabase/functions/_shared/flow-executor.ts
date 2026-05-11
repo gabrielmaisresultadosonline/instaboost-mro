@@ -134,12 +134,12 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       const prompt = node.data?.prompt || "";
       const labelOnTransfer = node.data?.labelOnHumanTransfer || "";
       
-      // Se tiver uma mensagem inicial configurada, envia antes de entrar no modo AI
-      const initialMessage = node.data?.initialMessage || "";
-      if (initialMessage) {
-        console.log(`[EXECUTOR] Sending AI Agent initial message: ${initialMessage}`);
+      // Se tiver uma mensagem inicial configurada no nó, envia antes de disparar a IA
+      const initialMessageText = node.data?.initialMessage || "";
+      if (initialMessageText) {
+        console.log(`[EXECUTOR] Sending AI Agent initial message: ${initialMessageText}`);
         await supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'sendMessage', to: waId, text: initialMessage, contactId }
+          body: { action: 'sendMessage', to: waId, text: initialMessageText, contactId }
         });
       }
 
@@ -155,15 +155,6 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         }
       }).eq('id', contactId);
       
-      // Se tiver uma mensagem inicial configurada no nó, envia antes de disparar a IA
-      const initialMessage = node.data?.initialMessage || "";
-      if (initialMessage) {
-        console.log(`[EXECUTOR] Sending AI Agent initial message: ${initialMessage}`);
-        await supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'sendMessage', to: waId, text: initialMessage, contactId }
-        });
-      }
-
       // Dispara a primeira resposta da IA imediatamente, passando o gatilho (se houver) como contexto
       const triggerMessage = node.data?.triggerMessage || "";
       await supabase.functions.invoke('meta-whatsapp-crm', {
