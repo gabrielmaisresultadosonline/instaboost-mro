@@ -618,12 +618,24 @@ const CRM = () => {
   };
 
   const fetchContacts = async () => {
-    const { data: contactsData } = await supabase
-      .from('crm_contacts')
-      .select('*')
-      .order('last_interaction', { ascending: false, nullsFirst: false })
-      .limit(10000);
-    setContacts(contactsData || []);
+    // Paginate to bypass Supabase's default 1000-row cap and load ALL contacts (14k+)
+    const pageSize = 1000;
+    let allRows: any[] = [];
+    let from = 0;
+    // Hard safety cap of 100k contacts to avoid runaway loops
+    while (from < 100000) {
+      const { data, error } = await supabase
+        .from('crm_contacts')
+        .select('*')
+        .order('last_interaction', { ascending: false, nullsFirst: false })
+        .range(from, from + pageSize - 1);
+      if (error) break;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
+    setContacts(allRows);
   };
 
   useEffect(() => {
@@ -662,12 +674,8 @@ const CRM = () => {
       const { data: flowsData } = await supabase.from('crm_flows').select('*, crm_flow_steps(*)');
       setFlows(flowsData || []);
 
-      const { data: contactsData } = await supabase
-        .from('crm_contacts')
-        .select('*')
-        .order('last_interaction', { ascending: false, nullsFirst: false })
-        .limit(10000);
-      setContacts(contactsData || []);
+      // Paginated fetch to load ALL contacts (default cap is 1000)
+      await fetchContacts();
 
       const { data: templatesData } = await supabase.from('crm_templates').select('*');
       setTemplates(templatesData || []);
@@ -2036,7 +2044,8 @@ const CRM = () => {
                   {[
                     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                     { id: 'contacts', label: 'Conversas', icon: MessageSquare },
-                    { id: 'contact-list', label: 'Contatos', icon: Users },
+                     { id: 'contact-list', label: 'Contatos', icon: Users },
+                     { id: 'google-synced', label: 'Google Sync', icon: LucideIcons.Cloud },
                     { id: 'broadcast', label: 'Disparador', icon: Zap },
                     { id: 'scheduling', label: 'Agendamentos', icon: Calendar },
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
@@ -2078,6 +2087,7 @@ const CRM = () => {
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
                 {activeTab === 'contact-list' ? 'Contatos' : 
                  activeTab === 'contacts' ? 'Conversas' : 
+                 activeTab === 'google-synced' ? 'Sincronizados Google' :
                  activeTab}
             </div>
             {activeTab === 'contacts' && (
@@ -2550,7 +2560,7 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm h-full",
+                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-card/30 backdrop-blur-sm h-full shrink-0",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
@@ -4733,6 +4743,162 @@ const CRM = () => {
                       </table>
                     </div>
                   </div>
+                </div>
+              </ScrollArea>
+            )}
+
+            {activeTab === 'google-synced' && (
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-card p-4 md:p-6 rounded-2xl border shadow-sm gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border">
+                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Sincronizados com Google</h2>
+                        <p className="text-muted-foreground text-xs md:text-sm">
+                          Contatos do sistema que já subiram para sua conta Google.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 w-full lg:w-auto">
+                      <div className="flex-1 lg:flex-none relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Pesquisar..."
+                          className="pl-9 bg-background h-10 rounded-xl w-full lg:w-72"
+                          value={statusFilter === 'all' ? '' : statusFilter}
+                          onChange={e => setStatusFilter(e.target.value || 'all')}
+                        />
+                      </div>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="h-10 rounded-xl text-xs font-bold whitespace-nowrap"
+                        onClick={handleSyncGoogleContacts}
+                      >
+                        <RefreshCcw className="w-3.5 h-3.5 mr-2" />
+                        Sincronizar
+                      </Button>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const synced = contacts.filter(c => c.google_sync_account_id || c.metadata?.google_resource_name);
+                    const filtered = synced.filter(c => {
+                      if (statusFilter === 'all') return true;
+                      const q = statusFilter.toLowerCase();
+                      return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(statusFilter);
+                    });
+
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                          <Card className="p-4">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Sincronizados</p>
+                            <p className="text-2xl md:text-3xl font-black text-primary mt-1">{synced.length}</p>
+                          </Card>
+                          <Card className="p-4">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Total Contatos</p>
+                            <p className="text-2xl md:text-3xl font-black mt-1">{contacts.length}</p>
+                          </Card>
+                          <Card className="p-4">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Pendentes</p>
+                            <p className="text-2xl md:text-3xl font-black text-orange-500 mt-1">{contacts.length - synced.length}</p>
+                          </Card>
+                          <Card className="p-4">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Auto Sync</p>
+                            <p className={cn("text-sm md:text-base font-black mt-2", metaSettings.google_auto_sync ? "text-emerald-500" : "text-muted-foreground")}>
+                              {metaSettings.google_auto_sync ? '● Ativo' : '○ Desativado'}
+                            </p>
+                          </Card>
+                        </div>
+
+                        <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
+                          {filtered.length === 0 ? (
+                            <div className="p-12 text-center text-muted-foreground text-sm italic">
+                              Nenhum contato sincronizado com Google ainda.
+                            </div>
+                          ) : (
+                            <>
+                              {/* Mobile cards */}
+                              <div className="md:hidden divide-y divide-border">
+                                {filtered.map((contact) => (
+                                  <div key={contact.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/30">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="relative w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                                        {contact.name?.charAt(0).toUpperCase() || <User className="w-5 h-5" />}
+                                        <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#4285F4] rounded-full flex items-center justify-center border-2 border-card">
+                                          <span className="text-[7px] font-bold text-white">G</span>
+                                        </span>
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="font-bold text-sm truncate">{contact.name || 'Sem nome'}</p>
+                                        <p className="text-[11px] text-muted-foreground font-mono truncate">{contact.wa_id}</p>
+                                      </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary shrink-0" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                      <MessageSquare className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Desktop table */}
+                              <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left border-collapse min-w-[700px]">
+                                  <thead>
+                                    <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
+                                      <th className="px-6 py-4">Nome</th>
+                                      <th className="px-6 py-4">WhatsApp</th>
+                                      <th className="px-6 py-4">Conta Google</th>
+                                      <th className="px-6 py-4">Sincronizado em</th>
+                                      <th className="px-6 py-4 text-right">Ações</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y">
+                                    {filtered.map((contact) => (
+                                      <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
+                                        <td className="px-6 py-4">
+                                          <div className="flex items-center gap-3">
+                                            <div className="relative w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                              {contact.name?.charAt(0) || <User className="w-4 h-4" />}
+                                              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center border border-card">
+                                                <span className="text-[6px] font-bold text-white">G</span>
+                                              </span>
+                                            </div>
+                                            <span className="font-semibold text-sm">{contact.name || 'Sem nome'}</span>
+                                          </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-muted-foreground font-mono">{contact.wa_id}</td>
+                                        <td className="px-6 py-4 text-[11px] text-muted-foreground truncate max-w-[200px]">
+                                          {contact.google_sync_account_id || '—'}
+                                        </td>
+                                        <td className="px-6 py-4 text-[11px] text-muted-foreground">
+                                          {contact.google_synced_at ? new Date(contact.google_synced_at).toLocaleString() : (contact.updated_at ? new Date(contact.updated_at).toLocaleDateString() : '—')}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                              <MessageSquare className="w-4 h-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                              <Settings className="w-4 h-4" />
+                                            </Button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </ScrollArea>
             )}
