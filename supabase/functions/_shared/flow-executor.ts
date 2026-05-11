@@ -35,12 +35,16 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       const waitTime = parseInt(node.data?.delay || '5');
       const nextExecution = new Date(Date.now() + waitTime * 1000).toISOString();
       
-      await supabase.from('crm_contacts').update({
-        next_execution_time: nextExecution,
-        flow_state: 'waiting_delay'
-      }).eq('id', contactId);
-      
-      return { success: true, message: `Delay scheduled for ${waitTime}s` };
+      const edge = flow.edges?.find((e: any) => e.source === node.id);
+      if (edge) {
+        await supabase.from('crm_contacts').update({
+          next_execution_time: nextExecution,
+          current_node_id: edge.target,
+          flow_state: 'running'
+        }).eq('id', contactId);
+        
+        return { success: true, message: `Delay scheduled for ${waitTime}s` };
+      }
     } else if (node.type === 'wait_response' || node.type === 'question') {
       await supabase.from('crm_contacts').update({
         flow_state: 'waiting_response'
