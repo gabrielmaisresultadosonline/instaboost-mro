@@ -326,13 +326,18 @@ serve(async (req) => {
             
             if (new Date() < timeoutThreshold) {
               console.log(`[TIMEOUT-CHECK] Contact ${contact.wa_id} still waiting. Next check in ${Math.round((timeoutThreshold.getTime() - new Date().getTime())/1000)}s`);
-              continue; // Not timed out yet
+              continue; 
             }
             
             console.log(`[TIMEOUT-EXPIRED] Contact ${contact.wa_id} timed out. Fallback: ${contact.flow_timeout_node_id}`);
             if (!contact.flow_timeout_node_id) {
               console.log(`[TIMEOUT-END] No timeout node for ${contact.wa_id}, stopping flow.`);
-              await supabase.from('crm_contacts').update({ flow_state: 'idle', next_execution_time: null }).eq('id', contact.id);
+              await supabase.from('crm_contacts').update({ 
+                flow_state: 'idle', 
+                current_flow_id: null,
+                current_node_id: null,
+                next_execution_time: null 
+              }).eq('id', contact.id);
               continue;
             }
             
@@ -341,8 +346,12 @@ serve(async (req) => {
             await supabase.from('crm_contacts').update({ 
               flow_state: 'running',
               current_node_id: contact.current_node_id,
-              next_execution_time: null 
+              next_execution_time: null,
+              flow_timeout_node_id: null // Clear this as we are now processing the timeout node
             }).eq('id', contact.id);
+            
+            // Mark as running in local variable for the next log line
+            contact.flow_state = 'running';
           }
 
           console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state}). Timeout Node: ${contact.flow_timeout_node_id}`);
