@@ -869,6 +869,21 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold flex items-center gap-2">
+                        <MessageSquare className="w-3.5 h-3.5 text-violet-500" /> Mensagem Inicial (Opcional)
+                      </Label>
+                      <Textarea 
+                        placeholder="Ex: Olá! Sou o assistente virtual da empresa. Como posso te ajudar hoje?"
+                        className="text-xs min-h-[80px] bg-white border-slate-200"
+                        value={(selectedNode.data.initialMessage as string) || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { initialMessage: e.target.value })}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">
+                        Esta mensagem será enviada assim que o cliente chegar nesta etapa, antes da IA começar a responder.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold flex items-center gap-2">
                         <BrainCircuit className="w-3.5 h-3.5 text-violet-500" /> Prompt do Agente
                       </Label>
                       <Textarea 
