@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { executeVisualNode, processStep } from "../_shared/flow-executor.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -376,7 +377,6 @@ serve(async (req) => {
     if (action === 'startFlow') {
       const { flowId, contactId, waId } = params
       
-      // Check if contact already has an active flow to prevent duplicates
       const { data: currentContact } = await supabase
         .from('crm_contacts')
         .select('flow_state, current_flow_id')
@@ -384,8 +384,7 @@ serve(async (req) => {
         .single();
         
       if (currentContact?.flow_state === 'running' || currentContact?.flow_state === 'waiting_response') {
-        console.log(`Contact ${contactId} already has an active flow (${currentContact.current_flow_id}). Skipping startFlow for ${flowId}.`);
-        return new Response(JSON.stringify({ success: true, message: 'Flow already active, skipped duplicate' }), {
+        return new Response(JSON.stringify({ success: true, message: 'Flow already active' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -397,45 +396,29 @@ serve(async (req) => {
         .single()
       
       if (!flow) throw new Error('Flow not found')
-
-      // Clear any existing scheduled messages for this contact to prevent flow conflicts
       await supabase.from('crm_scheduled_messages').delete().eq('contact_id', contactId);
 
-      // Use visual flow if it has nodes, otherwise fallback to old step-based system
       if (flow.nodes && flow.nodes.length > 0) {
-        // Find starting node (no incoming edges)
-        const nodeIdsWithTarget = new Set(flow.edges.map((e: any) => e.target))
+        const nodeIdsWithTarget = new Set(flow.edges?.map((e: any) => e.target) || [])
         const startNode = flow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
         
-        const contactUpdates: any = {
+        await supabase.from('crm_contacts').update({
           current_flow_id: flowId,
           current_node_id: startNode.id,
           flow_state: 'running',
           last_flow_interaction: new Date().toISOString(),
-          next_execution_time: null
-        };
-
-        if (flow.trigger_tag && flow.trigger_tag !== 'none') {
-          contactUpdates.status = flow.trigger_tag;
-        }
-
-        await supabase
-          .from('crm_contacts')
-          .update(contactUpdates)
-          .eq('id', contactId)
+          next_execution_time: null,
+          status: (flow.trigger_tag && flow.trigger_tag !== 'none') ? flow.trigger_tag : undefined
+        }).eq('id', contactId)
         
-        return await executeVisualNode(supabase, flow, startNode, contactId, waId)
+        return jsonResponse(await executeVisualNode(supabase, flow, startNode, contactId, waId))
       } else {
-        // Fallback to old steps system
-        await supabase
-          .from('crm_contacts')
-          .update({
-            current_flow_id: flowId,
-            current_step_index: 0,
-            flow_state: 'running',
-            last_flow_interaction: new Date().toISOString()
-          })
-          .eq('id', contactId)
+        await supabase.from('crm_contacts').update({
+          current_flow_id: flowId,
+          current_step_index: 0,
+          flow_state: 'running',
+          last_flow_interaction: new Date().toISOString()
+        }).eq('id', contactId)
         
         const { data: step } = await supabase
           .from('crm_flow_steps')
@@ -447,7 +430,7 @@ serve(async (req) => {
         if (step) return await processStep(supabase, step, contactId, waId)
       }
       
-      return new Response(JSON.stringify({ success: true, message: 'Flow started but no logic found' }), {
+      return new Response(JSON.stringify({ success: true, message: 'Flow started' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -527,7 +510,7 @@ serve(async (req) => {
             })
             .eq('id', contactId)
           
-          return await executeVisualNode(supabase, flow, nextNode, contactId, waId)
+          return jsonResponse(await executeVisualNode(supabase, flow, nextNode, contactId, waId))
         }
 
         // No more nodes, finish flow
