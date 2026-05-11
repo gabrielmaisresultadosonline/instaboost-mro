@@ -4938,7 +4938,9 @@ const CRM = () => {
                     )}
                   </div>
                 </div>
-              </ScrollArea>
+               </ScrollArea>
+            )}
+
             {activeTab === 'help' && (
               <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
                 <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
