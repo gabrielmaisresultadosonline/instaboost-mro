@@ -109,6 +109,8 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
 
   console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}`);
 
+  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}, fileName=${fileName}`);
+
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -311,7 +313,7 @@ serve(async (req) => {
             contact.current_node_id = contact.flow_timeout_node_id;
           }
 
-          console.log(`Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id}`);
+          console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state})`);
           
           const { data: flow } = await supabase
             .from('crm_flows')
@@ -1091,8 +1093,10 @@ serve(async (req) => {
         .eq('flow_state', 'waiting_response')
         .single();
 
+      console.log(`[WEBHOOK] Mensagem de ${waId}. Estado do fluxo: ${contact ? 'waiting_response' : 'idle/other'}`);
+
       if (contact && contact.current_flow_id) {
-        console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow...`);
+        console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow from node ${contact.current_node_id}...`);
         // We use a small fetch to ourselves or call continueFlow logic
         const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
         if (flow) {
