@@ -121,7 +121,7 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
           random_delay_min: delayMin,
           random_delay_max: delayMax,
           total_contacts: numbers.length,
-          uploaded_numbers: targetType === 'uploaded' ? numbers : null,
+          uploaded_numbers: (targetType === 'uploaded' || targetType === 'tag' || targetType === 'conversation') ? numbers : null,
           status: 'pending'
         }])
         .select()
