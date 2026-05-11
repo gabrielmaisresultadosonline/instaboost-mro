@@ -266,11 +266,24 @@ serve(async (req) => {
                     return new Response('OK - Flow Continued', { status: 200 })
                   }
 
+                  // 1.1 Check if contact is in AI Agent handling state (within a flow)
+                  if (contact.flow_state === 'ai_handling') {
+                    console.log(`[WEBHOOK] Contact ${wa_id} is in AI handling state. Invoking AI logic in meta-whatsapp-crm...`);
+                    await supabase.functions.invoke('meta-whatsapp-crm', {
+                      body: { 
+                        action: 'processWebhook', 
+                        entry: body.entry,
+                        skipSave: true // Evita duplicar a mensagem no banco pois já salvamos aqui
+                      }
+                    });
+                    return new Response('OK - AI Flow Handled', { status: 200 });
+                  }
+
                   // 2. Check for triggers (Keywords, New Contact, 24h Inactivity)
                   const isNewContact = contact.total_messages_received === 1;
                   const lastInteraction = contact.last_interaction ? new Date(contact.last_interaction).getTime() : 0;
                   const isAfter24h = lastInteraction > 0 && (new Date().getTime() - lastInteraction) > 24 * 60 * 60 * 1000;
-                  const isFlowActive = contact.flow_state === 'running' || contact.flow_state === 'waiting_response';
+                  const isFlowActive = contact.flow_state === 'running' || contact.flow_state === 'waiting_response' || contact.flow_state === 'ai_handling';
 
                   if (!isFlowActive && (message.type === 'text' || message.referral)) {
                     const text = message.text?.body?.toLowerCase()?.trim() || "";
