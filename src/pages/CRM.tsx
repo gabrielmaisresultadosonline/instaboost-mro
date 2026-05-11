@@ -578,9 +578,31 @@ const CRM = () => {
       })
       .subscribe();
 
+    // Interval for processing scheduled flow nodes (delays)
+    const scheduledInterval = setInterval(async () => {
+      try {
+        const { data: contactsToProcess } = await supabase
+          .from('crm_contacts')
+          .select('id')
+          .neq('flow_state', 'idle')
+          .lte('next_execution_time', new Date().toISOString())
+          .limit(1);
+          
+        if (contactsToProcess && contactsToProcess.length > 0) {
+          console.log('Triggering scheduled flow processing...');
+          await supabase.functions.invoke('meta-whatsapp-crm', {
+            body: { action: 'processScheduled' }
+          });
+        }
+      } catch (err) {
+        console.error('Error in scheduled flow interval:', err);
+      }
+    }, 5000);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       supabase.removeChannel(messageChannel);
+      clearInterval(scheduledInterval);
     };
   }, [navigate]);
 
