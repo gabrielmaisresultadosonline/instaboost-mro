@@ -2213,7 +2213,17 @@ const CRM = () => {
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
-                  <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x">
+                  <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x relative group/kanban">
+                    <div className="absolute top-0 left-0 p-2 z-10 opacity-0 group-hover/kanban:opacity-100 transition-opacity">
+                      <Button 
+                        size="sm" 
+                        className="rounded-full bg-primary shadow-lg h-8 w-8 p-0"
+                        onClick={() => setIsNewStatusDialogOpen(true)}
+                        title="Nova Etiqueta"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     {(kanbanStatuses.length > 0 ? kanbanStatuses : [
                       { value: 'new', label: 'Novo Lead', color: 'blue' },
                       { value: 'responded', label: 'Em Atendimento', color: 'yellow' },
