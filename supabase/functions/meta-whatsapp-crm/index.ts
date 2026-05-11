@@ -98,7 +98,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   
   const arrayBuffer = await mediaResponse.arrayBuffer();
   // Para áudio, forçamos o tipo e nome que a Meta espera para PTT (Push To Talk)
-  const contentType = media.type === 'audio' ? 'audio/ogg' : (mediaResponse.headers.get('content-type') || media.mime);
+  const contentType = media.type === 'audio' ? 'audio/ogg; codecs=opus' : (mediaResponse.headers.get('content-type') || media.mime);
   const fileName = media.type === 'audio' ? 'voice.ogg' : media.fileName;
   
   const blob = new Blob([arrayBuffer], { type: contentType })
