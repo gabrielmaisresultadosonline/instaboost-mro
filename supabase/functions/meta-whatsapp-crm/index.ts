@@ -154,9 +154,61 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     }
     
     return jsonResponse({ success: true });
-  }
+  } else if (contact && contact.ai_active && contact.flow_state === 'idle') {
+    console.log(`[WEBHOOK] Contact ${waId} has AI active and is idle. Calling Global AI Agent...`);
+    
+    // Obter histórico e settings
+    const { data: recentMessages } = await supabase
+      .from('crm_messages')
+      .select('content, direction')
+      .eq('contact_id', contact.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+      
+    const history = (recentMessages || [])
+      .reverse()
+      .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+      .join('\n');
+      
+    const { data: settings } = await supabase.from('crm_settings').select('*').single();
+    if (settings && settings.ai_agent_enabled) {
+      const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+      if (DEEPSEEK_API_KEY) {
+        const systemPrompt = settings.ai_system_prompt || "Você é um assistente prestativo.";
+        
+        const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Histórico:\n${history}\n\nCliente: ${text}` }
+            ],
+            temperature: 0.7
+          }),
+        });
+        
+        const aiData = await aiResponse.json();
+        const reply = aiData.choices?.[0]?.message?.content || "";
+        
+        if (reply) {
+          await handleInternalSendMessage(
+            supabase, 
+            settings.meta_phone_number_id, 
+            settings.meta_access_token, 
+            { to: waId, text: reply }, 
+            contact,
+            settings.vps_transcoder_url
+          );
+        }
+      }
+    }
+    return jsonResponse({ success: true });
 
-  if (contact && contact.flow_state === 'waiting_response') {
     console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow...`);
     const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
     if (flow) {
