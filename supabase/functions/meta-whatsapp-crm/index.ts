@@ -25,6 +25,7 @@ function describeMessageForHistory(message: any) {
 
 async function processAiAgentResponse(supabase: any, contact: any, waId: string, text?: string, sourceMessageId?: string) {
   console.log(`[AI-AGENT] Processing response for contact ${waId}. Flow AI Agent.`);
+  let messageText = text;
 
   const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
   const OPENAI_API_KEY = settings?.openai_api_key || Deno.env.get('OPENAI_API_KEY');
@@ -54,7 +55,6 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
   }
   
   // 1. Obter texto se não fornecido (pegar última mensagem do cliente)
-  let messageText = text;
   if (!messageText) {
     const { data: lastMessage } = await supabase
       .from('crm_messages')
