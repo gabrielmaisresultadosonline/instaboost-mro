@@ -174,18 +174,18 @@ async function handleProcessWebhook(supabase: any, entry: any) {
       
     const { data: settings } = await supabase.from('crm_settings').select('*').single();
     if (settings && settings.ai_agent_enabled) {
-      const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-      if (DEEPSEEK_API_KEY) {
+      const OPENAI_API_KEY = settings.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+      if (OPENAI_API_KEY) {
         const systemPrompt = settings.ai_system_prompt || "Você é um assistente prestativo.";
         
-        const aiResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek-chat',
+            model: 'gpt-4o-mini',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: `Histórico:\n${history}\n\nCliente: ${text}` }
