@@ -1250,6 +1250,7 @@ const CRM = () => {
             variant: "destructive"
           });
           await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
+          setSendingMessage(false);
           return;
         }
 
