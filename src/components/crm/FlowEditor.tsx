@@ -352,31 +352,61 @@ const ButtonEdge = ({
 };
 
 const AIAgentNode = ({ data }: any) => (
-  <Card className="min-w-[250px] border-violet-500 shadow-md">
-    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
-    <CardHeader className="p-3 bg-violet-500 text-white rounded-t-lg">
+  <Card className="min-w-[250px] border-violet-600 border-2 shadow-lg ring-1 ring-violet-200">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-violet-600 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-violet-600 text-white rounded-t-sm">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <BrainCircuit className="w-3 h-3" /> Agente I.A
+        <BrainCircuit className="w-4 h-4 animate-pulse" /> Agente I.A
       </CardTitle>
     </CardHeader>
-    <CardContent className="p-3 space-y-3">
-      <div className="bg-violet-50 p-2 rounded border border-violet-100">
-        <p className="text-[9px] text-violet-700 font-bold uppercase mb-1">Prompt do Agente:</p>
-        <p className="text-[10px] text-muted-foreground line-clamp-3 italic">
+    <CardContent className="p-3 space-y-3 bg-white">
+      <div className="bg-violet-50 p-2.5 rounded-md border border-violet-100 shadow-inner">
+        <p className="text-[10px] text-violet-800 font-bold uppercase mb-1 flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Prompt do Agente:
+        </p>
+        <p className="text-[11px] text-slate-700 line-clamp-4 italic leading-relaxed">
           {data.prompt || 'Configure o prompt nas configurações ao lado...'}
         </p>
       </div>
-      <div className="relative flex items-center justify-between bg-emerald-50 text-emerald-700 px-3 py-2 rounded border border-emerald-100 text-[10px] font-medium group">
-        <span className="flex items-center gap-1"><UserCog className="w-3 h-3" /> Direcionar Humano</span>
+      <div className="relative flex items-center justify-between bg-emerald-100 text-emerald-800 px-3 py-2.5 rounded-md border border-emerald-200 text-[11px] font-bold shadow-sm group">
+        <span className="flex items-center gap-1.5"><UserCog className="w-3.5 h-3.5" /> Direcionar Humano</span>
         <Handle 
           type="source" 
           position={Position.Right} 
           id="human_transfer" 
-          className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white !-right-4"
+          className="!w-3.5 !h-3.5 !bg-emerald-600 !border-2 !border-white !-right-4 shadow-sm"
         />
       </div>
     </CardContent>
-    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
+    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-violet-600 !border-2 !border-white" />
+  </Card>
+);
+
+const TemplateNode = ({ data }: any) => (
+  <Card className="min-w-[250px] border-blue-600 border-2 shadow-lg ring-1 ring-blue-200">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-blue-600 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-blue-600 text-white rounded-t-sm">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <FileText className="w-4 h-4" /> Template Meta
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3 space-y-3 bg-white">
+      <div className="bg-blue-50 p-2.5 rounded-md border border-blue-100 shadow-inner">
+        <p className="text-[10px] text-blue-800 font-bold uppercase mb-1">Template Selecionado:</p>
+        <p className="text-[11px] text-slate-700 font-medium truncate">
+          {data.templateName || 'Selecione um template...'}
+        </p>
+        <p className="text-[10px] text-slate-500 mt-1 italic line-clamp-2">
+          {data.bodyText || ''}
+        </p>
+      </div>
+      {data.anyResponse && (
+        <div className="flex items-center gap-1.5 text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
+          <Zap className="w-3 h-3" /> Qualquer resposta segue fluxo
+        </div>
+      )}
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-blue-600 !border-2 !border-white" />
   </Card>
 );
 
