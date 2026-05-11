@@ -39,6 +39,7 @@ import {
   StopCircle,
   Clock,
   Play,
+  PlayCircle,
   ArrowRight,
   Check,
   AlertCircle,
