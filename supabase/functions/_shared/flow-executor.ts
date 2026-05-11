@@ -43,11 +43,23 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
           flow_state: 'running'
         }).eq('id', contactId);
         
+        console.log(`Delay node ${node.id}: Scheduled next node ${edge.target} at ${nextExecution}`);
         return { success: true, message: `Delay scheduled for ${waitTime}s` };
+      } else {
+        console.log(`Delay node ${node.id}: No next edge found, ending flow.`);
+        await supabase.from('crm_contacts').update({
+          flow_state: 'idle',
+          current_flow_id: null,
+          current_node_id: null,
+          next_execution_time: null
+        }).eq('id', contactId);
+        return { success: true, message: 'End of flow at delay' };
       }
     } else if (node.type === 'wait_response' || node.type === 'question') {
+      console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
       await supabase.from('crm_contacts').update({
-        flow_state: 'waiting_response'
+        flow_state: 'waiting_response',
+        next_execution_time: null // Stop the scheduler from re-running this node
       }).eq('id', contactId);
       
       return { success: true, message: 'Waiting for user response' };
