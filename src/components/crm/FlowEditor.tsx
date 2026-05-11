@@ -50,7 +50,9 @@ import {
   Settings,
   FileText,
   RefreshCcw,
-  GitBranch
+  GitBranch,
+  BrainCircuit,
+  UserCog
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -349,6 +351,35 @@ const ButtonEdge = ({
   );
 };
 
+const AIAgentNode = ({ data }: any) => (
+  <Card className="min-w-[250px] border-violet-500 shadow-md">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-violet-500 text-white rounded-t-lg">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <BrainCircuit className="w-3 h-3" /> Agente I.A
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3 space-y-3">
+      <div className="bg-violet-50 p-2 rounded border border-violet-100">
+        <p className="text-[9px] text-violet-700 font-bold uppercase mb-1">Prompt do Agente:</p>
+        <p className="text-[10px] text-muted-foreground line-clamp-3 italic">
+          {data.prompt || 'Configure o prompt nas configurações ao lado...'}
+        </p>
+      </div>
+      <div className="relative flex items-center justify-between bg-emerald-50 text-emerald-700 px-3 py-2 rounded border border-emerald-100 text-[10px] font-medium group">
+        <span className="flex items-center gap-1"><UserCog className="w-3 h-3" /> Direcionar Humano</span>
+        <Handle 
+          type="source" 
+          position={Position.Right} 
+          id="human_transfer" 
+          className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white !-right-4"
+        />
+      </div>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -361,6 +392,7 @@ const nodeTypes = {
   crmAction: CRMActionNode,
   template: TemplateNode,
   jump: JumpNode,
+  aiAgent: AIAgentNode,
 };
 
 const edgeTypes = {
@@ -460,43 +492,29 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
 
   const addNode = (type: string) => {
     const id = `${type}_${Date.now()}`;
-    
-    // Get center of the flow container
-    const flowContainer = document.querySelector('.react-flow');
-    let centerPosition = { x: 100, y: 100 };
-    
-    if (flowContainer) {
-      const rect = flowContainer.getBoundingClientRect();
-      centerPosition = screenToFlowPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      });
+    const position = { x: 100, y: 100 };
+    let data: any = {};
+
+    switch (type) {
+      case 'message': data = { text: 'Nova mensagem de texto' }; break;
+      case 'audio': data = { audioUrl: '', fileName: '', isPTT: true }; break;
+      case 'video': data = { videoUrl: '', fileName: '' }; break;
+      case 'image': data = { imageUrl: '', fileName: '' }; break;
+      case 'delay': data = { delay: 5, unit: 'segundos' }; break;
+      case 'question': data = { text: 'Qual a sua dúvida?', buttons: [{ text: 'Opção 1', id: 'opt1' }, { text: 'Opção 2', id: 'opt2' }], anyResponse: false }; break;
+      case 'followup': data = { timeout: 20 }; break;
+      case 'waitResponse': data = { timeout: 20 }; break;
+      case 'crmAction': data = { action: 'Adicionar Etiqueta', statusLabel: 'new' }; break;
+      case 'template': data = { templateName: '', language: 'pt_BR', anyResponse: false }; break;
+      case 'jump': data = { targetFlowId: '', targetFlowName: '' }; break;
+      case 'aiAgent': data = { prompt: '', labelOnHumanTransfer: 'Atenção: Humano Necessário' }; break;
     }
 
     const newNode: Node = {
       id,
       type,
-      position: centerPosition,
-      data: { 
-        text: type === 'message' ? 'Olá, como posso ajudar?' : '',
-        buttons: type === 'question' ? [{ text: 'Sim', id: 'btn-0' }, { text: 'Não', id: 'btn-1' }] : [],
-        anyResponse: false,
-        delay: 5,
-        unit: 'segundos',
-        timeout: 20,
-        isPTT: type === 'audio',
-        fileName: '',
-        action: type === 'crmAction' ? 'Notificar Agente' : '',
-        statusValue: '',
-        templateName: '',
-        templateId: '',
-        language: '',
-        bodyText: '',
-        status: '',
-        category: '',
-        targetFlowId: '',
-        targetFlowName: ''
-      },
+      position,
+      data,
     };
     setNodes((nds) => nds.concat(newNode));
   };
@@ -633,6 +651,17 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
               <Button variant="outline" className="justify-start gap-2 border-amber-600/20 hover:bg-amber-600/10" onClick={() => addNode('jump')}>
                 <GitBranch className="w-4 h-4 text-amber-600" /> Pular p/ Fluxo
+              </Button>
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2 border-violet-500/20 bg-violet-50/30 hover:bg-violet-500/10 group transition-all" 
+                onClick={() => addNode('aiAgent')}
+              >
+                <BrainCircuit className="w-4 h-4 text-violet-500 group-hover:rotate-12 transition-transform" /> 
+                <div className="flex flex-col items-start text-left">
+                  <span className="text-violet-700 font-semibold">Agente I.A</span>
+                  <span className="text-[8px] text-violet-600/60 uppercase">Qualificador Inteligente</span>
+                </div>
               </Button>
             </div>
           </div>
@@ -839,6 +868,45 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                           <SelectItem value="horas">Horas</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+                )}
+
+                {selectedNode.type === 'aiAgent' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold flex items-center gap-2">
+                        <BrainCircuit className="w-3.5 h-3.5 text-violet-500" /> Prompt do Agente
+                      </Label>
+                      <Textarea 
+                        placeholder="Ex: Você é um qualificador. Se o cliente quiser comprar, direcione para humano..."
+                        className="text-xs min-h-[120px] bg-violet-50/30 border-violet-100"
+                        value={(selectedNode.data.prompt as string) || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { prompt: e.target.value })}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">
+                        Instrua a IA sobre como atender e quando usar a saída "Direcionar Humano".
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold">Etiqueta ao Qualificar (Atenção)</Label>
+                      <Input 
+                        placeholder="Ex: Precisa de Atenção Humana"
+                        className="text-xs h-8"
+                        value={(selectedNode.data.labelOnHumanTransfer as string) || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { labelOnHumanTransfer: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 space-y-2 shadow-sm">
+                      <div className="flex items-center gap-2 text-emerald-700">
+                        <UserCog className="w-4 h-4" />
+                        <span className="text-[11px] font-bold">Automação de Qualificação</span>
+                      </div>
+                      <p className="text-[10px] text-emerald-600/80 leading-relaxed">
+                        Quando a IA decidir que um humano deve intervir, ela seguirá pela saída lateral, aplicará a etiqueta e parará o atendimento automático.
+                      </p>
                     </div>
                   </div>
                 )}
