@@ -984,6 +984,32 @@ const CRM = () => {
     }
   };
 
+  const handleMoveStatus = async (id: string, direction: 'up' | 'down') => {
+    const currentIndex = kanbanStatuses.findIndex(s => s.id === id);
+    if (currentIndex === -1) return;
+    if (direction === 'up' && currentIndex === 0) return;
+    if (direction === 'down' && currentIndex === kanbanStatuses.length - 1) return;
+
+    const newStatuses = [...kanbanStatuses];
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    [newStatuses[currentIndex], newStatuses[targetIndex]] = [newStatuses[targetIndex], newStatuses[currentIndex]];
+
+    // Update sort orders
+    const updates = newStatuses.map((s, idx) => ({
+      id: s.id,
+      sort_order: (idx + 1) * 10
+    }));
+
+    try {
+      for (const update of updates) {
+        await supabase.from('crm_statuses').update({ sort_order: update.sort_order }).eq('id', update.id);
+      }
+      fetchStatuses();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const startRecording = async () => {
     try {
       // Audio Recording logic
@@ -2187,7 +2213,17 @@ const CRM = () => {
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
-                  <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x">
+                  <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x relative group/kanban">
+                    <div className="absolute top-0 left-0 p-2 z-10 opacity-0 group-hover/kanban:opacity-100 transition-opacity">
+                      <Button 
+                        size="sm" 
+                        className="rounded-full bg-primary shadow-lg h-8 w-8 p-0"
+                        onClick={() => setIsNewStatusDialogOpen(true)}
+                        title="Nova Etiqueta"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     {(kanbanStatuses.length > 0 ? kanbanStatuses : [
                       { value: 'new', label: 'Novo Lead', color: 'blue' },
                       { value: 'responded', label: 'Em Atendimento', color: 'yellow' },
@@ -2222,33 +2258,61 @@ const CRM = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value && c.last_interaction !== null).length}</Badge>
-                            {kanbanStatuses.some(s => s.id && s.value === status.value) && (
-                              <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
-                                    if (sObj) {
-                                      setEditingStatus(sObj);
-                                      setIsEditStatusDialogOpen(true);
-                                    }
-                                  }}
-                                  className="hover:text-primary p-1"
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                </button>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
-                                    if (sObj) handleDeleteStatus(sObj.id);
-                                  }}
-                                  className="hover:text-red-500 p-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover/column:opacity-100 transition-opacity">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                  if (sObj) handleMoveStatus(sObj.id, 'up');
+                                }}
+                                className="hover:text-primary p-0.5"
+                                title="Mover p/ Esquerda"
+                              >
+                                <LucideIcons.ChevronLeft className="w-3 h-3" />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                  if (sObj) handleMoveStatus(sObj.id, 'down');
+                                }}
+                                className="hover:text-primary p-0.5"
+                                title="Mover p/ Direita"
+                              >
+                                <LucideIcons.ChevronRight className="w-3 h-3" />
+                              </button>
+                              {kanbanStatuses.some(s => s.id && s.value === status.value) && (
+                                <>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                      if (sObj) {
+                                        setEditingStatus(sObj);
+                                        setIsEditStatusDialogOpen(true);
+                                      }
+                                    }}
+                                    className="hover:text-primary p-0.5"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </button>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                      if (sObj) {
+                                        if (confirm(`Remover etiqueta "${sObj.label}"?`)) {
+                                          handleDeleteStatus(sObj.id);
+                                        }
+                                      }
+                                    }}
+                                    className="hover:text-red-500 p-0.5"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <ScrollArea className="flex-1 p-3">
@@ -5577,6 +5641,90 @@ const CRM = () => {
             >
               Fechar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isNewStatusDialogOpen} onOpenChange={setIsNewStatusDialogOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Nova Etiqueta Kanban</DialogTitle>
+            <DialogDescription>Crie uma nova etapa para o seu funil de vendas.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome da Etiqueta</Label>
+              <Input 
+                placeholder="Ex: Prospectando, Reunião Agendada..." 
+                value={newStatusData.label}
+                onChange={e => setNewStatusData({...newStatusData, label: e.target.value})}
+                className="rounded-xl h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cor da Etiqueta</Label>
+              <Select value={newStatusData.color} onValueChange={val => setNewStatusData({...newStatusData, color: val})}>
+                <SelectTrigger className="h-11 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blue">Azul</SelectItem>
+                  <SelectItem value="yellow">Amarelo</SelectItem>
+                  <SelectItem value="purple">Roxo</SelectItem>
+                  <SelectItem value="green">Verde</SelectItem>
+                  <SelectItem value="red">Vermelho</SelectItem>
+                  <SelectItem value="orange">Laranja</SelectItem>
+                  <SelectItem value="indigo">Índigo</SelectItem>
+                  <SelectItem value="pink">Rosa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsNewStatusDialogOpen(false)} className="rounded-xl h-11">Cancelar</Button>
+            <Button onClick={handleCreateStatus} disabled={saving || !newStatusData.label} className="rounded-xl h-11 px-8 bg-primary">Criar Etiqueta</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditStatusDialogOpen} onOpenChange={setIsEditStatusDialogOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Editar Etiqueta</DialogTitle>
+            <DialogDescription>Altere as informações da etapa do funil.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome da Etiqueta</Label>
+              <Input 
+                placeholder="Nome..." 
+                value={editingStatus?.label || ''}
+                onChange={e => setEditingStatus({...editingStatus, label: e.target.value})}
+                className="rounded-xl h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cor da Etiqueta</Label>
+              <Select value={editingStatus?.color} onValueChange={val => setEditingStatus({...editingStatus, color: val})}>
+                <SelectTrigger className="h-11 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blue">Azul</SelectItem>
+                  <SelectItem value="yellow">Amarelo</SelectItem>
+                  <SelectItem value="purple">Roxo</SelectItem>
+                  <SelectItem value="green">Verde</SelectItem>
+                  <SelectItem value="red">Vermelho</SelectItem>
+                  <SelectItem value="orange">Laranja</SelectItem>
+                  <SelectItem value="indigo">Índigo</SelectItem>
+                  <SelectItem value="pink">Rosa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEditStatusDialogOpen(false)} className="rounded-xl h-11">Cancelar</Button>
+            <Button onClick={handleUpdateStatus} disabled={saving || !editingStatus?.label} className="rounded-xl h-11 px-8 bg-primary">Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
