@@ -241,45 +241,8 @@ const CRMActionNode = ({ data }: any) => (
   </Card>
 );
 
-const TemplateNode = ({ data }: any) => (
-  <Card className="min-w-[220px] border-blue-600 shadow-md overflow-hidden">
-    <Handle type="target" position={Position.Top} />
-    <CardHeader className="p-3 bg-blue-600 text-white flex flex-row items-center justify-between">
-      <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <FileText className="w-3 h-3" /> Template Meta
-      </CardTitle>
-      {data.status === 'APPROVED' && (
-        <Badge className="bg-emerald-500 text-white border-none text-[8px] h-4">Aprovado</Badge>
-      )}
-    </CardHeader>
-    <CardContent className="p-3 space-y-2">
-      <div>
-        <p className="text-[10px] font-bold text-blue-700 truncate">{data.templateName || 'Selecione um template...'}</p>
-        <div className="flex gap-1 mt-1">
-          {data.language && <Badge variant="secondary" className="text-[8px] h-3 px-1">{data.language}</Badge>}
-          {data.category && <Badge variant="outline" className="text-[8px] h-3 px-1">{data.category}</Badge>}
-        </div>
-      </div>
-      {data.bodyText && (
-        <p className="text-[9px] text-muted-foreground line-clamp-3 italic bg-slate-50 p-1.5 rounded border border-slate-100">
-          "{data.bodyText}"
-        </p>
-      )}
-      {data.anyResponse && (
-        <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group mt-1">
-          <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Qualquer resposta</span>
-          <Handle 
-            type="source" 
-            position={Position.Right} 
-            id="any_response" 
-            className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
-          />
-        </div>
-      )}
-    </CardContent>
-    <Handle type="source" position={Position.Bottom} />
-  </Card>
-);
+// TemplateNode is defined later with enhanced styling
+
 
 const JumpNode = ({ data }: any) => (
   <Card className="min-w-[200px] border-amber-600 shadow-md">
@@ -352,31 +315,61 @@ const ButtonEdge = ({
 };
 
 const AIAgentNode = ({ data }: any) => (
-  <Card className="min-w-[250px] border-violet-500 shadow-md">
-    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
-    <CardHeader className="p-3 bg-violet-500 text-white rounded-t-lg">
+  <Card className="min-w-[250px] border-violet-600 border-2 shadow-lg ring-1 ring-violet-200">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-violet-600 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-violet-600 text-white rounded-t-sm">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <BrainCircuit className="w-3 h-3" /> Agente I.A
+        <BrainCircuit className="w-4 h-4 animate-pulse" /> Agente I.A
       </CardTitle>
     </CardHeader>
-    <CardContent className="p-3 space-y-3">
-      <div className="bg-violet-50 p-2 rounded border border-violet-100">
-        <p className="text-[9px] text-violet-700 font-bold uppercase mb-1">Prompt do Agente:</p>
-        <p className="text-[10px] text-muted-foreground line-clamp-3 italic">
+    <CardContent className="p-3 space-y-3 bg-white">
+      <div className="bg-violet-50 p-2.5 rounded-md border border-violet-100 shadow-inner">
+        <p className="text-[10px] text-violet-800 font-bold uppercase mb-1 flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Prompt do Agente:
+        </p>
+        <p className="text-[11px] text-slate-700 line-clamp-4 italic leading-relaxed">
           {data.prompt || 'Configure o prompt nas configurações ao lado...'}
         </p>
       </div>
-      <div className="relative flex items-center justify-between bg-emerald-50 text-emerald-700 px-3 py-2 rounded border border-emerald-100 text-[10px] font-medium group">
-        <span className="flex items-center gap-1"><UserCog className="w-3 h-3" /> Direcionar Humano</span>
+      <div className="relative flex items-center justify-between bg-emerald-100 text-emerald-800 px-3 py-2.5 rounded-md border border-emerald-200 text-[11px] font-bold shadow-sm group">
+        <span className="flex items-center gap-1.5"><UserCog className="w-3.5 h-3.5" /> Direcionar Humano</span>
         <Handle 
           type="source" 
           position={Position.Right} 
           id="human_transfer" 
-          className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white !-right-4"
+          className="!w-3.5 !h-3.5 !bg-emerald-600 !border-2 !border-white !-right-4 shadow-sm"
         />
       </div>
     </CardContent>
-    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-violet-500 !border-2 !border-white" />
+    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-violet-600 !border-2 !border-white" />
+  </Card>
+);
+
+const TemplateNode = ({ data }: any) => (
+  <Card className="min-w-[250px] border-blue-600 border-2 shadow-lg ring-1 ring-blue-200">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-blue-600 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-blue-600 text-white rounded-t-sm">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <FileText className="w-4 h-4" /> Template Meta
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3 space-y-3 bg-white">
+      <div className="bg-blue-50 p-2.5 rounded-md border border-blue-100 shadow-inner">
+        <p className="text-[10px] text-blue-800 font-bold uppercase mb-1">Template Selecionado:</p>
+        <p className="text-[11px] text-slate-700 font-medium truncate">
+          {data.templateName || 'Selecione um template...'}
+        </p>
+        <p className="text-[10px] text-slate-500 mt-1 italic line-clamp-2">
+          {data.bodyText || ''}
+        </p>
+      </div>
+      {data.anyResponse && (
+        <div className="flex items-center gap-1.5 text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
+          <Zap className="w-3 h-3" /> Qualquer resposta segue fluxo
+        </div>
+      )}
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-blue-600 !border-2 !border-white" />
   </Card>
 );
 
@@ -637,13 +630,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
               <Button 
                 variant="outline" 
-                className="justify-start gap-2 border-blue-600/20 bg-blue-50/30 hover:bg-blue-600/10 group transition-all" 
+                className="justify-start gap-2 border-blue-600 bg-blue-50 hover:bg-blue-100 group transition-all h-auto py-2.5 shadow-sm" 
                 onClick={() => addNode('template')}
               >
-                <FileText className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" /> 
+                <FileText className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" /> 
                 <div className="flex flex-col items-start">
-                  <span className="text-blue-700 font-semibold">Template Meta</span>
-                  <span className="text-[8px] text-blue-600/60 uppercase">Marketing/Utilitário</span>
+                  <span className="text-blue-800 font-bold text-xs">Template Meta</span>
+                  <span className="text-[9px] text-blue-600 font-medium uppercase tracking-wider">Marketing/Utilitário</span>
                 </div>
               </Button>
               <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
@@ -654,13 +647,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
               <Button 
                 variant="outline" 
-                className="justify-start gap-2 border-violet-500/20 bg-violet-50/30 hover:bg-violet-500/10 group transition-all" 
+                className="justify-start gap-2 border-violet-600 bg-violet-50 hover:bg-violet-100 group transition-all h-auto py-2.5 shadow-sm" 
                 onClick={() => addNode('aiAgent')}
               >
-                <BrainCircuit className="w-4 h-4 text-violet-500 group-hover:rotate-12 transition-transform" /> 
+                <BrainCircuit className="w-5 h-5 text-violet-600 group-hover:rotate-12 transition-transform" /> 
                 <div className="flex flex-col items-start text-left">
-                  <span className="text-violet-700 font-semibold">Agente I.A</span>
-                  <span className="text-[8px] text-violet-600/60 uppercase">Qualificador Inteligente</span>
+                  <span className="text-violet-800 font-bold text-xs">Agente I.A</span>
+                  <span className="text-[9px] text-violet-600 font-medium uppercase tracking-wider">Qualificador Inteligente</span>
                 </div>
               </Button>
             </div>
