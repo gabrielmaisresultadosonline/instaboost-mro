@@ -2633,16 +2633,28 @@ const CRM = () => {
                                            {contact.flow_state === 'error' ? 'Erro' : 
                                             contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
                                          </Badge>
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleCancelFlow(contact.id);
-                                          }}
-                                          className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
-                                          title="Parar Fluxo"
-                                        >
-                                          <StopCircle className="h-3 w-3" />
-                                        </button>
+                                        <div className="flex items-center gap-0.5">
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleResumeFlow(contact.id);
+                                            }}
+                                            className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
+                                            title="Retomar Fluxo"
+                                          >
+                                            <PlayCircle className="h-3 w-3" />
+                                          </button>
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCancelFlow(contact.id);
+                                            }}
+                                            className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                            title="Parar Fluxo"
+                                          >
+                                            <StopCircle className="h-3 w-3" />
+                                          </button>
+                                        </div>
                                       </div>
                                       {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
                                         <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums">
