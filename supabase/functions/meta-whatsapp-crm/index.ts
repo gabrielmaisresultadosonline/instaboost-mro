@@ -177,6 +177,8 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
       console.log(`[MEDIA] Enviando ID ${mediaId} como áudio PTT.`);
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
+    } else if (media.type === 'video') {
+      payload.video = { id: mediaId };
     } else {
       payload[media.type] = { id: mediaId };
     }
