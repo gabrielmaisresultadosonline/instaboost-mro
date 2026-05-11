@@ -2,7 +2,28 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { executeVisualNode, processStep } from "../_shared/flow-executor.ts"
 
-async function processAiAgentResponse(supabase: any, contact: any, waId: string, text?: string) {
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function describeMessageForHistory(message: any) {
+  const content = message.content || "";
+  if (message.direction !== 'inbound') return content;
+
+  if (message.message_type === 'image') {
+    return `${content || '[Imagem recebida]'}${message.media_url ? ` (imagem anexada: ${message.media_url})` : ''}`;
+  }
+
+  if (message.message_type === 'audio') {
+    return `${content || '[Áudio recebido]'}${message.media_url ? ` (áudio anexado: ${message.media_url})` : ''}`;
+  }
+
+  if (message.message_type === 'video') {
+    return `${content || '[Vídeo recebido]'}${message.media_url ? ` (vídeo anexado para análise humana posterior: ${message.media_url})` : ''}`;
+  }
+
+  return content || `[Mensagem: ${message.message_type || 'desconhecida'}]`;
+}
+
+async function processAiAgentResponse(supabase: any, contact: any, waId: string, text?: string, sourceMessageId?: string) {
   console.log(`[AI-AGENT] Processing response for contact ${waId}. Flow AI Agent.`);
 
   const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
