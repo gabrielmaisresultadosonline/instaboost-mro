@@ -975,6 +975,8 @@ serve(async (req) => {
           
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
+            // Important: Update next_execution_time to null to prevent double execution
+            await supabase.from('crm_contacts').update({ next_execution_time: null }).eq('id', contact.id);
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
           } else {
