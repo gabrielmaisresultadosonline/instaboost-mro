@@ -350,7 +350,7 @@ const CRM = () => {
         .select('contact_id')
         .eq('direction', 'inbound')
         .gte('created_at', startOfWeek)
-        .limit(10000);
+        .limit(1000);
       const activeWeekSet = new Set<string>();
       (recentWeek || []).forEach((m: any) => m.contact_id && activeWeekSet.add(m.contact_id));
 
