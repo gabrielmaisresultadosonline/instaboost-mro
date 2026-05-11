@@ -637,13 +637,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
               <Button 
                 variant="outline" 
-                className="justify-start gap-2 border-blue-600/20 bg-blue-50/30 hover:bg-blue-600/10 group transition-all" 
+                className="justify-start gap-2 border-blue-600 bg-blue-50 hover:bg-blue-100 group transition-all h-auto py-2.5 shadow-sm" 
                 onClick={() => addNode('template')}
               >
-                <FileText className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" /> 
+                <FileText className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" /> 
                 <div className="flex flex-col items-start">
-                  <span className="text-blue-700 font-semibold">Template Meta</span>
-                  <span className="text-[8px] text-blue-600/60 uppercase">Marketing/Utilitário</span>
+                  <span className="text-blue-800 font-bold text-xs">Template Meta</span>
+                  <span className="text-[9px] text-blue-600 font-medium uppercase tracking-wider">Marketing/Utilitário</span>
                 </div>
               </Button>
               <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
@@ -654,13 +654,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
               <Button 
                 variant="outline" 
-                className="justify-start gap-2 border-violet-500/20 bg-violet-50/30 hover:bg-violet-500/10 group transition-all" 
+                className="justify-start gap-2 border-violet-600 bg-violet-50 hover:bg-violet-100 group transition-all h-auto py-2.5 shadow-sm" 
                 onClick={() => addNode('aiAgent')}
               >
-                <BrainCircuit className="w-4 h-4 text-violet-500 group-hover:rotate-12 transition-transform" /> 
+                <BrainCircuit className="w-5 h-5 text-violet-600 group-hover:rotate-12 transition-transform" /> 
                 <div className="flex flex-col items-start text-left">
-                  <span className="text-violet-700 font-semibold">Agente I.A</span>
-                  <span className="text-[8px] text-violet-600/60 uppercase">Qualificador Inteligente</span>
+                  <span className="text-violet-800 font-bold text-xs">Agente I.A</span>
+                  <span className="text-[9px] text-violet-600 font-medium uppercase tracking-wider">Qualificador Inteligente</span>
                 </div>
               </Button>
             </div>
