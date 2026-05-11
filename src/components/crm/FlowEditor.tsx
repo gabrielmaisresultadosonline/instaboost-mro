@@ -894,7 +894,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                       <Input 
                         placeholder="Ex: Precisa de Atenção Humana"
                         className="text-xs h-8"
-                        value={selectedNode.data.labelOnHumanTransfer || ''}
+                        value={(selectedNode.data.labelOnHumanTransfer as string) || ''}
                         onChange={(e) => updateNodeData(selectedNode.id, { labelOnHumanTransfer: e.target.value })}
                       />
                     </div>
