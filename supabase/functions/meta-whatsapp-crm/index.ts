@@ -2,6 +2,131 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { executeVisualNode, processStep } from "../_shared/flow-executor.ts"
 
+async function processAiAgentResponse(supabase: any, contact: any, waId: string, text?: string) {
+  console.log(`[AI-AGENT] Processing response for contact ${waId}. Flow AI Agent.`);
+  
+  // 1. Obter texto se não fornecido (pegar última mensagem do cliente)
+  let messageText = text;
+  if (!messageText) {
+    const { data: lastMessage } = await supabase
+      .from('crm_messages')
+      .select('content')
+      .eq('contact_id', contact.id)
+      .eq('direction', 'inbound')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    messageText = lastMessage?.content || "";
+  }
+
+  // 2. Obter contexto da conversa (histórico)
+  const { data: recentMessages } = await supabase
+    .from('crm_messages')
+    .select('content, direction')
+    .eq('contact_id', contact.id)
+    .order('created_at', { ascending: false })
+    .limit(10);
+    
+  const history = (recentMessages || [])
+    .reverse()
+    .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+    .join('\n');
+    
+  const aiPrompt = contact.metadata?.ai_agent_prompt || "Você é um assistente prestativo.";
+  const labelOnTransfer = contact.metadata?.ai_agent_label_on_transfer || "";
+  
+  // 3. Obter configurações e chave OpenAI
+  const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
+  const OPENAI_API_KEY = settings?.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+
+  if (!OPENAI_API_KEY) {
+    console.error("OpenAI API Key não configurada");
+    return { success: false, error: "AI logic missing key" };
+  }
+  
+  const systemPrompt = `${aiPrompt}
+  
+  REGRAS ADICIONAIS:
+  1. Responda de forma curta e direta no WhatsApp.
+  2. Se você identificar que o cliente precisa de atendimento humano ou se ele pedir para falar com um atendente, ou se o objetivo da sua tarefa foi concluído e agora um humano deve intervir, responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
+  3. Nunca saia do personagem.`;
+  
+  try {
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${messageText}` }
+        ],
+        temperature: 0.7
+      }),
+    });
+    
+    const aiData = await aiResponse.json();
+    const reply = aiData.choices?.[0]?.message?.content || "";
+    
+    if (reply.includes('[[TRANSFER_TO_HUMAN]]')) {
+      console.log(`[AI-AGENT] AI decided to transfer contact ${waId} to human.`);
+      
+      const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
+      if (flow) {
+        const currentNodeId = contact.current_node_id;
+        const transferEdge = flow.edges?.find((e: any) => e.source === currentNodeId && e.sourceHandle === 'human_transfer');
+        
+        if (transferEdge) {
+          const nextNode = flow.nodes?.find((n: any) => n.id === transferEdge.target);
+          if (nextNode) {
+            const updateData: any = {
+              flow_state: 'running',
+              current_node_id: nextNode.id,
+              last_flow_interaction: new Date().toISOString(),
+              ai_active: false
+            };
+            
+            if (labelOnTransfer) {
+              updateData.status = labelOnTransfer;
+            }
+            
+            await supabase.from('crm_contacts').update(updateData).eq('id', contact.id);
+            await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+            return { success: true, action: 'transferred' };
+          }
+        }
+      }
+      
+      await supabase.from('crm_contacts').update({ 
+        flow_state: 'idle', 
+        ai_active: false,
+        status: labelOnTransfer || 'human'
+      }).eq('id', contact.id);
+      
+    } else if (reply) {
+      if (settings) {
+        await handleInternalSendMessage(
+          supabase, 
+          settings.meta_phone_number_id, 
+          settings.meta_access_token, 
+          { to: waId, text: reply }, 
+          contact,
+          settings.vps_transcoder_url
+        );
+      }
+    }
+    
+    return { success: true };
+  } catch (err: any) {
+    console.error("[AI-AGENT] Error processing AI response:", err);
+    return { success: false, error: err.message };
+  }
+}
+
 async function handleProcessWebhook(supabase: any, entry: any, skipSave = false) {
   if (!entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
     return jsonResponse({ success: true });
@@ -21,7 +146,6 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
     }
   }
 
-  // Registra a mensagem recebida para visibilidade no CRM (se não for skipSave)
   const { data: contactForSave } = await supabase
     .from('crm_contacts')
     .select('id')
@@ -41,7 +165,6 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
     await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contactForSave.id);
   }
 
-  // Busca contato SEM filtrar por idle, para permitir que a IA Global funcione mesmo se o contato estiver em estado idle
   const { data: contact } = await supabase
     .from('crm_contacts')
     .select('*')
@@ -49,117 +172,11 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
     .single();
 
   if (contact && contact.flow_state === 'ai_handling') {
-    console.log(`[WEBHOOK] Contact ${waId} is in AI handling state (Flow AI Agent). Calling AI Agent...`);
-    
-    // 1. Obter contexto da conversa
-    const { data: recentMessages } = await supabase
-      .from('crm_messages')
-      .select('content, direction')
-      .eq('contact_id', contact.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-      
-    const history = (recentMessages || [])
-      .reverse()
-      .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
-      .join('\n');
-      
-    const aiPrompt = contact.metadata?.ai_agent_prompt || "Você é um assistente prestativo.";
-    const labelOnTransfer = contact.metadata?.ai_agent_label_on_transfer || "";
-    
-    // 2. Chamar OpenAI conforme configurado no CRM
-    const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
-    const OPENAI_API_KEY = settings?.openai_api_key || Deno.env.get('OPENAI_API_KEY');
-
-    if (!OPENAI_API_KEY) {
-      console.error("OpenAI API Key não configurada");
-      return jsonResponse({ success: false, error: "AI logic missing key" });
-    }
-    
-    const systemPrompt = `${aiPrompt}
-    
-    REGRAS ADICIONAIS:
-    1. Responda de forma curta e direta no WhatsApp.
-    2. Se você identificar que o cliente precisa de atendimento humano ou se ele pedir para falar com um atendente, ou se o objetivo da sua tarefa foi concluído e agora um humano deve intervir, responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
-    3. Nunca saia do personagem.`;
-    
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${text}` }
-        ],
-        temperature: 0.7
-      }),
-    });
-    
-    const aiData = await aiResponse.json();
-    const reply = aiData.choices?.[0]?.message?.content || "";
-    
-    if (reply.includes('[[TRANSFER_TO_HUMAN]]')) {
-      console.log(`[AI-AGENT] AI decided to transfer contact ${waId} to human.`);
-      
-      // Encontrar o próximo nó via handle "human_transfer"
-      const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
-      if (flow) {
-        const currentNodeId = contact.current_node_id;
-        const transferEdge = flow.edges?.find((e: any) => e.source === currentNodeId && e.sourceHandle === 'human_transfer');
-        
-        if (transferEdge) {
-          const nextNode = flow.nodes?.find((n: any) => n.id === transferEdge.target);
-          if (nextNode) {
-            // Aplicar etiqueta se configurada
-            const updateData: any = {
-              flow_state: 'running',
-              current_node_id: nextNode.id,
-              last_flow_interaction: new Date().toISOString(),
-              ai_active: false
-            };
-            
-            if (labelOnTransfer) {
-              updateData.status = labelOnTransfer;
-            }
-            
-            await supabase.from('crm_contacts').update(updateData).eq('id', contact.id);
-            await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
-            return jsonResponse({ success: true, action: 'transferred' });
-          }
-        }
-      }
-      
-      // Fallback: apenas desativa IA e marca como human
-      await supabase.from('crm_contacts').update({ 
-        flow_state: 'idle', 
-        ai_active: false,
-        status: labelOnTransfer || 'human'
-      }).eq('id', contact.id);
-      
-    } else if (reply) {
-      // Enviar resposta da IA
-      const { data: settings } = await supabase.from('crm_settings').select('meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
-      if (settings) {
-        await handleInternalSendMessage(
-          supabase, 
-          settings.meta_phone_number_id, 
-          settings.meta_access_token, 
-          { to: waId, text: reply }, 
-          contact,
-          settings.vps_transcoder_url
-        );
-      }
-    }
-    
-    return jsonResponse({ success: true });
+    const result = await processAiAgentResponse(supabase, contact, waId, text);
+    return jsonResponse(result);
   } else if (contact && contact.ai_active && contact.flow_state === 'idle') {
     console.log(`[WEBHOOK] Contact ${waId} has AI active and is idle. Calling Global AI Agent...`);
     
-    // Obter histórico e settings
     const { data: recentMessages } = await supabase
       .from('crm_messages')
       .select('content, direction')
@@ -178,34 +195,38 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
       if (OPENAI_API_KEY) {
         const systemPrompt = settings.ai_system_prompt || "Você é um assistente prestativo.";
         
-        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: `Histórico:\n${history}\n\nCliente: ${text}` }
-            ],
-            temperature: 0.7
-          }),
-        });
-        
-        const aiData = await aiResponse.json();
-        const reply = aiData.choices?.[0]?.message?.content || "";
-        
-        if (reply) {
-          await handleInternalSendMessage(
-            supabase, 
-            settings.meta_phone_number_id, 
-            settings.meta_access_token, 
-            { to: waId, text: reply }, 
-            contact,
-            settings.vps_transcoder_url
-          );
+        try {
+          const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `Histórico:\n${history}\n\nCliente: ${text}` }
+              ],
+              temperature: 0.7
+            }),
+          });
+          
+          const aiData = await aiResponse.json();
+          const reply = aiData.choices?.[0]?.message?.content || "";
+          
+          if (reply) {
+            await handleInternalSendMessage(
+              supabase, 
+              settings.meta_phone_number_id, 
+              settings.meta_access_token, 
+              { to: waId, text: reply }, 
+              contact,
+              settings.vps_transcoder_url
+            );
+          }
+        } catch (aiErr) {
+          console.error("Erro na resposta da IA Global:", aiErr);
         }
       }
     }
@@ -568,8 +589,18 @@ serve(async (req) => {
             const currentNode = flow?.nodes?.find((n: any) => n.id === contact.current_node_id);
             
             if (flow && currentNode) {
-              const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
+              const res: any = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
               results.push({ contactId: contact.id, result: res });
+
+              // Se o nó executado foi um Agente IA, processamos a resposta imediatamente
+              if (res?.message?.includes('AI handling state')) {
+                console.log(`[SCHEDULED] Node resulted in AI handling state. Triggering AI response for ${contact.wa_id}`);
+                // Re-fetch contact to get updated flow_state and metadata from executeVisualNode
+                const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contact.id).single();
+                if (updatedContact) {
+                  await processAiAgentResponse(supabase, updatedContact, contact.wa_id);
+                }
+              }
             } else {
               await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
             }
@@ -892,7 +923,18 @@ serve(async (req) => {
           status: (flow.trigger_tag && flow.trigger_tag !== 'none') ? flow.trigger_tag : undefined
         }).eq('id', contactId)
         
-        return jsonResponse(await executeVisualNode(supabase, flow, startNode, contactId, waId))
+        const res: any = await executeVisualNode(supabase, flow, startNode, contactId, waId);
+        
+        // Se o fluxo começou em um nó de Agente IA, processamos a resposta imediatamente
+        if (res?.message?.includes('AI handling state')) {
+          console.log(`[START-FLOW] Started in AI handling state. Triggering AI response for ${waId}`);
+          const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
+          if (updatedContact) {
+            await processAiAgentResponse(supabase, updatedContact, waId);
+          }
+        }
+        
+        return jsonResponse(res)
       } else {
         await supabase.from('crm_contacts').update({
           current_flow_id: flowId,
@@ -991,7 +1033,18 @@ serve(async (req) => {
             })
             .eq('id', contactId)
           
-          return jsonResponse(await executeVisualNode(supabase, flow, nextNode, contactId, waId))
+          const res: any = await executeVisualNode(supabase, flow, nextNode, contactId, waId);
+          
+          // Se o próximo nó é um Agente IA, processamos a resposta imediatamente
+          if (res?.message?.includes('AI handling state')) {
+            console.log(`[CONTINUE-FLOW] Moved to AI handling state. Triggering AI response for ${waId}`);
+            const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
+            if (updatedContact) {
+              await processAiAgentResponse(supabase, updatedContact, waId);
+            }
+          }
+          
+          return jsonResponse(res)
         }
 
         // No more nodes, finish flow
