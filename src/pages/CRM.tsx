@@ -2248,33 +2248,61 @@ const CRM = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value && c.last_interaction !== null).length}</Badge>
-                            {kanbanStatuses.some(s => s.id && s.value === status.value) && (
-                              <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
-                                    if (sObj) {
-                                      setEditingStatus(sObj);
-                                      setIsEditStatusDialogOpen(true);
-                                    }
-                                  }}
-                                  className="hover:text-primary p-1"
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                </button>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
-                                    if (sObj) handleDeleteStatus(sObj.id);
-                                  }}
-                                  className="hover:text-red-500 p-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover/column:opacity-100 transition-opacity">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                  if (sObj) handleMoveStatus(sObj.id, 'up');
+                                }}
+                                className="hover:text-primary p-0.5"
+                                title="Mover p/ Esquerda"
+                              >
+                                <LucideIcons.ChevronLeft className="w-3 h-3" />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                  if (sObj) handleMoveStatus(sObj.id, 'down');
+                                }}
+                                className="hover:text-primary p-0.5"
+                                title="Mover p/ Direita"
+                              >
+                                <LucideIcons.ChevronRight className="w-3 h-3" />
+                              </button>
+                              {kanbanStatuses.some(s => s.id && s.value === status.value) && (
+                                <>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                      if (sObj) {
+                                        setEditingStatus(sObj);
+                                        setIsEditStatusDialogOpen(true);
+                                      }
+                                    }}
+                                    className="hover:text-primary p-0.5"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </button>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                      if (sObj) {
+                                        if (confirm(`Remover etiqueta "${sObj.label}"?`)) {
+                                          handleDeleteStatus(sObj.id);
+                                        }
+                                      }
+                                    }}
+                                    className="hover:text-red-500 p-0.5"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <ScrollArea className="flex-1 p-3">
