@@ -2750,6 +2750,15 @@ const CRM = () => {
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
+                                          className="h-5 w-5 text-green-500 hover:text-green-700 hover:bg-green-50/50" 
+                                          onClick={() => handleResumeFlow(selectedContact.id)}
+                                          title="Retomar Fluxo"
+                                        >
+                                          <PlayCircle className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
                                           className="h-5 w-5 text-red-500 hover:text-red-700 hover:bg-red-50/50" 
                                           onClick={() => handleCancelFlow(selectedContact.id)}
                                           title="Parar Fluxo"
