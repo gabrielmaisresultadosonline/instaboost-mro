@@ -4,6 +4,14 @@ import { executeVisualNode, processStep } from "../_shared/flow-executor.ts"
 
 async function processAiAgentResponse(supabase: any, contact: any, waId: string, text?: string) {
   console.log(`[AI-AGENT] Processing response for contact ${waId}. Flow AI Agent.`);
+
+  const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
+  const OPENAI_API_KEY = settings?.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+
+  if (!OPENAI_API_KEY) {
+    console.error("OpenAI API Key não configurada");
+    return { success: false, error: "AI logic missing key" };
+  }
   
   // 1. Obter texto se não fornecido (pegar última mensagem do cliente)
   let messageText = text;
@@ -23,14 +31,14 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
   // 2. Obter contexto da conversa (histórico)
   const { data: recentMessages } = await supabase
     .from('crm_messages')
-    .select('content, direction')
+    .select('content, direction, message_type, media_url')
     .eq('contact_id', contact.id)
     .order('created_at', { ascending: false })
-    .limit(10);
+    .limit(15);
     
   const history = (recentMessages || [])
     .reverse()
-    .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
+    .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${describeMessageForHistory(m)}`)
     .join('\n');
     
   let aiPrompt = contact.metadata?.ai_agent_prompt || "";
@@ -53,15 +61,6 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
   }
 
   if (!aiPrompt) aiPrompt = "Você é um assistente prestativo.";
-  
-  // 3. Obter configurações e chave OpenAI
-  const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
-  const OPENAI_API_KEY = settings?.openai_api_key || Deno.env.get('OPENAI_API_KEY');
-
-  if (!OPENAI_API_KEY) {
-    console.error("OpenAI API Key não configurada");
-    return { success: false, error: "AI logic missing key" };
-  }
   
   const systemPrompt = `${aiPrompt}
   
