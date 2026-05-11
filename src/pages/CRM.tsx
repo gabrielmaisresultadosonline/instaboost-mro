@@ -2580,19 +2580,22 @@ const CRM = () => {
                                   >
                                     {getStatusLabel(contact.status)}
                                   </Badge>
-                                  {contact.flow_state && contact.flow_state !== 'idle' && (
-                                    <div className="flex flex-col items-end gap-1">
-                                      <div className="flex items-center gap-1">
-                                        <Badge 
-                                          variant="secondary" 
-                                          style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                          className={cn(
-                                            "px-1 capitalize font-medium",
-                                            contact.flow_state === 'error' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary animate-pulse"
-                                          )}
-                                        >
-                                          {contact.flow_state === 'error' ? 'Erro' : 'Ativo'}
-                                        </Badge>
+                                   {contact.flow_state && contact.flow_state !== 'idle' && (
+                                     <div className="flex flex-col items-end gap-1">
+                                       <div className="flex items-center gap-1">
+                                         <Badge 
+                                           variant="secondary" 
+                                           style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                           className={cn(
+                                             "px-1 capitalize font-medium",
+                                             contact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : 
+                                             contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700 border-amber-200" :
+                                             "bg-primary/10 text-primary animate-pulse border-primary/20"
+                                           )}
+                                         >
+                                           {contact.flow_state === 'error' ? 'Erro' : 
+                                            contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
+                                         </Badge>
                                         <button 
                                           onClick={(e) => {
                                             e.stopPropagation();
