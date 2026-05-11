@@ -2602,15 +2602,23 @@ const CRM = () => {
                                 selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/50 border-l-4 border-l-transparent"
                               )}
                             >
-                              <div className="flex justify-between items-start w-full">
-                                <p className="font-bold truncate text-sm flex-1 flex items-center gap-2">
-                                  {contact.name || contact.wa_id}
-                                  {contact.google_sync_account_id && (
-                                    <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
-                                       <span className="text-[6px] font-bold text-white">G</span>
-                                    </span>
+                              <div className="flex justify-between items-start w-full gap-2">
+                                <div className="flex-1 min-w-0 flex items-center gap-2">
+                                  {contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && (
+                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" title="Nova mensagem" />
                                   )}
-                                </p>
+                                  <p className={cn(
+                                    "font-bold truncate text-sm flex items-center gap-2",
+                                    contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-foreground" : "text-foreground/80"
+                                  )}>
+                                    {contact.name || contact.wa_id}
+                                    {contact.google_sync_account_id && (
+                                      <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[6px] font-bold text-white">G</span>
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
                                 <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
