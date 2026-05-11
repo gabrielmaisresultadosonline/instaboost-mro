@@ -303,7 +303,8 @@ serve(async (req) => {
                         triggeredFlow = flows.find(f => 
                           f.trigger_type === 'keyword' && 
                           (f.trigger_keywords?.some((k: string) => k.toLowerCase() === text) || 
-                           f.trigger_keyword?.toLowerCase() === text)
+                           f.trigger_keyword?.toLowerCase() === text) ||
+                          (f.trigger_type === 'exact_phrase' && f.trigger_keywords?.some((k: string) => k.toLowerCase() === text))
                         );
                       }
 

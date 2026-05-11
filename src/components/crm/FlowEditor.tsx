@@ -233,8 +233,8 @@ const CRMActionNode = ({ data }: any) => (
     </CardHeader>
     <CardContent className="p-3">
       <p className="text-[10px] font-bold text-slate-600">{data.action || 'Notificar Agente'}</p>
-      {data.action === 'Adicionar Etiqueta' && data.statusLabel && (
-        <Badge variant="outline" className="mt-1 text-[8px] h-4 bg-slate-50">{data.statusLabel}</Badge>
+      {data.action === 'Adicionar Etiqueta' && (data.statusLabel || data.statusValue) && (
+        <Badge variant="outline" className="mt-1 text-[8px] h-4 bg-slate-50">{data.statusLabel || data.statusValue}</Badge>
       )}
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
@@ -537,7 +537,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       ...flow,
       name: flowName,
       trigger_type: triggerType,
-      trigger_keywords: triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
+      trigger_keywords: triggerType === 'exact_phrase' ? [triggerKeywords.trim()] : triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
       trigger_tag: triggerTag,
       is_active: isActive,
       nodes,
@@ -946,10 +946,10 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                           onValueChange={(val) => {
                             const status = availableStatuses.find(s => s.value === val);
                             if (status) {
-                              updateNodeData(selectedNode.id, { 
-                                statusValue: val,
-                                statusLabel: status.label
-                              });
+                              setNodes((nds) => nds.map((node) => 
+                                node.id === selectedNode.id ? { ...node, data: { ...node.data, statusValue: val, statusLabel: status.label } } : node
+                              ));
+                              setSelectedNode((prev: any) => ({ ...prev, data: { ...prev.data, statusValue: val, statusLabel: status.label } }));
                             }
                           }}
                         >
@@ -1145,7 +1145,10 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                     <Textarea 
                       placeholder={triggerType === 'keyword' ? "Ex: olá, preço, ajuda" : "Ex: Estou no site, gostaria de tirar umas dúvidas..."}
                       value={triggerKeywords}
-                      onChange={(e) => setTriggerKeywords(e.target.value)}
+                      onChange={(e) => {
+                        console.log("Updating trigger keywords:", e.target.value);
+                        setTriggerKeywords(e.target.value);
+                      }}
                       className="text-xs min-h-[80px]"
                     />
                     <p className="text-[9px] text-muted-foreground italic">
