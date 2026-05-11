@@ -136,9 +136,9 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
       throw uploadError;
     }
     
-    payload.type = media.type;
     if (media.type === 'audio') {
-      // Para enviar como mensagem de voz (gravado na hora), usamos o campo "audio" com ID.
+      // Para enviar como mensagem de voz (gravado na hora), usamos o objeto "audio"
+      payload.type = 'audio';
       payload.audio = { id: mediaId };
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
