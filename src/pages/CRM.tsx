@@ -2612,9 +2612,11 @@ const CRM = () => {
                                           <Clock className="w-2 h-2" />
                                           {(() => {
                                             if (contact.flow_state === 'waiting_response') {
+                                              const timeoutMinutes = contact.flow_timeout_minutes || 20;
                                               const lastInteraction = new Date(contact.last_flow_interaction || Date.now()).getTime();
-                                              const elapsedSeconds = Math.floor((now - lastInteraction) / 1000);
-                                              return `Aguardando: ${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`;
+                                              const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
+                                              const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
+                                              return `Expira em: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
                                             }
                                             const next = new Date(contact.next_execution_time).getTime();
                                             const diff = Math.max(0, Math.floor((next - now) / 1000));
@@ -2711,9 +2713,11 @@ const CRM = () => {
                                           <span className="text-[10px] font-bold text-primary tabular-nums">
                                             {(() => {
                                               if (selectedContact.flow_state === 'waiting_response') {
+                                                const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
                                                 const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
-                                                const elapsedSeconds = Math.floor((now - lastInteraction) / 1000);
-                                                return `Aguardando há: ${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`;
+                                                const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
+                                                const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
+                                                return `Expira em: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
                                               }
                                               return `Aguardando: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
                                             })()}
