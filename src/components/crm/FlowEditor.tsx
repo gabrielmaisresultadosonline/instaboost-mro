@@ -1145,7 +1145,10 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                     <Textarea 
                       placeholder={triggerType === 'keyword' ? "Ex: olá, preço, ajuda" : "Ex: Estou no site, gostaria de tirar umas dúvidas..."}
                       value={triggerKeywords}
-                      onChange={(e) => setTriggerKeywords(e.target.value)}
+                      onChange={(e) => {
+                        console.log("Updating trigger keywords:", e.target.value);
+                        setTriggerKeywords(e.target.value);
+                      }}
                       className="text-xs min-h-[80px]"
                     />
                     <p className="text-[9px] text-muted-foreground italic">
