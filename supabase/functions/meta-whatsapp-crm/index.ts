@@ -110,18 +110,30 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
       
     } else if (reply) {
       if (settings) {
-        await handleInternalSendMessage(
-          supabase, 
-          settings.meta_phone_number_id, 
-          settings.meta_access_token, 
-          { to: waId, text: reply }, 
-          contact,
-          settings.vps_transcoder_url
-        );
+        // MODIFICAÇÃO: Verifica se a resposta da IA é igual à última mensagem enviada para evitar duplicidade
+        const { data: lastOutbound } = await supabase
+          .from('crm_messages')
+          .select('content')
+          .eq('contact_id', contact.id)
+          .eq('direction', 'outbound')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastOutbound?.content === reply) {
+          console.log(`[AI-AGENT] Duplicated response detected for contact ${waId}. Skipping send.`);
+        } else {
+          await handleInternalSendMessage(
+            supabase, 
+            settings.meta_phone_number_id, 
+            settings.meta_access_token, 
+            { to: waId, text: reply }, 
+            contact,
+            settings.vps_transcoder_url
+          );
+        }
       }
       
-      // Garante que o contato permaneça no estado ai_handling para continuar o chat
-      // Também garante que ai_active esteja true no contato para o webhook capturar
       console.log(`[AI-AGENT] Updating contact ${waId} to ensure continued AI interaction.`);
       await supabase.from('crm_contacts').update({ 
         flow_state: 'ai_handling',
