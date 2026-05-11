@@ -2704,11 +2704,20 @@ const CRM = () => {
                                           <StopCircle className="h-3.5 w-3.5" />
                                         </Button>
                                       </div>
-                                      {countdown !== null && countdown > 0 && (
+                                      {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
                                         <div className="flex items-center gap-1.5 px-1 py-0.5 bg-primary/5 rounded border border-primary/10 animate-in fade-in zoom-in-95 duration-200">
                                           <Clock className="w-2.5 h-2.5 text-primary animate-pulse" />
                                           <span className="text-[10px] font-bold text-primary tabular-nums">
-                                            Aguardando: {Math.floor(countdown / 60)}m {countdown % 60}s
+                                            {(() => {
+                                              if (selectedContact.flow_state === 'waiting_response') {
+                                                const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
+                                                const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
+                                                const timeoutTime = lastInteraction + (timeoutMinutes * 60000);
+                                                const diff = Math.max(0, Math.floor((timeoutTime - now) / 1000));
+                                                return diff > 0 ? `Expira em: ${Math.floor(diff / 60)}m ${diff % 60}s` : 'Expirando...';
+                                              }
+                                              return `Aguardando: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
+                                            })()}
                                           </span>
                                         </div>
                                       )}
