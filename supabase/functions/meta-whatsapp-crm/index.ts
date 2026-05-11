@@ -63,7 +63,7 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${messageText}` }
+          { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${messageText || "(Nenhuma mensagem recente - inicie o atendimento)"}` }
         ],
         temperature: 0.7
       }),
@@ -72,7 +72,7 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
     const aiData = await aiResponse.json();
     const reply = aiData.choices?.[0]?.message?.content || "";
     
-    if (reply.includes('[[TRANSFER_TO_HUMAN]]')) {
+    if (reply.includes('[[TRANSFER_TO_HUMAN]]') && (messageText || history.length > 50)) {
       console.log(`[AI-AGENT] AI decided to transfer contact ${waId} to human.`);
       
       const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
