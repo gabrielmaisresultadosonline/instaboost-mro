@@ -107,9 +107,28 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   form.append('file', blob, fileName)
   form.append('type', media.type)
 
-  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}`);
-
-  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}, fileName=${fileName}`);
+  console.log(`[UPLOAD] Enviando para Meta PTT: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}, fileName=${fileName}`);
+  // Para mensagens de voz, a Meta recomenda enviar sem o parâmetro 'type' no FormData se o Blob já tem o tipo correto e fileName é voice.ogg
+  // ou garantir que o campo 'type' seja o primeiro.
+  if (media.type === 'audio') {
+    // Re-build FormData for PTT
+    const pttForm = new FormData();
+    pttForm.append('messaging_product', 'whatsapp');
+    pttForm.append('type', 'audio');
+    pttForm.append('file', blob, 'voice.ogg');
+    
+    const pttResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: pttForm,
+    });
+    const pttResult = await pttResponse.json().catch(() => ({}));
+    if (!pttResponse.ok) {
+      console.error(`[UPLOAD-PTT] Erro Meta:`, JSON.stringify(pttResult));
+      throw new Error(pttResult?.error?.message || 'Erro ao subir PTT na Meta');
+    }
+    return pttResult.id;
+  }
 
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
     method: 'POST',
@@ -313,7 +332,7 @@ serve(async (req) => {
             contact.current_node_id = contact.flow_timeout_node_id;
           }
 
-          console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state})`);
+          console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state}). Timeout Node: ${contact.flow_timeout_node_id}`);
           
           const { data: flow } = await supabase
             .from('crm_flows')
