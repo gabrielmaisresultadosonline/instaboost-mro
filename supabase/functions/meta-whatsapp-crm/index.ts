@@ -316,10 +316,15 @@ serve(async (req) => {
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
             // Important: Clear execution/state to avoid loops
-            await supabase.from('crm_contacts').update({ 
+            const { data: updated, error: updateError } = await supabase.from('crm_contacts').update({ 
               next_execution_time: null,
-              flow_state: 'running'
-            }).eq('id', contact.id);
+              flow_state: 'running',
+              flow_timeout_node_id: null
+            }).eq('id', contact.id)
+            .neq('flow_state', 'idle')
+            .select();
+
+            if (updateError || !updated || updated.length === 0) continue;
             
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
