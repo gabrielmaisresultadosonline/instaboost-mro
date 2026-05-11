@@ -180,6 +180,19 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
   let text = '';
   let buttonId = '';
 
+  if (!skipSave && message.id) {
+    const { data: existingInbound } = await supabase
+      .from('crm_messages')
+      .select('id')
+      .eq('meta_message_id', message.id)
+      .maybeSingle();
+
+    if (existingInbound) {
+      console.log(`[WEBHOOK] Duplicate inbound message ${message.id} ignored before save for ${waId}`);
+      return jsonResponse({ success: true, message: 'Duplicate inbound ignored' });
+    }
+  }
+
   if (message.type === 'text') {
     text = message.text.body;
   } else if (message.type === 'interactive') {
@@ -221,7 +234,7 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
   const hasActiveFlow = !!contact?.current_flow_id;
 
   if (contact && (isAiHandling || (hasActiveFlow && (isInAiNode || isAiActive)))) {
-    // MODIFICAÇÃO: Proteção contra processamento múltiplo da mesma mensagem (idempotência)
+    // Proteção contra reprocessamento quando a função receber payload duplicado sem salvar de novo.
     const { data: alreadyProcessed } = await supabase
       .from('crm_messages')
       .select('id')
