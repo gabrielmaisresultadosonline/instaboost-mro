@@ -938,7 +938,8 @@ const CRM = () => {
         label: newStatusData.label,
         value: value,
         color: newStatusData.color,
-        sort_order: sortOrder
+        sort_order: sortOrder,
+        is_starred: false
       }]);
 
       if (error) throw error;
@@ -961,7 +962,8 @@ const CRM = () => {
         .from('crm_statuses')
         .update({
           label: editingStatus.label,
-          color: editingStatus.color
+          color: editingStatus.color,
+          is_starred: !!editingStatus.is_starred
         })
         .eq('id', editingStatus.id);
 
@@ -2697,19 +2699,26 @@ const CRM = () => {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline" className="hidden lg:flex h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
-                              <Button size="sm" className="bg-green-600 hidden lg:flex text-white hover:bg-green-700 h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                              {kanbanStatuses.filter(s => s.is_starred).map(status => (
+                                <Button 
+                                  key={status.id}
+                                  size="sm" 
+                                  variant="outline" 
+                                  className={cn("h-8 text-[11px] font-bold border-zinc-200 hover:bg-zinc-50 transition-all shadow-sm")}
+                                  onClick={() => updateContactStatus(selectedContact.id, { status: status.value })}
+                                >
+                                  {status.label}
+                                </Button>
+                              ))}
                               
                               <Select onValueChange={(val) => updateContactStatus(selectedContact.id, { status: val })}>
-                                <SelectTrigger className="w-fit h-8 text-[11px] lg:hidden">
-                                  <SelectValue placeholder="Status" />
+                                <SelectTrigger className="w-fit h-8 text-[11px] font-bold border-zinc-200 bg-zinc-50/50">
+                                  <SelectValue placeholder="Outros" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="new">Novo</SelectItem>
-                                  <SelectItem value="responded">Respondido</SelectItem>
-                                  <SelectItem value="qualified">Qualificado</SelectItem>
-                                  <SelectItem value="closed">Venda</SelectItem>
-                                  <SelectItem value="lost">Perdido</SelectItem>
+                                  {kanbanStatuses.map(s => (
+                                    <SelectItem key={s.id} value={s.value}>{s.label}</SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             </div>
@@ -5820,6 +5829,22 @@ const CRM = () => {
                   <SelectItem value="indigo">Índigo</SelectItem>
                   <SelectItem value="pink">Rosa</SelectItem>
                 </SelectContent>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-bold flex items-center gap-2">
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-500", editingStatus?.is_starred && "text-yellow-500 fill-yellow-500")} /> 
+              Destacar no Chat
+            </Label>
+            <p className="text-[10px] text-muted-foreground">Exibir como botão fixo no cabeçalho da conversa.</p>
+          </div>
+          <Switch 
+            checked={editingStatus?.is_starred || false}
+            onCheckedChange={(val) => setEditingStatus({...editingStatus, is_starred: val})}
+          />
+        </div>
               </Select>
             </div>
           </div>
@@ -5835,18 +5860,6 @@ const CRM = () => {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Editar Etiqueta</DialogTitle>
             <DialogDescription>Altere as informações da etapa do funil.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome da Etiqueta</Label>
-              <Input 
-                placeholder="Nome..." 
-                value={editingStatus?.label || ''}
-                onChange={e => setEditingStatus({...editingStatus, label: e.target.value})}
-                className="rounded-xl h-11"
-              />
-            </div>
-            <div className="space-y-2">
               <Label>Cor da Etiqueta</Label>
               <Select value={editingStatus?.color} onValueChange={val => setEditingStatus({...editingStatus, color: val})}>
                 <SelectTrigger className="h-11 rounded-xl">
@@ -5862,6 +5875,22 @@ const CRM = () => {
                   <SelectItem value="indigo">Índigo</SelectItem>
                   <SelectItem value="pink">Rosa</SelectItem>
                 </SelectContent>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-bold flex items-center gap-2">
+              <RefreshCcw className={cn("w-4 h-4 text-zinc-500", editingStatus?.is_starred && "text-yellow-500 fill-yellow-500")} /> 
+              Destacar no Chat
+            </Label>
+            <p className="text-[10px] text-muted-foreground">Exibir como botão fixo no cabeçalho da conversa.</p>
+          </div>
+          <Switch 
+            checked={editingStatus?.is_starred || false}
+            onCheckedChange={(val) => setEditingStatus({...editingStatus, is_starred: val})}
+          />
+        </div>
               </Select>
             </div>
           </div>
