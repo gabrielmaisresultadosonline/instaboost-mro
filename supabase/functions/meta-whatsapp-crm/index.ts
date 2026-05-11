@@ -49,8 +49,9 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
   
   REGRAS ADICIONAIS:
   1. Responda de forma curta e direta no WhatsApp.
-  2. Se você identificar que o cliente precisa de atendimento humano ou se ele pedir para falar com um atendente, ou se o objetivo da sua tarefa foi concluído e agora um humano deve intervir, responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
-  3. Nunca saia do personagem.`;
+  2. IMPORTANTE: Você deve interagir com o cliente primeiro. Somente transfira se o cliente explicitamente pedir para falar com um humano OU se você já tiver coletado informações suficientes para o atendimento humano.
+  3. Se você identificar que DEVE transferir (conforme regra 2), responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
+  4. Nunca saia do personagem.`;
   
   try {
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -72,7 +73,7 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
     const aiData = await aiResponse.json();
     const reply = aiData.choices?.[0]?.message?.content || "";
     
-    if (reply.includes('[[TRANSFER_TO_HUMAN]]') && (messageText || history.length > 50)) {
+    if (reply.includes('[[TRANSFER_TO_HUMAN]]') && history.split('\n').filter(line => line.startsWith('Assistente:')).length >= 2) {
       console.log(`[AI-AGENT] AI decided to transfer contact ${waId} to human.`);
       
       const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
