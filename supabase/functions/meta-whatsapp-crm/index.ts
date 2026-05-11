@@ -210,41 +210,6 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
       }
     }
     return jsonResponse({ success: true });
-
-    console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow...`);
-    const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
-    if (flow) {
-      const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
-      if (currentNode) {
-         let nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId);
-         if (!nextEdge && text) {
-            const matchedButtonIdx = currentNode.data?.buttons?.findIndex((b: any) => 
-              b.text?.toLowerCase().trim() === text.toLowerCase().trim()
-            );
-            if (matchedButtonIdx !== -1) {
-              const handleId = currentNode.data.buttons[matchedButtonIdx].id || `btn-${matchedButtonIdx}`;
-              nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === handleId);
-            }
-         }
-         if (!nextEdge) {
-           nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && (e.sourceHandle === 'responded' || e.sourceHandle === 'any_response'));
-         }
-         if (nextEdge) {
-           const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target);
-           if (nextNode) {
-            const { data: updated } = await supabase.from('crm_contacts').update({
-              current_node_id: nextNode.id,
-              flow_state: 'running',
-              last_flow_interaction: new Date().toISOString()
-            }).eq('id', contact.id).eq('flow_state', 'waiting_response').select();
-            
-            if (updated && updated.length > 0) {
-              await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
-            }
-           }
-         }
-      }
-    }
   }
   return jsonResponse({ success: true });
 }
