@@ -56,7 +56,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         return { success: true, message: 'Sent interactive buttons and waiting for response' };
       }
     } else if (node.type === 'image' || node.type === 'video' || node.type === 'audio' || node.type === 'document') {
-      const mediaUrl = node.data?.url || node.data?.mediaUrl;
+      const mediaUrl = node.data?.url || node.data?.mediaUrl || node.data?.fileUrl;
       if (mediaUrl) {
         console.log(`[EXECUTOR] Chamando meta-whatsapp-crm para enviar ${node.type}: ${mediaUrl}`);
         const { data: result, error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
