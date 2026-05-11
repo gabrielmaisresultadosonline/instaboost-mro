@@ -109,12 +109,12 @@ serve(async (req) => {
         .single();
 
       const chatHistory = messages?.map(m => 
-        `${m.direction === 'inbound' ? 'CLIENTE' : 'ATENDENTE'}: ${m.content}`
+        `${m.direction === 'inbound' ? 'CLIENTE' : 'ATENDENTE'} (${new Date(m.created_at).toLocaleString('pt-BR')}): ${m.content}`
       ).join('\n') || 'Sem histórico de mensagens.';
 
-      const { customInstruction }: any = await req.json().catch(() => ({}));
+      const { customInstruction, action }: any = await req.json().catch(() => ({}));
       
-      const crmSystemPrompt = `
+      let crmSystemPrompt = `
         ${customInstruction || settings?.strategy_generation_prompt || 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente.'}
         
         CONTEXTO DO CLIENTE:
@@ -123,6 +123,25 @@ serve(async (req) => {
         Status Atual: ${contact.status}
       `;
 
+      if (action === 'analyze_interaction') {
+        crmSystemPrompt = `
+          Você é um analista de vendas sênior. Sua tarefa é analisar o histórico de atendimento no CRM e gerar um relatório estratégico.
+          
+          FOCO DA ANÁLISE:
+          1. Retorno do Cliente: O cliente demonstrou interesse genuíno? Ele parou de responder?
+          2. Conteúdo Enviado: O que o atendente ofereceu? Foi persuasivo?
+          3. Lacunas: O que ficou faltando responder ou oferecer com base nas dúvidas do cliente?
+          4. Próximos Passos: Crie uma estratégia de fechamento "matadora" com base no que está sendo oferecido.
+          
+          Seja direto, crítico e altamente estratégico.
+          
+          CONTEXTO DO CLIENTE:
+          Nome: ${contact.name || 'Desconhecido'}
+          WhatsApp ID: ${contact.wa_id}
+          Status Atual: ${contact.status}
+        `;
+      }
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -130,7 +149,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-4o',
           messages: [
             { role: 'system', content: crmSystemPrompt },
             { role: 'user', content: `HISTÓRICO DE CONVERSA:\n${chatHistory}` }
@@ -147,6 +166,7 @@ serve(async (req) => {
       const strategyHistory = contact.ai_strategy_history || [];
       const newStrategyEntry = {
         strategy: strategyText,
+        type: action === 'analyze_interaction' ? 'Análise Detalhada' : 'Estratégia de Venda',
         created_at: new Date().toISOString()
       };
       
@@ -154,7 +174,7 @@ serve(async (req) => {
         .from('crm_contacts')
         .update({
           last_ai_strategy: strategyText,
-          ai_strategy_history: [newStrategyEntry, ...strategyHistory].slice(0, 10)
+          ai_strategy_history: [newStrategyEntry, ...strategyHistory].slice(0, 20)
         })
         .eq('id', contactId);
 
