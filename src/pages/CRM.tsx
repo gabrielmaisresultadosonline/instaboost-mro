@@ -984,6 +984,32 @@ const CRM = () => {
     }
   };
 
+  const handleMoveStatus = async (id: string, direction: 'up' | 'down') => {
+    const currentIndex = kanbanStatuses.findIndex(s => s.id === id);
+    if (currentIndex === -1) return;
+    if (direction === 'up' && currentIndex === 0) return;
+    if (direction === 'down' && currentIndex === kanbanStatuses.length - 1) return;
+
+    const newStatuses = [...kanbanStatuses];
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    [newStatuses[currentIndex], newStatuses[targetIndex]] = [newStatuses[targetIndex], newStatuses[currentIndex]];
+
+    // Update sort orders
+    const updates = newStatuses.map((s, idx) => ({
+      id: s.id,
+      sort_order: (idx + 1) * 10
+    }));
+
+    try {
+      for (const update of updates) {
+        await supabase.from('crm_statuses').update({ sort_order: update.sort_order }).eq('id', update.id);
+      }
+      fetchStatuses();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const startRecording = async () => {
     try {
       // Audio Recording logic
