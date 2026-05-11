@@ -1307,6 +1307,11 @@ const CRM = () => {
       setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
     } finally {
+      setMediaUploadProgress(prev => {
+        const next = { ...prev };
+        delete next[selectedContactId];
+        return next;
+      });
       setSendingMessage(false);
     }
   };
