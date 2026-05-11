@@ -324,15 +324,25 @@ serve(async (req) => {
             const lastInteraction = new Date(contact.last_flow_interaction || new Date().toISOString());
             const timeoutThreshold = new Date(lastInteraction.getTime() + timeoutMinutes * 60000);
             
-            if (new Date() < timeoutThreshold) continue; // Not timed out yet
+            if (new Date() < timeoutThreshold) {
+              console.log(`[TIMEOUT-CHECK] Contact ${contact.wa_id} still waiting. Next check in ${Math.round((timeoutThreshold.getTime() - new Date().getTime())/1000)}s`);
+              continue; // Not timed out yet
+            }
             
-            console.log(`[TIMEOUT] Contact ${contact.wa_id} timed out. Moving to fallback node ${contact.flow_timeout_node_id}`);
+            console.log(`[TIMEOUT-EXPIRED] Contact ${contact.wa_id} timed out. Fallback: ${contact.flow_timeout_node_id}`);
             if (!contact.flow_timeout_node_id) {
-              await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
+              console.log(`[TIMEOUT-END] No timeout node for ${contact.wa_id}, stopping flow.`);
+              await supabase.from('crm_contacts').update({ flow_state: 'idle', next_execution_time: null }).eq('id', contact.id);
               continue;
             }
             
             contact.current_node_id = contact.flow_timeout_node_id;
+            // Update to running so executeVisualNode processes the next node properly
+            await supabase.from('crm_contacts').update({ 
+              flow_state: 'running',
+              current_node_id: contact.current_node_id,
+              next_execution_time: null 
+            }).eq('id', contact.id);
           }
 
           console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state}). Timeout Node: ${contact.flow_timeout_node_id}`);
@@ -1144,12 +1154,18 @@ serve(async (req) => {
              if (nextEdge) {
                const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target);
                if (nextNode) {
-                 await supabase.from('crm_contacts').update({
+                 const { data: updatedContact, error: updateError } = await supabase.from('crm_contacts').update({
                    current_node_id: nextNode.id,
                    flow_state: 'running',
-                   last_flow_interaction: new Date().toISOString()
-                 }).eq('id', contact.id);
-                 await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+                   last_flow_interaction: new Date().toISOString(),
+                   next_execution_time: null // Prevent scheduled execution from picking this up
+                 }).eq('id', contact.id)
+                 .eq('flow_state', 'waiting_response')
+                 .select();
+
+                 if (updatedContact && updatedContact.length > 0) {
+                   await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+                 }
                }
              }
           }
