@@ -109,6 +109,8 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
 
   console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}`);
 
+  console.log(`[UPLOAD] Enviando para Meta: type=${media.type}, contentType=${contentType}, size=${arrayBuffer.byteLength}, fileName=${fileName}`);
+
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}` },
