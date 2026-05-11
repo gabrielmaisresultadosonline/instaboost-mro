@@ -881,7 +881,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                       <Textarea 
                         placeholder="Ex: Você é um qualificador. Se o cliente quiser comprar, direcione para humano..."
                         className="text-xs min-h-[120px] bg-violet-50/30 border-violet-100"
-                        value={selectedNode.data.prompt || ''}
+                        value={(selectedNode.data.prompt as string) || ''}
                         onChange={(e) => updateNodeData(selectedNode.id, { prompt: e.target.value })}
                       />
                       <p className="text-[9px] text-muted-foreground italic">
