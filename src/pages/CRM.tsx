@@ -2889,7 +2889,7 @@ const CRM = () => {
                               
                               {showFlows && (
                                 <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                  {flows.filter(f => f.is_active).slice(0, 10).map(f => (
+                                  {flows.filter(f => f.is_active).map(f => (
                                     <Button 
                                       key={f.id} 
                                       variant="outline" 
