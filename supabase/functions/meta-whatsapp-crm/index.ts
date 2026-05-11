@@ -121,11 +121,17 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     payload.type = 'interactive';
     payload.interactive = params.interactive;
   } else if (media) {
+    console.log(`[MEDIA] Uploading ${media.type} to Meta from URL: ${media.url}`);
     const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
+    console.log(`[MEDIA] Uploaded successfully. ID: ${mediaId}`);
     payload.type = media.type
-    payload[media.type] = media.type === 'document' 
-      ? { id: mediaId, filename: media.fileName } 
-      : (media.type === 'audio' ? { id: mediaId, voice: true } : { id: mediaId })
+    if (media.type === 'audio') {
+      payload.audio = { id: mediaId };
+    } else if (media.type === 'document') {
+      payload.document = { id: mediaId, filename: media.fileName };
+    } else {
+      payload[media.type] = { id: mediaId };
+    }
   } else {
     payload.type = 'text'
     payload.text = { preview_url: true, body: String(params.text || '') }
