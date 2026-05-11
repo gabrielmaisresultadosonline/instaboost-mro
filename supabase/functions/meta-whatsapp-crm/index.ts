@@ -134,7 +134,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   // Para mensagens de voz, a Meta recomenda enviar sem o parâmetro 'type' no FormData se o Blob já tem o tipo correto e fileName é voice.ogg
   // ou garantir que o campo 'type' seja o primeiro.
   if (media.type === 'audio') {
-    // Re-build FormData for PTT
+    // Re-build FormData for PTT (Push-to-Talk)
     const pttForm = new FormData();
     pttForm.append('messaging_product', 'whatsapp');
     pttForm.append('file', blob, 'audio.ogg');
@@ -333,6 +333,7 @@ serve(async (req) => {
       console.log('Processing scheduled flow nodes...');
       const now = new Date().toISOString();
       
+      // Select only what's needed and use a more strict query
       const { data: contactsToProcess, error: fetchError } = await supabase
         .from('crm_contacts')
         .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction, flow_state, next_execution_time')
@@ -344,78 +345,65 @@ serve(async (req) => {
       const results = [];
       if (contactsToProcess) {
         for (const contact of contactsToProcess) {
-          // IMPORTANTE: Respeitar o delay INDIVIDUAL de cada conversa
-          if (contact.next_execution_time && new Date(contact.next_execution_time) > new Date()) {
-            console.log(`[DELAY-SKIP] Contato ${contact.wa_id} ainda aguardando seu tempo específico: ${contact.next_execution_time}`);
-            continue;
-          }
-
-          // Check for timeout if waiting for response
+          // 1. Process Timeout (se aplicável)
           if (contact.flow_state === 'waiting_response') {
             const timeoutMinutes = contact.flow_timeout_minutes || 20;
             const lastInteraction = new Date(contact.last_flow_interaction || new Date().toISOString());
             const timeoutThreshold = new Date(lastInteraction.getTime() + timeoutMinutes * 60000);
             
-            if (new Date() < timeoutThreshold) {
-              console.log(`[TIMEOUT-CHECK] Contact ${contact.wa_id} still waiting. Next check in ${Math.round((timeoutThreshold.getTime() - new Date().getTime())/1000)}s`);
-              continue; 
+            if (new Date() >= timeoutThreshold) {
+              console.log(`[TIMEOUT-EXPIRED] Contact ${contact.wa_id} timed out.`);
+              if (contact.flow_timeout_node_id) {
+                // Tenta atualizar de forma atômica para evitar duplicidade
+                const { data: updated } = await supabase.from('crm_contacts').update({ 
+                  flow_state: 'running',
+                  current_node_id: contact.flow_timeout_node_id,
+                  next_execution_time: null,
+                  flow_timeout_node_id: null
+                }).eq('id', contact.id).eq('flow_state', 'waiting_response').select();
+
+                if (updated && updated.length > 0) {
+                  const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
+                  const nextNode = flow?.nodes?.find((n: any) => n.id === contact.flow_timeout_node_id);
+                  if (nextNode) {
+                    const res = await executeVisualNode(supabase, flow, nextNode, contact.id, contact.wa_id);
+                    results.push({ contactId: contact.id, result: res });
+                  }
+                }
+              } else {
+                await supabase.from('crm_contacts').update({ flow_state: 'idle', current_flow_id: null, current_node_id: null }).eq('id', contact.id);
+              }
             }
-            
-            console.log(`[TIMEOUT-EXPIRED] Contact ${contact.wa_id} timed out. Fallback: ${contact.flow_timeout_node_id}`);
-            if (!contact.flow_timeout_node_id) {
-              console.log(`[TIMEOUT-END] No timeout node for ${contact.wa_id}, stopping flow.`);
-              await supabase.from('crm_contacts').update({ 
-                flow_state: 'idle', 
-                current_flow_id: null,
-                current_node_id: null,
-                next_execution_time: null 
-              }).eq('id', contact.id);
-              continue;
-            }
-            
-            contact.current_node_id = contact.flow_timeout_node_id;
-            // Update to running so executeVisualNode processes the next node properly
-            await supabase.from('crm_contacts').update({ 
-              flow_state: 'running',
-              current_node_id: contact.current_node_id,
-              next_execution_time: null,
-              flow_timeout_node_id: null // Clear this as we are now processing the timeout node
-            }).eq('id', contact.id);
-            
-            // Mark as running in local variable for the next log line
-            contact.flow_state = 'running';
+            continue; // Importante: se era waiting_response, já processamos (ou ignoramos se ainda estiver esperando)
           }
 
-          console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state}). Timeout Node: ${contact.flow_timeout_node_id}`);
-          
-          const { data: flow } = await supabase
-            .from('crm_flows')
-            .select('*')
-            .eq('id', contact.current_flow_id)
-            .single();
+          // 2. Process Scheduled Delays
+          if (contact.next_execution_time && new Date(contact.next_execution_time) <= new Date()) {
+            console.log(`[DELAY-READY] Contato ${contact.wa_id} pronto para execução.`);
             
-          if (!flow) {
-            await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
-            continue;
-          }
-          
-          const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
-          if (currentNode) {
-            // Important: Clear execution/state to avoid loops
+            // Tenta atualizar de forma atômica para garantir que APENAS UM processo execute este nó
             const { data: updated, error: updateError } = await supabase.from('crm_contacts').update({ 
               next_execution_time: null,
-              flow_state: 'running',
-              flow_timeout_node_id: null
-            }).eq('id', contact.id)
-            .neq('flow_state', 'idle')
+              flow_state: 'running'
+            })
+            .eq('id', contact.id)
+            .eq('next_execution_time', contact.next_execution_time) // Garante atomicidade baseada no timestamp exato
             .select();
 
-            if (updateError || !updated || updated.length === 0) continue;
+            if (updateError || !updated || updated.length === 0) {
+               console.log(`[DUPLICATION-PREVENTED] Contact ${contact.wa_id} already being processed.`);
+               continue;
+            }
+
+            const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
+            const currentNode = flow?.nodes?.find((n: any) => n.id === contact.current_node_id);
             
-            const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
-            results.push({ contactId: contact.id, result: res });
-          } else {
-            await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
+            if (flow && currentNode) {
+              const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
+              results.push({ contactId: contact.id, result: res });
+            } else {
+              await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
+            }
           }
         }
       }
@@ -1083,61 +1071,8 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
     }
-    if (action === 'processScheduled') {
-      console.log('Processing scheduled flow nodes...');
-      const now = new Date().toISOString();
-      
-      const { data: contactsToProcess, error: fetchError } = await supabase
-        .from('crm_contacts')
-        .select('id, wa_id, current_flow_id, current_node_id')
-        .neq('flow_state', 'idle')
-        .lte('next_execution_time', now)
-        .limit(20);
-        
-      if (fetchError) throw fetchError;
-      
-      const results = [];
-      if (contactsToProcess) {
-        for (const contact of contactsToProcess) {
-          console.log(`Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id}`);
-          
-          const { data: flow } = await supabase
-            .from('crm_flows')
-            .select('*')
-            .eq('id', contact.current_flow_id)
-            .single();
-            
-          if (!flow) {
-            await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
-            continue;
-          }
-          
-          const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
-          if (currentNode) {
-            // Important: Update next_execution_time to null to prevent double execution
-            // Use a transaction-like update to ensure we only process if it's still due
-            const { data: updatedContact, error: updateError } = await supabase
-              .from('crm_contacts')
-              .update({ next_execution_time: null })
-              .eq('id', contact.id)
-              .lte('next_execution_time', now) // Only if it hasn't been cleared yet
-              .select();
+    // Legacy action block removed to prevent duplication with main processScheduled at line 332
 
-            if (updateError || !updatedContact || updatedContact.length === 0) {
-              console.log(`Contact ${contact.wa_id} already being processed or execution time cleared.`);
-              continue;
-            }
-
-            const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
-            results.push({ contactId: contact.id, result: res });
-          } else {
-            await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
-          }
-        }
-      }
-      
-      return jsonResponse({ success: true, processed: results.length });
-    }
     if (action === 'processWebhook') {
       const { entry } = params;
       return await handleProcessWebhook(supabase, entry);
