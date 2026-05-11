@@ -618,12 +618,24 @@ const CRM = () => {
   };
 
   const fetchContacts = async () => {
-    const { data: contactsData } = await supabase
-      .from('crm_contacts')
-      .select('*')
-      .order('last_interaction', { ascending: false, nullsFirst: false })
-      .limit(10000);
-    setContacts(contactsData || []);
+    // Paginate to bypass Supabase's default 1000-row cap and load ALL contacts (14k+)
+    const pageSize = 1000;
+    let allRows: any[] = [];
+    let from = 0;
+    // Hard safety cap of 100k contacts to avoid runaway loops
+    while (from < 100000) {
+      const { data, error } = await supabase
+        .from('crm_contacts')
+        .select('*')
+        .order('last_interaction', { ascending: false, nullsFirst: false })
+        .range(from, from + pageSize - 1);
+      if (error) break;
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+    }
+    setContacts(allRows);
   };
 
   useEffect(() => {
