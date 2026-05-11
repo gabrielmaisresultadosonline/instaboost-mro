@@ -851,8 +851,48 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                         value={selectedNode.data.delay as number} 
                         onChange={(e) => updateNodeData(selectedNode.id, { delay: parseInt(e.target.value) })}
                         className="text-xs h-8"
+                    />
+                  </div>
+                )}
+
+                {selectedNode.type === 'aiAgent' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold flex items-center gap-2">
+                        <BrainCircuit className="w-3.5 h-3.5 text-violet-500" /> Prompt do Agente
+                      </Label>
+                      <Textarea 
+                        placeholder="Ex: Você é um qualificador. Se o cliente quiser comprar, direcione para humano..."
+                        className="text-xs min-h-[120px] bg-violet-50/30 border-violet-100"
+                        value={selectedNode.data.prompt || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { prompt: e.target.value })}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">
+                        Instrua a IA sobre como atender e quando usar a saída "Direcionar Humano".
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold">Etiqueta ao Qualificar (Atenção)</Label>
+                      <Input 
+                        placeholder="Ex: Precisa de Atenção Humana"
+                        className="text-xs h-8"
+                        value={selectedNode.data.labelOnHumanTransfer || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { labelOnHumanTransfer: e.target.value })}
                       />
                     </div>
+
+                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 space-y-2 shadow-sm">
+                      <div className="flex items-center gap-2 text-emerald-700">
+                        <UserCog className="w-4 h-4" />
+                        <span className="text-[11px] font-bold">Automação de Qualificação</span>
+                      </div>
+                      <p className="text-[10px] text-emerald-600/80 leading-relaxed">
+                        Quando a IA decidir que um humano deve intervir, ela seguirá pela saída lateral, aplicará a etiqueta e parará o atendimento automático.
+                      </p>
+                    </div>
+                  </div>
+                )}
                     <div className="space-y-2">
                       <Label className="text-xs">Unidade</Label>
                       <Select 
