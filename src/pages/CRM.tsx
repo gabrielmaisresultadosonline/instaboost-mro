@@ -2509,7 +2509,7 @@ const CRM = () => {
                                     size="icon"
                                     className={cn(
                                       "h-8 w-8 rounded-full transition-all duration-300",
-                                      selectedContact.ai_active ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
+                                      selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
                                     )}
                                     onClick={async () => {
                                       const newStatus = !selectedContact.ai_active;
