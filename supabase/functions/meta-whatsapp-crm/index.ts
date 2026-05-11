@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { executeVisualNode, processStep } from "../_shared/flow-executor.ts"
 
-async function handleProcessWebhook(supabase: any, entry: any) {
+async function handleProcessWebhook(supabase: any, entry: any, skipSave = false) {
   if (!entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
     return jsonResponse({ success: true });
   }
@@ -21,14 +21,14 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     }
   }
 
-  // Registra a mensagem recebida para visibilidade no CRM
+  // Registra a mensagem recebida para visibilidade no CRM (se não for skipSave)
   const { data: contactForSave } = await supabase
     .from('crm_contacts')
     .select('id')
     .eq('wa_id', waId)
     .single();
 
-  if (contactForSave) {
+  if (contactForSave && !skipSave) {
     await supabase.from('crm_messages').insert({
       contact_id: contactForSave.id,
       direction: 'inbound',
