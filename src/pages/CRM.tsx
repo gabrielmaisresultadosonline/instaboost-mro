@@ -606,7 +606,7 @@ const CRM = () => {
     
     // In the "Conversations" tab, only show contacts that actually have an interaction history
     if (activeTab === 'contacts') {
-      filtered = filtered.filter(c => c.last_interaction !== null);
+      filtered = filtered.filter(c => c.last_interaction !== null || c.total_messages_received > 0);
     }
 
     if (statusFilter !== 'all') {
@@ -1250,6 +1250,7 @@ const CRM = () => {
             variant: "destructive"
           });
           await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
+          setSendingMessage(false);
           return;
         }
 
