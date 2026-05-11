@@ -99,6 +99,13 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
     .eq('contact_id', contact.id)
     .order('created_at', { ascending: false })
     .limit(15);
+
+  for (const msg of recentMessages || []) {
+    if (msg.direction === 'inbound' && msg.message_type === 'audio' && msg.media_url && (!msg.content || msg.content === '[Mensagem de Áudio]')) {
+      const transcription = await transcribeAudioForAi(OPENAI_API_KEY, msg.media_url);
+      if (transcription) msg.content = `[Transcrição de áudio]: ${transcription}`;
+    }
+  }
     
   const history = (recentMessages || [])
     .reverse()
