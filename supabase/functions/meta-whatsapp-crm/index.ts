@@ -172,16 +172,13 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
       throw uploadError;
     }
     
+    payload.type = media.type;
     if (media.type === 'audio') {
       // Para enviar como mensagem de voz (gravado na hora), usamos o objeto "audio"
-      payload.type = 'audio';
       payload.audio = { id: mediaId };
-      // Importante: Marcar explicitamente como mensagem de voz na Meta
       console.log(`[MEDIA] Enviando ID ${mediaId} como áudio PTT.`);
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
-    } else if (media.type === 'video') {
-      payload.video = { id: mediaId };
     } else {
       payload[media.type] = { id: mediaId };
     }
