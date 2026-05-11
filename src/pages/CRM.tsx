@@ -1338,15 +1338,15 @@ const CRM = () => {
     setConfirmSend(null);
     setSendingMessage(true);
     try {
-      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'startFlow', contactId: selectedContact.id, waId: selectedContact.wa_id, flowId }
       });
-      if (error) throw error;
+      if (error || !data?.success) throw error || new Error(data?.error || "Erro ao iniciar fluxo");
       toast({ title: "Fluxo Iniciado!" });
-      fetchMessages(selectedContact.id);
-      fetchContacts();
-    } catch (err) {
-      toast({ title: "Erro ao iniciar fluxo", variant: "destructive" });
+      await fetchMessages(selectedContact.id);
+      await fetchContacts();
+    } catch (err: any) {
+      toast({ title: "Erro ao iniciar fluxo", description: err.message, variant: "destructive" });
     } finally {
       setSendingMessage(false);
     }
