@@ -2639,7 +2639,7 @@ const CRM = () => {
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
                               <div className="flex flex-col min-w-0">
-                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-wrap sm:flex-nowrap">
                                   <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 truncate" onClick={() => openContactInfo(selectedContact)}>
                                     <span className="truncate">{selectedContact.name || selectedContact.wa_id}</span>
                                     {selectedContact.google_sync_account_id && (
