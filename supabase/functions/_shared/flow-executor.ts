@@ -57,7 +57,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       }
     } else if (node.type === 'image' || node.type === 'video' || node.type === 'audio' || node.type === 'document') {
       const mediaUrl = node.data?.url || node.data?.mediaUrl || node.data?.fileUrl || node.data?.audioUrl || node.data?.imageUrl || node.data?.videoUrl || node.data?.documentUrl;
-      console.log(`[EXECUTOR] Dados do nó ${node.id}:`, JSON.stringify(node.data));
+      console.log(`[EXECUTOR] Nó ${node.id} (${node.type}). Dados:`, JSON.stringify(node.data));
       if (mediaUrl) {
         console.log(`[EXECUTOR] Chamando meta-whatsapp-crm para enviar ${node.type}: ${mediaUrl}`);
         const { data: result, error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
@@ -69,11 +69,20 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
             isVoice: node.type === 'audio'
           }
         });
+
         if (invokeError) {
-          console.error(`[EXECUTOR] Erro ao invocar função para enviar ${node.type}:`, invokeError);
+          console.error(`[EXECUTOR] ERRO AO INVOCAR meta-whatsapp-crm para ${node.type}:`, invokeError);
+          // IMPORTANTE: Mesmo com erro de envio, precisamos decidir se o fluxo para ou segue.
+          // Por segurança, vamos lançar o erro para marcar o contato como 'error'
           throw invokeError;
         }
-        console.log(`[EXECUTOR] Resposta do envio de ${node.type}:`, result);
+
+        if (result && !result.success) {
+          console.error(`[EXECUTOR] meta-whatsapp-crm retornou erro no envio de ${node.type}:`, result.error);
+          throw new Error(result.error || `Erro no envio de ${node.type}`);
+        }
+
+        console.log(`[EXECUTOR] Sucesso no envio de ${node.type}:`, JSON.stringify(result));
       } else {
         console.warn(`[EXECUTOR] Nó de mídia ${node.type} (${node.id}) sem URL definida.`);
       }
