@@ -160,7 +160,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       } else if (action === 'Mudar Status: Perdido') {
         await supabase.from('crm_contacts').update({ status: 'lost' }).eq('id', contactId);
       } else if (action === 'Humanizar Atendimento') {
-        await supabase.from('crm_contacts').update({ status: 'human', ai_agent_enabled: false }).eq('id', contactId);
+        await supabase.from('crm_contacts').update({ status: 'human', ai_active: false }).eq('id', contactId);
       } else if (action === 'Notificar Agente') {
         // Implement logic if needed
       }
