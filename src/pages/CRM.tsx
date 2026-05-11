@@ -2324,7 +2324,7 @@ const CRM = () => {
                               className="p-4 mb-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all hover:-translate-y-1 hover:shadow-md border-zinc-100 dark:border-zinc-800 animate-in fade-in slide-in-from-top-2" 
                               onClick={() => { openChat(contact); setKanbanView(false); }}
                             >
-                              <p className="text-sm font-bold truncate hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
+                              <p className="text-sm font-bold truncate">{contact.name || contact.wa_id}</p>
                               <div className="flex justify-between items-center mt-3">
                                 {contact.last_interaction && (
                                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
