@@ -757,6 +757,7 @@ export type Database = {
           status: string | null
           total_messages_received: number | null
           total_messages_sent: number | null
+          updated_at: string | null
           wa_id: string
         }
         Insert: {
@@ -784,6 +785,7 @@ export type Database = {
           status?: string | null
           total_messages_received?: number | null
           total_messages_sent?: number | null
+          updated_at?: string | null
           wa_id: string
         }
         Update: {
@@ -811,6 +813,7 @@ export type Database = {
           status?: string | null
           total_messages_received?: number | null
           total_messages_sent?: number | null
+          updated_at?: string | null
           wa_id?: string
         }
         Relationships: [
