@@ -145,6 +145,18 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
   7. Nunca saia do personagem.`;
   
   try {
+    const visualAttachments = (recentMessages || [])
+      .filter((m: any) => m.direction === 'inbound' && m.message_type === 'image' && m.media_url)
+      .slice(-3)
+      .map((m: any) => ({ type: 'image_url', image_url: { url: m.media_url } }));
+
+    const userContent: any = visualAttachments.length > 0
+      ? [
+          { type: 'text', text: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${messageText || "(Nenhuma mensagem recente - inicie o atendimento)"}` },
+          ...visualAttachments
+        ]
+      : `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${messageText || "(Nenhuma mensagem recente - inicie o atendimento)"}`;
+
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -155,7 +167,7 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Histórico da conversa:\n${history}\n\nNova mensagem do cliente: ${messageText || "(Nenhuma mensagem recente - inicie o atendimento)"}` }
+          { role: 'user', content: userContent }
         ],
         temperature: 0.7
       }),
