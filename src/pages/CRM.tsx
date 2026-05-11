@@ -265,6 +265,7 @@ const CRM = () => {
   const [isNewWebhookDialogOpen, setIsNewWebhookDialogOpen] = useState(false);
   const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '', is_active: true, default_status: 'new' });
   const [googleContactsEnabled, setGoogleContactsEnabled] = useState(localStorage.getItem('google_contacts_connected') === 'true');
+  const [mediaUploadProgress, setMediaUploadProgress] = useState<{ [key: string]: number }>({});
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
@@ -301,7 +302,7 @@ const CRM = () => {
         .select('contact_id, direction, created_at')
         .gte('created_at', startOfMonth)
         .order('created_at', { ascending: true })
-        .limit(20000);
+        .limit(2000);
 
       const byContact: Record<string, any[]> = {};
       (monthMsgs || []).forEach((m: any) => {
@@ -339,8 +340,8 @@ const CRM = () => {
         .select('contact_id, direction, created_at')
         .eq('direction', 'inbound')
         .gte('created_at', since24h)
-        .limit(10000);
-      
+        .limit(1000);
+
       const activeSet = new Set<string>();
       (recent || []).forEach((m: any) => m.contact_id && activeSet.add(m.contact_id));
 
@@ -349,7 +350,7 @@ const CRM = () => {
         .select('contact_id')
         .eq('direction', 'inbound')
         .gte('created_at', startOfWeek)
-        .limit(10000);
+        .limit(1000);
       const activeWeekSet = new Set<string>();
       (recentWeek || []).forEach((m: any) => m.contact_id && activeWeekSet.add(m.contact_id));
 
@@ -1161,6 +1162,9 @@ const CRM = () => {
     try {
       // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
+      const uploadId = `upload-${Date.now()}`;
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 10 }));
+      
       // Determine extension based on real mime type
       let fileExt = 'bin';
       let contentType = file.type || (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
@@ -1178,6 +1182,8 @@ const CRM = () => {
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
 
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 30 }));
+
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
         .upload(filePath, file, {
@@ -1186,6 +1192,7 @@ const CRM = () => {
         });
 
       if (uploadError) throw uploadError;
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 60 }));
 
       const { data: { publicUrl } } = supabase.storage
         .from('crm-media')
@@ -1208,6 +1215,8 @@ const CRM = () => {
         }
         await persistOutboundAudio(historyAudioUrl, null, 'history_saved_before_send', historyContentType, 'sending');
       }
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 80 }));
+
 
       if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
         console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
@@ -1258,10 +1267,17 @@ const CRM = () => {
           const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
           await updatePersistedAudio('sent', 'vps_bridge', metaMsgId);
           toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
+          setMediaUploadProgress(prev => {
+            const next = { ...prev };
+            delete next[selectedContactId];
+            return next;
+          });
           setSendingMessage(false);
           return; // Exit early as VPS handled it
         }
       }
+
+      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 90 }));
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { 
         body: { 
@@ -1291,6 +1307,11 @@ const CRM = () => {
       setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
     } finally {
+      setMediaUploadProgress(prev => {
+        const next = { ...prev };
+        delete next[selectedContactId];
+        return next;
+      });
       setSendingMessage(false);
     }
   };
@@ -2690,6 +2711,23 @@ const CRM = () => {
                                       </Button>
                                     </div>
                                   ))}
+                                </div>
+                              )}
+                              {mediaUploadProgress[selectedContact.id] && (
+                                <div className="p-3 mb-2 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-top-2">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Zap className="w-3.5 h-3.5 text-primary animate-pulse" />
+                                      <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Convertendo e Enviando...</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-primary">{mediaUploadProgress[selectedContact.id]}%</span>
+                                  </div>
+                                  <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary transition-all duration-300" 
+                                      style={{ width: `${mediaUploadProgress[selectedContact.id]}%` }}
+                                    />
+                                  </div>
                                 </div>
                               )}
                               {chatMessages.map((m, idx) => {
