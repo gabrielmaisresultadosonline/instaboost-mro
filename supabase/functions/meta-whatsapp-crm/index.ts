@@ -110,18 +110,30 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
       
     } else if (reply) {
       if (settings) {
-        await handleInternalSendMessage(
-          supabase, 
-          settings.meta_phone_number_id, 
-          settings.meta_access_token, 
-          { to: waId, text: reply }, 
-          contact,
-          settings.vps_transcoder_url
-        );
+        // MODIFICAÇÃO: Verifica se a resposta da IA é igual à última mensagem enviada para evitar duplicidade
+        const { data: lastOutbound } = await supabase
+          .from('crm_messages')
+          .select('content')
+          .eq('contact_id', contact.id)
+          .eq('direction', 'outbound')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastOutbound?.content === reply) {
+          console.log(`[AI-AGENT] Duplicated response detected for contact ${waId}. Skipping send.`);
+        } else {
+          await handleInternalSendMessage(
+            supabase, 
+            settings.meta_phone_number_id, 
+            settings.meta_access_token, 
+            { to: waId, text: reply }, 
+            contact,
+            settings.vps_transcoder_url
+          );
+        }
       }
       
-      // Garante que o contato permaneça no estado ai_handling para continuar o chat
-      // Também garante que ai_active esteja true no contato para o webhook capturar
       console.log(`[AI-AGENT] Updating contact ${waId} to ensure continued AI interaction.`);
       await supabase.from('crm_contacts').update({ 
         flow_state: 'ai_handling',
@@ -188,6 +200,19 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
   const hasActiveFlow = !!contact?.current_flow_id;
 
   if (contact && (isAiHandling || (hasActiveFlow && (isInAiNode || isAiActive)))) {
+    // MODIFICAÇÃO: Proteção contra processamento múltiplo da mesma mensagem (idempotência)
+    const { data: alreadyProcessed } = await supabase
+      .from('crm_messages')
+      .select('id')
+      .eq('meta_message_id', message.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (alreadyProcessed && !skipSave) {
+      console.log(`[WEBHOOK] Message ${message.id} already processed. Skipping AI trigger.`);
+      return jsonResponse({ success: true, message: 'Already processed' });
+    }
+
     console.log(`[WEBHOOK] CAPTURING message from ${waId} for AI Agent. State: ${contact.flow_state}, Node: ${contact.current_node_id}, AI Active: ${contact.ai_active}`);
     const result = await processAiAgentResponse(supabase, contact, waId, text);
     return jsonResponse(result);
