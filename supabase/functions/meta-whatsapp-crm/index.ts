@@ -323,6 +323,12 @@ serve(async (req) => {
       const results = [];
       if (contactsToProcess) {
         for (const contact of contactsToProcess) {
+          // Se estiver em delay (next_execution_time definido), processa apenas se o tempo já passou
+          if (contact.next_execution_time && new Date(contact.next_execution_time) > new Date()) {
+            console.log(`[DELAY-SKIP] Contato ${contact.wa_id} ainda em delay.`);
+            continue;
+          }
+
           // Check for timeout if waiting for response
           if (contact.flow_state === 'waiting_response') {
             const timeoutMinutes = contact.flow_timeout_minutes || 20;
