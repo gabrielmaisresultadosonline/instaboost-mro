@@ -117,6 +117,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (!to) throw new Error('Telefone inválido')
 
   const media = guessMedia(params)
+  const isVoice = params.isVoice === true;
   const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
   
   if (params.interactive) {
@@ -135,7 +136,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     
     payload.type = media.type;
     if (media.type === 'audio') {
-      // Para enviar como mensagem de voz (aquela que aparece com a barra de reprodução e foto), a Meta exige o campo "audio" com ID.
+      // Para enviar como mensagem de voz (gravado na hora), usamos o campo "audio" com ID.
       payload.audio = { id: mediaId };
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
@@ -974,6 +975,8 @@ serve(async (req) => {
           
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
+            // Important: Update next_execution_time to null to prevent double execution
+            await supabase.from('crm_contacts').update({ next_execution_time: null }).eq('id', contact.id);
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
           } else {
