@@ -2634,7 +2634,7 @@ const CRM = () => {
                       {selectedContact ? (
                         <>
                           <div className="p-3 md:p-4 border-b flex flex-col md:flex-row md:justify-between md:items-center gap-3 bg-card/80 backdrop-blur-md shadow-sm z-10 shrink-0">
-                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 w-full">
                               <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
