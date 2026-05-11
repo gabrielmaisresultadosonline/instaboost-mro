@@ -2626,11 +2626,15 @@ const CRM = () => {
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center mt-1">
                                   <Badge 
                                     variant="outline" 
                                     style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                    className={cn("px-2 capitalize font-black shadow-sm", getStatusColor(contact.status))}
+                                    className={cn(
+                                      "px-2 capitalize font-black shadow-sm", 
+                                      getStatusColor(contact.status),
+                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-blue-500/20"
+                                    )}
                                   >
                                     {getStatusLabel(contact.status)}
                                   </Badge>
