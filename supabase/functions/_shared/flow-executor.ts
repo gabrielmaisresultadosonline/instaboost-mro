@@ -4,12 +4,6 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
   console.log(`Executing node ${node.id} (${node.type}) for contact ${contactId}`);
 
   try {
-    const { data: settings } = await supabase
-      .from('crm_settings')
-      .select('*')
-      .eq('id', '00000000-0000-0000-0000-000000000001')
-      .single();
-
     if (node.type === 'message' || node.type === 'text') {
       const text = node.data?.text || node.data?.content;
       if (text) {
@@ -46,21 +40,20 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         flow_state: 'waiting_delay'
       }).eq('id', contactId);
       
-      return new Response(JSON.stringify({ success: true, message: `Delay scheduled for ${waitTime}s` }));
+      return { success: true, message: `Delay scheduled for ${waitTime}s` };
     } else if (node.type === 'wait_response' || node.type === 'question') {
       await supabase.from('crm_contacts').update({
         flow_state: 'waiting_response'
       }).eq('id', contactId);
       
-      return new Response(JSON.stringify({ success: true, message: 'Waiting for user response' }));
+      return { success: true, message: 'Waiting for user response' };
     }
 
     // Find next node
-    const edge = flow.edges.find((e: any) => e.source === node.id);
+    const edge = flow.edges?.find((e: any) => e.source === node.id);
     if (edge) {
-      const nextNode = flow.nodes.find((n: any) => n.id === edge.target);
+      const nextNode = flow.nodes?.find((n: any) => n.id === edge.target);
       if (nextNode) {
-        // Recurse or schedule next
         const delay = parseInt(node.data?.delayAfter || '2');
         if (delay > 0) {
           const nextTime = new Date(Date.now() + delay * 1000).toISOString();
@@ -69,20 +62,21 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
             next_execution_time: nextTime,
             flow_state: 'running'
           }).eq('id', contactId);
+          return { success: true, message: 'Next node scheduled' };
         } else {
           return await executeVisualNode(supabase, flow, nextNode, contactId, waId);
         }
       }
-    } else {
-      // End of flow
-      await supabase.from('crm_contacts').update({
-        flow_state: 'idle',
-        current_flow_id: null,
-        current_node_id: null
-      }).eq('id', contactId);
     }
 
-    return new Response(JSON.stringify({ success: true }));
+    // End of flow or no transition
+    await supabase.from('crm_contacts').update({
+      flow_state: 'idle',
+      current_flow_id: null,
+      current_node_id: null
+    }).eq('id', contactId);
+
+    return { success: true };
   } catch (err: any) {
     console.error(`Error executing node ${node.id}:`, err);
     await supabase.from('crm_contacts').update({
