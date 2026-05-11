@@ -281,7 +281,9 @@ serve(async (req) => {
 
                   // 1.1 Check if contact is in an AI Agent node (even if older executions left state as "running")
                   const isCurrentAiNode = !!contact.current_flow_id && String(contact.current_node_id || '').includes('aiAgent');
-                  const shouldHandleFlowAi = contact.flow_state === 'ai_handling' || (isCurrentAiNode && contact.status !== 'human');
+                  const normalizedStatus = String(contact.status || '').toLowerCase();
+                  const isHumanHandoff = normalizedStatus.includes('human') || normalizedStatus.includes('humano');
+                  const shouldHandleFlowAi = contact.flow_state === 'ai_handling' || (isCurrentAiNode && !isHumanHandoff);
 
                   if (shouldHandleFlowAi) {
                     console.log(`[WEBHOOK] Contact ${wa_id} is in flow AI node/state (${contact.flow_state}/${contact.current_node_id}). Invoking AI logic in meta-whatsapp-crm...`);
