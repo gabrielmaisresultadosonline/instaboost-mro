@@ -187,6 +187,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
+  console.log(`[META-SEND] Payload enviado para Meta:`, JSON.stringify(payload));
   const result = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(result?.error?.message || 'Erro ao enviar mensagem pela Meta')
 
