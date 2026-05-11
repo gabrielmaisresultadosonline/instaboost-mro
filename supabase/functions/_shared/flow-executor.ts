@@ -36,6 +36,8 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         });
       }
 
+      // If it's just a message (not waiting for response), we don't return here, 
+      // we let it continue to the "find next node" logic at the end of function
       if (node.type === 'question' || node.type === 'wait_response') {
         console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
         

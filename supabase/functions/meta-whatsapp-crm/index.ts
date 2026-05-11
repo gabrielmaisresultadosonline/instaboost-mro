@@ -125,6 +125,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
     console.log(`[MEDIA] Uploaded successfully. ID: ${mediaId}`);
     payload.type = media.type
+    // Para áudio, a Meta exige apenas o ID. Se for enviado como "voice", deve-se usar um parâmetro específico no template ou em mensagens individuais dependendo da API
     if (media.type === 'audio') {
       payload.audio = { id: mediaId };
     } else if (media.type === 'document') {
