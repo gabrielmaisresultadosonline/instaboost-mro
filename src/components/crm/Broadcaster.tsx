@@ -84,8 +84,18 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
       if (targetType === 'contacts') {
         numbers = contacts.map(c => c.wa_id);
       } else if (targetType === 'conversation') {
-        // Assume contacts already filtered by last_interaction
-        numbers = contacts.filter(c => c.last_interaction).map(c => c.wa_id);
+        const DAY = 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        numbers = contacts
+          .filter(c => c.last_interaction && (now - new Date(c.last_interaction).getTime()) < DAY)
+          .map(c => c.wa_id);
+      } else if (targetType === 'tag') {
+        if (!selectedStatus) {
+          toast({ title: "Selecione uma etiqueta", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+        numbers = contacts.filter(c => c.status === selectedStatus).map(c => c.wa_id);
       } else {
         // Parse uploaded numbers
         numbers = uploadedNumbers
