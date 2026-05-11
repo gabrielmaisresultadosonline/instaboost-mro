@@ -315,8 +315,7 @@ serve(async (req) => {
         .from('crm_contacts')
         .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction, flow_state, next_execution_time')
         .neq('flow_state', 'idle')
-        .or(`next_execution_time.lte.${now},flow_state.eq.waiting_response`)
-        .limit(20);
+        .limit(50);
         
       if (fetchError) throw fetchError;
       
