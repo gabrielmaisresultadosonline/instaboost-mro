@@ -39,6 +39,7 @@ import {
   StopCircle,
   Clock,
   Play,
+  PlayCircle,
   ArrowRight,
   Check,
   AlertCircle,
@@ -1418,6 +1419,43 @@ const CRM = () => {
     }
   };
 
+  const handleResumeFlow = async (contactId: string) => {
+    setSendingMessage(true);
+    try {
+      const { data: contact } = await supabase
+        .from('crm_contacts')
+        .select('current_flow_id, current_node_id, wa_id')
+        .eq('id', contactId)
+        .single();
+        
+      if (!contact?.current_flow_id || !contact?.current_node_id) {
+        throw new Error('Informações do fluxo não encontradas para retomar.');
+      }
+
+      const { error } = await supabase
+        .from('crm_contacts')
+        .update({
+          flow_state: 'running',
+          next_execution_time: new Date().toISOString()
+        })
+        .eq('id', contactId);
+        
+      if (error) throw error;
+      
+      // Chama a função para processar imediatamente
+      await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'processScheduled' }
+      });
+      
+      toast({ title: "Fluxo retomado!" });
+      fetchContacts();
+    } catch (err: any) {
+      toast({ title: "Erro ao retomar fluxo", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   const handleScheduleMessage = async () => {
     if (!selectedContact || !scheduleDate || !scheduleTime) {
       toast({ title: "Preencha a data e hora", variant: "destructive" });
@@ -2596,16 +2634,28 @@ const CRM = () => {
                                            {contact.flow_state === 'error' ? 'Erro' : 
                                             contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
                                          </Badge>
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleCancelFlow(contact.id);
-                                          }}
-                                          className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
-                                          title="Parar Fluxo"
-                                        >
-                                          <StopCircle className="h-3 w-3" />
-                                        </button>
+                                        <div className="flex items-center gap-0.5">
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleResumeFlow(contact.id);
+                                            }}
+                                            className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
+                                            title="Retomar Fluxo"
+                                          >
+                                            <PlayCircle className="h-3 w-3" />
+                                          </button>
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCancelFlow(contact.id);
+                                            }}
+                                            className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                            title="Parar Fluxo"
+                                          >
+                                            <StopCircle className="h-3 w-3" />
+                                          </button>
+                                        </div>
                                       </div>
                                       {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
                                         <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums">
@@ -2697,6 +2747,15 @@ const CRM = () => {
                                           <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
                                           {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
                                         </Badge>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          className="h-5 w-5 text-green-500 hover:text-green-700 hover:bg-green-50/50" 
+                                          onClick={() => handleResumeFlow(selectedContact.id)}
+                                          title="Retomar Fluxo"
+                                        >
+                                          <PlayCircle className="h-3.5 w-3.5" />
+                                        </Button>
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
