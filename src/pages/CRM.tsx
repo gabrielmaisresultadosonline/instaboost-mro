@@ -2713,6 +2713,23 @@ const CRM = () => {
                                   ))}
                                 </div>
                               )}
+                              {mediaUploadProgress[selectedContact.id] && (
+                                <div className="p-3 mb-2 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-top-2">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Zap className="w-3.5 h-3.5 text-primary animate-pulse" />
+                                      <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Convertendo e Enviando...</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-primary">{mediaUploadProgress[selectedContact.id]}%</span>
+                                  </div>
+                                  <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary transition-all duration-300" 
+                                      style={{ width: `${mediaUploadProgress[selectedContact.id]}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                               {chatMessages.map((m, idx) => {
                                 const isTemplate = m.message_type === 'template' || m.content?.includes('[Template:');
                                 const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
