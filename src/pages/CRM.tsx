@@ -938,7 +938,8 @@ const CRM = () => {
         label: newStatusData.label,
         value: value,
         color: newStatusData.color,
-        sort_order: sortOrder
+        sort_order: sortOrder,
+        is_starred: false
       }]);
 
       if (error) throw error;
