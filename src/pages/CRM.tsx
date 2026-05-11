@@ -4938,7 +4938,7 @@ const CRM = () => {
                     )}
                   </div>
                 </div>
-               </ScrollArea>
+              </ScrollArea>
             )}
 
             {activeTab === 'help' && (
