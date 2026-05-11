@@ -1418,6 +1418,43 @@ const CRM = () => {
     }
   };
 
+  const handleResumeFlow = async (contactId: string) => {
+    setSendingMessage(true);
+    try {
+      const { data: contact } = await supabase
+        .from('crm_contacts')
+        .select('current_flow_id, current_node_id, wa_id')
+        .eq('id', contactId)
+        .single();
+        
+      if (!contact?.current_flow_id || !contact?.current_node_id) {
+        throw new Error('Informações do fluxo não encontradas para retomar.');
+      }
+
+      const { error } = await supabase
+        .from('crm_contacts')
+        .update({
+          flow_state: 'running',
+          next_execution_time: new Date().toISOString()
+        })
+        .eq('id', contactId);
+        
+      if (error) throw error;
+      
+      // Chama a função para processar imediatamente
+      await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'processScheduled' }
+      });
+      
+      toast({ title: "Fluxo retomado!" });
+      fetchContacts();
+    } catch (err: any) {
+      toast({ title: "Erro ao retomar fluxo", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   const handleScheduleMessage = async () => {
     if (!selectedContact || !scheduleDate || !scheduleTime) {
       toast({ title: "Preencha a data e hora", variant: "destructive" });
