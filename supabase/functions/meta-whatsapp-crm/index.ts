@@ -170,7 +170,62 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   }
 
   return jsonResponse({ success: true, result, messageId: result?.messages?.[0]?.id || null })
+async function internalSendTemplate(
+  supabase: any,
+  phoneNumberId: string,
+  accessToken: string,
+  to: string,
+  templateName: string,
+  languageCode: string,
+  manualComponents: any[],
+  contact: any,
+  vpsTranscoderUrl?: string,
+  providedContactId?: string
+) {
+  const normalizedTo = normalizePhone(to)
+  
+  const payload: any = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    to: normalizedTo,
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: languageCode },
+      components: manualComponents || []
+    }
+  }
+
+  console.log(`[TEMPLATE] Sending template ${templateName} to ${normalizedTo}`);
+
+  const response = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    console.error(`[TEMPLATE] Error sending template:`, JSON.stringify(result));
+    throw new Error(result?.error?.message || 'Erro ao enviar template pela Meta')
+  }
+
+  if (contact) {
+    await supabase.from('crm_messages').insert({
+      contact_id: contact.id,
+      direction: 'outbound',
+      message_type: 'template',
+      content: `[Template: ${templateName}]`,
+      status: 'sent',
+      meta_message_id: result?.messages?.[0]?.id || null,
+      metadata: { template_name: templateName }
+    })
+    await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contact.id)
+  }
+
+  return jsonResponse({ success: true, result, messageId: result?.messages?.[0]?.id || null })
 }
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
