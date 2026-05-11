@@ -121,12 +121,19 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     payload.type = 'interactive';
     payload.interactive = params.interactive;
   } else if (media) {
-    console.log(`[MEDIA] Uploading ${media.type} to Meta from URL: ${media.url}`);
-    const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media)
-    console.log(`[MEDIA] Uploaded successfully. ID: ${mediaId}`);
-    payload.type = media.type
-    // Para áudio, a Meta exige apenas o ID. Se for enviado como "voice", deve-se usar um parâmetro específico no template ou em mensagens individuais dependendo da API
+    console.log(`[MEDIA] Iniciando upload de ${media.type} para Meta. URL: ${media.url}`);
+    let mediaId;
+    try {
+      mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, media);
+      console.log(`[MEDIA] Upload concluído com sucesso. ID: ${mediaId}`);
+    } catch (uploadError: any) {
+      console.error(`[MEDIA] ERRO CRÍTICO NO UPLOAD: ${uploadError.message}`);
+      throw uploadError;
+    }
+    
+    payload.type = media.type;
     if (media.type === 'audio') {
+      // Para enviar como mensagem de voz (aquela que aparece com a barra de reprodução e foto), a Meta exige o campo "audio" com ID.
       payload.audio = { id: mediaId };
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
