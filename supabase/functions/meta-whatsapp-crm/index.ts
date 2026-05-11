@@ -98,11 +98,9 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   const blob = new Blob([await mediaResponse.arrayBuffer()], { type: contentType })
   const form = new FormData()
   form.append('messaging_product', 'whatsapp')
-  form.append('type', media.type)
-  // Ensure audio is recognized as voice message
-  if (media.type === 'audio') {
-    form.set('type', 'audio');
-  }
+  // A Meta exige 'audio/ogg; codecs=opus' para que seja reconhecido como mensagem de voz
+  const uploadType = media.type === 'audio' ? 'audio' : media.type;
+  form.append('type', uploadType)
   form.append('file', blob, media.fileName)
 
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
