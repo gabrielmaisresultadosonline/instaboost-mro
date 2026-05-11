@@ -84,6 +84,22 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
           body: { action: 'sendTemplate', to: waId, templateName, languageCode: node.data?.language || 'pt_BR', contactId }
         });
       }
+
+      // Se houver um nó de timeout conectado a este template, configuramos a espera
+      const timeoutEdge = flow.edges?.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout');
+      if (timeoutEdge) {
+        const timeoutMinutes = parseInt(node.data?.timeout || '20');
+        await supabase.from('crm_contacts').update({
+          flow_state: 'waiting_response',
+          next_execution_time: null,
+          flow_timeout_minutes: timeoutMinutes,
+          flow_timeout_node_id: timeoutEdge.target,
+          last_flow_interaction: new Date().toISOString()
+        }).eq('id', contactId);
+        
+        console.log(`Template node ${node.id}: Waiting ${timeoutMinutes}min for response, then will go to ${timeoutEdge.target}`);
+        return { success: true, message: 'Template sent, waiting for response or timeout' };
+      }
     } else if (node.type === 'delay') {
       const waitTime = parseInt(node.data?.delay || '5');
       const nextExecution = new Date(Date.now() + waitTime * 1000).toISOString();
