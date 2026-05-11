@@ -282,6 +282,7 @@ const CRM = () => {
   const [metricsListType, setMetricsListType] = useState<'paid' | 'active' | 'weekly_paid' | 'weekly_active' | null>(null);
   const [metricsListData, setMetricsListData] = useState<any[]>([]);
   const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<any>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
