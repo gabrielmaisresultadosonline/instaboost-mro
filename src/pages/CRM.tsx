@@ -719,14 +719,16 @@ const CRM = () => {
       
       if (data.success) {
         setSyncProgress(100);
+        console.log('[SYNC] Sincronização concluída com sucesso:', data);
         toast({ 
           title: "Sincronização concluída!", 
-          description: `${data.count} contatos com WhatsApp foram processados.` 
+          description: `${data.count} números processados de ${data.totalFetched || 0} contatos Google.` 
         });
         
         // Atualiza a lista local de contatos
         await fetchContacts();
       } else {
+        console.error('[SYNC] Erro retornado pela função:', data.error);
         throw new Error(data.error || "Erro desconhecido na sincronização");
       }
     } catch (err: any) {
