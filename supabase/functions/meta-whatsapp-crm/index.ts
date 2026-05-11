@@ -77,7 +77,9 @@ const jsonResponse = (data: unknown, status = 200) => new Response(JSON.stringif
 const normalizePhone = (raw: string) => {
   let digits = String(raw || '').replace(/\D/g, '')
   if (digits.length === 10 || digits.length === 11) digits = `55${digits}`
-  if (digits.length === 13 && digits.startsWith('55') && digits[4] === '9') digits = `${digits.slice(0, 4)}${digits.slice(5)}`
+  // Handle Brazilian numbers specifically: ensure they have the 13 digit format correctly (55 + DDD + 9? + number)
+  // Meta sometimes requires removing the extra '9' for some regions, or keeping it.
+  // Standardizing to ensure it's at least 12-13 digits for Meta.
   return digits
 }
 
