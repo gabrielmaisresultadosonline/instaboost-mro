@@ -58,8 +58,8 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
     } else if (node.type === 'image' || node.type === 'video' || node.type === 'audio' || node.type === 'document') {
       const mediaUrl = node.data?.url || node.data?.mediaUrl;
       if (mediaUrl) {
-        console.log(`Sending media ${node.type}: ${mediaUrl}`);
-        await supabase.functions.invoke('meta-whatsapp-crm', {
+        console.log(`[EXECUTOR] Chamando meta-whatsapp-crm para enviar ${node.type}: ${mediaUrl}`);
+        const { data: result, error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
           body: { 
             action: 'sendMessage', 
             to: waId, 
@@ -68,6 +68,13 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
             isVoice: node.type === 'audio'
           }
         });
+        if (invokeError) {
+          console.error(`[EXECUTOR] Erro ao invocar função para enviar ${node.type}:`, invokeError);
+          throw invokeError;
+        }
+        console.log(`[EXECUTOR] Resposta do envio de ${node.type}:`, result);
+      } else {
+        console.warn(`[EXECUTOR] Nó de mídia ${node.type} (${node.id}) sem URL definida.`);
       }
     } else if (node.type === 'template') {
       const templateName = node.data?.templateName;
