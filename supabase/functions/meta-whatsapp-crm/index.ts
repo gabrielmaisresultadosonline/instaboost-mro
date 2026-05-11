@@ -84,7 +84,7 @@ const normalizePhone = (raw: string) => {
 }
 
 const guessMedia = (params: any) => {
-  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg', fileName: 'voice.ogg' }
+  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg; codecs=opus', fileName: 'voice.ogg' }
   if (params.imageUrl) return { type: 'image', url: params.imageUrl, mime: 'image/jpeg', fileName: 'image.jpg' }
   if (params.videoUrl) return { type: 'video', url: params.videoUrl, mime: 'video/mp4', fileName: 'video.mp4' }
   if (params.documentUrl) return { type: 'document', url: params.documentUrl, mime: 'application/octet-stream', fileName: params.fileName || 'document' }
