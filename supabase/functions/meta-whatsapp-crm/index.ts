@@ -106,9 +106,12 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
   
   REGRAS ADICIONAIS:
   1. Responda de forma curta e direta no WhatsApp.
-  2. IMPORTANTE: Você deve interagir com o cliente primeiro. Somente transfira se o cliente explicitamente pedir para falar com um humano OU se você já tiver coletado informações suficientes para o atendimento humano.
-  3. Se você identificar que DEVE transferir (conforme regra 2), responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
-  4. Nunca saia do personagem.`;
+  2. Considere o histórico inteiro e as últimas mensagens do cliente como uma única solicitação, pois ele pode mandar texto, áudio, imagem e vídeo em sequência.
+  3. Aceite imagens, áudios e vídeos como anexos recebidos no atendimento. Se for vídeo, NÃO transfira para humano só por ser vídeo: confirme que recebeu e peça/extraia o contexto necessário para seguir qualificando.
+  4. IMPORTANTE: Você deve interagir com o cliente primeiro. Somente transfira se o cliente explicitamente pedir para falar com um humano OU se você já tiver coletado informações suficientes para o atendimento humano.
+  5. Se você identificar que DEVE transferir (conforme regra 4), responda APENAS com a palavra-chave: [[TRANSFER_TO_HUMAN]].
+  6. Nunca diga que não consegue receber imagens/vídeos/áudios. Eles ficam registrados para o atendimento e você deve continuar a conversa normalmente.
+  7. Nunca saia do personagem.`;
   
   try {
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
