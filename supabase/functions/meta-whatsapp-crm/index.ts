@@ -98,11 +98,9 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   const blob = new Blob([await mediaResponse.arrayBuffer()], { type: contentType })
   const form = new FormData()
   form.append('messaging_product', 'whatsapp')
-  form.append('type', media.type)
-  // Ensure audio is recognized as voice message
-  if (media.type === 'audio') {
-    form.set('type', 'audio');
-  }
+  // A Meta exige 'audio/ogg; codecs=opus' para que seja reconhecido como mensagem de voz
+  const uploadType = media.type === 'audio' ? 'audio' : media.type;
+  form.append('type', uploadType)
   form.append('file', blob, media.fileName)
 
   const uploadResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
@@ -121,7 +119,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (!to) throw new Error('Telefone inválido')
 
   const media = guessMedia(params)
-  const isVoice = params.isVoice === true;
+  const isVoice = params.isVoice === true || media?.type === 'audio';
   const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
   
   if (params.interactive) {
@@ -138,9 +136,9 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
       throw uploadError;
     }
     
-    payload.type = media.type;
     if (media.type === 'audio') {
-      // Para enviar como mensagem de voz (gravado na hora), usamos o campo "audio" com ID.
+      // Para enviar como mensagem de voz (gravado na hora), usamos o objeto "audio"
+      payload.type = 'audio';
       payload.audio = { id: mediaId };
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
