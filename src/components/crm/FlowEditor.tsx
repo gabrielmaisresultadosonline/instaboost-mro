@@ -392,6 +392,7 @@ const nodeTypes = {
   crmAction: CRMActionNode,
   template: TemplateNode,
   jump: JumpNode,
+  aiAgent: AIAgentNode,
 };
 
 const edgeTypes = {
