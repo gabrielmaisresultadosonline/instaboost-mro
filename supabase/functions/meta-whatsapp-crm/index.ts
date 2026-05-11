@@ -1078,7 +1078,7 @@ serve(async (req) => {
           console.log(`[START-FLOW] Started in AI handling state. Triggering AI response for ${waId}`);
           const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
           if (updatedContact) {
-            await processAiAgentResponse(supabase, updatedContact, waId, params.text);
+            await processAiAgentResponse(supabase, updatedContact, waId, params.text, params.sourceMessageId);
           }
         }
         
@@ -1107,7 +1107,7 @@ serve(async (req) => {
     }
 
     if (action === 'continueFlow') {
-      const { contactId, waId, buttonId, nextNodeId, text } = params
+      const { contactId, waId, buttonId, nextNodeId, text, sourceMessageId } = params
       
       const { data: contact } = await supabase
         .from('crm_contacts')
@@ -1188,7 +1188,7 @@ serve(async (req) => {
             console.log(`[CONTINUE-FLOW] Moved to AI handling state. Triggering AI response for ${waId}`);
             const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contactId).single();
             if (updatedContact) {
-              await processAiAgentResponse(supabase, updatedContact, waId, text);
+              await processAiAgentResponse(supabase, updatedContact, waId, text, sourceMessageId);
             }
           }
           
@@ -1417,7 +1417,7 @@ serve(async (req) => {
         
       if (!contact) return jsonResponse({ success: false, error: 'Contact not found' });
       
-      const result = await processAiAgentResponse(supabase, contact, params.to || params.waId, params.text);
+      const result = await processAiAgentResponse(supabase, contact, params.to || params.waId, params.text, params.sourceMessageId);
       return jsonResponse(result);
     }
 
