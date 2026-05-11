@@ -1139,20 +1139,27 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                       <SelectItem value="first_message_day">☀️ Primeira mensagem do dia</SelectItem>
                       <SelectItem value="24h_inactivity">⏰ Primeira mensagem após 24h</SelectItem>
                       <SelectItem value="keyword">⌨️ Palavras-chave específicas</SelectItem>
+                      <SelectItem value="exact_phrase">📝 Frase Completa Exata</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {triggerType === 'keyword' && (
+                {(triggerType === 'keyword' || triggerType === 'exact_phrase') && (
                   <div className="space-y-2 animate-in slide-in-from-top-2">
-                    <Label className="text-xs">Palavras-chave</Label>
-                    <Input 
-                      placeholder="Ex: olá, preço, ajuda (separado por vírgula)" 
+                    <Label className="text-xs">
+                      {triggerType === 'keyword' ? 'Palavras-chave (separado por vírgula)' : 'Frase Completa'}
+                    </Label>
+                    <Textarea 
+                      placeholder={triggerType === 'keyword' ? "Ex: olá, preço, ajuda" : "Ex: Estou no site, gostaria de tirar umas dúvidas..."}
                       value={triggerKeywords}
                       onChange={(e) => setTriggerKeywords(e.target.value)}
-                      className="text-xs"
+                      className="text-xs min-h-[80px]"
                     />
-                    <p className="text-[9px] text-muted-foreground">Se o cliente enviar uma dessas palavras, o fluxo inicia.</p>
+                    <p className="text-[9px] text-muted-foreground italic">
+                      {triggerType === 'exact_phrase' 
+                        ? "O fluxo iniciará apenas se o cliente enviar exatamente essa frase."
+                        : "O fluxo iniciará se a mensagem contiver qualquer uma dessas palavras."}
+                    </p>
                   </div>
                 )}
 
