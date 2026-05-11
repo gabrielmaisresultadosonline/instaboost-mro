@@ -95,5 +95,5 @@ export async function processStep(supabase: any, step: any, contactId: string, w
   // Legacy step processor
   console.log(`Executing legacy step ${step.id} for contact ${contactId}`);
   // ... basic implementation to avoid errors
-  return new Response(JSON.stringify({ success: true }));
+  return { success: true };
 }
