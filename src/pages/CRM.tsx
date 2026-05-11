@@ -2604,10 +2604,17 @@ const CRM = () => {
                                           <StopCircle className="h-3 w-3" />
                                         </button>
                                       </div>
-                                      {contact.next_execution_time && (
+                                      {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
                                         <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums">
                                           <Clock className="w-2 h-2" />
                                           {(() => {
+                                            if (contact.flow_state === 'waiting_response') {
+                                              const lastInteraction = new Date(contact.last_flow_interaction || Date.now()).getTime();
+                                              const timeoutMinutes = contact.flow_timeout_minutes || 20;
+                                              const timeoutTime = lastInteraction + (timeoutMinutes * 60000);
+                                              const diff = Math.max(0, Math.floor((timeoutTime - now) / 1000));
+                                              return diff > 0 ? `Expira: ${Math.floor(diff / 60)}m ${diff % 60}s` : 'Expirando...';
+                                            }
                                             const next = new Date(contact.next_execution_time).getTime();
                                             const diff = Math.max(0, Math.floor((next - now) / 1000));
                                             return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Próximo...';
