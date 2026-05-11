@@ -63,7 +63,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
             to: waId, 
             [node.type + 'Url']: mediaUrl,
             contactId,
-            isVoice: node.type === 'audio' && (node.data?.isVoice || node.data?.isPTT)
+            isVoice: node.type === 'audio'
           }
         });
       }
