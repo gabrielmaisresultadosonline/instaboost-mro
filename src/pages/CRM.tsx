@@ -190,6 +190,7 @@ const CRM = () => {
     business_hours_end: '18:00',
     business_hours_tz: 'America/Sao_Paulo',
     outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.',
+    business_description: 'Empresa especializada em soluções digitais e vendas online através do WhatsApp e redes sociais.',
     google_auto_sync: false,
     vps_transcoder_url: '',
     vps_status: 'unknown' as 'unknown' | 'online' | 'offline'
@@ -2852,8 +2853,8 @@ const CRM = () => {
                                       <p className="text-[10px] font-bold text-orange-700 uppercase">Atenção: Mais de 4h sem resposta. Considere gerar uma estratégia de gancho.</p>
                                     </div>
                                   )}
-                                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap opacity-0 pointer-events-none absolute h-0 w-0 overflow-hidden">
                                       <div className="flex items-center gap-1.5 sm:gap-2">
                                         <Bot className={cn("w-4 h-4 shrink-0", selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary" : "text-muted-foreground")} />
                                         <span className="text-[10px] sm:text-[11px] font-bold">Assistente IA</span>
@@ -2879,8 +2880,13 @@ const CRM = () => {
                                     </div>
                                     <Dialog>
                                       <DialogTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0">
-                                          <Bot className="w-3.5 h-3.5 mr-1" /> <span className="hidden xs:inline">Analises </span>IA
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          className="h-8 text-[11px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-xl px-4"
+                                          disabled={!metaSettings.openai_api_key}
+                                        >
+                                          <Bot className="w-4 h-4 mr-2" /> <span>Analises IA</span>
                                         </Button>
                                       </DialogTrigger>
                                       <DialogContent className="sm:max-w-[600px] rounded-3xl">
@@ -3729,32 +3735,48 @@ const CRM = () => {
                         <CardDescription>Defina a personalidade e o objetivo do seu robô</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 md:p-6 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                            <Label className="text-sm font-bold">Prompt do System</Label>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleImprovePrompt}
-                              disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 self-start sm:self-auto"
-                            >
-                              {improvingPrompt ? (
-                                <RefreshCcw className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
-                              )}
-                              Melhorar Prompt com I.A
-                            </Button>
+                        <div className="space-y-6">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-bold flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" /> O que sua empresa vende?
+                            </Label>
+                            <Textarea 
+                              rows={4}
+                              className="resize-none text-xs leading-relaxed bg-muted/30 border-none rounded-xl"
+                              placeholder="Descreva detalhadamente seus produtos, serviços e diferenciais para que a IA gere estratégias mais precisas..."
+                              value={metaSettings.business_description}
+                              onChange={(e) => setMetaSettings({...metaSettings, business_description: e.target.value})}
+                            />
+                            <p className="text-[10px] text-muted-foreground italic">Esse resumo será usado pela IA para entender o contexto das suas vendas.</p>
                           </div>
-                          <Textarea 
-                            rows={10}
-                            className="resize-none font-mono text-xs leading-relaxed"
-                            placeholder="Ex: Você é um consultor de vendas especializado em..."
-                            value={metaSettings.ai_system_prompt}
-                            onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
-                          />
-                          <p className="text-[10px] text-muted-foreground">Instruções detalhadas de comportamento e conhecimento.</p>
+
+                          <div className="space-y-2">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                              <Label className="text-sm font-bold">Prompt do System</Label>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleImprovePrompt}
+                                disabled={improvingPrompt}
+                                className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95 self-start sm:self-auto"
+                              >
+                                {improvingPrompt ? (
+                                  <RefreshCcw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                )}
+                                Melhorar Prompt com I.A
+                              </Button>
+                            </div>
+                            <Textarea 
+                              rows={8}
+                              className="resize-none font-mono text-xs leading-relaxed bg-muted/30 border-none rounded-xl"
+                              placeholder="Ex: Você é um consultor de vendas especializado em..."
+                              value={metaSettings.ai_system_prompt}
+                              onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
+                            />
+                            <p className="text-[10px] text-muted-foreground">Instruções detalhadas de comportamento e conhecimento.</p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

@@ -97,10 +97,10 @@ serve(async (req) => {
 
       const { data: messages } = await supabase
         .from('crm_messages')
-        .select('content, direction, created_at')
+        .select('content, direction, created_at, message_type, metadata')
         .eq('contact_id', contactId)
         .order('created_at', { ascending: true })
-        .limit(50);
+        .limit(100);
       
       const { data: settings } = await supabase
         .from('crm_settings')
@@ -108,15 +108,23 @@ serve(async (req) => {
         .eq('id', '00000000-0000-0000-0000-000000000001')
         .single();
 
-      const chatHistory = messages?.map(m => 
-        `${m.direction === 'inbound' ? 'CLIENTE' : 'ATENDENTE'} (${new Date(m.created_at).toLocaleString('pt-BR')}): ${m.content}`
-      ).join('\n') || 'Sem histórico de mensagens.';
+      const chatHistory = messages?.map(m => {
+        let text = m.content || '';
+        // Include transcription if it's an audio/voice message and exists in metadata
+        if ((m.message_type === 'audio' || m.message_type === 'voice') && m.metadata?.transcription) {
+          text = `[ÁUDIO TRANSCRITO]: ${m.metadata.transcription}`;
+        }
+        return `${m.direction === 'inbound' ? 'CLIENTE' : 'ATENDENTE'} (${new Date(m.created_at).toLocaleString('pt-BR')}): ${text}`;
+      }).join('\n') || 'Sem histórico de mensagens.';
 
       const { customInstruction, action }: any = await req.json().catch(() => ({}));
       
       let crmSystemPrompt = `
-        ${customInstruction || settings?.strategy_generation_prompt || 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente.'}
+        ${customInstruction || settings?.strategy_generation_prompt || 'Analise o histórico acima e gere estratégias personalizadas para converter este cliente.'}
         
+        RESUMO DA EMPRESA (O que vendemos):
+        ${settings?.business_description || 'Empresa de soluções digitais.'}
+
         CONTEXTO DO CLIENTE:
         Nome: ${contact.name || 'Desconhecido'}
         WhatsApp ID: ${contact.wa_id}
