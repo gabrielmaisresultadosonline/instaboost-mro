@@ -2698,19 +2698,26 @@ const CRM = () => {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline" className="hidden lg:flex h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
-                              <Button size="sm" className="bg-green-600 hidden lg:flex text-white hover:bg-green-700 h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                              {kanbanStatuses.filter(s => s.is_starred).map(status => (
+                                <Button 
+                                  key={status.id}
+                                  size="sm" 
+                                  variant="outline" 
+                                  className={cn("h-8 text-[11px] font-bold border-zinc-200 hover:bg-zinc-50 transition-all shadow-sm")}
+                                  onClick={() => updateContactStatus(selectedContact.id, { status: status.value })}
+                                >
+                                  {status.label}
+                                </Button>
+                              ))}
                               
                               <Select onValueChange={(val) => updateContactStatus(selectedContact.id, { status: val })}>
-                                <SelectTrigger className="w-fit h-8 text-[11px] lg:hidden">
-                                  <SelectValue placeholder="Status" />
+                                <SelectTrigger className="w-fit h-8 text-[11px] font-bold border-zinc-200 bg-zinc-50/50">
+                                  <SelectValue placeholder="Outros" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="new">Novo</SelectItem>
-                                  <SelectItem value="responded">Respondido</SelectItem>
-                                  <SelectItem value="qualified">Qualificado</SelectItem>
-                                  <SelectItem value="closed">Venda</SelectItem>
-                                  <SelectItem value="lost">Perdido</SelectItem>
+                                  {kanbanStatuses.map(s => (
+                                    <SelectItem key={s.id} value={s.value}>{s.label}</SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             </div>
