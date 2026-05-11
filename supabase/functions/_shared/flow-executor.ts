@@ -128,7 +128,26 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         console.log(`Delay node ${node.id}: Scheduled next node ${edge.target} at ${nextExecution}`);
         return { success: true, message: `Delay scheduled for ${waitTime}s` };
       }
-      }
+    } else if (node.type === 'aiAgent') {
+      console.log(`[EXECUTOR] Entering AI Agent node ${node.id} for contact ${contactId}`);
+      
+      const prompt = node.data?.prompt || "";
+      const labelOnTransfer = node.data?.labelOnHumanTransfer || "";
+      
+      await supabase.from('crm_contacts').update({
+        flow_state: 'ai_handling',
+        current_node_id: node.id,
+        ai_active: true,
+        metadata: { 
+          ...(flow.metadata || {}),
+          ai_agent_prompt: prompt,
+          ai_agent_label_on_transfer: labelOnTransfer,
+          ai_agent_node_id: node.id
+        }
+      }).eq('id', contactId);
+      
+      return { success: true, message: 'Contact moved to AI handling state' };
+    }
     } else if (node.type === 'crmAction') {
       const action = node.data?.action;
       const statusValue = node.data?.statusValue;
