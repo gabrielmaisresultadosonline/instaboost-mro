@@ -38,22 +38,32 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
 
       if (node.type === 'question' || node.type === 'wait_response') {
         console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
+        
+        // Find timeout edge
+        const timeoutEdge = flow.edges?.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout');
+        const timeoutMinutes = parseInt(node.data?.timeout || '20');
+        
         await supabase.from('crm_contacts').update({
           flow_state: 'waiting_response',
-          next_execution_time: null
+          next_execution_time: null,
+          flow_timeout_minutes: timeoutMinutes,
+          flow_timeout_node_id: timeoutEdge?.target || null,
+          last_flow_interaction: new Date().toISOString()
         }).eq('id', contactId);
+        
         return { success: true, message: 'Sent interactive buttons and waiting for response' };
       }
     } else if (node.type === 'image' || node.type === 'video' || node.type === 'audio' || node.type === 'document') {
       const mediaUrl = node.data?.url || node.data?.mediaUrl;
       if (mediaUrl) {
+        console.log(`Sending media ${node.type}: ${mediaUrl}`);
         await supabase.functions.invoke('meta-whatsapp-crm', {
           body: { 
             action: 'sendMessage', 
             to: waId, 
             [node.type + 'Url']: mediaUrl,
             contactId,
-            isVoice: node.type === 'audio' && node.data?.isVoice
+            isVoice: node.type === 'audio' && (node.data?.isVoice || node.data?.isPTT)
           }
         });
       }

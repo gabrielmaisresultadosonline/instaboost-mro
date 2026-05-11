@@ -979,8 +979,37 @@ serve(async (req) => {
 
 
     if (action === 'processInactivity') {
-      // Inactivity auto-hook removed as requested. Manual activation only.
-      return jsonResponse({ success: true, message: 'Auto-hook disabled' });
+      console.log('Checking for inactive contacts in flows...');
+      const { data: inactiveContacts } = await supabase
+        .from('crm_contacts')
+        .select('*')
+        .eq('flow_state', 'waiting_response')
+        .not('flow_timeout_node_id', 'is', null);
+
+      if (inactiveContacts) {
+        for (const contact of inactiveContacts) {
+          const lastInteraction = new Date(contact.last_flow_interaction || contact.updated_at).getTime();
+          const timeoutMs = (contact.flow_timeout_minutes || 20) * 60 * 1000;
+          
+          if (Date.now() - lastInteraction > timeoutMs) {
+            console.log(`Contact ${contact.wa_id} timed out. Moving to node ${contact.flow_timeout_node_id}`);
+            const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
+            if (flow) {
+              const nextNode = flow.nodes?.find((n: any) => n.id === contact.flow_timeout_node_id);
+              if (nextNode) {
+                await supabase.from('crm_contacts').update({
+                  current_node_id: nextNode.id,
+                  flow_state: 'running',
+                  flow_timeout_node_id: null,
+                  last_flow_interaction: new Date().toISOString()
+                }).eq('id', contact.id);
+                await executeVisualNode(supabase, flow, nextNode, contact.id, contact.wa_id);
+              }
+            }
+          }
+        }
+      }
+      return jsonResponse({ success: true });
     }
 
     throw new Error(`Unhandled action: ${action}`);

@@ -743,6 +743,8 @@ export type Database = {
           current_step_index: number | null
           custom_labels: string[] | null
           flow_state: string | null
+          flow_timeout_minutes: number | null
+          flow_timeout_node_id: string | null
           google_sync_account_id: string | null
           id: string
           is_qualified: boolean | null
@@ -771,6 +773,8 @@ export type Database = {
           current_step_index?: number | null
           custom_labels?: string[] | null
           flow_state?: string | null
+          flow_timeout_minutes?: number | null
+          flow_timeout_node_id?: string | null
           google_sync_account_id?: string | null
           id?: string
           is_qualified?: boolean | null
@@ -799,6 +803,8 @@ export type Database = {
           current_step_index?: number | null
           custom_labels?: string[] | null
           flow_state?: string | null
+          flow_timeout_minutes?: number | null
+          flow_timeout_node_id?: string | null
           google_sync_account_id?: string | null
           id?: string
           is_qualified?: boolean | null
