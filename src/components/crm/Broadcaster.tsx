@@ -36,9 +36,10 @@ interface BroadcasterProps {
   templates: any[];
   flows: any[];
   contacts: any[];
+  statuses: any[];
 }
 
-const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
+const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
@@ -47,7 +48,8 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   // New campaign state
   const [name, setName] = useState('');
   const [type, setType] = useState<'message' | 'template' | 'flow'>('message');
-  const [targetType, setTargetType] = useState<'contacts' | 'conversation' | 'uploaded'>('contacts');
+  const [targetType, setTargetType] = useState<'contacts' | 'conversation' | 'uploaded' | 'tag'>('contacts');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [messageText, setMessageText] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedFlow, setSelectedFlow] = useState('');
@@ -82,8 +84,18 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
       if (targetType === 'contacts') {
         numbers = contacts.map(c => c.wa_id);
       } else if (targetType === 'conversation') {
-        // Assume contacts already filtered by last_interaction
-        numbers = contacts.filter(c => c.last_interaction).map(c => c.wa_id);
+        const DAY = 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        numbers = contacts
+          .filter(c => c.last_interaction && (now - new Date(c.last_interaction).getTime()) < DAY)
+          .map(c => c.wa_id);
+      } else if (targetType === 'tag') {
+        if (!selectedStatus) {
+          toast({ title: "Selecione uma etiqueta", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+        numbers = contacts.filter(c => c.status === selectedStatus).map(c => c.wa_id);
       } else {
         // Parse uploaded numbers
         numbers = uploadedNumbers
@@ -109,7 +121,7 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
           random_delay_min: delayMin,
           random_delay_max: delayMax,
           total_contacts: numbers.length,
-          uploaded_numbers: targetType === 'uploaded' ? numbers : null,
+          uploaded_numbers: (targetType === 'uploaded' || targetType === 'tag' || targetType === 'conversation') ? numbers : null,
           status: 'pending'
         }])
         .select()
@@ -276,12 +288,29 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="contacts">Todos os Contatos ({contacts.length})</SelectItem>
-                      <SelectItem value="conversation">Pessoas que já conversaram</SelectItem>
+                      <SelectItem value="conversation">Contatos em Janela de 24h (Grátis)</SelectItem>
+                      <SelectItem value="tag">Por Etiqueta (Status)</SelectItem>
                       <SelectItem value="uploaded">Subir Lista (VCard, Excel, Texto)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+
+              {targetType === 'tag' && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label className="text-xs md:text-sm">Selecione a Etiqueta</Label>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="h-10 md:h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] text-xs md:text-sm">
+                      <SelectValue placeholder="Escolha uma etiqueta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map(s => (
+                        <SelectItem key={s.id} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {targetType === 'uploaded' && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">

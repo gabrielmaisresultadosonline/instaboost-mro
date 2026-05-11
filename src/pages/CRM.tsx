@@ -3958,6 +3958,7 @@ const CRM = () => {
                 templates={templates} 
                 flows={flows} 
                 contacts={contacts} 
+                statuses={kanbanStatuses}
               />
             )}
 
