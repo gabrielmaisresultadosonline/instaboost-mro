@@ -674,12 +674,8 @@ const CRM = () => {
       const { data: flowsData } = await supabase.from('crm_flows').select('*, crm_flow_steps(*)');
       setFlows(flowsData || []);
 
-      const { data: contactsData } = await supabase
-        .from('crm_contacts')
-        .select('*')
-        .order('last_interaction', { ascending: false, nullsFirst: false })
-        .limit(10000);
-      setContacts(contactsData || []);
+      // Paginated fetch to load ALL contacts (default cap is 1000)
+      await fetchContacts();
 
       const { data: templatesData } = await supabase.from('crm_templates').select('*');
       setTemplates(templatesData || []);
