@@ -288,7 +288,8 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="contacts">Todos os Contatos ({contacts.length})</SelectItem>
-                      <SelectItem value="conversation">Pessoas que já conversaram</SelectItem>
+                      <SelectItem value="conversation">Contatos em Janela de 24h (Grátis)</SelectItem>
+                      <SelectItem value="tag">Por Etiqueta (Status)</SelectItem>
                       <SelectItem value="uploaded">Subir Lista (VCard, Excel, Texto)</SelectItem>
                     </SelectContent>
                   </Select>
