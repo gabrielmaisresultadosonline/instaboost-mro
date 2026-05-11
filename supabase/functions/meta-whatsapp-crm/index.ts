@@ -180,8 +180,8 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
     .eq('wa_id', waId)
     .single();
 
-  if (contact && (contact.flow_state === 'ai_handling' || (contact.current_flow_id && contact.current_node_id?.startsWith('aiAgent')))) {
-    console.log(`[WEBHOOK] Contact ${waId} is in AI handling or AI Agent node. Processing response...`);
+  if (contact && (contact.flow_state === 'ai_handling' || contact.current_node_id?.includes('aiAgent'))) {
+    console.log(`[WEBHOOK] Contact ${waId} is in AI handling or AI Agent node (${contact.current_node_id}). Processing response...`);
     const result = await processAiAgentResponse(supabase, contact, waId, text);
     return jsonResponse(result);
   } else if (contact && contact.ai_active && contact.flow_state === 'idle') {
