@@ -199,6 +199,31 @@ async function internalSendTemplate(
     }
   }
 
+  // Se não houver componentes manuais, tentamos buscar no banco de dados para ver se há mídia salva (HEADER)
+  if (!manualComponents || manualComponents.length === 0) {
+    const { data: dbTemplate } = await supabase
+      .from('crm_templates')
+      .select('components')
+      .eq('name', templateName)
+      .single();
+
+    if (dbTemplate?.components) {
+      const header = dbTemplate.components.find((c: any) => c.type === 'HEADER');
+      if (header && (header.format === 'IMAGE' || header.format === 'VIDEO' || header.format === 'DOCUMENT')) {
+        const mediaUrl = header.example?.header_handle?.[0];
+        if (mediaUrl) {
+          payload.template.components = [{
+            type: 'header',
+            parameters: [{
+              type: header.format.toLowerCase(),
+              [header.format.toLowerCase()]: { link: mediaUrl }
+            }]
+          }];
+        }
+      }
+    }
+  }
+
   console.log(`[TEMPLATE] Sending template ${templateName} to ${normalizedTo}`);
 
   const response = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
