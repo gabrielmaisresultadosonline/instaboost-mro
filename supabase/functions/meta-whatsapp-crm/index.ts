@@ -117,6 +117,8 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (!to) throw new Error('Telefone inválido')
 
   const media = guessMedia(params)
+  // Se for áudio enviado pelo fluxo com isVoice: true, a Meta requer o envio via upload para aparecer como gravado na hora
+  const isVoice = params.isVoice === true;
   const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
   
   if (params.interactive) {
