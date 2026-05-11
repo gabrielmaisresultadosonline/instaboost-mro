@@ -170,6 +170,8 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   }
 
   return jsonResponse({ success: true, result, messageId: result?.messages?.[0]?.id || null })
+}
+
 async function internalSendTemplate(
   supabase: any,
   phoneNumberId: string,
