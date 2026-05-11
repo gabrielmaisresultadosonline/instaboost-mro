@@ -273,9 +273,9 @@ serve(async (req) => {
       
       const { data: contactsToProcess, error: fetchError } = await supabase
         .from('crm_contacts')
-        .select('id, wa_id, current_flow_id, current_node_id')
+        .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction')
         .neq('flow_state', 'idle')
-        .lte('next_execution_time', now)
+        .or(`next_execution_time.lte.${now},flow_state.eq.waiting_response`)
         .limit(20);
         
       if (fetchError) throw fetchError;
@@ -283,6 +283,23 @@ serve(async (req) => {
       const results = [];
       if (contactsToProcess) {
         for (const contact of contactsToProcess) {
+          // Check for timeout if waiting for response
+          if (contact.flow_state === 'waiting_response') {
+            const timeoutMinutes = contact.flow_timeout_minutes || 20;
+            const lastInteraction = new Date(contact.last_flow_interaction || new Date().toISOString());
+            const timeoutThreshold = new Date(lastInteraction.getTime() + timeoutMinutes * 60000);
+            
+            if (new Date() < timeoutThreshold) continue; // Not timed out yet
+            
+            console.log(`[TIMEOUT] Contact ${contact.wa_id} timed out. Moving to fallback node ${contact.flow_timeout_node_id}`);
+            if (!contact.flow_timeout_node_id) {
+              await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
+              continue;
+            }
+            
+            contact.current_node_id = contact.flow_timeout_node_id;
+          }
+
           console.log(`Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id}`);
           
           const { data: flow } = await supabase
@@ -298,6 +315,12 @@ serve(async (req) => {
           
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
+            // Important: Clear execution/state to avoid loops
+            await supabase.from('crm_contacts').update({ 
+              next_execution_time: null,
+              flow_state: 'running'
+            }).eq('id', contact.id);
+            
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
           } else {
