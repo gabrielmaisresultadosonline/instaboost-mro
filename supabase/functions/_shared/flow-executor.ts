@@ -4,12 +4,45 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
   console.log(`Executing node ${node.id} (${node.type}) for contact ${contactId}`);
 
   try {
-    if (node.type === 'message' || node.type === 'text') {
-      const text = node.data?.text || node.data?.content;
-      if (text) {
+    if (node.type === 'message' || node.type === 'text' || node.type === 'question' || node.type === 'wait_response') {
+      const text = node.data?.text || node.data?.content || node.data?.question || "";
+      const buttons = node.data?.buttons || [];
+      
+      if (buttons && buttons.length > 0) {
+        // Enviar como mensagem interativa com botões (Meta Interactive Buttons)
+        await supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { 
+            action: 'sendMessage', 
+            to: waId, 
+            contactId,
+            interactive: {
+              type: 'button',
+              body: { text: text || "Escolha uma opção:" },
+              action: {
+                buttons: buttons.slice(0, 3).map((btn: any, index: number) => ({
+                  type: 'reply',
+                  reply: {
+                    id: btn.id || `btn_${index}`,
+                    title: btn.label || btn.text || `Opção ${index + 1}`
+                  }
+                }))
+              }
+            }
+          }
+        });
+      } else if (text) {
         await supabase.functions.invoke('meta-whatsapp-crm', {
           body: { action: 'sendMessage', to: waId, text, contactId }
         });
+      }
+
+      if (node.type === 'question' || node.type === 'wait_response') {
+        console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
+        await supabase.from('crm_contacts').update({
+          flow_state: 'waiting_response',
+          next_execution_time: null
+        }).eq('id', contactId);
+        return { success: true, message: 'Sent interactive buttons and waiting for response' };
       }
     } else if (node.type === 'image' || node.type === 'video' || node.type === 'audio' || node.type === 'document') {
       const mediaUrl = node.data?.url || node.data?.mediaUrl;
@@ -45,32 +78,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
         
         console.log(`Delay node ${node.id}: Scheduled next node ${edge.target} at ${nextExecution}`);
         return { success: true, message: `Delay scheduled for ${waitTime}s` };
-      } else {
-        console.log(`Delay node ${node.id}: No next edge found, ending flow.`);
-        await supabase.from('crm_contacts').update({
-          flow_state: 'idle',
-          current_flow_id: null,
-          current_node_id: null,
-          next_execution_time: null
-        }).eq('id', contactId);
-        return { success: true, message: 'End of flow at delay' };
       }
-    } else if (node.type === 'wait_response' || node.type === 'question') {
-      // Send the content of the node (the question text/buttons)
-      const text = node.data?.text || node.data?.content || node.data?.question;
-      if (text) {
-        await supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'sendMessage', to: waId, text, contactId }
-        });
-      }
-
-      console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
-      await supabase.from('crm_contacts').update({
-        flow_state: 'waiting_response',
-        next_execution_time: null // Stop the scheduler from re-running this node
-      }).eq('id', contactId);
-      
-      return { success: true, message: 'Sent question and waiting for user response' };
     }
 
     // Find next node based on handle or standard connection
@@ -79,11 +87,8 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
     if (edge) {
       const nextNode = flow.nodes?.find((n: any) => n.id === edge.target);
       if (nextNode) {
-        // Use delayAfter from node data or default to 2s to prevent race conditions in Meta/DB
         const delay = parseInt(node.data?.delayAfter || '2');
-        
         console.log(`Scheduling next node ${nextNode.id} with ${delay}s delay`);
-        
         const nextTime = new Date(Date.now() + delay * 1000).toISOString();
         await supabase.from('crm_contacts').update({
           current_node_id: nextNode.id,
@@ -95,7 +100,6 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       }
     }
 
-    // End of flow or no transition - set to idle
     console.log(`End of flow reached for contact ${contactId}`);
     await supabase.from('crm_contacts').update({
       flow_state: 'idle',
@@ -116,8 +120,6 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
 }
 
 export async function processStep(supabase: any, step: any, contactId: string, waId: string) {
-  // Legacy step processor
   console.log(`Executing legacy step ${step.id} for contact ${contactId}`);
-  // ... basic implementation to avoid errors
   return { success: true };
 }
