@@ -510,7 +510,7 @@ serve(async (req) => {
             })
             .eq('id', contactId)
           
-          return await executeVisualNode(supabase, flow, nextNode, contactId, waId)
+          return jsonResponse(await executeVisualNode(supabase, flow, nextNode, contactId, waId))
         }
 
         // No more nodes, finish flow
