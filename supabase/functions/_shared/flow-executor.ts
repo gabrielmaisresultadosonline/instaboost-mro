@@ -4,7 +4,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
   console.log(`Executing node ${node.id} (${node.type}) for contact ${contactId}`);
 
   try {
-    if (node.type === 'message' || node.type === 'text' || node.type === 'question' || node.type === 'wait_response') {
+    if (node.type === 'message' || node.type === 'text' || node.type === 'question' || node.type === 'wait_response' || node.type === 'waitResponse') {
       const text = node.data?.text || node.data?.content || node.data?.question || "";
       const buttons = node.data?.buttons || [];
       
@@ -38,7 +38,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
 
       // If it's just a message (not waiting for response), we don't return here, 
       // we let it continue to the "find next node" logic at the end of function
-      if (node.type === 'question' || node.type === 'wait_response') {
+      if (node.type === 'question' || node.type === 'wait_response' || node.type === 'waitResponse') {
         // Find timeout edge
         const timeoutEdge = flow.edges?.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout');
         const timeoutMinutes = parseInt(node.data?.timeout || '20');
@@ -124,7 +124,7 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
     // Find next node based on handle or standard connection
     // BUT: If the current node was a question/wait_response, we ALREADY handled its state transition in the webhook
     // This part should only run for nodes that trigger a "next" automatically (like message, audio, etc.)
-    if (node.type !== 'question' && node.type !== 'wait_response' && node.type !== 'delay') {
+    if (node.type !== 'question' && node.type !== 'wait_response' && node.type !== 'waitResponse' && node.type !== 'delay') {
       const edge = flow.edges?.find((e: any) => e.source === node.id && !e.sourceHandle);
       
       if (edge) {
