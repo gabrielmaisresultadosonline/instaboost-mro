@@ -2015,7 +2015,21 @@ const CRM = () => {
             </div>
             {activeTab === 'contacts' && (
               <div className="flex items-center gap-2 md:gap-3">
-                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm">
+                <Button 
+                  variant={activeFlowsView ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => { setActiveFlowsView(!activeFlowsView); setKanbanView(false); }} 
+                  className={cn("font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm", activeFlowsView && "bg-primary text-white")}
+                >
+                  <GitBranch className="w-4 h-4 mr-2" />
+                  FLUXOS ATIVOS
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => { setKanbanView(!kanbanView); setActiveFlowsView(false); }} 
+                  className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm"
+                >
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
