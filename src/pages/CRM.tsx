@@ -2022,7 +2022,7 @@ const CRM = () => {
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                     <Card 
                       className="relative overflow-hidden border-orange-200/50 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/60 to-transparent dark:from-orange-950/20 cursor-pointer hover:shadow-md transition-all"
                       onClick={() => handleOpenMetricsList('paid')}
@@ -2030,10 +2030,10 @@ const CRM = () => {
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-orange-700 dark:text-orange-400">
-                            Conversas Pagas (Iniciadas por mim)
+                            Conversas Pagas (Mês)
                           </CardDescription>
                           <p className="text-[10px] text-muted-foreground mt-0.5 capitalize truncate">
-                            {conversationStats.monthLabel || 'Este mês'} · R$ {CONVERSATION_COST.toFixed(2).replace('.', ',')} por conversa
+                            R$ {CONVERSATION_COST.toFixed(2).replace('.', ',')} por conversa
                           </p>
                         </div>
                         <DollarSign className="w-5 h-5 text-orange-500 shrink-0" />
@@ -2047,44 +2047,65 @@ const CRM = () => {
                             {conversationStats.paidThisMonth} conv.
                           </Badge>
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-2">
-                          Conta apenas conversas iniciadas por você fora da janela de 24h. Clique para ver a lista.
-                        </p>
                       </CardContent>
                     </Card>
 
                     <Card 
                       className="relative overflow-hidden border-emerald-200/50 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/60 to-transparent dark:from-emerald-950/20 cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => handleOpenMetricsList('active')}
                     >
                       <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
                         <div className="min-w-0">
                           <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                            Conversas Grátis (Janela 24h)
+                          </CardDescription>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Janela aberta de resposta gratuita
+                          </p>
+                        </div>
+                        <Clock className="w-5 h-5 text-emerald-500 shrink-0" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                            {conversationStats.activeWindow24h}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] font-bold border-emerald-300 text-emerald-700 dark:text-emerald-400">
+                            ativas
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card 
+                      className="relative overflow-hidden border-blue-200/50 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/60 to-transparent dark:from-blue-950/20 cursor-pointer hover:shadow-md transition-all"
+                    >
+                      <CardHeader className="flex flex-row items-start justify-between pb-2 gap-2">
+                        <div className="min-w-0">
+                          <CardDescription className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-blue-700 dark:text-blue-400">
                             Resumo Semanal (7 dias)
                           </CardDescription>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Performance da última semana
+                            Interações na última semana
                           </p>
                         </div>
-                        <Calendar className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <Calendar className="w-5 h-5 text-blue-500 shrink-0" />
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1 cursor-pointer hover:bg-emerald-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_paid')}>
+                          <div className="space-y-1 cursor-pointer hover:bg-blue-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_paid')}>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Pagas</p>
-                            <div className="text-xl font-black text-emerald-600">
+                            <div className="text-xl font-black text-blue-600">
                               {conversationStats.paidThisWeek}
                             </div>
                           </div>
-                          <div className="space-y-1 cursor-pointer hover:bg-emerald-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_active')}>
+                          <div className="space-y-1 cursor-pointer hover:bg-blue-500/5 p-2 rounded-lg transition-colors" onClick={() => handleOpenMetricsList('weekly_active')}>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Ativas</p>
-                            <div className="text-xl font-black text-emerald-600">
+                            <div className="text-xl font-black text-blue-600">
                               {conversationStats.activeThisWeek}
                             </div>
                           </div>
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-2">
-                          Contatos únicos que interagiram nos últimos 7 dias. Clique nos números para ver a lista.
-                        </p>
                       </CardContent>
                     </Card>
                   </div>
