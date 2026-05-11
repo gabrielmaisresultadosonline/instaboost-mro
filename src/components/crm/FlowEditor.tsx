@@ -233,8 +233,8 @@ const CRMActionNode = ({ data }: any) => (
     </CardHeader>
     <CardContent className="p-3">
       <p className="text-[10px] font-bold text-slate-600">{data.action || 'Notificar Agente'}</p>
-      {data.action === 'Adicionar Etiqueta' && data.statusLabel && (
-        <Badge variant="outline" className="mt-1 text-[8px] h-4 bg-slate-50">{data.statusLabel}</Badge>
+      {data.action === 'Adicionar Etiqueta' && (data.statusLabel || data.statusValue) && (
+        <Badge variant="outline" className="mt-1 text-[8px] h-4 bg-slate-50">{data.statusLabel || data.statusValue}</Badge>
       )}
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
@@ -537,7 +537,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       ...flow,
       name: flowName,
       trigger_type: triggerType,
-      trigger_keywords: triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
+      trigger_keywords: triggerType === 'exact_phrase' ? [triggerKeywords.trim()] : triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
       trigger_tag: triggerTag,
       is_active: isActive,
       nodes,
