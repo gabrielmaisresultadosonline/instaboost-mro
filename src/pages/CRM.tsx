@@ -284,6 +284,7 @@ const CRM = () => {
   const [metricsListData, setMetricsListData] = useState<any[]>([]);
   const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState<any>(null);
+  const [activeFlowsView, setActiveFlowsView] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -2014,7 +2015,21 @@ const CRM = () => {
             </div>
             {activeTab === 'contacts' && (
               <div className="flex items-center gap-2 md:gap-3">
-                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)} className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm">
+                <Button 
+                  variant={activeFlowsView ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => { setActiveFlowsView(!activeFlowsView); setKanbanView(false); }} 
+                  className={cn("font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm", activeFlowsView && "bg-primary text-white")}
+                >
+                  <GitBranch className="w-4 h-4 mr-2" />
+                  FLUXOS ATIVOS
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => { setKanbanView(!kanbanView); setActiveFlowsView(false); }} 
+                  className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm"
+                >
                   {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
@@ -2236,7 +2251,99 @@ const CRM = () => {
 
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
-                {kanbanView ? (
+                {activeFlowsView ? (
+                  <div className="flex-1 overflow-y-auto p-4 bg-muted/5">
+                    <div className="max-w-5xl mx-auto space-y-4">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h2 className="text-xl font-bold tracking-tight">Fluxos em Andamento</h2>
+                          <p className="text-muted-foreground text-sm">Contatos que estão interagindo com automações agora.</p>
+                        </div>
+                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-black px-3 py-1">
+                          {contacts.filter(c => c.flow_state && c.flow_state !== 'idle').length} ATIVOS
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3">
+                        {contacts.filter(c => c.flow_state && c.flow_state !== 'idle').length === 0 ? (
+                          <div className="py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted">
+                            <GitBranch className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
+                            <h3 className="text-lg font-medium">Nenhum fluxo ativo no momento</h3>
+                            <p className="text-sm text-muted-foreground">Novos fluxos aparecerão aqui conforme os gatilhos forem acionados.</p>
+                          </div>
+                        ) : (
+                          contacts.filter(c => c.flow_state && c.flow_state !== 'idle').map(contact => {
+                            const flow = flows.find(f => f.id === contact.current_flow_id);
+                            return (
+                              <Card key={contact.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow rounded-xl">
+                                <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                                      <User className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <h4 className="font-bold text-sm md:text-base truncate">{contact.name || contact.wa_id}</h4>
+                                        <Badge className="text-[10px] bg-primary/10 text-primary hover:bg-primary/20 border-none">
+                                          {flow?.name || 'Fluxo Desconhecido'}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                          <div className={cn("w-1.5 h-1.5 rounded-full animate-ping", contact.flow_state === 'error' ? "bg-red-500" : "bg-green-500")} />
+                                          <span className="capitalize font-medium">{contact.flow_state}</span>
+                                        </div>
+                                        {contact.next_execution_time && (
+                                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-primary tabular-nums">
+                                            <Clock className="w-3 h-3" />
+                                            Próxima ação em: {(() => {
+                                              const next = new Date(contact.next_execution_time).getTime();
+                                              const diff = Math.max(0, Math.floor((next - now) / 1000));
+                                              return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Processando...';
+                                            })()}
+                                          </div>
+                                        )}
+                                        {contact.last_flow_interaction && (
+                                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                            <CalendarClock className="w-3 h-3" />
+                                            Última interação: {new Date(contact.last_flow_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="h-9 px-4 font-bold border-primary/20 text-primary hover:bg-primary/5"
+                                      onClick={() => {
+                                        openChat(contact);
+                                        setActiveFlowsView(false);
+                                      }}
+                                    >
+                                      VER CONVERSA
+                                    </Button>
+                                    <Button 
+                                      variant="destructive" 
+                                      size="sm" 
+                                      className="h-9 px-4 font-bold shadow-sm"
+                                      onClick={() => handleCancelFlow(contact.id)}
+                                    >
+                                      <StopCircle className="w-4 h-4 mr-2" />
+                                      PARAR FLUXO
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : kanbanView ? (
                   <div className="flex-1 overflow-x-auto p-3 md:p-4 flex gap-3 md:gap-4 bg-muted/5 snap-x relative group/kanban">
                     <div className="absolute top-0 left-0 p-2 z-10 opacity-0 group-hover/kanban:opacity-100 transition-opacity">
                       <Button 
