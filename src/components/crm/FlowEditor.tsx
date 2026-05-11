@@ -492,43 +492,29 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
 
   const addNode = (type: string) => {
     const id = `${type}_${Date.now()}`;
-    
-    // Get center of the flow container
-    const flowContainer = document.querySelector('.react-flow');
-    let centerPosition = { x: 100, y: 100 };
-    
-    if (flowContainer) {
-      const rect = flowContainer.getBoundingClientRect();
-      centerPosition = screenToFlowPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      });
+    const position = { x: 100, y: 100 };
+    let data: any = {};
+
+    switch (type) {
+      case 'message': data = { text: 'Nova mensagem de texto' }; break;
+      case 'audio': data = { audioUrl: '', fileName: '', isPTT: true }; break;
+      case 'video': data = { videoUrl: '', fileName: '' }; break;
+      case 'image': data = { imageUrl: '', fileName: '' }; break;
+      case 'delay': data = { delay: 5, unit: 'segundos' }; break;
+      case 'question': data = { text: 'Qual a sua dúvida?', buttons: [{ text: 'Opção 1', id: 'opt1' }, { text: 'Opção 2', id: 'opt2' }], anyResponse: false }; break;
+      case 'followup': data = { timeout: 20 }; break;
+      case 'waitResponse': data = { timeout: 20 }; break;
+      case 'crmAction': data = { action: 'Adicionar Etiqueta', statusLabel: 'new' }; break;
+      case 'template': data = { templateName: '', language: 'pt_BR', anyResponse: false }; break;
+      case 'jump': data = { targetFlowId: '', targetFlowName: '' }; break;
+      case 'aiAgent': data = { prompt: '', labelOnHumanTransfer: 'Atenção: Humano Necessário' }; break;
     }
 
     const newNode: Node = {
       id,
       type,
-      position: centerPosition,
-      data: { 
-        text: type === 'message' ? 'Olá, como posso ajudar?' : '',
-        buttons: type === 'question' ? [{ text: 'Sim', id: 'btn-0' }, { text: 'Não', id: 'btn-1' }] : [],
-        anyResponse: false,
-        delay: 5,
-        unit: 'segundos',
-        timeout: 20,
-        isPTT: type === 'audio',
-        fileName: '',
-        action: type === 'crmAction' ? 'Notificar Agente' : '',
-        statusValue: '',
-        templateName: '',
-        templateId: '',
-        language: '',
-        bodyText: '',
-        status: '',
-        category: '',
-        targetFlowId: '',
-        targetFlowName: ''
-      },
+      position,
+      data,
     };
     setNodes((nds) => nds.concat(newNode));
   };
