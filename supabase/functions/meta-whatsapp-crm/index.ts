@@ -313,7 +313,7 @@ serve(async (req) => {
             contact.current_node_id = contact.flow_timeout_node_id;
           }
 
-          console.log(`Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id}`);
+          console.log(`[FLOW-RESUME] Resuming flow for contact ${contact.wa_id} at node ${contact.current_node_id} (State: ${contact.flow_state})`);
           
           const { data: flow } = await supabase
             .from('crm_flows')
