@@ -33,8 +33,26 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
     .map((m: any) => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
     .join('\n');
     
-  const aiPrompt = contact.metadata?.ai_agent_prompt || "Você é um assistente prestativo.";
-  const labelOnTransfer = contact.metadata?.ai_agent_label_on_transfer || "";
+  let aiPrompt = contact.metadata?.ai_agent_prompt || "";
+  let labelOnTransfer = contact.metadata?.ai_agent_label_on_transfer || "";
+
+  // Fallback essencial: se o contato ficou preso no nó de IA sem metadata,
+  // busca o prompt diretamente do nó salvo no fluxo visual.
+  if ((!aiPrompt || !labelOnTransfer) && contact.current_flow_id && contact.current_node_id) {
+    const { data: flowConfig } = await supabase
+      .from('crm_flows')
+      .select('nodes')
+      .eq('id', contact.current_flow_id)
+      .maybeSingle();
+
+    const aiNode = flowConfig?.nodes?.find((n: any) => n.id === contact.current_node_id && n.type === 'aiAgent');
+    if (aiNode?.data) {
+      aiPrompt = aiPrompt || aiNode.data.prompt || "";
+      labelOnTransfer = labelOnTransfer || aiNode.data.labelOnHumanTransfer || "";
+    }
+  }
+
+  if (!aiPrompt) aiPrompt = "Você é um assistente prestativo.";
   
   // 3. Obter configurações e chave OpenAI
   const { data: settings } = await supabase.from('crm_settings').select('openai_api_key, meta_phone_number_id, meta_access_token, vps_transcoder_url').single();
@@ -105,7 +123,10 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
       await supabase.from('crm_contacts').update({ 
         flow_state: 'idle', 
         ai_active: false,
-        status: labelOnTransfer || 'human'
+        status: labelOnTransfer || 'human',
+        current_flow_id: null,
+        current_node_id: null,
+        next_execution_time: null
       }).eq('id', contact.id);
       
     } else if (reply) {
