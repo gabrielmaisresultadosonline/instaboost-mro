@@ -21,6 +21,26 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     }
   }
 
+  // Registra a mensagem recebida para visibilidade no CRM
+  const { data: contactForSave } = await supabase
+    .from('crm_contacts')
+    .select('id')
+    .eq('wa_id', waId)
+    .single();
+
+  if (contactForSave) {
+    await supabase.from('crm_messages').insert({
+      contact_id: contactForSave.id,
+      direction: 'inbound',
+      message_type: message.type,
+      content: text || `[${message.type}]`,
+      status: 'received',
+      meta_message_id: message.id,
+      metadata: { raw: message }
+    });
+    await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contactForSave.id);
+  }
+
   const { data: contact } = await supabase
     .from('crm_contacts')
     .select('*')
@@ -1121,79 +1141,7 @@ serve(async (req) => {
     }
     if (action === 'processWebhook') {
       const { entry } = params;
-      if (!entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
-        return jsonResponse({ success: true });
-      }
-
-      const message = entry[0].changes[0].value.messages[0];
-      const waId = message.from;
-      let text = '';
-      let buttonId = '';
-
-      if (message.type === 'text') {
-        text = message.text.body;
-      } else if (message.type === 'interactive') {
-        if (message.interactive.type === 'button_reply') {
-          buttonId = message.interactive.button_reply.id;
-          text = message.interactive.button_reply.title;
-        }
-      }
-
-      // Find contact with active flow
-      const { data: contact } = await supabase
-        .from('crm_contacts')
-        .select('*')
-        .eq('wa_id', waId)
-        .eq('flow_state', 'waiting_response')
-        .single();
-
-      console.log(`[WEBHOOK] Mensagem de ${waId}. Estado do fluxo: ${contact ? 'waiting_response' : 'idle/other'}`);
-
-      if (contact && contact.current_flow_id) {
-        console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow from node ${contact.current_node_id}...`);
-        // We use a small fetch to ourselves or call continueFlow logic
-        const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
-        if (flow) {
-          const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
-          if (currentNode) {
-             // Logic identical to continueFlow
-             let nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId);
-             
-             if (!nextEdge && text) {
-                const matchedButtonIdx = currentNode.data?.buttons?.findIndex((b: any) => 
-                  b.text?.toLowerCase().trim() === text.toLowerCase().trim()
-                );
-                if (matchedButtonIdx !== -1) {
-                  const handleId = currentNode.data.buttons[matchedButtonIdx].id || `btn-${matchedButtonIdx}`;
-                  nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === handleId);
-                }
-             }
-
-             if (!nextEdge) {
-               nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && (e.sourceHandle === 'responded' || e.sourceHandle === 'any_response'));
-             }
-
-             if (nextEdge) {
-               const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target);
-               if (nextNode) {
-                 const { data: updatedContact, error: updateError } = await supabase.from('crm_contacts').update({
-                   current_node_id: nextNode.id,
-                   flow_state: 'running',
-                   last_flow_interaction: new Date().toISOString(),
-                   next_execution_time: null // Prevent scheduled execution from picking this up
-                 }).eq('id', contact.id)
-                 .eq('flow_state', 'waiting_response')
-                 .select();
-
-                 if (updatedContact && updatedContact.length > 0) {
-                   await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
-                 }
-               }
-             }
-          }
-        }
-      }
-      return jsonResponse({ success: true });
+      return await handleProcessWebhook(supabase, entry);
     }
 
 
