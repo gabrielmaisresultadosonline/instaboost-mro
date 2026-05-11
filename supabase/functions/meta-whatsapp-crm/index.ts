@@ -690,6 +690,8 @@ serve(async (req) => {
 
         if (connections.length > 0) {
           const upsertBatch = [];
+          const seenWaIds = new Set();
+          
           for (const person of connections) {
             const name = person.names?.[0]?.displayName;
             const phoneNumbers = person.phoneNumbers || [];
@@ -706,6 +708,13 @@ serve(async (req) => {
                 if (!phone.startsWith('55')) phone = `55${phone}`;
               }
 
+              // Check for duplicates within the same batch to avoid "ON CONFLICT DO UPDATE command cannot affect row a second time"
+              if (seenWaIds.has(phone)) {
+                console.log(`[SYNC] Skipping duplicate phone in batch: ${phone}`);
+                continue;
+              }
+              seenWaIds.add(phone);
+
               upsertBatch.push({
                 wa_id: phone,
                 name: name || null,
@@ -716,15 +725,12 @@ serve(async (req) => {
           }
 
           if (upsertBatch.length > 0) {
-            console.log(`[SYNC] Tentando upsert de batch com ${upsertBatch.length} registros...`);
-            for (let i = 0; i < upsertBatch.length; i += 100) {
-              const chunk = upsertBatch.slice(i, i + 100);
-              const { error: upsertError } = await supabase.from('crm_contacts').upsert(chunk, { onConflict: 'wa_id' });
-              if (!upsertError) {
-                count += chunk.length;
-              } else {
-                console.error('[SYNC] Upsert Error:', upsertError);
-              }
+            console.log(`[SYNC] Tentando upsert de batch com ${upsertBatch.length} registros únicos...`);
+            const { error: upsertError } = await supabase.from('crm_contacts').upsert(upsertBatch, { onConflict: 'wa_id' });
+            if (!upsertError) {
+              count += upsertBatch.length;
+            } else {
+              console.error('[SYNC] Upsert Error:', upsertError);
             }
           }
         }
