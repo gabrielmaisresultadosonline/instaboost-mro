@@ -273,7 +273,7 @@ serve(async (req) => {
       
       const { data: contactsToProcess, error: fetchError } = await supabase
         .from('crm_contacts')
-        .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction')
+        .select('id, wa_id, current_flow_id, current_node_id, flow_timeout_minutes, flow_timeout_node_id, last_flow_interaction, flow_state')
         .neq('flow_state', 'idle')
         .or(`next_execution_time.lte.${now},flow_state.eq.waiting_response`)
         .limit(20);
@@ -316,10 +316,15 @@ serve(async (req) => {
           const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
           if (currentNode) {
             // Important: Clear execution/state to avoid loops
-            await supabase.from('crm_contacts').update({ 
+            const { data: updated, error: updateError } = await supabase.from('crm_contacts').update({ 
               next_execution_time: null,
-              flow_state: 'running'
-            }).eq('id', contact.id);
+              flow_state: 'running',
+              flow_timeout_node_id: null
+            }).eq('id', contact.id)
+            .neq('flow_state', 'idle')
+            .select();
+
+            if (updateError || !updated || updated.length === 0) continue;
             
             const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
             results.push({ contactId: contact.id, result: res });
