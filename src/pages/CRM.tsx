@@ -2713,15 +2713,15 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-4 border-b flex flex-col md:flex-row md:justify-between md:items-center gap-3 bg-card/80 backdrop-blur-md shadow-sm z-10 shrink-0 w-full min-w-0">
-                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 w-full overflow-hidden">
+                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-3 bg-card/80 backdrop-blur-md shadow-sm z-10 shrink-0 w-full min-w-0">
+                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 overflow-hidden">
                               <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
                               <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0 w-full">
-                                  <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 min-w-0 flex-1 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
-                                    <span className="truncate flex-1">{selectedContact.name || selectedContact.wa_id}</span>
+                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0 w-full overflow-hidden">
+                                  <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 md:gap-2 min-w-0 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
+                                    <span className="truncate shrink grow min-w-0">{selectedContact.name || selectedContact.wa_id}</span>
                                     {selectedContact.google_sync_account_id && (
                                       <span className="w-4 h-4 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
                                          <span className="text-[7px] font-bold text-white">G</span>
