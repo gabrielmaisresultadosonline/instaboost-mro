@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { executeVisualNode, processStep } from "../_shared/flow-executor.ts"
 
-async function handleProcessWebhook(supabase: any, entry: any) {
+async function handleProcessWebhook(supabase: any, entry: any, skipSave = false) {
   if (!entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
     return jsonResponse({ success: true });
   }
@@ -21,14 +21,14 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     }
   }
 
-  // Registra a mensagem recebida para visibilidade no CRM
+  // Registra a mensagem recebida para visibilidade no CRM (se não for skipSave)
   const { data: contactForSave } = await supabase
     .from('crm_contacts')
     .select('id')
     .eq('wa_id', waId)
     .single();
 
-  if (contactForSave) {
+  if (contactForSave && !skipSave) {
     await supabase.from('crm_messages').insert({
       contact_id: contactForSave.id,
       direction: 'inbound',
@@ -41,15 +41,15 @@ async function handleProcessWebhook(supabase: any, entry: any) {
     await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contactForSave.id);
   }
 
+  // Busca contato SEM filtrar por idle, para permitir que a IA Global funcione mesmo se o contato estiver em estado idle
   const { data: contact } = await supabase
     .from('crm_contacts')
     .select('*')
     .eq('wa_id', waId)
-    .neq('flow_state', 'idle')
     .single();
 
   if (contact && contact.flow_state === 'ai_handling') {
-    console.log(`[WEBHOOK] Contact ${waId} is in AI handling state. Calling AI Agent...`);
+    console.log(`[WEBHOOK] Contact ${waId} is in AI handling state (Flow AI Agent). Calling AI Agent...`);
     
     // 1. Obter contexto da conversa
     const { data: recentMessages } = await supabase
@@ -210,41 +210,6 @@ async function handleProcessWebhook(supabase: any, entry: any) {
       }
     }
     return jsonResponse({ success: true });
-
-    console.log(`[WEBHOOK] Contact ${waId} replied, continuing flow...`);
-    const { data: flow } = await supabase.from('crm_flows').select('*').eq('id', contact.current_flow_id).single();
-    if (flow) {
-      const currentNode = flow.nodes?.find((n: any) => n.id === contact.current_node_id);
-      if (currentNode) {
-         let nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId);
-         if (!nextEdge && text) {
-            const matchedButtonIdx = currentNode.data?.buttons?.findIndex((b: any) => 
-              b.text?.toLowerCase().trim() === text.toLowerCase().trim()
-            );
-            if (matchedButtonIdx !== -1) {
-              const handleId = currentNode.data.buttons[matchedButtonIdx].id || `btn-${matchedButtonIdx}`;
-              nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === handleId);
-            }
-         }
-         if (!nextEdge) {
-           nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && (e.sourceHandle === 'responded' || e.sourceHandle === 'any_response'));
-         }
-         if (nextEdge) {
-           const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target);
-           if (nextNode) {
-            const { data: updated } = await supabase.from('crm_contacts').update({
-              current_node_id: nextNode.id,
-              flow_state: 'running',
-              last_flow_interaction: new Date().toISOString()
-            }).eq('id', contact.id).eq('flow_state', 'waiting_response').select();
-            
-            if (updated && updated.length > 0) {
-              await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
-            }
-           }
-         }
-      }
-    }
   }
   return jsonResponse({ success: true });
 }
@@ -1278,8 +1243,8 @@ serve(async (req) => {
     // Legacy action block removed to prevent duplication with main processScheduled at line 332
 
     if (action === 'processWebhook') {
-      const { entry } = params;
-      return await handleProcessWebhook(supabase, entry);
+      const { entry, skipSave } = params;
+      return await handleProcessWebhook(supabase, entry, skipSave);
     }
 
 
