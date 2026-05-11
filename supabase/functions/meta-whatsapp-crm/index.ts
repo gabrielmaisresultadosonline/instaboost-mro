@@ -168,7 +168,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   return uploadResult.id
 }
 
-async function handleInternalSendMessage(supabase: any, phoneNumberId: string, accessToken: string, params: any, contact: any) {
+async function handleInternalSendMessage(supabase: any, phoneNumberId: string, accessToken: string, params: any, contact: any, vpsTranscoderUrl?: string) {
   if (!phoneNumberId || !accessToken) throw new Error('Credenciais Meta não configuradas')
   const to = normalizePhone(params.to)
   if (!to) throw new Error('Telefone inválido')
@@ -181,6 +181,48 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     payload.type = 'interactive';
     payload.interactive = params.interactive;
   } else if (media) {
+    if (media.type === 'audio' && vpsTranscoderUrl) {
+      console.log(`[AUDIO-VPS] Usando Transcoder para enviar como gravado: ${vpsTranscoderUrl}`);
+      try {
+        const vpsUrl = vpsTranscoderUrl.replace(/\/$/, '');
+        const vpsResponse = await fetch(`${vpsUrl}/send-voice`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: normalizePhone(params.to),
+            audioUrl: media.url,
+            metaToken: accessToken,
+            phoneId: phoneNumberId,
+            sendAsVoice: true
+          })
+        });
+        
+        const vpsResult = await vpsResponse.json().catch(() => ({}));
+        if (vpsResponse.ok) {
+          console.log(`[AUDIO-VPS] Sucesso via VPS:`, JSON.stringify(vpsResult));
+          const msgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
+          
+          if (contact && !params.skipLocalSave) {
+            await supabase.from('crm_messages').insert({
+              contact_id: contact.id,
+              direction: 'outbound',
+              message_type: 'audio',
+              content: '[Mensagem de Áudio]',
+              media_url: media.url,
+              status: 'sent',
+              meta_message_id: msgId,
+              metadata: { source: 'vps_flow', is_voice: true }
+            });
+            await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contact.id);
+          }
+          return jsonResponse({ success: true, messageId: msgId, result: vpsResult });
+        }
+        console.error(`[AUDIO-VPS] VPS retornou erro, tentando envio padrão:`, vpsResult);
+      } catch (vpsErr) {
+        console.error(`[AUDIO-VPS] Erro ao conectar com VPS, tentando envio padrão:`, vpsErr);
+      }
+    }
+
     console.log(`[MEDIA] Iniciando upload de ${media.type} para Meta. URL: ${media.url}`);
     let mediaId;
     try {
