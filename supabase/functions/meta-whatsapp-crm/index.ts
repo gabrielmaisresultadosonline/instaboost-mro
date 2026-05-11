@@ -95,7 +95,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   const mediaResponse = await fetch(media.url)
   if (!mediaResponse.ok) throw new Error(`Falha ao baixar mídia (${mediaResponse.status})`)
   const contentType = mediaResponse.headers.get('content-type') || media.mime
-  const blob = new Blob([await mediaResponse.arrayBuffer()], { type: contentType })
+  const blob = new Blob([await mediaResponse.arrayBuffer()], { type: 'audio/ogg; codecs=opus' })
   const form = new FormData()
   form.append('messaging_product', 'whatsapp')
   // A Meta exige 'audio/ogg; codecs=opus' para que seja reconhecido como mensagem de voz
