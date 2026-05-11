@@ -1154,12 +1154,18 @@ serve(async (req) => {
              if (nextEdge) {
                const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target);
                if (nextNode) {
-                 await supabase.from('crm_contacts').update({
+                 const { data: updatedContact, error: updateError } = await supabase.from('crm_contacts').update({
                    current_node_id: nextNode.id,
                    flow_state: 'running',
-                   last_flow_interaction: new Date().toISOString()
-                 }).eq('id', contact.id);
-                 await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+                   last_flow_interaction: new Date().toISOString(),
+                   next_execution_time: null // Prevent scheduled execution from picking this up
+                 }).eq('id', contact.id)
+                 .eq('flow_state', 'waiting_response')
+                 .select();
+
+                 if (updatedContact && updatedContact.length > 0) {
+                   await executeVisualNode(supabase, flow, nextNode, contact.id, waId);
+                 }
                }
              }
           }
