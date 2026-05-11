@@ -284,6 +284,7 @@ const CRM = () => {
   const [metricsListData, setMetricsListData] = useState<any[]>([]);
   const [metricsChartData, setMetricsChartData] = useState<any[]>([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState<any>(null);
+  const [activeFlowsView, setActiveFlowsView] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
