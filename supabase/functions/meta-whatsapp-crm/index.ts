@@ -119,7 +119,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
   if (!to) throw new Error('Telefone inválido')
 
   const media = guessMedia(params)
-  const isVoice = params.isVoice === true;
+  const isVoice = params.isVoice === true || media?.type === 'audio';
   const payload: any = { messaging_product: 'whatsapp', recipient_type: 'individual', to }
   
   if (params.interactive) {
