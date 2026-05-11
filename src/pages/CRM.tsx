@@ -832,6 +832,11 @@ const CRM = () => {
   const fetchMessages = async (contactId: string) => {
     const { data } = await supabase.from('crm_messages').select('*').eq('contact_id', contactId).order('created_at', { ascending: true });
     setChatMessages(data || []);
+    
+    // Marcar como lido ao buscar mensagens se este for o contato selecionado
+    if (selectedContactRef.current?.id === contactId) {
+      await supabase.from('crm_contacts').update({ last_read_at: new Date().toISOString() }).eq('id', contactId);
+    }
   };
 
   const handleSendMessage = async () => {
