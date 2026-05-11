@@ -170,6 +170,8 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
       // Para enviar como mensagem de voz (gravado na hora), usamos o objeto "audio"
       payload.type = 'audio';
       payload.audio = { id: mediaId };
+      // Importante: Marcar explicitamente como mensagem de voz na Meta
+      console.log(`[MEDIA] Enviando ID ${mediaId} como áudio PTT.`);
     } else if (media.type === 'document') {
       payload.document = { id: mediaId, filename: media.fileName };
     } else {
@@ -185,6 +187,7 @@ async function handleInternalSendMessage(supabase: any, phoneNumberId: string, a
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
+  console.log(`[META-SEND] Payload enviado para Meta:`, JSON.stringify(payload));
   const result = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(result?.error?.message || 'Erro ao enviar mensagem pela Meta')
 

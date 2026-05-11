@@ -39,11 +39,11 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       // If it's just a message (not waiting for response), we don't return here, 
       // we let it continue to the "find next node" logic at the end of function
       if (node.type === 'question' || node.type === 'wait_response') {
-        console.log(`Node ${node.id} is a wait/question node. Setting state to waiting_response.`);
-        
         // Find timeout edge
         const timeoutEdge = flow.edges?.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout');
         const timeoutMinutes = parseInt(node.data?.timeout || '20');
+        
+        console.log(`[EXECUTOR] Node ${node.id} is a wait/question node. Timeout minutes: ${timeoutMinutes}, Target: ${timeoutEdge?.target}`);
         
         await supabase.from('crm_contacts').update({
           flow_state: 'waiting_response',
