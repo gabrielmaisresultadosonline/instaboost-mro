@@ -357,7 +357,7 @@ serve(async (req) => {
                     if (triggeredFlow) {
                       console.log(`Triggering flow ${triggeredFlow.name} for contact ${wa_id}`);
                       await supabase.functions.invoke('meta-whatsapp-crm', {
-                        body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id }
+                        body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id, text: content }
                       })
                       
                       return new Response('OK - Flow Triggered', { status: 200 })
