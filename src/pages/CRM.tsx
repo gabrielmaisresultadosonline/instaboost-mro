@@ -78,6 +78,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
@@ -1921,6 +1922,7 @@ const CRM = () => {
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
                     { id: 'templates', label: 'Templates', icon: FileText },
                     { id: 'ai-agent', label: 'Agente IA', icon: Bot },
+                    { id: 'ai-analysis', label: 'Análises IA', icon: TrendingUp },
                     { id: 'settings', label: 'Ajustes', icon: Settings },
                   ].map((item) => (
                     <SidebarMenuItem key={item.id}>
@@ -2877,58 +2879,122 @@ const CRM = () => {
                                     <Dialog>
                                       <DialogTrigger asChild>
                                         <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0">
-                                          <TrendingUp className="w-3 h-3 mr-1" /> <span className="hidden xs:inline">Gerar </span>Estratégia
+                                          <Bot className="w-3.5 h-3.5 mr-1" /> <span className="hidden xs:inline">Analises </span>IA
                                         </Button>
                                       </DialogTrigger>
-                                      <DialogContent className="sm:max-w-[500px]">
+                                      <DialogContent className="sm:max-w-[600px] rounded-3xl">
                                         <DialogHeader>
-                                          <DialogTitle className="flex items-center gap-2">
-                                            <TrendingUp className="w-5 h-5 text-purple-600" />
-                                            Análise Estratégica de Vendas
+                                          <DialogTitle className="flex items-center gap-2 text-xl">
+                                            <Zap className="w-6 h-6 text-indigo-600 animate-pulse" />
+                                            Análise Estratégica Inteligente
                                           </DialogTitle>
                                           <DialogDescription>
-                                            A IA analisará todo o histórico com <strong>{selectedContact.name || selectedContact.wa_id}</strong> para gerar gatilhos e estratégias de fechamento.
+                                            Histórico de análises e ferramentas de vendas para <strong>{selectedContact.name || selectedContact.wa_id}</strong>.
                                           </DialogDescription>
                                         </DialogHeader>
-                                        <div className="space-y-4 py-4">
-                                          {selectedContact.last_ai_strategy ? (
-                                            <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 border border-indigo-400/30 rounded-2xl p-6 shadow-xl overflow-hidden relative group text-white">
-                                              <div className="relative z-10">
-                                                <p className="text-[15px] text-white/95 leading-relaxed whitespace-pre-wrap font-medium">
+                                        
+                                        <Tabs defaultValue="current" className="w-full mt-4">
+                                          <TabsList className="grid w-full grid-cols-2 bg-muted/50 rounded-xl p-1">
+                                            <TabsTrigger value="current" className="rounded-lg font-bold text-xs">Análise Atual</TabsTrigger>
+                                            <TabsTrigger value="history" className="rounded-lg font-bold text-xs">Histórico (Analises IA)</TabsTrigger>
+                                          </TabsList>
+                                          
+                                          <TabsContent value="current" className="space-y-4 py-4">
+                                            {selectedContact.last_ai_strategy ? (
+                                              <div className="bg-muted/30 border rounded-2xl p-5 max-h-[350px] overflow-y-auto">
+                                                <p className="text-[14px] leading-relaxed whitespace-pre-wrap">
                                                   {selectedContact.last_ai_strategy}
                                                 </p>
                                               </div>
+                                            ) : (
+                                              <div className="text-center py-12 bg-muted/20 rounded-2xl border-2 border-dashed flex flex-col items-center gap-3">
+                                                <Bot className="w-8 h-8 opacity-20" />
+                                                <p className="text-sm font-bold text-muted-foreground">Nenhuma análise gerada para este contato.</p>
+                                              </div>
+                                            )}
+                                            
+                                            <div className="grid grid-cols-2 gap-3 pt-2">
+                                              <Button 
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-indigo-500/20"
+                                                onClick={async () => {
+                                                  setSendingMessage(true);
+                                                  try {
+                                                    const { data, error } = await supabase.functions.invoke('generate-strategy', {
+                                                      body: { contactId: selectedContact.id, action: 'crm_strategy' }
+                                                    });
+                                                    if (error) throw error;
+                                                    toast({ title: "Estratégia de venda gerada!" });
+                                                    fetchContacts();
+                                                  } catch (err: any) {
+                                                    toast({ title: "Erro ao gerar", description: err.message, variant: "destructive" });
+                                                  } finally {
+                                                    setSendingMessage(false);
+                                                  }
+                                                }}
+                                                disabled={sendingMessage}
+                                              >
+                                                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+                                                Gerar Estratégia Venda
+                                              </Button>
+                                              
+                                              <Button 
+                                                variant="secondary"
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-emerald-500/20"
+                                                onClick={async () => {
+                                                  setSendingMessage(true);
+                                                  try {
+                                                    const { data, error } = await supabase.functions.invoke('generate-strategy', {
+                                                      body: { contactId: selectedContact.id, action: 'analyze_interaction' }
+                                                    });
+                                                    if (error) throw error;
+                                                    toast({ title: "Análise de atendimento concluída!" });
+                                                    fetchContacts();
+                                                  } catch (err: any) {
+                                                    toast({ title: "Erro ao gerar análise", description: err.message, variant: "destructive" });
+                                                  } finally {
+                                                    setSendingMessage(false);
+                                                  }
+                                                }}
+                                                disabled={sendingMessage}
+                                              >
+                                                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                                                Analisar Atendimento
+                                              </Button>
                                             </div>
-                                          ) : (
-                                            <div className="text-center py-12 bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex flex-col items-center gap-3">
-                                              <TrendingUp className="w-6 h-6" />
-                                              <p className="font-bold text-muted-foreground">Nenhuma estratégia gerada</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                        <DialogFooter>
-                                          <Button 
-                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
-                                            onClick={async () => {
-                                              setSendingMessage(true);
-                                              try {
-                                                const { data, error } = await supabase.functions.invoke('generate-strategy', {
-                                                  body: { contactId: selectedContact.id }
-                                                });
-                                                if (error) throw error;
-                                                toast({ title: "Estratégia gerada com sucesso!" });
-                                                setSelectedContact((prev: any) => ({ ...prev, last_ai_strategy: data.strategy }));
-                                              } catch (err: any) {
-                                                toast({ title: "Erro ao gerar", description: err.message, variant: "destructive" });
-                                              } finally {
-                                                setSendingMessage(false);
-                                              }
-                                            }}
-                                            disabled={sendingMessage}
-                                          >
-                                            Gerar Estratégia
-                                          </Button>
-                                        </DialogFooter>
+                                          </TabsContent>
+                                          
+                                          <TabsContent value="history" className="py-4">
+                                            <ScrollArea className="h-[400px] pr-4">
+                                              <div className="space-y-4">
+                                                {(selectedContact.ai_strategy_history || []).length > 0 ? (
+                                                  selectedContact.ai_strategy_history.map((item: any, idx: number) => (
+                                                    <div key={idx} className="p-4 rounded-2xl bg-card border shadow-sm space-y-2 group hover:shadow-md transition-shadow">
+                                                      <div className="flex justify-between items-center border-b pb-2 mb-2">
+                                                        <Badge variant="outline" className="text-[10px] font-bold uppercase">{item.type || 'Estratégia'}</Badge>
+                                                        <span className="text-[10px] text-muted-foreground font-mono">
+                                                          {new Date(item.created_at).toLocaleString('pt-BR')}
+                                                        </span>
+                                                      </div>
+                                                      <p className="text-[13px] leading-relaxed whitespace-pre-wrap italic text-muted-foreground group-hover:text-foreground transition-colors">
+                                                        {item.strategy}
+                                                      </p>
+                                                      <Button 
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        className="h-7 text-[10px] font-bold w-full mt-2 opacity-50 hover:opacity-100"
+                                                        onClick={() => copyToClipboard(item.strategy, "Análise IA")}
+                                                      >
+                                                        <Copy className="w-3 h-3 mr-1" /> Copiar Texto
+                                                      </Button>
+                                                    </div>
+                                                  ))
+                                                ) : (
+                                                  <div className="text-center py-20 opacity-30 italic text-sm">Sem histórico disponível.</div>
+                                                )}
+                                              </div>
+                                            </ScrollArea>
+                                          </TabsContent>
+                                        </Tabs>
                                       </DialogContent>
                                     </Dialog>
                                   </div>
@@ -4794,6 +4860,83 @@ const CRM = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+              </ScrollArea>
+            )}
+            {activeTab === 'ai-analysis' && (
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
+                    <div className="min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <Zap className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 shrink-0" /> <span>Histórico de Análises IA</span>
+                      </h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">Veja todas as estratégias e relatórios gerados pela Inteligência Artificial.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {contacts.filter(c => (c.ai_strategy_history || []).length > 0).length > 0 ? (
+                      contacts
+                        .filter(c => (c.ai_strategy_history || []).length > 0)
+                        .map(contact => (
+                          <Card key={contact.id} className="rounded-2xl border shadow-sm overflow-hidden flex flex-col h-[450px]">
+                            <CardHeader className="bg-muted/30 border-b p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <User className="w-4 h-4 text-primary" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <CardTitle className="text-sm font-bold truncate max-w-[150px]">{contact.name || contact.wa_id}</CardTitle>
+                                    <p className="text-[10px] text-muted-foreground">{contact.wa_id}</p>
+                                  </div>
+                                </div>
+                                <Badge className={cn("text-[8px] uppercase px-1.5 h-4", getStatusColor(contact.status))}>
+                                  {getStatusLabel(contact.status)}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-0 flex-1 overflow-hidden">
+                              <ScrollArea className="h-full">
+                                <div className="p-4 space-y-4">
+                                  {(contact.ai_strategy_history || []).map((analysis: any, i: number) => (
+                                    <div key={i} className="space-y-2 border-b border-border/50 pb-3 last:border-0 last:pb-0">
+                                      <div className="flex justify-between items-center">
+                                        <Badge variant="secondary" className="text-[9px] font-bold h-4">{analysis.type || 'Estratégia'}</Badge>
+                                        <span className="text-[9px] text-muted-foreground">{new Date(analysis.created_at).toLocaleString('pt-BR')}</span>
+                                      </div>
+                                      <p className="text-xs leading-relaxed text-zinc-600 line-clamp-4 italic">
+                                        {analysis.strategy}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            </CardContent>
+                            <div className="p-3 bg-muted/10 border-t mt-auto">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="w-full text-[10px] font-bold h-8 gap-2"
+                                onClick={() => {
+                                  setSelectedContact(contact);
+                                  setActiveTab('contacts');
+                                }}
+                              >
+                                <MessageSquare className="w-3 h-3" /> Ver Conversa Completa
+                              </Button>
+                            </div>
+                          </Card>
+                        ))
+                    ) : (
+                      <div className="col-span-full py-20 text-center bg-card rounded-3xl border-2 border-dashed">
+                        <Zap className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                        <p className="font-bold text-muted-foreground">Nenhuma análise foi gerada ainda.</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Gere análises diretamente nas conversas com os clientes.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </ScrollArea>
             )}
           </main>

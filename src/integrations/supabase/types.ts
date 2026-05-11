@@ -734,6 +734,7 @@ export type Database = {
       crm_contacts: {
         Row: {
           ai_active: boolean | null
+          ai_analysis_history: Json | null
           ai_strategy_active: boolean | null
           ai_strategy_history: Json | null
           created_at: string | null
@@ -760,6 +761,7 @@ export type Database = {
         }
         Insert: {
           ai_active?: boolean | null
+          ai_analysis_history?: Json | null
           ai_strategy_active?: boolean | null
           ai_strategy_history?: Json | null
           created_at?: string | null
@@ -786,6 +788,7 @@ export type Database = {
         }
         Update: {
           ai_active?: boolean | null
+          ai_analysis_history?: Json | null
           ai_strategy_active?: boolean | null
           ai_strategy_history?: Json | null
           created_at?: string | null

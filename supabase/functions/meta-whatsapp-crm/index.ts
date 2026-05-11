@@ -407,15 +407,21 @@ serve(async (req) => {
         const nodeIdsWithTarget = new Set(flow.edges.map((e: any) => e.target))
         const startNode = flow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
         
+        const contactUpdates: any = {
+          current_flow_id: flowId,
+          current_node_id: startNode.id,
+          flow_state: 'running',
+          last_flow_interaction: new Date().toISOString(),
+          next_execution_time: null
+        };
+
+        if (flow.trigger_tag && flow.trigger_tag !== 'none') {
+          contactUpdates.status = flow.trigger_tag;
+        }
+
         await supabase
           .from('crm_contacts')
-          .update({
-            current_flow_id: flowId,
-            current_node_id: startNode.id,
-            flow_state: 'running',
-            last_flow_interaction: new Date().toISOString(),
-            next_execution_time: null
-          })
+          .update(contactUpdates)
           .eq('id', contactId)
         
         return await executeVisualNode(supabase, flow, startNode, contactId, waId)

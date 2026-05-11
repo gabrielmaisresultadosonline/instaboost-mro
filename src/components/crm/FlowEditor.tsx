@@ -382,6 +382,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   const [flowName, setFlowName] = useState(flow?.name || 'Novo Fluxo');
   const [triggerType, setTriggerType] = useState(flow?.trigger_type || 'manual');
   const [triggerKeywords, setTriggerKeywords] = useState(flow?.trigger_keywords?.join(', ') || flow?.trigger_keyword || '');
+  const [triggerTag, setTriggerTag] = useState(flow?.trigger_tag || '');
   const [isActive, setIsActive] = useState(flow?.is_active !== false);
   const [uploading, setUploading] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
@@ -526,6 +527,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       name: flowName,
       trigger_type: triggerType,
       trigger_keywords: triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
+      trigger_tag: triggerTag,
       is_active: isActive,
       nodes,
       edges,
@@ -1085,6 +1087,29 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                     <p className="text-[9px] text-muted-foreground">Se o cliente enviar uma dessas palavras, o fluxo inicia.</p>
                   </div>
                 )}
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">Etiqueta ao Iniciar</Label>
+                  <Select value={triggerTag} onValueChange={setTriggerTag}>
+                    <SelectTrigger className="text-xs h-9 border-zinc-200">
+                      <SelectValue placeholder="Nenhuma etiqueta..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhuma</SelectItem>
+                      {availableStatuses.map(s => (
+                        <SelectItem key={s.id} value={s.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full bg-${s.color}-500`} />
+                            {s.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[9px] text-muted-foreground italic">
+                    Ao iniciar este fluxo, o contato receberá esta etiqueta automaticamente.
+                  </p>
+                </div>
 
                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
                   <p className="text-[10px] text-blue-700 font-medium">💡 Dica</p>
