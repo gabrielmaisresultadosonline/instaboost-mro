@@ -5523,6 +5523,63 @@ const CRM = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!selectedAnalysis} onOpenChange={(open) => !open && setSelectedAnalysis(null)}>
+        <DialogContent className="max-w-[95vw] md:max-w-3xl rounded-3xl p-6 border-none shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+          <DialogHeader className="border-b pb-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                    {selectedAnalysis?.type || 'Estratégia de Venda'}
+                  </DialogTitle>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                    <User className="w-3 h-3" /> {selectedAnalysis?.contactName} • {new Date(selectedAnalysis?.created_at).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="py-6">
+            <div className="bg-muted/30 border-l-4 border-indigo-500 rounded-r-2xl p-6 max-h-[60vh] overflow-y-auto">
+              <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-zinc-800 dark:text-zinc-200 font-medium">
+                {selectedAnalysis?.strategy}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 border-t pt-4">
+            <Button 
+              variant="outline" 
+              className="flex-1 rounded-xl h-11 font-bold border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              onClick={() => copyToClipboard(selectedAnalysis?.strategy, "Análise IA")}
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copiar Texto
+            </Button>
+            <Button 
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 font-bold shadow-lg shadow-indigo-500/20"
+              onClick={() => {
+                setSelectedContact(selectedAnalysis?.contactObj);
+                setActiveTab('contacts');
+                setSelectedAnalysis(null);
+              }}
+            >
+              <MessageSquare className="w-4 h-4 mr-2" /> Abrir Conversa
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="sm:w-24 rounded-xl h-11"
+              onClick={() => setSelectedAnalysis(null)}
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
