@@ -962,7 +962,8 @@ const CRM = () => {
         .from('crm_statuses')
         .update({
           label: editingStatus.label,
-          color: editingStatus.color
+          color: editingStatus.color,
+          is_starred: !!editingStatus.is_starred
         })
         .eq('id', editingStatus.id);
 
