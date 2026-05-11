@@ -119,6 +119,14 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
           settings.vps_transcoder_url
         );
       }
+      
+      // Garante que o contato permaneça no estado ai_handling para continuar o chat
+      if (contact.flow_state !== 'ai_handling') {
+        console.log(`[AI-AGENT] Force updating flow_state to ai_handling for contact ${waId}`);
+        await supabase.from('crm_contacts').update({ 
+          flow_state: 'ai_handling' 
+        }).eq('id', contact.id);
+      }
     }
     
     return { success: true };
@@ -172,7 +180,7 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
     .eq('wa_id', waId)
     .single();
 
-  if (contact && (contact.flow_state === 'ai_handling' || contact.current_node_id?.startsWith('aiAgent'))) {
+  if (contact && (contact.flow_state === 'ai_handling' || (contact.current_flow_id && contact.current_node_id?.startsWith('aiAgent')))) {
     console.log(`[WEBHOOK] Contact ${waId} is in AI handling or AI Agent node. Processing response...`);
     const result = await processAiAgentResponse(supabase, contact, waId, text);
     return jsonResponse(result);
