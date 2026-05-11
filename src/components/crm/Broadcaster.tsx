@@ -36,9 +36,10 @@ interface BroadcasterProps {
   templates: any[];
   flows: any[];
   contacts: any[];
+  statuses: any[];
 }
 
-const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
+const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
@@ -47,7 +48,8 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   // New campaign state
   const [name, setName] = useState('');
   const [type, setType] = useState<'message' | 'template' | 'flow'>('message');
-  const [targetType, setTargetType] = useState<'contacts' | 'conversation' | 'uploaded'>('contacts');
+  const [targetType, setTargetType] = useState<'contacts' | 'conversation' | 'uploaded' | 'tag'>('contacts');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [messageText, setMessageText] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedFlow, setSelectedFlow] = useState('');
