@@ -1923,6 +1923,7 @@ const CRM = () => {
                     { id: 'templates', label: 'Templates', icon: FileText },
                     { id: 'ai-agent', label: 'Agente IA', icon: Bot },
                     { id: 'ai-analysis', label: 'Análises IA', icon: TrendingUp },
+                    { id: 'help', label: 'Ajuda', icon: LucideIcons.HelpCircle },
                     { id: 'settings', label: 'Ajustes', icon: Settings },
                   ].map((item) => (
                     <SidebarMenuItem key={item.id}>
@@ -4935,6 +4936,164 @@ const CRM = () => {
                         <p className="text-xs text-muted-foreground/60 mt-1">Gere análises diretamente nas conversas com os clientes.</p>
                       </div>
                     )}
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
+            {activeTab === 'help' && (
+              <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div className="flex items-center gap-4 bg-card p-6 rounded-2xl border shadow-sm">
+                    <div className="p-3 rounded-full bg-primary/10 text-primary">
+                      <LucideIcons.HelpCircle className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Centro de Ajuda e Tutoriais</h2>
+                      <p className="text-muted-foreground">Guia completo para dominar todas as ferramentas do seu CRM.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <Card className="rounded-2xl border shadow-sm overflow-hidden">
+                      <CardHeader className="bg-primary/5 border-b">
+                        <CardTitle className="flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5 text-primary" /> Dashboard e Métricas
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <h4 className="font-bold text-sm text-primary">Métricas Gerais</h4>
+                            <ul className="text-xs space-y-2 text-muted-foreground list-disc pl-4">
+                              <li><strong>Mensagens Enviadas:</strong> Total de mensagens que saíram do seu número.</li>
+                              <li><strong>Respondidas:</strong> Contatos que enviaram ao menos uma mensagem de volta.</li>
+                              <li><strong>Contatos Qualificados:</strong> Leads marcados com a etiqueta "Qualificado".</li>
+                              <li><strong>Conversas 24h (Hoje):</strong> Volume de interações únicas nas últimas 24 horas.</li>
+                            </ul>
+                          </div>
+                          <div className="space-y-2">
+                            <h4 className="font-bold text-sm text-primary">Custos e Janelas</h4>
+                            <ul className="text-xs space-y-2 text-muted-foreground list-disc pl-4">
+                              <li><strong>Conversas Pagas:</strong> Cobrança da Meta quando você inicia uma conversa fora da janela de 24h.</li>
+                              <li><strong>Janela Grátis:</strong> Período de 24h após a última mensagem do cliente onde você não paga por envios.</li>
+                              <li><strong>Resumo Semanal:</strong> Comparativo de performance dos últimos 7 dias.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl border shadow-sm overflow-hidden">
+                      <CardHeader className="bg-emerald-500/5 border-b">
+                        <CardTitle className="flex items-center gap-2">
+                          <MessageSquare className="w-5 h-5 text-emerald-500" /> CRM Kanban e Conversas
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <p className="text-sm text-muted-foreground">O coração do seu atendimento. Organize leads por funil de vendas.</p>
+                        <div className="space-y-3">
+                          <div className="p-3 bg-muted/30 rounded-xl">
+                            <h4 className="text-xs font-bold mb-1">Visualização Kanban</h4>
+                            <p className="text-[11px] text-muted-foreground">Arraste e solte contatos entre as colunas (Novo Lead, Em Atendimento, Qualificado, etc.) para gerenciar seu progresso.</p>
+                          </div>
+                          <div className="p-3 bg-muted/30 rounded-xl">
+                            <h4 className="text-xs font-bold mb-1">Chat em Tempo Real</h4>
+                            <p className="text-[11px] text-muted-foreground">Envie textos, áudios (com transcrição), imagens e vídeos. O sistema detecta se o áudio foi "gravado na hora" para maior autoridade.</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl border shadow-sm overflow-hidden">
+                      <CardHeader className="bg-blue-500/5 border-b">
+                        <CardTitle className="flex items-center gap-2">
+                          <GitBranch className="w-5 h-5 text-blue-500" /> Fluxos e Gatilhos (Automação)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-bold text-sm">O que são Fluxos?</h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                              Sequências lógicas de mensagens, perguntas e ações. Você pode criar caminhos onde o cliente clica em botões e o sistema responde automaticamente.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="border p-3 rounded-xl">
+                              <h5 className="text-[11px] font-bold flex items-center gap-1"><Zap className="w-3 h-3" /> Gatilhos (Triggers)</h5>
+                              <p className="text-[10px] text-muted-foreground mt-1">Palavras-chave, primeira mensagem ou inatividade. Eles disparam o fluxo sozinho.</p>
+                            </div>
+                            <div className="border p-3 rounded-xl">
+                              <h5 className="text-[11px] font-bold flex items-center gap-1"><UserPlus className="w-3 h-3" /> Etiqueta Automática</h5>
+                              <p className="text-[10px] text-muted-foreground mt-1">Configure o fluxo para colocar o contato em uma etiqueta (Ex: "Interesse Produto X") logo no início.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl border shadow-sm overflow-hidden">
+                      <CardHeader className="bg-purple-500/5 border-b">
+                        <CardTitle className="flex items-center gap-2">
+                          <Bot className="w-5 h-5 text-purple-500" /> Agente IA e Análises
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-purple-100 text-purple-600"><Bot className="w-4 h-4" /></div>
+                            <div>
+                              <h5 className="text-xs font-bold">Assistente Inteligente</h5>
+                              <p className="text-[11px] text-muted-foreground">Responde seus clientes usando o conhecimento dos seus templates e fluxos. Pode ser ativado individualmente por contato.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-indigo-100 text-indigo-600"><TrendingUp className="w-4 h-4" /></div>
+                            <div>
+                              <h5 className="text-xs font-bold">Análises Estratégicas</h5>
+                              <p className="text-[11px] text-muted-foreground">A IA analisa o histórico completo e diz se o cliente tem interesse, o que faltou oferecer e qual a melhor estratégia de venda para fechar o negócio.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl border shadow-sm overflow-hidden">
+                      <CardHeader className="bg-orange-500/5 border-b">
+                        <CardTitle className="flex items-center gap-2">
+                          <Zap className="w-5 h-5 text-orange-500" /> Disparador e Agendamentos
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <h4 className="font-bold text-sm">Disparador em Massa</h4>
+                            <p className="text-xs text-muted-foreground">Envie uma mensagem ou inicie um fluxo para centenas de contatos filtrados por etiqueta de uma só vez.</p>
+                          </div>
+                          <div className="space-y-2">
+                            <h4 className="font-bold text-sm">Agendamentos</h4>
+                            <p className="text-xs text-muted-foreground">Programe mensagens para datas e horários específicos. Ideal para lembretes de reuniões ou follow-ups futuros.</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl border shadow-sm overflow-hidden">
+                      <CardHeader className="bg-zinc-500/5 border-b">
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-zinc-600" /> Contatos e Google
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="space-y-2">
+                          <h4 className="font-bold text-sm">Sincronização Google</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Conecte sua conta Google para importar milhares de contatos. O sistema processa em segundo plano e filtra apenas números válidos para WhatsApp. Você também pode ativar a sincronização automática para novos leads.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </ScrollArea>
