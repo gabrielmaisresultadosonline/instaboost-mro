@@ -164,7 +164,8 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       } else if (action === 'Notificar Agente') {
         // Implement logic if needed
       }
-
+    }
+    
     // Find next node based on handle or standard connection
     // BUT: If the current node was a question/wait_response, we ALREADY handled its state transition in the webhook
     // This part should only run for nodes that trigger a "next" automatically (like message, audio, etc.)
