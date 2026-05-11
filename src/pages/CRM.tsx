@@ -2405,7 +2405,7 @@ const CRM = () => {
                               )}
                             >
                               <div className="flex justify-between items-start w-full">
-                                <p className="font-bold truncate text-sm flex-1 hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>
+                                <p className="font-bold truncate text-sm flex-1 flex items-center gap-2">
                                   {contact.name || contact.wa_id}
                                   {contact.google_sync_account_id && (
                                     <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
