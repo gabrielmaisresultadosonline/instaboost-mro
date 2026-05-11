@@ -2737,21 +2737,23 @@ const CRM = () => {
                                     </Badge>
                                   </p>
 
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn(
-                                      "h-8 w-8 rounded-full transition-all duration-300",
-                                      selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
-                                    )}
-                                    onClick={async () => {
-                                      const newStatus = !selectedContact.ai_active;
-                                      await updateContactStatus(selectedContact.id, { ai_active: newStatus });
-                                    }}
-                                    title={selectedContact.ai_active ? "Desativar IA para este contato" : "Ativar IA para este contato"}
-                                  >
-                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active && metaSettings.ai_agent_enabled && "fill-primary/20")} />
-                                  </Button>
+                                  <div className="flex items-center shrink-0">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={cn(
+                                        "h-8 w-8 rounded-full transition-all duration-300",
+                                        selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
+                                      )}
+                                      onClick={async () => {
+                                        const newStatus = !selectedContact.ai_active;
+                                        await updateContactStatus(selectedContact.id, { ai_active: newStatus });
+                                      }}
+                                      title={selectedContact.ai_active ? "Desativar IA para este contato" : "Ativar IA para este contato"}
+                                    >
+                                      <Bot className={cn("w-4 h-4", selectedContact.ai_active && metaSettings.ai_agent_enabled && "fill-primary/20")} />
+                                    </Button>
+                                  </div>
 
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <div className="flex flex-col gap-1">
