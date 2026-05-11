@@ -181,13 +181,14 @@ async function handleProcessWebhook(supabase: any, entry: any, skipSave = false)
     .eq('wa_id', waId)
     .single();
 
-  // MODIFICAÇÃO: Captura contatos que estão no nó de Agente IA ou com ai_active marcado dentro de um fluxo
+  // CRITICAL: Ensure we capture messages for AI processing if the contact is in any AI-related state
   const isInAiNode = contact?.current_node_id?.includes('aiAgent');
   const isAiHandling = contact?.flow_state === 'ai_handling';
-  const isAiActiveInFlow = contact?.current_flow_id && contact?.ai_active;
+  const isAiActive = contact?.ai_active === true;
+  const hasActiveFlow = !!contact?.current_flow_id;
 
-  if (contact && (isAiHandling || isInAiNode || isAiActiveInFlow)) {
-    console.log(`[WEBHOOK] Contact ${waId} capturing for AI Agent. Node: ${contact.current_node_id}, State: ${contact.flow_state}, AI Active: ${contact.ai_active}`);
+  if (contact && (isAiHandling || (hasActiveFlow && (isInAiNode || isAiActive)))) {
+    console.log(`[WEBHOOK] CAPTURING message from ${waId} for AI Agent. State: ${contact.flow_state}, Node: ${contact.current_node_id}, AI Active: ${contact.ai_active}`);
     const result = await processAiAgentResponse(supabase, contact, waId, text);
     return jsonResponse(result);
   } else if (contact && contact.ai_active && contact.flow_state === 'idle') {
