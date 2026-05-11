@@ -94,21 +94,25 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
     }
 
     // Find next node based on handle or standard connection
-    const edge = flow.edges?.find((e: any) => e.source === node.id);
-    
-    if (edge) {
-      const nextNode = flow.nodes?.find((n: any) => n.id === edge.target);
-      if (nextNode) {
-        const delay = parseInt(node.data?.delayAfter || '2');
-        console.log(`Scheduling next node ${nextNode.id} with ${delay}s delay`);
-        const nextTime = new Date(Date.now() + delay * 1000).toISOString();
-        await supabase.from('crm_contacts').update({
-          current_node_id: nextNode.id,
-          next_execution_time: nextTime,
-          flow_state: 'running'
-        }).eq('id', contactId);
-        
-        return { success: true, message: 'Next node scheduled', nextNodeId: nextNode.id };
+    // BUT: If the current node was a question/wait_response, we ALREADY handled its state transition in the webhook
+    // This part should only run for nodes that trigger a "next" automatically (like message, audio, etc.)
+    if (node.type !== 'question' && node.type !== 'wait_response' && node.type !== 'delay') {
+      const edge = flow.edges?.find((e: any) => e.source === node.id && !e.sourceHandle);
+      
+      if (edge) {
+        const nextNode = flow.nodes?.find((n: any) => n.id === edge.target);
+        if (nextNode) {
+          const delay = parseInt(node.data?.delayAfter || '2');
+          console.log(`Scheduling next node ${nextNode.id} after ${node.type} with ${delay}s delay`);
+          const nextTime = new Date(Date.now() + delay * 1000).toISOString();
+          await supabase.from('crm_contacts').update({
+            current_node_id: nextNode.id,
+            next_execution_time: nextTime,
+            flow_state: 'running'
+          }).eq('id', contactId);
+          
+          return { success: true, message: 'Next node scheduled', nextNodeId: nextNode.id };
+        }
       }
     }
 
