@@ -107,7 +107,7 @@ const normalizePhone = (raw: string) => {
 }
 
 const guessMedia = (params: any) => {
-  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg; codecs=opus', fileName: 'voice.ogg' }
+  if (params.audioUrl) return { type: 'audio', url: params.audioUrl, mime: 'audio/ogg; codecs=opus', fileName: 'audio.ogg' }
   if (params.imageUrl) return { type: 'image', url: params.imageUrl, mime: 'image/jpeg', fileName: 'image.jpg' }
   if (params.videoUrl) return { type: 'video', url: params.videoUrl, mime: 'video/mp4', fileName: 'video.mp4' }
   if (params.documentUrl) return { type: 'document', url: params.documentUrl, mime: 'application/octet-stream', fileName: params.fileName || 'document' }
@@ -122,7 +122,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   const arrayBuffer = await mediaResponse.arrayBuffer();
   // Para áudio, forçamos o tipo e nome que a Meta espera para PTT (Push To Talk)
   const contentType = media.type === 'audio' ? 'audio/ogg; codecs=opus' : (mediaResponse.headers.get('content-type') || media.mime);
-  const fileName = media.type === 'audio' ? 'voice.ogg' : media.fileName;
+  const fileName = media.type === 'audio' ? 'audio.ogg' : media.fileName;
   
   const blob = new Blob([arrayBuffer], { type: contentType })
   const form = new FormData()
@@ -137,8 +137,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     // Re-build FormData for PTT
     const pttForm = new FormData();
     pttForm.append('messaging_product', 'whatsapp');
-    pttForm.append('type', 'audio');
-    pttForm.append('file', blob, 'voice.ogg');
+    pttForm.append('file', blob, 'audio.ogg');
     
     const pttResponse = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
       method: 'POST',
