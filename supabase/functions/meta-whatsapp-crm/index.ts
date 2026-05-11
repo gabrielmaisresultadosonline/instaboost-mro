@@ -23,6 +23,30 @@ function describeMessageForHistory(message: any) {
   return content || `[Mensagem: ${message.message_type || 'desconhecida'}]`;
 }
 
+async function transcribeAudioForAi(apiKey: string, audioUrl: string) {
+  try {
+    const audioRes = await fetch(audioUrl);
+    if (!audioRes.ok) throw new Error(`Falha ao baixar áudio (${audioRes.status})`);
+
+    const audioBlob = await audioRes.blob();
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.ogg');
+    formData.append('model', 'whisper-1');
+
+    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+      body: formData
+    });
+
+    const data = await res.json();
+    return data.text || '';
+  } catch (err) {
+    console.error('[AI-AGENT] Audio transcription error:', err);
+    return '';
+  }
+}
+
 async function processAiAgentResponse(supabase: any, contact: any, waId: string, text?: string, sourceMessageId?: string) {
   console.log(`[AI-AGENT] Processing response for contact ${waId}. Flow AI Agent.`);
   let messageText = text;
