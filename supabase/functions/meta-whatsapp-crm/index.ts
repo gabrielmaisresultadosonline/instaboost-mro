@@ -589,8 +589,18 @@ serve(async (req) => {
             const currentNode = flow?.nodes?.find((n: any) => n.id === contact.current_node_id);
             
             if (flow && currentNode) {
-              const res = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
+              const res: any = await executeVisualNode(supabase, flow, currentNode, contact.id, contact.wa_id);
               results.push({ contactId: contact.id, result: res });
+
+              // Se o nó executado foi um Agente IA, processamos a resposta imediatamente
+              if (res?.message?.includes('AI handling state')) {
+                console.log(`[SCHEDULED] Node resulted in AI handling state. Triggering AI response for ${contact.wa_id}`);
+                // Re-fetch contact to get updated flow_state and metadata from executeVisualNode
+                const { data: updatedContact } = await supabase.from('crm_contacts').select('*').eq('id', contact.id).single();
+                if (updatedContact) {
+                  await processAiAgentResponse(supabase, updatedContact, contact.wa_id);
+                }
+              }
             } else {
               await supabase.from('crm_contacts').update({ flow_state: 'idle' }).eq('id', contact.id);
             }
