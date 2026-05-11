@@ -121,12 +121,13 @@ async function processAiAgentResponse(supabase: any, contact: any, waId: string,
       }
       
       // Garante que o contato permaneça no estado ai_handling para continuar o chat
-      if (contact.flow_state !== 'ai_handling') {
-        console.log(`[AI-AGENT] Force updating flow_state to ai_handling for contact ${waId}`);
-        await supabase.from('crm_contacts').update({ 
-          flow_state: 'ai_handling' 
-        }).eq('id', contact.id);
-      }
+      // Também garante que ai_active esteja true no contato para o webhook capturar
+      console.log(`[AI-AGENT] Updating contact ${waId} to ensure continued AI interaction.`);
+      await supabase.from('crm_contacts').update({ 
+        flow_state: 'ai_handling',
+        ai_active: true,
+        last_interaction: new Date().toISOString()
+      }).eq('id', contact.id);
     }
     
     return { success: true };
