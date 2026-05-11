@@ -134,6 +134,15 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       const prompt = node.data?.prompt || "";
       const labelOnTransfer = node.data?.labelOnHumanTransfer || "";
       
+      // Se tiver uma mensagem inicial configurada, envia antes de entrar no modo AI
+      const initialMessage = node.data?.initialMessage || "";
+      if (initialMessage) {
+        console.log(`[EXECUTOR] Sending AI Agent initial message: ${initialMessage}`);
+        await supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'sendMessage', to: waId, text: initialMessage, contactId }
+        });
+      }
+
       await supabase.from('crm_contacts').update({
         flow_state: 'ai_handling',
         current_node_id: node.id,
