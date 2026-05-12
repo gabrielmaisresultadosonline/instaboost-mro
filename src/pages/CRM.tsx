@@ -2643,7 +2643,7 @@ const CRM = () => {
                                     className={cn(
                                       "px-2 capitalize font-black shadow-sm", 
                                       getStatusColor(contact.status),
-                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-blue-500/20"
+                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-[#25D366]/20"
                                     )}
                                   >
                                     {getStatusLabel(contact.status)}
