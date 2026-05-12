@@ -90,11 +90,16 @@ export async function executeVisualNode(supabase: any, flow: any, node: any, con
       const templateName = node.data?.templateName;
       if (templateName) {
         console.log(`[EXECUTOR] Enviando template ${templateName} para ${waId}`);
-        const { error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        const { data: result, error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
           body: { action: 'sendTemplate', to: waId, templateName, languageCode: node.data?.language || 'pt_BR', contactId }
         });
         if (invokeError) {
           console.error(`[EXECUTOR] Erro ao invocar sendTemplate:`, invokeError);
+          throw invokeError;
+        }
+        if (result && !result.success) {
+          console.error(`[EXECUTOR] meta-whatsapp-crm retornou erro no envio de template:`, result.error);
+          throw new Error(result.error || `Erro no envio de template`);
         }
       }
 
