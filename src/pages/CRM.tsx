@@ -1136,7 +1136,7 @@ const CRM = () => {
   };
 
   const sendRecordedAudio = async () => {
-    if (recordedAudioBlob && !sendingMessage) {
+    if (recordedAudioBlob && !isSending(selectedContact?.id)) {
       const blob = recordedAudioBlob;
       const previewUrl = recordedAudioUrl || URL.createObjectURL(blob);
       setRecordedAudioBlob(null);
