@@ -1409,6 +1409,20 @@ const CRM = () => {
 
   const handleTriggerFlow = async (flowId: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
+
+    const DAY = 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+
+    if (isColdList) {
+      toast({ 
+        title: "Janela de 24h Expirada", 
+        description: "Não é possível iniciar fluxos em chats expirados. Use um Template Aprovado.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const targetContactId = selectedContact.id;
     const targetWaId = selectedContact.wa_id;
     
