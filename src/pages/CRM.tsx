@@ -2845,15 +2845,15 @@ const CRM = () => {
                                         variant="secondary" 
                                         style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
                                         className={cn(
-                                          "px-1 capitalize font-medium shrink-0 border-none",
-                                          contact.flow_state === 'error' ? "bg-red-500/20 text-red-600" : 
-                                          contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700" :
-                                          "bg-red-100/40 text-red-500/80"
+                                          "px-1.5 capitalize font-black shrink-0 border-none",
+                                          contact.flow_state === 'error' ? "bg-red-600 text-white" : 
+                                          contact.flow_state === 'waiting_response' ? "bg-amber-500 text-white" :
+                                          "bg-red-500 text-white"
                                         )}
                                       >
                                         {contact.flow_state === 'error' ? 'Erro' : 
                                          contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Fluxo'}
-                                        {contact.current_step_name && <span className="ml-1 opacity-70">({contact.current_step_name})</span>}
+                                        {contact.current_step_name && <span className="ml-1 text-white/90">({contact.current_step_name})</span>}
                                       </Badge>
                                       <div className="flex items-center gap-0.5">
                                         {(contact.flow_state === 'error' || contact.flow_state === 'waiting_response') && (
