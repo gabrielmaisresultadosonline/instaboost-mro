@@ -3198,7 +3198,7 @@ const CRM = () => {
                                       )}
                                       <div className={cn(
                                         "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
-                                        m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
+                                        m.direction === 'inbound' ? 'text-muted-foreground' : 'text-[#303030]/60 dark:text-white/60'
                                       )}>
                                         {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                         {m.direction === 'outbound' && <Check className="w-3 h-3" />}
