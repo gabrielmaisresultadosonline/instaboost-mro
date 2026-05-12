@@ -2427,9 +2427,11 @@ const CRM = () => {
                   </Card>
                 </div>
               </ScrollArea>
-            )}
+              )}
+            </div>
 
-            {activeTab === 'contacts' && (
+            <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'contacts' && "hidden")}>
+              {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 {activeFlowsView ? (
                   <div className="flex-1 overflow-y-auto p-4 bg-muted/5">
