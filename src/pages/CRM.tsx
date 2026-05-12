@@ -2839,7 +2839,7 @@ const CRM = () => {
                                       );
                                     })()}
                                   </div>
-                                  {contact.flow_state && contact.flow_state !== 'idle' && (
+                                  {contact.flow_state && contact.flow_state !== 'idle' && (!contact.last_message_received_at || (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
                                     <div className="flex items-center gap-1 min-w-0">
                                       <Badge 
                                         variant="secondary" 
