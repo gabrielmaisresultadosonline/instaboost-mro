@@ -2882,15 +2882,15 @@ const CRM = () => {
                                     </div>
                                   )}
                                 </div>
-                                {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
-                                  <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums whitespace-nowrap overflow-hidden">
-                                    <Clock className="w-2 h-2" />
-                                    {(() => {
-                                      if (contact.flow_state === 'waiting_response') {
-                                        const timeoutMinutes = contact.flow_timeout_minutes || 20;
-                                        const lastInteraction = new Date(contact.last_flow_interaction || Date.now()).getTime();
-                                        const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
-                                        const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
+                                 {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
+                                   <div className="flex items-center gap-1 text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded-sm tabular-nums whitespace-nowrap overflow-hidden shadow-sm">
+                                     <Clock className="w-2.5 h-2.5" />
+                                     {(() => {
+                                       if (contact.flow_state === 'waiting_response') {
+                                         const timeoutMinutes = contact.flow_timeout_minutes || 20;
+                                         const lastInteraction = new Date(contact.last_flow_interaction || Date.now()).getTime();
+                                         const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
+                                         const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
                                         return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
                                       }
                                       const next = new Date(contact.next_execution_time).getTime();
