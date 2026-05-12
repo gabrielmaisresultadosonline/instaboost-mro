@@ -3086,7 +3086,7 @@ const CRM = () => {
                               </button>
                               
                               {showTemplates && (
-                                <div className="flex gap-1 flex-1 overflow-x-auto no-scrollbar animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
+                                <div className="flex gap-1 flex-1 overflow-x-auto scrollbar-hide animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
                                   {templates.slice(0, 15).map(t => (
                                     <Button 
                                       key={t.id} 
@@ -3118,7 +3118,7 @@ const CRM = () => {
                               </button>
                               
                               {showFlows && (
-                                <div className="flex gap-1 flex-1 overflow-x-auto no-scrollbar animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
+                                <div className="flex gap-1 flex-1 overflow-x-auto scrollbar-hide animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
                                   {flows.filter(f => f.is_active).map(f => (
                                     <Button 
                                       key={f.id} 
