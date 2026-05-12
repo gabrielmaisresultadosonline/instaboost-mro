@@ -2783,13 +2783,13 @@ const CRM = () => {
                                 selectedContact?.id === contact.id ? "bg-[#f0f2f5] dark:bg-[#2a3942] border-l-4 border-l-[#00a884]" : "hover:bg-[#f5f6f6] dark:hover:bg-[#202c33] border-l-4 border-l-transparent"
                               )}
                             >
-                              <div className="flex justify-between items-center w-full gap-2 min-w-0">
-                                <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
+                              <div className="flex items-center w-full gap-2 min-w-0">
+                                <div className="flex flex-1 min-w-0 items-center gap-2 overflow-hidden">
                                   {contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && (
                                     <div className="w-2.5 h-2.5 bg-[#25D366] rounded-full shrink-0 shadow-[0_0_8px_rgba(37,211,102,0.5)] animate-pulse" title="Nova mensagem" />
                                   )}
                                   <p className={cn(
-                                    "font-bold truncate text-sm flex items-center gap-1.5 min-w-0 flex-1",
+                                    "font-bold truncate text-sm flex items-center gap-1.5 min-w-0",
                                     contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-foreground" : "text-foreground/80"
                                   )}>
                                     <span className="truncate shrink grow min-w-0">{contact.name || contact.wa_id}</span>
@@ -2801,8 +2801,8 @@ const CRM = () => {
                                   </p>
                                 </div>
                                 <span className={cn(
-                                  "text-[10px] shrink-0 ml-auto whitespace-nowrap",
-                                  contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold" : "text-muted-foreground"
+                                  "text-[10px] shrink-0 whitespace-nowrap opacity-70",
+                                  contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold opacity-100" : "text-muted-foreground"
                                 )}>
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
