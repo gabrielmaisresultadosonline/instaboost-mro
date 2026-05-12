@@ -84,12 +84,12 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
       const now = Date.now();
       
       if (targetType === 'conversation') {
-        // Filtrar contatos que responderam nas últimas 24 horas
+        // Filtrar apenas contatos que responderam nas últimas 24 horas (Janela Ativa)
         numbers = contacts
           .filter(c => c.last_message_received_at && (now - new Date(c.last_message_received_at).getTime()) < DAY)
           .map(c => c.wa_id);
       } else {
-        // Regra do WhatsApp: Lista fria (fora das 24h) só pode receber Templates Aprovados.
+        // Lista Geral/Etiqueta/Upload
         let potentialNumbers: string[] = [];
         
         if (targetType === 'contacts') {
@@ -108,8 +108,12 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
             .filter(n => n.length >= 10);
         }
 
-        if (type !== 'template') {
-          // Filtrar apenas quem está dentro da janela de 24h para mensagens comuns ou fluxos
+        // REGRAS DE DISPARO (META API)
+        if (type === 'template') {
+          // Templates podem ser enviados para qualquer um (Lista Fria ou Janela Ativa)
+          numbers = potentialNumbers;
+        } else {
+          // Mensagem normal e Fluxos só podem ser enviados para Janela Ativa (24h)
           const activeNumbers = contacts
             .filter(c => potentialNumbers.includes(c.wa_id) && c.last_message_received_at && (now - new Date(c.last_message_received_at).getTime()) < DAY)
             .map(c => c.wa_id);
@@ -118,8 +122,8 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
           
           if (activeNumbers.length === 0 && potentialNumbers.length > 0) {
             toast({ 
-              title: "Atenção: Lista Fria", 
-              description: `Todos os ${potentialNumbers.length} contatos estão fora da janela de 24h. Use o modo "Template" para disparar para eles.`, 
+              title: "Atenção: Regra de 24h", 
+              description: `Para lista fria ou contatos fora das 24h, você só pode enviar "Templates". Mensagens e Fluxos são bloqueados pela Meta para evitar spam fora da janela ativa.`, 
               variant: "destructive" 
             });
             setLoading(false);
@@ -128,14 +132,11 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
 
           if (coldCount > 0) {
             toast({ 
-              title: "Filtro de Segurança Ativo", 
-              description: `${coldCount} contatos fora da janela de 24h foram removidos. Envie um Template para alcançá-los.`,
+              title: "Filtro Ativo", 
+              description: `${coldCount} contatos fora da janela de 24h foram removidos. Use "Template" para falar com eles.`,
             });
           }
           numbers = activeNumbers;
-        } else {
-          // Se for Template, pode enviar para qualquer um (lista fria ou não)
-          numbers = potentialNumbers;
         }
       }
 
@@ -564,8 +565,8 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
             <CardContent className="p-4 space-y-3">
               {[
                 { icon: <Zap className="w-3 h-3 text-yellow-500" />, text: "Use o tempo randomizado para imitar o comportamento humano e evitar bloqueios." },
-                { icon: <CheckCircle2 className="w-3 h-3 text-green-500" />, text: "Templates oficiais são mais seguros para primeiros contatos com listas frias." },
-                { icon: <Users className="w-3 h-3 text-blue-500" />, text: "Sempre valide sua lista de números antes de iniciar disparos grandes." }
+                { icon: <AlertCircle className="w-3 h-3 text-orange-500" />, text: "Regra Meta: Mensagens normais e Fluxos só funcionam para quem respondeu nas últimas 24h." },
+                { icon: <CheckCircle2 className="w-3 h-3 text-green-500" />, text: "Para lista fria (fora de 24h), use sempre Templates Aprovados para garantir a entrega." }
               ].map((tip, i) => (
                 <div key={i} className="flex gap-2 items-start">
                   <div className="mt-0.5 shrink-0">{tip.icon}</div>
