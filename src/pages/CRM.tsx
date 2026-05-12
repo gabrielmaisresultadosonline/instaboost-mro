@@ -3631,7 +3631,6 @@ const CRM = () => {
                   </>
                 )}
               </div>
-            </div>
 
             {/* Agendamentos */}
             <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'scheduling' && "hidden")}>
