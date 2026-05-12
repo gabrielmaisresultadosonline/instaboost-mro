@@ -4346,7 +4346,7 @@ const CRM = () => {
                           } else if (confirmSend?.type === 'flow') {
                             handleTriggerFlow(confirmSend.id);
                           }
-                        }} className="rounded-xl h-11 px-8 bg-primary shadow-lg shadow-primary/20">Sim, enviar agora</Button>
+                        }} className="rounded-xl h-11 px-8 bg-[#00a884] hover:bg-[#008f6f] shadow-lg shadow-[#00a884]/20 text-white font-bold transition-all active:scale-95">Sim, enviar agora</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
