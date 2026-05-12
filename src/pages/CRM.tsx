@@ -3937,9 +3937,9 @@ const CRM = () => {
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
-                      <CardHeader className="bg-primary/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+                      <CardHeader className="bg-[#00a884]/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
                         <div className="min-w-0">
-                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-primary">
+                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-[#00a884]">
                             <Users className="w-5 h-5 shrink-0" /> <span className="truncate">Integração Google Contatos</span>
                           </CardTitle>
                           <CardDescription className="text-xs">Sincronize seus contatos com o Google para backup e organização</CardDescription>
