@@ -250,8 +250,10 @@ const CRM = () => {
     name: string;
     language?: string;
   } | null>(null);
-  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
-  const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+   const [pastedImage, setPastedImage] = useState<File | null>(null);
+   const [pastedImagePreview, setPastedImagePreview] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showFlows, setShowFlows] = useState(true);
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
@@ -1261,6 +1263,34 @@ const CRM = () => {
       setRecordedAudioUrl(null);
       setIsPreviewingAudio(false);
       await handleSendMedia(blob, 'audio', true, previewUrl);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          setPastedImage(file);
+          setPastedImagePreview(URL.createObjectURL(file));
+        }
+      }
+    }
+  };
+
+  const cancelPastedImage = () => {
+    if (pastedImagePreview) URL.revokeObjectURL(pastedImagePreview);
+    setPastedImage(null);
+    setPastedImagePreview(null);
+  };
+
+  const sendPastedImage = async () => {
+    if (pastedImage && !isSending(selectedContact?.id)) {
+      const file = pastedImage;
+      const preview = pastedImagePreview;
+      cancelPastedImage();
+      await handleSendMedia(file, 'image', false, preview || undefined);
     }
   };
 
@@ -3593,18 +3623,29 @@ const CRM = () => {
                                     </Dialog>
                                   </div>
                                 </div>
-                                 {isPreviewingAudio && recordedAudioUrl ? (
+                                  {isPreviewingAudio && recordedAudioUrl ? (
+                                   <div className="flex flex-col gap-2 p-2 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-bottom-2 shrink-0">
+                                     <div className="flex items-center gap-2 overflow-hidden">
+                                       <audio src={recordedAudioUrl} controls className="h-8 flex-1 min-w-0" />
+                                       <div className="flex gap-1 shrink-0">
+                                         <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive h-8 w-8 hover:bg-destructive/10"><XCircle className="w-4 h-4" /></Button>
+                                         <Button size="icon" onClick={sendRecordedAudio} className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white shadow-lg"><Send className="w-4 h-4" /></Button>
+                                       </div>
+                                     </div>
+                                     <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate">Envie ou descarte o áudio</p>
+                                   </div>
+                                 ) : pastedImagePreview ? (
                                   <div className="flex flex-col gap-2 p-2 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-bottom-2 shrink-0">
-                                    <div className="flex items-center gap-2 overflow-hidden">
-                                      <audio src={recordedAudioUrl} controls className="h-8 flex-1 min-w-0" />
-                                      <div className="flex gap-1 shrink-0">
-                                        <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive h-8 w-8 hover:bg-destructive/10"><XCircle className="w-4 h-4" /></Button>
-                                        <Button size="icon" onClick={sendRecordedAudio} className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white shadow-lg"><Send className="w-4 h-4" /></Button>
-                                      </div>
+                                    <div className="relative w-full max-w-[200px] aspect-square rounded-lg overflow-hidden border mx-auto">
+                                      <img src={pastedImagePreview} alt="Colado" className="w-full h-full object-cover" />
                                     </div>
-                                    <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate">Envie ou descarte o áudio</p>
+                                    <div className="flex justify-center gap-2 mt-1">
+                                      <Button variant="ghost" size="sm" onClick={cancelPastedImage} className="text-destructive h-8 px-3 hover:bg-destructive/10">Cancelar</Button>
+                                      <Button size="sm" onClick={sendPastedImage} className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white shadow-lg">Enviar Imagem</Button>
+                                    </div>
+                                    <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate mt-1">Imagem colada pronta para envio</p>
                                   </div>
-                                ) : (
+                                 ) : (
                                   <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-1 sm:px-2 pb-2 shrink-0">
                                     {isRecording && (
                                       <div className="flex items-center justify-between px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-1 shrink-0">
@@ -3641,6 +3682,7 @@ const CRM = () => {
                                           placeholder={isRecording ? "Gravando..." : "Mensagem"}
                                           value={newMessage} 
                                           disabled={isRecording}
+                                          onPaste={handlePaste}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
                                           className="bg-white dark:bg-[#2a3942] border-none h-10 pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full"
