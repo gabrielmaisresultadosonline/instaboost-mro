@@ -3440,7 +3440,7 @@ const CRM = () => {
                                         <Button 
                                           variant="ghost" 
                                           size="sm" 
-                                          className="h-8 text-[11px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-xl px-4"
+                                          className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-lg px-3"
                                           disabled={!metaSettings.openai_api_key}
                                         >
                                           <Bot className="w-4 h-4 mr-2" /> <span>Analises IA</span>
