@@ -1164,6 +1164,20 @@ const CRM = () => {
 
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
+
+    const DAY = 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+
+    if (isColdList) {
+      toast({ 
+        title: "Janela de 24h Expirada", 
+        description: "Para reabrir o chat (Custo médio: R$ 0,33), envie primeiro um Template Aprovado.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const targetContactId = selectedContact.id;
     const targetWaId = selectedContact.wa_id;
     
