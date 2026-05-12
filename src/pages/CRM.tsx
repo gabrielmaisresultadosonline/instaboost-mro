@@ -6217,97 +6217,161 @@ const CRM = () => {
       </Dialog>
 
       <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
-        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-md">
+        <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <CalendarClock className="w-5 h-5 text-primary" /> Agendar Mensagem
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-primary">
+              <CalendarClock className="w-5 h-5" /> Novo Agendamento
             </DialogTitle>
-            <DialogDescription>
-              Escolha quando e o que você deseja agendar para este contato.
-            </DialogDescription>
+            <DialogDescription>Agende mensagens, fluxos ou templates para seus contatos.</DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data</Label>
-                <Input 
-                  type="date" 
-                  value={scheduleDate} 
-                  onChange={(e) => setScheduleDate(e.target.value)} 
-                  className="rounded-xl"
-                />
+          <ScrollArea className="flex-1 pr-4 -mr-4 py-4">
+            <div className="space-y-6">
+              {/* Seleção de Contatos */}
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>1. Selecionar Destinatários</span>
+                  <span className="text-primary">{selectedContactsForScheduling.length} selecionados</span>
+                </Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Pesquisar contatos..." 
+                    className="pl-9 h-11 rounded-xl bg-muted/30 border-none"
+                    value={scheduleSearch}
+                    onChange={e => setScheduleSearch(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-1">
+                  {contacts
+                    .filter(c => {
+                      if (!scheduleSearch) return true;
+                      const q = scheduleSearch.toLowerCase();
+                      return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(scheduleSearch);
+                    })
+                    .slice(0, 20)
+                    .map(contact => (
+                      <div 
+                        key={contact.id}
+                        onClick={() => {
+                          setSelectedContactsForScheduling(prev => 
+                            prev.includes(contact.id) 
+                              ? prev.filter(id => id !== contact.id) 
+                              : [...prev, contact.id]
+                          );
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer",
+                          selectedContactsForScheduling.includes(contact.id)
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-transparent bg-muted/20 hover:bg-muted/40"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-4 h-4 rounded border flex items-center justify-center shrink-0",
+                          selectedContactsForScheduling.includes(contact.id) ? "bg-primary border-primary" : "border-muted-foreground/30"
+                        )}>
+                          {selectedContactsForScheduling.includes(contact.id) && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold truncate">{contact.name || contact.wa_id}</p>
+                          <p className="text-[9px] text-muted-foreground truncate">{contact.wa_id}</p>
+                        </div>
+                        {contact.last_message_received_at && (
+                          <div className={cn(
+                            "ml-auto w-1.5 h-1.5 rounded-full",
+                            (Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "bg-emerald-500" : "bg-muted-foreground/30"
+                          )} title={(Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "Janela de 24h Ativa" : "Janela Expirada"} />
+                        )}
+                      </div>
+                    ))}
+                </div>
+                {selectedContactsForScheduling.length === 0 && (
+                  <p className="text-[10px] text-red-500 italic">Selecione pelo menos um contato.</p>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label>Hora</Label>
-                <Input 
-                  type="time" 
-                  value={scheduleTime} 
-                  onChange={(e) => setScheduleTime(e.target.value)} 
-                  className="rounded-xl"
-                />
+
+              {/* Tipo de Agendamento */}
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">2. O que deseja agendar?</Label>
+                <Tabs value={scheduleType} onValueChange={(val: any) => setScheduleType(val)} className="w-full">
+                  <TabsList className="grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1 gap-1">
+                    <TabsTrigger value="message" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Mensagem</TabsTrigger>
+                    <TabsTrigger value="template" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Template</TabsTrigger>
+                    <TabsTrigger value="flow" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Fluxo</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Conteúdo dinâmico baseado no tipo */}
+              <div className="space-y-4 animate-in fade-in duration-300">
+                {scheduleType === 'message' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold">Texto da Mensagem</Label>
+                    <Textarea 
+                      placeholder="Olá, como posso ajudar?..." 
+                      className="min-h-[100px] rounded-xl bg-muted/30 border-none resize-none"
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                    />
+                    <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> Apenas contatos em janela de 24h receberão mensagens comuns.
+                    </p>
+                  </div>
+                )}
+
+                {scheduleType === 'template' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold">Selecione o Template Aprovado</Label>
+                    <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none">
+                        <SelectValue placeholder="Escolha um modelo..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {templates.filter(t => t.status === 'APPROVED').map(t => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-emerald-600 font-medium italic flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Templates podem ser agendados para qualquer contato (Mesmo janelas expiradas).
+                    </p>
+                  </div>
+                )}
+
+                {scheduleType === 'flow' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold">Selecione o Fluxo Visual</Label>
+                    <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none">
+                        <SelectValue placeholder="Escolha um fluxo..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {flows.filter(f => f.is_active).map(f => (
+                          <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> Fluxos só podem ser agendados para contatos em janela de 24h.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Data e Hora */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold flex items-center gap-2"><Calendar className="w-3 h-3" /> Data</Label>
+                  <Input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="h-11 rounded-xl bg-muted/30 border-none" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold flex items-center gap-2"><Clock className="w-3 h-3" /> Hora</Label>
+                  <Input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} className="h-11 rounded-xl bg-muted/30 border-none" />
+                </div>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label>Tipo de Agendamento</Label>
-              <Select value={scheduleType} onValueChange={(val: any) => { setScheduleType(val); setSelectedScheduleId(''); }}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="message">Mensagem de Texto</SelectItem>
-                  <SelectItem value="template">Template</SelectItem>
-                  <SelectItem value="flow">Fluxo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-
-            {scheduleType === 'message' && (
-              <div className="space-y-2">
-                <Label>Mensagem</Label>
-                <Textarea 
-                  placeholder="Digite o conteúdo da mensagem..." 
-                  value={newMessage} 
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="rounded-xl min-h-[100px]"
-                />
-              </div>
-            )}
-
-            {scheduleType === 'template' && (
-              <div className="space-y-2">
-                <Label>Selecionar Template</Label>
-                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Escolha um template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map(t => (
-                      <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {scheduleType === 'flow' && (
-              <div className="space-y-2">
-                <Label>Selecionar Fluxo</Label>
-                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Escolha um fluxo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {flows.filter(f => f.is_active).map(f => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+          </ScrollArea>
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsSchedulingOpen(false)} className="rounded-xl h-11">Cancelar</Button>
