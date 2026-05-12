@@ -2055,7 +2055,7 @@ const CRM = () => {
       <div className="h-[100dvh] w-full flex overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317]">
         <Sidebar className="border-r border-border/50 shadow-xl bg-[#111b21] dark:bg-[#111b21] text-white">
           <SidebarHeader className="p-4 border-b border-white/5 flex items-center justify-center bg-[#202c33]">
-            <Logo size="sm" invert />
+            <Logo size="sm" />
           </SidebarHeader>
           <SidebarContent className="bg-[#111b21]">
             <SidebarGroup>
