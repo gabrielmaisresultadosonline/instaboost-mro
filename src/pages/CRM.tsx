@@ -4315,7 +4315,7 @@ const CRM = () => {
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button className="flex-1 sm:flex-none h-10 bg-primary shadow-lg shadow-primary/20 text-xs md:text-sm">
+                          <Button className="flex-1 sm:flex-none h-10 bg-[#00a884] hover:bg-[#008f6f] shadow-lg shadow-[#00a884]/20 text-xs md:text-sm font-bold rounded-xl transition-all active:scale-95">
                             <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" /> Novo Template
                           </Button>
                         </DialogTrigger>
