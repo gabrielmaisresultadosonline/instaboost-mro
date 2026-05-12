@@ -2986,8 +2986,8 @@ const CRM = () => {
                                     </div>
                                   )}
                                   {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
-                                    <div className="text-[8px] font-bold text-primary tabular-nums whitespace-nowrap bg-primary/5 px-1 rounded border border-primary/10 shrink-0">
-                                      {(() => {
+                                    <div className="text-[8px] font-black bg-red-600 text-white tabular-nums whitespace-nowrap px-1.5 py-0.5 rounded-sm shrink-0 shadow-sm flex items-center gap-1">
+                                      <Clock className="w-2.5 h-2.5" />
                                         if (selectedContact.flow_state === 'waiting_response') {
                                           const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
                                           const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
