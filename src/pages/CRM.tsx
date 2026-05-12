@@ -946,25 +946,25 @@ const CRM = () => {
     }
   };
 
+  const getLastInboundTime = (contact: any) => {
+    const raw = contact?.last_message_received_at;
+    if (!raw) return 0;
+    const parsed = Date.parse(String(raw).trim());
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const isConversationExpired = (contact: any) => {
+    const lastInbound = getLastInboundTime(contact);
+    if (!lastInbound) return false;
+    const DAY = 24 * 60 * 60 * 1000;
+    const TOLERANCE = 30 * 60 * 1000;
+    return Date.now() - lastInbound > DAY + TOLERANCE;
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedContact || isSending(selectedContact.id)) return;
-    
-    const DAY = 24 * 60 * 60 * 1000;
-    const nowTime = Date.now();
-    
-    // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
-    // Buscamos a data de forma segura, garantindo que não haja erro de fuso ou nulidade.
-    const lastInboundStr = selectedContact.last_message_received_at;
-    const lastInbound = lastInboundStr ? new Date(lastInboundStr).getTime() : 0;
-    
-    // Se não temos registro de mensagem recebida, a janela NÃO expirou (é um novo chat ou manual)
-    let isColdList = false;
-    if (lastInbound > 0) {
-      const diffMs = nowTime - lastInbound;
-      // Bloqueia apenas se passar de 24h (86.400.000ms) com 30 minutos de tolerância extra para evitar erros de sincronização
-      const limit = DAY + (30 * 60 * 1000); 
-      isColdList = diffMs > limit;
-    }
+
+    const isColdList = isConversationExpired(selectedContact);
 
     if (isColdList) {
       toast({ 
