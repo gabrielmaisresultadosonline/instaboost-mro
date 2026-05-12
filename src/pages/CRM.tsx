@@ -2265,6 +2265,7 @@ const CRM = () => {
                     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                     { id: 'contacts', label: 'Conversas', icon: MessageSquare },
                      { id: 'contact-list', label: 'Contatos', icon: Users },
+                     { id: 'google-synced', label: 'Google Sync', icon: LucideIcons.Cloud },
                     { id: 'broadcast', label: 'Disparador', icon: Zap },
                     { id: 'scheduling', label: 'Agendamentos', icon: Calendar },
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
