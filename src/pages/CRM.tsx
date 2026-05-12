@@ -860,6 +860,19 @@ const CRM = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedContact || isSending(selectedContact.id)) return;
     
+    const DAY = 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+
+    if (isColdList) {
+      toast({ 
+        title: "Janela de 24h Expirada", 
+        description: "Esta conversa passou de 24h. Inicie um novo chat usando um Template Aprovado (Custo médio: R$ 0,33).", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const textToSend = newMessage.trim();
     const targetContactId = selectedContact.id;
     const targetWaId = selectedContact.wa_id;
@@ -1151,6 +1164,20 @@ const CRM = () => {
 
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
+
+    const DAY = 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+
+    if (isColdList) {
+      toast({ 
+        title: "Janela de 24h Expirada", 
+        description: "Para reabrir o chat (Custo médio: R$ 0,33), envie primeiro um Template Aprovado.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const targetContactId = selectedContact.id;
     const targetWaId = selectedContact.wa_id;
     
@@ -1382,6 +1409,20 @@ const CRM = () => {
 
   const handleTriggerFlow = async (flowId: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
+
+    const DAY = 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+
+    if (isColdList) {
+      toast({ 
+        title: "Janela de 24h Expirada", 
+        description: "Não é possível iniciar fluxos em chats expirados. Use um Template Aprovado.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const targetContactId = selectedContact.id;
     const targetWaId = selectedContact.wa_id;
     
@@ -2898,7 +2939,7 @@ const CRM = () => {
                                   <div className="flex items-center gap-1.5 bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full border border-border/10 shadow-sm animate-in fade-in zoom-in-95 duration-300">
                                     <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
                                     <span className={cn("text-[10px] font-black uppercase tracking-tight", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
-                                      Janela: {getWindowInfo(selectedContact.last_message_received_at)?.label}
+                                      {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Janela Expirada (Use Template)' : `Janela Grátis: ${getWindowInfo(selectedContact.last_message_received_at)?.label}`}
                                     </span>
                                   </div>
                                 )}
