@@ -682,14 +682,13 @@ const CRM = () => {
     // Enrich with last inbound timestamp per contact (24h window logic)
     // Field doesn't exist in DB yet, so derive from crm_messages
     try {
-      const since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
       const { data: recentInbound } = await supabase
         .from('crm_messages')
         .select('contact_id, created_at')
         .eq('direction', 'inbound')
         .gte('created_at', since)
-        .order('created_at', { ascending: false })
-        .limit(5000);
+        .order('created_at', { ascending: false });
       const lastInboundByContact: Record<string, string> = {};
       (recentInbound || []).forEach((m: any) => {
         if (m.contact_id && !lastInboundByContact[m.contact_id]) {
@@ -924,12 +923,13 @@ const CRM = () => {
       // (regra oficial WhatsApp: a janela de 24h só reseta quando o cliente responde)
       const lastInboundMsg = [...(data || [])].reverse().find((m: any) => m.direction === 'inbound');
       if (lastInboundMsg) {
+        const inboundIso = lastInboundMsg.created_at;
+        const inboundT = new Date(inboundIso).getTime();
         const currentLast = selectedContactRef.current?.last_message_received_at
           ? new Date(selectedContactRef.current.last_message_received_at).getTime()
           : 0;
-        const inboundT = new Date(lastInboundMsg.created_at).getTime();
+        
         if (inboundT > currentLast) {
-          const inboundIso = lastInboundMsg.created_at;
           setSelectedContact((prev: any) => prev && prev.id === contactId
             ? { ...prev, last_message_received_at: inboundIso }
             : prev);
@@ -949,10 +949,11 @@ const CRM = () => {
     const DAY = 24 * 60 * 60 * 1000;
     const nowTime = Date.now();
     // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
+    // Verificamos no banco se existe alguma mensagem inbound nas últimas 24h caso o estado local esteja inconsistente.
     const lastInbound = selectedContact.last_message_received_at ? new Date(selectedContact.last_message_received_at).getTime() : 0;
     
-    // Se nunca houve um inbound (conversa nova ou manual), permitimos enviar templates ou mensagens livres (Meta cobra sessão)
-    // Se houve um inbound, verificamos se passou de 24h.
+    // Bloqueia apenas se TIVER um registro de inbound e ele for REALMENTE mais velho que 24h.
+    // Se lastInbound for 0, significa que não recebemos nada ainda (chat novo ou iniciado por template), então o envio é livre.
     const isColdList = lastInbound > 0 && (nowTime - lastInbound) > DAY;
 
     if (isColdList) {
