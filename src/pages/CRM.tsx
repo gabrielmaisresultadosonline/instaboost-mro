@@ -2052,14 +2052,14 @@ const CRM = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-[100dvh] w-full flex overflow-hidden bg-background">
-        <Sidebar className="border-r shadow-sm">
-          <SidebarHeader className="p-4 border-b flex items-center justify-center">
-            <Logo size="sm" />
+      <div className="h-[100dvh] w-full flex overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317]">
+        <Sidebar className="border-r border-border/50 shadow-xl bg-[#111b21] dark:bg-[#111b21] text-white">
+          <SidebarHeader className="p-4 border-b border-white/5 flex items-center justify-center bg-[#202c33]">
+            <Logo size="sm" invert />
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="bg-[#111b21]">
             <SidebarGroup>
-              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Navegação</SidebarGroupLabel>
+              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-white/40 font-bold">Navegação</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {[
@@ -2081,12 +2081,17 @@ const CRM = () => {
                         isActive={activeTab === item.id} 
                         onClick={() => setActiveTab(item.id)}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
-                          activeTab === item.id ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted"
+                          "flex items-center gap-3 px-4 py-3 rounded-none transition-all duration-300 relative group",
+                          activeTab === item.id 
+                            ? "bg-[#2a3942] text-[#00a884] shadow-inner" 
+                            : "text-white/70 hover:bg-[#202c33] hover:text-white"
                         )}
                       >
-                        <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-primary" : "text-muted-foreground")} />
-                        <span className="font-semibold">{item.label}</span>
+                        {activeTab === item.id && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00a884] shadow-[0_0_10px_rgba(0,168,132,0.5)]" />
+                        )}
+                        <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", activeTab === item.id ? "text-[#00a884]" : "text-white/50")} />
+                        <span className="font-semibold text-sm">{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -2094,8 +2099,12 @@ const CRM = () => {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t p-4">
-            <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
+          <SidebarFooter className="border-t border-white/5 p-4 bg-[#111b21]">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors" 
+              onClick={() => { logoutAdmin(); navigate('/crm/login'); }}
+            >
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </Button>
           </SidebarFooter>
