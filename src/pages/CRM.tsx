@@ -954,7 +954,8 @@ const CRM = () => {
     
     // Bloqueia apenas se TIVER um registro de inbound e ele for REALMENTE mais velho que 24h.
     // Se lastInbound for 0, significa que não recebemos nada ainda (chat novo ou iniciado por template), então o envio é livre.
-    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > DAY;
+    // Adicionamos uma margem de segurança de 5 minutos para evitar bloqueios por pequenos atrasos de sincronização
+    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > (DAY + 5 * 60 * 1000);
 
     if (isColdList) {
       toast({ 
