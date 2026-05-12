@@ -2560,7 +2560,7 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-card/30 backdrop-blur-sm h-full shrink-0",
+                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
