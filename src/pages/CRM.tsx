@@ -5452,13 +5452,19 @@ const CRM = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 md:p-6 space-y-5">
+                        <div className="flex flex-col gap-3">
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl mb-2">
+                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                              <strong>Aviso:</strong> As chaves de integração do Google agora são gerenciadas internamente pelo servidor para maior segurança e estabilidade.
+                            </p>
+                          </div>
+                          
                           <Button 
                             variant={googleContactsEnabled ? "outline" : "secondary"} 
                             className="w-full h-11 rounded-xl font-bold border-primary/20"
                             onClick={() => {
                               const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
                               const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                              // Use the internal client ID
                               const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
                               window.location.href = url;
                             }}
