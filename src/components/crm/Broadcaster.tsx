@@ -80,28 +80,63 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
     setLoading(true);
     try {
       let numbers: string[] = [];
+      const DAY = 24 * 60 * 60 * 1000;
+      const now = Date.now();
       
-      if (targetType === 'contacts') {
-        numbers = contacts.map(c => c.wa_id);
-      } else if (targetType === 'conversation') {
-        const DAY = 24 * 60 * 60 * 1000;
-        const now = Date.now();
+      if (targetType === 'conversation') {
+        // Filtrar contatos que responderam nas últimas 24 horas
         numbers = contacts
-          .filter(c => c.last_interaction && (now - new Date(c.last_interaction).getTime()) < DAY)
+          .filter(c => c.last_message_received_at && (now - new Date(c.last_message_received_at).getTime()) < DAY)
           .map(c => c.wa_id);
-      } else if (targetType === 'tag') {
-        if (!selectedStatus) {
-          toast({ title: "Selecione uma etiqueta", variant: "destructive" });
-          setLoading(false);
-          return;
-        }
-        numbers = contacts.filter(c => c.status === selectedStatus).map(c => c.wa_id);
       } else {
-        // Parse uploaded numbers
-        numbers = uploadedNumbers
-          .split('\n')
-          .map(n => n.trim().replace(/\D/g, ''))
-          .filter(n => n.length >= 10);
+        // Regra do WhatsApp: Lista fria (fora das 24h) só pode receber Templates Aprovados.
+        let potentialNumbers: string[] = [];
+        
+        if (targetType === 'contacts') {
+          potentialNumbers = contacts.map(c => c.wa_id);
+        } else if (targetType === 'tag') {
+          if (!selectedStatus) {
+            toast({ title: "Selecione uma etiqueta", variant: "destructive" });
+            setLoading(false);
+            return;
+          }
+          potentialNumbers = contacts.filter(c => c.status === selectedStatus).map(c => c.wa_id);
+        } else if (targetType === 'uploaded') {
+          potentialNumbers = uploadedNumbers
+            .split('\n')
+            .map(n => n.trim().replace(/\D/g, ''))
+            .filter(n => n.length >= 10);
+        }
+
+        if (type !== 'template') {
+          // Filtrar apenas quem está dentro da janela de 24h para mensagens comuns ou fluxos
+          const activeNumbers = contacts
+            .filter(c => potentialNumbers.includes(c.wa_id) && c.last_message_received_at && (now - new Date(c.last_message_received_at).getTime()) < DAY)
+            .map(c => c.wa_id);
+          
+          const coldCount = potentialNumbers.length - activeNumbers.length;
+          
+          if (activeNumbers.length === 0 && potentialNumbers.length > 0) {
+            toast({ 
+              title: "Atenção: Lista Fria", 
+              description: `Todos os ${potentialNumbers.length} contatos estão fora da janela de 24h. Use o modo "Template" para disparar para eles.`, 
+              variant: "destructive" 
+            });
+            setLoading(false);
+            return;
+          }
+
+          if (coldCount > 0) {
+            toast({ 
+              title: "Filtro de Segurança Ativo", 
+              description: `${coldCount} contatos fora da janela de 24h foram removidos. Envie um Template para alcançá-los.`,
+            });
+          }
+          numbers = activeNumbers;
+        } else {
+          // Se for Template, pode enviar para qualquer um (lista fria ou não)
+          numbers = potentialNumbers;
+        }
       }
 
       if (numbers.length === 0) {
@@ -121,7 +156,7 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
           random_delay_min: delayMin,
           random_delay_max: delayMax,
           total_contacts: numbers.length,
-          uploaded_numbers: (targetType === 'uploaded' || targetType === 'tag' || targetType === 'conversation') ? numbers : null,
+          uploaded_numbers: (targetType === 'uploaded' || targetType === 'tag' || targetType === 'conversation' || targetType === 'contacts') ? numbers : null,
           status: 'pending'
         }])
         .select()
