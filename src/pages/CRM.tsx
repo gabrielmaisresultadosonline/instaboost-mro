@@ -1267,9 +1267,7 @@ const CRM = () => {
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
 
-    const DAY = 24 * 60 * 60 * 1000;
-    const nowTime = Date.now();
-    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+    const isColdList = isConversationExpired(selectedContact);
 
     if (isColdList) {
       toast({ 
@@ -1512,9 +1510,7 @@ const CRM = () => {
   const handleTriggerFlow = async (flowId: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
 
-    const DAY = 24 * 60 * 60 * 1000;
-    const nowTime = Date.now();
-    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+    const isColdList = isConversationExpired(selectedContact);
 
     if (isColdList) {
       toast({ 
