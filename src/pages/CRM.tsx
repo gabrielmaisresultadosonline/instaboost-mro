@@ -3008,10 +3008,10 @@ const CRM = () => {
                               </div>
                               <div className="flex flex-col items-end gap-1 shrink-0">
                                 {selectedContact.last_message_received_at && (
-                                  <div className="flex items-center gap-1.5 bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full border border-border/10 shadow-sm animate-in fade-in zoom-in-95 duration-300">
-                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
-                                    <span className={cn("text-[10px] font-black uppercase tracking-tight", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
-                                      {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Janela Expirada (Use Template)' : `Janela Grátis: ${getWindowInfo(selectedContact.last_message_received_at)?.label}`}
+                                  <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded-full border border-border/10 shadow-sm animate-in fade-in zoom-in-95 duration-300 overflow-hidden max-w-[120px] sm:max-w-none">
+                                    <Clock className={cn("w-2.5 h-2.5 shrink-0", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
+                                    <span className={cn("text-[9px] font-black uppercase tracking-tight truncate", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
+                                      {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Expirado' : getWindowInfo(selectedContact.last_message_received_at)?.label}
                                     </span>
                                   </div>
                                 )}
