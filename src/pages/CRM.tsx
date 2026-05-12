@@ -2723,7 +2723,7 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-2 md:gap-3 bg-card/80 backdrop-blur-md shadow-sm z-10 shrink-0 w-full min-w-0">
+                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] shadow-sm z-10 shrink-0 w-full min-w-0">
                             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 overflow-hidden">
                               <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
