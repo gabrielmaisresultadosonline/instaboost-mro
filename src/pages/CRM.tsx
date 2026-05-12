@@ -2052,14 +2052,14 @@ const CRM = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-[100dvh] w-full flex overflow-hidden bg-background">
-        <Sidebar className="border-r shadow-sm">
-          <SidebarHeader className="p-4 border-b flex items-center justify-center">
+      <div className="h-[100dvh] w-full flex overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317]">
+        <Sidebar className="border-r border-border/50 shadow-xl bg-[#111b21] dark:bg-[#111b21] text-white">
+          <SidebarHeader className="p-4 border-b border-white/5 flex items-center justify-center bg-[#202c33]">
             <Logo size="sm" />
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="bg-[#111b21]">
             <SidebarGroup>
-              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Navegação</SidebarGroupLabel>
+              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-white/40 font-bold">Navegação</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {[
@@ -2081,12 +2081,17 @@ const CRM = () => {
                         isActive={activeTab === item.id} 
                         onClick={() => setActiveTab(item.id)}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
-                          activeTab === item.id ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted"
+                          "flex items-center gap-3 px-4 py-3 rounded-none transition-all duration-300 relative group",
+                          activeTab === item.id 
+                            ? "bg-[#2a3942] text-[#00a884] shadow-inner" 
+                            : "text-white/70 hover:bg-[#202c33] hover:text-white"
                         )}
                       >
-                        <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-primary" : "text-muted-foreground")} />
-                        <span className="font-semibold">{item.label}</span>
+                        {activeTab === item.id && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00a884] shadow-[0_0_10px_rgba(0,168,132,0.5)]" />
+                        )}
+                        <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", activeTab === item.id ? "text-[#00a884]" : "text-white/50")} />
+                        <span className="font-semibold text-sm">{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -2094,22 +2099,28 @@ const CRM = () => {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t p-4">
-            <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
+          <SidebarFooter className="border-t border-white/5 p-4 bg-[#111b21]">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors" 
+              onClick={() => { logoutAdmin(); navigate('/crm/login'); }}
+            >
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </Button>
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
-          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between">
+        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317]">
+          <header className="h-16 border-b border-border/50 flex items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between shadow-sm">
             <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              <div className="h-4 w-px bg-border mx-2 hidden md:block" />
+              <SidebarTrigger className="hover:bg-muted" />
+              <div className="h-4 w-px bg-border/50 mx-2 hidden md:block" />
+              <h1 className="font-bold text-sm md:text-base text-foreground tracking-tight">
                 {activeTab === 'contact-list' ? 'Contatos' : 
                  activeTab === 'contacts' ? 'Conversas' : 
                  activeTab === 'google-synced' ? 'Sincronizados Google' :
-                 activeTab}
+                 activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              </h1>
             </div>
             {activeTab === 'contacts' && (
               <div className="flex items-center gap-2 md:gap-3">
@@ -2117,18 +2128,23 @@ const CRM = () => {
                   variant={activeFlowsView ? "default" : "outline"} 
                   size="sm" 
                   onClick={() => { setActiveFlowsView(!activeFlowsView); setKanbanView(false); }} 
-                  className={cn("font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm", activeFlowsView && "bg-primary text-white")}
+                  className={cn(
+                    "font-black h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-full transition-all active:scale-95", 
+                    activeFlowsView 
+                      ? "bg-[#00a884] text-white hover:bg-[#008f6f] shadow-md" 
+                      : "bg-white dark:bg-[#111b21] hover:bg-muted"
+                  )}
                 >
-                  <GitBranch className="w-4 h-4 mr-2" />
+                  <GitBranch className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                   FLUXOS ATIVOS
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => { setKanbanView(!kanbanView); setActiveFlowsView(false); }} 
-                  className="font-bold h-8 px-2 md:px-3 text-[10px] md:text-sm"
+                  className="font-black h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-full bg-white dark:bg-[#111b21] hover:bg-muted transition-all active:scale-95 shadow-sm"
                 >
-                  {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                  {kanbanView ? <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" /> : <BarChart3 className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
               </div>
@@ -2152,7 +2168,7 @@ const CRM = () => {
                     ].map((stat, i) => (
                       <Card 
                         key={i} 
-                        className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800 cursor-pointer"
+                        className="relative overflow-hidden group hover:shadow-xl transition-all border-none bg-white dark:bg-[#111b21] cursor-pointer shadow-sm rounded-2xl"
                         onClick={() => {
                           if (stat.type === 'responded') setStatusFilter('responded');
                           else if (stat.type === 'qualified') setStatusFilter('qualified');
@@ -2357,7 +2373,7 @@ const CRM = () => {
                           <h2 className="text-xl font-bold tracking-tight">Fluxos em Andamento</h2>
                           <p className="text-muted-foreground text-sm">Contatos que estão interagindo com automações agora.</p>
                         </div>
-                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-black px-3 py-1">
+                        <Badge variant="outline" className="bg-[#00a884]/5 text-[#00a884] border-[#00a884]/20 font-black px-3 py-1">
                           {contacts.filter(c => c.flow_state && c.flow_state !== 'idle').length} ATIVOS
                         </Badge>
                       </div>
@@ -2415,7 +2431,7 @@ const CRM = () => {
                                     <Button 
                                       variant="outline" 
                                       size="sm" 
-                                      className="h-9 px-4 font-bold border-primary/20 text-primary hover:bg-primary/5"
+                                      className="h-9 px-4 font-bold border-[#00a884]/20 text-[#00a884] hover:bg-[#00a884]/5 rounded-xl transition-all"
                                       onClick={() => {
                                         openChat(contact);
                                         setActiveFlowsView(false);
@@ -2463,13 +2479,13 @@ const CRM = () => {
                     ]).map(status => (
                       <div 
                         key={status.value} 
-                        className="w-72 md:w-80 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card snap-center" 
+                        className="w-72 md:w-80 shrink-0 flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] rounded-2xl border-none shadow-md group/column transition-all hover:shadow-xl snap-center overflow-hidden" 
                         onDragOver={e => e.preventDefault()} 
                         onDrop={() => handleDrop(status.value)}
                       >
                         <div className={cn(
-                          "p-4 border-b font-black uppercase text-[11px] flex justify-between items-center rounded-t-xl",
-                          status.value === 'human' || status.color === 'orange' ? "bg-orange-500/10 text-orange-700" : "bg-muted/30"
+                          "p-4 border-b border-border/10 font-black uppercase text-[11px] flex justify-between items-center",
+                          status.value === 'human' || status.color === 'orange' ? "bg-orange-500/10 text-orange-700" : "bg-[#202c33] text-[#e9edef]"
                         )}>
                           <div className="flex items-center gap-2">
                             <div className={cn(
@@ -2550,7 +2566,7 @@ const CRM = () => {
                               key={contact.id} 
                               draggable 
                               onDragStart={() => handleDragStart(contact)} 
-                              className="p-4 mb-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all hover:-translate-y-1 hover:shadow-md border-zinc-100 dark:border-zinc-800 animate-in fade-in slide-in-from-top-2" 
+                              className="p-4 mb-3 cursor-grab active:cursor-grabbing border-none bg-white dark:bg-[#202c33] shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg rounded-xl animate-in fade-in slide-in-from-top-2" 
                               onClick={() => { openChat(contact); setKanbanView(false); }}
                             >
                               <p className="text-sm font-bold truncate">{contact.name || contact.wa_id}</p>
@@ -2581,36 +2597,41 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0",
+                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r border-border/40 flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0 shadow-sm z-[5]",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
-                      <div className="p-4 border-b flex flex-col gap-3">
+                      <div className="p-4 border-b border-border/30 flex flex-col gap-3 bg-white dark:bg-[#111b21]">
                         <div className="space-y-3">
-                          <div className="relative">
-                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <div className="relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-[#00a884] transition-colors" />
                             <Input 
-                              placeholder="Buscar contatos..." 
-                              className="bg-background dark:bg-[#202c33] border-none h-10"
+                              placeholder="Pesquisar ou começar uma nova conversa" 
+                              className="bg-[#f0f2f5] dark:bg-[#202c33] border-none h-9 pl-10 rounded-lg text-sm focus-visible:ring-1 focus-visible:ring-[#00a884]"
                               onChange={e => setStatusFilter(e.target.value || 'all')} 
                             />
                           </div>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="tags" className="border-none">
-                            <AccordionTrigger className="py-2 hover:no-underline text-xs font-semibold text-muted-foreground flex gap-2">
-                              <ListFilter className="w-3.5 h-3.5" />
-                              Filtrar por Etiquetas
+                            <AccordionTrigger className="py-2 hover:no-underline text-[10px] font-black uppercase tracking-wider text-muted-foreground flex gap-2">
+                              <ListFilter className="w-3 h-3" />
+                              Etiquetas
                             </AccordionTrigger>
                             <AccordionContent>
-                              <div className="flex flex-wrap gap-1 pb-1 pt-1">
+                              <div className="flex flex-wrap gap-1.5 pb-2 pt-1">
                                 {['all', ...(kanbanStatuses.length > 0 ? kanbanStatuses.map(s => s.value) : ['new', 'responded', 'human', 'qualified', 'closed', 'lost'])].map(s => (
                                   <Badge 
                                     key={s} 
                                     variant={statusFilter === s ? 'default' : 'outline'} 
-                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    style={{ 
+                                      height: `${18 * ((metaSettings.tag_size || 100) / 100)}px`, 
+                                      fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px`,
+                                      backgroundColor: statusFilter === s ? '#00a884' : undefined,
+                                      borderColor: statusFilter === s ? '#00a884' : undefined
+                                    }}
                                     className={cn(
-                                      "cursor-pointer capitalize whitespace-nowrap px-2 font-black transition-all",
-                                      statusFilter === s ? "shadow-md scale-105" : "hover:bg-muted"
+                                      "cursor-pointer capitalize whitespace-nowrap px-3 font-bold transition-all rounded-full",
+                                      statusFilter === s ? "text-white shadow-md scale-105" : "hover:bg-muted"
                                     )}
                                     onClick={() => setStatusFilter(s)}
                                   >
@@ -2622,7 +2643,7 @@ const CRM = () => {
                           </AccordionItem>
                         </Accordion>
                       </div>
-                      <ScrollArea className="flex-1 min-h-0 h-full overflow-y-auto">
+                      <ScrollArea className="flex-1 bg-white dark:bg-[#111b21]">
                         {filteredContacts.length > 0 ? (
                           filteredContacts.map(contact => (
                             <button 
@@ -2744,11 +2765,14 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] shadow-sm z-10 shrink-0 w-full min-w-0">
+                          <div className="p-3 md:p-3.5 border-b border-border/40 flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
                             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 overflow-hidden">
-                              <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8" onClick={() => setSelectedContact(null)}>
+                              <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
+                              <div className="w-10 h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
+                                <User className="w-6 h-6 text-white" />
+                              </div>
                               <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
                                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0 w-full overflow-hidden">
                                   <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1 md:gap-2 min-w-0 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
@@ -2774,7 +2798,7 @@ const CRM = () => {
                                       size="icon"
                                       className={cn(
                                         "h-8 w-8 rounded-full transition-all duration-300",
-                                        selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
+                                        selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-[#00a884] bg-[#00a884]/10 shadow-[0_0_15px_rgba(0,168,132,0.5)] animate-pulse" : "text-muted-foreground grayscale"
                                       )}
                                       onClick={async () => {
                                         const newStatus = !selectedContact.ai_active;
@@ -2940,8 +2964,9 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[#E5DDD5] dark:bg-[#0b141a] bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat overflow-y-auto">
-                            <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
+                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative overflow-y-auto">
+                            <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.05] pointer-events-none bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat"></div>
+                            <div className="p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
                                   <div className="flex items-center gap-2 px-1">
@@ -3026,10 +3051,10 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-2 md:p-2.5 rounded-lg max-w-[85%] md:max-w-[75%] shadow-sm relative",
+                                      "p-2 md:p-2.5 rounded-xl max-w-[85%] md:max-w-[75%] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative transition-all duration-300",
                                       m.direction === 'inbound' 
-                                        ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none' 
-                                        : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-white rounded-tr-none',
+                                        ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none border-l-[3px] border-l-transparent' 
+                                        : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none border-r-[3px] border-r-transparent',
                                       m.isOptimistic && 'opacity-70 grayscale-[0.5]'
                                     )}>
                                       {isTemplate && template ? (
@@ -3218,11 +3243,13 @@ const CRM = () => {
                                         </>
                                       )}
                                       <div className={cn(
-                                        "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
+                                        "text-[10px] mt-0.5 mb-[-2px] float-right ml-2 opacity-70 flex items-center gap-1 leading-none select-none",
                                         m.direction === 'inbound' ? 'text-muted-foreground' : 'text-[#303030]/60 dark:text-white/60'
                                       )}>
                                         {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                        {m.direction === 'outbound' && <LucideIcons.CheckCheck className={cn("w-3.5 h-3.5", m.status === 'read' ? "text-blue-500" : "text-muted-foreground")} />}
+                                        {m.direction === 'outbound' && (
+                                          <LucideIcons.CheckCheck className={cn("w-3.5 h-3.5", m.status === 'read' ? "text-[#53bdeb]" : "text-muted-foreground/60")} />
+                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -3405,75 +3432,99 @@ const CRM = () => {
                                     <p className="text-[10px] text-center text-muted-foreground font-medium uppercase tracking-tighter">Clique no verde para enviar ou no vermelho para descartar</p>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
+                                  <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full px-2">
                                     {isRecording && (
-                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-2">
                                         <div className="flex items-center gap-2">
                                           <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                          <span className="text-xs font-bold text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
+                                          <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
                                         </div>
-                                        <span className="text-xs font-mono font-bold text-red-600">
+                                        <span className="text-xs font-mono font-black text-red-600">
                                           {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1 sm:gap-2 w-full px-1">
-                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-[#54656f] dark:text-[#aebac1] shrink-0"><ImageIcon className="w-5 h-5" /></Button>
+                                    <div className="flex items-center gap-1.5 w-full">
+                                      <div className="flex items-center gap-1">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full"
+                                        >
+                                          <Plus className="w-6 h-6" />
+                                        </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full hidden sm:flex"
+                                        >
+                                          <ImageIcon className="w-5 h-5" />
+                                        </Button>
+                                      </div>
                                       <div className="flex-1 relative flex items-center">
                                         <Input 
-                                          placeholder={isRecording ? "Gravando..." : "Escreva sua mensagem..."}
+                                          placeholder={isRecording ? "Gravando..." : "Digite uma mensagem"}
                                           value={newMessage} 
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-10 rounded-xl"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-12 rounded-xl shadow-sm text-sm focus-visible:ring-0"
                                         />
-                                        {isRecording && (
-                                          <div className="absolute right-3 flex items-center gap-2">
-                                            <Button 
-                                              size="icon" 
-                                              variant="ghost" 
-                                              className="h-8 w-8 text-red-500 hover:bg-red-50"
-                                              onClick={stopRecording}
-                                            >
-                                              <StopCircle className="w-5 h-5" />
-                                            </Button>
-                                          </div>
-                                        )}
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          className="absolute right-1 h-9 w-9 text-[#54656f] dark:text-[#aebac1] hover:bg-transparent"
+                                        >
+                                          <Smile className="w-5 h-5" />
+                                        </Button>
                                       </div>
-                                      {!isRecording && (
+                                      {!isRecording ? (
                                         <div className="flex items-center gap-1">
-                                          <div className="relative">
+                                          {newMessage.trim() ? (
                                             <Button 
                                               size="icon" 
-                                              variant="ghost" 
-                                              className={cn(
-                                                "h-11 w-11 shrink-0 rounded-full",
-                                                !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
-                                                  ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
-                                                  : "text-[#00a884] hover:bg-[#00a884]/10"
-                                              )}
-                                              onClick={startRecording}
+                                              onClick={handleSendMessage} 
+                                              disabled={isSending(selectedContact?.id)}
+                                              className="h-11 w-11 shrink-0 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
                                             >
-                                              <Mic className="w-5 h-5" />
+                                              <Send className="w-5 h-5 ml-0.5" />
                                             </Button>
-                                            {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
-                                              <div className="absolute -top-1 -right-1">
-                                                <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
-                                                  <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                          ) : (
+                                            <div className="relative">
+                                              <Button 
+                                                size="icon" 
+                                                variant="ghost" 
+                                                className={cn(
+                                                  "h-11 w-11 shrink-0 rounded-full",
+                                                  !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
+                                                    ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
+                                                    : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
+                                                )}
+                                                onClick={startRecording}
+                                              >
+                                                <Mic className="w-5 h-5" />
+                                              </Button>
+                                              {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
+                                                <div className="absolute -top-1 -right-1">
+                                                  <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
+                                                    <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                                  </div>
                                                 </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                          <Button 
-                                            size="icon" 
-                                            onClick={handleSendMessage} 
-                                            disabled={!newMessage.trim() || isSending(selectedContact?.id)}
-                                            className="h-11 w-11 shrink-0 shadow-md rounded-full bg-[#00a884] hover:bg-[#008f6f]"
-                                          >
-                                            <Send className="w-4 h-4" />
-                                          </Button>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
+                                      ) : (
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          className="h-11 w-11 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
+                                          onClick={stopRecording}
+                                        >
+                                          <StopCircle className="w-5 h-5" />
+                                        </Button>
                                       )}
                                     </div>
                                   </div>
@@ -3481,19 +3532,25 @@ const CRM = () => {
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                               </>
                             ) : (
-                              <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
-                                <MessageSquare className="w-10 h-10 text-primary/30" />
-                                <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
-                                <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
+                              <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8 bg-white dark:bg-[#111b21]">
+                                <div className="w-20 h-20 rounded-full bg-muted/20 flex items-center justify-center">
+                                  <MessageSquare className="w-10 h-10 text-muted-foreground/30" />
+                                </div>
+                                <h3 className="text-lg font-bold">WhatsApp Business CRM</h3>
+                                <p className="text-muted-foreground text-sm max-w-[280px]">Selecione uma conversa para começar a atender seus clientes em tempo real.</p>
                               </div>
                             )}
                           </div>
                         </>
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
-                          <MessageSquare className="w-10 h-10 text-primary/30" />
-                          <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
-                          <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
+                        <div className="flex flex-col items-center justify-center h-full w-full bg-[#f0f2f5] dark:bg-[#0c1317]">
+                           <div className="text-center p-8">
+                            <div className="w-24 h-24 rounded-full bg-muted/20 flex items-center justify-center mx-auto mb-4">
+                              <Bot className="w-12 h-12 text-muted-foreground/20" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Selecione uma Conversa</h3>
+                            <p className="text-muted-foreground max-w-sm mx-auto">Conecte-se com seus clientes de forma profissional e organizada.</p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -3738,7 +3795,7 @@ const CRM = () => {
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Crie gatilhos e sequências automáticas de mensagens inteligentes.</p>
                     </div>
-                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 shrink-0 self-start sm:self-auto">
+                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-[#00a884]/20 bg-[#00a884] hover:bg-[#008f6f] text-white font-bold shrink-0 self-start sm:self-auto rounded-xl h-10 transition-all active:scale-95">
                       <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
                     </Button>
                   </div>
@@ -3819,7 +3876,7 @@ const CRM = () => {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
                     <div className="min-w-0">
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-primary shrink-0" /> <span className="truncate">Agente de Inteligência Artificial</span>
+                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-[#00a884] shrink-0" /> <span className="truncate">Agente de Inteligência Artificial</span>
                       </h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Configure como a IA deve interagir com seus clientes.</p>
                     </div>
@@ -3880,9 +3937,9 @@ const CRM = () => {
                     </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
-                      <CardHeader className="bg-primary/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+                      <CardHeader className="bg-[#00a884]/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
                         <div className="min-w-0">
-                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-primary">
+                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-[#00a884]">
                             <Users className="w-5 h-5 shrink-0" /> <span className="truncate">Integração Google Contatos</span>
                           </CardTitle>
                           <CardDescription className="text-xs">Sincronize seus contatos com o Google para backup e organização</CardDescription>
@@ -4258,7 +4315,7 @@ const CRM = () => {
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button className="flex-1 sm:flex-none h-10 bg-primary shadow-lg shadow-primary/20 text-xs md:text-sm">
+                          <Button className="flex-1 sm:flex-none h-10 bg-[#00a884] hover:bg-[#008f6f] shadow-lg shadow-[#00a884]/20 text-xs md:text-sm font-bold rounded-xl transition-all active:scale-95">
                             <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" /> Novo Template
                           </Button>
                         </DialogTrigger>
@@ -4289,7 +4346,7 @@ const CRM = () => {
                           } else if (confirmSend?.type === 'flow') {
                             handleTriggerFlow(confirmSend.id);
                           }
-                        }} className="rounded-xl h-11 px-8 bg-primary shadow-lg shadow-primary/20">Sim, enviar agora</Button>
+                        }} className="rounded-xl h-11 px-8 bg-[#00a884] hover:bg-[#008f6f] shadow-lg shadow-[#00a884]/20 text-white font-bold transition-all active:scale-95">Sim, enviar agora</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
