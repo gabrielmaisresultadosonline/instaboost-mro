@@ -2601,9 +2601,9 @@ const CRM = () => {
                                     {new Date(contact.last_interaction).toLocaleDateString([], {day: '2-digit', month: '2-digit'})}
                                   </div>
                                 )}
-                                {contact.total_messages_received > 0 && (
-                                  <Badge variant="outline" className="text-[9px] font-bold opacity-70">
-                                    <MessageSquare className="w-2 h-2 mr-1" /> {contact.total_messages_received}
+                                {contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) && (
+                                  <Badge variant="outline" className="text-[9px] font-black bg-[#00a884]/10 text-[#00a884] border-none">
+                                    <Zap className="w-2 h-2 mr-1" /> ATIVO
                                   </Badge>
                                 )}
                               </div>
