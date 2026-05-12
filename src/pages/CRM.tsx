@@ -1156,7 +1156,7 @@ const CRM = () => {
       toast({ title: "Aniversário agendado com sucesso!" });
       setIsSchedulingOpen(false);
       setBirthdayName('');
-      setBirthdayNameNumber('');
+      setBirthdayNumber('');
       fetchAllScheduledMessages();
     } catch (err: any) {
       toast({ title: "Erro ao agendar aniversário", description: err.message, variant: "destructive" });
