@@ -2809,11 +2809,19 @@ const CRM = () => {
                                   >
                                     {getStatusLabel(contact.status)}
                                   </Badge>
-                                  {contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) && (
-                                    <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-4">
-                                      <Zap className="w-2 h-2 mr-0.5" /> ATIVO
-                                    </Badge>
-                                  )}
+                                  {contact.last_message_received_at && (() => {
+                                    const elapsed = Date.now() - new Date(contact.last_message_received_at).getTime();
+                                    const DAY = 24 * 60 * 60 * 1000;
+                                    if (elapsed >= DAY) return null;
+                                    const remainingMs = DAY - elapsed;
+                                    const h = Math.floor(remainingMs / (60 * 60 * 1000));
+                                    const m = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
+                                    return (
+                                      <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-4 tabular-nums">
+                                        <Clock className="w-2 h-2 mr-0.5" /> {h}h{m.toString().padStart(2,'0')}
+                                      </Badge>
+                                    );
+                                  })()}
                                    {contact.flow_state && contact.flow_state !== 'idle' && (
                                      <div className="flex flex-col items-end gap-1">
                                        <div className="flex items-center gap-1">
