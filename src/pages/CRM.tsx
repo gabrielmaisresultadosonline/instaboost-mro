@@ -3046,7 +3046,7 @@ const CRM = () => {
                               </div>
                             )}
                             
-                            <div className="flex items-center gap-1.5 w-full pt-1 border-t border-border/5 overflow-x-auto no-scrollbar pb-0.5">
+                            <div className="flex items-center gap-1.5 w-full pt-1 border-t border-border/5 overflow-x-auto scrollbar-hide pb-0.5">
                               {kanbanStatuses.filter(s => s.is_starred).map(status => (
                                 <Button 
                                   key={status.id}
