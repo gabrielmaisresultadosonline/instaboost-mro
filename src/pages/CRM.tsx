@@ -2834,7 +2834,7 @@ const CRM = () => {
                                       return (
                                         <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1.5 h-4 tabular-nums flex items-center gap-1">
                                           <Clock className="w-2.5 h-2.5" />
-                                          <span>Janela 24h: {h}h{m.toString().padStart(2,'0')}m</span>
+                                          <span>{h}h{m.toString().padStart(2,'0')}m</span>
                                         </Badge>
                                       );
                                     })()}
@@ -2845,36 +2845,38 @@ const CRM = () => {
                                         variant="secondary" 
                                         style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
                                         className={cn(
-                                          "px-1 capitalize font-medium shrink-0",
-                                          contact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : 
-                                          contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700 border-amber-200" :
-                                          "bg-primary/10 text-primary animate-pulse border-primary/20"
+                                          "px-1 capitalize font-medium shrink-0 border-none",
+                                          contact.flow_state === 'error' ? "bg-red-500/20 text-red-600" : 
+                                          contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700" :
+                                          "bg-red-100/40 text-red-500/80"
                                         )}
                                       >
                                         {contact.flow_state === 'error' ? 'Erro' : 
-                                         contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
+                                         contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Fluxo'}
                                         {contact.current_step_name && <span className="ml-1 opacity-70">({contact.current_step_name})</span>}
                                       </Badge>
                                       <div className="flex items-center gap-0.5">
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleResumeFlow(contact.id);
-                                          }}
-                                          className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
-                                          title="Retomar Fluxo"
-                                        >
-                                          <PlayCircle className="h-3.5 w-3.5" />
-                                        </button>
+                                        {(contact.flow_state === 'error' || contact.flow_state === 'waiting_response') && (
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleResumeFlow(contact.id);
+                                            }}
+                                            className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
+                                            title="Retomar Fluxo"
+                                          >
+                                            <PlayCircle className="h-3.5 w-3.5" />
+                                          </button>
+                                        )}
                                         <button 
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleCancelFlow(contact.id);
                                           }}
-                                          className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                          className="text-red-400 hover:text-red-600 p-0.5 rounded-full hover:bg-red-50"
                                           title="Parar Fluxo"
                                         >
-                                          <StopCircle className="h-3.5 w-3.5" />
+                                          <XCircle className="h-3.5 w-3.5" />
                                         </button>
                                       </div>
                                     </div>
@@ -2957,17 +2959,19 @@ const CRM = () => {
                                     <Badge 
                                       variant="outline" 
                                       className={cn(
-                                        "h-4 px-1 text-[8px] font-bold flex items-center gap-1 shrink-0",
-                                        selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
+                                        "h-4 px-1 text-[8px] font-bold flex items-center gap-1 shrink-0 border-none",
+                                        selectedContact.flow_state === 'error' ? "bg-red-500/20 text-red-600" : "bg-red-100/40 text-red-500/80"
                                       )}
                                     >
-                                      <div className={cn("w-1 h-1 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
-                                      <span>{selectedContact.flow_state === 'error' ? 'Erro' : 'Fluxo Ativo'}</span>
+                                      <div className={cn("w-1 h-1 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-red-400")} />
+                                      <span>{selectedContact.flow_state === 'error' ? 'Erro' : 'Fluxo'}</span>
                                       {selectedContact.current_step_name && <span className="ml-1 opacity-70">({selectedContact.current_step_name})</span>}
                                     </Badge>
                                     <div className="flex items-center gap-0.5 shrink-0">
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500 hover:bg-green-50/50" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4.5 w-4.5" /></Button>
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:bg-red-50/50" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><StopCircle className="h-4.5 w-4.5" /></Button>
+                                      {(selectedContact.flow_state === 'error' || selectedContact.flow_state === 'waiting_response') && (
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500 hover:bg-green-50/50" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4.5 w-4.5" /></Button>
+                                      )}
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-50/50" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><XCircle className="h-4.5 w-4.5" /></Button>
                                     </div>
                                   </div>
                                 )}
