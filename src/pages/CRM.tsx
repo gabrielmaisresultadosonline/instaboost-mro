@@ -2431,7 +2431,7 @@ const CRM = () => {
                                     <Button 
                                       variant="outline" 
                                       size="sm" 
-                                      className="h-9 px-4 font-bold border-primary/20 text-primary hover:bg-primary/5"
+                                      className="h-9 px-4 font-bold border-[#00a884]/20 text-[#00a884] hover:bg-[#00a884]/5 rounded-xl transition-all"
                                       onClick={() => {
                                         openChat(contact);
                                         setActiveFlowsView(false);
