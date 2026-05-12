@@ -223,7 +223,11 @@ const CRM = () => {
   const selectedContactRef = useRef<any>(null);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendingContacts, setSendingContacts] = useState<Record<string, boolean>>({});
+  const isSending = (id: string) => !!sendingContacts[id];
+  const setContactSending = (id: string, state: boolean) => {
+    setSendingContacts(prev => ({ ...prev, [id]: state }));
+  };
   const [templates, setTemplates] = useState<any[]>([]);
   const [syncingTemplates, setSyncingTemplates] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
