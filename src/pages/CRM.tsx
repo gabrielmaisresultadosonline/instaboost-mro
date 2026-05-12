@@ -1406,7 +1406,7 @@ const CRM = () => {
   };
 
   const handleCancelFlow = async (contactId: string) => {
-    setSendingMessage(true);
+    setContactSending(contactId, true);
     try {
       const { error } = await supabase
         .from('crm_contacts')
@@ -1443,12 +1443,12 @@ const CRM = () => {
     } catch (err: any) {
       toast({ title: "Erro ao interromper fluxo", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(contactId, false);
     }
   };
 
   const handleResumeFlow = async (contactId: string) => {
-    setSendingMessage(true);
+    setContactSending(contactId, true);
     try {
       const { data: contact } = await supabase
         .from('crm_contacts')
@@ -1463,24 +1463,25 @@ const CRM = () => {
       const { error } = await supabase
         .from('crm_contacts')
         .update({
-          flow_state: 'running',
+          flow_state: 'processing',
           next_execution_time: new Date().toISOString()
         })
         .eq('id', contactId);
-        
+
       if (error) throw error;
       
-      // Chama a função para processar imediatamente
+      toast({ title: "Fluxo retomado! Processando agora..." });
+      
+      // Call background function to process immediately
       await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'processScheduled' }
       });
       
-      toast({ title: "Fluxo retomado!" });
       fetchContacts();
     } catch (err: any) {
       toast({ title: "Erro ao retomar fluxo", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(contactId, false);
     }
   };
 
