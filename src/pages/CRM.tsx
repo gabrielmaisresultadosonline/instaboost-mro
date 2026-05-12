@@ -268,6 +268,11 @@ const CRM = () => {
   const [isScheduling, setIsScheduling] = useState(false);
   const [selectedContactsForScheduling, setSelectedContactsForScheduling] = useState<string[]>([]);
   const [scheduleSearch, setScheduleSearch] = useState('');
+  const [selectedCampaignType, setSelectedCampaignType] = useState<'individual' | 'batch' | 'birthday'>('individual');
+  const [birthdayName, setBirthdayName] = useState('');
+  const [birthdayNumber, setBirthdayNameNumber] = useState('');
+  const [selectedContactsForScheduling, setSelectedContactsForScheduling] = useState<string[]>([]);
+  const [scheduleSearch, setScheduleSearch] = useState('');
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [webhooks, setWebhooks] = useState<any[]>([]);
