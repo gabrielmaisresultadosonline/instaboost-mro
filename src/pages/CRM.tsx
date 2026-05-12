@@ -330,11 +330,14 @@ const CRM = () => {
           if (m.direction === 'inbound') {
             lastInbound = t;
           } else if (m.direction === 'outbound') {
+            // Regra oficial do WhatsApp: A janela de 24h só reseta quando o cliente responde.
+            // O envio de mensagens outbound não estende a janela de atendimento livre.
             const inFreeWindow = t - lastInbound < DAY;
             const inPaidWindow = t - lastPaidStart < DAY;
             if (!inFreeWindow && !inPaidWindow) {
               paidCount++;
               if (t >= weekTime) paidWeek++;
+              // Uma nova conversa (paga) começa aqui e dura 24h
               lastPaidStart = t;
             }
           }
@@ -2004,9 +2007,9 @@ const CRM = () => {
 
 
 
-  const getWindowInfo = (lastInteraction: string) => {
-    if (!lastInteraction) return null;
-    const last = new Date(lastInteraction).getTime();
+  const getWindowInfo = (lastInbound: string) => {
+    if (!lastInbound) return null;
+    const last = new Date(lastInbound).getTime();
     const now = new Date().getTime();
     const diffHours = (now - last) / (1000 * 60 * 60);
     const remaining = Math.max(0, 24 - diffHours);
@@ -2865,11 +2868,11 @@ const CRM = () => {
                                 </div>
                               </div>
                               <div className="flex flex-col items-end gap-1">
-                                {selectedContact.last_interaction && (
+                                {selectedContact.last_message_received_at && (
                                   <div className="flex items-center gap-1.5 mt-0.5">
-                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')} />
-                                    <span className={cn("text-[10px] font-medium uppercase tracking-tight", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')}>
-                                      {getWindowInfo(selectedContact.last_interaction)?.label}
+                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-green-500')} />
+                                    <span className={cn("text-[10px] font-medium uppercase tracking-tight", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-green-500')}>
+                                      {getWindowInfo(selectedContact.last_message_received_at)?.label}
                                     </span>
                                   </div>
                                 )}
