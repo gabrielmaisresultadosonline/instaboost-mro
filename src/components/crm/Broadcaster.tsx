@@ -565,8 +565,8 @@ const Broadcaster = ({ templates, flows, contacts, statuses }: BroadcasterProps)
             <CardContent className="p-4 space-y-3">
               {[
                 { icon: <Zap className="w-3 h-3 text-yellow-500" />, text: "Use o tempo randomizado para imitar o comportamento humano e evitar bloqueios." },
-                { icon: <CheckCircle2 className="w-3 h-3 text-green-500" />, text: "Templates oficiais são mais seguros para primeiros contatos com listas frias." },
-                { icon: <Users className="w-3 h-3 text-blue-500" />, text: "Sempre valide sua lista de números antes de iniciar disparos grandes." }
+                { icon: <AlertCircle className="w-3 h-3 text-orange-500" />, text: "Regra Meta: Mensagens normais e Fluxos só funcionam para quem respondeu nas últimas 24h." },
+                { icon: <CheckCircle2 className="w-3 h-3 text-green-500" />, text: "Para lista fria (fora de 24h), use sempre Templates Aprovados para garantir a entrega." }
               ].map((tip, i) => (
                 <div key={i} className="flex gap-2 items-start">
                   <div className="mt-0.5 shrink-0">{tip.icon}</div>
