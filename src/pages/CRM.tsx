@@ -2726,7 +2726,7 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r border-border/40 flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0 shadow-sm z-[5]",
+                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r border-border/40 flex flex-col bg-white dark:bg-[#111b21] h-full min-h-0 shrink-0 shadow-sm z-[5]",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b border-border/30 flex flex-col gap-3 bg-white dark:bg-[#111b21]">
@@ -2772,7 +2772,7 @@ const CRM = () => {
                           </AccordionItem>
                         </Accordion>
                       </div>
-                      <ScrollArea className="flex-1 bg-white dark:bg-[#111b21]">
+                      <ScrollArea className="flex-1 min-h-0 bg-white dark:bg-[#111b21]">
                         {filteredContacts.length > 0 ? (
                           filteredContacts.map(contact => (
                             <button 
@@ -2807,7 +2807,7 @@ const CRM = () => {
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                                <div className="flex justify-between items-center mt-1">
+                                <div className="flex flex-wrap items-center justify-between gap-1 mt-1 w-full min-w-0">
                                   <Badge 
                                     variant="outline" 
                                     style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
@@ -2833,8 +2833,8 @@ const CRM = () => {
                                     );
                                   })()}
                                    {contact.flow_state && contact.flow_state !== 'idle' && (
-                                     <div className="flex flex-col items-end gap-1">
-                                       <div className="flex items-center gap-1">
+                                     <div className="flex flex-col items-end gap-1 min-w-0 max-w-full">
+                                       <div className="flex items-center gap-1 flex-wrap justify-end max-w-full">
                                          <Badge 
                                            variant="secondary" 
                                            style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
