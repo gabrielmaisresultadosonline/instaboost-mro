@@ -2943,7 +2943,7 @@ const CRM = () => {
                                   </div>
                                   
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                    <div className="flex items-center gap-1.5 min-w-0">
+                                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                                       <Badge 
                                         variant="outline" 
                                         className={cn(
@@ -2955,8 +2955,8 @@ const CRM = () => {
                                         <span>{selectedContact.flow_state === 'error' ? 'Erro' : 'Ativo'}</span>
                                       </Badge>
                                       <div className="flex items-center gap-0.5 shrink-0">
-                                        <Button variant="ghost" size="icon" className="h-5 w-5 text-green-500" onClick={() => handleResumeFlow(selectedContact.id)}><PlayCircle className="h-3 w-3" /></Button>
-                                        <Button variant="ghost" size="icon" className="h-5 w-5 text-red-500" onClick={() => handleCancelFlow(selectedContact.id)}><StopCircle className="h-3 w-3" /></Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><StopCircle className="h-4 w-4" /></Button>
                                       </div>
                                     </div>
                                   )}
