@@ -2168,7 +2168,7 @@ const CRM = () => {
                     ].map((stat, i) => (
                       <Card 
                         key={i} 
-                        className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800 cursor-pointer"
+                        className="relative overflow-hidden group hover:shadow-xl transition-all border-none bg-white dark:bg-[#111b21] cursor-pointer shadow-sm rounded-2xl"
                         onClick={() => {
                           if (stat.type === 'responded') setStatusFilter('responded');
                           else if (stat.type === 'qualified') setStatusFilter('qualified');
