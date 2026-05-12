@@ -2493,7 +2493,7 @@ const CRM = () => {
             {/* Conversas */}
             <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'contacts' && "hidden")}>
               {activeTab === 'contacts' && (
-              <div className="flex-1 flex overflow-hidden">
+              <div className="flex-1 flex overflow-hidden h-full min-h-0">
                 {activeFlowsView ? (
                   <div className="flex-1 overflow-y-auto p-4 bg-muted/5">
                     <div className="max-w-5xl mx-auto space-y-4">
