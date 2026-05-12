@@ -3428,7 +3428,7 @@ const CRM = () => {
                                                 "h-11 w-11 shrink-0 rounded-full",
                                                 !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                   ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
-                                                  : "text-primary hover:bg-primary/10"
+                                                  : "text-[#00a884] hover:bg-[#00a884]/10"
                                               )}
                                               onClick={startRecording}
                                             >
