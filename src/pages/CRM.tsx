@@ -2479,13 +2479,13 @@ const CRM = () => {
                     ]).map(status => (
                       <div 
                         key={status.value} 
-                        className="w-72 md:w-80 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card snap-center" 
+                        className="w-72 md:w-80 shrink-0 flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] rounded-2xl border-none shadow-md group/column transition-all hover:shadow-xl snap-center overflow-hidden" 
                         onDragOver={e => e.preventDefault()} 
                         onDrop={() => handleDrop(status.value)}
                       >
                         <div className={cn(
-                          "p-4 border-b font-black uppercase text-[11px] flex justify-between items-center rounded-t-xl",
-                          status.value === 'human' || status.color === 'orange' ? "bg-orange-500/10 text-orange-700" : "bg-muted/30"
+                          "p-4 border-b border-border/10 font-black uppercase text-[11px] flex justify-between items-center",
+                          status.value === 'human' || status.color === 'orange' ? "bg-orange-500/10 text-orange-700" : "bg-[#202c33] text-[#e9edef]"
                         )}>
                           <div className="flex items-center gap-2">
                             <div className={cn(
