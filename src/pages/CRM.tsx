@@ -2170,15 +2170,16 @@ const CRM = () => {
 
 
   const getWindowInfo = (lastInbound: string) => {
-    if (!lastInbound) return { label: "Nova sessão", isExpired: false };
+    if (!lastInbound) return { label: "Janela aberta", isExpired: false };
     
-    // Convertemos para o fuso local para garantir precisão no cálculo
     const last = new Date(lastInbound).getTime();
     const nowTime = Date.now();
     const diffMs = nowTime - last;
     const DAY = 24 * 60 * 60 * 1000;
     
-    const remainingMs = Math.max(0, DAY - diffMs);
+    // Tolerância de 30 minutos para exibição visual também
+    const limit = DAY + (30 * 60 * 1000);
+    const remainingMs = Math.max(0, limit - diffMs);
     const remainingHours = remainingMs / (1000 * 60 * 60);
     
     return {
