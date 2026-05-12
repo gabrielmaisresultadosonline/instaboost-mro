@@ -1378,7 +1378,9 @@ const CRM = () => {
   };
 
   const handleTriggerFlow = async (flowId: string) => {
-    if (!selectedContact) return;
+    if (!selectedContact || isSending(selectedContact.id)) return;
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
     
     const flow = flows.find(f => f.id === flowId);
     if (!confirmSend || confirmSend.id !== flowId) {
@@ -1387,19 +1389,19 @@ const CRM = () => {
     }
 
     setConfirmSend(null);
-    setSendingMessage(true);
+    setContactSending(targetContactId, true);
     try {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'startFlow', contactId: selectedContact.id, waId: selectedContact.wa_id, flowId }
+        body: { action: 'startFlow', contactId: targetContactId, waId: targetWaId, flowId }
       });
       if (error || !data?.success) throw error || new Error(data?.error || "Erro ao iniciar fluxo");
       toast({ title: "Fluxo Iniciado!" });
-      await fetchMessages(selectedContact.id);
+      await fetchMessages(targetContactId);
       await fetchContacts();
     } catch (err: any) {
       toast({ title: "Erro ao iniciar fluxo", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
