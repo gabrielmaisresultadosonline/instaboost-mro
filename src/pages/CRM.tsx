@@ -951,15 +951,17 @@ const CRM = () => {
     const nowTime = Date.now();
     
     // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
+    // Buscamos a data de forma segura, garantindo que não haja erro de fuso ou nulidade.
     const lastInboundStr = selectedContact.last_message_received_at;
     const lastInbound = lastInboundStr ? new Date(lastInboundStr).getTime() : 0;
     
-    // Se não temos lastInbound, a janela NÃO está expirada (é um novo chat ou iniciado por template)
+    // Se não temos registro de mensagem recebida, a janela NÃO expirou (é um novo chat ou manual)
     let isColdList = false;
     if (lastInbound > 0) {
-      const diff = nowTime - lastInbound;
-      // Bloqueia apenas se passar de 24h (com 1 minuto de tolerância para segurança)
-      isColdList = diff > (DAY + 60000);
+      const diffMs = nowTime - lastInbound;
+      // Bloqueia apenas se passar de 24h (86.400.000ms) com 30 minutos de tolerância extra para evitar erros de sincronização
+      const limit = DAY + (30 * 60 * 1000); 
+      isColdList = diffMs > limit;
     }
 
     if (isColdList) {
