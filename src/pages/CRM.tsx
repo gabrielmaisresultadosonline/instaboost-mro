@@ -1266,6 +1266,34 @@ const CRM = () => {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          setPastedImage(file);
+          setPastedImagePreview(URL.createObjectURL(file));
+        }
+      }
+    }
+  };
+
+  const cancelPastedImage = () => {
+    if (pastedImagePreview) URL.revokeObjectURL(pastedImagePreview);
+    setPastedImage(null);
+    setPastedImagePreview(null);
+  };
+
+  const sendPastedImage = async () => {
+    if (pastedImage && !isSending(selectedContact?.id)) {
+      const file = pastedImage;
+      const preview = pastedImagePreview;
+      cancelPastedImage();
+      await handleSendMedia(file, 'image', false, preview || undefined);
+    }
+  };
+
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
     if (!selectedContact || isSending(selectedContact.id)) return;
 
