@@ -266,6 +266,8 @@ const CRM = () => {
   const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
+  const [selectedContactsForScheduling, setSelectedContactsForScheduling] = useState<string[]>([]);
+  const [scheduleSearch, setScheduleSearch] = useState('');
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [webhooks, setWebhooks] = useState<any[]>([]);
