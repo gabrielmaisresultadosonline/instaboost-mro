@@ -2845,36 +2845,38 @@ const CRM = () => {
                                         variant="secondary" 
                                         style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
                                         className={cn(
-                                          "px-1 capitalize font-medium shrink-0",
-                                          contact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : 
-                                          contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700 border-amber-200" :
-                                          "bg-primary/10 text-primary animate-pulse border-primary/20"
+                                          "px-1 capitalize font-medium shrink-0 border-none",
+                                          contact.flow_state === 'error' ? "bg-red-500/20 text-red-600" : 
+                                          contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700" :
+                                          "bg-red-100/40 text-red-500/80"
                                         )}
                                       >
                                         {contact.flow_state === 'error' ? 'Erro' : 
-                                         contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
+                                         contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Fluxo'}
                                         {contact.current_step_name && <span className="ml-1 opacity-70">({contact.current_step_name})</span>}
                                       </Badge>
                                       <div className="flex items-center gap-0.5">
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleResumeFlow(contact.id);
-                                          }}
-                                          className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
-                                          title="Retomar Fluxo"
-                                        >
-                                          <PlayCircle className="h-3.5 w-3.5" />
-                                        </button>
+                                        {(contact.flow_state === 'error' || contact.flow_state === 'waiting_response') && (
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleResumeFlow(contact.id);
+                                            }}
+                                            className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
+                                            title="Retomar Fluxo"
+                                          >
+                                            <PlayCircle className="h-3.5 w-3.5" />
+                                          </button>
+                                        )}
                                         <button 
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleCancelFlow(contact.id);
                                           }}
-                                          className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                          className="text-red-400 hover:text-red-600 p-0.5 rounded-full hover:bg-red-50"
                                           title="Parar Fluxo"
                                         >
-                                          <StopCircle className="h-3.5 w-3.5" />
+                                          <XCircle className="h-3.5 w-3.5" />
                                         </button>
                                       </div>
                                     </div>
