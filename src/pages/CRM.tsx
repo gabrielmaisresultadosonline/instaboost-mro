@@ -2910,15 +2910,15 @@ const CRM = () => {
                       {selectedContact ? (
                         <>
                           <div className="p-2 border-b border-border/40 flex flex-col gap-1.5 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
-                            <div className="flex items-center justify-between gap-2 w-full min-w-0">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 w-full min-w-0">
+                              <div className="flex items-center gap-2 min-w-0 flex-[2_1_0%]">
                                 <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
                                   <ChevronLeft className="h-5 w-5" />
                                 </Button>
                                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
                                   <User className="w-4 h-4 md:w-6 md:h-6 text-white" />
                                 </div>
-                                <div className="flex flex-col min-w-0 flex-1">
+                                <div className="flex flex-col min-w-0">
                                   <div className="flex items-center gap-1.5 min-w-0">
                                     <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer truncate" onClick={() => openContactInfo(selectedContact)}>
                                       {selectedContact.name || selectedContact.wa_id}
@@ -2943,51 +2943,53 @@ const CRM = () => {
                                       <Bot className="w-3.5 h-3.5" />
                                     </Button>
                                   </div>
-                                  
-                                  {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                                      <Badge 
-                                        variant="outline" 
-                                        className={cn(
-                                          "h-4 px-1 text-[8px] font-bold flex items-center gap-1 shrink-0",
-                                          selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
-                                        )}
-                                      >
-                                        <div className={cn("w-1 h-1 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
-                                        <span>{selectedContact.flow_state === 'error' ? 'Erro' : 'Ativo'}</span>
-                                      </Badge>
-                                      <div className="flex items-center gap-0.5 shrink-0">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><StopCircle className="h-4 w-4" /></Button>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
                               </div>
 
-                              <div className="flex flex-col items-end gap-1 shrink-0">
-                                {selectedContact.last_message_received_at && (
-                                  <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
-                                    <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
-                                    <span className={cn("text-[8px] font-bold tabular-nums", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
-                                      {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Expirado' : getWindowInfo(selectedContact.last_message_received_at)?.label}
-                                    </span>
+                              <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0 flex-wrap justify-end">
+                                {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                                  <div className="flex items-center gap-1.5">
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(
+                                        "h-4 px-1 text-[8px] font-bold flex items-center gap-1 shrink-0",
+                                        selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
+                                      )}
+                                    >
+                                      <div className={cn("w-1 h-1 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
+                                      <span>{selectedContact.flow_state === 'error' ? 'Erro' : 'Fluxo Ativo'}</span>
+                                    </Badge>
+                                    <div className="flex items-center gap-0.5 shrink-0">
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500 hover:bg-green-50/50" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4 w-4" /></Button>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:bg-red-50/50" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><StopCircle className="h-4 w-4" /></Button>
+                                    </div>
                                   </div>
                                 )}
-                                {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
-                                  <div className="text-[8px] font-bold text-primary tabular-nums whitespace-nowrap bg-primary/5 px-1 rounded border border-primary/10">
-                                    {(() => {
-                                      if (selectedContact.flow_state === 'waiting_response') {
-                                        const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
-                                        const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
-                                        const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
-                                        const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
-                                        return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
-                                      }
-                                      return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
-                                    })()}
-                                  </div>
-                                )}
+                                
+                                <div className="flex items-center gap-1.5">
+                                  {selectedContact.last_message_received_at && (
+                                    <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
+                                      <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
+                                      <span className={cn("text-[8px] font-bold tabular-nums", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
+                                        {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Expirado' : getWindowInfo(selectedContact.last_message_received_at)?.label}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
+                                    <div className="text-[8px] font-bold text-primary tabular-nums whitespace-nowrap bg-primary/5 px-1 rounded border border-primary/10 shrink-0">
+                                      {(() => {
+                                        if (selectedContact.flow_state === 'waiting_response') {
+                                          const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
+                                          const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
+                                          const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
+                                          const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
+                                          return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
+                                        }
+                                        return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
+                                      })()}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             
