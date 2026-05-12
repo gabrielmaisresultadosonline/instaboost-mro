@@ -3467,11 +3467,11 @@ const CRM = () => {
                                       <DialogTrigger asChild>
                                         <Button 
                                           variant="ghost" 
-                                          size="sm" 
-                                          className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-lg px-3"
+                                          size="icon" 
+                                          className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-lg sm:w-auto sm:h-7 sm:px-3 sm:text-[10px] sm:font-black sm:uppercase sm:tracking-wider"
                                           disabled={!metaSettings.openai_api_key}
                                         >
-                                          <Bot className="w-4 h-4 mr-2" /> <span>Analises IA</span>
+                                          <Bot className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Analises IA</span>
                                         </Button>
                                       </DialogTrigger>
                                       <DialogContent className="sm:max-w-[600px] rounded-3xl">
