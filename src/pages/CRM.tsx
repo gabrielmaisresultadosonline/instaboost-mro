@@ -2833,9 +2833,9 @@ const CRM = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-1 mt-1 w-full min-w-0">
+                              <div className="flex flex-col gap-1 mt-1 w-full min-w-0 pr-1">
                                 <div className="flex flex-wrap items-center justify-between gap-1 w-full min-w-0">
-                                  <div className="flex items-center gap-1 flex-wrap">
+                                  <div className="flex items-center gap-1 flex-wrap min-w-0">
                                     <Badge 
                                       variant="outline" 
                                       style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
@@ -2856,57 +2856,58 @@ const CRM = () => {
                                       const h = Math.floor(remainingMs / (60 * 60 * 1000));
                                       const m = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
                                       return (
-                                        <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1.5 h-4 tabular-nums flex items-center gap-1">
+                                        <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1.5 h-4 tabular-nums flex items-center gap-1 shrink-0">
                                           <Clock className="w-2.5 h-2.5" />
                                           <span>{h}h{m.toString().padStart(2,'0')}m</span>
                                         </Badge>
                                       );
                                     })()}
-                                  </div>
-                                  {contact.flow_state && contact.flow_state !== 'idle' && (!contact.last_message_received_at || (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
-                                    <div className="flex flex-wrap items-center gap-1 min-w-0 max-w-full">
-                                      <Badge 
-                                        variant="secondary" 
-                                        style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                        className={cn(
-                                          "px-1.5 capitalize font-black shrink-0 border-none truncate max-w-[120px]",
-                                          contact.flow_state === 'error' ? "bg-red-600 text-white" : 
-                                          contact.flow_state === 'waiting_response' ? "bg-amber-500 text-white" :
-                                          "bg-red-500 text-white"
-                                        )}
-                                      >
-                                        <span className="truncate">
-                                          {contact.flow_state === 'error' ? 'Erro' : 
-                                           contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Fluxo'}
-                                          {contact.current_step_name && <span className="ml-1 text-white/90">({contact.current_step_name})</span>}
-                                        </span>
-                                      </Badge>
-                                      <div className="flex items-center gap-0.5 shrink-0">
-                                        {(contact.flow_state === 'error' || contact.flow_state === 'waiting_response') && (
+                                    
+                                    {contact.flow_state && contact.flow_state !== 'idle' && (!contact.last_message_received_at || (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
+                                      <div className="flex items-center gap-1 min-w-0">
+                                        <Badge 
+                                          variant="secondary" 
+                                          style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                          className={cn(
+                                            "px-1.5 capitalize font-black shrink-0 border-none truncate max-w-[100px]",
+                                            contact.flow_state === 'error' ? "bg-red-600 text-white" : 
+                                            contact.flow_state === 'waiting_response' ? "bg-amber-500 text-white" :
+                                            "bg-red-500 text-white"
+                                          )}
+                                        >
+                                          <span className="truncate">
+                                            {contact.flow_state === 'error' ? 'Erro' : 
+                                             contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Fluxo'}
+                                            {contact.current_step_name && <span className="ml-1 text-white/90">({contact.current_step_name})</span>}
+                                          </span>
+                                        </Badge>
+                                        <div className="flex items-center gap-0.5 shrink-0">
+                                          {(contact.flow_state === 'error' || contact.flow_state === 'waiting_response') && (
+                                            <button 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleResumeFlow(contact.id);
+                                              }}
+                                              className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
+                                              title="Retomar Fluxo"
+                                            >
+                                              <PlayCircle className="h-3.5 w-3.5" />
+                                            </button>
+                                          )}
                                           <button 
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              handleResumeFlow(contact.id);
+                                              handleCancelFlow(contact.id);
                                             }}
-                                            className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
-                                            title="Retomar Fluxo"
+                                            className="text-red-400 hover:text-red-600 p-0.5 rounded-full hover:bg-red-50"
+                                            title="Parar Fluxo"
                                           >
-                                            <PlayCircle className="h-3.5 w-3.5" />
+                                            <XCircle className="h-3.5 w-3.5" />
                                           </button>
-                                        )}
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleCancelFlow(contact.id);
-                                          }}
-                                          className="text-red-400 hover:text-red-600 p-0.5 rounded-full hover:bg-red-50"
-                                          title="Parar Fluxo"
-                                        >
-                                          <XCircle className="h-3.5 w-3.5" />
-                                        </button>
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    )}
+                                  </div>
                                 </div>
                                  {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (!contact.last_message_received_at || (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
                                    <div className="flex items-center gap-1 text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded-sm tabular-nums whitespace-nowrap overflow-hidden shadow-sm">
