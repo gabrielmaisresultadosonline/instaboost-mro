@@ -3612,7 +3612,7 @@ const CRM = () => {
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-12 rounded-xl shadow-sm text-sm focus-visible:ring-0"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-10 rounded-xl shadow-sm text-sm focus-visible:ring-0"
                                         />
                                         <Button 
                                           size="icon" 
