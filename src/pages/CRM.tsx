@@ -599,18 +599,42 @@ const CRM = () => {
     // Interval for processing scheduled flow nodes (delays)
     const scheduledInterval = setInterval(async () => {
       try {
+        const nowIso = new Date().toISOString();
         const { data: contactsToProcess } = await supabase
           .from('crm_contacts')
-          .select('id')
+          .select('id, last_message_received_at')
           .neq('flow_state', 'idle')
-          .lte('next_execution_time', new Date().toISOString())
-          .limit(1);
+          .lte('next_execution_time', nowIso);
           
         if (contactsToProcess && contactsToProcess.length > 0) {
-          console.log('Triggering scheduled flow processing...');
-          await supabase.functions.invoke('meta-whatsapp-crm', {
-            body: { action: 'processScheduled' }
+          // Filtrar apenas os que ainda estão na janela de 24h
+          const activeContacts = contactsToProcess.filter(c => {
+            if (!c.last_message_received_at) return false;
+            const diff = Date.now() - new Date(c.last_message_received_at).getTime();
+            return diff < (24 * 60 * 60 * 1000);
           });
+
+          const expiredContacts = contactsToProcess.filter(c => {
+            if (!c.last_message_received_at) return true;
+            const diff = Date.now() - new Date(c.last_message_received_at).getTime();
+            return diff >= (24 * 60 * 60 * 1000);
+          });
+
+          // Encerrar fluxos expirados automaticamente
+          if (expiredContacts.length > 0) {
+            console.log(`[FLOW] Auto-stopping ${expiredContacts.length} expired flows...`);
+            await supabase
+              .from('crm_contacts')
+              .update({ flow_state: 'idle', next_execution_time: null })
+              .in('id', expiredContacts.map(c => c.id));
+          }
+
+          if (activeContacts.length > 0) {
+            console.log(`[FLOW] Triggering scheduled processing for ${activeContacts.length} active flows...`);
+            await supabase.functions.invoke('meta-whatsapp-crm', {
+              body: { action: 'processScheduled' }
+            });
+          }
         }
       } catch (err) {
         console.error('Error in scheduled flow interval:', err);
