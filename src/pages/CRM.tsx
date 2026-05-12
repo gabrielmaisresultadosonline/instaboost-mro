@@ -2988,6 +2988,7 @@ const CRM = () => {
                                   {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
                                     <div className="text-[8px] font-black bg-red-600 text-white tabular-nums whitespace-nowrap px-1.5 py-0.5 rounded-sm shrink-0 shadow-sm flex items-center gap-1">
                                       <Clock className="w-2.5 h-2.5" />
+                                      {(() => {
                                         if (selectedContact.flow_state === 'waiting_response') {
                                           const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
                                           const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
@@ -2998,6 +2999,7 @@ const CRM = () => {
                                         return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
                                       })()}
                                     </div>
+                                  )}
                                   )}
                                 </div>
                               </div>
