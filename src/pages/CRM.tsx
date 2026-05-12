@@ -277,6 +277,7 @@ const CRM = () => {
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
   const [showAllContacts, setShowAllContacts] = useState(false);
+  const [showAllGoogleContacts, setShowAllGoogleContacts] = useState(false);
 
   // States for custom statuses
   const [kanbanStatuses, setKanbanStatuses] = useState<any[]>([]);
@@ -5130,7 +5131,7 @@ const CRM = () => {
                             <>
                               {/* Mobile cards */}
                               <div className="md:hidden divide-y divide-border">
-                                {filtered.map((contact) => (
+                                {filtered.slice(0, showAllGoogleContacts ? undefined : 50).map((contact) => (
                                   <div key={contact.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/30">
                                     <div className="flex items-center gap-3 min-w-0">
                                       <div className="relative w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
@@ -5164,7 +5165,7 @@ const CRM = () => {
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y">
-                                    {filtered.map((contact) => (
+                                    {filtered.slice(0, showAllGoogleContacts ? undefined : 50).map((contact) => (
                                       <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
                                         <td className="px-6 py-4">
                                           <div className="flex items-center gap-3">
@@ -5199,6 +5200,23 @@ const CRM = () => {
                                   </tbody>
                                 </table>
                               </div>
+
+                              {filtered.length > 50 && !showAllGoogleContacts && (
+                                <div className="p-8 text-center bg-muted/5 border-t">
+                                  <div className="flex flex-col items-center gap-3">
+                                    <p className="text-sm text-muted-foreground">
+                                      Mostrando 50 de <strong>{filtered.length}</strong> contatos sincronizados
+                                    </p>
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={() => setShowAllGoogleContacts(true)}
+                                      className="font-bold"
+                                    >
+                                      <Eye className="w-4 h-4 mr-2" /> Ver Todos os Contatos Sincronizados
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
                             </>
                           )}
                         </div>
