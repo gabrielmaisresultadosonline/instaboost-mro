@@ -3403,7 +3403,7 @@ const CRM = () => {
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-muted/50 border-none h-11 pr-10 rounded-xl"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-10 rounded-xl"
                                         />
                                         {isRecording && (
                                           <div className="absolute right-3 flex items-center gap-2">
