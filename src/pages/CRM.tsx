@@ -563,12 +563,22 @@ const CRM = () => {
       .channel('crm_global_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_messages' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          const newMessage = payload.new;
+          const newMessage: any = payload.new;
           if (selectedContactRef.current && newMessage.contact_id === selectedContactRef.current.id) {
             setChatMessages(prev => {
               if (prev.find(m => m.id === newMessage.id)) return prev;
               return [...prev, newMessage];
             });
+          }
+          // Reset 24h window on inbound message (regra oficial WhatsApp)
+          if (newMessage.direction === 'inbound') {
+            setContacts(prev => prev.map(c => c.id === newMessage.contact_id
+              ? { ...c, last_message_received_at: newMessage.created_at }
+              : c
+            ));
+            setSelectedContact((prev: any) => prev && prev.id === newMessage.contact_id
+              ? { ...prev, last_message_received_at: newMessage.created_at }
+              : prev);
           }
         } else if (payload.eventType === 'UPDATE') {
           const updatedMessage = payload.new;
@@ -642,6 +652,38 @@ const CRM = () => {
       if (data.length < pageSize) break;
       from += pageSize;
     }
+    
+    // Enrich with last inbound timestamp per contact (24h window logic)
+    // Field doesn't exist in DB yet, so derive from crm_messages
+    try {
+      const since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      const { data: recentInbound } = await supabase
+        .from('crm_messages')
+        .select('contact_id, created_at')
+        .eq('direction', 'inbound')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(5000);
+      const lastInboundByContact: Record<string, string> = {};
+      (recentInbound || []).forEach((m: any) => {
+        if (m.contact_id && !lastInboundByContact[m.contact_id]) {
+          lastInboundByContact[m.contact_id] = m.created_at;
+        }
+      });
+      allRows = allRows.map((c: any) => {
+        const derived = lastInboundByContact[c.id];
+        if (derived) {
+          const existing = c.last_message_received_at ? new Date(c.last_message_received_at).getTime() : 0;
+          if (new Date(derived).getTime() > existing) {
+            return { ...c, last_message_received_at: derived };
+          }
+        }
+        return c;
+      });
+    } catch (e) {
+      console.warn('[CRM] Failed to enrich last_message_received_at:', e);
+    }
+    
     setContacts(allRows);
   };
 
@@ -852,7 +894,25 @@ const CRM = () => {
     if (selectedContactRef.current?.id === contactId) {
       setChatMessages(data || []);
       
-      // Marcar como lido ao buscar mensagens
+      // Backfill: derive last_message_received_at from actual inbound messages
+      // (regra oficial WhatsApp: a janela de 24h só reseta quando o cliente responde)
+      const lastInboundMsg = [...(data || [])].reverse().find((m: any) => m.direction === 'inbound');
+      if (lastInboundMsg) {
+        const currentLast = selectedContactRef.current?.last_message_received_at
+          ? new Date(selectedContactRef.current.last_message_received_at).getTime()
+          : 0;
+        const inboundT = new Date(lastInboundMsg.created_at).getTime();
+        if (inboundT > currentLast) {
+          const inboundIso = lastInboundMsg.created_at;
+          setSelectedContact((prev: any) => prev && prev.id === contactId
+            ? { ...prev, last_message_received_at: inboundIso }
+            : prev);
+          setContacts((prev: any[]) => prev.map(c =>
+            c.id === contactId ? { ...c, last_message_received_at: inboundIso } : c
+          ));
+        }
+      }
+      
       await supabase.from('crm_contacts').update({ last_read_at: new Date().toISOString() }).eq('id', contactId);
     }
   };
@@ -2759,11 +2819,19 @@ const CRM = () => {
                                   >
                                     {getStatusLabel(contact.status)}
                                   </Badge>
-                                  {contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) && (
-                                    <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-4">
-                                      <Zap className="w-2 h-2 mr-0.5" /> ATIVO
-                                    </Badge>
-                                  )}
+                                  {contact.last_message_received_at && (() => {
+                                    const elapsed = Date.now() - new Date(contact.last_message_received_at).getTime();
+                                    const DAY = 24 * 60 * 60 * 1000;
+                                    if (elapsed >= DAY) return null;
+                                    const remainingMs = DAY - elapsed;
+                                    const h = Math.floor(remainingMs / (60 * 60 * 1000));
+                                    const m = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
+                                    return (
+                                      <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-4 tabular-nums">
+                                        <Clock className="w-2 h-2 mr-0.5" /> {h}h{m.toString().padStart(2,'0')}
+                                      </Badge>
+                                    );
+                                  })()}
                                    {contact.flow_state && contact.flow_state !== 'idle' && (
                                      <div className="flex flex-col items-end gap-1">
                                        <div className="flex items-center gap-1">
