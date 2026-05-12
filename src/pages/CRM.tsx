@@ -852,8 +852,28 @@ const CRM = () => {
     if (selectedContactRef.current?.id === contactId) {
       setChatMessages(data || []);
       
-      // Marcar como lido ao buscar mensagens
-      await supabase.from('crm_contacts').update({ last_read_at: new Date().toISOString() }).eq('id', contactId);
+      // Backfill: derive last_message_received_at from actual inbound messages
+      // (regra oficial WhatsApp: a janela de 24h só reseta quando o cliente responde)
+      const lastInboundMsg = [...(data || [])].reverse().find((m: any) => m.direction === 'inbound');
+      const updates: Record<string, any> = { last_read_at: new Date().toISOString() };
+      if (lastInboundMsg) {
+        const currentLast = selectedContactRef.current?.last_message_received_at
+          ? new Date(selectedContactRef.current.last_message_received_at).getTime()
+          : 0;
+        const inboundT = new Date(lastInboundMsg.created_at).getTime();
+        if (inboundT > currentLast) {
+          updates.last_message_received_at = lastInboundMsg.created_at;
+          // Update local state immediately so UI reflects correct window
+          setSelectedContact((prev: any) => prev && prev.id === contactId
+            ? { ...prev, last_message_received_at: lastInboundMsg.created_at }
+            : prev);
+          setContacts((prev: any[]) => prev.map(c =>
+            c.id === contactId ? { ...c, last_message_received_at: lastInboundMsg.created_at } : c
+          ));
+        }
+      }
+      
+      await supabase.from('crm_contacts').update(updates).eq('id', contactId);
     }
   };
 
