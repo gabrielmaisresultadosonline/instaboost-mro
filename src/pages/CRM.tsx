@@ -3306,10 +3306,11 @@ const CRM = () => {
                                               <Button 
                                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-indigo-500/20"
                                                 onClick={async () => {
-                                                  setSendingMessage(true);
+                                                  const targetId = selectedContact.id;
+                                                  setContactSending(targetId, true);
                                                   try {
                                                     const { data, error } = await supabase.functions.invoke('generate-strategy', {
-                                                      body: { contactId: selectedContact.id, action: 'crm_strategy' }
+                                                      body: { contactId: targetId, action: 'crm_strategy' }
                                                     });
                                                     if (error) throw error;
                                                     toast({ title: "Estratégia de venda gerada!" });
@@ -3317,12 +3318,12 @@ const CRM = () => {
                                                   } catch (err: any) {
                                                     toast({ title: "Erro ao gerar", description: err.message, variant: "destructive" });
                                                   } finally {
-                                                    setSendingMessage(false);
+                                                    setContactSending(targetId, false);
                                                   }
                                                 }}
-                                                disabled={sendingMessage}
+                                                disabled={isSending(selectedContact?.id)}
                                               >
-                                                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+                                                {isSending(selectedContact?.id) ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
                                                 Gerar Estratégia Venda
                                               </Button>
                                               
@@ -3330,10 +3331,11 @@ const CRM = () => {
                                                 variant="secondary"
                                                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-emerald-500/20"
                                                 onClick={async () => {
-                                                  setSendingMessage(true);
+                                                  const targetId = selectedContact.id;
+                                                  setContactSending(targetId, true);
                                                   try {
                                                     const { data, error } = await supabase.functions.invoke('generate-strategy', {
-                                                      body: { contactId: selectedContact.id, action: 'analyze_interaction' }
+                                                      body: { contactId: targetId, action: 'analyze_interaction' }
                                                     });
                                                     if (error) throw error;
                                                     toast({ title: "Análise de atendimento concluída!" });
@@ -3341,12 +3343,12 @@ const CRM = () => {
                                                   } catch (err: any) {
                                                     toast({ title: "Erro ao gerar análise", description: err.message, variant: "destructive" });
                                                   } finally {
-                                                    setSendingMessage(false);
+                                                    setContactSending(targetId, false);
                                                   }
                                                 }}
-                                                disabled={sendingMessage}
+                                                disabled={isSending(selectedContact?.id)}
                                               >
-                                                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                                                {isSending(selectedContact?.id) ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                                                 Analisar Atendimento
                                               </Button>
                                             </div>
