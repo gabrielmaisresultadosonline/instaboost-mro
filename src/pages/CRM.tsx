@@ -3177,9 +3177,22 @@ const CRM = () => {
                             <div className="p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                  <div className="flex items-center gap-2 px-1">
-                                    <CalendarClock className="w-3 h-3 text-primary" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mensagens Agendadas</span>
+                                  <div className="flex items-center justify-between px-1">
+                                    <div className="flex items-center gap-2">
+                                      <CalendarClock className="w-3 h-3 text-primary" />
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mensagens Agendadas</span>
+                                    </div>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-6 text-[9px] font-bold gap-1 text-primary hover:bg-primary/5"
+                                      onClick={() => {
+                                        setSelectedContactsForScheduling([selectedContact.id]);
+                                        setIsSchedulingOpen(true);
+                                      }}
+                                    >
+                                      <Plus className="w-2.5 h-2.5" /> Novo Agendamento
+                                    </Button>
                                   </div>
                                   {scheduledMessages.map((msg) => (
                                     <div key={msg.id} className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex justify-between items-center shadow-sm backdrop-blur-sm">
