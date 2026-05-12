@@ -961,15 +961,12 @@ const CRM = () => {
     
     const DAY = 24 * 60 * 60 * 1000;
     const nowTime = Date.now();
-    // No WhatsApp, a janela de 24h abre com o último inbound (recebimento).
-    // Mas permitimos o envio se o contato for NOVO (não tem last_message_received_at e nem last_interaction)
-    // ou se a última mensagem recebida estiver dentro das 24h.
+    // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
     const lastInbound = selectedContact.last_message_received_at ? new Date(selectedContact.last_message_received_at).getTime() : 0;
-    const lastAny = selectedContact.last_interaction ? new Date(selectedContact.last_interaction).getTime() : 0;
-    const isNewContact = lastInbound === 0 && lastAny === 0;
     
-    // Bloqueia apenas se TIVER um inbound e ele estiver expirado há mais de 24h
-    const isColdList = !isNewContact && lastInbound > 0 && (nowTime - lastInbound) > DAY;
+    // Se nunca houve um inbound (conversa nova ou manual), permitimos enviar templates ou mensagens livres (Meta cobra sessão)
+    // Se houve um inbound, verificamos se passou de 24h.
+    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > DAY;
 
     if (isColdList) {
       toast({ 
