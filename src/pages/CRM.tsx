@@ -2919,7 +2919,7 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto">
+                          <ScrollArea className="flex-1 bg-[#E5DDD5] dark:bg-[#0b141a] bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat overflow-y-auto">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
