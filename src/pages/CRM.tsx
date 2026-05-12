@@ -1558,7 +1558,9 @@ const CRM = () => {
   };
 
   const handleSendTemplate = async (templateName: string, language: string) => {
-    if (!selectedContact) return;
+    if (!selectedContact || isSending(selectedContact.id)) return;
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
     
     const template = templates.find(t => t.name === templateName);
     
@@ -1568,7 +1570,7 @@ const CRM = () => {
     }
 
     setConfirmSend(null);
-    setSendingMessage(true);
+    setContactSending(targetContactId, true);
     try {
       const components: any[] = [];
       const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
@@ -1621,7 +1623,7 @@ const CRM = () => {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { 
           action: 'sendTemplate', 
-          to: selectedContact.wa_id, 
+          to: targetWaId, 
           templateName, 
           languageCode: language,
           components: components
@@ -1630,11 +1632,11 @@ const CRM = () => {
       if (error) throw error;
       if (!data.success) throw new Error(data.error || "Erro ao enviar template pela Meta");
       toast({ title: "Template enviado!" });
-      await fetchMessages(selectedContact.id);
+      await fetchMessages(targetContactId);
     } catch (err: any) {
       toast({ title: "Erro ao enviar template", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
