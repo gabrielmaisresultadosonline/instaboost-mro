@@ -1046,7 +1046,63 @@ const CRM = () => {
       setUpdatingKnowledge(null);
     }
   };
+  const handleScheduleBatch = async () => {
+    if (selectedContactsForScheduling.length === 0) {
+      toast({ title: "Selecione pelo menos um contato", variant: "destructive" });
+      return;
+    }
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Informe data e hora", variant: "destructive" });
+      return;
+    }
+    if (scheduleType !== 'message' && !selectedScheduleId) {
+      toast({ title: "Selecione um item para agendar", variant: "destructive" });
+      return;
+    }
+    if (scheduleType === 'message' && !newMessage.trim()) {
+      toast({ title: "Escreva a mensagem", variant: "destructive" });
+      return;
+    }
 
+    setIsScheduling(true);
+    try {
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      const payload: any = { action: scheduleType === 'message' ? 'sendMessage' : scheduleType === 'template' ? 'sendTemplate' : 'startFlow' };
+      
+      if (scheduleType === 'message') payload.text = newMessage;
+      else if (scheduleType === 'template') {
+        const t = templates.find(temp => temp.id === selectedScheduleId);
+        payload.templateName = t?.name;
+        payload.language = t?.language || 'pt_BR';
+      } else if (scheduleType === 'flow') {
+        payload.flowId = selectedScheduleId;
+      }
+
+      const insertions = selectedContactsForScheduling.map(contactId => ({
+        contact_id: contactId,
+        scheduled_for: scheduledFor,
+        message_data: payload,
+        status: 'pending'
+      }));
+
+      const { error } = await supabase.from('crm_scheduled_messages').insert(insertions);
+      if (error) throw error;
+
+      toast({ title: `${insertions.length} agendamentos criados!` });
+      setIsSchedulingOpen(false);
+      setSelectedContactsForScheduling([]);
+      setNewMessage('');
+      setSelectedScheduleId('');
+      fetchAllScheduledMessages();
+      if (selectedContact) fetchScheduledMessages(selectedContact.id);
+    } catch (err: any) {
+      toast({ title: "Erro ao agendar", description: err.message, variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  
   
   const handleCreateWebhook = async () => {
     if (!newWebhook.name) return;
