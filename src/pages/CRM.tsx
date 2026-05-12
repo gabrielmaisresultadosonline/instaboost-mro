@@ -3051,10 +3051,10 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-2 md:p-2.5 rounded-lg max-w-[85%] md:max-w-[75%] shadow-sm relative",
+                                      "p-2 md:p-2.5 rounded-xl max-w-[85%] md:max-w-[75%] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative transition-all duration-300",
                                       m.direction === 'inbound' 
-                                        ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none' 
-                                        : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-white rounded-tr-none',
+                                        ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none border-l-[3px] border-l-transparent' 
+                                        : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none border-r-[3px] border-r-transparent',
                                       m.isOptimistic && 'opacity-70 grayscale-[0.5]'
                                     )}>
                                       {isTemplate && template ? (
