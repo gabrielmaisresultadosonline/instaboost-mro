@@ -2566,7 +2566,7 @@ const CRM = () => {
                               key={contact.id} 
                               draggable 
                               onDragStart={() => handleDragStart(contact)} 
-                              className="p-4 mb-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all hover:-translate-y-1 hover:shadow-md border-zinc-100 dark:border-zinc-800 animate-in fade-in slide-in-from-top-2" 
+                              className="p-4 mb-3 cursor-grab active:cursor-grabbing border-none bg-white dark:bg-[#202c33] shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg rounded-xl animate-in fade-in slide-in-from-top-2" 
                               onClick={() => { openChat(contact); setKanbanView(false); }}
                             >
                               <p className="text-sm font-bold truncate">{contact.name || contact.wa_id}</p>
