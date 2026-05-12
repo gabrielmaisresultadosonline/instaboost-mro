@@ -2765,11 +2765,14 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] shadow-sm z-10 shrink-0 w-full min-w-0">
+                          <div className="p-3 md:p-3.5 border-b border-border/40 flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
                             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 overflow-hidden">
-                              <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8" onClick={() => setSelectedContact(null)}>
+                              <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
                               </Button>
+                              <div className="w-10 h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
+                                <User className="w-6 h-6 text-white" />
+                              </div>
                               <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
                                 <div className="flex items-center gap-1.5 md:gap-2 min-w-0 w-full overflow-hidden">
                                   <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1 md:gap-2 min-w-0 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
