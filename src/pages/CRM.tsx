@@ -2834,7 +2834,7 @@ const CRM = () => {
                                   })()}
                                    {contact.flow_state && contact.flow_state !== 'idle' && (
                                      <div className="flex flex-col items-end gap-1 min-w-0 max-w-full">
-                                       <div className="flex items-center gap-1">
+                                       <div className="flex items-center gap-1 flex-wrap justify-end max-w-full">
                                          <Badge 
                                            variant="secondary" 
                                            style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
