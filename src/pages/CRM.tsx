@@ -2081,7 +2081,7 @@ const CRM = () => {
         </Sidebar>
 
         <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
-          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
@@ -2560,7 +2560,7 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-card/30 backdrop-blur-sm h-full shrink-0",
+                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
                       <div className="p-4 border-b flex flex-col gap-3">
@@ -2569,7 +2569,7 @@ const CRM = () => {
                             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input 
                               placeholder="Buscar contatos..." 
-                              className="pl-9 bg-muted/50 border-none h-10"
+                              className="bg-background dark:bg-[#202c33] border-none h-10"
                               onChange={e => setStatusFilter(e.target.value || 'all')} 
                             />
                           </div>
@@ -2609,13 +2609,13 @@ const CRM = () => {
                               onClick={() => openChat(contact)} 
                               className={cn(
                                 "w-full p-4 text-left border-b transition-all flex flex-col gap-1 relative",
-                                selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/50 border-l-4 border-l-transparent"
+                                selectedContact?.id === contact.id ? "bg-[#f0f2f5] dark:bg-[#2a3942] border-l-4 border-l-[#00a884]" : "hover:bg-[#f5f6f6] dark:hover:bg-[#202c33] border-l-4 border-l-transparent"
                               )}
                             >
                               <div className="flex justify-between items-center w-full gap-2 min-w-0">
                                 <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
                                   {contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && (
-                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" title="Nova mensagem" />
+                                    <div className="w-2.5 h-2.5 bg-[#25D366] rounded-full shrink-0 shadow-[0_0_8px_rgba(37,211,102,0.5)] animate-pulse" title="Nova mensagem" />
                                   )}
                                   <p className={cn(
                                     "font-bold truncate text-sm flex items-center gap-1.5 min-w-0 flex-1",
@@ -2631,7 +2631,7 @@ const CRM = () => {
                                 </div>
                                 <span className={cn(
                                   "text-[10px] shrink-0 ml-auto",
-                                  contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-blue-600 font-bold" : "text-muted-foreground"
+                                  contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-[#25D366] font-bold" : "text-muted-foreground"
                                 )}>
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
@@ -2643,7 +2643,7 @@ const CRM = () => {
                                     className={cn(
                                       "px-2 capitalize font-black shadow-sm", 
                                       getStatusColor(contact.status),
-                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-blue-500/20"
+                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-[#25D366]/20"
                                     )}
                                   >
                                     {getStatusLabel(contact.status)}
@@ -2723,7 +2723,7 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-2 md:gap-3 bg-card/80 backdrop-blur-md shadow-sm z-10 shrink-0 w-full min-w-0">
+                          <div className="p-3 md:p-4 border-b flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] shadow-sm z-10 shrink-0 w-full min-w-0">
                             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 overflow-hidden">
                               <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8" onClick={() => setSelectedContact(null)}>
                                 <ChevronLeft className="h-5 w-5" />
@@ -2919,7 +2919,7 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat overflow-y-auto">
+                          <ScrollArea className="flex-1 bg-[#E5DDD5] dark:bg-[#0b141a] bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat overflow-y-auto">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -3005,10 +3005,10 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-2.5 md:p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                      "p-2 md:p-2.5 rounded-lg max-w-[85%] md:max-w-[75%] shadow-sm relative",
                                       m.direction === 'inbound' 
-                                        ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
-                                        : 'bg-primary text-primary-foreground rounded-tr-none',
+                                        ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none' 
+                                        : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-white rounded-tr-none',
                                       m.isOptimistic && 'opacity-70 grayscale-[0.5]'
                                     )}>
                                       {isTemplate && template ? (
@@ -3198,10 +3198,10 @@ const CRM = () => {
                                       )}
                                       <div className={cn(
                                         "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
-                                        m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
+                                        m.direction === 'inbound' ? 'text-muted-foreground' : 'text-[#303030]/60 dark:text-white/60'
                                       )}>
                                         {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                        {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                        {m.direction === 'outbound' && <LucideIcons.CheckCheck className={cn("w-3.5 h-3.5", m.status === 'read' ? "text-blue-500" : "text-muted-foreground")} />}
                                       </div>
                                     </div>
                                   </div>
@@ -3211,7 +3211,7 @@ const CRM = () => {
                             </div>
                           </ScrollArea>
                           
-                          <div className="p-2 sm:p-3 md:p-4 bg-card border-t shadow-lg z-10 space-y-2 sm:space-y-3 shrink-0">
+                          <div className="p-2 sm:p-3 md:p-4 bg-[#f0f2f5] dark:bg-[#202c33] border-t shadow-lg z-10 space-y-2 sm:space-y-3 shrink-0">
                             {selectedContact ? (
                               <>
                                 <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
@@ -3395,7 +3395,7 @@ const CRM = () => {
                                       </div>
                                     )}
                                     <div className="flex items-center gap-1 sm:gap-2 w-full px-1">
-                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></Button>
+                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-[#54656f] dark:text-[#aebac1] shrink-0"><ImageIcon className="w-5 h-5" /></Button>
                                       <div className="flex-1 relative flex items-center">
                                         <Input 
                                           placeholder={isRecording ? "Gravando..." : "Escreva sua mensagem..."}
@@ -3403,7 +3403,7 @@ const CRM = () => {
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-muted/50 border-none h-11 pr-10 rounded-xl"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-10 rounded-xl"
                                         />
                                         {isRecording && (
                                           <div className="absolute right-3 flex items-center gap-2">
@@ -3428,7 +3428,7 @@ const CRM = () => {
                                                 "h-11 w-11 shrink-0 rounded-full",
                                                 !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                   ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
-                                                  : "text-primary hover:bg-primary/10"
+                                                  : "text-[#00a884] hover:bg-[#00a884]/10"
                                               )}
                                               onClick={startRecording}
                                             >
@@ -3446,7 +3446,7 @@ const CRM = () => {
                                             size="icon" 
                                             onClick={handleSendMessage} 
                                             disabled={!newMessage.trim() || sendingMessage}
-                                            className="h-11 w-11 shrink-0 shadow-md rounded-full"
+                                            className="h-11 w-11 shrink-0 shadow-md rounded-full bg-[#00a884] hover:bg-[#008f6f]"
                                           >
                                             <Send className="w-4 h-4" />
                                           </Button>
