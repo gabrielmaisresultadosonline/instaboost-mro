@@ -2007,9 +2007,9 @@ const CRM = () => {
 
 
 
-  const getWindowInfo = (lastInteraction: string) => {
-    if (!lastInteraction) return null;
-    const last = new Date(lastInteraction).getTime();
+  const getWindowInfo = (lastInbound: string) => {
+    if (!lastInbound) return null;
+    const last = new Date(lastInbound).getTime();
     const now = new Date().getTime();
     const diffHours = (now - last) / (1000 * 60 * 60);
     const remaining = Math.max(0, 24 - diffHours);
