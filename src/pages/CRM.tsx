@@ -223,7 +223,11 @@ const CRM = () => {
   const selectedContactRef = useRef<any>(null);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendingContacts, setSendingContacts] = useState<Record<string, boolean>>({});
+  const isSending = (id: string) => !!sendingContacts[id];
+  const setContactSending = (id: string, state: boolean) => {
+    setSendingContacts(prev => ({ ...prev, [id]: state }));
+  };
   const [templates, setTemplates] = useState<any[]>([]);
   const [syncingTemplates, setSyncingTemplates] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -838,51 +842,66 @@ const CRM = () => {
   };
 
   const fetchMessages = async (contactId: string) => {
+    if (!contactId) return;
     const { data } = await supabase.from('crm_messages').select('*').eq('contact_id', contactId).order('created_at', { ascending: true });
-    setChatMessages(data || []);
     
-    // Marcar como lido ao buscar mensagens se este for o contato selecionado
+    // Only update the UI if the contact is still the one selected
     if (selectedContactRef.current?.id === contactId) {
+      setChatMessages(data || []);
+      
+      // Marcar como lido ao buscar mensagens
       await supabase.from('crm_contacts').update({ last_read_at: new Date().toISOString() }).eq('id', contactId);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedContact || sendingMessage) return;
+    if (!newMessage.trim() || !selectedContact || isSending(selectedContact.id)) return;
     
     const textToSend = newMessage.trim();
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
+    
     setNewMessage('');
-    setSendingMessage(true);
+    setContactSending(targetContactId, true);
     
     // Optimistic update
     const optimisticMessage = {
       id: `temp-${Date.now()}`,
-      contact_id: selectedContact.id,
+      contact_id: targetContactId,
       content: textToSend,
       direction: 'outbound',
       message_type: 'text',
       created_at: new Date().toISOString(),
       isOptimistic: true
     };
-    setChatMessages(prev => [...prev, optimisticMessage]);
+    setChatMessages(prev => {
+      if (selectedContactRef.current?.id === targetContactId) {
+        return [...prev, optimisticMessage];
+      }
+      return prev;
+    });
 
     try {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'sendMessage', to: selectedContact.wa_id, text: textToSend }
+        body: { action: 'sendMessage', to: targetWaId, text: textToSend }
       });
       if (error) throw error;
       if (!data.success) {
         throw new Error(data.error || "Erro ao enviar mensagem pela Meta");
       }
       // Remove optimistic and fetch real
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-      await fetchMessages(selectedContact.id);
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      }
+      await fetchMessages(targetContactId);
     } catch (err: any) {
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-      setNewMessage(textToSend); // Restore text on failure
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+        setNewMessage(textToSend); // Restore text on failure
+      }
       toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
@@ -1117,7 +1136,7 @@ const CRM = () => {
   };
 
   const sendRecordedAudio = async () => {
-    if (recordedAudioBlob && !sendingMessage) {
+    if (recordedAudioBlob && !isSending(selectedContact?.id)) {
       const blob = recordedAudioBlob;
       const previewUrl = recordedAudioUrl || URL.createObjectURL(blob);
       setRecordedAudioBlob(null);
@@ -1128,15 +1147,17 @@ const CRM = () => {
   };
 
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
-    if (!selectedContact) return;
-    setSendingMessage(true);
+    if (!selectedContact || isSending(selectedContact.id)) return;
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
+    
+    setContactSending(targetContactId, true);
     const localPreviewUrl = previewUrl || (file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || URL.createObjectURL(file)));
-    const selectedContactId = selectedContact.id;
     
     // Optimistic update for media
     const optimisticMessage = {
       id: `temp-media-${Date.now()}`,
-      contact_id: selectedContactId,
+      contact_id: targetContactId,
       content: isVoice ? '[Mensagem de Áudio...]' : `[${type.toUpperCase()}...]`,
       direction: 'outbound',
       message_type: type,
@@ -1144,14 +1165,20 @@ const CRM = () => {
       isOptimistic: true,
       media_url: localPreviewUrl
     };
-    setChatMessages(prev => [...prev, optimisticMessage]);
+    
+    setChatMessages(prev => {
+      if (selectedContactRef.current?.id === targetContactId) {
+        return [...prev, optimisticMessage];
+      }
+      return prev;
+    });
 
     let savedAudioMessage: any = null;
     const persistOutboundAudio = async (publicUrl: string, metaMsgId: string | null, source: string, contentType?: string, status = 'sent') => {
       const { data: savedMessage, error: persistError } = await supabase
         .from('crm_messages')
         .insert({
-          contact_id: selectedContactId,
+          contact_id: targetContactId,
           direction: 'outbound',
           message_type: 'audio',
           content: '[Mensagem de Áudio]',
@@ -1167,9 +1194,9 @@ const CRM = () => {
 
       await supabase.from('crm_contacts')
         .update({ last_interaction: new Date().toISOString() })
-        .eq('id', selectedContactId);
+        .eq('id', targetContactId);
 
-      if (selectedContactRef.current?.id === selectedContactId) {
+      if (selectedContactRef.current?.id === targetContactId) {
         setChatMessages(prev => {
           const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
           return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
@@ -1193,18 +1220,15 @@ const CRM = () => {
         .eq('id', savedAudioMessage.id)
         .select()
         .single();
-      if (updatedMessage && selectedContactRef.current?.id === selectedContactId) {
+      if (updatedMessage && selectedContactRef.current?.id === targetContactId) {
         setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
       }
     };
 
     try {
-      // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
-      const uploadId = `upload-${Date.now()}`;
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 10 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 10 }));
       
-      // Determine extension based on real mime type
       let fileExt = 'bin';
       let contentType = file.type || (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
       
@@ -1213,7 +1237,7 @@ const CRM = () => {
         else if (contentType?.includes('webm')) fileExt = 'webm';
         else if (contentType?.includes('mp4') || contentType?.includes('aac')) fileExt = 'm4a';
         else if (contentType?.includes('mpeg')) fileExt = 'mp3';
-        else fileExt = 'ogg'; // Default to ogg
+        else fileExt = 'ogg';
       } else if (file instanceof File) {
         fileExt = file.name.split('.').pop() || 'bin';
       }
@@ -1221,7 +1245,7 @@ const CRM = () => {
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
 
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 30 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 30 }));
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
@@ -1231,7 +1255,7 @@ const CRM = () => {
         });
 
       if (uploadError) throw uploadError;
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 60 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 60 }));
 
       const { data: { publicUrl } } = supabase.storage
         .from('crm-media')
@@ -1254,22 +1278,9 @@ const CRM = () => {
         }
         await persistOutboundAudio(historyAudioUrl, null, 'history_saved_before_send', historyContentType, 'sending');
       }
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 80 }));
-
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 80 }));
 
       if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
-        console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
-        
-        // Check for mixed content issues
-        if (window.location.protocol === 'https:' && metaSettings.vps_transcoder_url.startsWith('http://')) {
-          console.warn("Mixed Content Warning: Connecting to HTTP VPS from HTTPS site may be blocked by the browser.");
-          toast({ 
-            title: "Aviso de Segurança (Mixed Content)", 
-            description: "Seu navegador pode bloquear o áudio porque o VPS usa HTTP e o CRM usa HTTPS. Tente usar HTTPS no VPS ou autorize conteúdo inseguro no navegador.",
-            variant: "destructive"
-          });
-        }
-
         let vpsResult: any = null;
         try {
           const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
@@ -1277,7 +1288,7 @@ const CRM = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              to: selectedContact.wa_id,
+              to: targetWaId,
               audioUrl: publicUrl,
               metaToken: metaSettings.meta_access_token,
               phoneId: metaSettings.meta_phone_number_id,
@@ -1287,41 +1298,39 @@ const CRM = () => {
           
           vpsResult = await response.json().catch(() => ({}));
           if (!response.ok) {
-            console.error("VPS returned error:", vpsResult);
             throw new Error(vpsResult.error || vpsResult.details || 'Erro no processamento do VPS');
           }
         } catch (vpsErr: any) {
-          console.error("VPS/Meta Error; áudio não enviado para evitar incompatibilidade no celular:", vpsErr);
           toast({ 
             title: "Erro no transcoder da Meta", 
-            description: "O áudio foi salvo no histórico, mas a Meta API não aceitou o envio convertido. Erro: " + vpsErr.message,
+            description: "O áudio foi salvo no histórico, mas a Meta API não aceitou o envio. Erro: " + vpsErr.message,
             variant: "destructive"
           });
           await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
-          setSendingMessage(false);
+          setContactSending(targetContactId, false);
           return;
         }
 
         if (vpsResult) {
           const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
           await updatePersistedAudio('sent', 'vps_bridge', metaMsgId);
-          toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
+          toast({ title: "Áudio Profissional enviado!" });
           setMediaUploadProgress(prev => {
             const next = { ...prev };
-            delete next[selectedContactId];
+            delete next[targetContactId];
             return next;
           });
-          setSendingMessage(false);
-          return; // Exit early as VPS handled it
+          setContactSending(targetContactId, false);
+          return;
         }
       }
 
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 90 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 90 }));
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { 
         body: { 
           action: 'sendMessage', 
-          to: selectedContact.wa_id,
+          to: targetWaId,
           audioUrl: type === 'audio' ? publicUrl : undefined,
           imageUrl: type === 'image' ? publicUrl : undefined,
           videoUrl: type === 'video' ? publicUrl : undefined,
@@ -1335,23 +1344,27 @@ const CRM = () => {
       if (error) throw error;
       if (!data.success) throw new Error(data.error);
 
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      }
       if (type === 'audio') {
         const metaMsgId = data?.messageId || data?.messages?.[0]?.id || data?.result?.messages?.[0]?.id || null;
         await updatePersistedAudio('sent', 'standard_send', metaMsgId);
       }
-      await fetchMessages(selectedContactId);
+      await fetchMessages(targetContactId);
       toast({ title: "Mídia enviada!" });
     } catch (err: any) {
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      }
       toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
     } finally {
       setMediaUploadProgress(prev => {
         const next = { ...prev };
-        delete next[selectedContactId];
+        delete next[targetContactId];
         return next;
       });
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
@@ -1365,7 +1378,9 @@ const CRM = () => {
   };
 
   const handleTriggerFlow = async (flowId: string) => {
-    if (!selectedContact) return;
+    if (!selectedContact || isSending(selectedContact.id)) return;
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
     
     const flow = flows.find(f => f.id === flowId);
     if (!confirmSend || confirmSend.id !== flowId) {
@@ -1374,24 +1389,24 @@ const CRM = () => {
     }
 
     setConfirmSend(null);
-    setSendingMessage(true);
+    setContactSending(targetContactId, true);
     try {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'startFlow', contactId: selectedContact.id, waId: selectedContact.wa_id, flowId }
+        body: { action: 'startFlow', contactId: targetContactId, waId: targetWaId, flowId }
       });
       if (error || !data?.success) throw error || new Error(data?.error || "Erro ao iniciar fluxo");
       toast({ title: "Fluxo Iniciado!" });
-      await fetchMessages(selectedContact.id);
+      await fetchMessages(targetContactId);
       await fetchContacts();
     } catch (err: any) {
       toast({ title: "Erro ao iniciar fluxo", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
   const handleCancelFlow = async (contactId: string) => {
-    setSendingMessage(true);
+    setContactSending(contactId, true);
     try {
       const { error } = await supabase
         .from('crm_contacts')
@@ -1428,12 +1443,12 @@ const CRM = () => {
     } catch (err: any) {
       toast({ title: "Erro ao interromper fluxo", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(contactId, false);
     }
   };
 
   const handleResumeFlow = async (contactId: string) => {
-    setSendingMessage(true);
+    setContactSending(contactId, true);
     try {
       const { data: contact } = await supabase
         .from('crm_contacts')
@@ -1448,24 +1463,25 @@ const CRM = () => {
       const { error } = await supabase
         .from('crm_contacts')
         .update({
-          flow_state: 'running',
+          flow_state: 'processing',
           next_execution_time: new Date().toISOString()
         })
         .eq('id', contactId);
-        
+
       if (error) throw error;
       
-      // Chama a função para processar imediatamente
+      toast({ title: "Fluxo retomado! Processando agora..." });
+      
+      // Call background function to process immediately
       await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'processScheduled' }
       });
       
-      toast({ title: "Fluxo retomado!" });
       fetchContacts();
     } catch (err: any) {
       toast({ title: "Erro ao retomar fluxo", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(contactId, false);
     }
   };
 
@@ -1543,7 +1559,9 @@ const CRM = () => {
   };
 
   const handleSendTemplate = async (templateName: string, language: string) => {
-    if (!selectedContact) return;
+    if (!selectedContact || isSending(selectedContact.id)) return;
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
     
     const template = templates.find(t => t.name === templateName);
     
@@ -1553,7 +1571,7 @@ const CRM = () => {
     }
 
     setConfirmSend(null);
-    setSendingMessage(true);
+    setContactSending(targetContactId, true);
     try {
       const components: any[] = [];
       const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
@@ -1606,7 +1624,7 @@ const CRM = () => {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { 
           action: 'sendTemplate', 
-          to: selectedContact.wa_id, 
+          to: targetWaId, 
           templateName, 
           languageCode: language,
           components: components
@@ -1615,11 +1633,11 @@ const CRM = () => {
       if (error) throw error;
       if (!data.success) throw new Error(data.error || "Erro ao enviar template pela Meta");
       toast({ title: "Template enviado!" });
-      await fetchMessages(selectedContact.id);
+      await fetchMessages(targetContactId);
     } catch (err: any) {
       toast({ title: "Erro ao enviar template", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
@@ -1856,7 +1874,10 @@ const CRM = () => {
       .eq('contact_id', contactId)
       .eq('status', 'pending')
       .order('scheduled_for', { ascending: true });
-    setScheduledMessages(data || []);
+    
+    if (selectedContactRef.current?.id === contactId) {
+      setScheduledMessages(data || []);
+    }
   };
 
   const fetchAllScheduledMessages = async () => {
@@ -2877,7 +2898,7 @@ const CRM = () => {
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
                                       className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                       onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
-                                      disabled={sendingMessage}
+                                      disabled={isSending(selectedContact?.id)}
                                     >
                                       {t.name}
                                     </Button>
@@ -2909,7 +2930,7 @@ const CRM = () => {
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
                                       className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                       onClick={() => handleTriggerFlow(f.id)} 
-                                      disabled={sendingMessage}
+                                      disabled={isSending(selectedContact?.id)}
                                     >
                                       {f.name}
                                     </Button>
@@ -3288,10 +3309,11 @@ const CRM = () => {
                                               <Button 
                                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-indigo-500/20"
                                                 onClick={async () => {
-                                                  setSendingMessage(true);
+                                                  const targetId = selectedContact.id;
+                                                  setContactSending(targetId, true);
                                                   try {
                                                     const { data, error } = await supabase.functions.invoke('generate-strategy', {
-                                                      body: { contactId: selectedContact.id, action: 'crm_strategy' }
+                                                      body: { contactId: targetId, action: 'crm_strategy' }
                                                     });
                                                     if (error) throw error;
                                                     toast({ title: "Estratégia de venda gerada!" });
@@ -3299,12 +3321,12 @@ const CRM = () => {
                                                   } catch (err: any) {
                                                     toast({ title: "Erro ao gerar", description: err.message, variant: "destructive" });
                                                   } finally {
-                                                    setSendingMessage(false);
+                                                    setContactSending(targetId, false);
                                                   }
                                                 }}
-                                                disabled={sendingMessage}
+                                                disabled={isSending(selectedContact?.id)}
                                               >
-                                                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+                                                {isSending(selectedContact?.id) ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
                                                 Gerar Estratégia Venda
                                               </Button>
                                               
@@ -3312,10 +3334,11 @@ const CRM = () => {
                                                 variant="secondary"
                                                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-emerald-500/20"
                                                 onClick={async () => {
-                                                  setSendingMessage(true);
+                                                  const targetId = selectedContact.id;
+                                                  setContactSending(targetId, true);
                                                   try {
                                                     const { data, error } = await supabase.functions.invoke('generate-strategy', {
-                                                      body: { contactId: selectedContact.id, action: 'analyze_interaction' }
+                                                      body: { contactId: targetId, action: 'analyze_interaction' }
                                                     });
                                                     if (error) throw error;
                                                     toast({ title: "Análise de atendimento concluída!" });
@@ -3323,12 +3346,12 @@ const CRM = () => {
                                                   } catch (err: any) {
                                                     toast({ title: "Erro ao gerar análise", description: err.message, variant: "destructive" });
                                                   } finally {
-                                                    setSendingMessage(false);
+                                                    setContactSending(targetId, false);
                                                   }
                                                 }}
-                                                disabled={sendingMessage}
+                                                disabled={isSending(selectedContact?.id)}
                                               >
-                                                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                                                {isSending(selectedContact?.id) ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
                                                 Analisar Atendimento
                                               </Button>
                                             </div>
@@ -3445,7 +3468,7 @@ const CRM = () => {
                                           <Button 
                                             size="icon" 
                                             onClick={handleSendMessage} 
-                                            disabled={!newMessage.trim() || sendingMessage}
+                                            disabled={!newMessage.trim() || isSending(selectedContact?.id)}
                                             className="h-11 w-11 shrink-0 shadow-md rounded-full bg-[#00a884] hover:bg-[#008f6f]"
                                           >
                                             <Send className="w-4 h-4" />
