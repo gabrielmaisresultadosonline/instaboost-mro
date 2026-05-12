@@ -3526,10 +3526,6 @@ const CRM = () => {
                                           <StopCircle className="w-5 h-5" />
                                         </Button>
                                       )}
-                                            <Send className="w-4 h-4" />
-                                          </Button>
-                                        </div>
-                                      )}
                                     </div>
                                   </div>
                                 )}
