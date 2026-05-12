@@ -5372,19 +5372,56 @@ const CRM = () => {
                             </p>
                           </div>
                           
-                          <Button 
-                            variant={googleContactsEnabled ? "outline" : "secondary"} 
-                            className="w-full h-11 rounded-xl font-bold border-primary/20"
-                            onClick={() => {
-                              const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
-                              const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                              const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-                              window.location.href = url;
-                            }}
-                          >
-                            <Users className="w-4 h-4 mr-2" />
-                            {googleContactsEnabled ? 'Reconectar Navegador' : 'Conectar Navegador'}
-                          </Button>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <Button 
+                              variant={googleContactsEnabled ? "outline" : "secondary"} 
+                              className="flex-1 h-11 rounded-xl font-bold border-primary/20"
+                              onClick={() => {
+                                const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+                                const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
+                                const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+                                window.location.href = url;
+                              }}
+                            >
+                              <Users className="w-4 h-4 mr-2" />
+                              {googleContactsEnabled ? 'Conectar outra Conta' : 'Conectar Conta Google'}
+                            </Button>
+
+                            {googleContactsEnabled && (
+                              <Button 
+                                className="flex-1 font-bold h-11 bg-primary text-white hover:bg-primary/90 rounded-xl"
+                                onClick={handleSyncGoogleContacts}
+                                disabled={isSyncingContacts}
+                              >
+                                <RefreshCcw className={cn("w-4 h-4 mr-2", isSyncingContacts && "animate-spin")} /> 
+                                {isSyncingContacts ? 'Sincronizando...' : 'Sincronizar Agora'}
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
+                            <div className="space-y-0.5">
+                              <Label className="text-sm font-bold flex items-center gap-2">
+                                <RefreshCcw className="w-4 h-4" /> Sincronização Automática
+                              </Label>
+                              <p className="text-xs text-muted-foreground">Novos contatos serão enviados ao Google automaticamente.</p>
+                            </div>
+                            <Switch 
+                              checked={metaSettings.google_auto_sync} 
+                              onCheckedChange={async (checked) => {
+                                setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
+                                await supabase.from('crm_settings').upsert({
+                                  ...rest,
+                                  google_auto_sync: checked,
+                                  id: '00000000-0000-0000-0000-000000000001',
+                                  updated_at: new Date().toISOString()
+                                });
+                                toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                              }}
+                            />
+                          </div>
+
                           
                           {googleContactsEnabled && (
                             <Button 
