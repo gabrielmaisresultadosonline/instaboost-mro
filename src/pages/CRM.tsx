@@ -5440,6 +5440,7 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
+                    {/* Google Contacts section modified to remove client settings as they are now internal */}
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
@@ -5451,43 +5452,17 @@ const CRM = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 md:p-6 space-y-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client ID</Label>
-                          <Input 
-                            placeholder="Seu Google Client ID" 
-                            className="bg-muted/30 border-none h-11 rounded-xl" 
-                            value={metaSettings.google_client_id || ''} 
-                            onChange={e => setMetaSettings({...metaSettings, google_client_id: e.target.value})} 
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client Secret</Label>
-                          <Input 
-                            type="password"
-                            placeholder="Seu Google Client Secret" 
-                            className="bg-muted/30 border-none h-11 rounded-xl" 
-                            value={metaSettings.google_client_secret || ''} 
-                            onChange={e => setMetaSettings({...metaSettings, google_client_secret: e.target.value})} 
-                          />
-                        </div>
-                        <div className="flex flex-col gap-3 pt-2">
-                          <Button 
-                            variant="default" 
-                            className="w-full h-11 rounded-xl font-bold bg-primary hover:scale-[1.02] transition-transform"
-                            onClick={handleSaveSettings}
-                            disabled={saving}
-                          >
-                            <Save className="w-4 h-4 mr-2" />
-                            {saving ? 'Salvando...' : 'Salvar Dados do Google'}
-                          </Button>
+                        <div className="flex flex-col gap-3">
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl mb-2">
+                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                              <strong>Aviso:</strong> As chaves de integração do Google agora são gerenciadas internamente pelo servidor para maior segurança e estabilidade.
+                            </p>
+                          </div>
                           
-                          {metaSettings.google_client_id && (
-                            <div className="pt-4 border-t border-muted-foreground/10 space-y-3">
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase text-center">Integração do Navegador</p>
-                              <Button 
-                                variant={googleContactsEnabled ? "outline" : "secondary"} 
-                                className="w-full h-11 rounded-xl font-bold border-primary/20"
-                                onClick={() => {
+                          <Button 
+                            variant={googleContactsEnabled ? "outline" : "secondary"} 
+                            className="w-full h-11 rounded-xl font-bold border-primary/20"
+                            onClick={() => {
                                   const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
                                   const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
                                   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
