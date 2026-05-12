@@ -3446,7 +3446,7 @@ const CRM = () => {
                                             size="icon" 
                                             onClick={handleSendMessage} 
                                             disabled={!newMessage.trim() || sendingMessage}
-                                            className="h-11 w-11 shrink-0 shadow-md rounded-full"
+                                            className="h-11 w-11 shrink-0 shadow-md rounded-full bg-[#00a884] hover:bg-[#008f6f]"
                                           >
                                             <Send className="w-4 h-4" />
                                           </Button>
