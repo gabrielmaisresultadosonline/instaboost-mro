@@ -3576,12 +3576,12 @@ const CRM = () => {
                                 ) : (
                                   <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-2 pb-2 shrink-0">
                                     {isRecording && (
-                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-2">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                          <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
+                                      <div className="flex items-center justify-between px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-1 shrink-0">
+                                        <div className="flex items-center gap-1.5">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                                          <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">Gravando...</span>
                                         </div>
-                                        <span className="text-xs font-mono font-black text-red-600">
+                                        <span className="text-[10px] font-mono font-black text-red-600">
                                           {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
                                         </span>
                                       </div>
