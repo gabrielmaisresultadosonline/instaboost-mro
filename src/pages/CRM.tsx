@@ -3600,7 +3600,7 @@ const CRM = () => {
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full hidden sm:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-9 w-9 rounded-full hidden sm:flex"
                                         >
                                           <ImageIcon className="w-5 h-5" />
                                         </Button>
