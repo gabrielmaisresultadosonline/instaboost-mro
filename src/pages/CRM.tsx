@@ -2867,12 +2867,12 @@ const CRM = () => {
                                   )}
                                 </div>
                               </div>
-                              <div className="flex flex-col items-end gap-1">
+                              <div className="flex flex-col items-end gap-1 shrink-0">
                                 {selectedContact.last_message_received_at && (
-                                  <div className="flex items-center gap-1.5 mt-0.5">
-                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-green-500')} />
-                                    <span className={cn("text-[10px] font-medium uppercase tracking-tight", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-green-500')}>
-                                      {getWindowInfo(selectedContact.last_message_received_at)?.label}
+                                  <div className="flex items-center gap-1.5 bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full border border-border/10 shadow-sm animate-in fade-in zoom-in-95 duration-300">
+                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
+                                    <span className={cn("text-[10px] font-black uppercase tracking-tight", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
+                                      Janela: {getWindowInfo(selectedContact.last_message_received_at)?.label}
                                     </span>
                                   </div>
                                 )}
