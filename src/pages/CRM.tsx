@@ -860,6 +860,19 @@ const CRM = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedContact || isSending(selectedContact.id)) return;
     
+    const DAY = 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+
+    if (isColdList) {
+      toast({ 
+        title: "Janela de 24h Expirada", 
+        description: "Esta conversa passou de 24h. Inicie um novo chat usando um Template Aprovado (Custo médio: R$ 0,33).", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const textToSend = newMessage.trim();
     const targetContactId = selectedContact.id;
     const targetWaId = selectedContact.wa_id;
