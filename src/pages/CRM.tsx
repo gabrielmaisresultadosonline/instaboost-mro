@@ -3201,7 +3201,7 @@ const CRM = () => {
                                         m.direction === 'inbound' ? 'text-muted-foreground' : 'text-[#303030]/60 dark:text-white/60'
                                       )}>
                                         {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                        {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                        {m.direction === 'outbound' && <LucideIcons.CheckCheck className={cn("w-3.5 h-3.5", m.status === 'read' ? "text-blue-500" : "text-muted-foreground")} />}
                                       </div>
                                     </div>
                                   </div>
