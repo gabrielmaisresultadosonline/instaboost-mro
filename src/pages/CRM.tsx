@@ -3876,7 +3876,7 @@ const CRM = () => {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card p-4 md:p-6 rounded-2xl border shadow-sm">
                     <div className="min-w-0">
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-primary shrink-0" /> <span className="truncate">Agente de Inteligência Artificial</span>
+                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-[#00a884] shrink-0" /> <span className="truncate">Agente de Inteligência Artificial</span>
                       </h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Configure como a IA deve interagir com seus clientes.</p>
                     </div>
