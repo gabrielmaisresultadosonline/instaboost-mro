@@ -3617,50 +3617,50 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1 w-full min-w-0">
-                                      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                                    <div className="flex items-center gap-1 w-full min-w-0 px-0.5 sm:px-0">
+                                      <div className="flex items-center gap-0.5 shrink-0">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-8 w-8 sm:h-9 sm:w-9 rounded-full"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full"
                                         >
-                                          <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+                                          <Plus className="w-6 h-6" />
                                         </Button>
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-8 w-8 sm:h-9 sm:w-9 rounded-full hidden xs:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full hidden sm:flex"
                                         >
-                                          <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                          <ImageIcon className="w-5 h-5" />
                                         </Button>
                                       </div>
-                                      <div className="flex-1 relative flex items-center">
+                                      <div className="flex-1 relative flex items-center min-w-0">
                                         <Input 
-                                          placeholder={isRecording ? "Gravando..." : "Digite uma mensagem"}
+                                          placeholder={isRecording ? "Gravando..." : "Mensagem"}
                                           value={newMessage} 
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-10 rounded-xl shadow-sm text-sm focus-visible:ring-0"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full"
                                         />
                                         <Button 
                                           size="icon" 
                                           variant="ghost" 
-                                          className="absolute right-1 h-9 w-9 text-[#54656f] dark:text-[#aebac1] hover:bg-transparent"
+                                          className="absolute right-0.5 h-8 w-8 text-[#54656f] dark:text-[#aebac1] hover:bg-transparent"
                                         >
                                           <Smile className="w-5 h-5" />
                                         </Button>
                                       </div>
                                       {!isRecording ? (
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-1 shrink-0">
                                           {newMessage.trim() ? (
                                             <Button 
                                               size="icon" 
                                               onClick={handleSendMessage} 
                                               disabled={isSending(selectedContact?.id)}
-                                              className="h-10 w-10 shrink-0 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
+                                              className="h-10 w-10 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
                                             >
                                               <Send className="w-5 h-5 ml-0.5" />
                                             </Button>
@@ -3670,7 +3670,7 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-10 w-10 shrink-0 rounded-full",
+                                                  "h-10 w-10 rounded-full",
                                                   !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                     ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
                                                     : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
@@ -3693,7 +3693,7 @@ const CRM = () => {
                                         <Button 
                                           size="icon" 
                                           variant="ghost" 
-                                          className="h-11 w-11 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
+                                          className="h-10 w-10 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
                                           onClick={stopRecording}
                                         >
                                           <StopCircle className="w-5 h-5" />
