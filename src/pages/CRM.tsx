@@ -2714,6 +2714,11 @@ const CRM = () => {
                                   >
                                     {getStatusLabel(contact.status)}
                                   </Badge>
+                                  {contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) && (
+                                    <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-4">
+                                      <Zap className="w-2 h-2 mr-0.5" /> ATIVO
+                                    </Badge>
+                                  )}
                                    {contact.flow_state && contact.flow_state !== 'idle' && (
                                      <div className="flex flex-col items-end gap-1">
                                        <div className="flex items-center gap-1">
