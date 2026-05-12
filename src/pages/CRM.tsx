@@ -6358,80 +6358,165 @@ const CRM = () => {
             <DialogDescription>Agende mensagens, fluxos ou templates para seus contatos.</DialogDescription>
           </DialogHeader>
           
+          <div className="flex flex-col sm:flex-row gap-2 mb-6">
+            <Button 
+              variant={selectedCampaignType === 'individual' ? 'default' : 'outline'}
+              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              onClick={() => { setSelectedCampaignType('individual'); setSelectedContactsForScheduling([]); }}
+            >
+              <User className="w-4 h-4 mr-2" /> Individual
+            </Button>
+            <Button 
+              variant={selectedCampaignType === 'batch' ? 'default' : 'outline'}
+              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              onClick={() => { setSelectedCampaignType('batch'); setSelectedContactsForScheduling([]); }}
+            >
+              <Users className="w-4 h-4 mr-2" /> Lista / Massa
+            </Button>
+            <Button 
+              variant={selectedCampaignType === 'birthday' ? 'default' : 'outline'}
+              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              onClick={() => { setSelectedCampaignType('birthday'); setSelectedContactsForScheduling([]); setScheduleType('template'); }}
+            >
+              <Calendar className="w-4 h-4 mr-2" /> Aniversário
+            </Button>
+          </div>
+
           <ScrollArea className="flex-1 pr-4 -mr-4 py-4">
             <div className="space-y-6">
-              {/* Seleção de Contatos */}
-              <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                  <span>1. Selecionar Destinatários</span>
-                  <span className="text-primary">{selectedContactsForScheduling.length} selecionados</span>
-                </Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Pesquisar contatos..." 
-                    className="pl-9 h-11 rounded-xl bg-muted/30 border-none"
-                    value={scheduleSearch}
-                    onChange={e => setScheduleSearch(e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-1">
-                  {contacts
-                    .filter(c => {
-                      if (!scheduleSearch) return true;
-                      const q = scheduleSearch.toLowerCase();
-                      return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(scheduleSearch);
-                    })
-                    .slice(0, 20)
-                    .map(contact => (
-                      <div 
-                        key={contact.id}
-                        onClick={() => {
-                          setSelectedContactsForScheduling(prev => 
-                            prev.includes(contact.id) 
-                              ? prev.filter(id => id !== contact.id) 
-                              : [...prev, contact.id]
-                          );
-                        }}
-                        className={cn(
-                          "flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer",
-                          selectedContactsForScheduling.includes(contact.id)
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-transparent bg-muted/20 hover:bg-muted/40"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-4 h-4 rounded border flex items-center justify-center shrink-0",
-                          selectedContactsForScheduling.includes(contact.id) ? "bg-primary border-primary" : "border-muted-foreground/30"
-                        )}>
-                          {selectedContactsForScheduling.includes(contact.id) && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[11px] font-bold truncate">{contact.name || contact.wa_id}</p>
-                          <p className="text-[9px] text-muted-foreground truncate">{contact.wa_id}</p>
-                        </div>
-                        {contact.last_message_received_at && (
+              {/* Configuração baseada no tipo de campanha */}
+              {selectedCampaignType === 'individual' && (
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">1. Selecionar Contato</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Pesquisar..." 
+                      className="pl-9 h-11 rounded-xl bg-muted/30 border-none"
+                      value={scheduleSearch}
+                      onChange={e => setScheduleSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto p-1">
+                    {contacts
+                      .filter(c => {
+                        if (!scheduleSearch) return true;
+                        const q = scheduleSearch.toLowerCase();
+                        return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(scheduleSearch);
+                      })
+                      .slice(0, 20)
+                      .map(contact => (
+                        <div 
+                          key={contact.id}
+                          onClick={() => setSelectedContactsForScheduling([contact.id])}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer",
+                            selectedContactsForScheduling.includes(contact.id)
+                              ? "border-primary bg-primary/5 shadow-sm"
+                              : "border-transparent bg-muted/20 hover:bg-muted/40"
+                          )}
+                        >
                           <div className={cn(
-                            "ml-auto w-1.5 h-1.5 rounded-full",
-                            (Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "bg-emerald-500" : "bg-muted-foreground/30"
-                          )} title={(Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "Janela de 24h Ativa" : "Janela Expirada"} />
-                        )}
-                      </div>
-                    ))}
+                            "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                            selectedContactsForScheduling.includes(contact.id) ? "bg-primary/20" : "bg-muted-foreground/10"
+                          )}>
+                            <User className={cn("w-4 h-4", selectedContactsForScheduling.includes(contact.id) ? "text-primary" : "text-muted-foreground")} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold truncate">{contact.name || contact.wa_id}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{contact.wa_id}</p>
+                          </div>
+                          {contact.last_message_received_at && (
+                            <div className={cn(
+                              "ml-auto w-2 h-2 rounded-full",
+                              (Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "bg-emerald-500" : "bg-muted-foreground/30"
+                            )} title={(Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "Janela Ativa" : "Janela Expirada"} />
+                          )}
+                        </div>
+                      ))}
+                  </div>
                 </div>
-                {selectedContactsForScheduling.length === 0 && (
-                  <p className="text-[10px] text-red-500 italic">Selecione pelo menos um contato.</p>
-                )}
-              </div>
+              )}
+
+              {selectedCampaignType === 'batch' && (
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                    <span>1. Selecionar Massa de Contatos</span>
+                    <span className="text-primary">{selectedContactsForScheduling.length} selecionados</span>
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Pesquisar..." 
+                      className="pl-9 h-11 rounded-xl bg-muted/30 border-none"
+                      value={scheduleSearch}
+                      onChange={e => setScheduleSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 mb-2">
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1 rounded-lg" onClick={() => setSelectedContactsForScheduling(contacts.map(c => c.id))}>Selecionar Todos</Button>
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1 rounded-lg" onClick={() => setSelectedContactsForScheduling([])}>Limpar</Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-1">
+                    {contacts
+                      .filter(c => {
+                        if (!scheduleSearch) return true;
+                        const q = scheduleSearch.toLowerCase();
+                        return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(scheduleSearch);
+                      })
+                      .slice(0, 30)
+                      .map(contact => (
+                        <div 
+                          key={contact.id}
+                          onClick={() => {
+                            setSelectedContactsForScheduling(prev => 
+                              prev.includes(contact.id) ? prev.filter(id => id !== contact.id) : [...prev, contact.id]
+                            );
+                          }}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer",
+                            selectedContactsForScheduling.includes(contact.id) ? "border-primary bg-primary/5" : "border-transparent bg-muted/20"
+                          )}
+                        >
+                          <div className={cn("w-4 h-4 rounded border flex items-center justify-center shrink-0", selectedContactsForScheduling.includes(contact.id) ? "bg-primary border-primary" : "border-muted-foreground/30")}>
+                            {selectedContactsForScheduling.includes(contact.id) && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <p className="text-[10px] font-bold truncate flex-1">{contact.name || contact.wa_id}</p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedCampaignType === 'birthday' && (
+                <div className="space-y-4 border p-4 rounded-2xl bg-primary/5 border-primary/20">
+                  <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Plus className="w-3 h-3" /> Cadastro de Aniversariante
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px]">Nome Completo</Label>
+                        <Input placeholder="Nome do aniversariante" value={birthdayName} onChange={e => setBirthdayName(e.target.value)} className="h-10 rounded-xl bg-background" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px]">WhatsApp (com DDI)</Label>
+                        <Input placeholder="Ex: 5511999999999" value={birthdayNumber} onChange={e => setBirthdayNumber(e.target.value)} className="h-10 rounded-xl bg-background" />
+                      </div>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground italic">* O aniversariante será cadastrado automaticamente como um novo contato.</p>
+                  </div>
+                </div>
+              )}
 
               {/* Tipo de Agendamento */}
               <div className="space-y-3">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">2. O que deseja agendar?</Label>
                 <Tabs value={scheduleType} onValueChange={(val: any) => setScheduleType(val)} className="w-full">
                   <TabsList className="grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1 gap-1">
-                    <TabsTrigger value="message" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Mensagem</TabsTrigger>
+                    <TabsTrigger value="message" disabled={selectedCampaignType === 'birthday'} className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Mensagem</TabsTrigger>
                     <TabsTrigger value="template" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Template</TabsTrigger>
-                    <TabsTrigger value="flow" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Fluxo</TabsTrigger>
+                    <TabsTrigger value="flow" disabled={selectedCampaignType === 'birthday'} className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Fluxo</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
