@@ -3043,7 +3043,10 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300 shrink-0">
+                          <div className={cn(
+                            "bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300 shrink-0",
+                            !showTemplates && !showFlows && "h-0 py-0 border-b-0"
+                          )}>
                             <div className="flex items-center gap-1.5 min-w-0">
                               <button 
                                 onClick={() => setShowTemplates(!showTemplates)}
