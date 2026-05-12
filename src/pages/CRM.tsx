@@ -3081,19 +3081,19 @@ const CRM = () => {
                                 className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.5 rounded-sm border border-border/20 hover:bg-muted/50 transition-colors group"
                               >
                                 <FileText className="w-2.5 h-2.5 text-emerald-500" /> 
-                                <span>Modelos</span>
+                                <span className="hidden sm:inline">Modelos</span>
                                 {showTemplates ? <Eye className="w-2 h-2 ml-0.5 opacity-40 group-hover:opacity-100" /> : <EyeOff className="w-2 h-2 ml-0.5 opacity-100 text-emerald-500" />}
                               </button>
                               
                               {showTemplates && (
-                                <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                  {templates.slice(0, 10).map(t => (
+                                <div className="flex gap-1 flex-1 overflow-x-auto no-scrollbar animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
+                                  {templates.slice(0, 15).map(t => (
                                     <Button 
                                       key={t.id} 
                                       variant="outline" 
                                       size="sm" 
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
-                                      className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none shrink-0" 
                                       onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
                                       disabled={isSending(selectedContact?.id)}
                                     >
@@ -3113,19 +3113,19 @@ const CRM = () => {
                                 className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.5 rounded-sm border border-border/20 hover:bg-muted/50 transition-colors group"
                               >
                                 <Zap className="w-2.5 h-2.5 text-blue-500" /> 
-                                <span>Fluxos</span>
+                                <span className="hidden sm:inline">Fluxos</span>
                                 {showFlows ? <Eye className="w-2 h-2 ml-0.5 opacity-40 group-hover:opacity-100" /> : <EyeOff className="w-2 h-2 ml-0.5 opacity-100 text-blue-500" />}
                               </button>
                               
                               {showFlows && (
-                                <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                <div className="flex gap-1 flex-1 overflow-x-auto no-scrollbar animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
                                   {flows.filter(f => f.is_active).map(f => (
                                     <Button 
                                       key={f.id} 
                                       variant="outline" 
                                       size="sm" 
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
-                                      className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none shrink-0" 
                                       onClick={() => handleTriggerFlow(f.id)} 
                                       disabled={isSending(selectedContact?.id)}
                                     >
