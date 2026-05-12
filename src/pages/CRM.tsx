@@ -2615,7 +2615,7 @@ const CRM = () => {
                               <div className="flex justify-between items-center w-full gap-2 min-w-0">
                                 <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
                                   {contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && (
-                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" title="Nova mensagem" />
+                                    <div className="w-2.5 h-2.5 bg-[#25D366] rounded-full shrink-0 shadow-[0_0_8px_rgba(37,211,102,0.5)] animate-pulse" title="Nova mensagem" />
                                   )}
                                   <p className={cn(
                                     "font-bold truncate text-sm flex items-center gap-1.5 min-w-0 flex-1",
