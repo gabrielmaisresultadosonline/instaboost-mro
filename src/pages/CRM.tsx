@@ -2903,7 +2903,7 @@ const CRM = () => {
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
                                       className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                       onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
-                                      disabled={sendingMessage}
+                                      disabled={isSending(selectedContact?.id)}
                                     >
                                       {t.name}
                                     </Button>
