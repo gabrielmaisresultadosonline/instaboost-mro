@@ -2609,7 +2609,7 @@ const CRM = () => {
                               onClick={() => openChat(contact)} 
                               className={cn(
                                 "w-full p-4 text-left border-b transition-all flex flex-col gap-1 relative",
-                                selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/50 border-l-4 border-l-transparent"
+                                selectedContact?.id === contact.id ? "bg-[#f0f2f5] dark:bg-[#2a3942] border-l-4 border-l-[#00a884]" : "hover:bg-[#f5f6f6] dark:hover:bg-[#202c33] border-l-4 border-l-transparent"
                               )}
                             >
                               <div className="flex justify-between items-center w-full gap-2 min-w-0">
