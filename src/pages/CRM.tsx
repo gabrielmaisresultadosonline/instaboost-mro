@@ -855,41 +855,53 @@ const CRM = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedContact || sendingMessage) return;
+    if (!newMessage.trim() || !selectedContact || isSending(selectedContact.id)) return;
     
     const textToSend = newMessage.trim();
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
+    
     setNewMessage('');
-    setSendingMessage(true);
+    setContactSending(targetContactId, true);
     
     // Optimistic update
     const optimisticMessage = {
       id: `temp-${Date.now()}`,
-      contact_id: selectedContact.id,
+      contact_id: targetContactId,
       content: textToSend,
       direction: 'outbound',
       message_type: 'text',
       created_at: new Date().toISOString(),
       isOptimistic: true
     };
-    setChatMessages(prev => [...prev, optimisticMessage]);
+    setChatMessages(prev => {
+      if (selectedContactRef.current?.id === targetContactId) {
+        return [...prev, optimisticMessage];
+      }
+      return prev;
+    });
 
     try {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'sendMessage', to: selectedContact.wa_id, text: textToSend }
+        body: { action: 'sendMessage', to: targetWaId, text: textToSend }
       });
       if (error) throw error;
       if (!data.success) {
         throw new Error(data.error || "Erro ao enviar mensagem pela Meta");
       }
       // Remove optimistic and fetch real
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-      await fetchMessages(selectedContact.id);
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      }
+      await fetchMessages(targetContactId);
     } catch (err: any) {
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-      setNewMessage(textToSend); // Restore text on failure
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+        setNewMessage(textToSend); // Restore text on failure
+      }
       toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
