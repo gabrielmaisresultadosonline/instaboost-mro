@@ -3407,7 +3407,7 @@ const CRM = () => {
                           <div className="p-1 sm:p-2 bg-[#f0f2f5] dark:bg-[#202c33] border-t shadow-lg z-10 space-y-1 sm:space-y-2 shrink-0">
                             {selectedContact ? (
                               <>
-                                <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
+                                <div className="flex flex-col gap-1 p-1 sm:p-2 bg-muted/20 rounded-xl border border-border/50">
                                   {/* Atenção: Robô Desativado Geral hidden as requested */}
 
                                   <div className="flex items-center justify-end gap-2 flex-wrap">
