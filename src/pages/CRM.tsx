@@ -3243,11 +3243,13 @@ const CRM = () => {
                                         </>
                                       )}
                                       <div className={cn(
-                                        "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
+                                        "text-[10px] mt-0.5 mb-[-2px] float-right ml-2 opacity-70 flex items-center gap-1 leading-none select-none",
                                         m.direction === 'inbound' ? 'text-muted-foreground' : 'text-[#303030]/60 dark:text-white/60'
                                       )}>
                                         {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                        {m.direction === 'outbound' && <LucideIcons.CheckCheck className={cn("w-3.5 h-3.5", m.status === 'read' ? "text-blue-500" : "text-muted-foreground")} />}
+                                        {m.direction === 'outbound' && (
+                                          <LucideIcons.CheckCheck className={cn("w-3.5 h-3.5", m.status === 'read' ? "text-[#53bdeb]" : "text-muted-foreground/60")} />
+                                        )}
                                       </div>
                                     </div>
                                   </div>
