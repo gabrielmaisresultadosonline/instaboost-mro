@@ -608,18 +608,19 @@ const CRM = () => {
           
         if (contactsToProcess && contactsToProcess.length > 0) {
           // Regra de interrupção de fluxo: Só paramos o fluxo se o ÚLTIMO INBOUND (mensagem do cliente)
-          // tiver ocorrido há mais de 24 horas, impossibilitando a automação de responder.
+          // tiver ocorrido há mais de 24 horas + 5 minutos de margem.
           const DAY = 24 * 60 * 60 * 1000;
+          const MARGIN = 5 * 60 * 1000;
           const activeContacts = contactsToProcess.filter(c => {
             if (!c.last_message_received_at) return true;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff < DAY;
+            return diff < (DAY + MARGIN);
           });
 
           const expiredContacts = contactsToProcess.filter(c => {
             if (!c.last_message_received_at) return false;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff >= DAY;
+            return diff >= (DAY + MARGIN);
           });
 
           // Encerrar fluxos expirados automaticamente
@@ -954,7 +955,8 @@ const CRM = () => {
     
     // Bloqueia apenas se TIVER um registro de inbound e ele for REALMENTE mais velho que 24h.
     // Se lastInbound for 0, significa que não recebemos nada ainda (chat novo ou iniciado por template), então o envio é livre.
-    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > DAY;
+    // Adicionamos uma margem de segurança de 5 minutos para evitar bloqueios por pequenos atrasos de sincronização
+    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > (DAY + 5 * 60 * 1000);
 
     if (isColdList) {
       toast({ 
