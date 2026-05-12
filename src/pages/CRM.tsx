@@ -2807,7 +2807,7 @@ const CRM = () => {
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                                <div className="flex justify-between items-center mt-1">
+                                <div className="flex flex-wrap items-center justify-between gap-1 mt-1 w-full min-w-0">
                                   <Badge 
                                     variant="outline" 
                                     style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
