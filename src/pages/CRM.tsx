@@ -250,8 +250,10 @@ const CRM = () => {
     name: string;
     language?: string;
   } | null>(null);
-  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
-  const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+   const [pastedImage, setPastedImage] = useState<File | null>(null);
+   const [pastedImagePreview, setPastedImagePreview] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showFlows, setShowFlows] = useState(true);
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
