@@ -5418,70 +5418,8 @@ const CRM = () => {
                       </CardContent>
                     </Card>
                     
-                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
-                      <CardHeader className="bg-muted/30 border-b">
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "p-2 rounded-lg",
-                            metaSettings.vps_status === 'online' ? "bg-green-100 text-green-600" : 
-                            metaSettings.vps_status === 'offline' ? "bg-red-100 text-red-600" : 
-                            "bg-primary/10 text-primary"
-                          )}>
-                            <RefreshCcw className={cn("w-5 h-5", metaSettings.vps_status === 'unknown' && "animate-spin")} />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">Transcoder Profissional (VPS)</CardTitle>
-                            <CardDescription className="text-[11px]">Conversão de áudio profissional para PTT (Gravado na hora).</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 md:p-6 space-y-5">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do Transcoder (VPS)</Label>
-                            <div className="flex gap-2">
-                              <Input 
-                                placeholder="http://seu-ip-vps:3000" 
-                                className="bg-muted/30 border-none h-11 rounded-xl flex-1" 
-                                value={metaSettings.vps_transcoder_url || ''} 
-                                onChange={e => setMetaSettings({...metaSettings, vps_transcoder_url: e.target.value})} 
-                              />
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-11 rounded-xl px-4 font-bold text-xs"
-                                onClick={async () => {
-                                  if (!metaSettings.vps_transcoder_url) {
-                                    toast({ title: "Digite a URL primeiro", variant: "destructive" });
-                                    return;
-                                  }
-                                  try {
-                                    const url = metaSettings.vps_transcoder_url.replace(/\/$/, '');
-                                    // Use no-cors for the test to avoid preflight issues if the server isn't fully CORS-ready
-                                    // even if it won't let us read the JSON, getting a successful response (opaque) is a sign of life
-                                    await fetch(url, { method: 'GET', mode: 'no-cors' });
-                                    toast({ title: "Sinal detectado!", description: "A URL respondeu. Agora você pode SALVAR as configurações." });
-                                  } catch (err: any) {
-                                    toast({ 
-                                      title: "Falha na Conexão", 
-                                      description: "Não foi possível alcançar o VPS. Verifique se o servidor está rodando.",
-                                      variant: "destructive"
-                                    });
-                                  }
-                                }}
-                              >
-                                TESTAR
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
-                              <strong>Dica Profissional:</strong> O VPS converte áudios para o formato nativo do WhatsApp (OGG Opus). Isso garante o microfone azul (gravado na hora).
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    {/* VPS Transcoder section removed as it's now internal */}
+
 
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
                       <CardHeader className="bg-muted/30 border-b">
@@ -5502,6 +5440,7 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
+                    {/* Google Contacts section modified to remove client settings as they are now internal */}
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
                       <CardHeader className="bg-muted/30 border-b">
                         <div className="flex items-center gap-3">
@@ -5513,71 +5452,43 @@ const CRM = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 md:p-6 space-y-5">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client ID</Label>
-                          <Input 
-                            placeholder="Seu Google Client ID" 
-                            className="bg-muted/30 border-none h-11 rounded-xl" 
-                            value={metaSettings.google_client_id || ''} 
-                            onChange={e => setMetaSettings({...metaSettings, google_client_id: e.target.value})} 
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Google Client Secret</Label>
-                          <Input 
-                            type="password"
-                            placeholder="Seu Google Client Secret" 
-                            className="bg-muted/30 border-none h-11 rounded-xl" 
-                            value={metaSettings.google_client_secret || ''} 
-                            onChange={e => setMetaSettings({...metaSettings, google_client_secret: e.target.value})} 
-                          />
-                        </div>
-                        <div className="flex flex-col gap-3 pt-2">
+                        <div className="flex flex-col gap-3">
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl mb-2">
+                            <p className="text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                              <strong>Aviso:</strong> As chaves de integração do Google agora são gerenciadas internamente pelo servidor para maior segurança e estabilidade.
+                            </p>
+                          </div>
+                          
                           <Button 
-                            variant="default" 
-                            className="w-full h-11 rounded-xl font-bold bg-primary hover:scale-[1.02] transition-transform"
-                            onClick={handleSaveSettings}
-                            disabled={saving}
+                            variant={googleContactsEnabled ? "outline" : "secondary"} 
+                            className="w-full h-11 rounded-xl font-bold border-primary/20"
+                            onClick={() => {
+                              const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+                              const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
+                              const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+                              window.location.href = url;
+                            }}
                           >
-                            <Save className="w-4 h-4 mr-2" />
-                            {saving ? 'Salvando...' : 'Salvar Dados do Google'}
+                            <Users className="w-4 h-4 mr-2" />
+                            {googleContactsEnabled ? 'Reconectar Navegador' : 'Conectar Navegador'}
                           </Button>
                           
-                          {metaSettings.google_client_id && (
-                            <div className="pt-4 border-t border-muted-foreground/10 space-y-3">
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase text-center">Integração do Navegador</p>
-                              <Button 
-                                variant={googleContactsEnabled ? "outline" : "secondary"} 
-                                className="w-full h-11 rounded-xl font-bold border-primary/20"
-                                onClick={() => {
-                                  const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
-                                  const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                                  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-                                  window.location.href = url;
-                                }}
-                              >
-                                <Users className="w-4 h-4 mr-2" />
-                                {googleContactsEnabled ? 'Reconectar Navegador' : 'Conectar Navegador'}
-                              </Button>
-                              
-                              {googleContactsEnabled && (
-                                <Button 
-                                  variant="ghost" 
-                                  className="w-full h-11 rounded-xl font-bold text-destructive hover:bg-destructive/5"
-                                  onClick={() => {
-                                    localStorage.removeItem('google_contacts_connected');
-                                    localStorage.removeItem('google_contacts_auth_code');
-                                    setGoogleContactsEnabled(false);
-                                    toast({ title: "Desconectado", description: "Conexão do navegador removida" });
-                                  }}
-                                >
-                                  Desconectar Navegador
-                                </Button>
-                              )}
-                            </div>
+                          {googleContactsEnabled && (
+                            <Button 
+                              variant="ghost" 
+                              className="w-full h-11 rounded-xl font-bold text-destructive hover:bg-destructive/5"
+                              onClick={() => {
+                                localStorage.removeItem('google_contacts_connected');
+                                localStorage.removeItem('google_contacts_auth_code');
+                                setGoogleContactsEnabled(false);
+                                toast({ title: "Desconectado", description: "Conexão do navegador removida" });
+                              }}
+                            >
+                              Desconectar Navegador
+                            </Button>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                        <p className="text-[10px] text-muted-foreground italic leading-relaxed pt-2">
                           * URL de redirecionamento autorizada: <code className="text-primary font-bold">{window.location.origin}/google-callback</code>
                         </p>
                       </CardContent>
