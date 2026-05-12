@@ -2081,7 +2081,7 @@ const CRM = () => {
         </Sidebar>
 
         <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
-          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+          <header className="h-16 border-b flex items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border mx-2 hidden md:block" />
