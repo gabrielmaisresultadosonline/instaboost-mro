@@ -949,14 +949,18 @@ const CRM = () => {
     
     const DAY = 24 * 60 * 60 * 1000;
     const nowTime = Date.now();
-    // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
-    // Verificamos no banco se existe alguma mensagem inbound nas últimas 24h caso o estado local esteja inconsistente.
-    const lastInbound = selectedContact.last_message_received_at ? new Date(selectedContact.last_message_received_at).getTime() : 0;
     
-    // Bloqueia apenas se TIVER um registro de inbound e ele for REALMENTE mais velho que 24h.
-    // Se lastInbound for 0, significa que não recebemos nada ainda (chat novo ou iniciado por template), então o envio é livre.
-    // Adicionamos uma margem de segurança de 5 minutos para evitar bloqueios por pequenos atrasos de sincronização
-    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > (DAY + 5 * 60 * 1000);
+    // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
+    const lastInboundStr = selectedContact.last_message_received_at;
+    const lastInbound = lastInboundStr ? new Date(lastInboundStr).getTime() : 0;
+    
+    // Se não temos lastInbound, a janela NÃO está expirada (é um novo chat ou iniciado por template)
+    let isColdList = false;
+    if (lastInbound > 0) {
+      const diff = nowTime - lastInbound;
+      // Bloqueia apenas se passar de 24h (com 1 minuto de tolerância para segurança)
+      isColdList = diff > (DAY + 60000);
+    }
 
     if (isColdList) {
       toast({ 
@@ -2164,14 +2168,20 @@ const CRM = () => {
 
 
   const getWindowInfo = (lastInbound: string) => {
-    if (!lastInbound) return null;
+    if (!lastInbound) return { label: "Nova sessão", isExpired: false };
+    
+    // Convertemos para o fuso local para garantir precisão no cálculo
     const last = new Date(lastInbound).getTime();
-    const now = new Date().getTime();
-    const diffHours = (now - last) / (1000 * 60 * 60);
-    const remaining = Math.max(0, 24 - diffHours);
+    const nowTime = Date.now();
+    const diffMs = nowTime - last;
+    const DAY = 24 * 60 * 60 * 1000;
+    
+    const remainingMs = Math.max(0, DAY - diffMs);
+    const remainingHours = remainingMs / (1000 * 60 * 60);
+    
     return {
-      label: remaining > 0 ? `${remaining.toFixed(1)}h restantes` : "Janela expirada",
-      isExpired: remaining <= 0
+      label: remainingHours > 0 ? `${remainingHours.toFixed(1)}h restantes` : "Janela expirada",
+      isExpired: remainingHours <= 0
     };
   };
 
