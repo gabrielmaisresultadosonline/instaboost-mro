@@ -2907,18 +2907,19 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-3 md:p-3.5 border-b border-border/40 flex flex-row items-center justify-between gap-2 md:gap-3 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
-                            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 overflow-hidden">
-                              <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
-                                <ChevronLeft className="h-5 w-5" />
-                              </Button>
-                              <div className="w-10 h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
-                                <User className="w-6 h-6 text-white" />
-                              </div>
-                              <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                                <div className="flex items-center gap-1.5 md:gap-2 min-w-0 w-full overflow-hidden">
-                                  <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1 md:gap-2 min-w-0 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
-                                    <span className="truncate shrink grow min-w-0">{selectedContact.name || selectedContact.wa_id}</span>
+                          <div className="p-2 md:p-3 border-b border-border/40 flex flex-col gap-2 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm transition-all duration-300">
+                            <div className="flex items-center gap-2 md:gap-3 w-full min-w-0 overflow-hidden">
+                              <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+                                <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
+                                  <ChevronLeft className="h-5 w-5" />
+                                </Button>
+                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
+                                  <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                                  <div className="flex items-center gap-1.5 md:gap-2 min-w-0 w-full overflow-hidden">
+                                    <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1 md:gap-2 min-w-0 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
+                                      <span className="truncate shrink grow min-w-0">{selectedContact.name || selectedContact.wa_id}</span>
                                     {selectedContact.google_sync_account_id && (
                                       <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
                                          <span className="text-[6px] font-bold text-white">G</span>
@@ -3579,7 +3580,7 @@ const CRM = () => {
                                     <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate">Envie ou descarte o áudio</p>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-2 pb-2 shrink-0">
+                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-1 sm:px-2 pb-2 shrink-0">
                                     {isRecording && (
                                       <div className="flex items-center justify-between px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-1 shrink-0">
                                         <div className="flex items-center gap-1.5">
@@ -3592,22 +3593,22 @@ const CRM = () => {
                                       </div>
                                     )}
                                     <div className="flex items-center gap-1 w-full min-w-0">
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-9 w-9 rounded-full"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-8 w-8 sm:h-9 sm:w-9 rounded-full"
                                         >
-                                          <Plus className="w-6 h-6" />
+                                          <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                                         </Button>
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-9 w-9 rounded-full hidden sm:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-8 w-8 sm:h-9 sm:w-9 rounded-full hidden xs:flex"
                                         >
-                                          <ImageIcon className="w-5 h-5" />
+                                          <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                                         </Button>
                                       </div>
                                       <div className="flex-1 relative flex items-center">
