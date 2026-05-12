@@ -1104,7 +1104,68 @@ const CRM = () => {
       setIsScheduling(false);
     }
   };
+  const handleScheduleBirthday = async () => {
+    if (!birthdayName || !birthdayNumber) {
+      toast({ title: "Preencha nome e número", variant: "destructive" });
+      return;
+    }
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Informe data e hora", variant: "destructive" });
+      return;
+    }
+    if (!selectedScheduleId) {
+      toast({ title: "Selecione um template para o aniversário", variant: "destructive" });
+      return;
+    }
 
+    setIsScheduling(true);
+    try {
+      // 1. Garantir que o contato existe ou criar um temporário/persistente
+      let { data: contact } = await supabase.from('crm_contacts').select('id').eq('wa_id', birthdayNumber).maybeSingle();
+      
+      if (!contact) {
+        const { data: newContact, error: createError } = await supabase.from('crm_contacts').insert({
+          wa_id: birthdayNumber,
+          name: birthdayName,
+          status: 'new',
+          source_type: 'system'
+        }).select().single();
+        if (createError) throw createError;
+        contact = newContact;
+      }
+
+      // 2. Criar agendamento (Apenas template para novos contatos/lista fria)
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      const t = templates.find(temp => temp.id === selectedScheduleId);
+      
+      const payload = {
+        action: 'sendTemplate',
+        templateName: t?.name,
+        language: t?.language || 'pt_BR'
+      };
+
+      const { error: scheduleError } = await supabase.from('crm_scheduled_messages').insert({
+        contact_id: contact.id,
+        scheduled_for: scheduledFor,
+        message_data: payload,
+        status: 'pending'
+      });
+
+      if (scheduleError) throw scheduleError;
+
+      toast({ title: "Aniversário agendado com sucesso!" });
+      setIsSchedulingOpen(false);
+      setBirthdayName('');
+      setBirthdayNameNumber('');
+      fetchAllScheduledMessages();
+    } catch (err: any) {
+      toast({ title: "Erro ao agendar aniversário", description: err.message, variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  
   
   
   const handleCreateWebhook = async () => {
