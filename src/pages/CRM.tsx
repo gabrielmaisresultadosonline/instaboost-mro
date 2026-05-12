@@ -949,7 +949,6 @@ const CRM = () => {
     
     const DAY = 24 * 60 * 60 * 1000;
     const nowTime = Date.now();
-    const DAY = 24 * 60 * 60 * 1000;
     
     // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
     const lastInboundStr = selectedContact.last_message_received_at;
