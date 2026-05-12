@@ -608,19 +608,21 @@ const CRM = () => {
           
         if (contactsToProcess && contactsToProcess.length > 0) {
           // Regra de interrupção de fluxo: Só paramos o fluxo se o ÚLTIMO INBOUND (mensagem do cliente)
-          // tiver ocorrido há mais de 24 horas + 5 minutos de margem.
+          // tiver ocorrido há mais de 24 horas + 30 minutos de tolerância.
           const DAY = 24 * 60 * 60 * 1000;
-          const MARGIN = 5 * 60 * 1000;
+          const TOLERANCE = 30 * 60 * 1000;
+          const limit = DAY + TOLERANCE;
+
           const activeContacts = contactsToProcess.filter(c => {
             if (!c.last_message_received_at) return true;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff < (DAY + MARGIN);
+            return diff < limit;
           });
 
           const expiredContacts = contactsToProcess.filter(c => {
             if (!c.last_message_received_at) return false;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff >= (DAY + MARGIN);
+            return diff >= limit;
           });
 
           // Encerrar fluxos expirados automaticamente
