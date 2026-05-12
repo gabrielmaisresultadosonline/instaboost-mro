@@ -1499,8 +1499,20 @@ const CRM = () => {
       const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
       
       let messageData: any = { action: '' };
+      const DAY = 24 * 60 * 60 * 1000;
+      const nowTime = Date.now();
+      const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
       
       if (scheduleType === 'message') {
+        if (isColdList) {
+          toast({ 
+            title: "Regra de Segurança", 
+            description: "Para contatos fora da janela de 24h, use apenas Templates Aprovados.", 
+            variant: "destructive" 
+          });
+          setIsScheduling(false);
+          return;
+        }
         if (!newMessage.trim()) {
           toast({ title: "Digite a mensagem para agendar", variant: "destructive" });
           setIsScheduling(false);
@@ -1515,6 +1527,15 @@ const CRM = () => {
         }
         messageData = { action: 'sendTemplate', templateName: selectedScheduleId, languageCode: 'pt_BR' };
       } else if (scheduleType === 'flow') {
+        if (isColdList) {
+          toast({ 
+            title: "Regra de Segurança", 
+            description: "Não é possível agendar fluxos para lista fria. Use Templates.", 
+            variant: "destructive" 
+          });
+          setIsScheduling(false);
+          return;
+        }
         if (!selectedScheduleId) {
           toast({ title: "Selecione um fluxo", variant: "destructive" });
           setIsScheduling(false);
