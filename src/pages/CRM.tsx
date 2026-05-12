@@ -4310,95 +4310,8 @@ const CRM = () => {
                       </CardContent>
                     </Card>
 
-                    <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col md:col-span-2">
-                      <CardHeader className="bg-[#00a884]/5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
-                        <div className="min-w-0">
-                          <CardTitle className="text-base md:text-lg flex items-center gap-2 text-[#00a884]">
-                            <Users className="w-5 h-5 shrink-0" /> <span className="truncate">Integração Google Contatos</span>
-                          </CardTitle>
-                          <CardDescription className="text-xs">Sincronize seus contatos com o Google para backup e organização</CardDescription>
-                        </div>
-                        <Badge variant={googleContactsEnabled ? "default" : "outline"} className="font-bold shrink-0 self-start sm:self-auto">
-                          {googleContactsEnabled ? 'Conectado' : 'Desconectado'}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
-                              <div className="space-y-0.5">
-                                <Label className="text-sm font-bold flex items-center gap-2">
-                                  <RefreshCcw className="w-4 h-4" /> Sincronização Automática
-                                </Label>
-                                <p className="text-xs text-muted-foreground">Novos contatos serão enviados ao Google automaticamente.</p>
-                              </div>
-                              <Switch 
-                                checked={metaSettings.google_auto_sync} 
-                                onCheckedChange={async (checked) => {
-                                  setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
-                                  const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
-                                  await supabase.from('crm_settings').upsert({
-                                    ...rest,
-                                    google_auto_sync: checked,
-                                    id: '00000000-0000-0000-0000-000000000001',
-                                    updated_at: new Date().toISOString()
-                                  });
-                                  toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
-                                }}
-                              />
-                            </div>
-                            
-                            <div className="flex flex-col sm:flex-row gap-3">
-                               <Button 
-                                className="flex-1 font-bold h-11"
-                                onClick={handleConnectGoogle}
-                                variant="outline"
-                              >
-                                {googleContactsEnabled ? 'Conectar outra Conta' : 'Conectar Conta Google'}
-                              </Button>
+                    {/* Google Contacts integration removed from AI Agent tab */}
 
-                              {googleContactsEnabled && (
-                                <>
-                                  <Button 
-                                    className="flex-1 font-bold h-11 bg-[#00a884] hover:bg-[#00a884]/90"
-                                    onClick={handleSyncGoogleContacts}
-                                    disabled={isSyncingContacts}
-                                  >
-                                    <RefreshCcw className={cn("w-4 h-4 mr-2", isSyncingContacts && "animate-spin")} /> 
-                                    {isSyncingContacts ? 'Sincronizando...' : 'Sincronizar Agora'}
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    className="h-11 px-3 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                    title="Deslogar Google"
-                                    onClick={() => {
-                                      localStorage.removeItem('google_contacts_connected');
-                                      localStorage.removeItem('google_contacts_auth_code');
-                                      setGoogleContactsEnabled(false);
-                                      toast({ title: "Google Desconectado" });
-                                    }}
-                                  >
-                                    <LogOut className="w-4 h-4" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-500/5 border border-blue-200 rounded-xl p-4 flex gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                              <Users className="w-5 h-5 text-blue-500" />
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="text-sm font-bold text-blue-700">Por que conectar?</h4>
-                              <p className="text-[11px] text-blue-600/80 leading-relaxed">
-                                Ao conectar sua conta Google, você pode importar contatos existentes e garantir que todos os seus leads do WhatsApp sejam salvos automaticamente na sua agenda do Google.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
                       <CardHeader className="bg-amber-50 dark:bg-amber-900/10 border-b">
@@ -5459,19 +5372,56 @@ const CRM = () => {
                             </p>
                           </div>
                           
-                          <Button 
-                            variant={googleContactsEnabled ? "outline" : "secondary"} 
-                            className="w-full h-11 rounded-xl font-bold border-primary/20"
-                            onClick={() => {
-                              const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
-                              const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
-                              const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-                              window.location.href = url;
-                            }}
-                          >
-                            <Users className="w-4 h-4 mr-2" />
-                            {googleContactsEnabled ? 'Reconectar Navegador' : 'Conectar Navegador'}
-                          </Button>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <Button 
+                              variant={googleContactsEnabled ? "outline" : "secondary"} 
+                              className="flex-1 h-11 rounded-xl font-bold border-primary/20"
+                              onClick={() => {
+                                const redirectUri = encodeURIComponent(window.location.origin + '/google-callback');
+                                const scope = encodeURIComponent('https://www.googleapis.com/auth/contacts');
+                                const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${metaSettings.google_client_id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+                                window.location.href = url;
+                              }}
+                            >
+                              <Users className="w-4 h-4 mr-2" />
+                              {googleContactsEnabled ? 'Conectar outra Conta' : 'Conectar Conta Google'}
+                            </Button>
+
+                            {googleContactsEnabled && (
+                              <Button 
+                                className="flex-1 font-bold h-11 bg-primary text-white hover:bg-primary/90 rounded-xl"
+                                onClick={handleSyncGoogleContacts}
+                                disabled={isSyncingContacts}
+                              >
+                                <RefreshCcw className={cn("w-4 h-4 mr-2", isSyncingContacts && "animate-spin")} /> 
+                                {isSyncingContacts ? 'Sincronizando...' : 'Sincronizar Agora'}
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
+                            <div className="space-y-0.5">
+                              <Label className="text-sm font-bold flex items-center gap-2">
+                                <RefreshCcw className="w-4 h-4" /> Sincronização Automática
+                              </Label>
+                              <p className="text-xs text-muted-foreground">Novos contatos serão enviados ao Google automaticamente.</p>
+                            </div>
+                            <Switch 
+                              checked={metaSettings.google_auto_sync} 
+                              onCheckedChange={async (checked) => {
+                                setMetaSettings(prev => ({ ...prev, google_auto_sync: checked }));
+                                const { id, created_at, updated_at, webhook_verify_token, vps_status, ...rest } = metaSettings;
+                                await supabase.from('crm_settings').upsert({
+                                  ...rest,
+                                  google_auto_sync: checked,
+                                  id: '00000000-0000-0000-0000-000000000001',
+                                  updated_at: new Date().toISOString()
+                                });
+                                toast({ title: checked ? "Sincronização ativada" : "Sincronização desativada" });
+                              }}
+                            />
+                          </div>
+
                           
                           {googleContactsEnabled && (
                             <Button 
