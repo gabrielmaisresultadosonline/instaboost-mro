@@ -2834,7 +2834,7 @@ const CRM = () => {
                                       return (
                                         <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1.5 h-4 tabular-nums flex items-center gap-1">
                                           <Clock className="w-2.5 h-2.5" />
-                                          <span>Janela 24h: {h}h{m.toString().padStart(2,'0')}m</span>
+                                          <span>{h}h{m.toString().padStart(2,'0')}m</span>
                                         </Badge>
                                       );
                                     })()}
