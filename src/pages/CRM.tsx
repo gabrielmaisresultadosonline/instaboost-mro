@@ -682,14 +682,13 @@ const CRM = () => {
     // Enrich with last inbound timestamp per contact (24h window logic)
     // Field doesn't exist in DB yet, so derive from crm_messages
     try {
-      const since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
       const { data: recentInbound } = await supabase
         .from('crm_messages')
         .select('contact_id, created_at')
         .eq('direction', 'inbound')
         .gte('created_at', since)
-        .order('created_at', { ascending: false })
-        .limit(5000);
+        .order('created_at', { ascending: false });
       const lastInboundByContact: Record<string, string> = {};
       (recentInbound || []).forEach((m: any) => {
         if (m.contact_id && !lastInboundByContact[m.contact_id]) {
