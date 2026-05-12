@@ -3866,6 +3866,7 @@ const CRM = () => {
               )}
             </div>
 
+            {/* Fluxos */}
             <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'flows' && "hidden")}>
               {activeTab === 'flows' && (
               <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
