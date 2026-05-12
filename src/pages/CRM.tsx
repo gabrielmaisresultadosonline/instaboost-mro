@@ -3497,59 +3497,38 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-11 w-11 shrink-0 rounded-full",
-                                                  !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
-                                                    ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
-                                                    : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
-                                                )}
-                                                onClick={startRecording}
-                                              >
-                                                <Mic className="w-5 h-5" />
-                                              </Button>
-                                              {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
-                                                <div className="absolute -top-1 -right-1">
-                                                  <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
-                                                    <AlertCircle className="w-2.5 h-2.5 text-white" />
-                                                  </div>
-                                                </div>
-                                              )}
-                                            </div>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <Button 
-                                          size="icon" 
-                                          variant="ghost" 
-                                          className="h-11 w-11 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
-                                          onClick={stopRecording}
-                                        >
-                                          <StopCircle className="w-5 h-5" />
-                                        </Button>
-                                      )}
                                     </div>
                                   </div>
                                 )}
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                               </>
                             ) : (
-                              <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
-                                <MessageSquare className="w-10 h-10 text-primary/30" />
-                                <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
-                                <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
+                              <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8 bg-white dark:bg-[#111b21]">
+                                <div className="w-20 h-20 rounded-full bg-muted/20 flex items-center justify-center">
+                                  <MessageSquare className="w-10 h-10 text-muted-foreground/30" />
+                                </div>
+                                <h3 className="text-lg font-bold">WhatsApp Business CRM</h3>
+                                <p className="text-muted-foreground text-sm max-w-[280px]">Selecione uma conversa para começar a atender seus clientes em tempo real.</p>
                               </div>
                             )}
                           </div>
                         </>
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
-                          <MessageSquare className="w-10 h-10 text-primary/30" />
-                          <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
-                          <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
+                        <div className="flex flex-col items-center justify-center h-full w-full bg-[#f0f2f5] dark:bg-[#0c1317]">
+                           <div className="text-center p-8">
+                            <div className="w-24 h-24 rounded-full bg-muted/20 flex items-center justify-center mx-auto mb-4">
+                              <Bot className="w-12 h-12 text-muted-foreground/20" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Selecione uma Conversa</h3>
+                            <p className="text-muted-foreground max-w-sm mx-auto">Conecte-se com seus clientes de forma profissional e organizada.</p>
+                          </div>
                         </div>
                       )}
                     </div>
                   </>
                 )}
+              </div>
+            )}
               </div>
             )}
             {activeTab === 'scheduling' && (
