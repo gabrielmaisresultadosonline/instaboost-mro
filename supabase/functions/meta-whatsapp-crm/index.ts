@@ -882,20 +882,41 @@ serve(async (req) => {
       const { meta_waba_id } = settings
       console.log(`Fetching templates for WABA ${meta_waba_id}...`);
       
-      const response = await fetch(
-        `https://graph.facebook.com/v20.0/${meta_waba_id}/message_templates?limit=1000`,
-        {
-          headers: { 'Authorization': `Bearer ${meta_access_token}` },
+      let data: any = { data: [] };
+      let retryCount = 0;
+      const maxRetries = 3;
+      let lastError = null;
+
+      while (retryCount < maxRetries) {
+        try {
+          const response = await fetch(
+            `https://graph.facebook.com/v20.0/${meta_waba_id}/message_templates?limit=500`, // Reduced limit to be safer
+            {
+              headers: { 'Authorization': `Bearer ${meta_access_token}` },
+            }
+          )
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Meta API Error fetching templates:', errorData);
+            throw new Error(`Meta API error: ${errorData.error?.message || response.statusText}`);
+          }
+          
+          data = await response.json();
+          break; // Success
+        } catch (err: any) {
+          retryCount++;
+          lastError = err;
+          console.warn(`Attempt ${retryCount} failed to fetch templates: ${err.message}. Retrying in 2s...`);
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
         }
-      )
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Meta API Error fetching templates:', errorData);
-        throw new Error(`Meta API error: ${errorData.error?.message || response.statusText}`);
       }
-      
-      const data = await response.json()
+
+      if (retryCount === maxRetries && !data.data?.length && lastError) {
+        throw lastError;
+      }
       
       if (data.data) {
         console.log(`Found ${data.data.length} templates on Meta.`);
@@ -903,15 +924,19 @@ serve(async (req) => {
         
         for (const template of data.data) {
           // Process components to find and store media permanently
-          const processedComponents = [...template.components];
+          const processedComponents = [...(template.components || [])];
           for (const component of processedComponents) {
             if (component.type === 'HEADER' && (component.format === 'IMAGE' || component.format === 'VIDEO')) {
               const mediaUrl = component.example?.header_handle?.[0];
               if (mediaUrl && mediaUrl.includes('scontent.whatsapp.net')) {
                 console.log(`Storing template media permanently: ${template.name} - ${component.format}`);
-                const permanentUrl = await downloadAndStoreMetaMedia(supabase, meta_access_token, mediaUrl, component.format.toLowerCase(), `${template.name}_header`);
-                if (permanentUrl) {
-                  component.example.header_handle = [permanentUrl];
+                try {
+                  const permanentUrl = await downloadAndStoreMetaMedia(supabase, meta_access_token, mediaUrl, component.format.toLowerCase(), `${template.name}_header`);
+                  if (permanentUrl) {
+                    component.example.header_handle = [permanentUrl];
+                  }
+                } catch (mediaErr) {
+                  console.error(`Error storing media for template ${template.name}:`, mediaErr);
                 }
               }
             }
