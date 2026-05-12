@@ -3005,10 +3005,10 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-2.5 md:p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                      "p-2 md:p-2.5 rounded-lg max-w-[85%] md:max-w-[75%] shadow-sm relative",
                                       m.direction === 'inbound' 
-                                        ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
-                                        : 'bg-primary text-primary-foreground rounded-tr-none',
+                                        ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none' 
+                                        : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-white rounded-tr-none',
                                       m.isOptimistic && 'opacity-70 grayscale-[0.5]'
                                     )}>
                                       {isTemplate && template ? (
