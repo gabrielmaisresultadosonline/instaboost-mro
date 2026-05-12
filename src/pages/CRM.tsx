@@ -2985,7 +2985,7 @@ const CRM = () => {
                                       </span>
                                     </div>
                                   )}
-                                  {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
+                                  {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (!selectedContact.last_message_received_at || (Date.now() - new Date(selectedContact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
                                     <div className="text-[8px] font-black bg-red-600 text-white tabular-nums whitespace-nowrap px-1.5 py-0.5 rounded-sm shrink-0 shadow-sm flex items-center gap-1">
                                       <Clock className="w-2.5 h-2.5" />
                                       {(() => {
