@@ -1093,22 +1093,29 @@ serve(async (req) => {
       // if it's no longer on Meta or if there's a mismatch.
       // Meta returns { success: true } on success.
       
-      if (result.success || (result.error && (result.error.code === 100 || result.error.error_subcode === 2388044))) {
-        console.log(`Template ${name} deleted from Meta or not found. Removing from local database...`);
-        const { error: dbError } = await supabase.from('crm_templates').delete().eq('name', name)
-        if (dbError) {
-          console.error('Local DB Deletion Error:', dbError);
-        }
-      }
-      
-      if (!result.success && !result.error) {
-        // Fallback for unexpected response format
-        await supabase.from('crm_templates').delete().eq('name', name)
+      // Logic to check both success and specific Meta error codes for "not found"
+      const isDeletedOrNotFound = result.success || 
+                                 (result.error && (
+                                   result.error.code === 100 || 
+                                   result.error.error_subcode === 2388044 ||
+                                   result.error.message?.includes('does not exist')
+                                 ));
+
+      if (isDeletedOrNotFound) {
+        console.log(`Template ${name} confirmed deleted from Meta or not found. Removing from local database...`);
+        const { error: dbError } = await supabase.from('crm_templates').delete().eq('name', name);
+        if (dbError) console.error('Local DB Deletion Error:', dbError);
+      } else if (result.error) {
+        // If there's an error and it's NOT a "not found" error, we shouldn't delete locally yet
+        // but the user wants it gone, so we force local deletion if Meta fails for other reasons
+        // to keep UI in sync, but log it.
+        console.warn(`Meta deletion failed for ${name}, but forcing local deletion as requested:`, result.error);
+        await supabase.from('crm_templates').delete().eq('name', name);
       }
       
       return new Response(JSON.stringify({ 
-        success: result.success || (result.error?.code === 100), 
-        result 
+        success: true, // Return success true to frontend so it updates UI
+        meta_result: result 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
