@@ -3497,6 +3497,35 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
+                                                  "h-11 w-11 shrink-0 rounded-full",
+                                                  !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
+                                                    ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
+                                                    : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
+                                                )}
+                                                onClick={startRecording}
+                                              >
+                                                <Mic className="w-5 h-5" />
+                                              </Button>
+                                              {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
+                                                <div className="absolute -top-1 -right-1">
+                                                  <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
+                                                    <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          className="h-11 w-11 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
+                                          onClick={stopRecording}
+                                        >
+                                          <StopCircle className="w-5 h-5" />
+                                        </Button>
+                                      )}
                                     </div>
                                   </div>
                                 )}
@@ -3527,8 +3556,6 @@ const CRM = () => {
                     </div>
                   </>
                 )}
-              </div>
-            )}
               </div>
             )}
             {activeTab === 'scheduling' && (
