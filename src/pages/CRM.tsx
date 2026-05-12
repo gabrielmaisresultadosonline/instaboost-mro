@@ -1147,23 +1147,28 @@ const CRM = () => {
   };
 
   const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false, previewUrl?: string) => {
-    if (!selectedContact) return;
-    setSendingMessage(true);
+    if (!selectedContact || isSending(selectedContact.id)) return;
+    const targetContactId = selectedContact.id;
+    const targetWaId = selectedContact.wa_id;
+    
+    setContactSending(targetContactId, true);
     const localPreviewUrl = previewUrl || (file instanceof File ? URL.createObjectURL(file) : (recordedAudioUrl || URL.createObjectURL(file)));
-    const selectedContactId = selectedContact.id;
     
     // Optimistic update for media
     const optimisticMessage = {
       id: `temp-media-${Date.now()}`,
-      contact_id: selectedContactId,
-      content: isVoice ? '[Mensagem de Áudio...]' : `[${type.toUpperCase()}...]`,
-      direction: 'outbound',
-      message_type: type,
+      contact_id: targetContactId,
+...
       created_at: new Date().toISOString(),
       isOptimistic: true,
       media_url: localPreviewUrl
     };
-    setChatMessages(prev => [...prev, optimisticMessage]);
+    setChatMessages(prev => {
+      if (selectedContactRef.current?.id === targetContactId) {
+        return [...prev, optimisticMessage];
+      }
+      return prev;
+    });
 
     let savedAudioMessage: any = null;
     const persistOutboundAudio = async (publicUrl: string, metaMsgId: string | null, source: string, contentType?: string, status = 'sent') => {
