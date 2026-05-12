@@ -6594,12 +6594,12 @@ const CRM = () => {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6">Cancelar</Button>
             <Button 
-              onClick={handleScheduleBatch} 
-              disabled={isScheduling || selectedContactsForScheduling.length === 0}
+              onClick={selectedCampaignType === 'birthday' ? handleScheduleBirthday : handleScheduleBatch} 
+              disabled={isScheduling || (selectedCampaignType !== 'birthday' && selectedContactsForScheduling.length === 0)}
               className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20 font-bold"
             >
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Agendar para {selectedContactsForScheduling.length} contatos
+              {selectedCampaignType === 'birthday' ? 'Agendar Aniversário' : `Agendar para ${selectedContactsForScheduling.length} contatos`}
             </Button>
           </DialogFooter>
         </DialogContent>
