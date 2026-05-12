@@ -330,11 +330,14 @@ const CRM = () => {
           if (m.direction === 'inbound') {
             lastInbound = t;
           } else if (m.direction === 'outbound') {
+            // Regra oficial do WhatsApp: A janela de 24h só reseta quando o cliente responde.
+            // O envio de mensagens outbound não estende a janela de atendimento livre.
             const inFreeWindow = t - lastInbound < DAY;
             const inPaidWindow = t - lastPaidStart < DAY;
             if (!inFreeWindow && !inPaidWindow) {
               paidCount++;
               if (t >= weekTime) paidWeek++;
+              // Uma nova conversa (paga) começa aqui e dura 24h
               lastPaidStart = t;
             }
           }
