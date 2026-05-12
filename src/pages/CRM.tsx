@@ -2279,11 +2279,11 @@ const CRM = () => {
         </Sidebar>
 
         <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317]">
-          <header className="h-16 border-b border-border/50 flex items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between shadow-sm">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-muted" />
-              <div className="h-4 w-px bg-border/50 mx-2 hidden md:block" />
-              <h1 className="font-bold text-sm md:text-base text-foreground tracking-tight">
+          <header className="min-h-[64px] h-auto md:h-16 border-b border-border/50 flex flex-wrap items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between gap-2 py-2 shadow-sm">
+            <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+              <SidebarTrigger className="hover:bg-muted shrink-0" />
+              <div className="h-4 w-px bg-border/50 mx-1 hidden md:block" />
+              <h1 className="font-bold text-xs md:text-base text-foreground tracking-tight truncate">
                 {activeTab === 'contact-list' ? 'Contatos' : 
                  activeTab === 'contacts' ? 'Conversas' : 
                  activeTab === 'google-synced' ? 'Sincronizados Google' :
@@ -2291,28 +2291,28 @@ const CRM = () => {
               </h1>
             </div>
             {activeTab === 'contacts' && (
-              <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-1.5 md:gap-3">
                 <Button 
                   variant={activeFlowsView ? "default" : "outline"} 
                   size="sm" 
                   onClick={() => { setActiveFlowsView(!activeFlowsView); setKanbanView(false); }} 
                   className={cn(
-                    "font-black h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-full transition-all active:scale-95", 
+                    "font-black h-8 px-2 md:px-3 text-[9px] md:text-xs rounded-full transition-all active:scale-95 whitespace-nowrap", 
                     activeFlowsView 
                       ? "bg-[#00a884] text-white hover:bg-[#008f6f] shadow-md" 
                       : "bg-white dark:bg-[#111b21] hover:bg-muted"
                   )}
                 >
-                  <GitBranch className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                  FLUXOS ATIVOS
+                  <GitBranch className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  FLUXOS
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => { setKanbanView(!kanbanView); setActiveFlowsView(false); }} 
-                  className="font-black h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-full bg-white dark:bg-[#111b21] hover:bg-muted transition-all active:scale-95 shadow-sm"
+                  className="font-black h-8 px-2 md:px-3 text-[9px] md:text-xs rounded-full bg-white dark:bg-[#111b21] hover:bg-muted transition-all active:scale-95 shadow-sm whitespace-nowrap"
                 >
-                  {kanbanView ? <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" /> : <BarChart3 className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />}
+                  {kanbanView ? <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> : <BarChart3 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
               </div>
@@ -2790,7 +2790,7 @@ const CRM = () => {
                               Etiquetas
                             </AccordionTrigger>
                             <AccordionContent>
-                              <div className="flex flex-wrap gap-1.5 pb-2 pt-1">
+                               <div className="flex gap-1.5 pb-2 pt-1 overflow-x-auto scrollbar-hide py-1">
                                 {['all', ...(kanbanStatuses.length > 0 ? kanbanStatuses.map(s => s.value) : ['new', 'responded', 'human', 'qualified', 'closed', 'lost'])].map(s => (
                                   <Badge 
                                     key={s} 
@@ -2802,7 +2802,7 @@ const CRM = () => {
                                       borderColor: statusFilter === s ? '#00a884' : undefined
                                     }}
                                     className={cn(
-                                      "cursor-pointer capitalize whitespace-nowrap px-3 font-bold transition-all rounded-full",
+                                      "cursor-pointer capitalize whitespace-nowrap px-3 font-bold transition-all rounded-full shrink-0",
                                       statusFilter === s ? "text-white shadow-md scale-105" : "hover:bg-muted"
                                     )}
                                     onClick={() => setStatusFilter(s)}
@@ -2963,8 +2963,8 @@ const CRM = () => {
                       {selectedContact ? (
                         <>
                           <div className="p-2 border-b border-border/40 flex flex-col gap-1.5 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
-                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 w-full min-w-0">
-                              <div className="flex items-center gap-2 min-w-0 flex-[2_1_0%]">
+                            <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
                                   <ChevronLeft className="h-5 w-5" />
                                 </Button>
@@ -2977,15 +2977,15 @@ const CRM = () => {
                                       {selectedContact.name || selectedContact.wa_id}
                                     </p>
                                     {selectedContact.google_sync_account_id && (
-                                      <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
-                                         <span className="text-[6px] font-bold text-white">G</span>
+                                      <span className="w-3 h-3 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[5px] font-bold text-white">G</span>
                                       </span>
                                     )}
                                     <Button
                                       variant="ghost"
                                       size="icon"
                                       className={cn(
-                                        "h-6 w-6 md:h-7 md:w-7 rounded-full transition-all shrink-0",
+                                        "h-6 w-6 rounded-full transition-all shrink-0",
                                         selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-[#00a884] bg-[#00a884]/10" : "text-muted-foreground grayscale"
                                       )}
                                       onClick={async () => {
@@ -2993,38 +2993,14 @@ const CRM = () => {
                                         await updateContactStatus(selectedContact.id, { ai_active: newStatus });
                                       }}
                                     >
-                                      <Bot className="w-3.5 h-3.5" />
+                                      <Bot className="w-3 h-3" />
                                     </Button>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0 flex-wrap justify-end max-w-full">
-                                {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (!selectedContact.last_message_received_at || (Date.now() - new Date(selectedContact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    <Badge 
-                                      variant="outline" 
-                                      className={cn(
-                                        "h-4 px-1.5 text-[8px] font-black flex items-center gap-1 shrink-0 border-none truncate max-w-[150px]",
-                                        selectedContact.flow_state === 'error' ? "bg-red-600 text-white" : "bg-red-500 text-white"
-                                      )}
-                                    >
-                                      <div className={cn("w-1 h-1 rounded-full shrink-0 bg-white", selectedContact.flow_state === 'error' ? "animate-pulse" : "animate-ping")} />
-                                      <span className="truncate">
-                                        {selectedContact.flow_state === 'error' ? 'Erro' : 'Fluxo'}
-                                        {selectedContact.current_step_name && <span className="ml-1 text-white/90">({selectedContact.current_step_name})</span>}
-                                      </span>
-                                    </Badge>
-                                    <div className="flex items-center gap-0.5 shrink-0">
-                                      {(selectedContact.flow_state === 'error' || selectedContact.flow_state === 'waiting_response') && (
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500 hover:bg-green-50/50" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4.5 w-4.5" /></Button>
-                                      )}
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-50/50" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><XCircle className="h-4.5 w-4.5" /></Button>
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                <div className="flex flex-wrap items-center gap-1.5 justify-end">
+                              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                                <div className="flex items-center gap-1 flex-wrap justify-end">
                                   {selectedContact.last_message_received_at && (
                                     <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
                                       <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive animate-pulse' : 'text-[#00a884]')} />
@@ -3042,31 +3018,49 @@ const CRM = () => {
                                           const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
                                           const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
                                           const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
-                                          return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
+                                          return `${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
                                         }
-                                        return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
+                                        return `${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
                                       })()}
                                     </div>
                                   )}
                                 </div>
                               </div>
                             </div>
+
+                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (!selectedContact.last_message_received_at || (Date.now() - new Date(selectedContact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
+                              <div className="flex items-center justify-between gap-2 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded-lg border border-red-100 dark:border-red-900/30">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className={cn("w-1.5 h-1.5 rounded-full shrink-0 bg-red-500", selectedContact.flow_state === 'error' ? "animate-pulse" : "animate-ping")} />
+                                  <span className="text-[10px] font-bold text-red-600 dark:text-red-400 truncate">
+                                    {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : 'Fluxo Ativo'}
+                                    {selectedContact.current_step_name && <span className="ml-1 opacity-70">({selectedContact.current_step_name})</span>}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {(selectedContact.flow_state === 'error' || selectedContact.flow_state === 'waiting_response') && (
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4 w-4" /></Button>
+                                  )}
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><XCircle className="h-4 w-4" /></Button>
+                                </div>
+                              </div>
+                            )}
                             
-                            <div className="flex flex-wrap items-center gap-2 w-full pt-1 border-t border-border/5">
+                            <div className="flex items-center gap-1.5 w-full pt-1 border-t border-border/5 overflow-x-auto scrollbar-hide pb-0.5">
                               {kanbanStatuses.filter(s => s.is_starred).map(status => (
                                 <Button 
                                   key={status.id}
                                   size="sm" 
                                   variant="outline" 
-                                  className={cn("h-7 px-2 text-[10px] font-bold border-zinc-200 hover:bg-zinc-50 transition-all shadow-sm rounded-lg")}
+                                  className={cn("h-6 px-2 text-[9px] font-bold border-zinc-200 hover:bg-zinc-50 transition-all shadow-sm rounded-lg whitespace-nowrap")}
                                   onClick={() => updateContactStatus(selectedContact.id, { status: status.value })}
                                 >
                                   {status.label}
                                 </Button>
                               ))}
                               <Select onValueChange={(val) => updateContactStatus(selectedContact.id, { status: val })}>
-                                <SelectTrigger className="w-fit h-7 text-[10px] font-bold border-zinc-200 bg-zinc-50/50 rounded-lg px-2">
-                                  <SelectValue placeholder="Status" />
+                                <SelectTrigger className="w-fit h-6 text-[9px] font-bold border-zinc-200 bg-zinc-50/50 rounded-lg px-2 shrink-0">
+                                  <SelectValue placeholder="Etiqueta" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {kanbanStatuses.map(s => (
@@ -3087,19 +3081,19 @@ const CRM = () => {
                                 className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.5 rounded-sm border border-border/20 hover:bg-muted/50 transition-colors group"
                               >
                                 <FileText className="w-2.5 h-2.5 text-emerald-500" /> 
-                                <span>Modelos</span>
+                                <span className="hidden sm:inline">Modelos</span>
                                 {showTemplates ? <Eye className="w-2 h-2 ml-0.5 opacity-40 group-hover:opacity-100" /> : <EyeOff className="w-2 h-2 ml-0.5 opacity-100 text-emerald-500" />}
                               </button>
                               
                               {showTemplates && (
-                                <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                  {templates.slice(0, 10).map(t => (
+                                <div className="flex gap-1 flex-1 overflow-x-auto scrollbar-hide animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
+                                  {templates.slice(0, 15).map(t => (
                                     <Button 
                                       key={t.id} 
                                       variant="outline" 
                                       size="sm" 
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
-                                      className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none shrink-0" 
                                       onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
                                       disabled={isSending(selectedContact?.id)}
                                     >
@@ -3119,19 +3113,19 @@ const CRM = () => {
                                 className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.5 rounded-sm border border-border/20 hover:bg-muted/50 transition-colors group"
                               >
                                 <Zap className="w-2.5 h-2.5 text-blue-500" /> 
-                                <span>Fluxos</span>
+                                <span className="hidden sm:inline">Fluxos</span>
                                 {showFlows ? <Eye className="w-2 h-2 ml-0.5 opacity-40 group-hover:opacity-100" /> : <EyeOff className="w-2 h-2 ml-0.5 opacity-100 text-blue-500" />}
                               </button>
                               
                               {showFlows && (
-                                <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                <div className="flex gap-1 flex-1 overflow-x-auto scrollbar-hide animate-in fade-in slide-in-from-left-2 duration-200 py-0.5">
                                   {flows.filter(f => f.is_active).map(f => (
                                     <Button 
                                       key={f.id} 
                                       variant="outline" 
                                       size="sm" 
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
-                                      className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none shrink-0" 
                                       onClick={() => handleTriggerFlow(f.id)} 
                                       disabled={isSending(selectedContact?.id)}
                                     >
@@ -3473,11 +3467,11 @@ const CRM = () => {
                                       <DialogTrigger asChild>
                                         <Button 
                                           variant="ghost" 
-                                          size="sm" 
-                                          className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-lg px-3"
+                                          size="icon" 
+                                          className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-lg sm:w-auto sm:h-7 sm:px-3 sm:text-[10px] sm:font-black sm:uppercase sm:tracking-wider"
                                           disabled={!metaSettings.openai_api_key}
                                         >
-                                          <Bot className="w-4 h-4 mr-2" /> <span>Analises IA</span>
+                                          <Bot className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Analises IA</span>
                                         </Button>
                                       </DialogTrigger>
                                       <DialogContent className="sm:max-w-[600px] rounded-3xl">
@@ -3623,50 +3617,50 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1 w-full min-w-0">
-                                      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                                    <div className="flex items-center gap-1 w-full min-w-0 px-0.5 sm:px-0">
+                                      <div className="flex items-center gap-0.5 shrink-0">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-8 w-8 sm:h-9 sm:w-9 rounded-full"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full"
                                         >
-                                          <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+                                          <Plus className="w-6 h-6" />
                                         </Button>
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-8 w-8 sm:h-9 sm:w-9 rounded-full hidden xs:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full hidden sm:flex"
                                         >
-                                          <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                          <ImageIcon className="w-5 h-5" />
                                         </Button>
                                       </div>
-                                      <div className="flex-1 relative flex items-center">
+                                      <div className="flex-1 relative flex items-center min-w-0">
                                         <Input 
-                                          placeholder={isRecording ? "Gravando..." : "Digite uma mensagem"}
+                                          placeholder={isRecording ? "Gravando..." : "Mensagem"}
                                           value={newMessage} 
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-10 rounded-xl shadow-sm text-sm focus-visible:ring-0"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full"
                                         />
                                         <Button 
                                           size="icon" 
                                           variant="ghost" 
-                                          className="absolute right-1 h-9 w-9 text-[#54656f] dark:text-[#aebac1] hover:bg-transparent"
+                                          className="absolute right-0.5 h-8 w-8 text-[#54656f] dark:text-[#aebac1] hover:bg-transparent"
                                         >
                                           <Smile className="w-5 h-5" />
                                         </Button>
                                       </div>
                                       {!isRecording ? (
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-1 shrink-0">
                                           {newMessage.trim() ? (
                                             <Button 
                                               size="icon" 
                                               onClick={handleSendMessage} 
                                               disabled={isSending(selectedContact?.id)}
-                                              className="h-10 w-10 shrink-0 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
+                                              className="h-10 w-10 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
                                             >
                                               <Send className="w-5 h-5 ml-0.5" />
                                             </Button>
@@ -3676,7 +3670,7 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-10 w-10 shrink-0 rounded-full",
+                                                  "h-10 w-10 rounded-full",
                                                   !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                     ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
                                                     : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
@@ -3699,7 +3693,7 @@ const CRM = () => {
                                         <Button 
                                           size="icon" 
                                           variant="ghost" 
-                                          className="h-11 w-11 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
+                                          className="h-10 w-10 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
                                           onClick={stopRecording}
                                         >
                                           <StopCircle className="w-5 h-5" />
