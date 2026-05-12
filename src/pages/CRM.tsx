@@ -4757,7 +4757,9 @@ const CRM = () => {
                                         {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
                                         template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
                                         <Clock className="w-3 h-3 mr-1" />}
-                                        {template.status}
+                                        {template.status === 'APPROVED' ? 'Aprovado' : 
+                                         template.status === 'REJECTED' ? 'Rejeitado' : 
+                                         template.status === 'PENDING' ? 'Pendente' : template.status}
                                       </Badge>
                                       <div className="flex gap-1">
                                         <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
