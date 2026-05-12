@@ -3586,7 +3586,7 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1.5 w-full">
+                                    <div className="flex items-center gap-1 w-full min-w-0">
                                       <div className="flex items-center gap-1">
                                         <Button 
                                           variant="ghost" 
