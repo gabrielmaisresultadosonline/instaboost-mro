@@ -563,12 +563,22 @@ const CRM = () => {
       .channel('crm_global_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_messages' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          const newMessage = payload.new;
+          const newMessage: any = payload.new;
           if (selectedContactRef.current && newMessage.contact_id === selectedContactRef.current.id) {
             setChatMessages(prev => {
               if (prev.find(m => m.id === newMessage.id)) return prev;
               return [...prev, newMessage];
             });
+          }
+          // Reset 24h window on inbound message (regra oficial WhatsApp)
+          if (newMessage.direction === 'inbound') {
+            setContacts(prev => prev.map(c => c.id === newMessage.contact_id
+              ? { ...c, last_message_received_at: newMessage.created_at }
+              : c
+            ));
+            setSelectedContact((prev: any) => prev && prev.id === newMessage.contact_id
+              ? { ...prev, last_message_received_at: newMessage.created_at }
+              : prev);
           }
         } else if (payload.eventType === 'UPDATE') {
           const updatedMessage = payload.new;
