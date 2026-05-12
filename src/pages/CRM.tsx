@@ -3634,6 +3634,7 @@ const CRM = () => {
               </div>
             </div>
 
+            {/* Agendamentos */}
             <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'scheduling' && "hidden")}>
               {activeTab === 'scheduling' && (
               <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
