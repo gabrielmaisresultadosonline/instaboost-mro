@@ -607,31 +607,18 @@ const CRM = () => {
           .lte('next_execution_time', nowIso);
           
         if (contactsToProcess && contactsToProcess.length > 0) {
-          // Filtrar apenas os que realmente passaram de 24h sem NENHUMA interação (inbound ou outbound)
-          // A janela de resposta (grátis) da Meta é baseada no último inbound do cliente.
-          // Mas para parar o FLUXO, só devemos parar se o chat estiver "morto" há mais de 24h.
+          // Regra de interrupção de fluxo: Só paramos o fluxo se o ÚLTIMO INBOUND (mensagem do cliente)
+          // tiver ocorrido há mais de 24 horas, impossibilitando a automação de responder.
           const DAY = 24 * 60 * 60 * 1000;
           const activeContacts = contactsToProcess.filter(c => {
-            // Se não houver data, permitimos o fluxo
-            if (!c.last_message_received_at && !c.last_interaction) return true;
-            
-            const lastInbound = c.last_message_received_at ? new Date(c.last_message_received_at).getTime() : 0;
-            const lastAny = c.last_interaction ? new Date(c.last_interaction).getTime() : 0;
-            const latestInteraction = Math.max(lastInbound, lastAny);
-            
-            const diff = Date.now() - latestInteraction;
+            if (!c.last_message_received_at) return true;
+            const diff = Date.now() - new Date(c.last_message_received_at).getTime();
             return diff < DAY;
           });
 
           const expiredContacts = contactsToProcess.filter(c => {
-            // Só consideramos expirado se TIVER uma data e ela for maior que 24h
-            const lastInbound = c.last_message_received_at ? new Date(c.last_message_received_at).getTime() : 0;
-            const lastAny = c.last_interaction ? new Date(c.last_interaction).getTime() : 0;
-            const latestInteraction = Math.max(lastInbound, lastAny);
-            
-            if (latestInteraction === 0) return false;
-            
-            const diff = Date.now() - latestInteraction;
+            if (!c.last_message_received_at) return false;
+            const diff = Date.now() - new Date(c.last_message_received_at).getTime();
             return diff >= DAY;
           });
 
@@ -961,15 +948,12 @@ const CRM = () => {
     
     const DAY = 24 * 60 * 60 * 1000;
     const nowTime = Date.now();
-    // No WhatsApp, a janela de 24h abre com o último inbound (recebimento).
-    // Mas permitimos o envio se o contato for NOVO (não tem last_message_received_at e nem last_interaction)
-    // ou se a última mensagem recebida estiver dentro das 24h.
+    // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
     const lastInbound = selectedContact.last_message_received_at ? new Date(selectedContact.last_message_received_at).getTime() : 0;
-    const lastAny = selectedContact.last_interaction ? new Date(selectedContact.last_interaction).getTime() : 0;
-    const isNewContact = lastInbound === 0 && lastAny === 0;
     
-    // Bloqueia apenas se TIVER um inbound e ele estiver expirado há mais de 24h
-    const isColdList = !isNewContact && lastInbound > 0 && (nowTime - lastInbound) > DAY;
+    // Se nunca houve um inbound (conversa nova ou manual), permitimos enviar templates ou mensagens livres (Meta cobra sessão)
+    // Se houve um inbound, verificamos se passou de 24h.
+    const isColdList = lastInbound > 0 && (nowTime - lastInbound) > DAY;
 
     if (isColdList) {
       toast({ 
@@ -3031,9 +3015,9 @@ const CRM = () => {
                                 <div className="flex flex-wrap items-center gap-1.5 justify-end">
                                   {selectedContact.last_message_received_at && (
                                     <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
-                                      <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
+                                      <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive animate-pulse' : 'text-[#00a884]')} />
                                       <span className={cn("text-[8px] font-bold tabular-nums", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
-                                        {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Expirado' : getWindowInfo(selectedContact.last_message_received_at)?.label}
+                                        {getWindowInfo(selectedContact.last_message_received_at)?.label}
                                       </span>
                                     </div>
                                   )}
