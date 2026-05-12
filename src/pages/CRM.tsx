@@ -2783,13 +2783,13 @@ const CRM = () => {
                                 selectedContact?.id === contact.id ? "bg-[#f0f2f5] dark:bg-[#2a3942] border-l-4 border-l-[#00a884]" : "hover:bg-[#f5f6f6] dark:hover:bg-[#202c33] border-l-4 border-l-transparent"
                               )}
                             >
-                              <div className="flex justify-between items-center w-full gap-2 min-w-0">
-                                <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
+                              <div className="flex items-center w-full gap-2 min-w-0">
+                                <div className="flex flex-1 min-w-0 items-center gap-2 overflow-hidden">
                                   {contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && (
                                     <div className="w-2.5 h-2.5 bg-[#25D366] rounded-full shrink-0 shadow-[0_0_8px_rgba(37,211,102,0.5)] animate-pulse" title="Nova mensagem" />
                                   )}
                                   <p className={cn(
-                                    "font-bold truncate text-sm flex items-center gap-1.5 min-w-0 flex-1",
+                                    "font-bold truncate text-sm flex items-center gap-1.5 min-w-0",
                                     contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) ? "text-foreground" : "text-foreground/80"
                                   )}>
                                     <span className="truncate shrink grow min-w-0">{contact.name || contact.wa_id}</span>
@@ -2801,8 +2801,8 @@ const CRM = () => {
                                   </p>
                                 </div>
                                 <span className={cn(
-                                  "text-[10px] shrink-0 ml-auto whitespace-nowrap",
-                                  contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold" : "text-muted-foreground"
+                                  "text-[10px] shrink-0 whitespace-nowrap opacity-70",
+                                  contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold opacity-100" : "text-muted-foreground"
                                 )}>
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
@@ -2907,87 +2907,83 @@ const CRM = () => {
                     )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-2 md:p-3 border-b border-border/40 flex flex-col gap-2 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm transition-all duration-300">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full min-w-0 overflow-hidden">
-                              <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0 overflow-hidden">
+                          <div className="p-2 border-b border-border/40 flex flex-col gap-1.5 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
+                            <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
                                   <ChevronLeft className="h-5 w-5" />
                                 </Button>
-                                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
-                                  <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#dfe5e7] dark:bg-[#6a7175] flex items-center justify-center shrink-0 border border-border/10">
+                                  <User className="w-4 h-4 md:w-6 md:h-6 text-white" />
                                 </div>
-                                <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                                  <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                                    <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-1.5 min-w-0 overflow-hidden" onClick={() => openContactInfo(selectedContact)}>
-                                      <span className="truncate shrink grow min-w-0">{selectedContact.name || selectedContact.wa_id}</span>
-                                      {selectedContact.google_sync_account_id && (
-                                        <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
-                                           <span className="text-[6px] font-bold text-white">G</span>
-                                        </span>
-                                      )}
+                                <div className="flex flex-col min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <p className="font-bold text-sm md:text-base hover:text-primary cursor-pointer truncate" onClick={() => openContactInfo(selectedContact)}>
+                                      {selectedContact.name || selectedContact.wa_id}
                                     </p>
+                                    {selectedContact.google_sync_account_id && (
+                                      <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[6px] font-bold text-white">G</span>
+                                      </span>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="icon"
                                       className={cn(
-                                        "h-7 w-7 md:h-8 md:w-8 rounded-full transition-all duration-300 shrink-0",
-                                        selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-[#00a884] bg-[#00a884]/10 shadow-[0_0_15px_rgba(0,168,132,0.5)] animate-pulse" : "text-muted-foreground grayscale"
+                                        "h-6 w-6 md:h-7 md:w-7 rounded-full transition-all shrink-0",
+                                        selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-[#00a884] bg-[#00a884]/10" : "text-muted-foreground grayscale"
                                       )}
                                       onClick={async () => {
                                         const newStatus = !selectedContact.ai_active;
                                         await updateContactStatus(selectedContact.id, { ai_active: newStatus });
                                       }}
                                     >
-                                      <Bot className={cn("w-4 h-4", selectedContact.ai_active && metaSettings.ai_agent_enabled && "fill-primary/20")} />
+                                      <Bot className="w-3.5 h-3.5" />
                                     </Button>
                                   </div>
-
+                                  
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                    <div className="flex flex-wrap items-center gap-1.5 min-w-0 overflow-hidden">
+                                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                                       <Badge 
                                         variant="outline" 
-                                        style={{ height: "14px", fontSize: "8px" }}
                                         className={cn(
-                                          "px-1 flex items-center gap-1 font-medium whitespace-nowrap overflow-hidden shrink-0",
+                                          "h-4 px-1 text-[8px] font-bold flex items-center gap-1 shrink-0",
                                           selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
                                         )}
                                       >
-                                        <div className={cn("w-1 h-1 rounded-full shrink-0", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
-                                        <span className="truncate">{selectedContact.flow_state === 'error' ? 'Erro' : selectedContact.flow_state}</span>
+                                        <div className={cn("w-1 h-1 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
+                                        <span>{selectedContact.flow_state === 'error' ? 'Erro' : 'Ativo'}</span>
                                       </Badge>
-                                      {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
-                                        <div className="flex items-center gap-1 px-1 bg-primary/5 rounded border border-primary/10 tabular-nums shrink-0">
-                                          <Clock className="w-2.5 h-2.5 text-primary animate-pulse shrink-0" />
-                                          <span className="text-[8px] font-bold text-primary whitespace-nowrap">
-                                            {(() => {
-                                              if (selectedContact.flow_state === 'waiting_response') {
-                                                const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
-                                                const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
-                                                const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
-                                                const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
-                                                return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
-                                              }
-                                              return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
-                                            })()}
-                                          </span>
-                                        </div>
-                                      )}
                                       <div className="flex items-center gap-0.5 shrink-0">
-                                        <Button variant="ghost" size="icon" className="h-5 w-5 text-green-500 hover:bg-green-50/50" onClick={() => handleResumeFlow(selectedContact.id)}><PlayCircle className="h-3.5 w-3.5" /></Button>
-                                        <Button variant="ghost" size="icon" className="h-5 w-5 text-red-500 hover:bg-red-50/50" onClick={() => handleCancelFlow(selectedContact.id)}><StopCircle className="h-3.5 w-3.5" /></Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><StopCircle className="h-4 w-4" /></Button>
                                       </div>
                                     </div>
                                   )}
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
+                              <div className="flex flex-col items-end gap-1 shrink-0">
                                 {selectedContact.last_message_received_at && (
-                                  <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full border border-border/10 shadow-sm shrink-0">
-                                    <Clock className={cn("w-2.5 h-2.5 shrink-0", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
-                                    <span className={cn("text-[9px] font-black uppercase tracking-tight whitespace-nowrap", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
+                                  <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
+                                    <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')} />
+                                    <span className={cn("text-[8px] font-bold tabular-nums", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
                                       {getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'Expirado' : getWindowInfo(selectedContact.last_message_received_at)?.label}
                                     </span>
+                                  </div>
+                                )}
+                                {(countdown !== null && countdown > 0 || selectedContact.flow_state === 'waiting_response') && (
+                                  <div className="text-[8px] font-bold text-primary tabular-nums whitespace-nowrap bg-primary/5 px-1 rounded border border-primary/10">
+                                    {(() => {
+                                      if (selectedContact.flow_state === 'waiting_response') {
+                                        const timeoutMinutes = selectedContact.flow_timeout_minutes || 20;
+                                        const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
+                                        const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
+                                        const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
+                                        return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
+                                      }
+                                      return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
+                                    })()}
                                   </div>
                                 )}
                               </div>
