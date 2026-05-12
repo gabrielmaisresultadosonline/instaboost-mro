@@ -1165,6 +1165,7 @@ const CRM = () => {
       isOptimistic: true,
       media_url: localPreviewUrl
     };
+    
     setChatMessages(prev => {
       if (selectedContactRef.current?.id === targetContactId) {
         return [...prev, optimisticMessage];
@@ -1177,7 +1178,7 @@ const CRM = () => {
       const { data: savedMessage, error: persistError } = await supabase
         .from('crm_messages')
         .insert({
-          contact_id: selectedContactId,
+          contact_id: targetContactId,
           direction: 'outbound',
           message_type: 'audio',
           content: '[Mensagem de Áudio]',
@@ -1193,9 +1194,9 @@ const CRM = () => {
 
       await supabase.from('crm_contacts')
         .update({ last_interaction: new Date().toISOString() })
-        .eq('id', selectedContactId);
+        .eq('id', targetContactId);
 
-      if (selectedContactRef.current?.id === selectedContactId) {
+      if (selectedContactRef.current?.id === targetContactId) {
         setChatMessages(prev => {
           const withoutTemp = prev.filter(m => m.id !== optimisticMessage.id && m.id !== savedMessage?.id);
           return savedMessage ? [...withoutTemp, savedMessage] : withoutTemp;
@@ -1219,18 +1220,15 @@ const CRM = () => {
         .eq('id', savedAudioMessage.id)
         .select()
         .single();
-      if (updatedMessage && selectedContactRef.current?.id === selectedContactId) {
+      if (updatedMessage && selectedContactRef.current?.id === targetContactId) {
         setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
       }
     };
 
     try {
-      // Use ogg extension for audio recordings and ensure proper MIME type for Meta Cloud API
       const isAudio = type === 'audio';
-      const uploadId = `upload-${Date.now()}`;
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 10 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 10 }));
       
-      // Determine extension based on real mime type
       let fileExt = 'bin';
       let contentType = file.type || (isAudio ? (recordedAudioBlob?.type || 'audio/webm') : undefined);
       
@@ -1239,7 +1237,7 @@ const CRM = () => {
         else if (contentType?.includes('webm')) fileExt = 'webm';
         else if (contentType?.includes('mp4') || contentType?.includes('aac')) fileExt = 'm4a';
         else if (contentType?.includes('mpeg')) fileExt = 'mp3';
-        else fileExt = 'ogg'; // Default to ogg
+        else fileExt = 'ogg';
       } else if (file instanceof File) {
         fileExt = file.name.split('.').pop() || 'bin';
       }
@@ -1247,7 +1245,7 @@ const CRM = () => {
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
 
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 30 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 30 }));
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
@@ -1257,7 +1255,7 @@ const CRM = () => {
         });
 
       if (uploadError) throw uploadError;
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 60 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 60 }));
 
       const { data: { publicUrl } } = supabase.storage
         .from('crm-media')
@@ -1280,22 +1278,9 @@ const CRM = () => {
         }
         await persistOutboundAudio(historyAudioUrl, null, 'history_saved_before_send', historyContentType, 'sending');
       }
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 80 }));
-
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 80 }));
 
       if (type === 'audio' && metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
-        console.log("Using VPS Transcoder for professional audio:", metaSettings.vps_transcoder_url);
-        
-        // Check for mixed content issues
-        if (window.location.protocol === 'https:' && metaSettings.vps_transcoder_url.startsWith('http://')) {
-          console.warn("Mixed Content Warning: Connecting to HTTP VPS from HTTPS site may be blocked by the browser.");
-          toast({ 
-            title: "Aviso de Segurança (Mixed Content)", 
-            description: "Seu navegador pode bloquear o áudio porque o VPS usa HTTP e o CRM usa HTTPS. Tente usar HTTPS no VPS ou autorize conteúdo inseguro no navegador.",
-            variant: "destructive"
-          });
-        }
-
         let vpsResult: any = null;
         try {
           const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
@@ -1303,7 +1288,7 @@ const CRM = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              to: selectedContact.wa_id,
+              to: targetWaId,
               audioUrl: publicUrl,
               metaToken: metaSettings.meta_access_token,
               phoneId: metaSettings.meta_phone_number_id,
@@ -1313,41 +1298,39 @@ const CRM = () => {
           
           vpsResult = await response.json().catch(() => ({}));
           if (!response.ok) {
-            console.error("VPS returned error:", vpsResult);
             throw new Error(vpsResult.error || vpsResult.details || 'Erro no processamento do VPS');
           }
         } catch (vpsErr: any) {
-          console.error("VPS/Meta Error; áudio não enviado para evitar incompatibilidade no celular:", vpsErr);
           toast({ 
             title: "Erro no transcoder da Meta", 
-            description: "O áudio foi salvo no histórico, mas a Meta API não aceitou o envio convertido. Erro: " + vpsErr.message,
+            description: "O áudio foi salvo no histórico, mas a Meta API não aceitou o envio. Erro: " + vpsErr.message,
             variant: "destructive"
           });
           await updatePersistedAudio('failed', 'vps_bridge_failed', null, vpsErr.message);
-          setSendingMessage(false);
+          setContactSending(targetContactId, false);
           return;
         }
 
         if (vpsResult) {
           const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
           await updatePersistedAudio('sent', 'vps_bridge', metaMsgId);
-          toast({ title: "Áudio Profissional enviado!", description: "Convertido via VPS e salvo no histórico da conversa." });
+          toast({ title: "Áudio Profissional enviado!" });
           setMediaUploadProgress(prev => {
             const next = { ...prev };
-            delete next[selectedContactId];
+            delete next[targetContactId];
             return next;
           });
-          setSendingMessage(false);
-          return; // Exit early as VPS handled it
+          setContactSending(targetContactId, false);
+          return;
         }
       }
 
-      setMediaUploadProgress(prev => ({ ...prev, [selectedContactId]: 90 }));
+      setMediaUploadProgress(prev => ({ ...prev, [targetContactId]: 90 }));
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { 
         body: { 
           action: 'sendMessage', 
-          to: selectedContact.wa_id,
+          to: targetWaId,
           audioUrl: type === 'audio' ? publicUrl : undefined,
           imageUrl: type === 'image' ? publicUrl : undefined,
           videoUrl: type === 'video' ? publicUrl : undefined,
@@ -1361,23 +1344,27 @@ const CRM = () => {
       if (error) throw error;
       if (!data.success) throw new Error(data.error);
 
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      }
       if (type === 'audio') {
         const metaMsgId = data?.messageId || data?.messages?.[0]?.id || data?.result?.messages?.[0]?.id || null;
         await updatePersistedAudio('sent', 'standard_send', metaMsgId);
       }
-      await fetchMessages(selectedContactId);
+      await fetchMessages(targetContactId);
       toast({ title: "Mídia enviada!" });
     } catch (err: any) {
-      setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      if (selectedContactRef.current?.id === targetContactId) {
+        setChatMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      }
       toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
     } finally {
       setMediaUploadProgress(prev => {
         const next = { ...prev };
-        delete next[selectedContactId];
+        delete next[targetContactId];
         return next;
       });
-      setSendingMessage(false);
+      setContactSending(targetContactId, false);
     }
   };
 
