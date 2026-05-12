@@ -2569,7 +2569,7 @@ const CRM = () => {
                             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input 
                               placeholder="Buscar contatos..." 
-                              className="pl-9 bg-muted/50 border-none h-10"
+                              className="bg-background dark:bg-[#202c33] border-none h-10"
                               onChange={e => setStatusFilter(e.target.value || 'all')} 
                             />
                           </div>
