@@ -266,6 +266,11 @@ const CRM = () => {
   const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
+  const [selectedContactsForScheduling, setSelectedContactsForScheduling] = useState<string[]>([]);
+  const [scheduleSearch, setScheduleSearch] = useState('');
+  const [selectedCampaignType, setSelectedCampaignType] = useState<'individual' | 'batch' | 'birthday'>('individual');
+  const [birthdayName, setBirthdayName] = useState('');
+  const [birthdayNumber, setBirthdayNumber] = useState('');
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [webhooks, setWebhooks] = useState<any[]>([]);
@@ -1044,7 +1049,124 @@ const CRM = () => {
       setUpdatingKnowledge(null);
     }
   };
+  const handleScheduleBatch = async () => {
+    if (selectedContactsForScheduling.length === 0) {
+      toast({ title: "Selecione pelo menos um contato", variant: "destructive" });
+      return;
+    }
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Informe data e hora", variant: "destructive" });
+      return;
+    }
+    if (scheduleType !== 'message' && !selectedScheduleId) {
+      toast({ title: "Selecione um item para agendar", variant: "destructive" });
+      return;
+    }
+    if (scheduleType === 'message' && !newMessage.trim()) {
+      toast({ title: "Escreva a mensagem", variant: "destructive" });
+      return;
+    }
 
+    setIsScheduling(true);
+    try {
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      const payload: any = { action: scheduleType === 'message' ? 'sendMessage' : scheduleType === 'template' ? 'sendTemplate' : 'startFlow' };
+      
+      if (scheduleType === 'message') payload.text = newMessage;
+      else if (scheduleType === 'template') {
+        const t = templates.find(temp => temp.id === selectedScheduleId);
+        payload.templateName = t?.name;
+        payload.language = t?.language || 'pt_BR';
+      } else if (scheduleType === 'flow') {
+        payload.flowId = selectedScheduleId;
+      }
+
+      const insertions = selectedContactsForScheduling.map(contactId => ({
+        contact_id: contactId,
+        scheduled_for: scheduledFor,
+        message_data: payload,
+        status: 'pending'
+      }));
+
+      const { error } = await supabase.from('crm_scheduled_messages').insert(insertions);
+      if (error) throw error;
+
+      toast({ title: `${insertions.length} agendamentos criados!` });
+      setIsSchedulingOpen(false);
+      setSelectedContactsForScheduling([]);
+      setNewMessage('');
+      setSelectedScheduleId('');
+      fetchAllScheduledMessages();
+      if (selectedContact) fetchScheduledMessages(selectedContact.id);
+    } catch (err: any) {
+      toast({ title: "Erro ao agendar", description: err.message, variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+  const handleScheduleBirthday = async () => {
+    if (!birthdayName || !birthdayNumber) {
+      toast({ title: "Preencha nome e número", variant: "destructive" });
+      return;
+    }
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Informe data e hora", variant: "destructive" });
+      return;
+    }
+    if (!selectedScheduleId) {
+      toast({ title: "Selecione um template para o aniversário", variant: "destructive" });
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      // 1. Garantir que o contato existe ou criar um temporário/persistente
+      let { data: contact } = await supabase.from('crm_contacts').select('id').eq('wa_id', birthdayNumber).maybeSingle();
+      
+      if (!contact) {
+        const { data: newContact, error: createError } = await supabase.from('crm_contacts').insert({
+          wa_id: birthdayNumber,
+          name: birthdayName,
+          status: 'new',
+          source_type: 'system'
+        }).select().single();
+        if (createError) throw createError;
+        contact = newContact;
+      }
+
+      // 2. Criar agendamento (Apenas template para novos contatos/lista fria)
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      const t = templates.find(temp => temp.id === selectedScheduleId);
+      
+      const payload = {
+        action: 'sendTemplate',
+        templateName: t?.name,
+        language: t?.language || 'pt_BR'
+      };
+
+      const { error: scheduleError } = await supabase.from('crm_scheduled_messages').insert({
+        contact_id: contact.id,
+        scheduled_for: scheduledFor,
+        message_data: payload,
+        status: 'pending'
+      });
+
+      if (scheduleError) throw scheduleError;
+
+      toast({ title: "Aniversário agendado com sucesso!" });
+      setIsSchedulingOpen(false);
+      setBirthdayName('');
+      setBirthdayNumber('');
+      fetchAllScheduledMessages();
+    } catch (err: any) {
+      toast({ title: "Erro ao agendar aniversário", description: err.message, variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  
+  
   
   const handleCreateWebhook = async () => {
     if (!newWebhook.name) return;
@@ -3175,9 +3297,22 @@ const CRM = () => {
                             <div className="p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                  <div className="flex items-center gap-2 px-1">
-                                    <CalendarClock className="w-3 h-3 text-primary" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mensagens Agendadas</span>
+                                  <div className="flex items-center justify-between px-1">
+                                    <div className="flex items-center gap-2">
+                                      <CalendarClock className="w-3 h-3 text-primary" />
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mensagens Agendadas</span>
+                                    </div>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-6 text-[9px] font-bold gap-1 text-primary hover:bg-primary/5"
+                                      onClick={() => {
+                                        setSelectedContactsForScheduling([selectedContact.id]);
+                                        setIsSchedulingOpen(true);
+                                      }}
+                                    >
+                                      <Plus className="w-2.5 h-2.5" /> Novo Agendamento
+                                    </Button>
                                   </div>
                                   {scheduledMessages.map((msg) => (
                                     <div key={msg.id} className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex justify-between items-center shadow-sm backdrop-blur-sm">
@@ -6215,107 +6350,256 @@ const CRM = () => {
       </Dialog>
 
       <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
-        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-md">
+        <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <CalendarClock className="w-5 h-5 text-primary" /> Agendar Mensagem
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-primary">
+              <CalendarClock className="w-5 h-5" /> Novo Agendamento
             </DialogTitle>
-            <DialogDescription>
-              Escolha quando e o que você deseja agendar para este contato.
-            </DialogDescription>
+            <DialogDescription>Agende mensagens, fluxos ou templates para seus contatos.</DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data</Label>
-                <Input 
-                  type="date" 
-                  value={scheduleDate} 
-                  onChange={(e) => setScheduleDate(e.target.value)} 
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Hora</Label>
-                <Input 
-                  type="time" 
-                  value={scheduleTime} 
-                  onChange={(e) => setScheduleTime(e.target.value)} 
-                  className="rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipo de Agendamento</Label>
-              <Select value={scheduleType} onValueChange={(val: any) => { setScheduleType(val); setSelectedScheduleId(''); }}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="message">Mensagem de Texto</SelectItem>
-                  <SelectItem value="template">Template</SelectItem>
-                  <SelectItem value="flow">Fluxo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-
-            {scheduleType === 'message' && (
-              <div className="space-y-2">
-                <Label>Mensagem</Label>
-                <Textarea 
-                  placeholder="Digite o conteúdo da mensagem..." 
-                  value={newMessage} 
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="rounded-xl min-h-[100px]"
-                />
-              </div>
-            )}
-
-            {scheduleType === 'template' && (
-              <div className="space-y-2">
-                <Label>Selecionar Template</Label>
-                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Escolha um template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map(t => (
-                      <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {scheduleType === 'flow' && (
-              <div className="space-y-2">
-                <Label>Selecionar Fluxo</Label>
-                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Escolha um fluxo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {flows.filter(f => f.is_active).map(f => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          <div className="flex flex-col sm:flex-row gap-2 mb-6">
+            <Button 
+              variant={selectedCampaignType === 'individual' ? 'default' : 'outline'}
+              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              onClick={() => { setSelectedCampaignType('individual'); setSelectedContactsForScheduling([]); }}
+            >
+              <User className="w-4 h-4 mr-2" /> Individual
+            </Button>
+            <Button 
+              variant={selectedCampaignType === 'batch' ? 'default' : 'outline'}
+              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              onClick={() => { setSelectedCampaignType('batch'); setSelectedContactsForScheduling([]); }}
+            >
+              <Users className="w-4 h-4 mr-2" /> Lista / Massa
+            </Button>
+            <Button 
+              variant={selectedCampaignType === 'birthday' ? 'default' : 'outline'}
+              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              onClick={() => { setSelectedCampaignType('birthday'); setSelectedContactsForScheduling([]); setScheduleType('template'); }}
+            >
+              <Calendar className="w-4 h-4 mr-2" /> Aniversário
+            </Button>
           </div>
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsSchedulingOpen(false)} className="rounded-xl h-11">Cancelar</Button>
+          <ScrollArea className="flex-1 pr-4 -mr-4 py-4">
+            <div className="space-y-6">
+              {/* Configuração baseada no tipo de campanha */}
+              {selectedCampaignType === 'individual' && (
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">1. Selecionar Contato</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Pesquisar..." 
+                      className="pl-9 h-11 rounded-xl bg-muted/30 border-none"
+                      value={scheduleSearch}
+                      onChange={e => setScheduleSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto p-1">
+                    {contacts
+                      .filter(c => {
+                        if (!scheduleSearch) return true;
+                        const q = scheduleSearch.toLowerCase();
+                        return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(scheduleSearch);
+                      })
+                      .slice(0, 20)
+                      .map(contact => (
+                        <div 
+                          key={contact.id}
+                          onClick={() => setSelectedContactsForScheduling([contact.id])}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer",
+                            selectedContactsForScheduling.includes(contact.id)
+                              ? "border-primary bg-primary/5 shadow-sm"
+                              : "border-transparent bg-muted/20 hover:bg-muted/40"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                            selectedContactsForScheduling.includes(contact.id) ? "bg-primary/20" : "bg-muted-foreground/10"
+                          )}>
+                            <User className={cn("w-4 h-4", selectedContactsForScheduling.includes(contact.id) ? "text-primary" : "text-muted-foreground")} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold truncate">{contact.name || contact.wa_id}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{contact.wa_id}</p>
+                          </div>
+                          {contact.last_message_received_at && (
+                            <div className={cn(
+                              "ml-auto w-2 h-2 rounded-full",
+                              (Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "bg-emerald-500" : "bg-muted-foreground/30"
+                            )} title={(Date.now() - new Date(contact.last_message_received_at).getTime() < 24 * 60 * 60 * 1000) ? "Janela Ativa" : "Janela Expirada"} />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedCampaignType === 'batch' && (
+                <div className="space-y-3">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                    <span>1. Selecionar Massa de Contatos</span>
+                    <span className="text-primary">{selectedContactsForScheduling.length} selecionados</span>
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Pesquisar..." 
+                      className="pl-9 h-11 rounded-xl bg-muted/30 border-none"
+                      value={scheduleSearch}
+                      onChange={e => setScheduleSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 mb-2">
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1 rounded-lg" onClick={() => setSelectedContactsForScheduling(contacts.map(c => c.id))}>Selecionar Todos</Button>
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1 rounded-lg" onClick={() => setSelectedContactsForScheduling([])}>Limpar</Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-1">
+                    {contacts
+                      .filter(c => {
+                        if (!scheduleSearch) return true;
+                        const q = scheduleSearch.toLowerCase();
+                        return c.name?.toLowerCase().includes(q) || c.wa_id?.includes(scheduleSearch);
+                      })
+                      .slice(0, 30)
+                      .map(contact => (
+                        <div 
+                          key={contact.id}
+                          onClick={() => {
+                            setSelectedContactsForScheduling(prev => 
+                              prev.includes(contact.id) ? prev.filter(id => id !== contact.id) : [...prev, contact.id]
+                            );
+                          }}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer",
+                            selectedContactsForScheduling.includes(contact.id) ? "border-primary bg-primary/5" : "border-transparent bg-muted/20"
+                          )}
+                        >
+                          <div className={cn("w-4 h-4 rounded border flex items-center justify-center shrink-0", selectedContactsForScheduling.includes(contact.id) ? "bg-primary border-primary" : "border-muted-foreground/30")}>
+                            {selectedContactsForScheduling.includes(contact.id) && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <p className="text-[10px] font-bold truncate flex-1">{contact.name || contact.wa_id}</p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedCampaignType === 'birthday' && (
+                <div className="space-y-4 border p-4 rounded-2xl bg-primary/5 border-primary/20">
+                  <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Plus className="w-3 h-3" /> Cadastro de Aniversariante
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px]">Nome Completo</Label>
+                        <Input placeholder="Nome do aniversariante" value={birthdayName} onChange={e => setBirthdayName(e.target.value)} className="h-10 rounded-xl bg-background" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px]">WhatsApp (com DDI)</Label>
+                        <Input placeholder="Ex: 5511999999999" value={birthdayNumber} onChange={e => setBirthdayNumber(e.target.value)} className="h-10 rounded-xl bg-background" />
+                      </div>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground italic">* O aniversariante será cadastrado automaticamente como um novo contato.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Tipo de Agendamento */}
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">2. O que deseja agendar?</Label>
+                <Tabs value={scheduleType} onValueChange={(val: any) => setScheduleType(val)} className="w-full">
+                  <TabsList className="grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1 gap-1">
+                    <TabsTrigger value="message" disabled={selectedCampaignType === 'birthday'} className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Mensagem</TabsTrigger>
+                    <TabsTrigger value="template" className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Template</TabsTrigger>
+                    <TabsTrigger value="flow" disabled={selectedCampaignType === 'birthday'} className="rounded-lg text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-white">Fluxo</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Conteúdo dinâmico baseado no tipo */}
+              <div className="space-y-4 animate-in fade-in duration-300">
+                {scheduleType === 'message' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold">Texto da Mensagem</Label>
+                    <Textarea 
+                      placeholder="Olá, como posso ajudar?..." 
+                      className="min-h-[100px] rounded-xl bg-muted/30 border-none resize-none"
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                    />
+                    <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> Apenas contatos em janela de 24h receberão mensagens comuns.
+                    </p>
+                  </div>
+                )}
+
+                {scheduleType === 'template' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold">Selecione o Template Aprovado</Label>
+                    <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none">
+                        <SelectValue placeholder="Escolha um modelo..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {templates.filter(t => t.status === 'APPROVED').map(t => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-emerald-600 font-medium italic flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Templates podem ser agendados para qualquer contato (Mesmo janelas expiradas).
+                    </p>
+                  </div>
+                )}
+
+                {scheduleType === 'flow' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold">Selecione o Fluxo Visual</Label>
+                    <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none">
+                        <SelectValue placeholder="Escolha um fluxo..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {flows.filter(f => f.is_active).map(f => (
+                          <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> Fluxos só podem ser agendados para contatos em janela de 24h.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Data e Hora */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold flex items-center gap-2"><Calendar className="w-3 h-3" /> Data</Label>
+                  <Input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="h-11 rounded-xl bg-muted/30 border-none" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold flex items-center gap-2"><Clock className="w-3 h-3" /> Hora</Label>
+                  <Input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} className="h-11 rounded-xl bg-muted/30 border-none" />
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6">Cancelar</Button>
             <Button 
-              onClick={handleScheduleMessage} 
-              disabled={isScheduling}
-              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20"
+              onClick={selectedCampaignType === 'birthday' ? handleScheduleBirthday : handleScheduleBatch} 
+              disabled={isScheduling || (selectedCampaignType !== 'birthday' && selectedContactsForScheduling.length === 0)}
+              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20 font-bold"
             >
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Agendar agora
+              {selectedCampaignType === 'birthday' ? 'Agendar Aniversário' : `Agendar para ${selectedContactsForScheduling.length} contatos`}
             </Button>
           </DialogFooter>
         </DialogContent>
