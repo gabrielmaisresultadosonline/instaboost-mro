@@ -609,13 +609,15 @@ const CRM = () => {
         if (contactsToProcess && contactsToProcess.length > 0) {
           // Filtrar apenas os que ainda estão na janela de 24h
           const activeContacts = contactsToProcess.filter(c => {
-            if (!c.last_message_received_at) return false;
+            // Se não houver data, permitimos o fluxo (pode ser uma conversa nova ou iniciada por template)
+            if (!c.last_message_received_at) return true;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
             return diff < (24 * 60 * 60 * 1000);
           });
 
           const expiredContacts = contactsToProcess.filter(c => {
-            if (!c.last_message_received_at) return true;
+            // Só consideramos expirado se TIVER uma data de última mensagem e ela for maior que 24h
+            if (!c.last_message_received_at) return false;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
             return diff >= (24 * 60 * 60 * 1000);
           });
