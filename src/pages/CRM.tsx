@@ -642,6 +642,38 @@ const CRM = () => {
       if (data.length < pageSize) break;
       from += pageSize;
     }
+    
+    // Enrich with last inbound timestamp per contact (24h window logic)
+    // Field doesn't exist in DB yet, so derive from crm_messages
+    try {
+      const since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      const { data: recentInbound } = await supabase
+        .from('crm_messages')
+        .select('contact_id, created_at')
+        .eq('direction', 'inbound')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(5000);
+      const lastInboundByContact: Record<string, string> = {};
+      (recentInbound || []).forEach((m: any) => {
+        if (m.contact_id && !lastInboundByContact[m.contact_id]) {
+          lastInboundByContact[m.contact_id] = m.created_at;
+        }
+      });
+      allRows = allRows.map((c: any) => {
+        const derived = lastInboundByContact[c.id];
+        if (derived) {
+          const existing = c.last_message_received_at ? new Date(c.last_message_received_at).getTime() : 0;
+          if (new Date(derived).getTime() > existing) {
+            return { ...c, last_message_received_at: derived };
+          }
+        }
+        return c;
+      });
+    } catch (e) {
+      console.warn('[CRM] Failed to enrich last_message_received_at:', e);
+    }
+    
     setContacts(allRows);
   };
 
