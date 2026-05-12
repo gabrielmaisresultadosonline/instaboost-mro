@@ -1638,9 +1638,7 @@ const CRM = () => {
       const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
       
       let messageData: any = { action: '' };
-      const DAY = 24 * 60 * 60 * 1000;
-      const nowTime = Date.now();
-      const isColdList = !selectedContact.last_message_received_at || (nowTime - new Date(selectedContact.last_message_received_at).getTime()) > DAY;
+      const isColdList = isConversationExpired(selectedContact);
       
       if (scheduleType === 'message') {
         if (isColdList) {
