@@ -4312,37 +4312,6 @@ const CRM = () => {
 
                     {/* Google Contacts integration removed from AI Agent tab */}
 
-                                    variant="ghost" 
-                                    className="h-11 px-3 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                    title="Deslogar Google"
-                                    onClick={() => {
-                                      localStorage.removeItem('google_contacts_connected');
-                                      localStorage.removeItem('google_contacts_auth_code');
-                                      setGoogleContactsEnabled(false);
-                                      toast({ title: "Google Desconectado" });
-                                    }}
-                                  >
-                                    <LogOut className="w-4 h-4" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-500/5 border border-blue-200 rounded-xl p-4 flex gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                              <Users className="w-5 h-5 text-blue-500" />
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="text-sm font-bold text-blue-700">Por que conectar?</h4>
-                              <p className="text-[11px] text-blue-600/80 leading-relaxed">
-                                Ao conectar sua conta Google, você pode importar contatos existentes e garantir que todos os seus leads do WhatsApp sejam salvos automaticamente na sua agenda do Google.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
 
                     <Card className="rounded-2xl shadow-sm border overflow-hidden flex flex-col">
                       <CardHeader className="bg-amber-50 dark:bg-amber-900/10 border-b">
