@@ -2822,76 +2822,77 @@ const CRM = () => {
                                   })()}
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between gap-1 mt-1 w-full min-w-0">
-                                <Badge 
-                                  variant="outline" 
-                                  style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                  className={cn(
-                                    "px-2 capitalize font-black shadow-sm shrink-0", 
-                                    getStatusColor(contact.status),
-                                    contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-[#25D366]/20"
-                                  )}
-                                >
-                                  {getStatusLabel(contact.status)}
-                                </Badge>
-                                {contact.flow_state && contact.flow_state !== 'idle' && (
-                                  <div className="flex items-center gap-1 min-w-0">
-                                    <Badge 
-                                      variant="secondary" 
-                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                      className={cn(
-                                        "px-1 capitalize font-medium shrink-0",
-                                        contact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : 
-                                        contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700 border-amber-200" :
-                                        "bg-primary/10 text-primary animate-pulse border-primary/20"
-                                      )}
-                                    >
-                                      {contact.flow_state === 'error' ? 'Erro' : 
-                                       contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
-                                    </Badge>
-                                    <div className="flex items-center gap-0.5">
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleResumeFlow(contact.id);
-                                        }}
-                                        className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
-                                        title="Retomar Fluxo"
+                              <div className="flex flex-col gap-1 mt-1 w-full min-w-0">
+                                <div className="flex items-center justify-between gap-1 w-full min-w-0">
+                                  <Badge 
+                                    variant="outline" 
+                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    className={cn(
+                                      "px-2 capitalize font-black shadow-sm shrink-0", 
+                                      getStatusColor(contact.status),
+                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-[#25D366]/20"
+                                    )}
+                                  >
+                                    {getStatusLabel(contact.status)}
+                                  </Badge>
+                                  {contact.flow_state && contact.flow_state !== 'idle' && (
+                                    <div className="flex items-center gap-1 min-w-0">
+                                      <Badge 
+                                        variant="secondary" 
+                                        style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                        className={cn(
+                                          "px-1 capitalize font-medium shrink-0",
+                                          contact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : 
+                                          contact.flow_state === 'waiting_response' ? "bg-amber-100 text-amber-700 border-amber-200" :
+                                          "bg-primary/10 text-primary animate-pulse border-primary/20"
+                                        )}
                                       >
-                                        <PlayCircle className="h-3 w-3" />
-                                      </button>
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleCancelFlow(contact.id);
-                                        }}
-                                        className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
-                                        title="Parar Fluxo"
-                                      >
-                                        <StopCircle className="h-3 w-3" />
-                                      </button>
+                                        {contact.flow_state === 'error' ? 'Erro' : 
+                                         contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
+                                      </Badge>
+                                      <div className="flex items-center gap-0.5">
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleResumeFlow(contact.id);
+                                          }}
+                                          className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
+                                          title="Retomar Fluxo"
+                                        >
+                                          <PlayCircle className="h-3 w-3" />
+                                        </button>
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCancelFlow(contact.id);
+                                          }}
+                                          className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                          title="Parar Fluxo"
+                                        >
+                                          <StopCircle className="h-3 w-3" />
+                                        </button>
+                                      </div>
                                     </div>
+                                  )}
+                                </div>
+                                {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
+                                  <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums whitespace-nowrap overflow-hidden">
+                                    <Clock className="w-2 h-2" />
+                                    {(() => {
+                                      if (contact.flow_state === 'waiting_response') {
+                                        const timeoutMinutes = contact.flow_timeout_minutes || 20;
+                                        const lastInteraction = new Date(contact.last_flow_interaction || Date.now()).getTime();
+                                        const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
+                                        const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
+                                        return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
+                                      }
+                                      const next = new Date(contact.next_execution_time).getTime();
+                                      const diff = Math.max(0, Math.floor((next - now) / 1000));
+                                      return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Próximo...';
+                                    })()}
                                   </div>
                                 )}
                               </div>
-                              {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
-                                <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums whitespace-nowrap overflow-hidden">
-                                  <Clock className="w-2 h-2" />
-                                  {(() => {
-                                    if (contact.flow_state === 'waiting_response') {
-                                      const timeoutMinutes = contact.flow_timeout_minutes || 20;
-                                      const lastInteraction = new Date(contact.last_flow_interaction || Date.now()).getTime();
-                                      const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
-                                      const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
-                                      return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
-                                    }
-                                    const next = new Date(contact.next_execution_time).getTime();
-                                    const diff = Math.max(0, Math.floor((next - now) / 1000));
-                                    return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Próximo...';
-                                  })()}
-                                </div>
-                              )}
-                                </div>
                             </button>
                           ))
                         ) : (
