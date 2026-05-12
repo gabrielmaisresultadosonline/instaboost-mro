@@ -923,12 +923,13 @@ const CRM = () => {
       // (regra oficial WhatsApp: a janela de 24h só reseta quando o cliente responde)
       const lastInboundMsg = [...(data || [])].reverse().find((m: any) => m.direction === 'inbound');
       if (lastInboundMsg) {
+        const inboundIso = lastInboundMsg.created_at;
+        const inboundT = new Date(inboundIso).getTime();
         const currentLast = selectedContactRef.current?.last_message_received_at
           ? new Date(selectedContactRef.current.last_message_received_at).getTime()
           : 0;
-        const inboundT = new Date(lastInboundMsg.created_at).getTime();
+        
         if (inboundT > currentLast) {
-          const inboundIso = lastInboundMsg.created_at;
           setSelectedContact((prev: any) => prev && prev.id === contactId
             ? { ...prev, last_message_received_at: inboundIso }
             : prev);
