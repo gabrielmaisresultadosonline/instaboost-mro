@@ -6442,15 +6442,15 @@ const CRM = () => {
             </div>
           </ScrollArea>
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsSchedulingOpen(false)} className="rounded-xl h-11">Cancelar</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6">Cancelar</Button>
             <Button 
-              onClick={handleScheduleMessage} 
-              disabled={isScheduling}
-              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20"
+              onClick={handleScheduleBatch} 
+              disabled={isScheduling || selectedContactsForScheduling.length === 0}
+              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20 font-bold"
             >
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Agendar agora
+              Agendar para {selectedContactsForScheduling.length} contatos
             </Button>
           </DialogFooter>
         </DialogContent>
