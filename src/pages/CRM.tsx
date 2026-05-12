@@ -3395,7 +3395,7 @@ const CRM = () => {
                                       </div>
                                     )}
                                     <div className="flex items-center gap-1 sm:gap-2 w-full px-1">
-                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground shrink-0"><ImageIcon className="w-5 h-5" /></Button>
+                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-[#54656f] dark:text-[#aebac1] shrink-0"><ImageIcon className="w-5 h-5" /></Button>
                                       <div className="flex-1 relative flex items-center">
                                         <Input 
                                           placeholder={isRecording ? "Gravando..." : "Escreva sua mensagem..."}
