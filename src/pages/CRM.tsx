@@ -2597,36 +2597,41 @@ const CRM = () => {
                 ) : (
                   <>
                     <div className={cn(
-                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0",
+                      "w-full md:w-[280px] lg:w-[320px] xl:w-[360px] border-r border-border/40 flex flex-col bg-white dark:bg-[#111b21] h-full shrink-0 shadow-sm z-[5]",
                       selectedContact ? 'hidden md:flex' : 'flex'
                     )}>
-                      <div className="p-4 border-b flex flex-col gap-3">
+                      <div className="p-4 border-b border-border/30 flex flex-col gap-3 bg-white dark:bg-[#111b21]">
                         <div className="space-y-3">
-                          <div className="relative">
-                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <div className="relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-[#00a884] transition-colors" />
                             <Input 
-                              placeholder="Buscar contatos..." 
-                              className="bg-background dark:bg-[#202c33] border-none h-10"
+                              placeholder="Pesquisar ou começar uma nova conversa" 
+                              className="bg-[#f0f2f5] dark:bg-[#202c33] border-none h-9 pl-10 rounded-lg text-sm focus-visible:ring-1 focus-visible:ring-[#00a884]"
                               onChange={e => setStatusFilter(e.target.value || 'all')} 
                             />
                           </div>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="tags" className="border-none">
-                            <AccordionTrigger className="py-2 hover:no-underline text-xs font-semibold text-muted-foreground flex gap-2">
-                              <ListFilter className="w-3.5 h-3.5" />
-                              Filtrar por Etiquetas
+                            <AccordionTrigger className="py-2 hover:no-underline text-[10px] font-black uppercase tracking-wider text-muted-foreground flex gap-2">
+                              <ListFilter className="w-3 h-3" />
+                              Etiquetas
                             </AccordionTrigger>
                             <AccordionContent>
-                              <div className="flex flex-wrap gap-1 pb-1 pt-1">
+                              <div className="flex flex-wrap gap-1.5 pb-2 pt-1">
                                 {['all', ...(kanbanStatuses.length > 0 ? kanbanStatuses.map(s => s.value) : ['new', 'responded', 'human', 'qualified', 'closed', 'lost'])].map(s => (
                                   <Badge 
                                     key={s} 
                                     variant={statusFilter === s ? 'default' : 'outline'} 
-                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    style={{ 
+                                      height: `${18 * ((metaSettings.tag_size || 100) / 100)}px`, 
+                                      fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px`,
+                                      backgroundColor: statusFilter === s ? '#00a884' : undefined,
+                                      borderColor: statusFilter === s ? '#00a884' : undefined
+                                    }}
                                     className={cn(
-                                      "cursor-pointer capitalize whitespace-nowrap px-2 font-black transition-all",
-                                      statusFilter === s ? "shadow-md scale-105" : "hover:bg-muted"
+                                      "cursor-pointer capitalize whitespace-nowrap px-3 font-bold transition-all rounded-full",
+                                      statusFilter === s ? "text-white shadow-md scale-105" : "hover:bg-muted"
                                     )}
                                     onClick={() => setStatusFilter(s)}
                                   >
@@ -2638,7 +2643,7 @@ const CRM = () => {
                           </AccordionItem>
                         </Accordion>
                       </div>
-                      <ScrollArea className="flex-1 min-h-0 h-full overflow-y-auto">
+                      <ScrollArea className="flex-1 bg-white dark:bg-[#111b21]">
                         {filteredContacts.length > 0 ? (
                           filteredContacts.map(contact => (
                             <button 
