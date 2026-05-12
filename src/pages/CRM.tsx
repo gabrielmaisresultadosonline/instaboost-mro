@@ -3950,6 +3950,7 @@ const CRM = () => {
                 </div>
               </ScrollArea>
             )}
+            </div>
 
             {activeTab === 'ai-agent' && (
               <ScrollArea className="flex-1 p-3 sm:p-4 md:p-8 bg-muted/5">
