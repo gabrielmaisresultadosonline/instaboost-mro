@@ -3432,72 +3432,100 @@ const CRM = () => {
                                     <p className="text-[10px] text-center text-muted-foreground font-medium uppercase tracking-tighter">Clique no verde para enviar ou no vermelho para descartar</p>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
+                                  <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full px-2">
                                     {isRecording && (
-                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-2">
                                         <div className="flex items-center gap-2">
                                           <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                          <span className="text-xs font-bold text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
+                                          <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
                                         </div>
-                                        <span className="text-xs font-mono font-bold text-red-600">
+                                        <span className="text-xs font-mono font-black text-red-600">
                                           {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1 sm:gap-2 w-full px-1">
-                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-[#54656f] dark:text-[#aebac1] shrink-0"><ImageIcon className="w-5 h-5" /></Button>
+                                    <div className="flex items-center gap-1.5 w-full">
+                                      <div className="flex items-center gap-1">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full"
+                                        >
+                                          <Plus className="w-6 h-6" />
+                                        </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full hidden sm:flex"
+                                        >
+                                          <ImageIcon className="w-5 h-5" />
+                                        </Button>
+                                      </div>
                                       <div className="flex-1 relative flex items-center">
                                         <Input 
-                                          placeholder={isRecording ? "Gravando..." : "Escreva sua mensagem..."}
+                                          placeholder={isRecording ? "Gravando..." : "Digite uma mensagem"}
                                           value={newMessage} 
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-10 rounded-xl"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-12 rounded-xl shadow-sm text-sm focus-visible:ring-0"
                                         />
-                                        {isRecording && (
-                                          <div className="absolute right-3 flex items-center gap-2">
-                                            <Button 
-                                              size="icon" 
-                                              variant="ghost" 
-                                              className="h-8 w-8 text-red-500 hover:bg-red-50"
-                                              onClick={stopRecording}
-                                            >
-                                              <StopCircle className="w-5 h-5" />
-                                            </Button>
-                                          </div>
-                                        )}
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          className="absolute right-1 h-9 w-9 text-[#54656f] dark:text-[#aebac1] hover:bg-transparent"
+                                        >
+                                          <Smile className="w-5 h-5" />
+                                        </Button>
                                       </div>
-                                      {!isRecording && (
+                                      {!isRecording ? (
                                         <div className="flex items-center gap-1">
-                                          <div className="relative">
+                                          {newMessage.trim() ? (
                                             <Button 
                                               size="icon" 
-                                              variant="ghost" 
-                                              className={cn(
-                                                "h-11 w-11 shrink-0 rounded-full",
-                                                !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
-                                                  ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
-                                                  : "text-[#00a884] hover:bg-[#00a884]/10"
-                                              )}
-                                              onClick={startRecording}
+                                              onClick={handleSendMessage} 
+                                              disabled={isSending(selectedContact?.id)}
+                                              className="h-11 w-11 shrink-0 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
                                             >
-                                              <Mic className="w-5 h-5" />
+                                              <Send className="w-5 h-5 ml-0.5" />
                                             </Button>
-                                            {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
-                                              <div className="absolute -top-1 -right-1">
-                                                <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
-                                                  <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                          ) : (
+                                            <div className="relative">
+                                              <Button 
+                                                size="icon" 
+                                                variant="ghost" 
+                                                className={cn(
+                                                  "h-11 w-11 shrink-0 rounded-full",
+                                                  !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
+                                                    ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
+                                                    : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
+                                                )}
+                                                onClick={startRecording}
+                                              >
+                                                <Mic className="w-5 h-5" />
+                                              </Button>
+                                              {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
+                                                <div className="absolute -top-1 -right-1">
+                                                  <div className="bg-orange-500 rounded-full p-0.5 border-2 border-white">
+                                                    <AlertCircle className="w-2.5 h-2.5 text-white" />
+                                                  </div>
                                                 </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                          <Button 
-                                            size="icon" 
-                                            onClick={handleSendMessage} 
-                                            disabled={!newMessage.trim() || isSending(selectedContact?.id)}
-                                            className="h-11 w-11 shrink-0 shadow-md rounded-full bg-[#00a884] hover:bg-[#008f6f]"
-                                          >
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          className="h-11 w-11 text-red-500 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
+                                          onClick={stopRecording}
+                                        >
+                                          <StopCircle className="w-5 h-5" />
+                                        </Button>
+                                      )}
                                             <Send className="w-4 h-4" />
                                           </Button>
                                         </div>
