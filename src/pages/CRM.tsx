@@ -2801,7 +2801,7 @@ const CRM = () => {
                                   </p>
                                 </div>
                                 <span className={cn(
-                                  "text-[10px] shrink-0 ml-auto",
+                                  "text-[10px] shrink-0 ml-auto whitespace-nowrap",
                                   contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold" : "text-muted-foreground"
                                 )}>
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
