@@ -653,6 +653,103 @@ async function internalSendTemplate(
 
   return jsonResponse({ success: true, result, messageId: result?.messages?.[0]?.id || null })
 }
+async function getAppId(accessToken: string) {
+  try {
+    console.log('Fetching App ID from debug_token...');
+    const response = await fetch(`https://graph.facebook.com/v18.0/debug_token?input_token=${accessToken}&access_token=${accessToken}`);
+    const data = await response.json();
+    if (data.data?.app_id) {
+      console.log('Successfully retrieved App ID:', data.data.app_id);
+      return data.data.app_id;
+    }
+    console.error('App ID not found in debug_token response:', JSON.stringify(data));
+    return null;
+  } catch (err) {
+    console.error('Error getting App ID:', err);
+    return null;
+  }
+}
+
+async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl: string) {
+  try {
+    console.log(`Getting Meta header handle for media: ${mediaUrl}`);
+    // 1. Download the media
+    const mediaRes = await fetch(mediaUrl);
+    if (!mediaRes.ok) throw new Error(`Failed to download media for template: ${mediaRes.status}`);
+    const blob = await mediaRes.blob();
+    const fileSize = blob.size;
+    const fileType = blob.type;
+
+    // 2. Initialize upload
+    console.log(`Initializing resumable upload for ${fileType} (${fileSize} bytes)...`);
+    const initRes = await fetch(`https://graph.facebook.com/v18.0/${appId}/uploads?file_length=${fileSize}&file_type=${fileType}&access_token=${accessToken}`, {
+      method: 'POST'
+    });
+    const initData = await initRes.json();
+    const uploadSessionId = initData.id;
+
+    if (!uploadSessionId) {
+      console.error('Failed to initialize Meta upload session:', JSON.stringify(initData));
+      throw new Error("Failed to initialize Meta upload session");
+    }
+
+    // 3. Upload the actual data
+    console.log(`Uploading file data to session ${uploadSessionId}...`);
+    const uploadRes = await fetch(`https://graph.facebook.com/v18.0/${uploadSessionId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `OAuth ${accessToken}`,
+        'file_offset': '0'
+      },
+      body: blob
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.h) {
+      console.error('Failed to get handle from upload:', JSON.stringify(uploadData));
+      return null;
+    }
+    
+    console.log(`Successfully generated Meta handle: ${uploadData.h}`);
+    return uploadData.h;
+  } catch (err) {
+    console.error('Error in getMetaHeaderHandle:', err);
+    return null;
+  }
+}
+
+async function downloadAndStoreMetaMedia(supabase: any, accessToken: string, mediaUrl: string, type: string, name: string) {
+  try {
+    console.log(`Downloading Meta media for permanent storage: ${mediaUrl}`);
+    const response = await fetch(mediaUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!response.ok) {
+      console.error(`Failed to download Meta media: ${response.status}`);
+      return null;
+    }
+
+    const blob = await response.blob();
+    const ext = type === 'image' ? 'jpg' : (type === 'video' ? 'mp4' : 'bin');
+    const filePath = `templates/${name}_${Date.now()}.${ext}`;
+
+    console.log(`Uploading to Supabase storage: ${filePath}`);
+    const { error: uploadError } = await supabase.storage
+      .from('crm-media')
+      .upload(filePath, blob, { contentType: blob.type, upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('crm-media')
+      .getPublicUrl(filePath);
+
+    console.log(`Permanent URL generated: ${publicUrl}`);
+    return publicUrl;
+  } catch (err) {
+    console.error('Error in downloadAndStoreMetaMedia:', err);
+    return null;
+  }
+}
 
 
 serve(async (req) => {
