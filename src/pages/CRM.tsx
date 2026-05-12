@@ -2373,7 +2373,7 @@ const CRM = () => {
                           <h2 className="text-xl font-bold tracking-tight">Fluxos em Andamento</h2>
                           <p className="text-muted-foreground text-sm">Contatos que estão interagindo com automações agora.</p>
                         </div>
-                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-black px-3 py-1">
+                        <Badge variant="outline" className="bg-[#00a884]/5 text-[#00a884] border-[#00a884]/20 font-black px-3 py-1">
                           {contacts.filter(c => c.flow_state && c.flow_state !== 'idle').length} ATIVOS
                         </Badge>
                       </div>
