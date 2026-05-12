@@ -2493,7 +2493,7 @@ const CRM = () => {
             {/* Conversas */}
             <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'contacts' && "hidden")}>
               {activeTab === 'contacts' && (
-              <div className="flex-1 flex overflow-hidden">
+              <div className="flex-1 flex overflow-hidden h-full min-h-0">
                 {activeFlowsView ? (
                   <div className="flex-1 overflow-y-auto p-4 bg-muted/5">
                     <div className="max-w-5xl mx-auto space-y-4">
@@ -3043,7 +3043,10 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300 shrink-0">
+                          <div className={cn(
+                            "bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300 shrink-0",
+                            !showTemplates && !showFlows && "h-0 py-0 border-b-0"
+                          )}>
                             <div className="flex items-center gap-1.5 min-w-0">
                               <button 
                                 onClick={() => setShowTemplates(!showTemplates)}
@@ -3106,7 +3109,7 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative overflow-y-auto">
+                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0">
                             <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.05] pointer-events-none bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat"></div>
                             <div className="p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
                               {scheduledMessages.length > 0 && (
@@ -3401,10 +3404,10 @@ const CRM = () => {
                             </div>
                           </ScrollArea>
                           
-                          <div className="p-2 sm:p-3 md:p-4 bg-[#f0f2f5] dark:bg-[#202c33] border-t shadow-lg z-10 space-y-2 sm:space-y-3 shrink-0">
+                          <div className="p-1 sm:p-2 bg-[#f0f2f5] dark:bg-[#202c33] border-t shadow-lg z-10 space-y-1 sm:space-y-2 shrink-0">
                             {selectedContact ? (
                               <>
-                                <div className="flex flex-col gap-2 p-2 sm:p-3 bg-muted/20 rounded-xl border border-border/50">
+                                <div className="flex flex-col gap-1 p-1 sm:p-2 bg-muted/20 rounded-xl border border-border/50">
                                   {/* Atenção: Robô Desativado Geral hidden as requested */}
 
                                   <div className="flex items-center justify-end gap-2 flex-wrap">
@@ -3437,7 +3440,7 @@ const CRM = () => {
                                         <Button 
                                           variant="ghost" 
                                           size="sm" 
-                                          className="h-8 text-[11px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-xl px-4"
+                                          className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 shrink-0 border border-indigo-100 rounded-lg px-3"
                                           disabled={!metaSettings.openai_api_key}
                                         >
                                           <Bot className="w-4 h-4 mr-2" /> <span>Analises IA</span>
@@ -3562,37 +3565,37 @@ const CRM = () => {
                                     </Dialog>
                                   </div>
                                 </div>
-                                {isPreviewingAudio && recordedAudioUrl ? (
-                                  <div className="flex flex-col gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-bottom-2">
-                                    <div className="flex items-center gap-3">
-                                      <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
-                                      <div className="flex gap-2">
-                                        <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive hover:bg-destructive/10"><XCircle className="w-5 h-5" /></Button>
-                                        <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/20"><Send className="w-5 h-5" /></Button>
+                                 {isPreviewingAudio && recordedAudioUrl ? (
+                                  <div className="flex flex-col gap-2 p-2 bg-primary/5 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-bottom-2 shrink-0">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                      <audio src={recordedAudioUrl} controls className="h-8 flex-1 min-w-0" />
+                                      <div className="flex gap-1 shrink-0">
+                                        <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive h-8 w-8 hover:bg-destructive/10"><XCircle className="w-4 h-4" /></Button>
+                                        <Button size="icon" onClick={sendRecordedAudio} className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white shadow-lg"><Send className="w-4 h-4" /></Button>
                                       </div>
                                     </div>
-                                    <p className="text-[10px] text-center text-muted-foreground font-medium uppercase tracking-tighter">Clique no verde para enviar ou no vermelho para descartar</p>
+                                    <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate">Envie ou descarte o áudio</p>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full px-2">
+                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-2 pb-2 shrink-0">
                                     {isRecording && (
-                                      <div className="flex items-center justify-between px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-2">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                          <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">Gravando Áudio...</span>
+                                      <div className="flex items-center justify-between px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-1 shrink-0">
+                                        <div className="flex items-center gap-1.5">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                                          <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">Gravando...</span>
                                         </div>
-                                        <span className="text-xs font-mono font-black text-red-600">
+                                        <span className="text-[10px] font-mono font-black text-red-600">
                                           {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1.5 w-full">
+                                    <div className="flex items-center gap-1 w-full min-w-0">
                                       <div className="flex items-center gap-1">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-9 w-9 rounded-full"
                                         >
                                           <Plus className="w-6 h-6" />
                                         </Button>
@@ -3600,7 +3603,7 @@ const CRM = () => {
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-10 w-10 rounded-full hidden sm:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted shrink-0 h-9 w-9 rounded-full hidden sm:flex"
                                         >
                                           <ImageIcon className="w-5 h-5" />
                                         </Button>
@@ -3612,7 +3615,7 @@ const CRM = () => {
                                           disabled={isRecording}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-11 pr-12 rounded-xl shadow-sm text-sm focus-visible:ring-0"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-10 rounded-xl shadow-sm text-sm focus-visible:ring-0"
                                         />
                                         <Button 
                                           size="icon" 
@@ -3629,7 +3632,7 @@ const CRM = () => {
                                               size="icon" 
                                               onClick={handleSendMessage} 
                                               disabled={isSending(selectedContact?.id)}
-                                              className="h-11 w-11 shrink-0 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
+                                              className="h-10 w-10 shrink-0 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
                                             >
                                               <Send className="w-5 h-5 ml-0.5" />
                                             </Button>
@@ -3639,7 +3642,7 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-11 w-11 shrink-0 rounded-full",
+                                                  "h-10 w-10 shrink-0 rounded-full",
                                                   !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                     ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
                                                     : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
