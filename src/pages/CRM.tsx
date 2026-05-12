@@ -1874,7 +1874,10 @@ const CRM = () => {
       .eq('contact_id', contactId)
       .eq('status', 'pending')
       .order('scheduled_for', { ascending: true });
-    setScheduledMessages(data || []);
+    
+    if (selectedContactRef.current?.id === contactId) {
+      setScheduledMessages(data || []);
+    }
   };
 
   const fetchAllScheduledMessages = async () => {
