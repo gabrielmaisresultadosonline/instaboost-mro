@@ -765,6 +765,19 @@ const CRM = () => {
       const { data: templatesData } = await supabase.from('crm_templates').select('*');
       setTemplates(templatesData || []);
 
+      // Auto-sync if there are pending templates to see if they were approved
+      if (templatesData?.some(t => t.status === 'PENDING' || t.status === 'pending')) {
+        console.log('Detectados templates pendentes, iniciando sincronização automática...');
+        supabase.functions.invoke('meta-whatsapp-crm', { body: { action: 'getTemplates' } })
+          .then(({ data, error }) => {
+            if (!error && data?.success) {
+              supabase.from('crm_templates').select('*').then(({ data: updatedTemplates }) => {
+                if (updatedTemplates) setTemplates(updatedTemplates);
+              });
+            }
+          });
+      }
+
       await fetchWebhooks();
       await fetchStatuses();
       await fetchAllScheduledMessages();
