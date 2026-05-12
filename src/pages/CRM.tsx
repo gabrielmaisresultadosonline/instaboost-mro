@@ -3795,7 +3795,7 @@ const CRM = () => {
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Crie gatilhos e sequências automáticas de mensagens inteligentes.</p>
                     </div>
-                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 shrink-0 self-start sm:self-auto">
+                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-[#00a884]/20 bg-[#00a884] hover:bg-[#008f6f] text-white font-bold shrink-0 self-start sm:self-auto rounded-xl h-10 transition-all active:scale-95">
                       <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
                     </Button>
                   </div>
