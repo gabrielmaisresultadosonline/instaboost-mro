@@ -2216,8 +2216,9 @@ const CRM = () => {
             )}
           </header>
           
-          <main className="flex-1 overflow-hidden relative flex flex-col bg-background h-full">
-            {activeTab === 'dashboard' && (
+          <main className="flex-1 overflow-hidden relative flex flex-col bg-[#f0f2f5] dark:bg-[#0c1317] h-full">
+            <div className={cn("flex-1 h-full overflow-hidden", activeTab !== 'dashboard' && "hidden")}>
+              {activeTab === 'dashboard' && (
               <ScrollArea className="flex-1 p-4 md:p-8">
                 <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="space-y-1">
