@@ -2772,7 +2772,7 @@ const CRM = () => {
                           </AccordionItem>
                         </Accordion>
                       </div>
-                      <ScrollArea className="flex-1 bg-white dark:bg-[#111b21]">
+                      <ScrollArea className="flex-1 min-h-0 bg-white dark:bg-[#111b21]">
                         {filteredContacts.length > 0 ? (
                           filteredContacts.map(contact => (
                             <button 
