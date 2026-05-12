@@ -2954,7 +2954,7 @@ const CRM = () => {
                               </div>
 
                               <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0 flex-wrap justify-end">
-                                {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                                {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (!selectedContact.last_message_received_at || (Date.now() - new Date(selectedContact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
                                   <div className="flex items-center gap-1.5">
                                     <Badge 
                                       variant="outline" 
