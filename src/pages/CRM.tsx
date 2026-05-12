@@ -3639,7 +3639,7 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-11 w-11 shrink-0 rounded-full",
+                                                  "h-10 w-10 shrink-0 rounded-full",
                                                   !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                     ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
                                                     : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
