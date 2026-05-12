@@ -2279,11 +2279,11 @@ const CRM = () => {
         </Sidebar>
 
         <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden bg-[#f0f2f5] dark:bg-[#0c1317]">
-          <header className="h-16 border-b border-border/50 flex items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between shadow-sm">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-muted" />
-              <div className="h-4 w-px bg-border/50 mx-2 hidden md:block" />
-              <h1 className="font-bold text-sm md:text-base text-foreground tracking-tight">
+          <header className="min-h-[64px] h-auto md:h-16 border-b border-border/50 flex flex-wrap items-center px-4 md:px-6 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 justify-between gap-2 py-2 shadow-sm">
+            <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+              <SidebarTrigger className="hover:bg-muted shrink-0" />
+              <div className="h-4 w-px bg-border/50 mx-1 hidden md:block" />
+              <h1 className="font-bold text-xs md:text-base text-foreground tracking-tight truncate">
                 {activeTab === 'contact-list' ? 'Contatos' : 
                  activeTab === 'contacts' ? 'Conversas' : 
                  activeTab === 'google-synced' ? 'Sincronizados Google' :
@@ -2291,28 +2291,28 @@ const CRM = () => {
               </h1>
             </div>
             {activeTab === 'contacts' && (
-              <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-1.5 md:gap-3">
                 <Button 
                   variant={activeFlowsView ? "default" : "outline"} 
                   size="sm" 
                   onClick={() => { setActiveFlowsView(!activeFlowsView); setKanbanView(false); }} 
                   className={cn(
-                    "font-black h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-full transition-all active:scale-95", 
+                    "font-black h-8 px-2 md:px-3 text-[9px] md:text-xs rounded-full transition-all active:scale-95 whitespace-nowrap", 
                     activeFlowsView 
                       ? "bg-[#00a884] text-white hover:bg-[#008f6f] shadow-md" 
                       : "bg-white dark:bg-[#111b21] hover:bg-muted"
                   )}
                 >
-                  <GitBranch className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                  FLUXOS ATIVOS
+                  <GitBranch className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  FLUXOS
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => { setKanbanView(!kanbanView); setActiveFlowsView(false); }} 
-                  className="font-black h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-full bg-white dark:bg-[#111b21] hover:bg-muted transition-all active:scale-95 shadow-sm"
+                  className="font-black h-8 px-2 md:px-3 text-[9px] md:text-xs rounded-full bg-white dark:bg-[#111b21] hover:bg-muted transition-all active:scale-95 shadow-sm whitespace-nowrap"
                 >
-                  {kanbanView ? <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" /> : <BarChart3 className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />}
+                  {kanbanView ? <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> : <BarChart3 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />}
                   {kanbanView ? 'LISTA' : 'KANBAN'}
                 </Button>
               </div>
