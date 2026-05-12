@@ -2800,25 +2800,13 @@ const CRM = () => {
                                     )}
                                   </p>
                                 </div>
-                                <span className={cn(
-                                  "text-[10px] shrink-0 whitespace-nowrap opacity-70",
-                                  contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold opacity-100" : "text-muted-foreground"
-                                )}>
-                                  {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
-                                </span>
-                              </div>
-                                <div className="flex flex-wrap items-center justify-between gap-1 mt-1 w-full min-w-0">
-                                  <Badge 
-                                    variant="outline" 
-                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                    className={cn(
-                                      "px-2 capitalize font-black shadow-sm", 
-                                      getStatusColor(contact.status),
-                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-[#25D366]/20"
-                                    )}
-                                  >
-                                    {getStatusLabel(contact.status)}
-                                  </Badge>
+                                <div className="flex flex-col items-end gap-1 shrink-0 ml-auto">
+                                  <span className={cn(
+                                    "text-[10px] whitespace-nowrap opacity-70",
+                                    contact.last_message_received_at && (Date.now() - new Date(contact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000) ? "text-[#25D366] font-bold opacity-100" : "text-muted-foreground"
+                                  )}>
+                                    {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                                  </span>
                                   {contact.last_message_received_at && (() => {
                                     const elapsed = Date.now() - new Date(contact.last_message_received_at).getTime();
                                     const DAY = 24 * 60 * 60 * 1000;
@@ -2827,11 +2815,25 @@ const CRM = () => {
                                     const h = Math.floor(remainingMs / (60 * 60 * 1000));
                                     const m = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
                                     return (
-                                      <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-4 tabular-nums">
+                                      <Badge variant="outline" className="text-[8px] font-black bg-[#00a884]/10 text-[#00a884] border-none px-1 h-3.5 tabular-nums">
                                         <Clock className="w-2 h-2 mr-0.5" /> {h}h{m.toString().padStart(2,'0')}
                                       </Badge>
                                     );
                                   })()}
+                                </div>
+                              </div>
+                                <div className="flex items-center justify-between gap-1 mt-1 w-full min-w-0">
+                                  <Badge 
+                                    variant="outline" 
+                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    className={cn(
+                                      "px-2 capitalize font-black shadow-sm shrink-0", 
+                                      getStatusColor(contact.status),
+                                      contact.last_interaction && (!contact.last_read_at || new Date(contact.last_interaction) > new Date(contact.last_read_at)) && "ring-2 ring-[#25D366]/20"
+                                    )}
+                                  >
+                                    {getStatusLabel(contact.status)}
+                                  </Badge>
                                    {contact.flow_state && contact.flow_state !== 'idle' && (
                                      <div className="flex flex-col items-end gap-1 min-w-0 max-w-full overflow-hidden">
                                        <div className="flex items-center gap-1 flex-wrap justify-end max-w-full overflow-hidden">
