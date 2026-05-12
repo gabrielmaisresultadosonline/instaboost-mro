@@ -2849,6 +2849,7 @@ const CRM = () => {
                                       >
                                         {contact.flow_state === 'error' ? 'Erro' : 
                                          contact.flow_state === 'waiting_response' ? 'Aguardando' : 'Ativo'}
+                                        {contact.current_step_name && <span className="ml-1 opacity-70">({contact.current_step_name})</span>}
                                       </Badge>
                                       <div className="flex items-center gap-0.5">
                                         <button 
@@ -2859,7 +2860,7 @@ const CRM = () => {
                                           className="text-green-500 hover:text-green-700 p-0.5 rounded-full hover:bg-green-50"
                                           title="Retomar Fluxo"
                                         >
-                                          <PlayCircle className="h-3 w-3" />
+                                          <PlayCircle className="h-3.5 w-3.5" />
                                         </button>
                                         <button 
                                           onClick={(e) => {
@@ -2869,7 +2870,7 @@ const CRM = () => {
                                           className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
                                           title="Parar Fluxo"
                                         >
-                                          <StopCircle className="h-3 w-3" />
+                                          <StopCircle className="h-3.5 w-3.5" />
                                         </button>
                                       </div>
                                     </div>
