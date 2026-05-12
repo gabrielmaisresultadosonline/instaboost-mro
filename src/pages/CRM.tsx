@@ -602,24 +602,37 @@ const CRM = () => {
         const nowIso = new Date().toISOString();
         const { data: contactsToProcess } = await supabase
           .from('crm_contacts')
-          .select('id, last_message_received_at')
+          .select('id, last_message_received_at, last_interaction')
           .neq('flow_state', 'idle')
           .lte('next_execution_time', nowIso);
           
         if (contactsToProcess && contactsToProcess.length > 0) {
-          // Filtrar apenas os que ainda estão na janela de 24h
+          // Filtrar apenas os que realmente passaram de 24h sem NENHUMA interação (inbound ou outbound)
+          // A janela de resposta (grátis) da Meta é baseada no último inbound do cliente.
+          // Mas para parar o FLUXO, só devemos parar se o chat estiver "morto" há mais de 24h.
+          const DAY = 24 * 60 * 60 * 1000;
           const activeContacts = contactsToProcess.filter(c => {
-            // Se não houver data, permitimos o fluxo (pode ser uma conversa nova ou iniciada por template)
-            if (!c.last_message_received_at) return true;
-            const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff < (24 * 60 * 60 * 1000);
+            // Se não houver data, permitimos o fluxo
+            if (!c.last_message_received_at && !c.last_interaction) return true;
+            
+            const lastInbound = c.last_message_received_at ? new Date(c.last_message_received_at).getTime() : 0;
+            const lastAny = c.last_interaction ? new Date(c.last_interaction).getTime() : 0;
+            const latestInteraction = Math.max(lastInbound, lastAny);
+            
+            const diff = Date.now() - latestInteraction;
+            return diff < DAY;
           });
 
           const expiredContacts = contactsToProcess.filter(c => {
-            // Só consideramos expirado se TIVER uma data de última mensagem e ela for maior que 24h
-            if (!c.last_message_received_at) return false;
-            const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff >= (24 * 60 * 60 * 1000);
+            // Só consideramos expirado se TIVER uma data e ela for maior que 24h
+            const lastInbound = c.last_message_received_at ? new Date(c.last_message_received_at).getTime() : 0;
+            const lastAny = c.last_interaction ? new Date(c.last_interaction).getTime() : 0;
+            const latestInteraction = Math.max(lastInbound, lastAny);
+            
+            if (latestInteraction === 0) return false;
+            
+            const diff = Date.now() - latestInteraction;
+            return diff >= DAY;
           });
 
           // Encerrar fluxos expirados automaticamente
