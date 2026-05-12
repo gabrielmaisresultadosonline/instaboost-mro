@@ -2872,7 +2872,7 @@ const CRM = () => {
                                         </div>
                                       </div>
                                       {(contact.next_execution_time || contact.flow_state === 'waiting_response') && (
-                                        <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums">
+                                        <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums whitespace-nowrap overflow-hidden">
                                           <Clock className="w-2 h-2" />
                                           {(() => {
                                             if (contact.flow_state === 'waiting_response') {
