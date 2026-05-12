@@ -2963,8 +2963,8 @@ const CRM = () => {
                       {selectedContact ? (
                         <>
                           <div className="p-2 border-b border-border/40 flex flex-col gap-1.5 bg-[#f0f2f5] dark:bg-[#202c33] z-10 shrink-0 w-full min-w-0 shadow-sm">
-                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 w-full min-w-0">
-                              <div className="flex items-center gap-2 min-w-0 flex-[2_1_0%]">
+                            <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-8 w-8 hover:bg-muted" onClick={() => setSelectedContact(null)}>
                                   <ChevronLeft className="h-5 w-5" />
                                 </Button>
@@ -2977,15 +2977,15 @@ const CRM = () => {
                                       {selectedContact.name || selectedContact.wa_id}
                                     </p>
                                     {selectedContact.google_sync_account_id && (
-                                      <span className="w-3.5 h-3.5 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
-                                         <span className="text-[6px] font-bold text-white">G</span>
+                                      <span className="w-3 h-3 bg-[#4285F4] rounded-full flex items-center justify-center shrink-0">
+                                         <span className="text-[5px] font-bold text-white">G</span>
                                       </span>
                                     )}
                                     <Button
                                       variant="ghost"
                                       size="icon"
                                       className={cn(
-                                        "h-6 w-6 md:h-7 md:w-7 rounded-full transition-all shrink-0",
+                                        "h-6 w-6 rounded-full transition-all shrink-0",
                                         selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-[#00a884] bg-[#00a884]/10" : "text-muted-foreground grayscale"
                                       )}
                                       onClick={async () => {
@@ -2993,38 +2993,14 @@ const CRM = () => {
                                         await updateContactStatus(selectedContact.id, { ai_active: newStatus });
                                       }}
                                     >
-                                      <Bot className="w-3.5 h-3.5" />
+                                      <Bot className="w-3 h-3" />
                                     </Button>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0 flex-wrap justify-end max-w-full">
-                                {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (!selectedContact.last_message_received_at || (Date.now() - new Date(selectedContact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    <Badge 
-                                      variant="outline" 
-                                      className={cn(
-                                        "h-4 px-1.5 text-[8px] font-black flex items-center gap-1 shrink-0 border-none truncate max-w-[150px]",
-                                        selectedContact.flow_state === 'error' ? "bg-red-600 text-white" : "bg-red-500 text-white"
-                                      )}
-                                    >
-                                      <div className={cn("w-1 h-1 rounded-full shrink-0 bg-white", selectedContact.flow_state === 'error' ? "animate-pulse" : "animate-ping")} />
-                                      <span className="truncate">
-                                        {selectedContact.flow_state === 'error' ? 'Erro' : 'Fluxo'}
-                                        {selectedContact.current_step_name && <span className="ml-1 text-white/90">({selectedContact.current_step_name})</span>}
-                                      </span>
-                                    </Badge>
-                                    <div className="flex items-center gap-0.5 shrink-0">
-                                      {(selectedContact.flow_state === 'error' || selectedContact.flow_state === 'waiting_response') && (
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-500 hover:bg-green-50/50" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4.5 w-4.5" /></Button>
-                                      )}
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-50/50" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><XCircle className="h-4.5 w-4.5" /></Button>
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                <div className="flex flex-wrap items-center gap-1.5 justify-end">
+                              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                                <div className="flex items-center gap-1 flex-wrap justify-end">
                                   {selectedContact.last_message_received_at && (
                                     <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
                                       <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive animate-pulse' : 'text-[#00a884]')} />
@@ -3042,31 +3018,49 @@ const CRM = () => {
                                           const lastInteraction = new Date(selectedContact.last_flow_interaction || Date.now()).getTime();
                                           const timeoutThreshold = lastInteraction + (timeoutMinutes * 60 * 1000);
                                           const remainingSeconds = Math.max(0, Math.floor((timeoutThreshold - now) / 1000));
-                                          return `Exp: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
+                                          return `${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`;
                                         }
-                                        return `Agt: ${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
+                                        return `${Math.floor(countdown! / 60)}m ${countdown! % 60}s`;
                                       })()}
                                     </div>
                                   )}
                                 </div>
                               </div>
                             </div>
+
+                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (!selectedContact.last_message_received_at || (Date.now() - new Date(selectedContact.last_message_received_at).getTime()) < (24 * 60 * 60 * 1000)) && (
+                              <div className="flex items-center justify-between gap-2 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded-lg border border-red-100 dark:border-red-900/30">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className={cn("w-1.5 h-1.5 rounded-full shrink-0 bg-red-500", selectedContact.flow_state === 'error' ? "animate-pulse" : "animate-ping")} />
+                                  <span className="text-[10px] font-bold text-red-600 dark:text-red-400 truncate">
+                                    {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : 'Fluxo Ativo'}
+                                    {selectedContact.current_step_name && <span className="ml-1 opacity-70">({selectedContact.current_step_name})</span>}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {(selectedContact.flow_state === 'error' || selectedContact.flow_state === 'waiting_response') && (
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30" onClick={(e) => { e.stopPropagation(); handleResumeFlow(selectedContact.id); }}><PlayCircle className="h-4 w-4" /></Button>
+                                  )}
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30" onClick={(e) => { e.stopPropagation(); handleCancelFlow(selectedContact.id); }}><XCircle className="h-4 w-4" /></Button>
+                                </div>
+                              </div>
+                            )}
                             
-                            <div className="flex flex-wrap items-center gap-2 w-full pt-1 border-t border-border/5">
+                            <div className="flex items-center gap-1.5 w-full pt-1 border-t border-border/5 overflow-x-auto no-scrollbar pb-0.5">
                               {kanbanStatuses.filter(s => s.is_starred).map(status => (
                                 <Button 
                                   key={status.id}
                                   size="sm" 
                                   variant="outline" 
-                                  className={cn("h-7 px-2 text-[10px] font-bold border-zinc-200 hover:bg-zinc-50 transition-all shadow-sm rounded-lg")}
+                                  className={cn("h-6 px-2 text-[9px] font-bold border-zinc-200 hover:bg-zinc-50 transition-all shadow-sm rounded-lg whitespace-nowrap")}
                                   onClick={() => updateContactStatus(selectedContact.id, { status: status.value })}
                                 >
                                   {status.label}
                                 </Button>
                               ))}
                               <Select onValueChange={(val) => updateContactStatus(selectedContact.id, { status: val })}>
-                                <SelectTrigger className="w-fit h-7 text-[10px] font-bold border-zinc-200 bg-zinc-50/50 rounded-lg px-2">
-                                  <SelectValue placeholder="Status" />
+                                <SelectTrigger className="w-fit h-6 text-[9px] font-bold border-zinc-200 bg-zinc-50/50 rounded-lg px-2 shrink-0">
+                                  <SelectValue placeholder="Etiqueta" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {kanbanStatuses.map(s => (
