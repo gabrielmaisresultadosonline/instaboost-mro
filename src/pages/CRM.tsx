@@ -608,19 +608,21 @@ const CRM = () => {
           
         if (contactsToProcess && contactsToProcess.length > 0) {
           // Regra de interrupção de fluxo: Só paramos o fluxo se o ÚLTIMO INBOUND (mensagem do cliente)
-          // tiver ocorrido há mais de 24 horas + 5 minutos de margem.
+          // tiver ocorrido há mais de 24 horas + 30 minutos de tolerância.
           const DAY = 24 * 60 * 60 * 1000;
-          const MARGIN = 5 * 60 * 1000;
+          const TOLERANCE = 30 * 60 * 1000;
+          const limit = DAY + TOLERANCE;
+
           const activeContacts = contactsToProcess.filter(c => {
             if (!c.last_message_received_at) return true;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff < (DAY + MARGIN);
+            return diff < limit;
           });
 
           const expiredContacts = contactsToProcess.filter(c => {
             if (!c.last_message_received_at) return false;
             const diff = Date.now() - new Date(c.last_message_received_at).getTime();
-            return diff >= (DAY + MARGIN);
+            return diff >= limit;
           });
 
           // Encerrar fluxos expirados automaticamente
@@ -951,15 +953,17 @@ const CRM = () => {
     const nowTime = Date.now();
     
     // Regra oficial WhatsApp: A janela de 24h abre com o ÚLTIMO INBOUND (mensagem do cliente).
+    // Buscamos a data de forma segura, garantindo que não haja erro de fuso ou nulidade.
     const lastInboundStr = selectedContact.last_message_received_at;
     const lastInbound = lastInboundStr ? new Date(lastInboundStr).getTime() : 0;
     
-    // Se não temos lastInbound, a janela NÃO está expirada (é um novo chat ou iniciado por template)
+    // Se não temos registro de mensagem recebida, a janela NÃO expirou (é um novo chat ou manual)
     let isColdList = false;
     if (lastInbound > 0) {
-      const diff = nowTime - lastInbound;
-      // Bloqueia apenas se passar de 24h (com 1 minuto de tolerância para segurança)
-      isColdList = diff > (DAY + 60000);
+      const diffMs = nowTime - lastInbound;
+      // Bloqueia apenas se passar de 24h (86.400.000ms) com 30 minutos de tolerância extra para evitar erros de sincronização
+      const limit = DAY + (30 * 60 * 1000); 
+      isColdList = diffMs > limit;
     }
 
     if (isColdList) {
@@ -2168,15 +2172,16 @@ const CRM = () => {
 
 
   const getWindowInfo = (lastInbound: string) => {
-    if (!lastInbound) return { label: "Nova sessão", isExpired: false };
+    if (!lastInbound) return { label: "Janela aberta", isExpired: false };
     
-    // Convertemos para o fuso local para garantir precisão no cálculo
     const last = new Date(lastInbound).getTime();
     const nowTime = Date.now();
     const diffMs = nowTime - last;
     const DAY = 24 * 60 * 60 * 1000;
     
-    const remainingMs = Math.max(0, DAY - diffMs);
+    // Tolerância de 30 minutos para exibição visual também
+    const limit = DAY + (30 * 60 * 1000);
+    const remainingMs = Math.max(0, limit - diffMs);
     const remainingHours = remainingMs / (1000 * 60 * 60);
     
     return {
