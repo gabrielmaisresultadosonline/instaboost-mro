@@ -2164,14 +2164,20 @@ const CRM = () => {
 
 
   const getWindowInfo = (lastInbound: string) => {
-    if (!lastInbound) return null;
+    if (!lastInbound) return { label: "Nova sessão", isExpired: false };
+    
+    // Convertemos para o fuso local para garantir precisão no cálculo
     const last = new Date(lastInbound).getTime();
-    const now = new Date().getTime();
-    const diffHours = (now - last) / (1000 * 60 * 60);
-    const remaining = Math.max(0, 24 - diffHours);
+    const nowTime = Date.now();
+    const diffMs = nowTime - last;
+    const DAY = 24 * 60 * 60 * 1000;
+    
+    const remainingMs = Math.max(0, DAY - diffMs);
+    const remainingHours = remainingMs / (1000 * 60 * 60);
+    
     return {
-      label: remaining > 0 ? `${remaining.toFixed(1)}h restantes` : "Janela expirada",
-      isExpired: remaining <= 0
+      label: remainingHours > 0 ? `${remainingHours.toFixed(1)}h restantes` : "Janela expirada",
+      isExpired: remainingHours <= 0
     };
   };
 
