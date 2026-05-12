@@ -2927,7 +2927,7 @@ const CRM = () => {
                                       style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
                                       className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                       onClick={() => handleTriggerFlow(f.id)} 
-                                      disabled={sendingMessage}
+                                      disabled={isSending(selectedContact?.id)}
                                     >
                                       {f.name}
                                     </Button>
