@@ -585,6 +585,7 @@ async function internalSendTemplate(
   vpsTranscoderUrl?: string,
   providedContactId?: string
 ) {
+  let dbTemplate: any = null;
   const normalizedTo = normalizePhone(to)
   
   const payload: any = {
