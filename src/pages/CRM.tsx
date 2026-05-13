@@ -3809,8 +3809,8 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-0.5 sm:gap-1 w-full min-w-0 px-0.5 sm:px-0">
-                                      <div className="flex items-center gap-0.5 shrink-0">
+                                    <div className="flex items-center gap-0.5 sm:gap-1 w-full min-w-0 px-0 sm:px-0">
+                                      <div className="flex items-center gap-0 shrink-0">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
