@@ -638,11 +638,35 @@ async function internalSendTemplate(
               console.log(`[CAROUSEL-LOG] Card ${cardIdx} media URL detected: ${mediaUrl}`);
               
               if (mediaUrl) {
+                const fmt = header.format.toLowerCase();
+                let mediaParam: any = { link: mediaUrl };
+
+                // VIDEO em carrossel falha com link público (erro 131053 - Media upload error).
+                // Solução: subir o vídeo para a Meta (/media) e enviar via id.
+                if (fmt === 'video') {
+                  try {
+                    const ext = (mediaUrl.split('?')[0].split('.').pop() || 'mp4').toLowerCase();
+                    const mime = ext === 'mov' ? 'video/quicktime' : 'video/mp4';
+                    const mediaId = await uploadMediaToMeta(accessToken, phoneNumberId, {
+                      type: 'video',
+                      url: mediaUrl,
+                      mime,
+                      fileName: `${templateName}_card${cardIdx}.${ext}`,
+                    });
+                    if (mediaId) {
+                      mediaParam = { id: mediaId };
+                      console.log(`[CAROUSEL-LOG] Card ${cardIdx} video uploaded to Meta, id=${mediaId}`);
+                    }
+                  } catch (upErr) {
+                    console.error(`[CAROUSEL-LOG] Card ${cardIdx} video upload failed, falling back to link:`, upErr);
+                  }
+                }
+
                 cardComponents.push({
                   type: 'header',
                   parameters: [{
-                    type: header.format.toLowerCase(),
-                    [header.format.toLowerCase()]: { link: mediaUrl }
+                    type: fmt,
+                    [fmt]: mediaParam
                   }]
                 });
               } else {
