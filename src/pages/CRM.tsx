@@ -3651,15 +3651,15 @@ const CRM = () => {
                                               </div>
                                             </div>
                                           )}
-                                          {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
-                                            <div className="mb-1 p-2 rounded-xl bg-[#00a884]/10 dark:bg-[#00a884]/20 border border-[#00a884]/20 w-full max-w-[280px]">
-                                              <audio
-                                                src={m.media_url}
-                                                controls
-                                                preload="metadata"
-                                                className="block w-full h-10 rounded-lg filter dark:invert-[0.1]"
-                                                style={{ minWidth: '200px' }}
-                                              />
+                                           {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
+                                             <div className="mb-1 p-2 rounded-xl bg-[#00a884]/10 dark:bg-[#00a884]/20 border border-[#00a884]/20 w-[min(280px,calc(100vw-100px))] sm:w-[280px] max-w-full">
+                                               <audio
+                                                 src={m.media_url}
+                                                 controls
+                                                 preload="metadata"
+                                                 controlsList="nodownload"
+                                                 className="block w-full h-10 rounded-lg filter dark:invert-[0.1]"
+                                               />
                                               {m.direction === 'outbound' && m.status === 'failed' && !m.meta_message_id && (
                                                 <div className="mt-2 flex items-center justify-between gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/30">
                                                   <div className="flex items-center gap-1.5 text-[10px] text-red-500 dark:text-red-300 font-medium">
