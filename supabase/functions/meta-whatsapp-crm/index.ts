@@ -599,26 +599,57 @@ async function internalSendTemplate(
     }
   }
 
-  // Se não houver componentes manuais, tentamos buscar no banco de dados para ver se há mídia salva (HEADER)
+  // Se não houver componentes manuais, tentamos buscar no banco de dados para ver se há mídia salva (HEADER ou CAROUSEL)
   if (!manualComponents || manualComponents.length === 0) {
     const { data: dbTemplate } = await supabase
       .from('crm_templates')
-      .select('components')
+      .select('components, is_carousel')
       .eq('name', templateName)
       .single();
 
     if (dbTemplate?.components) {
-      const header = dbTemplate.components.find((c: any) => c.type === 'HEADER');
-      if (header && (header.format === 'IMAGE' || header.format === 'VIDEO' || header.format === 'DOCUMENT')) {
-        const mediaUrl = header.example?.header_handle?.[0];
-        if (mediaUrl) {
+      // Se for carrossel, precisamos montar os parâmetros para cada card
+      if (dbTemplate.is_carousel) {
+        const carouselComponent = dbTemplate.components.find((c: any) => c.type === 'CAROUSEL');
+        if (carouselComponent?.cards) {
+          const cardsParams = carouselComponent.cards.map((card: any, index: number) => {
+            const cardComponents = [];
+            const header = card.components?.find((c: any) => c.type === 'HEADER');
+            
+            if (header && (header.format === 'IMAGE' || header.format === 'VIDEO')) {
+              const mediaUrl = header.example?.header_handle?.[0];
+              if (mediaUrl) {
+                cardComponents.push({
+                  type: 'header',
+                  parameters: [{
+                    type: header.format.toLowerCase(),
+                    [header.format.toLowerCase()]: { link: mediaUrl }
+                  }]
+                });
+              }
+            }
+            return { index, components: cardComponents };
+          });
+          
           payload.template.components = [{
-            type: 'header',
-            parameters: [{
-              type: header.format.toLowerCase(),
-              [header.format.toLowerCase()]: { link: mediaUrl }
-            }]
+            type: 'carousel',
+            cards: cardsParams
           }];
+        }
+      } else {
+        // Lógica normal para templates não-carrossel
+        const header = dbTemplate.components.find((c: any) => c.type === 'HEADER');
+        if (header && (header.format === 'IMAGE' || header.format === 'VIDEO' || header.format === 'DOCUMENT')) {
+          const mediaUrl = header.example?.header_handle?.[0];
+          if (mediaUrl) {
+            payload.template.components = [{
+              type: 'header',
+              parameters: [{
+                type: header.format.toLowerCase(),
+                [header.format.toLowerCase()]: { link: mediaUrl }
+              }]
+            }];
+          }
         }
       }
     }
