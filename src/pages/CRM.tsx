@@ -3305,9 +3305,9 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0">
+                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0 min-w-0 w-full overflow-x-hidden">
                             <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.05] pointer-events-none bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat"></div>
-                            <div className="p-2 sm:p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
+                            <div className="p-2 sm:p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1] min-w-0 w-full">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
                                   <div className="flex items-center justify-between px-1">
