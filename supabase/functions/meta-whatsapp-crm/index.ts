@@ -607,9 +607,13 @@ async function internalSendTemplate(
       .eq('name', templateName)
       .single();
 
+    console.log(`[CAROUSEL-LOG] Template from DB: ${templateName}, is_carousel: ${dbTemplate?.is_carousel}`);
+
     if (dbTemplate?.components) {
       if (dbTemplate.is_carousel) {
         const carouselComponent = dbTemplate.components.find((c: any) => c.type === 'CAROUSEL');
+        console.log(`[CAROUSEL-LOG] Carousel component found: ${!!carouselComponent}, cards: ${carouselComponent?.cards?.length}`);
+        
         if (carouselComponent?.cards) {
           const cardsParams = carouselComponent.cards.map((card: any, cardIdx: number) => {
             const cardComponents = [];
@@ -617,9 +621,12 @@ async function internalSendTemplate(
             const body = card.components?.find((c: any) => c.type === 'BODY');
             const buttons = card.components?.find((c: any) => c.type === 'BUTTONS');
             
+            console.log(`[CAROUSEL-LOG] Processing card ${cardIdx}, header format: ${header?.format}`);
+            
             // 1. HEADER (Mídia)
             if (header && (header.format === 'IMAGE' || header.format === 'VIDEO')) {
               const mediaUrl = header.example?.header_handle?.[0];
+              console.log(`[CAROUSEL-LOG] Card ${cardIdx} media URL: ${mediaUrl}`);
               if (mediaUrl) {
                 cardComponents.push({
                   type: 'header',
@@ -634,6 +641,7 @@ async function internalSendTemplate(
             // 2. BODY (Variáveis)
             if (body && body.text && body.text.includes('{{')) {
               const variableCount = (body.text.match(/{{[0-9]+}}/g) || []).length;
+              console.log(`[CAROUSEL-LOG] Card ${cardIdx} body variables: ${variableCount}`);
               if (variableCount > 0) {
                 cardComponents.push({
                   type: 'body',
@@ -646,6 +654,7 @@ async function internalSendTemplate(
             if (buttons?.buttons) {
               buttons.buttons.forEach((btn: any, btnIdx: number) => {
                 if (btn.text && btn.text.includes('{{')) {
+                   console.log(`[CAROUSEL-LOG] Card ${cardIdx} button ${btnIdx} has variable`);
                    cardComponents.push({
                     type: 'button',
                     sub_type: btn.type?.toLowerCase() || 'url',
@@ -663,9 +672,11 @@ async function internalSendTemplate(
             type: 'carousel',
             cards: cardsParams
           }];
+          console.log(`[CAROUSEL-LOG] Final payload components:`, JSON.stringify(payload.template.components));
         }
       } else {
         // Lógica normal para templates não-carrossel
+        // ... (resto do código mantido sem alterações de lógica, apenas logs se desejar)
         const header = dbTemplate.components.find((c: any) => c.type === 'HEADER');
         const body = dbTemplate.components.find((c: any) => c.type === 'BODY');
         const buttons = dbTemplate.components.find((c: any) => c.type === 'BUTTONS');
@@ -713,6 +724,7 @@ async function internalSendTemplate(
   }
 
   console.log(`[TEMPLATE] Sending template ${templateName} to ${normalizedTo}`);
+  console.log(`[TEMPLATE-PAYLOAD]`, JSON.stringify(payload));
 
   const response = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
     method: 'POST',
@@ -721,6 +733,8 @@ async function internalSendTemplate(
   })
 
   const result = await response.json().catch(() => ({}))
+  console.log(`[META-RESULT]`, JSON.stringify(result));
+
   if (!response.ok) {
     console.error(`[TEMPLATE] Error sending template:`, JSON.stringify(result));
     throw new Error(result?.error?.message || 'Erro ao enviar template pela Meta')
