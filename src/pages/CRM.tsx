@@ -3528,7 +3528,11 @@ const CRM = () => {
                                       variant="ghost" 
                                       className="h-6 text-[9px] font-bold gap-1 text-primary hover:bg-primary/5"
                                       onClick={() => {
+                                        setScheduleDate('');
+                                        setScheduleDateObj(undefined);
+                                        setScheduleTime('');
                                         setSelectedContactsForScheduling([selectedContact.id]);
+                                        setContactListText('');
                                         setIsSchedulingOpen(true);
                                       }}
                                     >
