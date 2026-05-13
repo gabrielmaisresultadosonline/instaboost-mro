@@ -618,7 +618,7 @@ async function internalSendTemplate(
         console.log(`[CAROUSEL-LOG] Carousel component found: ${!!carouselComponent}, cards: ${carouselComponent?.cards?.length}`);
         
         if (carouselComponent?.cards) {
-          const cardsParams = carouselComponent.cards.map((card: any, cardIdx: number) => {
+          const cardsParams = await Promise.all(carouselComponent.cards.map(async (card: any, cardIdx: number) => {
             const cardComponents = [];
             const header = card.components?.find((c: any) => c.type === 'HEADER');
             const body = card.components?.find((c: any) => c.type === 'BODY');
@@ -683,7 +683,7 @@ async function internalSendTemplate(
             }
             
             return { card_index: cardIdx, components: cardComponents };
-          });
+          }));
           
           payload.template.components = [{
             type: 'carousel',
