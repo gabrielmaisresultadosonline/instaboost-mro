@@ -741,14 +741,35 @@ async function internalSendTemplate(
   }
 
   if (contact) {
+    const isCarousel = dbTemplate?.is_carousel || false;
+    let carouselMetadata = null;
+
+    if (isCarousel) {
+      const carouselComponent = dbTemplate.components.find((c: any) => c.type === 'CAROUSEL');
+      if (carouselComponent?.cards) {
+        carouselMetadata = {
+          carousel: {
+            cards: carouselComponent.cards.map((card: any) => ({
+              header: card.components?.find((c: any) => c.type === 'HEADER'),
+              body: card.components?.find((c: any) => c.type === 'BODY'),
+              buttons: card.components?.find((c: any) => c.type === 'BUTTONS')
+            }))
+          }
+        };
+      }
+    }
+
     await supabase.from('crm_messages').insert({
       contact_id: contact.id,
       direction: 'outbound',
-      message_type: 'template',
+      message_type: isCarousel ? 'carousel' : 'template',
       content: `[Template: ${templateName}]`,
       status: 'sent',
       meta_message_id: result?.messages?.[0]?.id || null,
-      metadata: { template_name: templateName }
+      metadata: { 
+        template_name: templateName,
+        ...(carouselMetadata || {})
+      }
     })
     await supabase.from('crm_contacts').update({ last_interaction: new Date().toISOString() }).eq('id', contact.id)
   }
