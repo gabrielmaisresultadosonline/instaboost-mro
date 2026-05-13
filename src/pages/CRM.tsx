@@ -4200,9 +4200,14 @@ const CRM = () => {
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight">Agendamentos</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
                     </div>
-                    <Button variant="outline" onClick={fetchAllScheduledMessages} className="shrink-0 self-start sm:self-auto">
-                      <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl">
+                        <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
+                      </Button>
+                      <Button onClick={() => setIsSchedulingOpen(true)} className="h-10 px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold">
+                        <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-6">
