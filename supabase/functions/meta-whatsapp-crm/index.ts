@@ -585,6 +585,7 @@ async function internalSendTemplate(
   vpsTranscoderUrl?: string,
   providedContactId?: string
 ) {
+  let dbTemplate: any = null;
   const normalizedTo = normalizePhone(to)
   
   const payload: any = {
@@ -601,11 +602,13 @@ async function internalSendTemplate(
 
   // Se não houver componentes manuais, tentamos buscar no banco de dados para ver se há mídia salva (HEADER ou CAROUSEL)
   if (!manualComponents || manualComponents.length === 0) {
-    const { data: dbTemplate } = await supabase
+    const { data: templateData } = await supabase
       .from('crm_templates')
       .select('components, is_carousel')
       .eq('name', templateName)
       .single();
+    
+    dbTemplate = templateData;
 
     console.log(`[CAROUSEL-LOG] Template from DB: ${templateName}, is_carousel: ${dbTemplate?.is_carousel}`);
 
