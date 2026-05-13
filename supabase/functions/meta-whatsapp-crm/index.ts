@@ -1114,6 +1114,18 @@ serve(async (req) => {
                 }
               }
             }
+            if (component.type === 'CAROUSEL' && component.cards) {
+              for (const [cardIdx, card] of component.cards.entries()) {
+                const headerComp = card.components?.find((c: any) => c.type === 'HEADER');
+                if (headerComp && (headerComp.format === 'IMAGE' || headerComp.format === 'VIDEO')) {
+                  const mediaUrl = headerComp.example?.header_handle?.[0];
+                  if (mediaUrl && mediaUrl.includes('scontent.whatsapp.net')) {
+                    const permanentUrl = await downloadAndStoreMetaMedia(supabase, meta_access_token, mediaUrl, headerComp.format.toLowerCase(), `${template.name}_carousel_${cardIdx}`);
+                    if (permanentUrl) headerComp.example.header_handle = [permanentUrl];
+                  }
+                }
+              }
+            }
           }
 
           await supabase.from('crm_templates').upsert({
