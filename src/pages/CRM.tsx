@@ -3458,6 +3458,45 @@ const CRM = () => {
                                             </div>
                                           ))}
                                         </div>
+                                      ) : m.message_type === 'carousel' && m.metadata?.carousel ? (
+                                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide max-w-full">
+                                          {m.metadata.carousel.cards.map((card: any, cIdx: number) => (
+                                            <div key={cIdx} className="overflow-hidden rounded-xl bg-white dark:bg-zinc-900 shadow-md border border-border/40 w-[240px] shrink-0">
+                                              {card.header && (card.header.format === 'IMAGE' || card.header.format === 'VIDEO') && (
+                                                <div className="h-[135px] bg-muted/20 flex items-center justify-center relative overflow-hidden border-b border-border/10">
+                                                  {(() => {
+                                                    const mediaUrl = card.header.example?.header_handle?.[0];
+                                                    if (card.header.format === 'IMAGE' && mediaUrl) {
+                                                      return <img src={mediaUrl} alt="Card" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'image' })} />;
+                                                    } else if (card.header.format === 'VIDEO' && mediaUrl) {
+                                                      return (
+                                                        <div className="w-full h-full relative cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'video' })}>
+                                                          <video src={mediaUrl} className="w-full h-full object-cover" />
+                                                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                            <Play className="w-6 h-6 text-white" />
+                                                          </div>
+                                                        </div>
+                                                      );
+                                                    }
+                                                    return null;
+                                                  })()}
+                                                </div>
+                                              )}
+                                              <div className="p-3 space-y-1.5">
+                                                {card.body?.text && (
+                                                  <div className="text-[12px] leading-relaxed text-zinc-800 dark:text-zinc-200 line-clamp-3">
+                                                    {card.body.text}
+                                                  </div>
+                                                )}
+                                              </div>
+                                              {card.buttons?.buttons?.map((btn: any, bIdx: number) => (
+                                                <div key={bIdx} className="flex items-center justify-center p-2 border-t border-border/30 text-blue-500 text-[10px] font-bold">
+                                                  {btn.text}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          ))}
+                                        </div>
                                       ) : (
                                         <>
                                           {m.message_type === 'image' && m.media_url && !/^\d+$/.test(m.media_url.toString()) && (
