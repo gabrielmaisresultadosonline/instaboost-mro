@@ -612,7 +612,7 @@ async function internalSendTemplate(
       if (dbTemplate.is_carousel) {
         const carouselComponent = dbTemplate.components.find((c: any) => c.type === 'CAROUSEL');
         if (carouselComponent?.cards) {
-          const cardsParams = carouselComponent.cards.map((card: any, index: number) => {
+          const cardsParams = carouselComponent.cards.map((card: any, cardIdx: number) => {
             const cardComponents = [];
             const header = card.components?.find((c: any) => c.type === 'HEADER');
             
@@ -628,7 +628,9 @@ async function internalSendTemplate(
                 });
               }
             }
-            return { index, components: cardComponents };
+            
+            // Meta Cloud API espera 'card_index' em vez de 'index'
+            return { card_index: cardIdx, components: cardComponents };
           });
           
           payload.template.components = [{
