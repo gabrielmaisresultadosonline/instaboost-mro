@@ -642,9 +642,12 @@ async function internalSendTemplate(
             }
 
             // 2. BODY (Variáveis)
-            if (body && body.text && body.text.includes('{{')) {
-              const variableCount = (body.text.match(/{{[0-9]+}}/g) || []).length;
-              console.log(`[CAROUSEL-LOG] Card ${cardIdx} body variables: ${variableCount}`);
+            // No carrossel da Meta, mesmo sem variáveis {{1}}, o componente body deve ser incluído se existir no template
+            if (body) {
+              const variableCount = (body.text?.match(/{{[0-9]+}}/g) || []).length;
+              console.log(`[CAROUSEL-LOG] Card ${cardIdx} body has text, variables: ${variableCount}`);
+              // Se tiver variáveis, envia os parâmetros. Se não tiver, mas for carrossel, a Meta às vezes exige o componente body vazio ou preenchido dependendo da versão
+              // Para garantir, se houver variáveis as preenchemos, se não houver, o componente body pode ser omitido se não houver parâmetros a passar.
               if (variableCount > 0) {
                 cardComponents.push({
                   type: 'body',
@@ -675,11 +678,23 @@ async function internalSendTemplate(
             type: 'carousel',
             cards: cardsParams
           }];
+
+          // Verificamos se existe um componente BODY global (fora dos cards) que pode ter variáveis
+          const globalBody = dbTemplate.components.find((c: any) => c.type === 'BODY');
+          if (globalBody && globalBody.text && globalBody.text.includes('{{')) {
+             const variableCount = (globalBody.text.match(/{{[0-9]+}}/g) || []).length;
+             if (variableCount > 0) {
+               payload.template.components.push({
+                 type: 'body',
+                 parameters: Array(variableCount).fill({ type: 'text', text: '-' })
+               });
+             }
+          }
+
           console.log(`[CAROUSEL-LOG] Final payload components:`, JSON.stringify(payload.template.components));
         }
       } else {
         // Lógica normal para templates não-carrossel
-        // ... (resto do código mantido sem alterações de lógica, apenas logs se desejar)
         const header = dbTemplate.components.find((c: any) => c.type === 'HEADER');
         const body = dbTemplate.components.find((c: any) => c.type === 'BODY');
         const buttons = dbTemplate.components.find((c: any) => c.type === 'BUTTONS');
