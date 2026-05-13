@@ -1698,8 +1698,8 @@ const CRM = () => {
         .eq('id', msg.id)
         .select()
         .single();
-      if (updatedMessage && selectedContactRef.current?.id === msg.contact_id) {
-        setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
+      if (updatedMessage) {
+        setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? { ...m, ...updatedMessage } : m));
       }
     };
 
