@@ -6754,10 +6754,35 @@ const CRM = () => {
               </div>
 
               {/* Data e Hora */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold flex items-center gap-2"><Calendar className="w-3 h-3" /> Data</Label>
-                  <Input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="h-11 rounded-xl bg-muted/30 border-none" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full h-11 justify-start text-left font-normal rounded-xl bg-muted/30 border-none",
+                          !scheduleDateObj && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {scheduleDateObj ? format(scheduleDateObj, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 rounded-2xl border-none shadow-2xl" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={scheduleDateObj}
+                        onSelect={(date) => {
+                          setScheduleDateObj(date);
+                          if (date) setScheduleDate(format(date, "yyyy-MM-dd"));
+                        }}
+                        initialFocus
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-bold flex items-center gap-2"><Clock className="w-3 h-3" /> Hora</Label>
