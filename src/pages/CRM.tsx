@@ -6784,7 +6784,7 @@ const CRM = () => {
                         {scheduleDateObj ? format(scheduleDateObj, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-2xl border-none shadow-2xl" align="start">
+                    <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] p-0 rounded-2xl border-none shadow-2xl pointer-events-auto" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={scheduleDateObj}
@@ -6794,6 +6794,7 @@ const CRM = () => {
                         }}
                         initialFocus
                         locale={ptBR}
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
