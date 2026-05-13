@@ -618,7 +618,7 @@ async function internalSendTemplate(
         console.log(`[CAROUSEL-LOG] Carousel component found: ${!!carouselComponent}, cards: ${carouselComponent?.cards?.length}`);
         
         if (carouselComponent?.cards) {
-          const cardsParams = carouselComponent.cards.map((card: any, cardIdx: number) => {
+          const cardsParams = await Promise.all(carouselComponent.cards.map(async (card: any, cardIdx: number) => {
             const cardComponents = [];
             const header = card.components?.find((c: any) => c.type === 'HEADER');
             const body = card.components?.find((c: any) => c.type === 'BODY');
@@ -633,6 +633,7 @@ async function internalSendTemplate(
               // Se não encontrou no example, tenta ver se veio como direct link (fallback para templates manuais)
               if (!mediaUrl && header.image?.link) mediaUrl = header.image.link;
               if (!mediaUrl && header.video?.link) mediaUrl = header.video.link;
+              mediaUrl = await resolveTemplateMediaUrl(supabase, accessToken, mediaUrl, header.format.toLowerCase(), `${templateName}_carousel_${cardIdx}`);
               
               console.log(`[CAROUSEL-LOG] Card ${cardIdx} media URL detected: ${mediaUrl}`);
               
@@ -682,7 +683,7 @@ async function internalSendTemplate(
             }
             
             return { card_index: cardIdx, components: cardComponents };
-          });
+          }));
           
           payload.template.components = [{
             type: 'carousel',
@@ -777,20 +778,21 @@ async function internalSendTemplate(
       if (carouselComponent?.cards) {
         carouselMetadata = {
           carousel: {
-            cards: carouselComponent.cards.map((card: any) => {
+            cards: await Promise.all(carouselComponent.cards.map(async (card: any, cardIdx: number) => {
               const header = card.components?.find((c: any) => c.type === 'HEADER');
               const body = card.components?.find((c: any) => c.type === 'BODY');
               const buttons = card.components?.find((c: any) => c.type === 'BUTTONS');
               
               // Extrair o link de mídia para salvar no histórico
               let mediaUrl = header?.example?.header_handle?.[0] || header?.image?.link || header?.video?.link;
+              mediaUrl = await resolveTemplateMediaUrl(supabase, accessToken, mediaUrl, header?.format?.toLowerCase() || 'image', `${templateName}_history_${cardIdx}`);
               
               return {
                 header: header ? { ...header, media_url: mediaUrl } : null,
                 body: body,
                 buttons: buttons
               };
-            })
+            }))
           }
         };
       }
@@ -909,6 +911,18 @@ async function downloadAndStoreMetaMedia(supabase: any, accessToken: string, med
     console.error('Error in downloadAndStoreMetaMedia:', err);
     return null;
   }
+}
+
+async function resolveTemplateMediaUrl(supabase: any, accessToken: string, mediaUrl: string | null | undefined, type: string, name: string) {
+  if (!mediaUrl) return null;
+
+  // Links scontent.whatsapp.net usados como exemplo do template expiram/retornam 403 para a Meta no envio.
+  // Para envio real, baixamos com token e salvamos em URL pública própria.
+  if (mediaUrl.includes('scontent.whatsapp.net')) {
+    return await downloadAndStoreMetaMedia(supabase, accessToken, mediaUrl, type, name) || mediaUrl;
+  }
+
+  return mediaUrl;
 }
 
 
@@ -1097,6 +1111,18 @@ serve(async (req) => {
                   }
                 } catch (mediaErr) {
                   console.error(`Error storing media for template ${template.name}:`, mediaErr);
+                }
+              }
+            }
+            if (component.type === 'CAROUSEL' && component.cards) {
+              for (const [cardIdx, card] of component.cards.entries()) {
+                const headerComp = card.components?.find((c: any) => c.type === 'HEADER');
+                if (headerComp && (headerComp.format === 'IMAGE' || headerComp.format === 'VIDEO')) {
+                  const mediaUrl = headerComp.example?.header_handle?.[0];
+                  if (mediaUrl && mediaUrl.includes('scontent.whatsapp.net')) {
+                    const permanentUrl = await downloadAndStoreMetaMedia(supabase, meta_access_token, mediaUrl, headerComp.format.toLowerCase(), `${template.name}_carousel_${cardIdx}`);
+                    if (permanentUrl) headerComp.example.header_handle = [permanentUrl];
+                  }
                 }
               }
             }

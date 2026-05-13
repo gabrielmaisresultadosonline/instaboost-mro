@@ -3379,7 +3379,7 @@ const CRM = () => {
                                 </div>
                               )}
                               {[...chatMessages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).map((m, idx) => {
-                                const isTemplate = m.message_type === 'template' || m.content?.includes('[Template:');
+                                const isTemplate = m.message_type === 'template' || (m.message_type !== 'carousel' && m.content?.includes('[Template:'));
                                 const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
                                 let template = isTemplate ? templates.find(t => t.name === templateName) : null;
 
