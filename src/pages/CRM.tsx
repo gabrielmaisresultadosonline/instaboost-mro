@@ -6766,7 +6766,7 @@ const CRM = () => {
                           !scheduleDateObj && "text-muted-foreground"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <Calendar className="mr-2 h-4 w-4" />
                         {scheduleDateObj ? format(scheduleDateObj, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
                       </Button>
                     </PopoverTrigger>
