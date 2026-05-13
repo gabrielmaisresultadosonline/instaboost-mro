@@ -633,6 +633,7 @@ async function internalSendTemplate(
               // Se não encontrou no example, tenta ver se veio como direct link (fallback para templates manuais)
               if (!mediaUrl && header.image?.link) mediaUrl = header.image.link;
               if (!mediaUrl && header.video?.link) mediaUrl = header.video.link;
+              mediaUrl = await resolveTemplateMediaUrl(supabase, accessToken, mediaUrl, header.format.toLowerCase(), `${templateName}_carousel_${cardIdx}`);
               
               console.log(`[CAROUSEL-LOG] Card ${cardIdx} media URL detected: ${mediaUrl}`);
               
