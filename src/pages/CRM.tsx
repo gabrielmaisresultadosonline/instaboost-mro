@@ -86,6 +86,10 @@ import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
 import Broadcaster from "@/components/crm/Broadcaster";
 import ModuleManager from "@/components/admin/ModuleManager";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -264,13 +268,15 @@ const CRM = () => {
   const [now, setNow] = useState(Date.now());
   const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleDateObj, setScheduleDateObj] = useState<Date | undefined>(undefined);
   const [scheduleTime, setScheduleTime] = useState('');
   const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
   const [selectedContactsForScheduling, setSelectedContactsForScheduling] = useState<string[]>([]);
   const [scheduleSearch, setScheduleSearch] = useState('');
-  const [selectedCampaignType, setSelectedCampaignType] = useState<'individual' | 'batch' | 'birthday'>('individual');
+  const [selectedCampaignType, setSelectedCampaignType] = useState<'individual' | 'batch' | 'birthday' | 'list'>('individual');
+  const [contactListText, setContactListText] = useState('');
   const [birthdayName, setBirthdayName] = useState('');
   const [birthdayNumber, setBirthdayNumber] = useState('');
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
@@ -1067,25 +1073,111 @@ const CRM = () => {
     }
   };
   const handleScheduleBatch = async () => {
-    if (selectedContactsForScheduling.length === 0) {
-      toast({ title: "Selecione pelo menos um contato", variant: "destructive" });
-      return;
+    let finalContactIds = [...selectedContactsForScheduling];
+
+    if (selectedCampaignType === 'list') {
+      if (!contactListText.trim()) {
+        toast({ title: "Cole uma lista de números ou vCard", variant: "destructive" });
+        return;
+      }
+      setIsScheduling(true);
+      try {
+        // Extrair números (considerando linhas, espaços ou formato vCard)
+        const lines = contactListText.split('\n');
+        const extractedNumbers: string[] = [];
+        
+        lines.forEach(line => {
+          // Se for vCard (TEL;TYPE=...)
+          if (line.includes('TEL;')) {
+            const num = line.split(':')[1]?.replace(/\D/g, '');
+            if (num) extractedNumbers.push(num);
+          } else {
+            // Apenas número
+            const num = line.replace(/\D/g, '');
+            if (num && num.length >= 8) extractedNumbers.push(num);
+          }
+        });
+
+        if (extractedNumbers.length === 0) {
+          toast({ title: "Nenhum número válido encontrado na lista", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+
+        // Criar ou encontrar contatos
+        const contactsToProcess = [...new Set(extractedNumbers)];
+        const createdIds: string[] = [];
+        
+        for (const num of contactsToProcess) {
+          let { data: contact } = await supabase.from('crm_contacts').select('id').eq('wa_id', num).maybeSingle();
+          if (!contact) {
+            const { data: newContact, error: createError } = await supabase.from('crm_contacts').insert({
+              wa_id: num,
+              name: num,
+              status: 'new',
+              source_type: 'bulk_import'
+            }).select().single();
+            if (!createError && newContact) contact = newContact;
+          }
+          if (contact) createdIds.push(contact.id);
+        }
+        finalContactIds = createdIds;
+      } catch (err: any) {
+        toast({ title: "Erro ao processar lista", description: err.message, variant: "destructive" });
+        setIsScheduling(false);
+        return;
+      }
     }
-    if (!scheduleDate || !scheduleTime) {
-      toast({ title: "Informe data e hora", variant: "destructive" });
-      return;
-    }
-    if (scheduleType !== 'message' && !selectedScheduleId) {
-      toast({ title: "Selecione um item para agendar", variant: "destructive" });
-      return;
-    }
-    if (scheduleType === 'message' && !newMessage.trim()) {
-      toast({ title: "Escreva a mensagem", variant: "destructive" });
+
+    if (finalContactIds.length === 0) {
+      toast({ title: "Nenhum contato selecionado", variant: "destructive" });
+      setIsScheduling(false);
       return;
     }
 
-    setIsScheduling(true);
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Informe data e hora", variant: "destructive" });
+      setIsScheduling(false);
+      return;
+    }
+
+    if (scheduleType !== 'message' && !selectedScheduleId) {
+      toast({ title: "Selecione um item para agendar", variant: "destructive" });
+      setIsScheduling(false);
+      return;
+    }
+
+    if (scheduleType === 'message' && !newMessage.trim()) {
+      toast({ title: "Escreva a mensagem", variant: "destructive" });
+      setIsScheduling(false);
+      return;
+    }
+
     try {
+      // Validar janela de 24h para mensagens comuns se necessário
+      if (scheduleType === 'message' || scheduleType === 'flow') {
+        const { data: contactsData } = await supabase.from('crm_contacts').select('id, last_message_received_at').in('id', finalContactIds);
+        const coldContacts = contactsData?.filter(c => {
+          if (!c.last_message_received_at) return true;
+          return (Date.now() - new Date(c.last_message_received_at).getTime() > 24 * 60 * 60 * 1000);
+        }) || [];
+
+        if (coldContacts.length > 0) {
+          const confirmCold = confirm(`Atenção: ${coldContacts.length} contatos estão fora da janela de 24h e podem não receber mensagens comuns. Deseja continuar apenas com os contatos ativos?`);
+          if (!confirmCold) {
+            setIsScheduling(false);
+            return;
+          }
+          // Filtrar apenas contatos ativos
+          finalContactIds = finalContactIds.filter(id => !coldContacts.find(c => c.id === id));
+          if (finalContactIds.length === 0) {
+            toast({ title: "Nenhum contato ativo para receber esta mensagem. Use um Template para contatos fora da janela.", variant: "destructive" });
+            setIsScheduling(false);
+            return;
+          }
+        }
+      }
+
       const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
       const payload: any = { action: scheduleType === 'message' ? 'sendMessage' : scheduleType === 'template' ? 'sendTemplate' : 'startFlow' };
       
@@ -1098,7 +1190,7 @@ const CRM = () => {
         payload.flowId = selectedScheduleId;
       }
 
-      const insertions = selectedContactsForScheduling.map(contactId => ({
+      const insertions = finalContactIds.map(contactId => ({
         contact_id: contactId,
         scheduled_for: scheduledFor,
         message_data: payload,
@@ -1111,6 +1203,7 @@ const CRM = () => {
       toast({ title: `${insertions.length} agendamentos criados!` });
       setIsSchedulingOpen(false);
       setSelectedContactsForScheduling([]);
+      setContactListText('');
       setNewMessage('');
       setSelectedScheduleId('');
       fetchAllScheduledMessages();
@@ -3435,7 +3528,11 @@ const CRM = () => {
                                       variant="ghost" 
                                       className="h-6 text-[9px] font-bold gap-1 text-primary hover:bg-primary/5"
                                       onClick={() => {
+                                        setScheduleDate('');
+                                        setScheduleDateObj(undefined);
+                                        setScheduleTime('');
                                         setSelectedContactsForScheduling([selectedContact.id]);
+                                        setContactListText('');
                                         setIsSchedulingOpen(true);
                                       }}
                                     >
@@ -4107,9 +4204,24 @@ const CRM = () => {
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight">Agendamentos</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
                     </div>
-                    <Button variant="outline" onClick={fetchAllScheduledMessages} className="shrink-0 self-start sm:self-auto">
-                      <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl">
+                        <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setScheduleDate('');
+                          setScheduleDateObj(undefined);
+                          setScheduleTime('');
+                          setSelectedContactsForScheduling([]);
+                          setContactListText('');
+                          setIsSchedulingOpen(true);
+                        }} 
+                        className="h-10 px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
+                      >
+                        <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-6">
@@ -6408,27 +6520,34 @@ const CRM = () => {
             <DialogDescription>Agende mensagens, fluxos ou templates para seus contatos.</DialogDescription>
           </DialogHeader>
           
-          <div className="flex flex-col sm:flex-row gap-2 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
             <Button 
               variant={selectedCampaignType === 'individual' ? 'default' : 'outline'}
-              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              className={cn("h-11 rounded-xl text-[10px] font-bold px-1", selectedCampaignType === 'individual' && "bg-primary text-white shadow-lg shadow-primary/20")}
               onClick={() => { setSelectedCampaignType('individual'); setSelectedContactsForScheduling([]); }}
             >
-              <User className="w-4 h-4 mr-2" /> Individual
+              <User className="w-4 h-4 mr-1.5" /> Individual
             </Button>
             <Button 
               variant={selectedCampaignType === 'batch' ? 'default' : 'outline'}
-              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              className={cn("h-11 rounded-xl text-[10px] font-bold px-1", selectedCampaignType === 'batch' && "bg-primary text-white shadow-lg shadow-primary/20")}
               onClick={() => { setSelectedCampaignType('batch'); setSelectedContactsForScheduling([]); }}
             >
-              <Users className="w-4 h-4 mr-2" /> Lista / Massa
+              <Users className="w-4 h-4 mr-1.5" /> Massa
+            </Button>
+            <Button 
+              variant={selectedCampaignType === 'list' ? 'default' : 'outline'}
+              className={cn("h-11 rounded-xl text-[10px] font-bold px-1", selectedCampaignType === 'list' && "bg-primary text-white shadow-lg shadow-primary/20")}
+              onClick={() => { setSelectedCampaignType('list'); setSelectedContactsForScheduling([]); }}
+            >
+              <FileText className="w-4 h-4 mr-1.5" /> vCard / TXT
             </Button>
             <Button 
               variant={selectedCampaignType === 'birthday' ? 'default' : 'outline'}
-              className="flex-1 h-11 rounded-xl text-xs font-bold"
+              className={cn("h-11 rounded-xl text-[10px] font-bold px-1", selectedCampaignType === 'birthday' && "bg-primary text-white shadow-lg shadow-primary/20")}
               onClick={() => { setSelectedCampaignType('birthday'); setSelectedContactsForScheduling([]); setScheduleType('template'); }}
             >
-              <Calendar className="w-4 h-4 mr-2" /> Aniversário
+              <Calendar className="w-4 h-4 mr-1.5" /> Aniversário
             </Button>
           </div>
 
@@ -6538,6 +6657,27 @@ const CRM = () => {
                 </div>
               )}
 
+              {selectedCampaignType === 'list' && (
+                <div className="space-y-3 animate-in fade-in duration-300">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                    <span>1. Lista de Contatos (vCard ou TXT)</span>
+                    <Badge variant="outline" className="text-[9px] font-bold">Importação Direta</Badge>
+                  </Label>
+                  <Textarea 
+                    placeholder="Cole aqui os números (um por linha) ou o conteúdo de um arquivo vCard..."
+                    className="min-h-[120px] rounded-xl bg-muted/30 border-none resize-none font-mono text-[11px]"
+                    value={contactListText}
+                    onChange={e => setContactListText(e.target.value)}
+                  />
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                    <AlertCircle className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-[10px] text-muted-foreground">
+                      Os números serão cadastrados automaticamente se não existirem. Formatos aceitos: <span className="font-bold">5511999999999</span> ou <span className="font-bold">vCard (.vcf)</span>.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {selectedCampaignType === 'birthday' && (
                 <div className="space-y-4 border p-4 rounded-2xl bg-primary/5 border-primary/20">
                   <div className="space-y-3">
@@ -6628,10 +6768,35 @@ const CRM = () => {
               </div>
 
               {/* Data e Hora */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold flex items-center gap-2"><Calendar className="w-3 h-3" /> Data</Label>
-                  <Input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="h-11 rounded-xl bg-muted/30 border-none" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full h-11 justify-start text-left font-normal rounded-xl bg-muted/30 border-none",
+                          !scheduleDateObj && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {scheduleDateObj ? format(scheduleDateObj, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 rounded-2xl border-none shadow-2xl" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={scheduleDateObj}
+                        onSelect={(date) => {
+                          setScheduleDateObj(date);
+                          if (date) setScheduleDate(format(date, "yyyy-MM-dd"));
+                        }}
+                        initialFocus
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-bold flex items-center gap-2"><Clock className="w-3 h-3" /> Hora</Label>
@@ -6645,11 +6810,13 @@ const CRM = () => {
             <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6">Cancelar</Button>
             <Button 
               onClick={selectedCampaignType === 'birthday' ? handleScheduleBirthday : handleScheduleBatch} 
-              disabled={isScheduling || (selectedCampaignType !== 'birthday' && selectedContactsForScheduling.length === 0)}
+              disabled={isScheduling || (selectedCampaignType === 'individual' && selectedContactsForScheduling.length === 0) || (selectedCampaignType === 'batch' && selectedContactsForScheduling.length === 0) || (selectedCampaignType === 'list' && !contactListText.trim())}
               className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20 font-bold"
             >
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              {selectedCampaignType === 'birthday' ? 'Agendar Aniversário' : `Agendar para ${selectedContactsForScheduling.length} contatos`}
+              {selectedCampaignType === 'birthday' ? 'Agendar Aniversário' : 
+               selectedCampaignType === 'list' ? 'Agendar Lista' : 
+               `Agendar para ${selectedContactsForScheduling.length} contatos`}
             </Button>
           </DialogFooter>
         </DialogContent>
