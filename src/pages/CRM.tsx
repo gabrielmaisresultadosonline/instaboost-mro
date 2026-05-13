@@ -224,6 +224,7 @@ const CRM = () => {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingContacts, setSendingContacts] = useState<Record<string, boolean>>({});
+  const [loadingChat, setLoadingChat] = useState(false);
   const isSending = (id: string) => !!sendingContacts[id];
   const setContactSending = (id: string, state: boolean) => {
     setSendingContacts(prev => ({ ...prev, [id]: state }));
@@ -937,11 +938,13 @@ const CRM = () => {
 
   const fetchMessages = async (contactId: string) => {
     if (!contactId) return;
+    setLoadingChat(true);
     const { data } = await supabase.from('crm_messages').select('*').eq('contact_id', contactId).order('created_at', { ascending: true });
     
     // Only update the UI if the contact is still the one selected
     if (selectedContactRef.current?.id === contactId) {
       setChatMessages(data || []);
+      setLoadingChat(false);
       
       // Backfill: derive last_message_received_at from actual inbound messages
       // (regra oficial WhatsApp: a janela de 24h só reseta quando o cliente responde)
@@ -3307,6 +3310,26 @@ const CRM = () => {
 
                           <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0 min-w-0 w-full overflow-x-hidden">
                             <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.05] pointer-events-none bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat"></div>
+                            
+                            {loadingChat && (
+                              <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#efeae2]/80 dark:bg-[#0b141a]/80 backdrop-blur-sm animate-in fade-in duration-300">
+                                <div className="flex flex-col items-center gap-4">
+                                  <div className="relative">
+                                    <div className="w-16 h-16 rounded-full border-4 border-[#00a884]/20 border-t-[#00a884] animate-spin" />
+                                    <MessageSquare className="absolute inset-0 m-auto w-6 h-6 text-[#00a884] animate-pulse" />
+                                  </div>
+                                  <div className="flex flex-col items-center">
+                                    <p className="text-[#00a884] font-black text-sm uppercase tracking-widest animate-pulse">Carregando conversas</p>
+                                    <div className="flex gap-1 mt-1">
+                                      <div className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                      <div className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                      <div className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             <div className="p-2 sm:p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1] min-w-0 w-full">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
