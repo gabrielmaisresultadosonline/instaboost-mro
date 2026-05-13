@@ -1668,6 +1668,97 @@ const CRM = () => {
     }
   };
 
+  const [resendingAudioIds, setResendingAudioIds] = useState<Set<string>>(new Set());
+
+  const handleResendAudio = async (msg: any) => {
+    if (!msg?.id || !msg?.media_url) return;
+    const contact = contacts.find(c => c.id === msg.contact_id) || selectedContact;
+    const targetWaId = contact?.wa_id;
+    if (!targetWaId) {
+      toast({ title: "Contato não encontrado para reenviar", variant: "destructive" });
+      return;
+    }
+
+    setResendingAudioIds(prev => {
+      const next = new Set(prev);
+      next.add(msg.id);
+      return next;
+    });
+
+    const markStatus = async (status: string, source: string, metaMsgId?: string | null, errorMessage?: string) => {
+      const updateData: any = {
+        status,
+        metadata: { ...(msg.metadata || {}), source }
+      };
+      if (metaMsgId) updateData.meta_message_id = metaMsgId;
+      if (errorMessage) updateData.error_message = errorMessage;
+      const { data: updatedMessage } = await supabase
+        .from('crm_messages')
+        .update(updateData)
+        .eq('id', msg.id)
+        .select()
+        .single();
+      if (updatedMessage && selectedContactRef.current?.id === msg.contact_id) {
+        setChatMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
+      }
+    };
+
+    try {
+      // Tenta primeiro via VPS transcoder se disponível
+      if (metaSettings.vps_transcoder_url && metaSettings.vps_status !== 'offline') {
+        try {
+          const vpsUrl = metaSettings.vps_transcoder_url.replace(/\/$/, '');
+          const response = await fetch(`${vpsUrl}/send-voice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: targetWaId,
+              audioUrl: msg.media_url,
+              metaToken: metaSettings.meta_access_token,
+              phoneId: metaSettings.meta_phone_number_id,
+              sendAsVoice: true
+            })
+          });
+          const vpsResult = await response.json().catch(() => ({}));
+          if (response.ok) {
+            const metaMsgId = vpsResult?.messageId || vpsResult?.messages?.[0]?.id || null;
+            await markStatus('sent', 'vps_bridge_resend', metaMsgId);
+            toast({ title: "Áudio reenviado!" });
+            return;
+          }
+          // se falhar, tenta fallback abaixo
+        } catch (_) {
+          // fallback
+        }
+      }
+
+      // Fallback: envia via edge function padrão
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: {
+          action: 'sendMessage',
+          to: targetWaId,
+          audioUrl: msg.media_url,
+          isVoice: true,
+          skipLocalSave: true
+        }
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Falha no reenvio');
+      const metaMsgId = data?.messageId || data?.messages?.[0]?.id || data?.result?.messages?.[0]?.id || null;
+      await markStatus('sent', 'standard_resend', metaMsgId);
+      toast({ title: "Áudio reenviado!" });
+    } catch (err: any) {
+      await markStatus('failed', 'resend_failed', null, err.message);
+      toast({ title: "Falha ao reenviar áudio", description: err.message, variant: "destructive" });
+    } finally {
+      setResendingAudioIds(prev => {
+        const next = new Set(prev);
+        next.delete(msg.id);
+        return next;
+      });
+    }
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadType) return;
