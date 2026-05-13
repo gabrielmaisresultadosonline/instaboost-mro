@@ -608,14 +608,16 @@ async function internalSendTemplate(
       .single();
 
     if (dbTemplate?.components) {
-      // Se for carrossel, precisamos montar os parâmetros para cada card
       if (dbTemplate.is_carousel) {
         const carouselComponent = dbTemplate.components.find((c: any) => c.type === 'CAROUSEL');
         if (carouselComponent?.cards) {
           const cardsParams = carouselComponent.cards.map((card: any, cardIdx: number) => {
             const cardComponents = [];
             const header = card.components?.find((c: any) => c.type === 'HEADER');
+            const body = card.components?.find((c: any) => c.type === 'BODY');
+            const buttons = card.components?.find((c: any) => c.type === 'BUTTONS');
             
+            // 1. HEADER (Mídia)
             if (header && (header.format === 'IMAGE' || header.format === 'VIDEO')) {
               const mediaUrl = header.example?.header_handle?.[0];
               if (mediaUrl) {
@@ -628,8 +630,32 @@ async function internalSendTemplate(
                 });
               }
             }
+
+            // 2. BODY (Variáveis)
+            if (body && body.text && body.text.includes('{{')) {
+              const variableCount = (body.text.match(/{{[0-9]+}}/g) || []).length;
+              if (variableCount > 0) {
+                cardComponents.push({
+                  type: 'body',
+                  parameters: Array(variableCount).fill({ type: 'text', text: '-' })
+                });
+              }
+            }
+
+            // 3. BUTTONS (Variáveis em botões)
+            if (buttons?.buttons) {
+              buttons.buttons.forEach((btn: any, btnIdx: number) => {
+                if (btn.text && btn.text.includes('{{')) {
+                   cardComponents.push({
+                    type: 'button',
+                    sub_type: btn.type?.toLowerCase() || 'url',
+                    index: btnIdx.toString(),
+                    parameters: [{ type: 'text', text: '-' }]
+                  });
+                }
+              });
+            }
             
-            // Meta Cloud API espera 'card_index' em vez de 'index'
             return { card_index: cardIdx, components: cardComponents };
           });
           
@@ -641,17 +667,46 @@ async function internalSendTemplate(
       } else {
         // Lógica normal para templates não-carrossel
         const header = dbTemplate.components.find((c: any) => c.type === 'HEADER');
+        const body = dbTemplate.components.find((c: any) => c.type === 'BODY');
+        const buttons = dbTemplate.components.find((c: any) => c.type === 'BUTTONS');
+        const components = [];
+
         if (header && (header.format === 'IMAGE' || header.format === 'VIDEO' || header.format === 'DOCUMENT')) {
           const mediaUrl = header.example?.header_handle?.[0];
           if (mediaUrl) {
-            payload.template.components = [{
+            components.push({
               type: 'header',
               parameters: [{
                 type: header.format.toLowerCase(),
                 [header.format.toLowerCase()]: { link: mediaUrl }
               }]
-            }];
+            });
           }
+        }
+
+        if (body && body.text && body.text.includes('{{')) {
+          const variableCount = (body.text.match(/{{[0-9]+}}/g) || []).length;
+          components.push({
+            type: 'body',
+            parameters: Array(variableCount).fill({ type: 'text', text: '-' })
+          });
+        }
+
+        if (buttons?.buttons) {
+          buttons.buttons.forEach((btn: any, btnIdx: number) => {
+            if (btn.text && btn.text.includes('{{')) {
+              components.push({
+                type: 'button',
+                sub_type: btn.type?.toLowerCase() || 'url',
+                index: btnIdx.toString(),
+                parameters: [{ type: 'text', text: '-' }]
+              });
+            }
+          });
+        }
+
+        if (components.length > 0) {
+          payload.template.components = components;
         }
       }
     }
