@@ -3170,7 +3170,7 @@ const CRM = () => {
                               <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                                 <div className="flex items-center gap-1 flex-wrap justify-end">
                                   {selectedContact.last_message_received_at && (
-                                    <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
+                                    <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1 sm:px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
                                       <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive animate-pulse' : 'text-[#00a884]')} />
                                       <span className={cn("text-[8px] font-bold tabular-nums", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
                                         {getWindowInfo(selectedContact.last_message_received_at)?.label}
