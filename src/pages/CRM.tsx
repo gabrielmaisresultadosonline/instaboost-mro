@@ -3863,14 +3863,14 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-10 w-10 rounded-full",
+                                                  "h-9 w-9 sm:h-10 sm:w-10 rounded-full",
                                                   !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                     ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
                                                     : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
                                                 )}
                                                 onClick={startRecording}
                                               >
-                                                <Mic className="w-5 h-5" />
+                                                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                                               </Button>
                                               {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
                                                 <div className="absolute -top-1 -right-1">
