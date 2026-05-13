@@ -3125,7 +3125,7 @@ const CRM = () => {
                     </div>
                     
                     <div className={cn(
-                      "flex-1 flex flex-col min-h-0 relative",
+                      "flex-1 flex flex-col min-h-0 min-w-0 w-full relative overflow-hidden",
                       !selectedContact ? 'hidden md:flex items-center justify-center bg-muted/5' : 'flex'
                     )}>
                       {selectedContact ? (
@@ -3305,9 +3305,9 @@ const CRM = () => {
                             </div>
                           </div>
 
-                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0">
+                          <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0 min-w-0 w-full overflow-x-hidden">
                             <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.05] pointer-events-none bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat"></div>
-                            <div className="p-2 sm:p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
+                            <div className="p-2 sm:p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1] min-w-0 w-full">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
                                   <div className="flex items-center justify-between px-1">
@@ -3401,11 +3401,11 @@ const CRM = () => {
                                 
                                 return (
                                   <div key={m.id || idx} className={cn(
-                                    "flex w-full mb-1",
+                                    "flex w-full mb-1 min-w-0",
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-2 md:p-2.5 rounded-xl max-w-[92%] sm:max-w-[85%] md:max-w-[75%] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative transition-all duration-300",
+                                      "p-2 md:p-2.5 rounded-xl max-w-[88%] sm:max-w-[80%] md:max-w-[75%] min-w-0 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative transition-all duration-300",
                                       m.direction === 'inbound' 
                                         ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none border-l-[3px] border-l-transparent' 
                                         : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none border-r-[3px] border-r-transparent',
@@ -3537,7 +3537,7 @@ const CRM = () => {
                                             </div>
                                           )}
                                           {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
-                                            <div className="mb-1 rounded-xl bg-black/10 dark:bg-white/5 w-[260px] sm:w-[280px] max-w-full">
+                                            <div className="mb-1 rounded-xl bg-black/10 dark:bg-white/5 w-full max-w-[260px] sm:max-w-[280px]">
                                               <audio
                                                 src={m.media_url}
                                                 controls
@@ -3652,10 +3652,10 @@ const CRM = () => {
                             </div>
                           </ScrollArea>
                           
-                          <div className="p-1 sm:p-2 bg-[#f0f2f5] dark:bg-[#202c33] border-t shadow-lg z-10 space-y-1 sm:space-y-2 shrink-0">
+                          <div className="p-1 sm:p-2 bg-[#f0f2f5] dark:bg-[#202c33] border-t shadow-lg z-10 space-y-1 sm:space-y-2 shrink-0 w-full min-w-0 overflow-hidden">
                             {selectedContact ? (
                               <>
-                                <div className="flex flex-col gap-1 p-1 sm:p-2 bg-muted/20 rounded-xl border border-border/50">
+                                <div className="flex flex-col gap-1 p-1 sm:p-2 bg-muted/20 rounded-xl border border-border/50 w-full min-w-0">
                                   {/* Atenção: Robô Desativado Geral hidden as requested */}
 
                                   <div className="flex items-center justify-end gap-2 flex-wrap">
