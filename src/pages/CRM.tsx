@@ -3560,14 +3560,13 @@ const CRM = () => {
                                             </div>
                                           )}
                                           {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
-                                            <div className="mb-1 rounded-xl bg-black/10 dark:bg-white/5 w-full max-w-[260px] sm:max-w-[280px]">
+                                            <div className="mb-1 p-2 rounded-xl bg-[#00a884]/10 dark:bg-[#00a884]/20 border border-[#00a884]/20 w-full max-w-[280px]">
                                               <audio
                                                 src={m.media_url}
                                                 controls
                                                 preload="metadata"
-                                                controlsList="nodownload noplaybackrate"
-                                                className="block w-full h-10 sm:h-9 rounded-xl"
-                                                style={{ minWidth: 0, maxWidth: '100%' }}
+                                                className="block w-full h-10 rounded-lg filter dark:invert-[0.1]"
+                                                style={{ minWidth: '200px' }}
                                               />
                                             </div>
                                           )}
