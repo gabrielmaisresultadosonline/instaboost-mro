@@ -649,33 +649,35 @@ async function internalSendTemplate(
               }
             }
 
-            // 2. BODY (Variáveis)
-            // No carrossel da Meta, mesmo sem variáveis {{1}}, o componente body deve ser incluído se existir no template
+            // 2. BODY (Texto do card)
             if (body) {
               const variableCount = (body.text?.match(/{{[0-9]+}}/g) || []).length;
-              console.log(`[CAROUSEL-LOG] Card ${cardIdx} body has text, variables: ${variableCount}`);
-              // Se tiver variáveis, envia os parâmetros. Se não tiver, mas for carrossel, a Meta às vezes exige o componente body vazio ou preenchido dependendo da versão
-              // Para garantir, se houver variáveis as preenchemos, se não houver, o componente body pode ser omitido se não houver parâmetros a passar.
-              if (variableCount > 0) {
-                cardComponents.push({
-                  type: 'body',
-                  parameters: Array(variableCount).fill({ type: 'text', text: '-' })
-                });
-              }
+              console.log(`[CAROUSEL-LOG] Card ${cardIdx} body text: ${body.text}, variables: ${variableCount}`);
+              
+              // Meta exige o componente body se houver texto, mesmo sem variáveis
+              cardComponents.push({
+                type: 'body',
+                parameters: variableCount > 0 
+                  ? Array(variableCount).fill({ type: 'text', text: '-' })
+                  : [] // Se não tem variáveis, array vazio de parâmetros
+              });
             }
 
-            // 3. BUTTONS (Variáveis em botões)
+            // 3. BUTTONS (Botões do card)
             if (buttons?.buttons) {
               buttons.buttons.forEach((btn: any, btnIdx: number) => {
-                if (btn.text && btn.text.includes('{{')) {
-                   console.log(`[CAROUSEL-LOG] Card ${cardIdx} button ${btnIdx} has variable`);
-                   cardComponents.push({
-                    type: 'button',
-                    sub_type: btn.type?.toLowerCase() || 'url',
-                    index: btnIdx.toString(),
-                    parameters: [{ type: 'text', text: '-' }]
-                  });
-                }
+                const buttonVariableCount = (btn.text?.match(/{{[0-9]+}}/g) || []).length;
+                const hasVariable = buttonVariableCount > 0 || (btn.url?.includes('{{'));
+                
+                console.log(`[CAROUSEL-LOG] Card ${cardIdx} button ${btnIdx} type: ${btn.type}, hasVariable: ${hasVariable}`);
+                
+                // Sempre incluir o componente button se ele existir no card do carrossel
+                cardComponents.push({
+                  type: 'button',
+                  sub_type: btn.type?.toLowerCase() === 'url' ? 'url' : 'quick_reply',
+                  index: btnIdx.toString(),
+                  parameters: hasVariable ? [{ type: 'text', text: '-' }] : []
+                });
               });
             }
             
