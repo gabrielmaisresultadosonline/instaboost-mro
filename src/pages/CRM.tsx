@@ -938,11 +938,13 @@ const CRM = () => {
 
   const fetchMessages = async (contactId: string) => {
     if (!contactId) return;
+    setLoadingChat(true);
     const { data } = await supabase.from('crm_messages').select('*').eq('contact_id', contactId).order('created_at', { ascending: true });
     
     // Only update the UI if the contact is still the one selected
     if (selectedContactRef.current?.id === contactId) {
       setChatMessages(data || []);
+      setLoadingChat(false);
       
       // Backfill: derive last_message_received_at from actual inbound messages
       // (regra oficial WhatsApp: a janela de 24h só reseta quando o cliente responde)
