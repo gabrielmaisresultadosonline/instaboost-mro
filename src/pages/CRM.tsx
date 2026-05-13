@@ -3797,7 +3797,7 @@ const CRM = () => {
                                     <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate mt-1">Imagem colada pronta para envio</p>
                                   </div>
                                  ) : (
-                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-1 sm:px-2 pb-2 shrink-0">
+                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-0.5 sm:px-2 pb-2 shrink-0">
                                     {isRecording && (
                                       <div className="flex items-center justify-between px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-1 shrink-0">
                                         <div className="flex items-center gap-1.5">
@@ -3809,13 +3809,13 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1 w-full min-w-0 px-0.5 sm:px-0">
+                                    <div className="flex items-center gap-0.5 sm:gap-1 w-full min-w-0 px-0.5 sm:px-0">
                                       <div className="flex items-center gap-0.5 shrink-0">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full shrink-0"
                                         >
                                           <Plus className="w-6 h-6" />
                                         </Button>
@@ -3823,7 +3823,7 @@ const CRM = () => {
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full hidden sm:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full hidden sm:flex shrink-0"
                                         >
                                           <ImageIcon className="w-5 h-5" />
                                         </Button>
@@ -3836,7 +3836,7 @@ const CRM = () => {
                                           onPaste={handlePaste}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-8 sm:pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full min-w-0"
                                         />
                                         <Button 
                                           size="icon" 
@@ -3847,7 +3847,7 @@ const CRM = () => {
                                         </Button>
                                       </div>
                                       {!isRecording ? (
-                                        <div className="flex items-center gap-1 shrink-0">
+                                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                                           {newMessage.trim() ? (
                                             <Button 
                                               size="icon" 
