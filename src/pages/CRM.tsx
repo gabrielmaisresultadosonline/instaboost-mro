@@ -3660,7 +3660,7 @@ const CRM = () => {
                                                 className="block w-full h-10 rounded-lg filter dark:invert-[0.1]"
                                                 style={{ minWidth: '200px' }}
                                               />
-                                              {m.direction === 'outbound' && m.status === 'failed' && (
+                                              {m.direction === 'outbound' && m.status === 'failed' && !m.meta_message_id && (
                                                 <div className="mt-2 flex items-center justify-between gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/30">
                                                   <div className="flex items-center gap-1.5 text-[10px] text-red-500 dark:text-red-300 font-medium">
                                                     <AlertCircle className="w-3 h-3" />
