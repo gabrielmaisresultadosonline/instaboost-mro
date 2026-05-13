@@ -911,6 +911,18 @@ async function downloadAndStoreMetaMedia(supabase: any, accessToken: string, med
   }
 }
 
+async function resolveTemplateMediaUrl(supabase: any, accessToken: string, mediaUrl: string | null | undefined, type: string, name: string) {
+  if (!mediaUrl) return null;
+
+  // Links scontent.whatsapp.net usados como exemplo do template expiram/retornam 403 para a Meta no envio.
+  // Para envio real, baixamos com token e salvamos em URL pública própria.
+  if (mediaUrl.includes('scontent.whatsapp.net')) {
+    return await downloadAndStoreMetaMedia(supabase, accessToken, mediaUrl, type, name) || mediaUrl;
+  }
+
+  return mediaUrl;
+}
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
