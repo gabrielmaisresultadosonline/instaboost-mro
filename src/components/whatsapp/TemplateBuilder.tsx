@@ -311,13 +311,14 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
                     <Button variant={headerType === 'TEXT' ? 'default' : 'outline'} size="sm" onClick={() => { setHeaderType('TEXT'); setHeaderUrl(''); }}><Type className="w-4 h-4 mr-1" /> Texto</Button>
                     <Button variant={headerType === 'IMAGE' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('IMAGE')}><ImageIcon className="w-4 h-4 mr-1" /> Imagem</Button>
                     <Button variant={headerType === 'VIDEO' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('VIDEO')}><Video className="w-4 h-4 mr-1" /> Vídeo</Button>
+                    <Button variant={headerType === 'DOCUMENT' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('DOCUMENT')}><FileText className="w-4 h-4 mr-1" /> Documento</Button>
                   </div>
                   
                   {headerType === 'TEXT' && <Input placeholder="Texto do cabeçalho" value={headerText} onChange={e => setHeaderText(e.target.value)} maxLength={60} />}
-                  {(headerType === 'IMAGE' || headerType === 'VIDEO') && (
+                  {(headerType === 'IMAGE' || headerType === 'VIDEO' || headerType === 'DOCUMENT') && (
                     <div className="flex gap-2">
                       <Input placeholder="URL da mídia" value={headerUrl} onChange={e => setHeaderUrl(e.target.value)} className="flex-1" />
-                      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e)} accept={headerType === 'IMAGE' ? 'image/*' : 'video/*'} />
+                      <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileUpload(e)} accept={headerType === 'IMAGE' ? 'image/*' : headerType === 'VIDEO' ? 'video/*' : '*/*'} />
                       <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
                         {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       </Button>

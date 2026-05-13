@@ -1194,10 +1194,10 @@ serve(async (req) => {
           console.log(`Processing carousel cards for ${name}...`);
           for (const card of component.cards) {
             const headerComp = card.components?.find((c: any) => c.type === 'HEADER');
-            if (headerComp && headerComp.format === 'IMAGE') {
+            if (headerComp && (headerComp.format === 'IMAGE' || headerComp.format === 'VIDEO')) {
               const mediaUrl = headerComp.example?.header_handle?.[0];
               if (mediaUrl && (mediaUrl.startsWith('http') || mediaUrl.startsWith('https'))) {
-                console.log(`Processing carousel card media example for ${name}...`);
+                console.log(`Processing carousel card media (${headerComp.format}) example for ${name}...`);
                 if (appId) {
                   const handle = await getMetaHeaderHandle(meta_access_token, appId, mediaUrl);
                   if (handle) {
