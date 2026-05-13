@@ -3170,7 +3170,7 @@ const CRM = () => {
                               <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                                 <div className="flex items-center gap-1 flex-wrap justify-end">
                                   {selectedContact.last_message_received_at && (
-                                    <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
+                                    <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1 sm:px-1.5 py-0.5 rounded border border-border/10 shadow-sm shrink-0">
                                       <Clock className={cn("w-2.5 h-2.5", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive animate-pulse' : 'text-[#00a884]')} />
                                       <span className={cn("text-[8px] font-bold tabular-nums", getWindowInfo(selectedContact.last_message_received_at)?.isExpired ? 'text-destructive' : 'text-[#00a884]')}>
                                         {getWindowInfo(selectedContact.last_message_received_at)?.label}
@@ -3307,7 +3307,7 @@ const CRM = () => {
 
                           <ScrollArea className="flex-1 bg-[#efeae2] dark:bg-[#0b141a] relative min-h-0">
                             <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.05] pointer-events-none bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat"></div>
-                            <div className="p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
+                            <div className="p-2 sm:p-4 md:p-6 space-y-3 max-w-5xl mx-auto relative z-[1]">
                               {scheduledMessages.length > 0 && (
                                 <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
                                   <div className="flex items-center justify-between px-1">
@@ -3405,7 +3405,7 @@ const CRM = () => {
                                     m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
                                     <div className={cn(
-                                      "p-2 md:p-2.5 rounded-xl max-w-[85%] md:max-w-[75%] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative transition-all duration-300",
+                                      "p-2 md:p-2.5 rounded-xl max-w-[92%] sm:max-w-[85%] md:max-w-[75%] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative transition-all duration-300",
                                       m.direction === 'inbound' 
                                         ? 'bg-white dark:bg-[#202c33] text-foreground rounded-tl-none border-l-[3px] border-l-transparent' 
                                         : 'bg-[#dcf8c6] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none border-r-[3px] border-r-transparent',
@@ -3797,7 +3797,7 @@ const CRM = () => {
                                     <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-tighter truncate mt-1">Imagem colada pronta para envio</p>
                                   </div>
                                  ) : (
-                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-1 sm:px-2 pb-2 shrink-0">
+                                  <div className="flex flex-col gap-1.5 max-w-5xl mx-auto w-full px-0.5 sm:px-2 pb-2 shrink-0">
                                     {isRecording && (
                                       <div className="flex items-center justify-between px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse mx-1 shrink-0">
                                         <div className="flex items-center gap-1.5">
@@ -3809,13 +3809,13 @@ const CRM = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="flex items-center gap-1 w-full min-w-0 px-0.5 sm:px-0">
+                                    <div className="flex items-center gap-0.5 sm:gap-1 w-full min-w-0 px-0.5 sm:px-0">
                                       <div className="flex items-center gap-0.5 shrink-0">
                                         <Button 
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full shrink-0"
                                         >
                                           <Plus className="w-6 h-6" />
                                         </Button>
@@ -3823,7 +3823,7 @@ const CRM = () => {
                                           variant="ghost" 
                                           size="icon" 
                                           onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} 
-                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full hidden sm:flex"
+                                          className="text-[#54656f] dark:text-[#aebac1] hover:bg-muted h-9 w-9 rounded-full hidden sm:flex shrink-0"
                                         >
                                           <ImageIcon className="w-5 h-5" />
                                         </Button>
@@ -3836,7 +3836,7 @@ const CRM = () => {
                                           onPaste={handlePaste}
                                           onChange={e => setNewMessage(e.target.value)}
                                           onKeyDown={e => e.key === 'Enter' && !isRecording && handleSendMessage()}
-                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full"
+                                          className="bg-white dark:bg-[#2a3942] border-none h-10 pr-8 sm:pr-9 rounded-xl shadow-sm text-sm focus-visible:ring-0 w-full min-w-0"
                                         />
                                         <Button 
                                           size="icon" 
@@ -3847,15 +3847,15 @@ const CRM = () => {
                                         </Button>
                                       </div>
                                       {!isRecording ? (
-                                        <div className="flex items-center gap-1 shrink-0">
+                                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                                           {newMessage.trim() ? (
                                             <Button 
                                               size="icon" 
                                               onClick={handleSendMessage} 
                                               disabled={isSending(selectedContact?.id)}
-                                              className="h-10 w-10 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
+                                              className="h-9 w-9 sm:h-10 sm:w-10 shadow-lg rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white active:scale-95 transition-all"
                                             >
-                                              <Send className="w-5 h-5 ml-0.5" />
+                                              <Send className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
                                             </Button>
                                           ) : (
                                             <div className="relative">
@@ -3863,14 +3863,14 @@ const CRM = () => {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className={cn(
-                                                  "h-10 w-10 rounded-full",
+                                                  "h-9 w-9 sm:h-10 sm:w-10 rounded-full",
                                                   !metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline' 
                                                     ? "text-orange-500 bg-orange-50 hover:bg-orange-100" 
                                                     : "text-[#54656f] dark:text-[#aebac1] hover:bg-muted"
                                                 )}
                                                 onClick={startRecording}
                                               >
-                                                <Mic className="w-5 h-5" />
+                                                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                                               </Button>
                                               {(!metaSettings.vps_transcoder_url || metaSettings.vps_status === 'offline') && (
                                                 <div className="absolute -top-1 -right-1">
