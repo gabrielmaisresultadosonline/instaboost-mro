@@ -3537,7 +3537,7 @@ const CRM = () => {
                                             </div>
                                           )}
                                           {(m.message_type === 'audio' || m.message_type === 'voice') && m.media_url && (
-                                            <div className="mb-1 rounded-xl bg-black/10 dark:bg-white/5 w-[260px] sm:w-[280px] max-w-full">
+                                            <div className="mb-1 rounded-xl bg-black/10 dark:bg-white/5 w-full max-w-[260px] sm:max-w-[280px]">
                                               <audio
                                                 src={m.media_url}
                                                 controls
