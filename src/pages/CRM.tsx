@@ -268,13 +268,15 @@ const CRM = () => {
   const [now, setNow] = useState(Date.now());
   const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleDateObj, setScheduleDateObj] = useState<Date | undefined>(undefined);
   const [scheduleTime, setScheduleTime] = useState('');
   const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
   const [selectedContactsForScheduling, setSelectedContactsForScheduling] = useState<string[]>([]);
   const [scheduleSearch, setScheduleSearch] = useState('');
-  const [selectedCampaignType, setSelectedCampaignType] = useState<'individual' | 'batch' | 'birthday'>('individual');
+  const [selectedCampaignType, setSelectedCampaignType] = useState<'individual' | 'batch' | 'birthday' | 'list'>('individual');
+  const [contactListText, setContactListText] = useState('');
   const [birthdayName, setBirthdayName] = useState('');
   const [birthdayNumber, setBirthdayNumber] = useState('');
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
