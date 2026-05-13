@@ -3465,7 +3465,7 @@ const CRM = () => {
                                               {card.header && (card.header.format === 'IMAGE' || card.header.format === 'VIDEO') && (
                                                 <div className="h-[135px] bg-muted/20 flex items-center justify-center relative overflow-hidden border-b border-border/10">
                                                   {(() => {
-                                                    const mediaUrl = card.header.example?.header_handle?.[0] || card.header.image?.link || card.header.video?.link;
+                                                    const mediaUrl = card.header.media_url || card.header.example?.header_handle?.[0] || card.header.image?.link || card.header.video?.link;
                                                     if (card.header.format === 'IMAGE' && mediaUrl) {
                                                       return <img src={mediaUrl} alt="Card" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'image' })} />;
                                                     } else if (card.header.format === 'VIDEO' && mediaUrl) {

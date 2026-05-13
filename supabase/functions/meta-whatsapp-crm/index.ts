@@ -777,11 +777,20 @@ async function internalSendTemplate(
       if (carouselComponent?.cards) {
         carouselMetadata = {
           carousel: {
-            cards: carouselComponent.cards.map((card: any) => ({
-              header: card.components?.find((c: any) => c.type === 'HEADER'),
-              body: card.components?.find((c: any) => c.type === 'BODY'),
-              buttons: card.components?.find((c: any) => c.type === 'BUTTONS')
-            }))
+            cards: carouselComponent.cards.map((card: any) => {
+              const header = card.components?.find((c: any) => c.type === 'HEADER');
+              const body = card.components?.find((c: any) => c.type === 'BODY');
+              const buttons = card.components?.find((c: any) => c.type === 'BUTTONS');
+              
+              // Extrair o link de mídia para salvar no histórico
+              let mediaUrl = header?.example?.header_handle?.[0] || header?.image?.link || header?.video?.link;
+              
+              return {
+                header: header ? { ...header, media_url: mediaUrl } : null,
+                body: body,
+                buttons: buttons
+              };
+            })
           }
         };
       }
