@@ -6807,12 +6807,12 @@ const CRM = () => {
             </div>
           </ScrollArea>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6">Cancelar</Button>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6 w-full sm:w-auto">Cancelar</Button>
             <Button 
               onClick={selectedCampaignType === 'birthday' ? handleScheduleBirthday : handleScheduleBatch} 
               disabled={isScheduling || (selectedCampaignType === 'individual' && selectedContactsForScheduling.length === 0) || (selectedCampaignType === 'batch' && selectedContactsForScheduling.length === 0) || (selectedCampaignType === 'list' && !contactListText.trim())}
-              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20 font-bold"
+              className="rounded-xl h-11 bg-primary px-4 sm:px-8 shadow-lg shadow-primary/20 font-bold w-full sm:w-auto"
             >
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
               {selectedCampaignType === 'birthday' ? 'Agendar Aniversário' : 
