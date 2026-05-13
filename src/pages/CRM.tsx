@@ -4204,8 +4204,8 @@ const CRM = () => {
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight">Agendamentos</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl">
+                    <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2 sm:shrink-0 w-full sm:w-auto">
+                      <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl w-full sm:w-auto">
                         <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
                       </Button>
                       <Button 
@@ -4217,7 +4217,7 @@ const CRM = () => {
                           setContactListText('');
                           setIsSchedulingOpen(true);
                         }} 
-                        className="h-10 px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
+                        className="h-10 px-4 sm:px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
                       </Button>
@@ -6512,7 +6512,7 @@ const CRM = () => {
       </Dialog>
 
       <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
-        <DialogContent className="max-w-2xl rounded-3xl p-6 border-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-none shadow-2xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-primary">
               <CalendarClock className="w-5 h-5" /> Novo Agendamento
@@ -6551,7 +6551,7 @@ const CRM = () => {
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 pr-4 -mr-4 py-4">
+          <ScrollArea className="flex-1 pr-2 sm:pr-4 -mr-2 sm:-mr-4 py-4">
             <div className="space-y-6">
               {/* Configuração baseada no tipo de campanha */}
               {selectedCampaignType === 'individual' && (
@@ -6784,7 +6784,7 @@ const CRM = () => {
                         {scheduleDateObj ? format(scheduleDateObj, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-2xl border-none shadow-2xl" align="start">
+                    <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] p-0 rounded-2xl border-none shadow-2xl pointer-events-auto" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={scheduleDateObj}
@@ -6794,6 +6794,7 @@ const CRM = () => {
                         }}
                         initialFocus
                         locale={ptBR}
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -6806,12 +6807,12 @@ const CRM = () => {
             </div>
           </ScrollArea>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6">Cancelar</Button>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <Button variant="ghost" onClick={() => { setIsSchedulingOpen(false); setSelectedContactsForScheduling([]); }} className="rounded-xl h-11 px-6 w-full sm:w-auto">Cancelar</Button>
             <Button 
               onClick={selectedCampaignType === 'birthday' ? handleScheduleBirthday : handleScheduleBatch} 
               disabled={isScheduling || (selectedCampaignType === 'individual' && selectedContactsForScheduling.length === 0) || (selectedCampaignType === 'batch' && selectedContactsForScheduling.length === 0) || (selectedCampaignType === 'list' && !contactListText.trim())}
-              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20 font-bold"
+              className="rounded-xl h-11 bg-primary px-4 sm:px-8 shadow-lg shadow-primary/20 font-bold w-full sm:w-auto"
             >
               {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
               {selectedCampaignType === 'birthday' ? 'Agendar Aniversário' : 
