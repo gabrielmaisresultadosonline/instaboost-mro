@@ -778,20 +778,21 @@ async function internalSendTemplate(
       if (carouselComponent?.cards) {
         carouselMetadata = {
           carousel: {
-            cards: carouselComponent.cards.map((card: any) => {
+            cards: await Promise.all(carouselComponent.cards.map(async (card: any, cardIdx: number) => {
               const header = card.components?.find((c: any) => c.type === 'HEADER');
               const body = card.components?.find((c: any) => c.type === 'BODY');
               const buttons = card.components?.find((c: any) => c.type === 'BUTTONS');
               
               // Extrair o link de mídia para salvar no histórico
               let mediaUrl = header?.example?.header_handle?.[0] || header?.image?.link || header?.video?.link;
+              mediaUrl = await resolveTemplateMediaUrl(supabase, accessToken, mediaUrl, header?.format?.toLowerCase() || 'image', `${templateName}_history_${cardIdx}`);
               
               return {
                 header: header ? { ...header, media_url: mediaUrl } : null,
                 body: body,
                 buttons: buttons
               };
-            })
+            }))
           }
         };
       }
