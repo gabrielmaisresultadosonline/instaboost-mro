@@ -4204,8 +4204,8 @@ const CRM = () => {
                       <h2 className="text-lg md:text-2xl font-bold tracking-tight">Agendamentos</h2>
                       <p className="text-muted-foreground text-xs md:text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl">
+                    <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2 sm:shrink-0 w-full sm:w-auto">
+                      <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl w-full sm:w-auto">
                         <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
                       </Button>
                       <Button 
@@ -4217,7 +4217,7 @@ const CRM = () => {
                           setContactListText('');
                           setIsSchedulingOpen(true);
                         }} 
-                        className="h-10 px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
+                        className="h-10 px-4 sm:px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
                       </Button>
