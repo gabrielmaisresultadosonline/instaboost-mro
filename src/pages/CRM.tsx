@@ -6643,6 +6643,27 @@ const CRM = () => {
                 </div>
               )}
 
+              {selectedCampaignType === 'list' && (
+                <div className="space-y-3 animate-in fade-in duration-300">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                    <span>1. Lista de Contatos (vCard ou TXT)</span>
+                    <Badge variant="outline" className="text-[9px] font-bold">Importação Direta</Badge>
+                  </Label>
+                  <Textarea 
+                    placeholder="Cole aqui os números (um por linha) ou o conteúdo de um arquivo vCard..."
+                    className="min-h-[120px] rounded-xl bg-muted/30 border-none resize-none font-mono text-[11px]"
+                    value={contactListText}
+                    onChange={e => setContactListText(e.target.value)}
+                  />
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                    <AlertCircle className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-[10px] text-muted-foreground">
+                      Os números serão cadastrados automaticamente se não existirem. Formatos aceitos: <span className="font-bold">5511999999999</span> ou <span className="font-bold">vCard (.vcf)</span>.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {selectedCampaignType === 'birthday' && (
                 <div className="space-y-4 border p-4 rounded-2xl bg-primary/5 border-primary/20">
                   <div className="space-y-3">
