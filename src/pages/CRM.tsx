@@ -6551,7 +6551,7 @@ const CRM = () => {
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 pr-4 -mr-4 py-4">
+          <ScrollArea className="flex-1 pr-2 sm:pr-4 -mr-2 sm:-mr-4 py-4">
             <div className="space-y-6">
               {/* Configuração baseada no tipo de campanha */}
               {selectedCampaignType === 'individual' && (
