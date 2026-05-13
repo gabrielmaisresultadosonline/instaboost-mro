@@ -224,6 +224,7 @@ const CRM = () => {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingContacts, setSendingContacts] = useState<Record<string, boolean>>({});
+  const [loadingChat, setLoadingChat] = useState(false);
   const isSending = (id: string) => !!sendingContacts[id];
   const setContactSending = (id: string, state: boolean) => {
     setSendingContacts(prev => ({ ...prev, [id]: state }));
