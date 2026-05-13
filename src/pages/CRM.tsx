@@ -4204,7 +4204,17 @@ const CRM = () => {
                       <Button variant="outline" onClick={fetchAllScheduledMessages} className="h-10 px-4 rounded-xl">
                         <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
                       </Button>
-                      <Button onClick={() => setIsSchedulingOpen(true)} className="h-10 px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold">
+                      <Button 
+                        onClick={() => {
+                          setScheduleDate('');
+                          setScheduleDateObj(undefined);
+                          setScheduleTime('');
+                          setSelectedContactsForScheduling([]);
+                          setContactListText('');
+                          setIsSchedulingOpen(true);
+                        }} 
+                        className="h-10 px-6 rounded-xl bg-primary shadow-lg shadow-primary/20 font-bold"
+                      >
                         <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
                       </Button>
                     </div>
