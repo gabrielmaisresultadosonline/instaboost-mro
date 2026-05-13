@@ -1073,25 +1073,111 @@ const CRM = () => {
     }
   };
   const handleScheduleBatch = async () => {
-    if (selectedContactsForScheduling.length === 0) {
-      toast({ title: "Selecione pelo menos um contato", variant: "destructive" });
-      return;
+    let finalContactIds = [...selectedContactsForScheduling];
+
+    if (selectedCampaignType === 'list') {
+      if (!contactListText.trim()) {
+        toast({ title: "Cole uma lista de números ou vCard", variant: "destructive" });
+        return;
+      }
+      setIsScheduling(true);
+      try {
+        // Extrair números (considerando linhas, espaços ou formato vCard)
+        const lines = contactListText.split('\n');
+        const extractedNumbers: string[] = [];
+        
+        lines.forEach(line => {
+          // Se for vCard (TEL;TYPE=...)
+          if (line.includes('TEL;')) {
+            const num = line.split(':')[1]?.replace(/\D/g, '');
+            if (num) extractedNumbers.push(num);
+          } else {
+            // Apenas número
+            const num = line.replace(/\D/g, '');
+            if (num && num.length >= 8) extractedNumbers.push(num);
+          }
+        });
+
+        if (extractedNumbers.length === 0) {
+          toast({ title: "Nenhum número válido encontrado na lista", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+
+        // Criar ou encontrar contatos
+        const contactsToProcess = [...new Set(extractedNumbers)];
+        const createdIds: string[] = [];
+        
+        for (const num of contactsToProcess) {
+          let { data: contact } = await supabase.from('crm_contacts').select('id').eq('wa_id', num).maybeSingle();
+          if (!contact) {
+            const { data: newContact, error: createError } = await supabase.from('crm_contacts').insert({
+              wa_id: num,
+              name: num,
+              status: 'new',
+              source_type: 'bulk_import'
+            }).select().single();
+            if (!createError && newContact) contact = newContact;
+          }
+          if (contact) createdIds.push(contact.id);
+        }
+        finalContactIds = createdIds;
+      } catch (err: any) {
+        toast({ title: "Erro ao processar lista", description: err.message, variant: "destructive" });
+        setIsScheduling(false);
+        return;
+      }
     }
-    if (!scheduleDate || !scheduleTime) {
-      toast({ title: "Informe data e hora", variant: "destructive" });
-      return;
-    }
-    if (scheduleType !== 'message' && !selectedScheduleId) {
-      toast({ title: "Selecione um item para agendar", variant: "destructive" });
-      return;
-    }
-    if (scheduleType === 'message' && !newMessage.trim()) {
-      toast({ title: "Escreva a mensagem", variant: "destructive" });
+
+    if (finalContactIds.length === 0) {
+      toast({ title: "Nenhum contato selecionado", variant: "destructive" });
+      setIsScheduling(false);
       return;
     }
 
-    setIsScheduling(true);
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Informe data e hora", variant: "destructive" });
+      setIsScheduling(false);
+      return;
+    }
+
+    if (scheduleType !== 'message' && !selectedScheduleId) {
+      toast({ title: "Selecione um item para agendar", variant: "destructive" });
+      setIsScheduling(false);
+      return;
+    }
+
+    if (scheduleType === 'message' && !newMessage.trim()) {
+      toast({ title: "Escreva a mensagem", variant: "destructive" });
+      setIsScheduling(false);
+      return;
+    }
+
     try {
+      // Validar janela de 24h para mensagens comuns se necessário
+      if (scheduleType === 'message' || scheduleType === 'flow') {
+        const { data: contactsData } = await supabase.from('crm_contacts').select('id, last_message_received_at').in('id', finalContactIds);
+        const coldContacts = contactsData?.filter(c => {
+          if (!c.last_message_received_at) return true;
+          return (Date.now() - new Date(c.last_message_received_at).getTime() > 24 * 60 * 60 * 1000);
+        }) || [];
+
+        if (coldContacts.length > 0) {
+          const confirmCold = confirm(`Atenção: ${coldContacts.length} contatos estão fora da janela de 24h e podem não receber mensagens comuns. Deseja continuar apenas com os contatos ativos?`);
+          if (!confirmCold) {
+            setIsScheduling(false);
+            return;
+          }
+          // Filtrar apenas contatos ativos
+          finalContactIds = finalContactIds.filter(id => !coldContacts.find(c => c.id === id));
+          if (finalContactIds.length === 0) {
+            toast({ title: "Nenhum contato ativo para receber esta mensagem. Use um Template para contatos fora da janela.", variant: "destructive" });
+            setIsScheduling(false);
+            return;
+          }
+        }
+      }
+
       const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
       const payload: any = { action: scheduleType === 'message' ? 'sendMessage' : scheduleType === 'template' ? 'sendTemplate' : 'startFlow' };
       
@@ -1104,7 +1190,7 @@ const CRM = () => {
         payload.flowId = selectedScheduleId;
       }
 
-      const insertions = selectedContactsForScheduling.map(contactId => ({
+      const insertions = finalContactIds.map(contactId => ({
         contact_id: contactId,
         scheduled_for: scheduledFor,
         message_data: payload,
@@ -1117,6 +1203,7 @@ const CRM = () => {
       toast({ title: `${insertions.length} agendamentos criados!` });
       setIsSchedulingOpen(false);
       setSelectedContactsForScheduling([]);
+      setContactListText('');
       setNewMessage('');
       setSelectedScheduleId('');
       fetchAllScheduledMessages();
