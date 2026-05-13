@@ -628,8 +628,14 @@ async function internalSendTemplate(
             
             // 1. HEADER (Mídia)
             if (header && (header.format === 'IMAGE' || header.format === 'VIDEO')) {
-              const mediaUrl = header.example?.header_handle?.[0];
-              console.log(`[CAROUSEL-LOG] Card ${cardIdx} media URL: ${mediaUrl}`);
+              let mediaUrl = header.example?.header_handle?.[0];
+              
+              // Se não encontrou no example, tenta ver se veio como direct link (fallback para templates manuais)
+              if (!mediaUrl && header.image?.link) mediaUrl = header.image.link;
+              if (!mediaUrl && header.video?.link) mediaUrl = header.video.link;
+              
+              console.log(`[CAROUSEL-LOG] Card ${cardIdx} media URL detected: ${mediaUrl}`);
+              
               if (mediaUrl) {
                 cardComponents.push({
                   type: 'header',
@@ -638,6 +644,8 @@ async function internalSendTemplate(
                     [header.format.toLowerCase()]: { link: mediaUrl }
                   }]
                 });
+              } else {
+                console.log(`[CAROUSEL-LOG] Card ${cardIdx} skip header - NO MEDIA URL FOUND`);
               }
             }
 
