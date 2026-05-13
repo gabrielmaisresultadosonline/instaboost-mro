@@ -3125,7 +3125,7 @@ const CRM = () => {
                     </div>
                     
                     <div className={cn(
-                      "flex-1 flex flex-col min-h-0 relative",
+                      "flex-1 flex flex-col min-h-0 min-w-0 w-full relative overflow-hidden",
                       !selectedContact ? 'hidden md:flex items-center justify-center bg-muted/5' : 'flex'
                     )}>
                       {selectedContact ? (
