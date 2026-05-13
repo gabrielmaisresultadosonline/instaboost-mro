@@ -416,8 +416,12 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
   if (!mediaResponse.ok) throw new Error(`Falha ao baixar mídia (${mediaResponse.status})`)
   
   const arrayBuffer = await mediaResponse.arrayBuffer();
-  // Para áudio, forçamos o tipo e nome que a Meta espera para PTT (Push To Talk)
-  const contentType = media.type === 'audio' ? 'audio/ogg; codecs=opus' : (mediaResponse.headers.get('content-type') || media.mime);
+  // Para áudio e vídeo, usamos o MIME esperado pela Meta; alguns arquivos do storage
+  // podem vir com content-type incorreto (ex: video salvo como image/jpeg).
+  const responseContentType = mediaResponse.headers.get('content-type') || '';
+  const contentType = media.type === 'audio'
+    ? 'audio/ogg; codecs=opus'
+    : (media.type === 'video' ? media.mime : (responseContentType || media.mime));
   const fileName = media.type === 'audio' ? 'audio.ogg' : media.fileName;
   
   const blob = new Blob([arrayBuffer], { type: contentType })
