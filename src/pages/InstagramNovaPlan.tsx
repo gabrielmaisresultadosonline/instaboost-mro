@@ -62,7 +62,7 @@ const PLANS = {
   lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
 };
 
-const VendasCompleta = () => {
+const InstagramNovaPlan = () => {
   const [searchParams] = useSearchParams();
   const partnerSlug = searchParams.get('p');
   const [partner, setPartner] = useState<{id: string, name: string} | null>(null);
@@ -1024,4 +1024,4 @@ const VendasCompleta = () => {
   );
 };
 
-export default VendasCompleta;
+export default InstagramNovaPlan;
