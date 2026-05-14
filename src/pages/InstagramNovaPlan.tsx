@@ -280,7 +280,7 @@ const InstagramNovaPlan = () => {
             </a>
             <Button 
               onClick={scrollToPricing}
-              className="bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm px-4"
+              className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black text-xs sm:text-sm px-4 shadow-[0_0_15px_rgba(57,255,20,0.4)]"
             >
               Garantir Acesso
             </Button>
