@@ -104,7 +104,7 @@ serve(async (req) => {
 
     // Descrição do produto inclui email e username para identificação
     // Formato: MROIG_PLANO_username_email (email pode incluir afiliado:email@real.com)
-    let productDescription = `MROIG_${planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : "ANUAL"}_${cleanUsername}_${cleanEmail}`;
+    let productDescription = `MROIG_${planLabel}_${cleanUsername}_${cleanEmail}`;
     
     // Email para mostrar no checkout (sem prefixo do afiliado)
     let customerEmailForPayment = cleanEmail;
