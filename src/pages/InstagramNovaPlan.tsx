@@ -698,38 +698,6 @@ const InstagramNovaPlan = () => {
         </div>
       </section>
 
-      {/* Still Have Doubts */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ainda está com <span className="text-amber-400">dúvidas</span>?</h2>
-            <p className="text-gray-400 text-lg">Veja no vídeo abaixo como nossa ferramenta pode transformar seus resultados</p>
-          </div>
-          <div className="max-w-3xl mx-auto">
-            <div onClick={() => openVideo("htcmVvznaBs")} className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700">
-              <img src="https://img.youtube.com/vi/htcmVvznaBs/maxresdefault.jpg" alt="Video Final" className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                  <Play className="w-8 h-8 text-white ml-1" fill="white" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 mt-12">
-            {[
-              { icon: Zap, title: "Resultados Rápidos", desc: "Em apenas 7 horas utilizando nossa ferramenta você já começa a ver os primeiros resultados" },
-              { icon: Star, title: "Engajamento Garantido", desc: "Aumente significativamente o engajamento do seu público sem depender de anúncios pagos" },
-              { icon: Target, title: "Mais Vendas", desc: "Método comprovado que gera clientes e aumenta suas vendas de forma consistente" },
-            ].map((item, i) => (
-              <div key={i} className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 text-center">
-                <item.icon className="w-10 h-10 text-amber-400 mx-auto mb-4" />
-                <h4 className="font-bold text-lg mb-2">{item.title}</h4>
-                <p className="text-gray-400 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Computer Only Note */}
       <section className="py-10 px-4">
