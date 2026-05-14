@@ -311,12 +311,12 @@ const InstagramNovaPlan = () => {
               </div>
             </div>
 
-            <p className="relative mt-3 text-sm md:text-base text-gray-400">
+            <p className="relative mt-2 text-sm md:text-base text-gray-400">
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
           </div>
 
-          <div className="mt-10 max-w-4xl mx-auto" id="hero-video">
+          <div className="mt-6 max-w-4xl mx-auto" id="hero-video">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
               <iframe
                 src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
