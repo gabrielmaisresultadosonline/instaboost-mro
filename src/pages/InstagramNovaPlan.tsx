@@ -58,8 +58,9 @@ interface SalesSettings {
 }
 
 const PLANS = {
-  annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
+  solo: { name: "Solo", price: 197.00, days: 365, installment: "20,21", accounts: 1 },
+  pro: { name: "Pro", price: 397.00, days: 365, installment: "41", accounts: 4 },
+  agencia: { name: "Agência", price: 997.00, days: 365, installment: "102", accounts: 10 },
 };
 
 const InstagramNovaPlan = () => {
@@ -80,7 +81,7 @@ const InstagramNovaPlan = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [selectedPlan, setSelectedPlan] = useState<"solo" | "pro" | "agencia">("pro");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -480,7 +481,7 @@ const InstagramNovaPlan = () => {
         <div className="max-w-6xl mx-auto relative z-10">
 
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO</span>
             </h2>
             <p className="text-gray-400 text-lg mb-6">
@@ -488,59 +489,100 @@ const InstagramNovaPlan = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {/* Plano Anual */}
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-blue-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-center text-blue-400">Plano Anual</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo por 12 meses</p>
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Plano Solo */}
+            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl transition-all hover:scale-[1.02] ${selectedPlan === 'solo' ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-zinc-700'}`}>
+              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Solo</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">1 conta simultânea</p>
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-black text-blue-400">R$41</span>
+                  <span className="text-5xl sm:text-6xl font-[1000] text-emerald-400">R$20,21</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$397</span></p>
+                <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$197</span></p>
               </div>
               <div className="space-y-2 mb-6">
-                {annualFeatures.map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                    <span className="text-gray-300">{f}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2 text-xs text-gray-500 pt-1"><span>• {affiliateBonus}</span></div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-gray-300">1 conta fixa</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-gray-300">Ferramenta Completa</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-gray-300">Suporte Prioritário</span>
+                </div>
               </div>
-              <Button size="lg" className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
-                onClick={() => { trackLead('Instagram MRO - Plano Anual'); setSelectedPlan("annual"); setShowCheckoutModal(true); }}>
-                GARANTIR PLANO ANUAL
+              <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                onClick={() => { trackLead('Instagram MRO - Plano Solo'); setSelectedPlan("solo"); setShowCheckoutModal(true); }}>
+                ESCOLHER SOLO
               </Button>
             </div>
 
-            {/* Plano Vitalício */}
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl shadow-amber-500/30">
+            {/* Plano Pro */}
+            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl transition-all hover:scale-[1.05] z-10 ${selectedPlan === 'pro' ? 'border-amber-500 ring-4 ring-amber-500/20' : 'border-amber-500/50'}`}>
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">⭐ MAIS POPULAR</div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">⭐ RECOMENDADO</div>
               </div>
-              <h3 className="text-2xl font-bold mb-2 text-center text-amber-400 mt-2">Plano Vitalício</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo para sempre</p>
+              <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Pro</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">4 contas simultâneas</p>
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-black text-amber-400">R$81</span>
+                  <span className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$41</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$797</span></p>
+                <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$397</span></p>
               </div>
               <div className="space-y-2 mb-6">
-                {lifetimeFeatures.map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                    <span className="text-gray-300">{f}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2 text-xs text-gray-500 pt-1"><span>• {affiliateBonus}</span></div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-300 font-bold">4 contas fixas</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-300">5 testes mensais</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-300">Vídeos Passo a Passo</span>
+                </div>
               </div>
-              <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform"
-                onClick={() => { trackLead('Instagram MRO - Plano Vitalício'); setSelectedPlan("lifetime"); setShowCheckoutModal(true); }}>
-                GARANTIR PLANO VITALÍCIO
+              <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-[1000] py-6 rounded-xl shadow-lg shadow-amber-500/20"
+                onClick={() => { trackLead('Instagram MRO - Plano Pro'); setSelectedPlan("pro"); setShowCheckoutModal(true); }}>
+                ESCOLHER PRO
+              </Button>
+            </div>
+
+            {/* Plano Agência */}
+            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl transition-all hover:scale-[1.02] ${selectedPlan === 'agencia' ? 'border-purple-500 ring-2 ring-purple-500/20' : 'border-zinc-700'}`}>
+              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Agência</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">10 contas simultâneas</p>
+              <div className="text-center mb-6">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
+                  <span className="text-5xl sm:text-6xl font-[1000] text-purple-400">R$102</span>
+                </div>
+                <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$997</span></p>
+              </div>
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-300 font-bold">10 contas fixas</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-300">10 testes mensais</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-300">Suporte Agência VIP</span>
+                </div>
+              </div>
+              <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                onClick={() => { trackLead('Instagram MRO - Plano Agência'); setSelectedPlan("agencia"); setShowCheckoutModal(true); }}>
+                ESCOLHER AGÊNCIA
               </Button>
             </div>
           </div>
@@ -755,12 +797,12 @@ const InstagramNovaPlan = () => {
               <X className="w-5 h-5" />
             </button>
             <div className="text-center mb-6">
-              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "annual" ? "bg-blue-500/20" : "bg-gradient-to-br from-amber-500/20 to-orange-500/20"}`}>
-                <Sparkles className={`w-7 h-7 ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`} />
+              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "solo" ? "bg-emerald-500/20" : selectedPlan === "pro" ? "bg-amber-500/20" : "bg-purple-500/20"}`}>
+                <Sparkles className={`w-7 h-7 ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`} />
               </div>
               <h3 className="text-xl font-bold text-white">Plano {PLANS[selectedPlan].name}</h3>
               <p className="text-2xl font-bold mt-2">
-                <span className={selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
+                <span className={selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}>
                   R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
                 </span>
               </p>
@@ -782,9 +824,9 @@ const InstagramNovaPlan = () => {
               </div>
               <div className="bg-zinc-800/30 rounded-lg p-3 space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-zinc-400">Usuário/Senha</span><span className="text-white font-mono">{username || "---"}</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
               </div>
-              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "annual" ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"}`}
+              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "solo" ? "bg-emerald-500 hover:bg-emerald-600 text-black" : selectedPlan === "pro" ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black" : "bg-purple-600 hover:bg-purple-700 text-white"}`}
                 disabled={loading || !!usernameError || !username || !email || !phone}>
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Gerando...</>) : (<><CreditCard className="mr-2 h-5 w-5" />Ir para Pagamento</>)}
               </Button>
