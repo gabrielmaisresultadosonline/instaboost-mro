@@ -562,10 +562,13 @@ const InstagramNovaPlan = () => {
                   <span className="text-gray-300">Suporte Prioritário</span>
                 </div>
               </div>
-              <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
-                onClick={() => { trackLead('Instagram MRO - Plano Solo'); setSelectedPlan("solo"); setShowCheckoutModal(true); }}>
-                ESCOLHER SOLO
-              </Button>
+              <div className="flex flex-col items-center gap-2">
+                <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                  onClick={() => { trackLead('Instagram MRO - Plano Solo'); setSelectedPlan("solo"); setShowCheckoutModal(true); }}>
+                  ESCOLHER SOLO
+                </Button>
+                <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
+              </div>
             </div>
 
             {/* Plano Pro */}
