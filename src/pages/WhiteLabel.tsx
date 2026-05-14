@@ -20,7 +20,7 @@ import {
 import { motion } from 'framer-motion';
 
 const ProfitCalculator = () => {
-  const [sales, setSales] = useState(20);
+  const [sales, setSales] = useState(67);
   const pricePerSale = 397;
   const profitPerSale = 297; // Logic: R$ 397 - 30% (approx) = R$ 297 as requested
   
