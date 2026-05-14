@@ -101,7 +101,8 @@ const PartnersPanel = () => {
             email: currentPartner.email.toLowerCase().trim(),
             pix_key: currentPartner.pix_key,
             whatsapp: currentPartner.whatsapp,
-            status: currentPartner.status
+            status: currentPartner.status,
+            password: currentPartner.password
           })
           .eq('id', currentPartner.id);
 
@@ -116,6 +117,7 @@ const PartnersPanel = () => {
             email: currentPartner.email.toLowerCase().trim(),
             pix_key: currentPartner.pix_key,
             whatsapp: currentPartner.whatsapp,
+            password: currentPartner.password,
             status: 'active'
           }]);
 
