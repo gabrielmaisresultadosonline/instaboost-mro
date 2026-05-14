@@ -78,6 +78,9 @@ const ACCESS_DAYS = {
   monthly: 30,
   annual: 365,
   lifetime: 999999,
+  solo: 365,
+  pro: 365,
+  agencia: 365,
 };
 
 const DEFAULT_SETTINGS: AdminSettings = {
