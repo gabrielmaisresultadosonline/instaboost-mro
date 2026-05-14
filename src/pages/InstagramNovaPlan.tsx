@@ -824,7 +824,7 @@ const InstagramNovaPlan = () => {
               </div>
               <div className="bg-zinc-800/30 rounded-lg p-3 space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-zinc-400">Usuário/Senha</span><span className="text-white font-mono">{username || "---"}</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
               </div>
               <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "annual" ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"}`}
                 disabled={loading || !!usernameError || !username || !email || !phone}>
