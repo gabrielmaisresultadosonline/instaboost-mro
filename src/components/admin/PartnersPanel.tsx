@@ -230,6 +230,16 @@ const PartnersPanel = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="pass" className="text-right">Senha</Label>
+                <Input 
+                  id="pass" 
+                  className="col-span-3" 
+                  value={currentPartner.password || ''} 
+                  onChange={(e) => setCurrentPartner({...currentPartner, password: e.target.value})}
+                  placeholder="Senha de acesso"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="pix" className="text-right">Chave PIX</Label>
                 <Input 
                   id="pix" 
