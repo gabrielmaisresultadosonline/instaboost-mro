@@ -70,6 +70,7 @@ interface AffiliateData {
 const AffiliatePromoPage = () => {
   const { affiliateId } = useParams<{ affiliateId: string }>();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
+  const [partnerId, setPartnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   
