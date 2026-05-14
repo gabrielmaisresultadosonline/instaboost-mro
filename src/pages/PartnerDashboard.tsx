@@ -46,6 +46,16 @@ interface Order {
   payment_method: string | null;
 }
 
+interface TrialUser {
+  id: string;
+  email: string;
+  username: string;
+  password: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+}
+
 interface Partner {
   id: string;
   name: string;
@@ -68,6 +78,12 @@ const PartnerDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [visitsCount, setVisitsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [trials, setTrials] = useState<TrialUser[]>([]);
+  
+  // Trial creation state
+  const [isCreatingTrial, setIsCreatingTrial] = useState(false);
+  const [newTrial, setNewTrial] = useState({ email: '', username: '', password: '' });
+  const [trialLoading, setTrialLoading] = useState(false);
   
   // Settings edit mode
   const [isEditingSettings, setIsEditingSettings] = useState(false);
@@ -127,6 +143,15 @@ const PartnerDashboard = () => {
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
 
+      // Fetch trials
+      const { data: trialsData } = await supabase
+        .from('trial_users')
+        .select('*')
+        .eq('partner_id', partnerData.id)
+        .order('created_at', { ascending: false });
+      
+      setTrials(trialsData || []);
+
     } catch (error: any) {
       console.error(error);
       toast({ title: "Erro ao carregar dados", description: error.message, variant: "destructive" });
@@ -184,6 +209,35 @@ const PartnerDashboard = () => {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateTrial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partner) return;
+    setTrialLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('trial_users')
+        .insert({
+          partner_id: partner.id,
+          email: newTrial.email,
+          username: newTrial.username,
+          password: newTrial.password,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 1 day
+        });
+
+      if (error) throw error;
+
+      toast({ title: "Teste grátis criado com sucesso!" });
+      setNewTrial({ email: '', username: '', password: '' });
+      setIsCreatingTrial(false);
+      fetchPartnerData();
+    } catch (error: any) {
+      toast({ title: "Erro ao criar teste", description: error.message, variant: "destructive" });
+    } finally {
+      setTrialLoading(false);
     }
   };
 
@@ -381,6 +435,105 @@ const PartnerDashboard = () => {
           {/* Left: Orders and Leads */}
           <div className="lg:col-span-2 space-y-8">
             
+            {/* Trial Generation Area */}
+            <Card className="bg-zinc-900 border-zinc-800 text-white overflow-hidden">
+              <CardHeader className="border-b border-zinc-800 bg-zinc-900/50 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                  <Sparkles size={16} className="text-yellow-500" /> Gerar Teste Grátis (1 Dia)
+                </CardTitle>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="bg-yellow-500/10 border-yellow-500/20 text-yellow-500 hover:bg-yellow-500/20 text-xs font-bold"
+                  onClick={() => setIsCreatingTrial(!isCreatingTrial)}
+                >
+                  {isCreatingTrial ? "Fechar" : "Novo Teste"}
+                </Button>
+              </CardHeader>
+              <CardContent className="p-6">
+                {isCreatingTrial ? (
+                  <form onSubmit={handleCreateTrial} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase text-zinc-500">Email do Cliente</label>
+                      <Input 
+                        placeholder="cliente@email.com" 
+                        value={newTrial.email}
+                        onChange={(e) => setNewTrial({...newTrial, email: e.target.value})}
+                        className="bg-zinc-800 border-zinc-700 h-10 text-xs"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase text-zinc-500">Usuário MRO (SquareCloud)</label>
+                      <Input 
+                        placeholder="usuario_minusculo" 
+                        value={newTrial.username}
+                        onChange={(e) => setNewTrial({...newTrial, username: e.target.value.toLowerCase()})}
+                        className="bg-zinc-800 border-zinc-700 h-10 text-xs"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase text-zinc-500">Senha</label>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="senha" 
+                          value={newTrial.password}
+                          onChange={(e) => setNewTrial({...newTrial, password: e.target.value})}
+                          className="bg-zinc-800 border-zinc-700 h-10 text-xs"
+                          required
+                        />
+                        <Button type="submit" disabled={trialLoading} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 h-10 shrink-0">
+                          {trialLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="text-zinc-500 font-bold uppercase text-[10px] border-b border-zinc-800">
+                          <th className="px-4 py-3">Cliente</th>
+                          <th className="px-4 py-3">Login/Senha</th>
+                          <th className="px-4 py-3">Expira em</th>
+                          <th className="px-4 py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-800">
+                        {trials.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-4 py-8 text-center text-zinc-500 text-xs italic">Nenhum teste gerado ainda.</td>
+                          </tr>
+                        ) : (
+                          trials.map((trial) => (
+                            <tr key={trial.id} className="hover:bg-zinc-800/30 transition-colors">
+                              <td className="px-4 py-3">
+                                <div className="text-xs font-bold">{trial.email}</div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-[10px] font-mono bg-zinc-800 px-2 py-1 rounded inline-block">
+                                  {trial.username} / {trial.password}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-[10px] text-zinc-400">
+                                {format(new Date(trial.expires_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                              </td>
+                              <td className="px-4 py-3">
+                                <Badge className={new Date(trial.expires_at) > new Date() ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}>
+                                  {new Date(trial.expires_at) > new Date() ? "Ativo" : "Expirado"}
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Annual Sales Summary */}
             <Card className="bg-zinc-900 border-zinc-800 text-white overflow-hidden">
               <CardHeader className="border-b border-zinc-800 bg-zinc-900/50">
