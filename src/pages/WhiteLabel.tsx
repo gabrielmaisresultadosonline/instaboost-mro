@@ -551,7 +551,7 @@ const WhiteLabel = () => {
       <section className="py-20 px-4 relative bg-zinc-950/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">INVESTIMENTO <span className="text-yellow-500">WHITE LABEL</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">INVESTIMENTO <span className="text-yellow-500">PARCEIRO</span></h2>
             <p className="text-gray-400 text-lg">Escolha o melhor plano para começar sua própria agência de automação</p>
           </div>
           
@@ -594,8 +594,11 @@ const WhiteLabel = () => {
                     ))}
                   </ul>
 
-                  <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black h-14 rounded-2xl text-lg shadow-lg shadow-yellow-500/20 transition-all hover:scale-[1.02]">
-                    QUERO MEU SISTEMA AGORA
+                  <Button 
+                    onClick={handlePartnerContact}
+                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black h-14 rounded-2xl text-lg shadow-lg shadow-yellow-500/20 transition-all hover:scale-[1.02]"
+                  >
+                    QUERO MINHA FRANQUIA AGORA
                   </Button>
                 </CardContent>
               </Card>
@@ -609,7 +612,7 @@ const WhiteLabel = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-4">SIMULADOR DE <span className="text-yellow-500">LUCRO</span></h2>
-            <p className="text-gray-400 text-lg">Veja quanto você pode faturar sendo um parceiro White Label</p>
+            <p className="text-gray-400 text-lg">Veja quanto você pode faturar sendo um parceiro oficial</p>
           </div>
 
           <Card className="bg-zinc-950 border-white/10 rounded-[40px] overflow-hidden p-8 md:p-12 relative">
@@ -636,14 +639,14 @@ const WhiteLabel = () => {
               <span className="text-yellow-500">MAIS RESULTADOS.</span>
             </h2>
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-              Seja o dono da sua própria plataforma de SaaS. O mercado de automação para Instagram é o que mais cresce hoje. Não perca tempo.
+              Tenha sua própria franquia MRO. O mercado de automação para Instagram é o que mais cresce hoje. Não perca tempo.
             </p>
             <Button 
               size="lg" 
               onClick={handlePartnerContact}
               className="bg-white hover:bg-gray-100 text-black font-black h-16 px-12 rounded-2xl text-xl transition-all hover:scale-105"
             >
-              QUERO SER WHITE LABEL
+              QUERO MINHA FRANQUIA
             </Button>
           </div>
         </div>
@@ -654,7 +657,7 @@ const WhiteLabel = () => {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-2">
             <Instagram className="w-6 h-6 text-yellow-500" />
-            <span className="font-bold text-xl">WHITELABEL <span className="text-yellow-500">PRO</span></span>
+            <span className="font-bold text-xl">PARCEIRO <span className="text-yellow-500">OFICIAL</span></span>
           </div>
           <p className="text-gray-500 text-sm">© 2026 Todos os direitos reservados. Sua Marca.</p>
           <div className="flex gap-6">
