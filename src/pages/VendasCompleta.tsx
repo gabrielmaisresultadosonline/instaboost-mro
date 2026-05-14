@@ -161,6 +161,29 @@ const VendasCompleta = () => {
   }, []);
 
   useEffect(() => {
+    const loadPartner = async () => {
+      if (!partnerSlug) return;
+      const { data } = await supabase
+        .from('partners')
+        .select('id, name')
+        .eq('slug', partnerSlug)
+        .eq('status', 'active')
+        .single();
+      
+      if (data) {
+        setPartner(data);
+        // Track visit if partner found
+        await supabase.from('partner_visits').insert([{
+          partner_id: data.id,
+          user_agent: navigator.userAgent,
+          referer: document.referrer
+        }]);
+      }
+    };
+    loadPartner();
+  }, [partnerSlug]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
