@@ -72,8 +72,9 @@ const ProfitCalculator = () => {
         </div>
       </div>
 
-      <div className="bg-zinc-900/50 rounded-[32px] p-8 border border-white/5 text-center">
-        <span className="text-gray-500 text-sm font-bold uppercase tracking-widest">Seu Resultado Mensal</span>
+      <div className="bg-zinc-900/50 rounded-[32px] p-8 border border-white/5 text-center relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-500/10 blur-[40px] rounded-full pointer-events-none" />
+        <span className="text-gray-500 text-sm font-bold uppercase tracking-widest relative z-10">Seu Resultado Mensal</span>
         <div className="mt-4 mb-2">
           <span className="text-gray-400 text-lg mr-2 italic">Faturamento:</span>
           <span className="text-2xl font-bold text-white">R$ {totalFaturamento.toLocaleString('pt-BR')}</span>
