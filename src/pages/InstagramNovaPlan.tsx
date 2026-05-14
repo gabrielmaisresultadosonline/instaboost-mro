@@ -81,7 +81,7 @@ const InstagramNovaPlan = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [selectedPlan, setSelectedPlan] = useState<"solo" | "pro" | "agencia">("pro");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
