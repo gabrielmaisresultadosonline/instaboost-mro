@@ -300,14 +300,14 @@ const PartnerDashboard = () => {
           <CardHeader className="border-b border-zinc-800 bg-zinc-900/50">
             <div className="flex justify-between items-center">
               <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                <ArrowUpRight size={16} className="text-yellow-500" /> Seus Links de Divulgação
+                <ArrowUpRight size={16} className="text-yellow-500" /> Seu Link de Divulgação Oficial
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Página de Vendas Oficial</label>
+                <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Sua Página de Vendas</label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600">
@@ -315,33 +315,14 @@ const PartnerDashboard = () => {
                     </div>
                     <Input readOnly value={`${window.location.origin}/instagram-nova?p=${slug}`} className="bg-zinc-800/50 border-zinc-700 text-xs h-11 pl-10" />
                   </div>
-                  <Button variant="outline" className="h-11 px-4 gap-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700" onClick={() => {
+                  <Button variant="outline" className="h-11 px-6 gap-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700 font-bold" onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/instagram-nova?p=${slug}`);
                     toast({ title: "Link copiado!" });
                   }}>
-                    <Copy size={14} /> Copiar
+                    <Copy size={14} /> Copiar Link de Vendas
                   </Button>
                 </div>
-                <p className="text-[10px] text-zinc-500 italic">Ideal para vendas diretas do sistema.</p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Página White Label (Para Parceiros)</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600">
-                      <Sparkles size={14} />
-                    </div>
-                    <Input readOnly value={`${window.location.origin}/whitelabel?p=${slug}`} className="bg-zinc-800/50 border-zinc-700 text-xs h-11 pl-10" />
-                  </div>
-                  <Button variant="outline" className="h-11 px-4 gap-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700" onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/whitelabel?p=${slug}`);
-                    toast({ title: "Link copiado!" });
-                  }}>
-                    <Copy size={14} /> Copiar
-                  </Button>
-                </div>
-                <p className="text-[10px] text-zinc-500 italic">Use para atrair novos parceiros interessados na tecnologia.</p>
+                <p className="text-xs text-zinc-400 italic">Este é o seu link exclusivo. Todas as vendas realizadas através dele garantem sua comissão de R$ 297,00.</p>
               </div>
             </div>
           </CardContent>
