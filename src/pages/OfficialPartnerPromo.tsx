@@ -67,7 +67,7 @@ interface AffiliateData {
   promoEndTime?: string;
 }
 
-const AffiliatePromoPage = () => {
+const OfficialPartnerPromo = () => {
   const { affiliateId } = useParams<{ affiliateId: string }>();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
@@ -1555,4 +1555,4 @@ const AffiliatePromoPage = () => {
   );
 };
 
-export default AffiliatePromoPage;
+export default OfficialPartnerPromo;
