@@ -31,6 +31,7 @@ import DescontoAlunosRendaExtrass from "./pages/DescontoAlunosRendaExtrass";
 import InstagramPromoMila from "./pages/InstagramPromoMila";
 import AffiliatePromoPage from "./pages/AffiliatePromoPage";
 import AffiliateResumo from "./pages/AffiliateResumo";
+import PromoSwitcher from "./pages/PromoSwitcher";
 import Membro from "./pages/Membro";
 import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
@@ -175,9 +176,11 @@ const App = () => (
           <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
-          <Route path="/promo/:affiliateId" element={<AffiliatePromoPage />} />
-          <Route path="/resumo/:slug" element={<PartnerDashboard />} />
+          <Route path="/promo/:affiliateId" element={<PromoSwitcher />} />
+          <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
           <Route path="/parceiro/:slug" element={<PartnerDashboard />} />
+          <Route path="/dash/:slug" element={<PartnerDashboard />} />
+          <Route path="/resumo-parceiro/:slug" element={<PartnerDashboard />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />

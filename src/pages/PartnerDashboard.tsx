@@ -245,14 +245,14 @@ const PartnerDashboard = () => {
   const totalLeads = pendingOrders.length;
   const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.amount), 0);
   
-  // Commission logic: 70% of revenue
-  const totalCommission = totalRevenue * 0.7;
+  // Commission logic: R$ 297 per sale (approx 70% of R$ 397)
+  const totalCommission = paidOrders.length * 297;
   
   // Annual Revenue (Sales in current year)
   const currentYear = new Date().getFullYear();
   const annualSales = paidOrders.filter(o => new Date(o.created_at).getFullYear() === currentYear);
-  const annualRevenue = annualSales.reduce((sum, o) => sum + Number(o.amount), 0);
-  const annualCommission = annualRevenue * 0.7;
+  const annualRevenue = annualSales.length * 397;
+  const annualCommission = annualSales.length * 297;
 
   // Receivables logic
   // PIX = 1 day, Card = 8 days
@@ -365,7 +365,7 @@ const PartnerDashboard = () => {
                     </div>
                   </div>
                   <div className="bg-zinc-800/30 rounded-2xl p-6 border border-zinc-800/50">
-                    <p className="text-xs text-zinc-500 font-bold uppercase mb-2">Sua Parte Líquida (70%)</p>
+                    <p className="text-xs text-zinc-500 font-bold uppercase mb-2">Sua Parte Líquida (R$ 297 por venda)</p>
                     <p className="text-2xl font-black text-primary">R$ {annualCommission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     <p className="text-[10px] text-zinc-500 mt-2">* Taxa de plataforma 30% já descontada</p>
                   </div>

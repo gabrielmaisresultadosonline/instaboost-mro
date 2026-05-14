@@ -67,7 +67,7 @@ interface AffiliateData {
   promoEndTime?: string;
 }
 
-const AffiliatePromoPage = () => {
+const OfficialPartnerPromo = () => {
   const { affiliateId } = useParams<{ affiliateId: string }>();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
@@ -102,7 +102,35 @@ const AffiliatePromoPage = () => {
       }
 
       try {
-        // 1. Fallback to Supabase Storage (Legacy Affiliates)
+        // 1. Check Database first (Official Partners)
+        const { data: dbPartner, error: dbError } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('slug', affiliateId)
+          .single();
+
+        if (dbPartner && dbPartner.status === 'active') {
+          setAffiliate({
+            id: dbPartner.slug,
+            name: dbPartner.name,
+            email: dbPartner.email,
+            photoUrl: "", // Partners might not have photoUrl yet
+            active: true
+          });
+          setPartnerId(dbPartner.id);
+
+          // Record visit
+          await supabase.from('partner_visits').insert([{
+            partner_id: dbPartner.id,
+            user_agent: navigator.userAgent,
+            referer: document.referrer
+          }]);
+
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fallback to Supabase Storage (Legacy Affiliates)
         const { data, error } = await supabase.storage
           .from('user-data')
           .download('admin/affiliates.json');
@@ -452,13 +480,13 @@ const AffiliatePromoPage = () => {
               className="relative text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 text-white px-1"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
             >
-              FERRAMENTA COMPLETA PARA INSTAGRAM
+              NÃO GASTE COM ANÚNCIOS
             </h1>
             <h2 
-              className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-amber-500 px-1"
+              className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-orange-500 px-1"
               style={{ textShadow: '0 2px 8px rgba(249,115,22,0.3), 0 1px 3px rgba(0,0,0,0.8)' }}
             >
-              Aumente suas Vendas agora!
+              UTILIZE A MRO INTELIGENTE!
             </h2>
             <p className="text-gray-300 text-sm sm:text-base mt-3">
               Instale em seu notebook, macbook ou computador de mesa!
@@ -1527,4 +1555,4 @@ const AffiliatePromoPage = () => {
   );
 };
 
-export default AffiliatePromoPage;
+export default OfficialPartnerPromo;
