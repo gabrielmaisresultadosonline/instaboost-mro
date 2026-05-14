@@ -286,7 +286,7 @@ const InstagramNovaPlan = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-16 px-4">
+      <section className="relative pt-20 pb-8 px-4">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px]" />
           <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[100px]" />
@@ -295,28 +295,28 @@ const InstagramNovaPlan = () => {
         <div className="max-w-5xl mx-auto text-center relative">
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-4xl md:text-6xl lg:text-8xl font-[1000] mb-4 leading-tight tracking-tighter">
+            <h1 className="relative text-4xl md:text-6xl lg:text-8xl font-[1000] mb-2 leading-tight tracking-tighter">
                <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">NÃO GASTE MAIS COM ANÚNCIOS</span>
              </h1>
-             <h2 className="relative text-2xl md:text-4xl lg:text-5xl font-[1000] mb-6">
+             <h2 className="relative text-2xl md:text-4xl lg:text-5xl font-[1000] mb-4">
               <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-tight">
                 Utilize a MRO Inteligente!
               </span>
             </h2>
             
-            <div className="relative mt-10 mb-12 flex flex-col items-center">
-              <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-6 py-2.5 mb-2 backdrop-blur-sm">
+            <div className="relative mt-4 mb-4 flex flex-col items-center">
+              <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-6 py-2 mb-1 backdrop-blur-sm">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-emerald-400 font-bold text-base tracking-wide uppercase">Planos a partir de R$20</span>
               </div>
             </div>
 
-            <p className="relative mt-3 text-sm md:text-base text-gray-400">
+            <p className="relative mt-2 text-sm md:text-base text-gray-400">
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
           </div>
 
-          <div className="mt-10 max-w-4xl mx-auto" id="hero-video">
+          <div className="mt-6 max-w-4xl mx-auto" id="hero-video">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
               <iframe
                 src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
