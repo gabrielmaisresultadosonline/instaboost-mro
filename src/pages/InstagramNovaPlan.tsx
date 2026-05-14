@@ -295,7 +295,7 @@ const InstagramNovaPlan = () => {
         <div className="max-w-5xl mx-auto text-center relative">
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-4xl md:text-6xl lg:text-8xl font-[1000] mb-2 leading-tight tracking-tighter">
+            <h1 className="relative text-4xl md:text-6xl lg:text-8xl font-[1000] mb-2 leading-tight tracking-tighter filter drop-shadow-[0_0_1px_rgba(255,255,255,0.8)]">
                <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">NÃO GASTE MAIS COM ANÚNCIOS</span>
              </h1>
              <h2 className="relative text-2xl md:text-4xl lg:text-5xl font-[1000] mb-4">
