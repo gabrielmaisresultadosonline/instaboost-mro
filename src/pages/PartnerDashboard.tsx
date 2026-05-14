@@ -78,6 +78,12 @@ const PartnerDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [visitsCount, setVisitsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [trials, setTrials] = useState<TrialUser[]>([]);
+  
+  // Trial creation state
+  const [isCreatingTrial, setIsCreatingTrial] = useState(false);
+  const [newTrial, setNewTrial] = useState({ email: '', username: '', password: '' });
+  const [trialLoading, setTrialLoading] = useState(false);
   
   // Settings edit mode
   const [isEditingSettings, setIsEditingSettings] = useState(false);
