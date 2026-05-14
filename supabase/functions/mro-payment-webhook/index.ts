@@ -491,7 +491,7 @@ serve(async (req) => {
     }
 
     // Calcular dias de acesso
-    const daysAccess = order.plan_type === "lifetime" ? 999999 : order.plan_type === "trial" ? 30 : 365;
+    const daysAccess = 365; // All new plans are annual (365 days)
 
     // Criar usuário na API do SquareCloud (ou verificar se já existe)
     const apiResult = await createInstagramUser(order.username, order.username, daysAccess);
