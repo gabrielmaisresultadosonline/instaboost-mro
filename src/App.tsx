@@ -113,6 +113,7 @@ import MROCriativoWebhook from "./pages/MROCriativoWebhook";
 import MROCriativoOAuth from "./pages/MROCriativoOAuth";
 import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 import WhiteLabel from "./pages/WhiteLabel";
+import PartnerDashboard from "./pages/PartnerDashboard";
 
 
 
