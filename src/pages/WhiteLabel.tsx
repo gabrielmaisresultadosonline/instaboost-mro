@@ -98,6 +98,33 @@ const ProfitCalculator = () => {
 };
 
 const WhiteLabel = () => {
+  const [searchParams] = useSearchParams();
+  const partnerSlug = searchParams.get('p');
+  const [partner, setPartner] = useState<{name: string, whatsapp: string} | null>(null);
+
+  useEffect(() => {
+    const fetchPartner = async () => {
+      if (!partnerSlug) return;
+      const { data } = await supabase
+        .from('partners')
+        .select('name, whatsapp')
+        .eq('slug', partnerSlug)
+        .single();
+      if (data) setPartner(data);
+    };
+    fetchPartner();
+  }, [partnerSlug]);
+
+  const handlePartnerContact = () => {
+    if (partner?.whatsapp) {
+      const msg = encodeURIComponent(`Olá ${partner.name}, vi a página de White Label e tenho interesse em investir R$ 6.000 para ter meu próprio sistema!`);
+      window.open(`https://wa.me/55${partner.whatsapp.replace(/\D/g, '')}?text=${msg}`, '_blank');
+    } else {
+      // Fallback ou comportamento padrão se não houver parceiro
+      window.open('https://wa.me/5511999999999', '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-yellow-400 selection:text-black">
       {/* Background Effects */}
