@@ -453,7 +453,7 @@ serve(async (req) => {
     const daysAccess = 365; // All new plans are annual (365 days)
 
     // Criar usuário na API do SquareCloud (ou verificar se já existe)
-    const apiResult = await createInstagramUser(order.username, order.username, daysAccess);
+    const apiResult = await createInstagramUser(order.username, order.username, daysAccess, order.plan_type);
     log("API user creation result", apiResult);
 
     // Determinar email real do cliente (remover prefixo de afiliado se houver)
