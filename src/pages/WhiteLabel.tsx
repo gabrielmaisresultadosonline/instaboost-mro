@@ -1,28 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+// ... (outros imports ja existentes)
 import { 
   Instagram, 
-  MessageSquare, 
-  TrendingUp, 
-  Users, 
-  CheckCircle2, 
-  ArrowRight, 
-  Zap, 
-  ShieldCheck, 
-  BarChart3,
-  Rocket,
-  Calculator,
-  DollarSign,
-  MousePointer2,
-  UserPlus,
-  Target,
-  Send,
-  ExternalLink,
-  Sparkles,
-  Search,
+...
   Bot
 } from 'lucide-react';
 import { motion } from 'framer-motion';
