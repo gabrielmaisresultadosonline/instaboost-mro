@@ -351,7 +351,7 @@ const InstagramNovaPlan = () => {
           <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
           <Button 
             onClick={scrollToPricing}
-            className="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-12 py-7 rounded-full text-lg shadow-xl shadow-emerald-500/20 transition-all hover:scale-105"
+            className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
           >
             QUERO COMEÇAR AGORA
           </Button>
