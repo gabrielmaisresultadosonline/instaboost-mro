@@ -1110,6 +1110,9 @@ const Admin = () => {
             </Button>
           </div>
         )}
+        {activeTab === 'partners' && (
+          <PartnersPanel />
+        )}
         {/* WhatsApp Settings Tab */}
         {activeTab === 'whatsapp' && (
           <WhatsAppSettingsTab />
