@@ -322,13 +322,6 @@ const InstagramNovaPlan = () => {
           </div>
 
 
-          <div className="mt-8 max-w-4xl mx-auto">
-            <img 
-              src={zeroAnunciosBanner} 
-              alt="Zero Anúncios. Resultados Reais." 
-              className="w-full h-auto rounded-2xl"
-            />
-          </div>
 
           <div className="mt-10 animate-bounce">
             <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
