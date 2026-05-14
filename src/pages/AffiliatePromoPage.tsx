@@ -313,6 +313,7 @@ const AffiliatePromoPage = () => {
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: `${affiliateId}:${email.toLowerCase().trim()}`,
+          partner_id: partnerId,
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
