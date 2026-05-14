@@ -353,9 +353,6 @@ const InstagramNovaPlan = () => {
               <Lightbulb className="w-5 h-5 text-amber-400" />
               <span className="text-amber-400 font-bold text-sm">O QUE HÁ DE NOVO</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black mb-4">
-              NOVIDADES DA <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">V7+ PLUS</span>
-            </h2>
             <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-2">
               Totalmente otimizada com mais automação, mais inteligência e mais resultados
             </p>
