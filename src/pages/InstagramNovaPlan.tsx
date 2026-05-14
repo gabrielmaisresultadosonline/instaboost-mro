@@ -303,6 +303,19 @@ const InstagramNovaPlan = () => {
                 Utilize a MRO Inteligente!
               </span>
             </h2>
+            
+            <div className="relative mt-8 mb-10">
+              <p className="text-xl md:text-2xl font-bold text-white mb-6">
+                Apenas <span className="text-emerald-400 text-3xl md:text-4xl font-[1000]">R$20 MENSAL</span> para obter resultados reais e assertivos!
+              </p>
+              <Button 
+                onClick={scrollToPricing}
+                className="bg-emerald-500 hover:bg-emerald-600 text-black font-[1000] text-lg md:text-xl px-10 py-8 rounded-2xl shadow-2xl shadow-emerald-500/40 transition-all hover:scale-105 animate-pulse"
+              >
+                APROVEITAR AGORA POR R$20
+              </Button>
+            </div>
+
             <p className="relative mt-3 text-sm md:text-base text-gray-400">
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
