@@ -58,8 +58,9 @@ interface SalesSettings {
 }
 
 const PLANS = {
-  annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
+  solo: { name: "Solo", price: 197.00, days: 365, installment: "20,21", accounts: 1 },
+  pro: { name: "Pro", price: 397.00, days: 365, installment: "41", accounts: 4 },
+  agencia: { name: "Agência", price: 997.00, days: 365, installment: "102", accounts: 10 },
 };
 
 const InstagramNovaPlan = () => {
