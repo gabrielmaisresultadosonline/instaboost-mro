@@ -71,6 +71,7 @@ const InstagramNovaPlan = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
   const [promoTimeLeft, setPromoTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, expired: false });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showBonusDetails, setShowBonusDetails] = useState(false);
   const pricingRef = useRef<HTMLDivElement>(null);
   const [salesSettings, setSalesSettings] = useState<SalesSettings>({
     whatsappNumber: '+55 51 9203-6540',
