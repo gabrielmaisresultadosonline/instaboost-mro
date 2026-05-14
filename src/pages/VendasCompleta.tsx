@@ -63,6 +63,9 @@ const PLANS = {
 };
 
 const VendasCompleta = () => {
+  const [searchParams] = useSearchParams();
+  const partnerSlug = searchParams.get('p');
+  const [partner, setPartner] = useState<{id: string, name: string} | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
