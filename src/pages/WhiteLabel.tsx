@@ -15,7 +15,15 @@ import {
   BarChart3,
   Rocket,
   Calculator,
-  DollarSign
+  DollarSign,
+  MousePointer2,
+  UserPlus,
+  Target,
+  Send,
+  ExternalLink,
+  Sparkles,
+  Search,
+  Bot
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
