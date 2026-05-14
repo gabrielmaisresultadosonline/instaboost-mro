@@ -527,15 +527,33 @@ const PartnerDashboard = () => {
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase text-zinc-500">Link de Vendas</label>
-                  <div className="flex gap-2">
-                    <Input readOnly value={`${window.location.origin}/promo/${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/promo/${slug}`);
-                      toast({ title: "Link copiado!" });
-                    }}>
-                      <ArrowUpRight size={14} />
-                    </Button>
+                  <label className="text-[10px] font-bold uppercase text-zinc-500">Links de Divulgação</label>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-zinc-400">Página de Vendas:</span>
+                      <div className="flex gap-2">
+                        <Input readOnly value={`${window.location.origin}/promo/${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
+                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/promo/${slug}`);
+                          toast({ title: "Link copiado!" });
+                        }}>
+                          <ArrowUpRight size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-zinc-400">Página de WhiteLabel:</span>
+                      <div className="flex gap-2">
+                        <Input readOnly value={`${window.location.origin}/whitelabel?p=${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
+                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/whitelabel?p=${slug}`);
+                          toast({ title: "Link copiado!" });
+                        }}>
+                          <ArrowUpRight size={14} />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
