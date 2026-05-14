@@ -779,20 +779,6 @@ const InstagramNovaPlan = () => {
         </div>
       </section>
 
-      {/* WhatsApp Link to Landing Page */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => {
-            trackLead("Instagram Nova - Floating WhatsApp");
-            window.location.href = "/whatsapp";
-          }}
-          className="w-16 h-16 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300"
-          title="Falar no WhatsApp"
-        >
-          <WhatsAppIcon className="w-8 h-8" />
-        </button>
-      </div>
-
       {/* Final CTA */}
       <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto text-center">
@@ -800,6 +786,28 @@ const InstagramNovaPlan = () => {
             Pronto para <span className="text-amber-400">Escalar</span> seu Instagram?
           </h2>
           <p className="text-xl text-gray-400 mb-10">Junte-se a milhares de empreendedores que já transformaram seus perfis com a V7+ Plus</p>
+          
+          <div className="mt-12 mb-10 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden max-w-2xl mx-auto">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-16 h-16 bg-[#25D366] rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
+                <WhatsAppIcon className="w-9 h-9 text-white" />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Ficou com dúvidas?</h3>
+              <p className="text-gray-300 mb-8 text-lg">Entre em contato conosco agora mesmo pelo WhatsApp para falar com um especialista.</p>
+              <Button 
+                onClick={() => {
+                  trackLead("Instagram Nova - Final WhatsApp CTA");
+                  window.location.href = "/whatsapp";
+                }}
+                className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-lg px-10 py-7 rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 flex items-center gap-3 w-full sm:w-auto"
+              >
+                FALAR COM SUPORTE NO WHATSAPP
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
           <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
             onClick={() => {
               trackLead("Instagram Nova - Final CTA Scroll");
@@ -883,7 +891,7 @@ const InstagramNovaPlan = () => {
         </div>
       )}
 
-      <FloatingWhatsAppHelp scrollTargetId="hero-video" />
+      {/* Floating help removed as requested to be only at bottom */}
     </div>
 
   );
