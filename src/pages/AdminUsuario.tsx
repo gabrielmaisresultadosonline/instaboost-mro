@@ -166,7 +166,7 @@ export default function AdminUsuario() {
     username: '',
     password: '',
     serviceType: 'instagram' as 'whatsapp' | 'instagram',
-    accessType: 'annual' as 'annual' | 'lifetime' | 'monthly',
+    accessType: 'annual' as 'annual' | 'lifetime' | 'monthly' | 'solo' | 'pro' | 'agencia',
     notes: '',
     createInApi: true, // Criar usuário na API (SquareCloud)
   });
