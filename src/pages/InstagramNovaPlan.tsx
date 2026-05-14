@@ -480,7 +480,7 @@ const InstagramNovaPlan = () => {
               <div className="h-12 w-px bg-zinc-800 hidden md:block" />
               <Button 
                 onClick={scrollToPricing}
-                className="bg-white hover:bg-gray-100 text-black font-black px-12 py-7 rounded-full text-lg transition-all hover:scale-105"
+                className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
               >
                 VER TODOS OS PLANOS
               </Button>
