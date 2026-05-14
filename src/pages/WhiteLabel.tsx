@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { 
   Instagram, 
   MessageSquare, 
@@ -12,9 +13,76 @@ import {
   Zap, 
   ShieldCheck, 
   BarChart3,
-  Rocket
+  Rocket,
+  Calculator,
+  DollarSign
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+const ProfitCalculator = () => {
+  const [sales, setSales] = useState(67);
+  const pricePerSale = 397;
+  const profitPerSale = 297; // Logic: R$ 397 - 30% (approx) = R$ 297 as requested
+  
+  const totalFaturamento = sales * pricePerSale;
+  const totalProfit = sales * profitPerSale;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="space-y-8">
+        <div>
+          <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-6">
+            Número de Vendas Mensais: <span className="text-yellow-500 text-2xl ml-2">{sales}</span>
+          </label>
+          <Slider
+            defaultValue={[67]}
+            max={200}
+            step={1}
+            onValueChange={(value) => setSales(value[0])}
+            className="py-4"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-2 font-mono">
+            <span>0</span>
+            <span>100</span>
+            <span>200+</span>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5">
+            <span className="text-gray-400">Preço de Venda (Anual)</span>
+            <span className="font-bold text-white">R$ {pricePerSale}</span>
+          </div>
+          <div className="flex justify-between items-center p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
+            <span className="text-yellow-500 font-bold">Seu Lucro Líquido por Venda</span>
+            <span className="font-bold text-yellow-500">R$ {profitPerSale}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-zinc-900/50 rounded-[32px] p-8 border border-white/5 text-center">
+        <span className="text-gray-500 text-sm font-bold uppercase tracking-widest">Seu Resultado Mensal</span>
+        <div className="mt-4 mb-2">
+          <span className="text-gray-400 text-lg mr-2 italic">Faturamento:</span>
+          <span className="text-2xl font-bold text-white">R$ {totalFaturamento.toLocaleString('pt-BR')}</span>
+        </div>
+        <div className="text-6xl font-black text-yellow-500 mb-4 tracking-tighter">
+          R$ {totalProfit.toLocaleString('pt-BR')}
+        </div>
+        <p className="text-gray-500 text-sm">
+          Faturamento líquido mensal baseado na simulação de {sales} vendas.
+        </p>
+        
+        <div className="mt-8 pt-8 border-t border-white/5">
+          <span className="text-gray-400 text-xs uppercase font-bold block mb-2">Estimativa Anual Líquida</span>
+          <div className="text-3xl font-black text-white">
+            R$ {(totalProfit * 12).toLocaleString('pt-BR')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const WhiteLabel = () => {
   return (
@@ -170,11 +238,11 @@ const WhiteLabel = () => {
               <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-[40px] blur opacity-25" />
               <Card className="bg-zinc-950 border-white/10 rounded-[40px] overflow-hidden relative z-10">
                 <CardContent className="p-10 text-center">
-                  <Badge className="bg-yellow-500 text-black font-bold mb-6">PLANO ANUAL</Badge>
+                  <Badge className="bg-yellow-500 text-black font-bold mb-6">ATIVAÇÃO POR 1 ANO</Badge>
                   <div className="mb-8">
-                    <span className="text-gray-400 text-lg">Apenas</span>
+                    <span className="text-gray-400 text-lg text-balance">Investimento Único</span>
                     <div className="text-6xl font-black text-white my-2">R$ 6.000</div>
-                    <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">À vista no PIX</span>
+                    <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">Acesso por 12 meses</span>
                   </div>
                   
                   <div className="py-6 border-y border-white/5 mb-8">
@@ -185,26 +253,47 @@ const WhiteLabel = () => {
 
                   <ul className="text-left space-y-4 mb-10">
                     {[
-                      "Acesso vitalício à tecnologia",
-                      "Painel Admin Exclusivo",
-                      "Sua Marca e Seu Domínio",
-                      "Suporte VIP 24/7",
-                      "Atualizações Gratuitas"
+                      "Vendas ILIMITADAS de clientes",
+                      "Liberação de Teste Grátis para prospectos",
+                      "Passo a passo completo de vendas",
+                      "Faturamento Anual Est. R$ 238 mil líquido",
+                      "Sua Marca e Seu Domínio Próprio",
+                      "Painel Admin para Gestão Total"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-gray-300">
                         <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                        <span>{item}</span>
+                        <span className="text-sm md:text-base font-medium">{item}</span>
                       </li>
                     ))}
                   </ul>
 
                   <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black h-14 rounded-2xl text-lg shadow-lg shadow-yellow-500/20 transition-all hover:scale-[1.02]">
-                    ADQUIRIR AGORA
+                    QUERO MEU SISTEMA AGORA
                   </Button>
                 </CardContent>
               </Card>
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* Profit Calculator Section */}
+      <section className="py-24 px-4 relative overflow-hidden bg-black">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">SIMULADOR DE <span className="text-yellow-500">LUCRO</span></h2>
+            <p className="text-gray-400 text-lg">Veja quanto você pode faturar sendo um parceiro White Label</p>
+          </div>
+
+          <Card className="bg-zinc-950 border-white/10 rounded-[40px] overflow-hidden p-8 md:p-12 relative">
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Calculator className="w-32 h-32 text-yellow-500" />
+            </div>
+            
+            <CardContent className="space-y-12">
+              <ProfitCalculator />
+            </CardContent>
+          </Card>
         </div>
       </section>
 
