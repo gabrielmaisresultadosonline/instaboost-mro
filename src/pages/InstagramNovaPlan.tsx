@@ -43,7 +43,8 @@ import {
   Rocket,
   Crown,
   Flame,
-  MousePointerClick
+  MousePointerClick,
+  ShoppingCart
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
@@ -563,8 +564,9 @@ const InstagramNovaPlan = () => {
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
                   onClick={() => { trackLead('Instagram MRO - Plano Solo'); setSelectedPlan("solo"); setShowCheckoutModal(true); }}>
+                  <ShoppingCart className="w-6 h-6" />
                   ESCOLHER SOLO
                 </Button>
                 <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
@@ -600,8 +602,9 @@ const InstagramNovaPlan = () => {
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-[1000] py-6 rounded-xl shadow-lg shadow-amber-500/20"
+                <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
                   onClick={() => { trackLead('Instagram MRO - Plano Pro'); setSelectedPlan("pro"); setShowCheckoutModal(true); }}>
+                  <ShoppingCart className="w-6 h-6" />
                   ESCOLHER PRO
                 </Button>
                 <span className="text-amber-500/70 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
@@ -634,8 +637,9 @@ const InstagramNovaPlan = () => {
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
                   onClick={() => { trackLead('Instagram MRO - Plano Agência'); setSelectedPlan("agencia"); setShowCheckoutModal(true); }}>
+                  <ShoppingCart className="w-6 h-6" />
                   ESCOLHER AGÊNCIA
                 </Button>
                 <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
