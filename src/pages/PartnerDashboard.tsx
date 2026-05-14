@@ -143,6 +143,15 @@ const PartnerDashboard = () => {
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
 
+      // Fetch trials
+      const { data: trialsData } = await supabase
+        .from('trial_users')
+        .select('*')
+        .eq('partner_id', partnerData.id)
+        .order('created_at', { ascending: false });
+      
+      setTrials(trialsData || []);
+
     } catch (error: any) {
       console.error(error);
       toast({ title: "Erro ao carregar dados", description: error.message, variant: "destructive" });
