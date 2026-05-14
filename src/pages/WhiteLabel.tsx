@@ -492,9 +492,9 @@ const WhiteLabel = () => {
               
               <ul className="space-y-6">
                 {[
-                  "Sua logo e sua identidade visual",
-                  "Domínio próprio personalizado",
-                  "Painel administrativo completo",
+                  "Nossa logo e nossa identidade oficial",
+                  "Link de divulgação exclusivo",
+                  "Painel de parceiro completo",
                   "Gestão total de usuários e planos",
                   "Tecnologia anti-bloqueio avançada",
                   "Suporte técnico especializado"
@@ -519,7 +519,7 @@ const WhiteLabel = () => {
                     </div>
                     <div>
                       <h4 className="font-bold text-white text-xl">Direct Pro Master</h4>
-                      <p className="text-gray-500 text-sm">Powered by Your Brand</p>
+                      <p className="text-gray-500 text-sm">Powered by MRO Inteligente</p>
                     </div>
                   </div>
                   
@@ -584,8 +584,8 @@ const WhiteLabel = () => {
                       "Liberação de Teste Grátis para prospectos",
                       "Passo a passo completo de vendas",
                       "Faturamento Anual Est. R$ 238 mil líquido",
-                      "Sua Marca e Seu Domínio Próprio",
-                      "Painel Admin para Gestão Total"
+                      "Nossa Marca e Identidade Visual",
+                      "Painel de Parceiro para Gestão Total"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-gray-300">
                         <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
@@ -659,7 +659,7 @@ const WhiteLabel = () => {
             <Instagram className="w-6 h-6 text-yellow-500" />
             <span className="font-bold text-xl">PARCEIRO <span className="text-yellow-500">OFICIAL</span></span>
           </div>
-          <p className="text-gray-500 text-sm">© 2026 Todos os direitos reservados. Sua Marca.</p>
+          <p className="text-gray-500 text-sm">© 2026 Todos os direitos reservados. MRO Inteligente.</p>
           <div className="flex gap-6">
             <a href="#" className="text-gray-400 hover:text-yellow-500 transition-colors">Termos</a>
             <a href="#" className="text-gray-400 hover:text-yellow-500 transition-colors">Privacidade</a>
