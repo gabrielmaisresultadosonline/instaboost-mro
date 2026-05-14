@@ -344,7 +344,17 @@ const InstagramNovaPlan = () => {
       {/* Active Clients section removed as requested */}
 
 
-      {/* ====== O QUE HÁ DE NOVO NA V7+ PLUS ====== */}
+      <div className="py-10 text-center bg-zinc-900/30 border-y border-zinc-800">
+        <p className="text-2xl md:text-3xl font-black text-white mb-6">
+          POR APENAS <span className="text-emerald-400">R$20 REAIS</span> VOCÊ JÁ PODE COMEÇAR!
+        </p>
+        <Button 
+          onClick={scrollToPricing}
+          className="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-12 py-6 rounded-full text-lg shadow-lg shadow-emerald-500/20"
+        >
+          QUERO COMEÇAR POR R$20
+        </Button>
+      </div>
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
