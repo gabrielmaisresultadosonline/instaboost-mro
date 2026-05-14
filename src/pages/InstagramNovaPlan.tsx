@@ -633,10 +633,13 @@ const InstagramNovaPlan = () => {
                   <span className="text-gray-300">Suporte Agência VIP</span>
                 </div>
               </div>
-              <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
-                onClick={() => { trackLead('Instagram MRO - Plano Agência'); setSelectedPlan("agencia"); setShowCheckoutModal(true); }}>
-                ESCOLHER AGÊNCIA
-              </Button>
+              <div className="flex flex-col items-center gap-2">
+                <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                  onClick={() => { trackLead('Instagram MRO - Plano Agência'); setSelectedPlan("agencia"); setShowCheckoutModal(true); }}>
+                  ESCOLHER AGÊNCIA
+                </Button>
+                <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
+              </div>
             </div>
           </div>
         </div>
