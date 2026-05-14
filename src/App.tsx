@@ -112,6 +112,7 @@ import MROCriativoCallback from "./pages/MROCriativoCallback";
 import MROCriativoWebhook from "./pages/MROCriativoWebhook";
 import MROCriativoOAuth from "./pages/MROCriativoOAuth";
 import GoogleContactsCallback from "./pages/GoogleContactsCallback";
+import WhiteLabel from "./pages/WhiteLabel";
 
 
 
