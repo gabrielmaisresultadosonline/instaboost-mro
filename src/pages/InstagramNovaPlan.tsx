@@ -415,165 +415,60 @@ const InstagramNovaPlan = () => {
             </p>
           </div>
 
-          {/* DM em Massa */}
-          <div className="mb-10">
-            <div className="relative bg-gradient-to-br from-blue-950/60 to-blue-900/30 border-2 border-blue-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <Send className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="bg-blue-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">NOVO</div>
-                    <h3 className="text-2xl md:text-3xl font-black text-blue-300">Automação de Direct (DM) em Massa</h3>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {[
-                    { icon: UserPlus, text: "Envio automático para novos seguidores" },
-                    { icon: Users, text: "Envio para seus seguidores atuais" },
-                    { icon: Target, text: "Envio para seguidores de qualquer página" },
-                    { icon: Bot, text: "Copy otimizada com Corretor de IA exclusivo MRO" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-4 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 hover:bg-blue-500/15 transition-colors">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                        <item.icon className="w-5 h-5 text-blue-400" />
-                      </div>
-                      <span className="text-gray-200 font-medium">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12 text-left space-y-8">
+            <div>
+              <h3 className="text-xl font-black text-blue-400 mb-4">NOVO: Automação de Direct (DM) em Massa</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Envio automático para novos seguidores</li>
+                <li>• Envio para seus seguidores atuais</li>
+                <li>• Envio para seguidores de qualquer página</li>
+                <li>• Copy otimizada com Corretor de IA exclusivo MRO</li>
+              </ul>
             </div>
-          </div>
 
-          {/* Filtros Inteligentes */}
-          <div className="mb-10">
-            <div className="relative bg-gradient-to-br from-purple-950/60 to-purple-900/30 border-2 border-purple-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                    <Filter className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="bg-purple-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">NOVO</div>
-                    <h3 className="text-2xl md:text-3xl font-black text-purple-300">Filtros Inteligentes (Público Quente)</h3>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-4 bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
-                    <Target className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                    <span className="text-gray-200">Segmentação avançada para atingir quem realmente tem interesse</span>
-                  </div>
-                  <div className="flex items-center gap-4 bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
-                    <TrendingUp className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                    <span className="text-gray-200">Mais precisão = mais respostas e conversões</span>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <h3 className="text-xl font-black text-purple-400 mb-4">NOVO: Filtros Inteligentes (Público Quente)</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Segmentação avançada para atingir quem realmente tem interesse</li>
+                <li>• Mais precisão = mais respostas e conversões</li>
+              </ul>
             </div>
-          </div>
 
-          {/* Automação Completa de Crescimento */}
-          <div className="mb-10">
-            <div className="relative bg-gradient-to-br from-amber-950/60 to-amber-900/30 border-2 border-amber-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none -translate-x-1/2" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                    <TrendingUp className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="bg-amber-500 text-black text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">PRINCIPAL</div>
-                    <h3 className="text-2xl md:text-3xl font-black text-amber-300">Automação Completa de Crescimento</h3>
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { icon: UserPlus, text: "Seguir em massa", color: "text-green-400" },
-                    { icon: Heart, text: "Curtir fotos automaticamente", color: "text-pink-400" },
-                    { icon: Flame, text: "Curtir stories", color: "text-orange-400" },
-                    { icon: RefreshCw, text: "Deixar de seguir", color: "text-blue-400" },
-                  ].map((item, i) => (
-                    <div key={i} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 text-center hover:scale-105 transition-transform">
-                      <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mx-auto mb-3">
-                        <item.icon className={`w-6 h-6 ${item.color}`} />
-                      </div>
-                      <span className="text-gray-200 font-bold text-sm">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div>
+              <h3 className="text-xl font-black text-amber-400 mb-4">PRINCIPAL: Automação Completa de Crescimento</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Seguir em massa</li>
+                <li>• Curtir fotos automaticamente</li>
+                <li>• Curtir stories</li>
+                <li>• Deixar de seguir</li>
+              </ul>
             </div>
-          </div>
 
-          {/* Captura Avançada de Público */}
-          <div className="mb-10">
-            <div className="relative bg-gradient-to-br from-green-950/60 to-green-900/30 border-2 border-green-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">
-                    <MousePointerClick className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="bg-green-500 text-black text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">AVANÇADO</div>
-                    <h3 className="text-2xl md:text-3xl font-black text-green-300">Captura Avançada de Público</h3>
-                  </div>
-                </div>
-                <p className="text-gray-400 mb-5 text-lg">Extraia leads altamente qualificados:</p>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {["Pessoas que curtem posts", "Pessoas que comentam", "Seguidores de qualquer perfil", "Quem o perfil está seguindo"].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                      <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                      <span className="text-gray-200">{item}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 bg-green-500/15 border border-green-500/30 rounded-xl p-4 text-center">
-                  <p className="text-green-300 font-bold text-lg">👉 Você atinge exatamente quem já demonstra interesse.</p>
-                </div>
-              </div>
+            <div>
+              <h3 className="text-xl font-black text-green-400 mb-4">AVANÇADO: Captura Avançada de Público</h3>
+              <p className="text-gray-400 mb-3">Extraia leads altamente qualificados:</p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Pessoas que curtem posts</li>
+                <li>• Pessoas que comentam</li>
+                <li>• Seguidores de qualquer perfil</li>
+                <li>• Quem o perfil está seguindo</li>
+              </ul>
+              <p className="mt-4 text-green-400 font-bold">👉 Você atinge exatamente quem já demonstra interesse.</p>
             </div>
-          </div>
 
-          {/* Inteligência Artificial Exclusiva */}
-          <div className="mb-10">
-            <div className="relative bg-gradient-to-br from-pink-950/60 to-pink-900/30 border-2 border-pink-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute top-0 left-0 w-64 h-64 bg-pink-500/10 rounded-full blur-[80px] pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                    <Brain className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="bg-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">IA EXCLUSIVA</div>
-                    <h3 className="text-2xl md:text-3xl font-black text-pink-300">Inteligência Artificial Exclusiva</h3>
-                  </div>
-                </div>
-                <p className="text-gray-300 mb-5 text-lg">A MRO V7+ vai além da automação:</p>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { icon: Bot, text: "Análise completa do seu perfil", color: "text-pink-400" },
-                    { icon: FileText, text: "Estratégias de conteúdo", color: "text-blue-400" },
-                    { icon: BarChart3, text: "Estratégias de engajamento", color: "text-purple-400" },
-                    { icon: CreditCard, text: "Estratégias de vendas", color: "text-green-400" },
-                    { icon: Sparkles, text: "Otimização da BIO", color: "text-amber-400" },
-                    { icon: TrendingUp, text: "Relatórios e acompanhamento", color: "text-cyan-400" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-pink-500/10 border border-pink-500/20 rounded-xl p-4 hover:bg-pink-500/15 transition-colors">
-                      <item.icon className={`w-5 h-5 ${item.color} flex-shrink-0`} />
-                      <span className="text-gray-200 font-medium">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div>
+              <h3 className="text-xl font-black text-pink-400 mb-4">IA EXCLUSIVA: Inteligência Artificial Exclusiva</h3>
+              <p className="text-gray-400 mb-3">A MRO V7+ vai além da automação:</p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Análise completa do seu perfil</li>
+                <li>• Estratégias de conteúdo</li>
+                <li>• Estratégias de engajamento</li>
+                <li>• Estratégias de vendas</li>
+                <li>• Otimização da BIO</li>
+                <li>• Relatórios e acompanhamento</li>
+              </ul>
             </div>
           </div>
-        </div>
-      </section>
 
       {/* ====== MAIS RESULTADOS ZERO ANÚNCIOS ====== */}
       <section className="py-16 px-4 bg-black">
