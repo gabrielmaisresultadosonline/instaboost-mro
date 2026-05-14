@@ -2613,6 +2613,8 @@ export type Database = {
           invoice_slug: string | null
           nsu_order: string
           paid_at: string | null
+          partner_id: string | null
+          payment_method: string | null
           phone: string | null
           plan_type: string
           status: string
@@ -2634,6 +2636,8 @@ export type Database = {
           invoice_slug?: string | null
           nsu_order: string
           paid_at?: string | null
+          partner_id?: string | null
+          payment_method?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
@@ -2655,6 +2659,8 @@ export type Database = {
           invoice_slug?: string | null
           nsu_order?: string
           paid_at?: string | null
+          partner_id?: string | null
+          payment_method?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
@@ -2663,7 +2669,15 @@ export type Database = {
           username?: string
           whatsapp_sent?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mro_orders_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mro_profiles: {
         Row: {
@@ -2838,6 +2852,86 @@ export type Database = {
           subscription_status?: string | null
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      partner_visits: {
+        Row: {
+          created_at: string
+          id: string
+          partner_id: string
+          referer: string | null
+          user_agent: string | null
+          visitor_ip: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner_id: string
+          referer?: string | null
+          user_agent?: string | null
+          visitor_ip?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner_id?: string
+          referer?: string | null
+          user_agent?: string | null
+          visitor_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_visits_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          email: string
+          id: string
+          name: string
+          password: string | null
+          pix_key: string | null
+          slug: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          password?: string | null
+          pix_key?: string | null
+          slug: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          password?: string | null
+          pix_key?: string | null
+          slug?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }

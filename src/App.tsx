@@ -113,6 +113,7 @@ import MROCriativoWebhook from "./pages/MROCriativoWebhook";
 import MROCriativoOAuth from "./pages/MROCriativoOAuth";
 import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 import WhiteLabel from "./pages/WhiteLabel";
+import PartnerDashboard from "./pages/PartnerDashboard";
 
 
 
@@ -175,7 +176,8 @@ const App = () => (
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
           <Route path="/promo/:affiliateId" element={<AffiliatePromoPage />} />
-          <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
+          <Route path="/resumo/:slug" element={<PartnerDashboard />} />
+          <Route path="/parceiro/:slug" element={<PartnerDashboard />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />

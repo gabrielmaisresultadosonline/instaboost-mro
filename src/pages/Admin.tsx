@@ -27,6 +27,7 @@ import CreativesProManager from '@/components/admin/CreativesProManager';
 import TicketsManager from '@/components/admin/TicketsManager';
 import UsersListPanel from '@/components/admin/UsersListPanel';
 import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
+import PartnersPanel from '@/components/admin/PartnersPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import {
   Users, Settings, Video, LogOut, Search, 
@@ -34,7 +35,7 @@ import {
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
   Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus
 } from 'lucide-react';
 import { 
   SidebarProvider, 
@@ -54,7 +55,7 @@ import {
 import { cn } from "@/lib/utils";
 
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -205,6 +206,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+    { id: 'partners', label: 'Parceiros', icon: <UserPlus className="w-4 h-4" /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
     { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
@@ -1107,6 +1109,9 @@ const Admin = () => {
               Salvar Todas as Configurações
             </Button>
           </div>
+        )}
+        {activeTab === 'partners' && (
+          <PartnersPanel />
         )}
         {/* WhatsApp Settings Tab */}
         {activeTab === 'whatsapp' && (

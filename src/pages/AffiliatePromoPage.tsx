@@ -70,6 +70,7 @@ interface AffiliateData {
 const AffiliatePromoPage = () => {
   const { affiliateId } = useParams<{ affiliateId: string }>();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
+  const [partnerId, setPartnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   
@@ -101,7 +102,35 @@ const AffiliatePromoPage = () => {
       }
 
       try {
-        // Buscar do Supabase Storage
+        // 1. Check Database first (Official Partners)
+        const { data: dbPartner, error: dbError } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('slug', affiliateId)
+          .single();
+
+        if (dbPartner && dbPartner.status === 'active') {
+          setAffiliate({
+            id: dbPartner.slug,
+            name: dbPartner.name,
+            email: dbPartner.email,
+            photoUrl: "", // Partners might not have photoUrl yet
+            active: true
+          });
+          setPartnerId(dbPartner.id);
+
+          // Record visit
+          await supabase.from('partner_visits').insert([{
+            partner_id: dbPartner.id,
+            user_agent: navigator.userAgent,
+            referer: document.referrer
+          }]);
+
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fallback to Supabase Storage (Legacy Affiliates)
         const { data, error } = await supabase.storage
           .from('user-data')
           .download('admin/affiliates.json');
@@ -284,6 +313,7 @@ const AffiliatePromoPage = () => {
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: `${affiliateId}:${email.toLowerCase().trim()}`,
+          partner_id: partnerId,
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
