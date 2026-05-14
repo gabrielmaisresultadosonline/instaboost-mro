@@ -102,7 +102,35 @@ const AffiliatePromoPage = () => {
       }
 
       try {
-        // Buscar do Supabase Storage
+        // 1. Check Database first (Official Partners)
+        const { data: dbPartner, error: dbError } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('slug', affiliateId)
+          .single();
+
+        if (dbPartner && dbPartner.status === 'active') {
+          setAffiliate({
+            id: dbPartner.slug,
+            name: dbPartner.name,
+            email: dbPartner.email,
+            photoUrl: "", // Partners might not have photoUrl yet
+            active: true
+          });
+          setPartnerId(dbPartner.id);
+
+          // Record visit
+          await supabase.from('partner_visits').insert([{
+            partner_id: dbPartner.id,
+            user_agent: navigator.userAgent,
+            referer: document.referrer
+          }]);
+
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fallback to Supabase Storage (Legacy Affiliates)
         const { data, error } = await supabase.storage
           .from('user-data')
           .download('admin/affiliates.json');
