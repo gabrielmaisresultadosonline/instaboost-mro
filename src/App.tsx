@@ -270,6 +270,8 @@ const App = () => (
           <Route path="/google-callback" element={<GoogleContactsCallback />} />
           <Route path="/google-callback2" element={<GoogleContactsCallback />} />
           <Route path="/seja-parceiro" element={<WhiteLabel />} />
+          <Route path="/parceiro-oficial" element={<WhiteLabel />} />
+          <Route path="/parceirooficial" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
 
           
