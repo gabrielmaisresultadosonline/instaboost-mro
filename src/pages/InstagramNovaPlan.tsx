@@ -471,7 +471,32 @@ const InstagramNovaPlan = () => {
         </div>
       </section>
 
-      {/* Guarantee Section */}
+      <div className="py-20 bg-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none blur-3xl rounded-full translate-x-1/2" />
+        <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-12">
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+              A Solução Mais <span className="text-emerald-400">Acessível</span> do Mercado
+            </h2>
+            <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+              Libere o poder da automação e IA no seu Instagram hoje mesmo. Planos flexíveis que cabem no seu bolso.
+            </p>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+              <div className="text-left">
+                <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest mb-1">Início imediato</p>
+                <p className="text-white text-2xl font-black">A partir de <span className="text-emerald-400">R$20/mês</span></p>
+              </div>
+              <div className="h-12 w-px bg-zinc-800 hidden md:block" />
+              <Button 
+                onClick={scrollToPricing}
+                className="bg-white hover:bg-gray-100 text-black font-black px-12 py-7 rounded-full text-lg transition-all hover:scale-105"
+              >
+                VER TODOS OS PLANOS
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
       <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
           <div className="relative bg-gradient-to-br from-green-950/80 to-black border-2 border-green-500/50 rounded-3xl p-8 md:p-14 text-center shadow-2xl shadow-green-500/10 overflow-hidden">
