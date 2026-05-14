@@ -129,8 +129,22 @@ const VendasCompleta = () => {
     setLoading(true);
     try {
       const plan = PLANS[selectedPlan];
+      
+      // Email attribution logic for tracking
+      const attributedEmail = partnerSlug 
+        ? `${partnerSlug}:${email.toLowerCase().trim()}`
+        : email.toLowerCase().trim();
+
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
-        body: { email: email.toLowerCase().trim(), username: username.toLowerCase().trim(), phone: phone.replace(/\D/g, "").trim(), planType: selectedPlan, amount: plan.price, checkUserExists: true }
+        body: { 
+          email: attributedEmail, 
+          username: username.toLowerCase().trim(), 
+          phone: phone.replace(/\D/g, "").trim(), 
+          planType: selectedPlan, 
+          amount: plan.price, 
+          checkUserExists: true,
+          partner_id: partner?.id || null
+        }
       });
       if (checkError) { console.error("Error creating checkout:", checkError); toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
