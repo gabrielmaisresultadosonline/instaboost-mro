@@ -351,16 +351,20 @@ const InstagramNovaPlan = () => {
       {/* Active Clients section removed as requested */}
 
 
-      <div className="py-10 text-center bg-zinc-900/30 border-y border-zinc-800">
-        <p className="text-2xl md:text-3xl font-black text-white mb-6">
-          POR APENAS <span className="text-emerald-400">R$20 REAIS</span> VOCÊ JÁ PODE COMEÇAR!
-        </p>
-        <Button 
-          onClick={scrollToPricing}
-          className="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-12 py-6 rounded-full text-lg shadow-lg shadow-emerald-500/20"
-        >
-          QUERO COMEÇAR POR R$20
-        </Button>
+      <div className="py-16 text-center bg-zinc-900/40 border-y border-zinc-800/50 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-4">
+          <h3 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
+            COMECE A ESCALAR SEU PERFIL <br className="hidden md:block" />
+            <span className="text-emerald-400">POR APENAS R$20</span>
+          </h3>
+          <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
+          <Button 
+            onClick={scrollToPricing}
+            className="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-12 py-7 rounded-full text-lg shadow-xl shadow-emerald-500/20 transition-all hover:scale-105"
+          >
+            QUERO COMEÇAR AGORA
+          </Button>
+        </div>
       </div>
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
         <div className="max-w-6xl mx-auto">
