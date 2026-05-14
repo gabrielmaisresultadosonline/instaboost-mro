@@ -61,7 +61,7 @@ serve(async (req) => {
     const cleanPhone = phone ? phone.replace(/\D/g, "").trim() : "";
     const orderNsu = generateNSU();
     const priceInCents = Math.round((amount || 397) * 100);
-    const planLabel = planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : "ANUAL";
+    const planLabel = planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : planType === "solo" ? "SOLO" : planType === "pro" ? "PRO" : planType === "agencia" ? "AGENCIA" : "ANUAL";
 
     // Verificar se usuário já existe na SquareCloud
     if (checkUserExists) {
