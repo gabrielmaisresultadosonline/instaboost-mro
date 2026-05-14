@@ -19,6 +19,71 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const ProfitCalculator = () => {
+  const [sales, setSales] = useState(20);
+  const pricePerSale = 397;
+  const profitPerSale = 297; // Logic: R$ 397 - 30% (approx) = R$ 297 as requested
+  
+  const totalFaturamento = sales * pricePerSale;
+  const totalProfit = sales * profitPerSale;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="space-y-8">
+        <div>
+          <label className="text-sm font-bold text-gray-400 uppercase tracking-widest block mb-6">
+            Número de Vendas Mensais: <span className="text-yellow-500 text-2xl ml-2">{sales}</span>
+          </label>
+          <Slider
+            defaultValue={[20]}
+            max={200}
+            step={1}
+            onValueChange={(value) => setSales(value[0])}
+            className="py-4"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-2 font-mono">
+            <span>0</span>
+            <span>100</span>
+            <span>200+</span>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5">
+            <span className="text-gray-400">Preço de Venda (Anual)</span>
+            <span className="font-bold text-white">R$ {pricePerSale}</span>
+          </div>
+          <div className="flex justify-between items-center p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
+            <span className="text-yellow-500 font-bold">Seu Lucro Líquido por Venda</span>
+            <span className="font-bold text-yellow-500">R$ {profitPerSale}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-zinc-900/50 rounded-[32px] p-8 border border-white/5 text-center">
+        <span className="text-gray-500 text-sm font-bold uppercase tracking-widest">Seu Resultado Mensal</span>
+        <div className="mt-4 mb-2">
+          <span className="text-gray-400 text-lg mr-2 italic">Faturamento:</span>
+          <span className="text-2xl font-bold text-white">R$ {totalFaturamento.toLocaleString('pt-BR')}</span>
+        </div>
+        <div className="text-6xl font-black text-yellow-500 mb-4 tracking-tighter">
+          R$ {totalProfit.toLocaleString('pt-BR')}
+        </div>
+        <p className="text-gray-500 text-sm">
+          Faturamento líquido mensal baseado na simulação de {sales} vendas.
+        </p>
+        
+        <div className="mt-8 pt-8 border-t border-white/5">
+          <span className="text-gray-400 text-xs uppercase font-bold block mb-2">Estimativa Anual Líquida</span>
+          <div className="text-3xl font-black text-white">
+            R$ {(totalProfit * 12).toLocaleString('pt-BR')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const WhiteLabel = () => {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-yellow-400 selection:text-black">
