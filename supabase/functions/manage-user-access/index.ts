@@ -261,35 +261,47 @@ async function createWhatsAppUser(username: string, password: string, accessType
 }
 
 // Create user in Instagram API
-async function createInstagramUser(username: string, password: string, daysAccess: number): Promise<boolean> {
+async function createInstagramUser(username: string, password: string, daysAccess: number, plan?: string): Promise<boolean> {
   try {
+    // Determine number of accounts and extraIgSlots based on plan
+    let accounts = 1;
+    let extraIgSlots = 0;
+    
+    if (plan === 'pro') {
+      accounts = 4;
+    } else if (plan === 'agencia') {
+      accounts = 4; // base is 4
+      extraIgSlots = 6; // + 6 = 10 total
+    }
+
+    logStep("Creating Instagram user with plan", { username, plan, accounts, extraIgSlots, daysAccess });
+
+    // Use specific endpoint for plan-based creation if available, else use generic one
+    const createUrl = plan && ['solo', 'pro', 'agencia'].includes(plan) 
+      ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
+      : `${INSTAGRAM_API_URL}/adicionar-usuario`;
+
+    const payload = plan && ['solo', 'pro', 'agencia'].includes(plan)
+      ? { username, password, plano: plan }
+      : { username, password, time: daysAccess, igUsers: '', accounts, extraIgSlots };
+
     // First enable user
-    const enableResponse = await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
+    await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario: username, senha: password }),
-    });
+    }).catch(e => logStep("Instagram enable user failed (non-blocking)", e));
 
-    if (!enableResponse.ok) {
-      logStep("Instagram enable user failed");
-      // Continue anyway, might be already enabled
-    }
-
-    // Add user
-    const addResponse = await fetch(`${INSTAGRAM_API_URL}/adicionar-usuario`, {
+    // Create user
+    const response = await fetch(createUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username,
-        password,
-        time: daysAccess,
-        igUsers: '',
-      }),
+      body: JSON.stringify(payload),
     });
 
-    const result = await addResponse.json();
+    const result = await response.json().catch(() => ({}));
     logStep("Instagram user creation result", result);
-    return addResponse.ok;
+    return response.ok;
   } catch (error: any) {
     logStep("Error creating Instagram user", { error: error?.message || String(error) });
     return false;
