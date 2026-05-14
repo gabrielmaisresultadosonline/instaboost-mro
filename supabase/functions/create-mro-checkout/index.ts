@@ -173,6 +173,7 @@ serve(async (req) => {
       .from("mro_orders")
       .insert({
         email: cleanEmail,
+        partner_id: partner_id || null,
         username: cleanUsername,
         phone: cleanPhone || null,
         plan_type: planType,
