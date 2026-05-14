@@ -891,7 +891,7 @@ const InstagramNovaPlan = () => {
         </div>
       )}
 
-      <FloatingWhatsAppHelp scrollTargetId="hero-video" />
+      {/* Floating help removed as requested to be only at bottom */}
     </div>
 
   );
