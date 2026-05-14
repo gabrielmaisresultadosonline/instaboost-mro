@@ -344,57 +344,6 @@ const InstagramNovaPlan = () => {
 
       {/* Active Clients section removed as requested */}
 
-      {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-6 py-2 mb-4">
-              <Zap className="w-5 h-5 text-cyan-400" />
-              <span className="text-cyan-400 font-bold text-sm">COMO FUNCIONA</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black mb-4">
-              COMO FUNCIONA <span className="text-cyan-400">NA PRÁTICA</span>
-            </h2>
-            <p className="text-gray-400 text-lg">A nova lógica está muito mais estratégica e assertiva</p>
-          </div>
-
-          <div className="relative">
-            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-500/50 via-amber-500/50 to-green-500/50 -translate-x-1/2" />
-            {[
-              { step: "01", icon: UserPlus, title: "Ative o seguir + curtir em massa", desc: "O sistema começa a interagir com perfis estratégicos automaticamente", color: "cyan" },
-              { step: "02", icon: Users, title: "Pessoas interessadas te seguem de volta", desc: "Quem se identifica com seu conteúdo e nicho passa a te seguir", color: "blue" },
-              { step: "03", icon: Filter, title: "O sistema identifica o público quente", desc: "Filtros inteligentes separam quem realmente tem interesse", color: "purple" },
-              { step: "04", icon: Send, title: "Envie Direct em massa automaticamente", desc: "Mensagens otimizadas são enviadas para leads qualificados", color: "amber" },
-              { step: "05", icon: Rocket, title: "Direcione para seu produto ou serviço", desc: "Converta seguidores em clientes reais com estratégia", color: "green" },
-            ].map((item, i) => (
-              <div key={i} className={`relative flex items-center gap-6 mb-8 ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-                <div className={`flex-1 ${i % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                  <div className="bg-gray-900/80 border border-gray-700 rounded-2xl p-6 hover:border-gray-600 transition-colors">
-                    <div className="flex items-center gap-3 mb-2" style={{ justifyContent: i % 2 === 0 ? 'flex-end' : 'flex-start' }}>
-                      <span className="text-3xl font-black text-gray-700">{item.step}</span>
-                    </div>
-                    <h4 className="text-xl font-bold text-white mb-1">{item.title}</h4>
-                    <p className="text-gray-400">{item.desc}</p>
-                  </div>
-                </div>
-                <div className="hidden md:flex w-14 h-14 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600 items-center justify-center z-10 flex-shrink-0">
-                  <item.icon className="w-6 h-6 text-gray-300" />
-                </div>
-                <div className="flex-1 hidden md:block" />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-green-500/10 border-2 border-amber-500/30 rounded-3xl p-8 text-center">
-            <p className="text-3xl md:text-4xl font-black mb-4">
-              💥 <span className="text-amber-400">RESULTADO</span>
-            </p>
-            <p className="text-xl md:text-2xl text-gray-200 font-bold">
-              Mais seguidores → Mais conversas → <span className="text-green-400">Mais vendas</span>
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* ====== O QUE HÁ DE NOVO NA V7+ PLUS ====== */}
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
