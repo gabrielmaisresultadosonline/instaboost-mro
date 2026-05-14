@@ -563,8 +563,9 @@ const InstagramNovaPlan = () => {
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Button size="lg" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-zinc-600"
+                <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
                   onClick={() => { trackLead('Instagram MRO - Plano Solo'); setSelectedPlan("solo"); setShowCheckoutModal(true); }}>
+                  <ShoppingCart className="w-6 h-6" />
                   ESCOLHER SOLO
                 </Button>
                 <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
