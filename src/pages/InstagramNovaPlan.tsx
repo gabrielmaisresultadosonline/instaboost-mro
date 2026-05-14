@@ -818,7 +818,7 @@ const InstagramNovaPlan = () => {
           <p className="text-xl text-gray-400 mb-10">Junte-se a milhares de empreendedores que já transformaram seus perfis com a V7+ Plus</p>
           
           <div className="flex flex-col items-center gap-10">
-            <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
+            <Button size="lg" className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
               onClick={() => {
                 trackLead("Instagram Nova - Final CTA Scroll");
                 scrollToPricing();
