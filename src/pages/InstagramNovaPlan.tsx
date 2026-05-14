@@ -418,32 +418,6 @@ const InstagramNovaPlan = () => {
         </div>
       </section>
 
-      {/* ====== MAIS RESULTADOS ZERO ANÚNCIOS ====== */}
-      <section className="py-16 px-4 bg-black">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-5xl font-black mb-4">
-              💰 MAIS RESULTADOS, <span className="text-red-400">ZERO ANÚNCIOS</span>
-            </h2>
-            <p className="text-gray-400 text-lg">Com a MRO Inteligente V7+ você:</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Rocket, text: "Aumenta seu engajamento", gradient: "from-blue-600 to-cyan-600", glow: "shadow-blue-500/30" },
-              { icon: Users, text: "Ganha seguidores qualificados", gradient: "from-purple-600 to-pink-600", glow: "shadow-purple-500/30" },
-              { icon: CreditCard, text: "Converte mais clientes", gradient: "from-green-600 to-emerald-600", glow: "shadow-green-500/30" },
-              { icon: X, text: "Sem tráfego pago", gradient: "from-red-600 to-orange-600", glow: "shadow-red-500/30" },
-            ].map((item, i) => (
-              <div key={i} className="text-center group">
-                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mx-auto mb-4 shadow-xl ${item.glow} group-hover:scale-110 transition-transform`}>
-                  <item.icon className="w-10 h-10 text-white" />
-                </div>
-                <p className="text-white font-bold text-lg">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ====== RESUMO FINAL ====== */}
       <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-950">
