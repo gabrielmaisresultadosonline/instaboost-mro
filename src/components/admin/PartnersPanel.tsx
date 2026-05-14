@@ -338,9 +338,6 @@ const PartnersPanel = () => {
                       <Button variant="ghost" size="icon" title="Página de Vendas" onClick={() => window.open(`${window.location.origin}/promo/${partner.slug}`, '_blank')}>
                         <Globe size={16} className="text-green-500" />
                       </Button>
-                      <Button variant="ghost" size="icon" title="White Label" onClick={() => window.open(`${window.location.origin}/whitelabel?p=${partner.slug}`, '_blank')}>
-                        <Sparkles size={16} className="text-yellow-500" />
-                      </Button>
                       <Button variant="ghost" size="icon" title="Dashboard do Parceiro" onClick={() => window.open(`${window.location.origin}/dash/${partner.slug}`, '_blank')}>
                         <BarChart3 size={16} className="text-blue-500" />
                       </Button>
