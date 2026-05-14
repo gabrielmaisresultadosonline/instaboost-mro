@@ -152,6 +152,62 @@ const WhiteLabel = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-20 px-4 relative bg-zinc-950/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">INVESTIMENTO <span className="text-yellow-500">WHITE LABEL</span></h2>
+            <p className="text-gray-400 text-lg">Escolha o melhor plano para começar sua própria agência de automação</p>
+          </div>
+          
+          <div className="max-w-md mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-[40px] blur opacity-25" />
+              <Card className="bg-zinc-950 border-white/10 rounded-[40px] overflow-hidden relative z-10">
+                <CardContent className="p-10 text-center">
+                  <Badge className="bg-yellow-500 text-black font-bold mb-6">PLANO ANUAL</Badge>
+                  <div className="mb-8">
+                    <span className="text-gray-400 text-lg">Apenas</span>
+                    <div className="text-6xl font-black text-white my-2">R$ 6.000</div>
+                    <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">À vista no PIX</span>
+                  </div>
+                  
+                  <div className="py-6 border-y border-white/5 mb-8">
+                    <p className="text-gray-400 mb-2">Ou parcele no cartão:</p>
+                    <div className="text-3xl font-bold text-white">12x de R$ 615</div>
+                    <p className="text-gray-500 text-sm mt-2">Total parcelado: R$ 7.388,26</p>
+                  </div>
+
+                  <ul className="text-left space-y-4 mb-10">
+                    {[
+                      "Acesso vitalício à tecnologia",
+                      "Painel Admin Exclusivo",
+                      "Sua Marca e Seu Domínio",
+                      "Suporte VIP 24/7",
+                      "Atualizações Gratuitas"
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-gray-300">
+                        <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black h-14 rounded-2xl text-lg shadow-lg shadow-yellow-500/20 transition-all hover:scale-[1.02]">
+                    ADQUIRIR AGORA
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-32 px-4 relative overflow-hidden">
         <div className="max-w-5xl mx-auto rounded-[50px] bg-gradient-to-b from-yellow-500 to-yellow-600 p-1 lg:p-[1px]">
