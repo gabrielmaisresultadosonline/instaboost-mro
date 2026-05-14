@@ -2614,6 +2614,7 @@ export type Database = {
           nsu_order: string
           paid_at: string | null
           partner_id: string | null
+          payment_method: string | null
           phone: string | null
           plan_type: string
           status: string
@@ -2636,6 +2637,7 @@ export type Database = {
           nsu_order: string
           paid_at?: string | null
           partner_id?: string | null
+          payment_method?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
@@ -2658,6 +2660,7 @@ export type Database = {
           nsu_order?: string
           paid_at?: string | null
           partner_id?: string | null
+          payment_method?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
@@ -2894,6 +2897,7 @@ export type Database = {
           email: string
           id: string
           name: string
+          password: string | null
           pix_key: string | null
           slug: string
           status: string
@@ -2907,6 +2911,7 @@ export type Database = {
           email: string
           id?: string
           name: string
+          password?: string | null
           pix_key?: string | null
           slug: string
           status?: string
@@ -2920,6 +2925,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string
+          password?: string | null
           pix_key?: string | null
           slug?: string
           status?: string
