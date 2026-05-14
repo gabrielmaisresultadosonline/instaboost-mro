@@ -452,13 +452,13 @@ const AffiliatePromoPage = () => {
               className="relative text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 text-white px-1"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
             >
-              NÃO GASTE COM ANÚNCIOS
+              FERRAMENTA COMPLETA PARA INSTAGRAM
             </h1>
             <h2 
-              className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-orange-500 px-1"
+              className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-amber-500 px-1"
               style={{ textShadow: '0 2px 8px rgba(249,115,22,0.3), 0 1px 3px rgba(0,0,0,0.8)' }}
             >
-              UTILIZE A MRO INTELIGENTE!
+              Aumente suas Vendas agora!
             </h2>
             <p className="text-gray-300 text-sm sm:text-base mt-3">
               Instale em seu notebook, macbook ou computador de mesa!
