@@ -27,6 +27,7 @@ import CreativesProManager from '@/components/admin/CreativesProManager';
 import TicketsManager from '@/components/admin/TicketsManager';
 import UsersListPanel from '@/components/admin/UsersListPanel';
 import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
+import PartnersPanel from '@/components/admin/PartnersPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import {
   Users, Settings, Video, LogOut, Search, 
