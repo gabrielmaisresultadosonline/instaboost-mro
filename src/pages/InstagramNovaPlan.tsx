@@ -599,10 +599,13 @@ const InstagramNovaPlan = () => {
                   <span className="text-gray-300">Vídeos Passo a Passo</span>
                 </div>
               </div>
-              <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-[1000] py-6 rounded-xl shadow-lg shadow-amber-500/20"
-                onClick={() => { trackLead('Instagram MRO - Plano Pro'); setSelectedPlan("pro"); setShowCheckoutModal(true); }}>
-                ESCOLHER PRO
-              </Button>
+              <div className="flex flex-col items-center gap-2">
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-[1000] py-6 rounded-xl shadow-lg shadow-amber-500/20"
+                  onClick={() => { trackLead('Instagram MRO - Plano Pro'); setSelectedPlan("pro"); setShowCheckoutModal(true); }}>
+                  ESCOLHER PRO
+                </Button>
+                <span className="text-amber-500/70 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
+              </div>
             </div>
 
             {/* Plano Agência */}
