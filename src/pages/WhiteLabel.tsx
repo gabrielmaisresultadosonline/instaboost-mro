@@ -119,13 +119,8 @@ const WhiteLabel = () => {
   }, [partnerSlug]);
 
   const handlePartnerContact = () => {
-    if (partner?.whatsapp) {
-      const msg = encodeURIComponent(`Olá ${partner.name}, vi a página de White Label e tenho interesse em investir R$ 6.000 para ter meu próprio sistema!`);
-      window.open(`https://wa.me/55${partner.whatsapp.replace(/\D/g, '')}?text=${msg}`, '_blank');
-    } else {
-      // Fallback ou comportamento padrão se não houver parceiro
-      window.open('https://wa.me/5511999999999', '_blank');
-    }
+    // White Label leads go directly to official admin/main support
+    window.open('https://wa.me/555192036540?text=Tenho interesse no sistema White Label', '_blank');
   };
 
   return (
