@@ -66,8 +66,11 @@ const ProfitCalculator = () => {
             <span className="font-bold text-white">R$ {pricePerSale}</span>
           </div>
           <div className="flex justify-between items-center p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
-            <span className="text-yellow-500 font-bold">Seu Lucro Líquido por Venda</span>
-            <span className="font-bold text-yellow-500">R$ {profitPerSale}</span>
+            <div className="flex flex-col">
+              <span className="text-yellow-500 font-bold">Seu Lucro Líquido (por venda)</span>
+              <span className="text-[10px] text-yellow-500/70 font-bold uppercase tracking-widest">R$ 397 - 30% taxa plataforma</span>
+            </div>
+            <span className="font-bold text-yellow-500 text-2xl">R$ {profitPerSale}</span>
           </div>
         </div>
       </div>
