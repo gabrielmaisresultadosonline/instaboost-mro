@@ -31,7 +31,8 @@ import {
   BarChart3,
   UserPlus,
   Loader2,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
 
 interface Partner {
