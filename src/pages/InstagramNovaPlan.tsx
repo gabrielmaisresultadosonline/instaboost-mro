@@ -43,7 +43,8 @@ import {
   Rocket,
   Crown,
   Flame,
-  MousePointerClick
+  MousePointerClick,
+  ShoppingCart
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
