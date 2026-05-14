@@ -304,16 +304,23 @@ const InstagramNovaPlan = () => {
               </span>
             </h2>
             
-            <div className="relative mt-8 mb-10">
-              <p className="text-xl md:text-2xl font-bold text-white mb-6">
-                Apenas <span className="text-emerald-400 text-3xl md:text-4xl font-[1000]">R$20 MENSAL</span> para obter resultados reais e assertivos!
-              </p>
-              <Button 
-                onClick={scrollToPricing}
-                className="bg-emerald-500 hover:bg-emerald-600 text-black font-[1000] text-lg md:text-xl px-10 py-8 rounded-2xl shadow-2xl shadow-emerald-500/40 transition-all hover:scale-105 animate-pulse"
-              >
-                APROVEITAR AGORA POR R$20
-              </Button>
+            <div className="relative mt-10 mb-12">
+              <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-2 mb-6 backdrop-blur-sm">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-emerald-400 font-bold text-sm tracking-wide">PLANOS A PARTIR DE R$20</span>
+              </div>
+              
+              <div className="flex flex-col items-center gap-4">
+                <Button 
+                  onClick={scrollToPricing}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-black font-[1000] text-lg md:text-xl px-12 py-8 rounded-full shadow-2xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95"
+                >
+                  GARANTIR ACESSO AGORA
+                </Button>
+                <p className="text-gray-400 text-sm font-medium">
+                  Resultados reais e assertivos para seu negócio
+                </p>
+              </div>
             </div>
 
             <p className="relative mt-3 text-sm md:text-base text-gray-400">
