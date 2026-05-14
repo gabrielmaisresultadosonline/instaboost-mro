@@ -267,17 +267,6 @@ const InstagramNovaPlan = () => {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10 object-contain" />
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                trackLead("Instagram Nova - Header WhatsApp");
-                openWhatsAppChat(salesSettings.whatsappNumber, salesSettings.whatsappMessage);
-              }} 
-              className="hidden sm:flex items-center gap-2 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold"
-            >
-              <WhatsAppIcon className="w-4 h-4" />
-              Falar no WhatsApp
-            </Button>
             <a
               href="/instagram"
               className="rounded-full border border-amber-500/60 bg-amber-500/10 px-4 py-1.5 text-xs sm:text-sm font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
