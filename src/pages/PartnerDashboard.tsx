@@ -27,7 +27,10 @@ import {
   QrCode,
   MessageCircle,
   LogOut,
-  Calendar
+  Calendar,
+  Globe,
+  Copy,
+  Sparkles
 } from "lucide-react";
 import { format, subDays, startOfYear, endOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
