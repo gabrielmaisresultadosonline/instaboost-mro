@@ -212,6 +212,26 @@ const WhiteLabel = () => {
         </div>
       </section>
 
+      {/* Profit Calculator Section */}
+      <section className="py-24 px-4 relative overflow-hidden bg-black">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">SIMULADOR DE <span className="text-yellow-500">LUCRO</span></h2>
+            <p className="text-gray-400 text-lg">Veja quanto você pode faturar sendo um parceiro White Label</p>
+          </div>
+
+          <Card className="bg-zinc-950 border-white/10 rounded-[40px] overflow-hidden p-8 md:p-12 relative">
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Calculator className="w-32 h-32 text-yellow-500" />
+            </div>
+            
+            <CardContent className="space-y-12">
+              <ProfitCalculator />
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-32 px-4 relative overflow-hidden">
         <div className="max-w-5xl mx-auto rounded-[50px] bg-gradient-to-b from-yellow-500 to-yellow-600 p-1 lg:p-[1px]">
