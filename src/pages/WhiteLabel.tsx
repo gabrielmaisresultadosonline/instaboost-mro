@@ -589,7 +589,11 @@ const WhiteLabel = () => {
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
               Seja o dono da sua própria plataforma de SaaS. O mercado de automação para Instagram é o que mais cresce hoje. Não perca tempo.
             </p>
-            <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-black h-16 px-12 rounded-2xl text-xl transition-all hover:scale-105">
+            <Button 
+              size="lg" 
+              onClick={handlePartnerContact}
+              className="bg-white hover:bg-gray-100 text-black font-black h-16 px-12 rounded-2xl text-xl transition-all hover:scale-105"
+            >
               QUERO SER WHITE LABEL
             </Button>
           </div>
