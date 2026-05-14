@@ -532,11 +532,11 @@ const PartnerDashboard = () => {
                     <div className="space-y-1">
                       <span className="text-[10px] text-zinc-400">Página de Vendas:</span>
                       <div className="flex gap-2">
-                        <Input readOnly value={`${window.location.origin}/promo/${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
-                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/promo/${slug}`);
-                          toast({ title: "Link copiado!" });
-                        }}>
+                    <Input readOnly value={`${window.location.origin}/instagram-nova?p=${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
+                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/instagram-nova?p=${slug}`);
+                      toast({ title: "Link copiado!" });
+                    }}>
                           <ArrowUpRight size={14} />
                         </Button>
                       </div>
