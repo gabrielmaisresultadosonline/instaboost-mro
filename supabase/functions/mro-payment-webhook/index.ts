@@ -175,7 +175,7 @@ async function sendAccessEmail(
 
     const memberAreaUrl = "https://maisresultadosonline.com.br";
     const whatsappGroupLink = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
-    const planLabel = planType === "lifetime" ? "Vitalício" : planType === "trial" ? "Teste 30 Dias" : "Anual";
+    const planLabel = planType === "lifetime" ? "Vitalício" : planType === "trial" ? "Teste 30 Dias" : planType === "solo" ? "Solo" : planType === "pro" ? "Pro" : planType === "agencia" ? "Agência" : "Anual";
 
     const htmlContent = `<!DOCTYPE html>
 <html>
