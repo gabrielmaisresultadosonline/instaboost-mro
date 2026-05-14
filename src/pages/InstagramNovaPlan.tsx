@@ -497,7 +497,7 @@ const InstagramNovaPlan = () => {
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-[1000] text-emerald-400">R$20,21</span>
+                  <span className="text-5xl sm:text-6xl font-[1000] text-emerald-400">R$20</span>
                 </div>
                 <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$197</span></p>
               </div>
