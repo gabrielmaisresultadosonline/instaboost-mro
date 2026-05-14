@@ -304,16 +304,23 @@ const InstagramNovaPlan = () => {
               </span>
             </h2>
             
-            <div className="relative mt-8 mb-10">
-              <p className="text-xl md:text-2xl font-bold text-white mb-6">
-                Apenas <span className="text-emerald-400 text-3xl md:text-4xl font-[1000]">R$20 MENSAL</span> para obter resultados reais e assertivos!
-              </p>
-              <Button 
-                onClick={scrollToPricing}
-                className="bg-emerald-500 hover:bg-emerald-600 text-black font-[1000] text-lg md:text-xl px-10 py-8 rounded-2xl shadow-2xl shadow-emerald-500/40 transition-all hover:scale-105 animate-pulse"
-              >
-                APROVEITAR AGORA POR R$20
-              </Button>
+            <div className="relative mt-10 mb-12">
+              <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-2 mb-6 backdrop-blur-sm">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-emerald-400 font-bold text-sm tracking-wide">PLANOS A PARTIR DE R$20</span>
+              </div>
+              
+              <div className="flex flex-col items-center gap-4">
+                <Button 
+                  onClick={scrollToPricing}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-black font-[1000] text-lg md:text-xl px-12 py-8 rounded-full shadow-2xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95"
+                >
+                  GARANTIR ACESSO AGORA
+                </Button>
+                <p className="text-gray-400 text-sm font-medium">
+                  Resultados reais e assertivos para seu negócio
+                </p>
+              </div>
             </div>
 
             <p className="relative mt-3 text-sm md:text-base text-gray-400">
@@ -344,16 +351,20 @@ const InstagramNovaPlan = () => {
       {/* Active Clients section removed as requested */}
 
 
-      <div className="py-10 text-center bg-zinc-900/30 border-y border-zinc-800">
-        <p className="text-2xl md:text-3xl font-black text-white mb-6">
-          POR APENAS <span className="text-emerald-400">R$20 REAIS</span> VOCÊ JÁ PODE COMEÇAR!
-        </p>
-        <Button 
-          onClick={scrollToPricing}
-          className="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-12 py-6 rounded-full text-lg shadow-lg shadow-emerald-500/20"
-        >
-          QUERO COMEÇAR POR R$20
-        </Button>
+      <div className="py-16 text-center bg-zinc-900/40 border-y border-zinc-800/50 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-4">
+          <h3 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
+            COMECE A ESCALAR SEU PERFIL <br className="hidden md:block" />
+            <span className="text-emerald-400">POR APENAS R$20</span>
+          </h3>
+          <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
+          <Button 
+            onClick={scrollToPricing}
+            className="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-12 py-7 rounded-full text-lg shadow-xl shadow-emerald-500/20 transition-all hover:scale-105"
+          >
+            QUERO COMEÇAR AGORA
+          </Button>
+        </div>
       </div>
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
         <div className="max-w-6xl mx-auto">
@@ -460,7 +471,32 @@ const InstagramNovaPlan = () => {
         </div>
       </section>
 
-      {/* Guarantee Section */}
+      <div className="py-20 bg-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none blur-3xl rounded-full translate-x-1/2" />
+        <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-12">
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+              A Solução Mais <span className="text-emerald-400">Acessível</span> do Mercado
+            </h2>
+            <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+              Libere o poder da automação e IA no seu Instagram hoje mesmo. Planos flexíveis que cabem no seu bolso.
+            </p>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+              <div className="text-left">
+                <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest mb-1">Início imediato</p>
+                <p className="text-white text-2xl font-black">A partir de <span className="text-emerald-400">R$20/mês</span></p>
+              </div>
+              <div className="h-12 w-px bg-zinc-800 hidden md:block" />
+              <Button 
+                onClick={scrollToPricing}
+                className="bg-white hover:bg-gray-100 text-black font-black px-12 py-7 rounded-full text-lg transition-all hover:scale-105"
+              >
+                VER TODOS OS PLANOS
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
       <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
           <div className="relative bg-gradient-to-br from-green-950/80 to-black border-2 border-green-500/50 rounded-3xl p-8 md:p-14 text-center shadow-2xl shadow-green-500/10 overflow-hidden">
