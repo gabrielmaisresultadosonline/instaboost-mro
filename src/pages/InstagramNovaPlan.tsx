@@ -469,6 +469,8 @@ const InstagramNovaPlan = () => {
               </ul>
             </div>
           </div>
+        </div>
+      </section>
 
       {/* ====== MAIS RESULTADOS ZERO ANÚNCIOS ====== */}
       <section className="py-16 px-4 bg-black">
