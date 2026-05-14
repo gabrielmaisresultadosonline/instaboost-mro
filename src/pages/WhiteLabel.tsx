@@ -170,11 +170,11 @@ const WhiteLabel = () => {
               <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-[40px] blur opacity-25" />
               <Card className="bg-zinc-950 border-white/10 rounded-[40px] overflow-hidden relative z-10">
                 <CardContent className="p-10 text-center">
-                  <Badge className="bg-yellow-500 text-black font-bold mb-6">PLANO ANUAL</Badge>
+                  <Badge className="bg-yellow-500 text-black font-bold mb-6">ATIVAÇÃO POR 1 ANO</Badge>
                   <div className="mb-8">
-                    <span className="text-gray-400 text-lg">Apenas</span>
+                    <span className="text-gray-400 text-lg text-balance">Investimento Único</span>
                     <div className="text-6xl font-black text-white my-2">R$ 6.000</div>
-                    <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">À vista no PIX</span>
+                    <span className="text-yellow-500 font-bold uppercase tracking-widest text-sm">Acesso por 12 meses</span>
                   </div>
                   
                   <div className="py-6 border-y border-white/5 mb-8">
@@ -185,21 +185,22 @@ const WhiteLabel = () => {
 
                   <ul className="text-left space-y-4 mb-10">
                     {[
-                      "Acesso vitalício à tecnologia",
-                      "Painel Admin Exclusivo",
-                      "Sua Marca e Seu Domínio",
-                      "Suporte VIP 24/7",
-                      "Atualizações Gratuitas"
+                      "Vendas ILIMITADAS de clientes",
+                      "Liberação de Teste Grátis para prospectos",
+                      "Passo a passo completo de vendas",
+                      "Faturamento Anual Est. R$ 238 mil líquido",
+                      "Sua Marca e Seu Domínio Próprio",
+                      "Painel Admin para Gestão Total"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-gray-300">
                         <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                        <span>{item}</span>
+                        <span className="text-sm md:text-base font-medium">{item}</span>
                       </li>
                     ))}
                   </ul>
 
                   <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black h-14 rounded-2xl text-lg shadow-lg shadow-yellow-500/20 transition-all hover:scale-[1.02]">
-                    ADQUIRIR AGORA
+                    QUERO MEU SISTEMA AGORA
                   </Button>
                 </CardContent>
               </Card>
