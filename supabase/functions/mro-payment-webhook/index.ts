@@ -369,7 +369,7 @@ serve(async (req) => {
       if (desc.startsWith("MROIG_")) {
         const parts = desc.split("_");
         if (parts.length >= 4) {
-          extractedPlan = parts[1] === "VITALICIO" ? "lifetime" : parts[1] === "TRIAL" ? "trial" : "annual";
+          extractedPlan = parts[1] === "VITALICIO" ? "lifetime" : parts[1] === "TRIAL" ? "trial" : parts[1] === "SOLO" ? "solo" : parts[1] === "PRO" ? "pro" : parts[1] === "AGENCIA" ? "agencia" : "annual";
           extractedUsername = parts[2];
           extractedEmail = parts.slice(3).join("_"); // Email pode ter underscores
         }
