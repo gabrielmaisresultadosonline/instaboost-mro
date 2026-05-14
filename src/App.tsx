@@ -269,6 +269,7 @@ const App = () => (
           <Route path="/mrocriativo/oauth.php" element={<MROCriativoOAuth />} />
           <Route path="/google-callback" element={<GoogleContactsCallback />} />
           <Route path="/google-callback2" element={<GoogleContactsCallback />} />
+          <Route path="/seja-parceiro" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
 
           
