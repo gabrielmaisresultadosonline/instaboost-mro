@@ -40,7 +40,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, username, phone, planType, amount, checkUserExists } = body;
+    const { email, username, phone, planType, amount, checkUserExists, partner_id } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
