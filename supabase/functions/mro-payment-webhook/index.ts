@@ -71,78 +71,37 @@ async function checkUserExists(username: string): Promise<boolean> {
 }
 
 // Criar usuário na API SquareCloud/Instagram
-async function createInstagramUser(username: string, password: string, daysAccess: number): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
+async function createInstagramUser(username: string, password: string, daysAccess: number, plan: string): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
-    log("Creating Instagram user", { username, daysAccess });
+    log("Creating Instagram user via Admin API", { username, daysAccess, plan });
 
-    // Primeiro verificar se já existe
-    const alreadyExists = await checkUserExists(username);
-    if (alreadyExists) {
-      log("User already exists - skipping creation", { username });
-      return { 
-        success: true, 
-        alreadyExists: true, 
-        message: "Usuário já existe - criado manualmente anteriormente" 
-      };
-    }
+    const adminName = Deno.env.get("MRO_ADMIN_NAME") || "ADMIN";
+    const adminPass = Deno.env.get("MRO_ADMIN_PASS") || "SENHA_ADMIN";
 
-    // Primeiro habilitar usuário
-    const enableResponse = await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
+    const response = await fetch(`${INSTAGRAM_API_URL}/admin/criar-usuario-plano`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usuario: username, senha: password }),
-    });
-
-    log("Enable user response", { status: enableResponse.status });
-
-    // Adicionar usuário
-    const addResponse = await fetch(`${INSTAGRAM_API_URL}/adicionar-usuario`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-admin-name": adminName,
+        "x-admin-pass": adminPass
+      },
       body: JSON.stringify({
         username,
         password,
-        time: daysAccess,
-        igUsers: "",
+        plano: plan
       }),
     });
 
-    const result = await addResponse.json();
-    log("Add user result", result);
+    const result = await response.json();
+    log("Create user plan result", result);
 
-    if (addResponse.ok) {
-      return { success: true, alreadyExists: false, message: "Usuário criado com sucesso" };
+    if (response.ok && result.success) {
+      return { success: true, alreadyExists: false, message: "Usuário criado com sucesso com plano " + plan };
     } else {
-      // Se falhou, verificar se é porque já existe
-      const existsNow = await checkUserExists(username);
-      if (existsNow) {
-        log("User creation failed but user exists - treating as success", { username });
-        return { 
-          success: true, 
-          alreadyExists: true, 
-          message: "Usuário já existia ou foi criado" 
-        };
-      }
-      return { success: false, alreadyExists: false, message: "Erro ao criar usuário" };
+      return { success: false, alreadyExists: false, message: result.error || "Erro ao criar usuário com plano" };
     }
   } catch (error) {
-    log("Error creating Instagram user", { error: String(error) });
-    
-    // Mesmo com erro, verificar se usuário existe (pode ter sido criado manualmente)
-    try {
-      const existsNow = await checkUserExists(username);
-      if (existsNow) {
-        log("Error occurred but user exists - treating as manual creation", { username });
-        return { 
-          success: true, 
-          alreadyExists: true, 
-          message: "Usuário já existe (criado manualmente)" 
-        };
-      }
-    } catch (e) {
-      // Ignorar erro na verificação
-    }
-    
+    log("Error creating Instagram user with plan", { error: String(error) });
     return { success: false, alreadyExists: false, message: String(error) };
   }
 }
