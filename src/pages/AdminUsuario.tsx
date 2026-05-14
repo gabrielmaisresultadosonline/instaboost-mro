@@ -815,7 +815,7 @@ export default function AdminUsuario() {
                     <Label className="text-gray-300">Tipo de Acesso</Label>
                     <Select
                       value={form.accessType}
-                      onValueChange={(value: 'annual' | 'lifetime' | 'monthly') =>
+                      onValueChange={(value: 'annual' | 'lifetime' | 'monthly' | 'solo' | 'pro' | 'agencia') =>
                         setForm({ ...form, accessType: value })
                       }
                     >
@@ -826,6 +826,9 @@ export default function AdminUsuario() {
                         <SelectItem value="monthly">Mensal (30d)</SelectItem>
                         <SelectItem value="annual">Anual (365d)</SelectItem>
                         <SelectItem value="lifetime">Vitalício</SelectItem>
+                        <SelectItem value="solo" className="text-emerald-400 font-bold">Plano Solo (1 conta)</SelectItem>
+                        <SelectItem value="pro" className="text-amber-400 font-bold">Plano Pro (4 contas) ⭐</SelectItem>
+                        <SelectItem value="agencia" className="text-purple-400 font-bold">Plano Agência (10 contas)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
