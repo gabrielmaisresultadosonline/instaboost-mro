@@ -153,7 +153,11 @@ const WhiteLabel = () => {
               Mensagens em massa no Direct, atração de público alvo e escala real.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full sm:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+              <Button 
+                size="lg" 
+                onClick={handlePartnerContact}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full sm:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
+              >
                 COMEÇAR AGORA <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button variant="outline" size="lg" className="border-gray-800 hover:bg-white/5 h-14 px-8 rounded-2xl text-lg w-full sm:w-auto">
