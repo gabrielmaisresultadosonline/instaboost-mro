@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { trackPageView, trackLead, trackInitiateCheckout, trackPurchase } from "@/lib/facebookTracking";
 import { openWhatsAppChat } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { 
@@ -152,6 +152,8 @@ const InstagramNovaPlan = () => {
       if (checkError) { console.error("Error creating checkout:", checkError); toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
+      // Track purchase attempt (Lead/Purchase intent)
+      trackPurchase(plan.price, `Plano ${plan.name}`, email);
       window.location.href = checkData.payment_link;
     } catch (error) { console.error("Error:", error); toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
@@ -565,7 +567,12 @@ const InstagramNovaPlan = () => {
               </div>
               <div className="flex flex-col items-center gap-2">
                 <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => { trackLead('Instagram MRO - Plano Solo'); setSelectedPlan("solo"); setShowCheckoutModal(true); }}>
+                  onClick={() => { 
+                    trackLead('Instagram MRO - Plano Solo'); 
+                    setSelectedPlan("solo"); 
+                    setShowCheckoutModal(true); 
+                    trackInitiateCheckout('Plano Solo', 197.00);
+                  }}>
                   <ShoppingCart className="w-6 h-6" />
                   ESCOLHER SOLO
                 </Button>
@@ -603,7 +610,12 @@ const InstagramNovaPlan = () => {
               </div>
               <div className="flex flex-col items-center gap-2">
                 <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => { trackLead('Instagram MRO - Plano Pro'); setSelectedPlan("pro"); setShowCheckoutModal(true); }}>
+                  onClick={() => { 
+                    trackLead('Instagram MRO - Plano Pro'); 
+                    setSelectedPlan("pro"); 
+                    setShowCheckoutModal(true); 
+                    trackInitiateCheckout('Plano Pro', 397.00);
+                  }}>
                   <ShoppingCart className="w-6 h-6" />
                   ESCOLHER PRO
                 </Button>
@@ -638,7 +650,12 @@ const InstagramNovaPlan = () => {
               </div>
               <div className="flex flex-col items-center gap-2">
                 <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => { trackLead('Instagram MRO - Plano Agência'); setSelectedPlan("agencia"); setShowCheckoutModal(true); }}>
+                  onClick={() => { 
+                    trackLead('Instagram MRO - Plano Agência'); 
+                    setSelectedPlan("agencia"); 
+                    setShowCheckoutModal(true); 
+                    trackInitiateCheckout('Plano Agência', 997.00);
+                  }}>
                   <ShoppingCart className="w-6 h-6" />
                   ESCOLHER AGÊNCIA
                 </Button>
