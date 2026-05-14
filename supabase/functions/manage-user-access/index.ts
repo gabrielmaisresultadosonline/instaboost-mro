@@ -332,7 +332,7 @@ serve(async (req) => {
           if (serviceType === 'whatsapp') {
             apiCreated = await createWhatsAppUser(username, password, accessType);
           } else if (serviceType === 'instagram') {
-            apiCreated = await createInstagramUser(username, password, daysAccess || 365);
+            apiCreated = await createInstagramUser(username, password, daysAccess || 365, accessType);
           }
         } else {
           logStep("Skipping API creation - user requested local only");
