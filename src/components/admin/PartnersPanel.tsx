@@ -42,6 +42,7 @@ interface Partner {
   pix_key: string | null;
   whatsapp: string | null;
   status: string;
+  password?: string | null;
   created_at: string;
 }
 
