@@ -46,6 +46,16 @@ interface Order {
   payment_method: string | null;
 }
 
+interface TrialUser {
+  id: string;
+  email: string;
+  username: string;
+  password: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+}
+
 interface Partner {
   id: string;
   name: string;
