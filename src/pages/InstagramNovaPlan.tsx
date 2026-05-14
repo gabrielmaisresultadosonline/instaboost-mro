@@ -826,7 +826,7 @@ const InstagramNovaPlan = () => {
                 <div className="flex justify-between"><span className="text-zinc-400">Usuário/Senha</span><span className="text-white font-mono">{username || "---"}</span></div>
                 <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
               </div>
-              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "annual" ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"}`}
+              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "solo" ? "bg-emerald-500 hover:bg-emerald-600 text-black" : selectedPlan === "pro" ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black" : "bg-purple-600 hover:bg-purple-700 text-white"}`}
                 disabled={loading || !!usernameError || !username || !email || !phone}>
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Gerando...</>) : (<><CreditCard className="mr-2 h-5 w-5" />Ir para Pagamento</>)}
               </Button>
