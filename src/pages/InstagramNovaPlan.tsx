@@ -293,12 +293,6 @@ const InstagramNovaPlan = () => {
         <div className="max-w-5xl mx-auto text-center relative">
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-6 object-contain" />
           
-          {/* V7+ Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 rounded-full px-6 py-2 mb-6">
-            <Flame className="w-5 h-5 text-orange-400 animate-pulse" />
-            <span className="text-white font-bold text-sm md:text-base">NOVA VERSÃO V7+ PLUS — A MAIS COMPLETA</span>
-            <Flame className="w-5 h-5 text-orange-400 animate-pulse" />
-          </div>
           
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
