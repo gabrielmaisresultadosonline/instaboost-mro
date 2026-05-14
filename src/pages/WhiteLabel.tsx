@@ -119,8 +119,8 @@ const WhiteLabel = () => {
   }, [partnerSlug]);
 
   const handlePartnerContact = () => {
-    // White Label leads go directly to official admin/main support
-    window.open('https://wa.me/555192036540?text=Tenho interesse no sistema White Label', '_blank');
+    // Lead redirecionado para o WhatsApp oficial
+    window.open('https://wa.me/555192036540?text=Tenho interesse em ser um Parceiro Oficial MRO', '_blank');
   };
 
   return (
@@ -140,11 +140,11 @@ const WhiteLabel = () => {
             transition={{ duration: 0.6 }}
           >
             <Badge className="mb-6 bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-1.5 rounded-full border-none">
-              OPORTUNIDADE WHITE LABEL - SEJA UM PARCEIRO OFICIAL
+              SEJA UM PARCEIRO OFICIAL
             </Badge>
             <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tighter">
-              SUA MARCA, <br />
-              <span className="text-yellow-500">NOSSA TECNOLOGIA.</span>
+              NOSSA MARCA, <br />
+              <span className="text-yellow-500">SUA TECNOLOGIA.</span>
             </h1>
             
             <div className="bg-zinc-900/80 border border-yellow-500/20 rounded-[32px] p-8 max-w-4xl mx-auto mb-12 backdrop-blur-md">
@@ -156,7 +156,7 @@ const WhiteLabel = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-lg leading-none">R$ 6 MIL</h3>
-                      <p className="text-zinc-500 text-sm mt-1">Investimento Único para 1 Ano Ativado</p>
+                      <p className="text-zinc-500 text-sm mt-1">Investimento Anual</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -201,13 +201,13 @@ const WhiteLabel = () => {
                   onClick={handlePartnerContact}
                   className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full md:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
                 >
-                  QUERO SER WHITE LABEL <ArrowRight className="ml-2 w-5 h-5" />
+                  QUERO SER PARCEIRO <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
             </div>
 
             <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Revenda o sistema de automação para Instagram mais potente do mercado com sua própria marca e fature 100% do lucro direto na sua conta.
+              Tenha uma franquia da MRO já com produto pronto. Estrutura completa de agência de marketing para você oferecer aos seus clientes.
             </p>
           </motion.div>
         </div>
@@ -245,7 +245,7 @@ const WhiteLabel = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-6xl font-black mb-6">COMO FUNCIONA <span className="text-yellow-500 text-balance">NA PRÁTICA</span></h2>
-            <p className="text-gray-400 text-xl max-w-2xl mx-auto">A nova lógica está muito mais estratégica e assertiva para gerar resultados reais.</p>
+            <p className="text-gray-400 text-xl max-w-2xl mx-auto">Isso é o que você vai oferecer para o seu cliente final.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
