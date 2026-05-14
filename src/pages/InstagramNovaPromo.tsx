@@ -337,13 +337,7 @@ const InstagramNovaPromo = () => {
             </div>
           </div>
 
-          {/* CTA Button */}
-          <Button 
-            onClick={scrollToPricing}
-            className="mt-8 sm:mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
-          >
-            GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
+          {/* Botão removido conforme solicitação */}
         </div>
       </section>
 
