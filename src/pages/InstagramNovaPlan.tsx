@@ -797,12 +797,12 @@ const InstagramNovaPlan = () => {
               <X className="w-5 h-5" />
             </button>
             <div className="text-center mb-6">
-              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "annual" ? "bg-blue-500/20" : "bg-gradient-to-br from-amber-500/20 to-orange-500/20"}`}>
-                <Sparkles className={`w-7 h-7 ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`} />
+              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "solo" ? "bg-emerald-500/20" : selectedPlan === "pro" ? "bg-amber-500/20" : "bg-purple-500/20"}`}>
+                <Sparkles className={`w-7 h-7 ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`} />
               </div>
               <h3 className="text-xl font-bold text-white">Plano {PLANS[selectedPlan].name}</h3>
               <p className="text-2xl font-bold mt-2">
-                <span className={selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
+                <span className={selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}>
                   R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
                 </span>
               </p>
