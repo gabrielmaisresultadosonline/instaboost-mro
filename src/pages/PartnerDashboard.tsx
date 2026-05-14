@@ -212,6 +212,35 @@ const PartnerDashboard = () => {
     }
   };
 
+  const handleCreateTrial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partner) return;
+    setTrialLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('trial_users')
+        .insert({
+          partner_id: partner.id,
+          email: newTrial.email,
+          username: newTrial.username,
+          password: newTrial.password,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 1 day
+        });
+
+      if (error) throw error;
+
+      toast({ title: "Teste grátis criado com sucesso!" });
+      setNewTrial({ email: '', username: '', password: '' });
+      setIsCreatingTrial(false);
+      fetchPartnerData();
+    } catch (error: any) {
+      toast({ title: "Erro ao criar teste", description: error.message, variant: "destructive" });
+    } finally {
+      setTrialLoading(false);
+    }
+  };
+
   const logout = () => {
     sessionStorage.removeItem(`partner_auth_${slug}`);
     setIsAuthenticated(false);
