@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +63,9 @@ const PLANS = {
 };
 
 const VendasCompleta = () => {
+  const [searchParams] = useSearchParams();
+  const partnerSlug = searchParams.get('p');
+  const [partner, setPartner] = useState<{id: string, name: string} | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
@@ -125,8 +129,22 @@ const VendasCompleta = () => {
     setLoading(true);
     try {
       const plan = PLANS[selectedPlan];
+      
+      // Email attribution logic for tracking
+      const attributedEmail = partnerSlug 
+        ? `${partnerSlug}:${email.toLowerCase().trim()}`
+        : email.toLowerCase().trim();
+
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
-        body: { email: email.toLowerCase().trim(), username: username.toLowerCase().trim(), phone: phone.replace(/\D/g, "").trim(), planType: selectedPlan, amount: plan.price, checkUserExists: true }
+        body: { 
+          email: attributedEmail, 
+          username: username.toLowerCase().trim(), 
+          phone: phone.replace(/\D/g, "").trim(), 
+          planType: selectedPlan, 
+          amount: plan.price, 
+          checkUserExists: true,
+          partner_id: partner?.id || null
+        }
       });
       if (checkError) { console.error("Error creating checkout:", checkError); toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
@@ -155,6 +173,29 @@ const VendasCompleta = () => {
     };
     loadSettings();
   }, []);
+
+  useEffect(() => {
+    const loadPartner = async () => {
+      if (!partnerSlug) return;
+      const { data } = await supabase
+        .from('partners')
+        .select('id, name')
+        .eq('slug', partnerSlug)
+        .eq('status', 'active')
+        .single();
+      
+      if (data) {
+        setPartner(data);
+        // Track visit if partner found
+        await supabase.from('partner_visits').insert([{
+          partner_id: data.id,
+          user_agent: navigator.userAgent,
+          referer: document.referrer
+        }]);
+      }
+    };
+    loadPartner();
+  }, [partnerSlug]);
 
   useEffect(() => {
     const timer = setInterval(() => {

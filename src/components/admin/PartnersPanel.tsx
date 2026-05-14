@@ -334,7 +334,7 @@ const PartnersPanel = () => {
                   <TableCell className="text-xs">{partner.whatsapp || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" title="Página de Vendas" onClick={() => window.open(`/promo/${partner.slug}`, '_blank')}>
+                      <Button variant="ghost" size="icon" title="Página de Vendas" onClick={() => window.open(`/instagram-nova?p=${partner.slug}`, '_blank')}>
                         <Globe size={16} className="text-green-500" />
                       </Button>
                       <Button variant="ghost" size="icon" title="Dashboard do Parceiro" onClick={() => window.open(`/dash/${partner.slug}`, '_blank')}>
