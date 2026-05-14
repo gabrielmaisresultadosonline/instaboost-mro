@@ -66,8 +66,11 @@ const ProfitCalculator = () => {
             <span className="font-bold text-white">R$ {pricePerSale}</span>
           </div>
           <div className="flex justify-between items-center p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
-            <span className="text-yellow-500 font-bold">Seu Lucro Líquido por Venda</span>
-            <span className="font-bold text-yellow-500">R$ {profitPerSale}</span>
+            <div className="flex flex-col">
+              <span className="text-yellow-500 font-bold">Seu Lucro Líquido (por venda)</span>
+              <span className="text-[10px] text-yellow-500/70 font-bold uppercase tracking-widest">R$ 397 - 30% taxa plataforma</span>
+            </div>
+            <span className="font-bold text-yellow-500 text-2xl">R$ {profitPerSale}</span>
           </div>
         </div>
       </div>
@@ -142,28 +145,75 @@ const WhiteLabel = () => {
             transition={{ duration: 0.6 }}
           >
             <Badge className="mb-6 bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-1.5 rounded-full border-none">
-              OPORTUNIDADE WHITE LABEL
+              OPORTUNIDADE WHITE LABEL - SEJA UM PARCEIRO OFICIAL
             </Badge>
             <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tighter">
               SUA MARCA, <br />
               <span className="text-yellow-500">NOSSA TECNOLOGIA.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Revenda o sistema de automação para Instagram mais potente do mercado. 
-              Mensagens em massa no Direct, atração de público alvo e escala real.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button 
-                size="lg" 
-                onClick={handlePartnerContact}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full sm:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
-              >
-                COMEÇAR AGORA <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="lg" className="border-gray-800 hover:bg-white/5 h-14 px-8 rounded-2xl text-lg w-full sm:w-auto">
-                VER DEMONSTRAÇÃO
-              </Button>
+            
+            <div className="bg-zinc-900/80 border border-yellow-500/20 rounded-[32px] p-8 max-w-4xl mx-auto mb-12 backdrop-blur-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center shrink-0">
+                      <DollarSign className="text-yellow-500 w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg leading-none">R$ 6 MIL</h3>
+                      <p className="text-zinc-500 text-sm mt-1">Investimento Único para 1 Ano Ativado</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center shrink-0">
+                      <Zap className="text-yellow-500 w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg leading-none">VENDAS ILIMITADAS</h3>
+                      <p className="text-zinc-500 text-sm mt-1">Sem limite de clientes no seu sistema</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="text-yellow-500 w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg leading-none">TESTE GRÁTIS</h3>
+                      <p className="text-zinc-500 text-sm mt-1">Liberação de testes para seus leads</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center shrink-0">
+                      <TrendingUp className="text-yellow-500 w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg leading-none">R$ 238 MIL LÍQUIDO</h3>
+                      <p className="text-zinc-500 text-sm mt-1">Potencial de Faturamento Anual</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-8 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-left">
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Incluso no Pacote</p>
+                  <p className="text-sm text-zinc-300">Treinamento Passo a Passo de Vendas incluso</p>
+                </div>
+                <Button 
+                  size="lg" 
+                  onClick={handlePartnerContact}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full md:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
+                >
+                  QUERO SER WHITE LABEL <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
             </div>
+
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
+              Revenda o sistema de automação para Instagram mais potente do mercado com sua própria marca e fature 100% do lucro direto na sua conta.
+            </p>
           </motion.div>
         </div>
       </section>

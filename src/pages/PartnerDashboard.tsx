@@ -27,7 +27,10 @@ import {
   QrCode,
   MessageCircle,
   LogOut,
-  Calendar
+  Calendar,
+  Globe,
+  Copy,
+  Sparkles
 } from "lucide-react";
 import { format, subDays, startOfYear, endOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -292,6 +295,58 @@ const PartnerDashboard = () => {
           </div>
         </div>
 
+        {/* Links de Divulgação - Main Card */}
+        <Card className="bg-gradient-to-br from-zinc-900 to-black border-yellow-500/30 text-white overflow-hidden shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+          <CardHeader className="border-b border-zinc-800 bg-zinc-900/50">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                <ArrowUpRight size={16} className="text-yellow-500" /> Seus Links de Divulgação
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Página de Vendas Oficial</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600">
+                      <Globe size={14} />
+                    </div>
+                    <Input readOnly value={`${window.location.origin}/instagram-nova?p=${slug}`} className="bg-zinc-800/50 border-zinc-700 text-xs h-11 pl-10" />
+                  </div>
+                  <Button variant="outline" className="h-11 px-4 gap-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700" onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/instagram-nova?p=${slug}`);
+                    toast({ title: "Link copiado!" });
+                  }}>
+                    <Copy size={14} /> Copiar
+                  </Button>
+                </div>
+                <p className="text-[10px] text-zinc-500 italic">Ideal para vendas diretas do sistema.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Página White Label (Para Parceiros)</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600">
+                      <Sparkles size={14} />
+                    </div>
+                    <Input readOnly value={`${window.location.origin}/whitelabel?p=${slug}`} className="bg-zinc-800/50 border-zinc-700 text-xs h-11 pl-10" />
+                  </div>
+                  <Button variant="outline" className="h-11 px-4 gap-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700" onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/whitelabel?p=${slug}`);
+                    toast({ title: "Link copiado!" });
+                  }}>
+                    <Copy size={14} /> Copiar
+                  </Button>
+                </div>
+                <p className="text-[10px] text-zinc-500 italic">Use para atrair novos parceiros interessados na tecnologia.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-zinc-900 border-zinc-800 text-white">
@@ -306,7 +361,7 @@ const PartnerDashboard = () => {
           </Card>
 
           <Card className="bg-zinc-900 border-zinc-800 text-white">
-            <CardContent className="p-6">
+            <CardContent className="p-4 text-center">
               <div className="flex justify-between items-start mb-2">
                 <Users className="text-zinc-500" size={20} />
                 <Badge variant="outline" className="text-[10px] uppercase font-bold text-zinc-500 border-zinc-800">Attempts</Badge>
@@ -526,35 +581,10 @@ const PartnerDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase text-zinc-500">Links de Divulgação</label>
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-zinc-400">Página de Vendas:</span>
-                      <div className="flex gap-2">
-                    <Input readOnly value={`${window.location.origin}/instagram-nova?p=${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/instagram-nova?p=${slug}`);
-                      toast({ title: "Link copiado!" });
-                    }}>
-                          <ArrowUpRight size={14} />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-zinc-400">Página de WhiteLabel:</span>
-                      <div className="flex gap-2">
-                        <Input readOnly value={`${window.location.origin}/whitelabel?p=${slug}`} className="bg-zinc-800 border-zinc-700 text-xs h-9" />
-                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/whitelabel?p=${slug}`);
-                          toast({ title: "Link copiado!" });
-                        }}>
-                          <ArrowUpRight size={14} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                <div className="p-4 bg-zinc-800/50 rounded-2xl border border-zinc-800">
+                  <p className="text-xs text-zinc-400 leading-relaxed italic">
+                    Utilize o card de links acima para copiar seus links de divulgação e começar a vender agora mesmo!
+                  </p>
                 </div>
 
                 <div className="space-y-2">
