@@ -292,16 +292,13 @@ const InstagramNovaPlan = () => {
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-t from-purple-500/5 to-transparent" />
         </div>
         <div className="max-w-5xl mx-auto text-center relative">
-          <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-6 object-contain" />
-          
-          
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight">
+            <h1 className="relative text-4xl md:text-6xl lg:text-8xl font-[1000] mb-4 leading-tight tracking-tighter">
                <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">NÃO GASTE MAIS COM ANÚNCIOS</span>
              </h1>
-             <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black mb-3">
-              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
+             <h2 className="relative text-2xl md:text-4xl lg:text-5xl font-[1000] mb-6">
+              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-tight">
                 Utilize a MRO Inteligente!
               </span>
             </h2>
