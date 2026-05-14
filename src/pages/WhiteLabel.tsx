@@ -15,7 +15,15 @@ import {
   BarChart3,
   Rocket,
   Calculator,
-  DollarSign
+  DollarSign,
+  MousePointer2,
+  UserPlus,
+  Target,
+  Send,
+  ExternalLink,
+  Sparkles,
+  Search,
+  Bot
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -147,6 +155,244 @@ const WhiteLabel = () => {
                 <div className="text-gray-500 font-medium uppercase tracking-widest text-xs">{stat.label}</div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="py-24 px-4 bg-zinc-950">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6">COMO FUNCIONA <span className="text-yellow-500 text-balance">NA PRÁTICA</span></h2>
+            <p className="text-gray-400 text-xl max-w-2xl mx-auto">A nova lógica está muito mais estratégica e assertiva para gerar resultados reais.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+            {/* Connecting lines for desktop */}
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-yellow-500/10 -translate-y-1/2 z-0" />
+            
+            {[
+              {
+                step: "01",
+                title: "Ative o seguir + curtir em massa",
+                desc: "O sistema começa a interagir com perfis estratégicos automaticamente",
+                icon: UserPlus
+              },
+              {
+                step: "02",
+                title: "Pessoas interessadas te seguem de volta",
+                desc: "Quem se identifica com seu conteúdo e nicho passa a te seguir",
+                icon: MousePointer2
+              },
+              {
+                step: "03",
+                title: "O sistema identifica o público quente",
+                desc: "Filtros inteligentes separam quem realmente tem interesse",
+                icon: Target
+              },
+              {
+                step: "04",
+                title: "Envie Direct em massa automaticamente",
+                desc: "Mensagens otimizadas são enviadas para leads qualificados",
+                icon: Send
+              },
+              {
+                step: "05",
+                title: "Direcione para seu produto ou serviço",
+                desc: "Converta seguidores em clientes reais com estratégia",
+                icon: ExternalLink
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="relative z-10"
+              >
+                <div className="bg-black border border-white/5 p-6 rounded-[32px] h-full flex flex-col items-center text-center group hover:border-yellow-500/40 transition-all">
+                  <span className="text-5xl font-black text-white/5 absolute top-4 left-6 group-hover:text-yellow-500/10 transition-colors">{item.step}</span>
+                  <div className="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <item.icon className="text-yellow-500 w-8 h-8" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-3 leading-tight">{item.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-20 p-8 rounded-[40px] bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 text-center">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+              <div className="text-2xl font-black">💥 RESULTADO</div>
+              <div className="flex items-center gap-4 text-xl md:text-2xl font-bold">
+                <span className="text-white">Mais seguidores</span>
+                <ArrowRight className="text-yellow-500" />
+                <span className="text-white">Mais conversas</span>
+                <ArrowRight className="text-yellow-500" />
+                <span className="text-yellow-500">Mais vendas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* V7+ Plus Features Section */}
+      <section className="py-32 px-4 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-20">
+            <div>
+              <Badge className="bg-yellow-500 text-black mb-4">O QUE HÁ DE NOVO</Badge>
+              <h2 className="text-4xl md:text-6xl font-black leading-none">NOVIDADES DA <span className="text-yellow-500">V7+ PLUS</span></h2>
+            </div>
+            <p className="text-gray-400 text-lg max-w-md">Totalmente otimizada com mais automação, mais inteligência e mais resultados.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="bg-zinc-950 border-white/10 rounded-[40px] p-8 hover:border-yellow-500/30 transition-all">
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center">
+                  <MessageSquare className="text-yellow-500 w-7 h-7" />
+                </div>
+                <Badge className="bg-yellow-500 text-black">NOVO</Badge>
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Automação de Direct (DM)</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Envio automático para novos seguidores</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Envio para seus seguidores atuais</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Envio para seguidores de qualquer página</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Copy otimizada com Corretor de IA exclusivo</li>
+              </ul>
+            </Card>
+
+            <Card className="bg-zinc-950 border-white/10 rounded-[40px] p-8 hover:border-yellow-500/30 transition-all">
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center">
+                  <Target className="text-yellow-500 w-7 h-7" />
+                </div>
+                <Badge className="bg-yellow-500 text-black">NOVO</Badge>
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Filtros Inteligentes</h3>
+              <p className="text-yellow-500 font-bold text-sm mb-4 uppercase tracking-widest">Público Quente</p>
+              <ul className="space-y-3 text-gray-400">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Segmentação avançada por interesse</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Mais precisão = mais respostas</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Conversões otimizadas por IA</li>
+              </ul>
+            </Card>
+
+            <Card className="bg-zinc-950 border-white/10 rounded-[40px] p-8 hover:border-yellow-500/30 transition-all">
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center">
+                  <TrendingUp className="text-yellow-500 w-7 h-7" />
+                </div>
+                <Badge className="bg-yellow-500 text-black">PRINCIPAL</Badge>
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Crescimento Completo</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Seguir em massa estratégico</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Curtir fotos automaticamente</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Interação com Stories</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Deixar de seguir (Unfollow) inteligente</li>
+              </ul>
+            </Card>
+
+            <Card className="bg-zinc-950 border-white/10 rounded-[40px] p-8 md:col-span-2 lg:col-span-1 hover:border-yellow-500/30 transition-all">
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center">
+                  <Search className="text-yellow-500 w-7 h-7" />
+                </div>
+                <Badge className="bg-yellow-500 text-black">AVANÇADO</Badge>
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Captura de Público</h3>
+              <p className="text-gray-400 mb-6 italic text-sm">Extraia leads altamente qualificados que já demonstram interesse:</p>
+              <ul className="grid grid-cols-2 gap-3 text-gray-400">
+                <li className="flex items-center gap-2 text-xs md:text-sm"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Quem curte posts</li>
+                <li className="flex items-center gap-2 text-xs md:text-sm"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Quem comenta</li>
+                <li className="flex items-center gap-2 text-xs md:text-sm"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Seguidores de rivais</li>
+                <li className="flex items-center gap-2 text-xs md:text-sm"><CheckCircle2 className="w-4 h-4 text-yellow-500" /> Seguidores de nicho</li>
+              </ul>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-zinc-900 to-black border-yellow-500/40 rounded-[40px] p-8 md:col-span-2 hover:border-yellow-500 transition-all shadow-[0_0_30px_rgba(234,179,8,0.1)]">
+              <div className="flex flex-col lg:flex-row gap-8 items-center">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center">
+                      <Bot className="text-black w-7 h-7" />
+                    </div>
+                    <Badge className="bg-yellow-500 text-black font-bold">IA EXCLUSIVA</Badge>
+                  </div>
+                  <h3 className="text-3xl font-black mb-4">Inteligência Artificial Exclusiva</h3>
+                  <p className="text-gray-400 mb-6 leading-relaxed text-balance">
+                    A V7+ Plus vai além da automação simples. Nossa IA analisa seu perfil e traça as melhores estratégias de conteúdo, engajamento e vendas.
+                  </p>
+                </div>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    "Estratégias de Vendas",
+                    "Otimização da BIO",
+                    "Análise de Conteúdo",
+                    "Relatórios e Métricas"
+                  ].map((item, i) => (
+                    <div key={i} className="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center gap-3">
+                      <Sparkles className="text-yellow-500 w-4 h-4" />
+                      <span className="font-bold text-sm">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Summary Section */}
+      <section className="py-24 px-4 bg-zinc-950 border-y border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight">MAIS RESULTADOS, <span className="text-yellow-500 uppercase">ZERO ANÚNCIOS</span></h2>
+              <p className="text-xl text-gray-400 mb-10 leading-relaxed">
+                Com a tecnologia V7+ Plus você ganha seguidores qualificados e converte clientes reais sem precisar gastar um único real com tráfego pago.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold text-white tracking-tighter">Automática</div>
+                  <div className="text-gray-500 text-sm">Funciona 24h por dia, 7 dias por semana</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold text-white tracking-tighter">Inteligente</div>
+                  <div className="text-gray-500 text-sm">IA exclusiva para cada perfil</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold text-white tracking-tighter">Escalável</div>
+                  <div className="text-gray-500 text-sm">Sem limites para o seu crescimento</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold text-white tracking-tighter">Ilimitada</div>
+                  <div className="text-gray-500 text-sm">Uso ilimitado em sua marca própria</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute -inset-4 bg-yellow-500/20 blur-[100px] rounded-full" />
+              <Card className="bg-black border-yellow-500/20 rounded-[40px] p-12 relative z-10 text-center">
+                <h3 className="text-3xl font-black mb-6">OPORTUNIDADE ÚNICA</h3>
+                <p className="text-gray-400 mb-10 text-lg leading-relaxed">
+                  Ofereça essa solução para empresas que precisam de resultados imediatos investindo pouco. Essa é sua maior chance de lucro recorrente.
+                </p>
+                <div className="flex flex-col gap-4">
+                  <div className="p-6 rounded-3xl bg-yellow-500 text-black">
+                    <div className="text-sm font-bold uppercase tracking-widest mb-1 opacity-80">Ideal para agências</div>
+                    <div className="text-2xl font-black italic text-balance">Revenda como seu e lucre 100%</div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
