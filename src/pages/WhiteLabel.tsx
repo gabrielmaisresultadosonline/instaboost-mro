@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +25,9 @@ import {
   ExternalLink,
   Sparkles,
   Search,
-  Bot
+  Bot,
+  MessageCircle,
+  Phone
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -68,8 +72,9 @@ const ProfitCalculator = () => {
         </div>
       </div>
 
-      <div className="bg-zinc-900/50 rounded-[32px] p-8 border border-white/5 text-center">
-        <span className="text-gray-500 text-sm font-bold uppercase tracking-widest">Seu Resultado Mensal</span>
+      <div className="bg-zinc-900/50 rounded-[32px] p-8 border border-white/5 text-center relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-500/10 blur-[40px] rounded-full pointer-events-none" />
+        <span className="text-gray-500 text-sm font-bold uppercase tracking-widest relative z-10">Seu Resultado Mensal</span>
         <div className="mt-4 mb-2">
           <span className="text-gray-400 text-lg mr-2 italic">Faturamento:</span>
           <span className="text-2xl font-bold text-white">R$ {totalFaturamento.toLocaleString('pt-BR')}</span>
@@ -93,6 +98,33 @@ const ProfitCalculator = () => {
 };
 
 const WhiteLabel = () => {
+  const [searchParams] = useSearchParams();
+  const partnerSlug = searchParams.get('p');
+  const [partner, setPartner] = useState<{name: string, whatsapp: string} | null>(null);
+
+  useEffect(() => {
+    const fetchPartner = async () => {
+      if (!partnerSlug) return;
+      const { data } = await supabase
+        .from('partners')
+        .select('name, whatsapp')
+        .eq('slug', partnerSlug)
+        .single();
+      if (data) setPartner(data);
+    };
+    fetchPartner();
+  }, [partnerSlug]);
+
+  const handlePartnerContact = () => {
+    if (partner?.whatsapp) {
+      const msg = encodeURIComponent(`Olá ${partner.name}, vi a página de White Label e tenho interesse em investir R$ 6.000 para ter meu próprio sistema!`);
+      window.open(`https://wa.me/55${partner.whatsapp.replace(/\D/g, '')}?text=${msg}`, '_blank');
+    } else {
+      // Fallback ou comportamento padrão se não houver parceiro
+      window.open('https://wa.me/5511999999999', '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-yellow-400 selection:text-black">
       {/* Background Effects */}
@@ -121,7 +153,11 @@ const WhiteLabel = () => {
               Mensagens em massa no Direct, atração de público alvo e escala real.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full sm:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+              <Button 
+                size="lg" 
+                onClick={handlePartnerContact}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-14 px-8 rounded-2xl text-lg w-full sm:w-auto transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
+              >
                 COMEÇAR AGORA <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button variant="outline" size="lg" className="border-gray-800 hover:bg-white/5 h-14 px-8 rounded-2xl text-lg w-full sm:w-auto">
@@ -557,7 +593,11 @@ const WhiteLabel = () => {
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
               Seja o dono da sua própria plataforma de SaaS. O mercado de automação para Instagram é o que mais cresce hoje. Não perca tempo.
             </p>
-            <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-black h-16 px-12 rounded-2xl text-xl transition-all hover:scale-105">
+            <Button 
+              size="lg" 
+              onClick={handlePartnerContact}
+              className="bg-white hover:bg-gray-100 text-black font-black h-16 px-12 rounded-2xl text-xl transition-all hover:scale-105"
+            >
               QUERO SER WHITE LABEL
             </Button>
           </div>
