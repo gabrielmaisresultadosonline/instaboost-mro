@@ -35,7 +35,7 @@ const ProfitCalculator = () => {
             Número de Vendas Mensais: <span className="text-yellow-500 text-2xl ml-2">{sales}</span>
           </label>
           <Slider
-            defaultValue={[20]}
+            defaultValue={[67]}
             max={200}
             step={1}
             onValueChange={(value) => setSales(value[0])}
