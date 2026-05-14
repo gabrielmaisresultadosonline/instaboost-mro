@@ -254,7 +254,7 @@ const InstagramNovaPlan = () => {
   const affiliateBonus = "Cadastro Afiliado - Comissão de R$97 Por venda";
 
   const faqs = [
-    { q: "Quais são os planos disponíveis hoje?", a: "Oferecemos dois planos: o Plano Anual de 12 meses, que dá acesso completo por um ano, e o Plano Pagamento Único Vitalício, onde você paga apenas uma vez e tem acesso para sempre, incluindo todas as atualizações sem custo adicional." },
+    { q: "Quais são os planos disponíveis hoje?", a: "Oferecemos três opções de planos anuais: Plano Solo (1 conta fixa), Plano Pro (4 contas fixas + 5 testes mensais) e Plano Agência (10 contas fixas + 10 testes mensais). Todos os planos são assinaturas anuais que garantem acesso total à ferramenta e suporte especializado." },
     { q: "O que é a automação de Direct (DM) em massa?", a: "É uma funcionalidade exclusiva da V7+ Plus que permite enviar mensagens automáticas no Direct para novos seguidores, seus seguidores atuais e até seguidores de qualquer outra página — tudo com copy otimizada pelo Corretor de IA exclusivo MRO." },
     { q: "O que são os Filtros Inteligentes (Público Quente)?", a: "São filtros avançados de segmentação que identificam pessoas que já demonstraram interesse no seu nicho — como quem curtiu posts, comentou ou segue perfis concorrentes. Isso garante mais precisão, mais respostas e mais conversões." },
     { q: "Isso em massa não gera bloqueio?", a: "Não. Nosso sistema simula um humano com tela ligada, interações espaçadas e pausas naturais. Você deixa rodando por 7 a 8 horas diárias com segurança. O algoritmo entende como uso real, evitando bloqueios." },
