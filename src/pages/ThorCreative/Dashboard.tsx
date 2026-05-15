@@ -21,8 +21,8 @@ import { toast } from "sonner";
 
 const ThorCreativeDashboard = () => {
   const [activeTab, setActiveTab] = useState('generator');
-  const [niche, setNiche] = useState('');
-  const [goal, setGoal] = useState('');
+  const [niche, setNiche] = useState(localStorage.getItem('thor_niche') || '');
+  const [goal, setGoal] = useState(localStorage.getItem('thor_goal') || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState('both'); // stories, posts, both
   const [faceMode, setFaceMode] = useState('with-face');
