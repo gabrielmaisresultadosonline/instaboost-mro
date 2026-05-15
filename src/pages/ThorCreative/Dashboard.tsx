@@ -236,9 +236,9 @@ const ThorCreativeDashboard = () => {
             },
             body: JSON.stringify({
               model: 'gpt-image-1',
-              prompt: `${currentItem.prompt} Format: Square (1:1) feed post. Professional lighting.`,
+              prompt: `${currentItem.prompt} Format: Portrait Feed Post (4:5 ratio). Extremely realistic, professional lighting.`,
               n: 1,
-              size: '1024x1024',
+              size: '1024x1536',
               quality: 'high'
             })
           });
@@ -279,7 +279,7 @@ const ThorCreativeDashboard = () => {
             },
             body: JSON.stringify({
               model: 'gpt-image-1',
-              prompt: `${currentItem.prompt} Format: Vertical (9:16) stories. Same visual style as the post. Professional lighting.`,
+              prompt: `${currentItem.prompt} Format: Full Vertical Story (9:16 ratio). Identical visual style as the previous post. Professional cinematic lighting.`,
               n: 1,
               size: '1024x1536',
               quality: 'high'
