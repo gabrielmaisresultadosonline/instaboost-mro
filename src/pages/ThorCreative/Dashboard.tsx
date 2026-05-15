@@ -258,13 +258,8 @@ const ThorCreativeDashboard = () => {
       setGenerationStep('done');
       setIsGenerating(false);
       setCurrentImageGenerating(null);
+      toast.success(`Parabéns! ${imageCount} criativos gerados com sucesso.`);
     }
-  };
-    
-    setGenerationStep('done');
-    setIsGenerating(false);
-    setCurrentImageGenerating(null);
-    toast.success(`Parabéns! ${imageCount} criativos gerados com sucesso.`);
   };
 
   return (
