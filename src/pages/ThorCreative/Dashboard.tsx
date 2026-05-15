@@ -27,6 +27,19 @@ const ThorCreativeDashboard = () => {
   const [selectedFormat, setSelectedFormat] = useState('both'); // stories, posts, both
   const [faceMode, setFaceMode] = useState('with-face');
   const [imageCount, setImageCount] = useState(7);
+  const [selectedColors, setSelectedColors] = useState<string[]>(['#9333ea', '#3b82f6', '#000000']);
+
+  const handleColorAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (selectedColors.length < 4) {
+      setSelectedColors([...selectedColors, e.target.value]);
+    } else {
+      toast.error("Máximo de 4 cores permitido.");
+    }
+  };
+
+  const removeColor = (index: number) => {
+    setSelectedColors(selectedColors.filter((_, i) => i !== index));
+  };
 
   const handleGenerate = () => {
     if (!niche || !goal) {
@@ -144,15 +157,32 @@ const ThorCreativeDashboard = () => {
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                             <Palette size={16} className="text-pink-500" />
-                            Cores da Marca
+                            Cores da Marca (Até 4)
                           </label>
-                          <div className="flex gap-2">
-                            <div className="w-8 h-8 rounded-md bg-purple-600 cursor-pointer border border-white/10"></div>
-                            <div className="w-8 h-8 rounded-md bg-blue-500 cursor-pointer border border-white/10"></div>
-                            <div className="w-8 h-8 rounded-md bg-black cursor-pointer border border-white/10"></div>
-                            <button className="w-8 h-8 rounded-md bg-white/5 border border-dashed border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors">
-                              <Plus size={14} />
-                            </button>
+                          <div className="flex gap-2 items-center">
+                            {selectedColors.map((color, index) => (
+                              <div 
+                                key={index} 
+                                className="w-8 h-8 rounded-md border border-white/20 relative group cursor-pointer"
+                                style={{ backgroundColor: color }}
+                                onClick={() => removeColor(index)}
+                                title="Clique para remover"
+                              >
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                                  <span className="text-[10px]">✕</span>
+                                </div>
+                              </div>
+                            ))}
+                            {selectedColors.length < 4 && (
+                              <label className="w-8 h-8 rounded-md bg-white/5 border border-dashed border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer">
+                                <Plus size={14} />
+                                <input 
+                                  type="color" 
+                                  className="sr-only" 
+                                  onChange={handleColorAdd}
+                                />
+                              </label>
+                            )}
                           </div>
                         </div>
                         <div className="space-y-2">
