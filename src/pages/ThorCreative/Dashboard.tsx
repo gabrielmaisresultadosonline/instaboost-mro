@@ -200,20 +200,32 @@ const ThorCreativeDashboard = () => {
                           </div>
                           
                           {faceMode === 'with-face' && (
-                            <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 transition-colors cursor-pointer">
-                              <ImageIcon size={32} className="text-gray-500 mb-2" />
-                              <p className="text-sm font-medium">Subir Foto da Pessoa</p>
-                              <p className="text-xs text-gray-500">A face será preservada em todas as imagens</p>
-                            </div>
+                            <label className="flex-1 cursor-pointer">
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) toast.success(`Foto "${file.name}" carregada!`);
+                              }} />
+                              <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 hover:border-purple-500/50 transition-all">
+                                <ImageIcon size={32} className="text-gray-500 mb-2" />
+                                <p className="text-sm font-medium">Subir Foto da Pessoa</p>
+                                <p className="text-xs text-gray-500">A face será preservada em todas as imagens</p>
+                              </div>
+                            </label>
                           )}
                         </div>
 
                         <div className="space-y-4">
-                          <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 transition-colors cursor-pointer">
-                            <Layout size={32} className="text-gray-500 mb-2" />
-                            <p className="text-sm font-medium">Incluir Logomarca</p>
-                            <p className="text-xs text-gray-500">A logo será aplicada harmoniosamente</p>
-                          </div>
+                          <label className="cursor-pointer block">
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) toast.success(`Logomarca "${file.name}" carregada!`);
+                            }} />
+                            <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 hover:border-purple-500/50 transition-all">
+                              <Layout size={32} className="text-gray-500 mb-2" />
+                              <p className="text-sm font-medium">Incluir Logomarca</p>
+                              <p className="text-xs text-gray-500">A logo será aplicada harmoniosamente</p>
+                            </div>
+                          </label>
                         </div>
                       </div>
                     </Card>
