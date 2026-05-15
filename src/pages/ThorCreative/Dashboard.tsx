@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { 
   Sparkles, 
   Image as ImageIcon, 
   Layout, 
@@ -15,7 +21,9 @@ import {
   Grid,
   FileText,
   Palette,
-  Target
+  Target,
+  Download,
+  Eye
 } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -39,6 +47,7 @@ const ThorCreativeDashboard = () => {
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [projects, setProjects] = useState<any[]>(JSON.parse(localStorage.getItem('thor_projects') || '[]'));
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{url: string, title: string} | null>(null);
 
   const saveProfile = () => {
     const newProject = {
@@ -688,7 +697,7 @@ const ThorCreativeDashboard = () => {
                                <div className={`w-28 h-28 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20' : 'border-white/10 bg-black/40'}`}>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                                   {generatedImages[index * 2] ? (
-                                    <img src={generatedImages[index * 2]} alt="Feed" className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform" onClick={() => window.open(generatedImages[index * 2], '_blank')} />
+                                    <img src={generatedImages[index * 2]} alt="Feed" className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform" onClick={() => setSelectedImage({url: generatedImages[index * 2], title: `Feed ${step}`})} />
                                   ) : (
                                     <div className="p-1">
                                       <ImageIcon size={16} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-1`} />
@@ -702,7 +711,7 @@ const ThorCreativeDashboard = () => {
                                <div className={`w-20 h-36 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20' : 'border-white/10 bg-black/40'}`}>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                                   {generatedImages[index * 2 + 1] ? (
-                                    <img src={generatedImages[index * 2 + 1]} alt="Stories" className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform" onClick={() => window.open(generatedImages[index * 2 + 1], '_blank')} />
+                                    <img src={generatedImages[index * 2 + 1]} alt="Stories" className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform" onClick={() => setSelectedImage({url: generatedImages[index * 2 + 1], title: `Story ${step}`})} />
                                   ) : (
                                     <div className="p-1">
                                       <ImageIcon size={16} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-1`} />
@@ -848,6 +857,36 @@ const ThorCreativeDashboard = () => {
             )}
           </div>
         </ScrollArea>
+
+        {/* Image Preview Dialog */}
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-4xl bg-[#09090B] border-white/10 text-white p-0 overflow-hidden">
+            <DialogHeader className="p-4 border-b border-white/10 flex flex-row items-center justify-between">
+              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                <ImageIcon className="text-purple-500" size={20} />
+                {selectedImage?.title}
+              </DialogTitle>
+              <div className="flex gap-2 mr-6">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="border-white/10 hover:bg-white/5"
+                  onClick={() => window.open(selectedImage?.url, '_blank')}
+                >
+                  <Download size={16} className="mr-2" />
+                  Download HD
+                </Button>
+              </div>
+            </DialogHeader>
+            <div className="flex items-center justify-center bg-black/40 min-h-[400px] max-h-[80vh] overflow-auto p-4">
+              <img 
+                src={selectedImage?.url} 
+                alt="Preview" 
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
