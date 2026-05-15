@@ -36,6 +36,7 @@ const ThorCreativeDashboard = () => {
   const [strategies, setStrategies] = useState<string[]>([]);
   const [currentImageGenerating, setCurrentImageGenerating] = useState<number | null>(null);
   const [imageProgress, setImageProgress] = useState<number[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'logo') => {
     const file = e.target.files?.[0];
@@ -129,18 +130,30 @@ const ThorCreativeDashboard = () => {
     setGenerationStep('images');
     setActiveTab('workflow');
     setImageProgress(new Array(imageCount).fill(0));
+    setGeneratedImages(new Array(imageCount).fill(''));
     
     for (let i = 0; i < imageCount; i++) {
       setCurrentImageGenerating(i);
       // Simulate image generation progress
-      for (let p = 0; p <= 100; p += 10) {
+      for (let p = 0; p <= 100; p += 20) {
         setImageProgress(prev => {
           const next = [...prev];
           next[i] = p;
           return next;
         });
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 400));
       }
+      
+      // Add a high-quality realistic placeholder after "generation"
+      const format = selectedFormat === 'stories' ? '900/1600' : '1080/1080';
+      const randomId = Math.floor(Math.random() * 1000);
+      const imageUrl = `https://picsum.photos/seed/${randomId}/${format}`;
+      
+      setGeneratedImages(prev => {
+        const next = [...prev];
+        next[i] = imageUrl;
+        return next;
+      });
     }
     
     setGenerationStep('done');
