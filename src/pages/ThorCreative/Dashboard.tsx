@@ -184,27 +184,41 @@ const ThorCreativeDashboard = () => {
       if (strategyData.error) throw new Error(strategyData.error.message);
       
       const content = JSON.parse(strategyData.choices[0].message.content);
-      const generatedItems = content.items;
-      setStrategies(generatedItems.map((item: any) => item.strategy));
+      const allItems = content.items || content.creatives || [];
       
-      localStorage.setItem('thor_last_generation_data', JSON.stringify(generatedItems));
-      
-      toast.success("Estratégias otimizadas!");
+      // Sanitize items: only keep those with a valid prompt
+      const generatedItems = allItems.filter(
+        (item: any) => item && typeof item.prompt === "string" && item.prompt.length > 10
+      );
+
+      if (generatedItems.length === 0) {
+        throw new Error("O GPT não retornou itens válidos para geração.");
+      }
+
+      setStrategies(generatedItems.map((item: any) => item.strategy || item.title || "Estratégia personalizada"));
+      toast.success("Estratégias e Prompts higienizados!");
+
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Step 2: Image Generation Loop with DALL-E 3
       setGenerationStep('images');
       setActiveTab('workflow');
-      const totalImages = imageCount;
+      const totalImages = generatedItems.length; // Use actual valid count
       setImageProgress(new Array(totalImages).fill(0));
-      setGeneratedImages(new Array(totalImages * 2).fill('')); // Double size for Feed + Stories
+      setGeneratedImages(new Array(totalImages * 2).fill('')); 
       
       for (let i = 0; i < totalImages; i++) {
+        const currentItem = generatedItems[i];
+        if (!currentItem || !currentItem.prompt) {
+          console.error(`Item ${i} inválido, pulando...`);
+          continue;
+        }
+
         setCurrentImageGenerating(i);
         console.log(`Gerando projeto de criativo ${i+1}/${totalImages}...`);
         
         // Generate FEED version
-        toast.info(`Gerando Feed para o criativo ${i + 1}...`);
+        toast.info(`Gerando Feed para: ${generatedItems[i].strategy}...`);
         const feedInterval = setInterval(() => {
           setImageProgress(prev => {
             const next = [...prev];
