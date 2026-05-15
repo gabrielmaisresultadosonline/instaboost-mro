@@ -273,6 +273,7 @@ const App = () => (
           <Route path="/parceiro-oficial" element={<WhiteLabel />} />
           <Route path="/parceirooficial" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
+          <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
