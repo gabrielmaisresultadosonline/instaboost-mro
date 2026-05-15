@@ -685,8 +685,8 @@ const ThorCreativeDashboard = () => {
                   <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                   
                   {/* Visual Workflow - Responsive Flex Layout */}
-                  <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
-                    <div className="flex items-center gap-0 relative z-10 py-24 px-12 min-w-max mx-auto justify-center">
+                  <div className="w-full h-full custom-scrollbar overflow-auto">
+                    <div className="flex items-center gap-0 relative z-10 py-16 px-12 min-w-max">
                       {(imageCount > 0 ? Array.from({ length: imageCount }, (_, i) => i + 1) : [1, 2, 3, 4, 5]).map((step, index) => (
                       <React.Fragment key={step}>
                         <div className="flex flex-col items-center group">
