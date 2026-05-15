@@ -148,6 +148,7 @@ const ThorCreativeDashboard = () => {
 
     try {
       // Step 1: Real API call for strategies and refined prompts
+      console.log("Iniciando requisição ao GPT-4o para estratégias e prompts...");
       const strategyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -159,16 +160,20 @@ const ThorCreativeDashboard = () => {
           messages: [
             { 
               role: 'system', 
-              content: 'Você é um estrategista de conteúdo digital e engenheiro de prompts sênior. Sua tarefa é criar estratégias de conteúdo e prompts altamente detalhados para o DALL-E 3 para Instagram.' 
+              content: 'Você é um estrategista de conteúdo digital e engenheiro de prompts sênior especializado em Instagram e DALL-E 3. Você deve criar estratégias de conteúdo e prompts altamente detalhados para gerar criativos fotorrealistas de alta qualidade.' 
             },
             { 
               role: 'user', 
               content: `Nicho: ${niche}. Objetivo: ${goal}. Cores da marca: ${selectedColors.join(', ')}. Formato: ${selectedFormat}. 
-              Crie uma lista de ${imageCount} itens. Para cada item, forneça:
-              1. Uma frase curta da estratégia em PORTUGUÊS.
-              2. Um prompt em INGLÊS extremamente detalhado para o DALL-E 3 gerar uma imagem fotorrealista e profissional (CGI or realistic photo), incluindo CALL TO ACTION (CTA) visível e elegante, garantindo consistência visual. Se houver uma foto de referência (face-consistency), mencione um "placeholder character with identical facial features and expressions". Inclua text overlay se fizer sentido para o criativo.
+              Quantidade: ${imageCount} imagens.
+              Para cada imagem, crie:
+              1. Uma estratégia de conteúdo em PORTUGUÊS.
+              2. Um prompt em INGLÊS para DALL-E 3: Descreva uma cena fotorrealista (RAW photo quality, 8k, highly detailed). 
+              IMPORTANTE: O prompt deve incluir a instrução para escrever textos e Call to Action (CTA) EM PORTUGUÊS DO BRASIL diretamente na imagem de forma legível e profissional. 
+              Exemplo: "with a large, elegant text overlay in Portuguese that says: [TEXTO AQUI]".
+              Mencione as cores ${selectedColors.join(', ')}. Se houver referência de face, descreva "a person with specific consistent facial features". Use iluminação profissional (cinematic lighting).
               
-              Responda no formato JSON: {"items": [{"strategy": "...", "prompt": "..."}, ...]}` 
+              Responda EXCLUSIVAMENTE em formato JSON: {"items": [{"strategy": "...", "prompt": "..."}]}` 
             }
           ],
           response_format: { type: "json_object" }
@@ -176,17 +181,20 @@ const ThorCreativeDashboard = () => {
       });
 
       const strategyData = await strategyResponse.json();
+      console.log("Resposta do GPT-4o:", strategyData);
+      
       if (strategyData.error) throw new Error(strategyData.error.message);
       
       const content = JSON.parse(strategyData.choices[0].message.content);
       const generatedItems = content.items;
       setStrategies(generatedItems.map((item: any) => item.strategy));
-      toast.success("Estratégias e Prompts otimizados pelo GPT-4o!");
-
-      // Wait for user to see strategies
+      
+      localStorage.setItem('thor_last_generation_data', JSON.stringify(generatedItems));
+      
+      toast.success("Estratégias e Prompts otimizados!");
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Step 2: Image Generation Loop with DALL-E 3 (One by one)
+      // Step 2: Image Generation Loop with DALL-E 3
       setGenerationStep('images');
       setActiveTab('workflow');
       const totalImages = imageCount;
@@ -195,6 +203,7 @@ const ThorCreativeDashboard = () => {
       
       for (let i = 0; i < totalImages; i++) {
         setCurrentImageGenerating(i);
+        console.log(`Iniciando geração da imagem ${i+1} com DALL-E 3. Prompt:`, generatedItems[i].prompt);
         toast.info(`Gerando Criativo ${i + 1} com DALL-E 3...`);
         
         const progressInterval = setInterval(() => {
@@ -223,9 +232,13 @@ const ThorCreativeDashboard = () => {
           });
 
           const imageData = await imageResponse.json();
+          console.log(`Resultado da geração da imagem ${i+1}:`, imageData);
           clearInterval(progressInterval);
           
-          if (imageData.error) throw new Error(imageData.error.message);
+          if (imageData.error) {
+            console.error(`Erro na API DALL-E para imagem ${i+1}:`, imageData.error);
+            throw new Error(imageData.error.message);
+          }
           
           const imageUrl = imageData.data[0].url;
           
@@ -244,19 +257,24 @@ const ThorCreativeDashboard = () => {
           toast.success(`Imagem ${i + 1} concluída!`);
         } catch (err: any) {
           clearInterval(progressInterval);
-          console.error(err);
+          console.error(`Erro capturado na imagem ${i+1}:`, err);
           toast.error(`Erro na imagem ${i + 1}: ${err.message}`);
-          // Empty so it stays loading or shows placeholder
+          
+          setImageProgress(prev => {
+            const next = [...prev];
+            next[i] = 100;
+            return next;
+          });
         }
       }
     } catch (error: any) {
-      console.error(error);
-      toast.error(`Erro na requisição: ${error.message}`);
+      console.error("Erro crítico no processo ThorCreative:", error);
+      toast.error(`Erro: ${error.message}`);
     } finally {
       setGenerationStep('done');
       setIsGenerating(false);
       setCurrentImageGenerating(null);
-      toast.success(`Fluxo concluído! ${imageCount} criativos em alta definição.`);
+      toast.success(`Fluxo concluído!`);
     }
   };
 
