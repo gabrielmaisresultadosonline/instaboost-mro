@@ -280,6 +280,10 @@ const WhatsAppAdmin = () => {
             <Label className="text-gray-300">Mensagem padrão do WhatsApp</Label>
             <Input value={settings.whatsapp_message} onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="Olá, vim pelo site..." />
           </div>
+          <div>
+            <Label className="text-gray-300">URL da Foto de Perfil</Label>
+            <Input value={settings.photo_url} onChange={(e) => setSettings({ ...settings, photo_url: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="/gabriel-photo.webp" />
+          </div>
           <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700">
             <Save className="w-4 h-4 mr-2" /> {saving ? "Salvando..." : "Salvar Configurações"}
           </Button>
