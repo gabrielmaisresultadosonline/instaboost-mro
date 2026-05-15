@@ -147,7 +147,6 @@ const ThorCreativeDashboard = () => {
     toast.info("Conectando ao motor GPT-4o Omni...");
 
     try {
-      // Step 1: Real API call for strategies and refined prompts
       console.log("Iniciando requisição ao GPT-4o para estratégias e prompts...");
       const strategyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -166,8 +165,9 @@ const ThorCreativeDashboard = () => {
               role: 'user', 
               content: `Nicho: ${niche}. Objetivo: ${goal}. Cores da marca: ${selectedColors.join(', ')}. Formato: ${selectedFormat}. 
               Quantidade: ${imageCount} imagens.
-              Para cada imagem, crie:
-              1. Uma estratégia de conteúdo em PORTUGUÊS.
+              Crie uma lista de ${imageCount} itens únicos e sequenciais para um projeto de conteúdo.
+              Para cada item, forneça:
+              1. Uma estratégia de conteúdo em PORTUGUÊS (ex: Post de Atração, Post de Autoridade, etc).
               2. Um prompt em INGLÊS para DALL-E 3: Descreva uma cena fotorrealista (RAW photo quality, 8k, highly detailed). 
               IMPORTANTE: O prompt deve incluir a instrução para escrever textos e Call to Action (CTA) EM PORTUGUÊS DO BRASIL diretamente na imagem de forma legível e profissional. 
               Exemplo: "with a large, elegant text overlay in Portuguese that says: [TEXTO AQUI]".
@@ -181,8 +181,6 @@ const ThorCreativeDashboard = () => {
       });
 
       const strategyData = await strategyResponse.json();
-      console.log("Resposta do GPT-4o:", strategyData);
-      
       if (strategyData.error) throw new Error(strategyData.error.message);
       
       const content = JSON.parse(strategyData.choices[0].message.content);
@@ -191,8 +189,8 @@ const ThorCreativeDashboard = () => {
       
       localStorage.setItem('thor_last_generation_data', JSON.stringify(generatedItems));
       
-      toast.success("Estratégias e Prompts otimizados!");
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      toast.success("Estratégias otimizadas!");
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Step 2: Image Generation Loop with DALL-E 3
       setGenerationStep('images');
@@ -203,8 +201,8 @@ const ThorCreativeDashboard = () => {
       
       for (let i = 0; i < totalImages; i++) {
         setCurrentImageGenerating(i);
-        console.log(`Iniciando geração da imagem ${i+1} com DALL-E 3. Prompt:`, generatedItems[i].prompt);
-        toast.info(`Gerando Criativo ${i + 1} com DALL-E 3...`);
+        console.log(`Iniciando geração da imagem ${i+1}/${totalImages}. Prompt:`, generatedItems[i].prompt);
+        toast.info(`Gerando Criativo ${i + 1} de ${totalImages}...`);
         
         const progressInterval = setInterval(() => {
           setImageProgress(prev => {
@@ -254,11 +252,14 @@ const ThorCreativeDashboard = () => {
             return next;
           });
           
-          toast.success(`Imagem ${i + 1} concluída!`);
+          toast.success(`Criativo ${i + 1} finalizado!`);
+          
+          // Wait between generations to avoid hitting rate limits too fast
+          await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (err: any) {
           clearInterval(progressInterval);
-          console.error(`Erro capturado na imagem ${i+1}:`, err);
-          toast.error(`Erro na imagem ${i + 1}: ${err.message}`);
+          console.error(`Erro na imagem ${i+1}:`, err);
+          toast.error(`Erro no criativo ${i + 1}: ${err.message}`);
           
           setImageProgress(prev => {
             const next = [...prev];
@@ -268,13 +269,13 @@ const ThorCreativeDashboard = () => {
         }
       }
     } catch (error: any) {
-      console.error("Erro crítico no processo ThorCreative:", error);
+      console.error("Erro ThorCreative:", error);
       toast.error(`Erro: ${error.message}`);
     } finally {
       setGenerationStep('done');
       setIsGenerating(false);
       setCurrentImageGenerating(null);
-      toast.success(`Fluxo concluído!`);
+      toast.success(`Fluxo de conteúdo finalizado!`);
     }
   };
 
@@ -626,12 +627,12 @@ const ThorCreativeDashboard = () => {
                   </div>
                 </div>
 
-                <Card className="bg-[#16161E] border-white/5 min-h-[650px] relative overflow-hidden flex flex-col">
+                <Card className="bg-[#16161E] border-white/5 min-h-[650px] relative overflow-hidden flex flex-col items-center justify-center">
                   <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                   
-                  {/* Draggable/Scrollable Container */}
-                  <ScrollArea className="w-full h-full">
-                    <div className="flex items-center gap-0 relative z-10 py-24 px-12 min-w-max mx-auto">
+                  {/* Visual Workflow - Responsive Flex Layout */}
+                  <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+                    <div className="flex items-center gap-0 relative z-10 py-24 px-12 min-w-max mx-auto justify-center">
                       {(imageCount > 0 ? Array.from({ length: imageCount }, (_, i) => i + 1) : [1, 2, 3, 4, 5]).map((step, index) => (
                       <React.Fragment key={step}>
                         <div className="flex flex-col items-center group">
@@ -694,8 +695,8 @@ const ThorCreativeDashboard = () => {
                       <Sparkles size={14} className="text-purple-400" />
                       <span className="text-[10px] text-gray-300 font-medium">IA gerando consistência visual entre blocos...</span>
                     </div>
+                    </div>
                   </div>
-                </ScrollArea>
 
                   {/* Sidebar Info for Workflow */}
                   <div className="absolute left-8 bottom-8 max-w-[200px] space-y-4">
