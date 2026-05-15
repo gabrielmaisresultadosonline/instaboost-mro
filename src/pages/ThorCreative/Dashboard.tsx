@@ -32,6 +32,10 @@ const ThorCreativeDashboard = () => {
   const [isApiKeySaved, setIsApiKeySaved] = useState(!!localStorage.getItem('thor_openai_token'));
   const [userPhoto, setUserPhoto] = useState<string | null>(localStorage.getItem('thor_user_photo'));
   const [brandLogo, setBrandLogo] = useState<string | null>(localStorage.getItem('thor_brand_logo'));
+  const [generationStep, setGenerationStep] = useState<'idle' | 'strategies' | 'images' | 'done'>('idle');
+  const [strategies, setStrategies] = useState<string[]>([]);
+  const [currentImageGenerating, setCurrentImageGenerating] = useState<number | null>(null);
+  const [imageProgress, setImageProgress] = useState<number[]>([]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'logo') => {
     const file = e.target.files?.[0];
@@ -90,7 +94,7 @@ const ThorCreativeDashboard = () => {
     localStorage.setItem('thor_colors', JSON.stringify(newColors));
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!isApiKeySaved) {
       toast.error("Configure e salve seu token OpenAI nas configurações antes de gerar.");
       setActiveTab('settings');
@@ -100,13 +104,49 @@ const ThorCreativeDashboard = () => {
       toast.error("Por favor, preencha o seu nicho e objetivo.");
       return;
     }
+    
     setIsGenerating(true);
-    toast.info("Iniciando geração de estratégias e criativos...");
-    // Simulação de delay
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast.success("Estratégias geradas com sucesso!");
-    }, 3000);
+    setGenerationStep('strategies');
+    setStrategies([]);
+    toast.info("Analisando nicho e criando estratégias...");
+
+    // Step 1: Simulate Strategy Generation
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    const mockStrategies = [
+      `Análise de Público-alvo para ${niche}`,
+      "Criação de Linha Editorial Visionária",
+      "Definição de Gancho de Atenção (Hook)",
+      "Estrutura de Roteiro para Stories de Alta Conversão",
+      "Estratégia de Cores e Estética Consistente"
+    ];
+    setStrategies(mockStrategies);
+    toast.success("Estratégias definidas com sucesso!");
+
+    // Wait a bit for the user to see the strategies
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Step 2: Switch to Workflow and generate images
+    setGenerationStep('images');
+    setActiveTab('workflow');
+    setImageProgress(new Array(imageCount).fill(0));
+    
+    for (let i = 0; i < imageCount; i++) {
+      setCurrentImageGenerating(i);
+      // Simulate image generation progress
+      for (let p = 0; p <= 100; p += 10) {
+        setImageProgress(prev => {
+          const next = [...prev];
+          next[i] = p;
+          return next;
+        });
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
+    setGenerationStep('done');
+    setIsGenerating(false);
+    setCurrentImageGenerating(null);
+    toast.success(`Parabéns! ${imageCount} criativos gerados com sucesso.`);
   };
 
   return (
@@ -176,7 +216,31 @@ const ThorCreativeDashboard = () => {
                   <p className="text-gray-400">Defina sua estratégia e gere criativos consistentes com IA.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {generationStep === 'strategies' ? (
+                  <div className="animate-in slide-in-from-bottom duration-700">
+                    <Card className="bg-[#16161E] border-purple-500/20 p-8">
+                      <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <Sparkles className="text-purple-500" />
+                        Estratégias Geradas pelo Thor IA
+                      </h2>
+                      <div className="space-y-4">
+                        {strategies.map((strat, i) => (
+                          <div key={i} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5 animate-in fade-in slide-in-from-left duration-500" style={{ animationDelay: `${i * 200}ms` }}>
+                            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs">
+                              {i + 1}
+                            </div>
+                            <span className="text-sm font-medium text-gray-200">{strat}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-400">
+                        <div className="w-4 h-4 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+                        <span>Preparando Workflow de Criativos...</span>
+                      </div>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Left Column: Input */}
                   <div className="lg:col-span-2 space-y-6">
                     <Card className="bg-[#16161E] border-white/5 p-6 space-y-6">
@@ -380,6 +444,7 @@ const ThorCreativeDashboard = () => {
                     </p>
                   </div>
                 </div>
+                )}
               </div>
             )}
 
@@ -401,22 +466,35 @@ const ThorCreativeDashboard = () => {
                   
                   {/* Visual Workflow - Connected Images */}
                   <div className="flex items-center gap-0 relative z-10 py-10">
-                    {[1, 2, 3, 4, 5].map((step, index) => (
+                    {(imageCount > 0 ? Array.from({ length: imageCount }, (_, i) => i + 1) : [1, 2, 3, 4, 5]).map((step, index) => (
                       <React.Fragment key={step}>
                         <div className="flex flex-col items-center group">
                           {/* Card representing a creative/image */}
                           <div className="relative">
-                            <div className="w-32 h-40 bg-black/40 rounded-xl border-2 border-white/10 overflow-hidden group-hover:border-purple-500/50 transition-all shadow-2xl relative z-10">
+                            <div className={`w-32 h-40 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20 animate-pulse' : 'border-white/10 bg-black/40'}`}>
                               <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
-                                <ImageIcon size={24} className="text-gray-600 mb-2" />
-                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Imagem {step}</span>
-                                <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                  <div className="bg-purple-500 h-full" style={{ width: `${20 * step}%` }}></div>
-                                </div>
+                                {imageProgress[index] === 100 ? (
+                                  <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-blue-600/20 flex items-center justify-center">
+                                    <ImageIcon size={24} className="text-purple-400" />
+                                  </div>
+                                ) : (
+                                  <>
+                                    <ImageIcon size={24} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-2`} />
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Imagem {step}</span>
+                                    {(currentImageGenerating === index || (imageProgress[index] > 0 && imageProgress[index] < 100)) && (
+                                      <div className="mt-2 w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                        <div 
+                                          className="bg-purple-500 h-full transition-all duration-300 shadow-[0_0_8px_rgba(168,85,247,0.5)]" 
+                                          style={{ width: `${imageProgress[index]}%` }}
+                                        ></div>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
                               </div>
                               {/* Connector Dots */}
-                              <div className="absolute top-1/2 -left-1.5 w-3 h-3 bg-purple-500 rounded-full border-2 border-[#16161E] z-20"></div>
-                              <div className="absolute top-1/2 -right-1.5 w-3 h-3 bg-purple-500 rounded-full border-2 border-[#16161E] z-20"></div>
+                              <div className={`absolute top-1/2 -left-1.5 w-3 h-3 rounded-full border-2 border-[#16161E] z-20 ${imageProgress[index] === 100 ? 'bg-purple-500' : 'bg-gray-800'}`}></div>
+                              <div className={`absolute top-1/2 -right-1.5 w-3 h-3 rounded-full border-2 border-[#16161E] z-20 ${imageProgress[index] === 100 ? 'bg-purple-500' : 'bg-gray-800'}`}></div>
                             </div>
                             
                             {/* Label underneath */}
