@@ -440,7 +440,7 @@ const ThorCreativeDashboard = () => {
                     </Button>
 
                     <p className="text-[11px] text-center text-gray-500">
-                      Utilizando o motor GPT-4o + DALL-E 3 para resultados fotorrealistas de alta consistência.
+                      Utilizando o motor <strong>GPT-4o (Omni) + DALL-E 3</strong> — A versão mais atualizada e poderosa para resultados realistas e consistentes.
                     </p>
                   </div>
                 </div>
