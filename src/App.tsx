@@ -116,6 +116,7 @@ import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 import WhiteLabel from "./pages/WhiteLabel";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import InstagramNovaPlan from "./pages/InstagramNovaPlan";
+import ThorCreativeDashboard from "./pages/ThorCreative/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -273,6 +274,7 @@ const App = () => (
           <Route path="/parceiro-oficial" element={<WhiteLabel />} />
           <Route path="/parceirooficial" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
+          <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
