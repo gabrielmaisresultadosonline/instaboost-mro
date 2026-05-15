@@ -485,13 +485,20 @@ const ThorCreativeDashboard = () => {
                           {/* Card representing a creative/image */}
                           <div className="relative">
                             <div className={`w-32 h-40 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20 animate-pulse' : 'border-white/10 bg-black/40'}`}>
-                              <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
-                                {imageProgress[index] === 100 ? (
-                                  <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-blue-600/20 flex items-center justify-center">
-                                    <ImageIcon size={24} className="text-purple-400" />
+                              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                {generatedImages[index] ? (
+                                  <div className="w-full h-full relative group/img animate-in fade-in zoom-in duration-500">
+                                    <img 
+                                      src={generatedImages[index]} 
+                                      alt={`Geração ${step}`} 
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                      <Button size="sm" className="h-6 text-[8px] bg-purple-600">Ver HD</Button>
+                                    </div>
                                   </div>
                                 ) : (
-                                  <>
+                                  <div className="p-3">
                                     <ImageIcon size={24} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-2`} />
                                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Imagem {step}</span>
                                     {(currentImageGenerating === index || (imageProgress[index] > 0 && imageProgress[index] < 100)) && (
@@ -502,7 +509,7 @@ const ThorCreativeDashboard = () => {
                                         ></div>
                                       </div>
                                     )}
-                                  </>
+                                  </div>
                                 )}
                               </div>
                               {/* Connector Dots */}
