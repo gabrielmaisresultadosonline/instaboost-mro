@@ -22,7 +22,7 @@ const WhatsAppSettingsTab = () => {
     const load = async () => {
       const { data } = await supabase
         .from("whatsapp_page_settings")
-        .select("id, whatsapp_number, page_title, page_subtitle")
+        .select("id, whatsapp_number, page_title, page_subtitle, button_text, whatsapp_message")
         .limit(1)
         .single();
       if (data) {
@@ -31,6 +31,8 @@ const WhatsAppSettingsTab = () => {
           whatsapp_number: data.whatsapp_number,
           page_title: data.page_title,
           page_subtitle: data.page_subtitle,
+          button_text: data.button_text || "",
+          whatsapp_message: data.whatsapp_message || "",
         });
       }
       setLoading(false);
