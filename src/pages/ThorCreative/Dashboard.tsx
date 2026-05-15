@@ -281,7 +281,7 @@ const ThorCreativeDashboard = () => {
               model: 'gpt-image-1',
               prompt: `${currentItem.prompt} Format: Vertical (9:16) stories. Same visual style as the post. Professional lighting.`,
               n: 1,
-              size: '1024x1792',
+              size: '1024x1536',
               quality: 'high'
             })
           });
