@@ -549,7 +549,7 @@ const ThorCreativeDashboard = () => {
                   <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                   
                   {/* Draggable/Scrollable Container */}
-                  <ScrollArea className="w-full h-full" orientation="horizontal">
+                  <ScrollArea className="w-full h-full">
                     <div className="flex items-center gap-0 relative z-10 py-24 px-12 min-w-max mx-auto">
                       {(imageCount > 0 ? Array.from({ length: imageCount }, (_, i) => i + 1) : [1, 2, 3, 4, 5]).map((step, index) => (
                       <React.Fragment key={step}>
