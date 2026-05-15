@@ -16,7 +16,8 @@ const MROObrigado = () => {
 
   useEffect(() => {
     trackPageView('Thank You Page - MRO Purchase Complete');
-    trackPurchase(397, 'MRO I.A + Automação');
+    // Removed client-side trackPurchase to avoid duplicate tracking with server-side CAPI
+    // and to ensure accurate counting only when payment is actually confirmed.
     
     toast({
       title: "Compra aprovada!",

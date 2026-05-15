@@ -315,7 +315,8 @@ serve(async (req) => {
       }
       if (mroOrder) {
         await supabase.from("mro_orders").update({ status: "paid", paid_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", mroOrder.id);
-        await sendMetaPurchaseEvent(email || mroOrder.email, mroOrder.amount || 300, `MRO ${mroOrder.plan_type === "lifetime" ? "Vitalício" : "Anual"}`, mroOrder.nsu_order);
+        // REMOVED: sendMetaPurchaseEvent is now sent ONLY when order is "completed" in mro-payment-webhook
+        // to avoid duplicate tracking and ensure only truly complete sales are counted.
         try {
           await supabase.functions.invoke("mro-payment-webhook", { body: { order_nsu: mroOrder.nsu_order, items: [{ description: `MROIG_${mroOrder.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${mroOrder.username}_${mroOrder.email}` }] } });
         } catch (e) { log("Error invoking MRO webhook", e); }
