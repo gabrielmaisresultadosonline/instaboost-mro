@@ -166,7 +166,7 @@ const App = () => (
           <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/mro-obrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
-          <Route path="/instagram-nova" element={<VendasCompleta />} />
+          <Route path="/instagram-nova" element={<InstagramNovaPlan />} />
           <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />
           <Route path="/instagram-nova-admin/email" element={<InstagramNovaAdminEmail />} />
           <Route path="/instagram-nova-euro" element={<InstagramNovaEuro />} />
@@ -174,7 +174,6 @@ const App = () => (
           <Route path="/instagram-nova-promo" element={<InstagramNovaPromo />} />
           <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
-          <Route path="/instagram-nova-plan" element={<InstagramNovaPlan />} />
           <Route path="/instagramm-nova" element={<InstagramNovaPlan />} />
           <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
           <Route path="/promo/:affiliateId" element={<PromoSwitcher />} />
