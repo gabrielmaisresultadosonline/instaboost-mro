@@ -225,8 +225,7 @@ const ThorCreativeDashboard = () => {
               prompt: `${generatedItems[i].prompt} Format: Square (1:1) feed post. Professional lighting.`,
               n: 1,
               size: '1024x1024',
-              quality: 'hd',
-              style: 'vivid'
+              quality: 'hd'
             })
           });
           const feedData = await feedResponse.json();
@@ -269,8 +268,7 @@ const ThorCreativeDashboard = () => {
               prompt: `${generatedItems[i].prompt} Format: Vertical (9:16) stories. Same visual style as the post. Professional lighting.`,
               n: 1,
               size: '1024x1792',
-              quality: 'hd',
-              style: 'vivid'
+              quality: 'hd'
             })
           });
           const storiesData = await storiesResponse.json();
