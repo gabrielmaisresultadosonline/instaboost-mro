@@ -48,6 +48,8 @@ const WhatsAppSettingsTab = () => {
         whatsapp_number: settings.whatsapp_number,
         page_title: settings.page_title,
         page_subtitle: settings.page_subtitle,
+        button_text: settings.button_text,
+        whatsapp_message: settings.whatsapp_message,
         updated_at: new Date().toISOString(),
       })
       .eq("id", settings.id);
