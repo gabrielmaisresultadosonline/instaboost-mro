@@ -17,7 +17,7 @@ const log = (step: string, details?: unknown) => {
 };
 
 // Send Purchase event to Meta Conversions API (server-side pixel for /instagram-nova)
-async function sendMetaPurchaseEvent(email: string, value: number, contentName: string) {
+async function sendMetaPurchaseEvent(email: string, value: number, contentName: string, eventId?: string) {
   try {
     const accessToken = Deno.env.get("META_CONVERSIONS_API_TOKEN");
     if (!accessToken) {
@@ -32,6 +32,7 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
     const payload = {
       data: [{
         event_name: "Purchase",
+        event_id: eventId,
         event_time: Math.floor(Date.now() / 1000),
         action_source: "website",
         event_source_url: "https://maisresultadosonline.com.br/instagram-nova",
@@ -508,7 +509,8 @@ serve(async (req) => {
     await sendMetaPurchaseEvent(
       customerEmail,
       Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
-      `MRO Instagram ${planLabel}`
+      `MRO Instagram ${planLabel}`,
+      order.nsu_order // Use NSU as event_id for deduplication
     );
 
     // Enviar para o CRM Webhook se estiver configurado e ainda não enviado

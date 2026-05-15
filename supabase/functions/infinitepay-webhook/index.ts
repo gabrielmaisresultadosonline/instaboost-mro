@@ -20,7 +20,7 @@ const log = (step: string, details?: unknown) => {
 };
 
 // Send Purchase event to Meta Conversions API
-async function sendMetaPurchaseEvent(email: string, value: number, contentName: string, sourceUrl: string = 'https://maisresultadosonline.com.br/mroobrigado') {
+async function sendMetaPurchaseEvent(email: string, value: number, contentName: string, eventId?: string, sourceUrl: string = 'https://maisresultadosonline.com.br/mroobrigado') {
   try {
     const accessToken = Deno.env.get('META_CONVERSIONS_API_TOKEN');
     if (!accessToken) {
@@ -36,6 +36,7 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
 
     const event = {
       event_name: 'Purchase',
+      event_id: eventId,
       event_time: Math.floor(Date.now() / 1000),
       action_source: 'website',
       event_source_url: sourceUrl,
@@ -267,7 +268,8 @@ serve(async (req) => {
         await sendMetaPurchaseEvent(
           email || order.email,
           order.amount || 19.90,
-          "Renda Extra - Aula"
+          "Renda Extra - Aula",
+          order.nsu_order
         );
 
         log("RENDAEXT order confirmed, email sent and tracked", { orderId: order.id, emailSent });
@@ -298,7 +300,7 @@ serve(async (req) => {
         if (promptsOrder.user_id) {
           await supabase.from("prompts_mro_users").update({ is_paid: true, paid_at: new Date().toISOString(), subscription_end: subscriptionEnd }).eq("id", promptsOrder.user_id);
         }
-        await sendMetaPurchaseEvent(promptsOrder.email, promptsOrder.amount || 47, `Prompts MRO ${planLabel}`);
+        await sendMetaPurchaseEvent(promptsOrder.email, promptsOrder.amount || 47, `Prompts MRO ${planLabel}`, promptsOrder.nsu_order);
         return new Response(JSON.stringify({ success: true, message: "PROMPTS Payment confirmed" }), { headers: corsHeaders, status: 200 });
       }
     }
@@ -313,7 +315,7 @@ serve(async (req) => {
       }
       if (mroOrder) {
         await supabase.from("mro_orders").update({ status: "paid", paid_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", mroOrder.id);
-        await sendMetaPurchaseEvent(email || mroOrder.email, mroOrder.amount || 300, `MRO ${mroOrder.plan_type === "lifetime" ? "Vitalício" : "Anual"}`);
+        await sendMetaPurchaseEvent(email || mroOrder.email, mroOrder.amount || 300, `MRO ${mroOrder.plan_type === "lifetime" ? "Vitalício" : "Anual"}`, mroOrder.nsu_order);
         try {
           await supabase.functions.invoke("mro-payment-webhook", { body: { order_nsu: mroOrder.nsu_order, items: [{ description: `MROIG_${mroOrder.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${mroOrder.username}_${mroOrder.email}` }] } });
         } catch (e) { log("Error invoking MRO webhook", e); }
@@ -329,7 +331,7 @@ serve(async (req) => {
     }
     if (order) {
       await supabase.from("payment_orders").update({ status: "paid", paid_at: new Date().toISOString(), verified_at: new Date().toISOString() }).eq("id", order.id);
-      await sendMetaPurchaseEvent(order.email, order.amount || 300, 'MRO Payment');
+      await sendMetaPurchaseEvent(order.email, order.amount || 300, 'MRO Payment', order.nsu_order);
       return new Response(JSON.stringify({ success: true, message: "Payment confirmed" }), { headers: corsHeaders, status: 200 });
     }
 
