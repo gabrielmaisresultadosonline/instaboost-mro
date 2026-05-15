@@ -197,23 +197,24 @@ const ThorCreativeDashboard = () => {
       setActiveTab('workflow');
       const totalImages = imageCount;
       setImageProgress(new Array(totalImages).fill(0));
-      setGeneratedImages(new Array(totalImages).fill(''));
+      setGeneratedImages(new Array(totalImages * 2).fill('')); // Double size for Feed + Stories
       
       for (let i = 0; i < totalImages; i++) {
         setCurrentImageGenerating(i);
-        console.log(`Iniciando geração da imagem ${i+1}/${totalImages}. Prompt:`, generatedItems[i].prompt);
-        toast.info(`Gerando Criativo ${i + 1} de ${totalImages}...`);
+        console.log(`Gerando projeto de criativo ${i+1}/${totalImages}...`);
         
-        const progressInterval = setInterval(() => {
+        // Generate FEED version
+        toast.info(`Gerando Feed para o criativo ${i + 1}...`);
+        const feedInterval = setInterval(() => {
           setImageProgress(prev => {
             const next = [...prev];
-            if (next[i] < 98) next[i] += 1;
+            if (next[i] < 45) next[i] += 0.5;
             return next;
           });
-        }, 1000);
+        }, 500);
 
         try {
-          const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+          const feedResponse = await fetch('https://api.openai.com/v1/images/generations', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -221,46 +222,78 @@ const ThorCreativeDashboard = () => {
             },
             body: JSON.stringify({
               model: 'dall-e-3',
-              prompt: generatedItems[i].prompt,
+              prompt: `${generatedItems[i].prompt} Format: Square (1:1) feed post. Professional lighting.`,
               n: 1,
-              size: selectedFormat === 'stories' ? '1024x1792' : '1024x1024',
+              size: '1024x1024',
               quality: 'hd',
               style: 'vivid'
             })
           });
+          const feedData = await feedResponse.json();
+          clearInterval(feedInterval);
+          if (feedData.error) throw new Error(feedData.error.message);
+          
+          setGeneratedImages(prev => {
+            const next = [...prev];
+            next[i * 2] = feedData.data[0].url;
+            return next;
+          });
+          
+          setImageProgress(prev => {
+            const next = [...prev];
+            next[i] = 50;
+            return next;
+          });
 
-          const imageData = await imageResponse.json();
-          console.log(`Resultado da geração da imagem ${i+1}:`, imageData);
-          clearInterval(progressInterval);
-          
-          if (imageData.error) {
-            console.error(`Erro na API DALL-E para imagem ${i+1}:`, imageData.error);
-            throw new Error(imageData.error.message);
-          }
-          
-          const imageUrl = imageData.data[0].url;
-          
+          // Wait a bit before stories
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Generate STORIES version
+          toast.info(`Gerando Stories para o criativo ${i + 1}...`);
+          const storiesInterval = setInterval(() => {
+            setImageProgress(prev => {
+              const next = [...prev];
+              if (next[i] < 95) next[i] += 0.5;
+              return next;
+            });
+          }, 500);
+
+          const storiesResponse = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: 'dall-e-3',
+              prompt: `${generatedItems[i].prompt} Format: Vertical (9:16) stories. Same visual style as the post. Professional lighting.`,
+              n: 1,
+              size: '1024x1792',
+              quality: 'hd',
+              style: 'vivid'
+            })
+          });
+          const storiesData = await storiesResponse.json();
+          clearInterval(storiesInterval);
+          if (storiesData.error) throw new Error(storiesData.error.message);
+
+          setGeneratedImages(prev => {
+            const next = [...prev];
+            next[i * 2 + 1] = storiesData.data[0].url;
+            return next;
+          });
+
           setImageProgress(prev => {
             const next = [...prev];
             next[i] = 100;
             return next;
           });
           
-          setGeneratedImages(prev => {
-            const next = [...prev];
-            next[i] = imageUrl;
-            return next;
-          });
-          
-          toast.success(`Criativo ${i + 1} finalizado!`);
-          
-          // Wait between generations to avoid hitting rate limits too fast
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          toast.success(`Criativo ${i + 1} (Feed + Stories) finalizado!`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (err: any) {
-          clearInterval(progressInterval);
           console.error(`Erro na imagem ${i+1}:`, err);
           toast.error(`Erro no criativo ${i + 1}: ${err.message}`);
-          
           setImageProgress(prev => {
             const next = [...prev];
             next[i] = 100;
@@ -275,7 +308,7 @@ const ThorCreativeDashboard = () => {
       setGenerationStep('done');
       setIsGenerating(false);
       setCurrentImageGenerating(null);
-      toast.success(`Fluxo de conteúdo finalizado!`);
+      toast.success(`Fluxo completo finalizado!`);
     }
   };
 
@@ -637,47 +670,57 @@ const ThorCreativeDashboard = () => {
                       <React.Fragment key={step}>
                         <div className="flex flex-col items-center group">
                           {/* Card representing a creative/image */}
-                          <div className="relative">
-                            <div className={`w-32 h-40 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20 animate-pulse' : 'border-white/10 bg-black/40'}`}>
-                              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                {generatedImages[index] ? (
-                                  <div className="w-full h-full relative group/img animate-in fade-in zoom-in duration-500">
-                                    <img 
-                                      src={generatedImages[index]} 
-                                      alt={`Geração ${step}`} 
-                                      className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
-                                      <p className="text-[8px] text-white font-medium mb-2 leading-tight">{strategies[index]}</p>
-                                      <Button size="sm" className="h-6 text-[8px] bg-purple-600" onClick={() => window.open(generatedImages[index], '_blank')}>Ver HD</Button>
+                          <div className="relative flex flex-col gap-2">
+                            <div className={`flex items-end gap-1 ${currentImageGenerating === index ? 'opacity-100' : ''}`}>
+                               {/* Feed Preview */}
+                               <div className={`w-28 h-28 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20' : 'border-white/10 bg-black/40'}`}>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                  {generatedImages[index * 2] ? (
+                                    <img src={generatedImages[index * 2]} alt="Feed" className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform" onClick={() => window.open(generatedImages[index * 2], '_blank')} />
+                                  ) : (
+                                    <div className="p-1">
+                                      <ImageIcon size={16} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-1`} />
+                                      <span className="text-[7px] font-bold text-gray-500 uppercase">Feed {step}</span>
                                     </div>
-                                  </div>
-                                ) : (
-                                  <div className="p-3">
-                                    <ImageIcon size={24} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-2`} />
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Imagem {step}</span>
-                                    {(currentImageGenerating === index || (imageProgress[index] > 0 && imageProgress[index] < 100)) && (
-                                      <div className="mt-2 w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                        <div 
-                                          className="bg-purple-500 h-full transition-all duration-300 shadow-[0_0_8px_rgba(168,85,247,0.5)]" 
-                                          style={{ width: `${imageProgress[index]}%` }}
-                                        ></div>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              {/* Connector Dots */}
-                              <div className={`absolute top-1/2 -left-1.5 w-3 h-3 rounded-full border-2 border-[#16161E] z-20 ${imageProgress[index] === 100 ? 'bg-purple-500' : 'bg-gray-800'}`}></div>
-                              <div className={`absolute top-1/2 -right-1.5 w-3 h-3 rounded-full border-2 border-[#16161E] z-20 ${imageProgress[index] === 100 ? 'bg-purple-500' : 'bg-gray-800'}`}></div>
+                                  )}
+                                </div>
+                               </div>
+
+                               {/* Stories Preview */}
+                               <div className={`w-20 h-36 rounded-xl border-2 transition-all shadow-2xl relative z-10 overflow-hidden ${currentImageGenerating === index ? 'border-purple-500 bg-purple-500/5 shadow-purple-500/20' : 'border-white/10 bg-black/40'}`}>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                  {generatedImages[index * 2 + 1] ? (
+                                    <img src={generatedImages[index * 2 + 1]} alt="Stories" className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform" onClick={() => window.open(generatedImages[index * 2 + 1], '_blank')} />
+                                  ) : (
+                                    <div className="p-1">
+                                      <ImageIcon size={16} className={`${currentImageGenerating === index ? 'text-purple-500' : 'text-gray-600'} mb-1`} />
+                                      <span className="text-[7px] font-bold text-gray-500 uppercase tracking-tighter">Story {step}</span>
+                                    </div>
+                                  )}
+                                </div>
+                               </div>
                             </div>
                             
+                            {/* Loading Bar */}
+                            {(currentImageGenerating === index || (imageProgress[index] > 0 && imageProgress[index] < 100)) && (
+                              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-[0_0_8px_rgba(168,85,247,0.3)]">
+                                <div 
+                                  className="bg-purple-500 h-full transition-all duration-300 shadow-[0_0_8px_rgba(168,85,247,0.5)]" 
+                                  style={{ width: `${imageProgress[index]}%` }}
+                                ></div>
+                              </div>
+                            )}
+
                             {/* Label underneath */}
-                            <div className="mt-4 text-center">
-                              <p className="text-[10px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block">
-                                {index === 0 ? 'Atração' : index === 4 ? 'Conversão' : 'Engajamento'}
+                            <div className="mt-2 text-center group-hover:scale-105 transition-transform">
+                              <p className="text-[9px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block whitespace-nowrap overflow-hidden max-w-[120px] text-ellipsis" title={strategies[index]}>
+                                {strategies[index] || (index === 0 ? 'Atração' : index === 4 ? 'Conversão' : 'Engajamento')}
                               </p>
                             </div>
+
+                            {/* Connector Dots */}
+                            <div className={`absolute top-1/2 -left-3 w-3 h-3 rounded-full border-2 border-[#16161E] z-20 ${imageProgress[index] === 100 ? 'bg-purple-500' : 'bg-gray-800'}`}></div>
+                            <div className={`absolute top-1/2 -right-3 w-3 h-3 rounded-full border-2 border-[#16161E] z-20 ${imageProgress[index] === 100 ? 'bg-purple-500' : 'bg-gray-800'}`}></div>
                           </div>
                         </div>
 
