@@ -36,6 +36,8 @@ const WhatsAppAdmin = () => {
     whatsapp_number: "",
     page_title: "",
     page_subtitle: "",
+    button_text: "",
+    whatsapp_message: "",
   });
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [saving, setSaving] = useState(false);
