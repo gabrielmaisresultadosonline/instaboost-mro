@@ -37,6 +37,41 @@ const ThorCreativeDashboard = () => {
   const [currentImageGenerating, setCurrentImageGenerating] = useState<number | null>(null);
   const [imageProgress, setImageProgress] = useState<number[]>([]);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [projects, setProjects] = useState<any[]>(JSON.parse(localStorage.getItem('thor_projects') || '[]'));
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+  const saveProfile = () => {
+    const newProject = {
+      id: Date.now().toString(),
+      niche,
+      goal,
+      colors: selectedColors,
+      photo: userPhoto,
+      logo: brandLogo,
+      images: generatedImages,
+      strategies,
+      date: new Date().toLocaleDateString()
+    };
+    
+    const updatedProjects = [newProject, ...projects];
+    setProjects(updatedProjects);
+    localStorage.setItem('thor_projects', JSON.stringify(updatedProjects));
+    setCurrentProjectId(newProject.id);
+    toast.success("Perfil e projeto salvos com sucesso!");
+  };
+
+  const loadProject = (project: any) => {
+    setNiche(project.niche);
+    setGoal(project.goal);
+    setSelectedColors(project.colors);
+    setUserPhoto(project.photo);
+    setBrandLogo(project.logo);
+    setGeneratedImages(project.images);
+    setStrategies(project.strategies);
+    setCurrentProjectId(project.id);
+    setActiveTab('workflow');
+    toast.info(`Projeto de ${project.niche} carregado.`);
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'logo') => {
     const file = e.target.files?.[0];
@@ -181,6 +216,23 @@ const ThorCreativeDashboard = () => {
             <Sparkles size={20} />
             <span className="font-medium">Gerador</span>
           </button>
+          
+          <div className="pt-4 pb-2">
+            <p className="text-[10px] font-bold text-gray-500 uppercase px-4 mb-2 tracking-widest">Meus Projetos</p>
+            <div className="space-y-1 max-h-[300px] overflow-y-auto px-2">
+              {projects.map((p) => (
+                <button 
+                  key={p.id}
+                  onClick={() => loadProject(p)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all ${currentProjectId === p.id ? 'bg-purple-500/20 text-purple-300' : 'text-gray-400 hover:bg-white/5'}`}
+                >
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span className="truncate">{p.niche}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button 
             onClick={() => setActiveTab('workflow')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'workflow' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
@@ -440,23 +492,36 @@ const ThorCreativeDashboard = () => {
                       </div>
                     </Card>
 
-                    <Button 
-                      className="w-full h-16 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-purple-900/20 group"
-                      onClick={handleGenerate}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button 
+                        variant="outline"
+                        className="w-full h-16 border-white/10 text-white rounded-2xl font-bold text-lg group bg-white/5 hover:bg-white/10"
+                        onClick={saveProfile}
+                      >
                         <div className="flex items-center gap-3">
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          <span>Processando Inteligência...</span>
+                          <Settings className="text-gray-400" />
+                          <span>SALVAR PERFIL</span>
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-3">
-                          <Sparkles className="group-hover:animate-pulse" />
-                          <span>GERAR ESTRATÉGIA E IMAGENS</span>
-                        </div>
-                      )}
-                    </Button>
+                      </Button>
+
+                      <Button 
+                        className="w-full h-16 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-purple-900/20 group"
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                      >
+                        {isGenerating ? (
+                          <div className="flex items-center gap-3">
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span>Processando...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <Sparkles className="group-hover:animate-pulse" />
+                            <span>GERAR CONTEÚDO</span>
+                          </div>
+                        )}
+                      </Button>
+                    </div>
 
                     <p className="text-[11px] text-center text-gray-500">
                       Utilizando o motor <strong>GPT-4o (Omni) + DALL-E 3</strong> — A versão mais atualizada e poderosa para resultados realistas e consistentes.
@@ -480,12 +545,13 @@ const ThorCreativeDashboard = () => {
                   </div>
                 </div>
 
-                <Card className="bg-[#16161E] border-white/5 p-12 min-h-[650px] relative overflow-x-auto flex items-start justify-center">
+                <Card className="bg-[#16161E] border-white/5 min-h-[650px] relative overflow-hidden flex flex-col">
                   <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                   
-                  {/* Visual Workflow - Connected Images */}
-                  <div className="flex items-center gap-0 relative z-10 py-10">
-                    {(imageCount > 0 ? Array.from({ length: imageCount }, (_, i) => i + 1) : [1, 2, 3, 4, 5]).map((step, index) => (
+                  {/* Draggable/Scrollable Container */}
+                  <ScrollArea className="w-full h-full">
+                    <div className="flex items-center gap-0 relative z-10 py-24 px-12 min-w-max mx-auto">
+                      {(imageCount > 0 ? Array.from({ length: imageCount }, (_, i) => i + 1) : [1, 2, 3, 4, 5]).map((step, index) => (
                       <React.Fragment key={step}>
                         <div className="flex flex-col items-center group">
                           {/* Card representing a creative/image */}
@@ -547,6 +613,7 @@ const ThorCreativeDashboard = () => {
                       <span className="text-[10px] text-gray-300 font-medium">IA gerando consistência visual entre blocos...</span>
                     </div>
                   </div>
+                </ScrollArea>
 
                   {/* Sidebar Info for Workflow */}
                   <div className="absolute left-8 bottom-8 max-w-[200px] space-y-4">
