@@ -159,14 +159,14 @@ const ThorCreativeDashboard = () => {
           messages: [
             { 
               role: 'system', 
-              content: 'Você é um estrategista de conteúdo digital e engenheiro de prompts sênior. Sua tarefa é criar estratégias de conteúdo e prompts altamente detalhados para o DALL-E 3.' 
+              content: 'Você é um estrategista de conteúdo digital e engenheiro de prompts sênior. Sua tarefa é criar estratégias de conteúdo e prompts altamente detalhados para o DALL-E 3 para Instagram.' 
             },
             { 
               role: 'user', 
               content: `Nicho: ${niche}. Objetivo: ${goal}. Cores da marca: ${selectedColors.join(', ')}. Formato: ${selectedFormat}. 
               Crie uma lista de ${imageCount} itens. Para cada item, forneça:
-              1. Uma frase curta da estratégia.
-              2. Um prompt em INGLÊS extremamente detalhado para o DALL-E 3 gerar uma imagem fotorrealista e profissional, garantindo consistência visual. Se houver uma foto de referência (face-consistency), mencione um "placeholder character with the same facial features".
+              1. Uma frase curta da estratégia em PORTUGUÊS.
+              2. Um prompt em INGLÊS extremamente detalhado para o DALL-E 3 gerar uma imagem fotorrealista e profissional (CGI or realistic photo), incluindo CALL TO ACTION (CTA) visível e elegante, garantindo consistência visual. Se houver uma foto de referência (face-consistency), mencione um "placeholder character with identical facial features and expressions". Inclua text overlay se fizer sentido para o criativo.
               
               Responda no formato JSON: {"items": [{"strategy": "...", "prompt": "..."}, ...]}` 
             }
@@ -183,9 +183,10 @@ const ThorCreativeDashboard = () => {
       setStrategies(generatedItems.map((item: any) => item.strategy));
       toast.success("Estratégias e Prompts otimizados pelo GPT-4o!");
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Wait for user to see strategies
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Step 2: Image Generation Loop with DALL-E 3
+      // Step 2: Image Generation Loop with DALL-E 3 (One by one)
       setGenerationStep('images');
       setActiveTab('workflow');
       const totalImages = imageCount;
@@ -194,15 +195,15 @@ const ThorCreativeDashboard = () => {
       
       for (let i = 0; i < totalImages; i++) {
         setCurrentImageGenerating(i);
-        toast.info(`Gerando Imagem ${i + 1} com DALL-E 3...`);
+        toast.info(`Gerando Criativo ${i + 1} com DALL-E 3...`);
         
         const progressInterval = setInterval(() => {
           setImageProgress(prev => {
             const next = [...prev];
-            if (next[i] < 95) next[i] += 2;
+            if (next[i] < 98) next[i] += 1;
             return next;
           });
-        }, 800);
+        }, 1000);
 
         try {
           const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -243,22 +244,19 @@ const ThorCreativeDashboard = () => {
           toast.success(`Imagem ${i + 1} concluída!`);
         } catch (err: any) {
           clearInterval(progressInterval);
+          console.error(err);
           toast.error(`Erro na imagem ${i + 1}: ${err.message}`);
-          // Fallback simple image so UI doesn't break
-          setGeneratedImages(prev => {
-            const next = [...prev];
-            next[i] = `https://picsum.photos/seed/${Math.random()}/1024/1024`;
-            return next;
-          });
+          // Empty so it stays loading or shows placeholder
         }
       }
     } catch (error: any) {
+      console.error(error);
       toast.error(`Erro na requisição: ${error.message}`);
     } finally {
       setGenerationStep('done');
       setIsGenerating(false);
       setCurrentImageGenerating(null);
-      toast.success(`Parabéns! ${imageCount} criativos gerados com sucesso.`);
+      toast.success(`Fluxo concluído! ${imageCount} criativos em alta definição.`);
     }
   };
 
