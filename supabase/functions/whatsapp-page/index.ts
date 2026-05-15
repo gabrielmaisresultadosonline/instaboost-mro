@@ -164,9 +164,8 @@ serve(async (req) => {
     const sessionSecret = typeof settings.session_secret === "string" ? settings.session_secret.trim() : "";
     const token = normalizeToken(body.token);
     
-    // Check if token exists first
     if (!token) {
-      console.error("[whatsapp-page] No token provided");
+      console.error("[whatsapp-page] No token provided in body:", JSON.stringify(body));
       return respond({ success: false, error: "Sessão expirada. Faça login novamente." }, 401);
     }
 
@@ -174,7 +173,20 @@ serve(async (req) => {
                    await verifySessionToken(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", token, ["instagram-admin"]);
 
     if (!session) {
-      console.error("[whatsapp-page] Invalid or expired token:", token.substring(0, 10) + "...");
+      console.error("[whatsapp-page] Invalid or expired token. Token length:", token.length);
+      // Let's try to see if it's just expired or actually invalid
+      const [payloadPart] = token.split(".");
+      if (payloadPart) {
+        try {
+          const payload = JSON.parse(textDecoder.decode(fromBase64Url(payloadPart)));
+          console.log("[whatsapp-page] Decoded payload for investigation:", JSON.stringify(payload));
+          if (payload.exp < Date.now()) {
+            console.error("[whatsapp-page] Token is expired. Exp:", payload.exp, "Now:", Date.now());
+          }
+        } catch (e) {
+          console.error("[whatsapp-page] Could not even decode payload:", e.message);
+        }
+      }
       return respond({ success: false, error: "Sessão expirada. Faça login novamente." }, 401);
     }
 

@@ -124,29 +124,57 @@ const WhatsAppAdmin = () => {
   }, []);
 
   const handleSaveSettings = async () => {
+    if (!settings.whatsapp_number) {
+      toast.error("O número do WhatsApp é obrigatório");
+      return;
+    }
+
     setSaving(true);
     const token = sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
-    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
-      body: {
-        action: "saveSettings",
-        token,
-        whatsapp_number: settings.whatsapp_number,
-        page_title: settings.page_title,
-        page_subtitle: settings.page_subtitle,
-        button_text: settings.button_text,
-        whatsapp_message: settings.whatsapp_message,
-        photo_url: settings.photo_url,
-      },
-    });
-
-    if (error || !response?.success) {
-      if (response?.error?.includes("Sessão expirada")) clearSession();
-      toast.error(response?.error || error?.message || "Erro ao salvar");
-    } else {
-      toast.success("Configurações salvas!");
-      await fetchAdminData(token);
+    
+    if (!token) {
+      toast.error("Sessão não encontrada. Faça login novamente.");
+      setAuthenticated(false);
+      setSaving(false);
+      return;
     }
-    setSaving(false);
+
+    console.log("Saving settings with token length:", token.length);
+
+    try {
+      const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+        body: {
+          action: "saveSettings",
+          token,
+          whatsapp_number: settings.whatsapp_number,
+          page_title: settings.page_title,
+          page_subtitle: settings.page_subtitle,
+          button_text: settings.button_text,
+          whatsapp_message: settings.whatsapp_message,
+          photo_url: settings.photo_url,
+        },
+      });
+
+      if (error || !response?.success) {
+        console.error("Save error:", error || response?.error);
+        if (response?.error?.includes("Sessão expirada") || error?.status === 401) {
+          toast.error("Sessão expirada. Por favor, faça login novamente.");
+          clearSession();
+        } else {
+          toast.error(response?.error || error?.message || "Erro ao salvar");
+        }
+      } else {
+        toast.success("Configurações salvas!");
+        // We don't necessarily need to refetch everything if we just saved
+        // but it ensures UI is in sync
+        await fetchAdminData(token);
+      }
+    } catch (err) {
+      console.error("Unexpected error during save:", err);
+      toast.error("Ocorreu um erro inesperado ao salvar.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveOption = async (option: OptionItem) => {
