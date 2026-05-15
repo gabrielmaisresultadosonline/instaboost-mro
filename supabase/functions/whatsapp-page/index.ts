@@ -192,6 +192,7 @@ serve(async (req) => {
           page_subtitle: settings.page_subtitle ?? "",
           button_text: settings.button_text ?? "",
           whatsapp_message: settings.whatsapp_message ?? "",
+          photo_url: settings.photo_url ?? "",
         },
         options: options ?? [],
       });
