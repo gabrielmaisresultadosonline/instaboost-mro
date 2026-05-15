@@ -628,8 +628,9 @@ const ThorCreativeDashboard = () => {
                                       alt={`Geração ${step}`} 
                                       className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                      <Button size="sm" className="h-6 text-[8px] bg-purple-600">Ver HD</Button>
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
+                                      <p className="text-[8px] text-white font-medium mb-2 leading-tight">{strategies[index]}</p>
+                                      <Button size="sm" className="h-6 text-[8px] bg-purple-600" onClick={() => window.open(generatedImages[index], '_blank')}>Ver HD</Button>
                                     </div>
                                   </div>
                                 ) : (
