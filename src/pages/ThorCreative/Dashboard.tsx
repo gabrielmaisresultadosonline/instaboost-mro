@@ -221,7 +221,7 @@ const ThorCreativeDashboard = () => {
               'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-              model: 'dall-e-3',
+              model: 'gpt-image-1',
               prompt: `${generatedItems[i].prompt} Format: Square (1:1) feed post. Professional lighting.`,
               n: 1,
               size: '1024x1024',
@@ -264,7 +264,7 @@ const ThorCreativeDashboard = () => {
               'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-              model: 'dall-e-3',
+              model: 'gpt-image-1',
               prompt: `${generatedItems[i].prompt} Format: Vertical (9:16) stories. Same visual style as the post. Professional lighting.`,
               n: 1,
               size: '1024x1792',
