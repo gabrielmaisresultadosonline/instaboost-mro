@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, LogOut, Plus, Trash2, GripVertical, Zap } from "lucide-react";
+import { Save, LogOut } from "lucide-react";
 
 const ADMIN_SESSION_STORAGE_KEY = "whatsapp_admin_session_token";
 
@@ -248,9 +248,6 @@ const WhatsAppAdmin = () => {
             <p className="text-xs text-gray-400">Página de links e opções de contato</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.open('/apiwhatsappacess', '_blank')} className="text-blue-400 border-blue-900/50 hover:bg-blue-900/20">
-              <Zap className="w-3 h-3 mr-1" /> WhatsApp API
-            </Button>
             <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
               <LogOut className="w-4 h-4 mr-1" /> Sair
             </Button>
