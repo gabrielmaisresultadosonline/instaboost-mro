@@ -14,6 +14,8 @@ const WhatsAppSettingsTab = () => {
     whatsapp_number: "",
     page_title: "",
     page_subtitle: "",
+    button_text: "",
+    whatsapp_message: "",
   });
 
   useEffect(() => {
