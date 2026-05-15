@@ -240,10 +240,18 @@ const WhatsAppAdmin = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] p-4">
       <div className="max-w-lg mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">Admin WhatsApp</h1>
-          <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
-            <LogOut className="w-4 h-4 mr-1" /> Sair
-          </Button>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold text-white">Admin WhatsApp</h1>
+            <p className="text-xs text-gray-400">Página de links e opções de contato</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.open('/apiwhatsappacess', '_blank')} className="text-blue-400 border-blue-900/50 hover:bg-blue-900/20">
+              <Zap className="w-3 h-3 mr-1" /> WhatsApp API
+            </Button>
+            <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
+              <LogOut className="w-4 h-4 mr-1" /> Sair
+            </Button>
+          </div>
         </div>
 
         {/* Settings */}
