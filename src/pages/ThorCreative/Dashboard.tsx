@@ -27,9 +27,42 @@ const ThorCreativeDashboard = () => {
   const [selectedFormat, setSelectedFormat] = useState('both'); // stories, posts, both
   const [faceMode, setFaceMode] = useState('with-face');
   const [imageCount, setImageCount] = useState(7);
-  const [selectedColors, setSelectedColors] = useState<string[]>(['#9333ea', '#3b82f6', '#000000']);
+  const [selectedColors, setSelectedColors] = useState<string[]>(JSON.parse(localStorage.getItem('thor_colors') || '["#9333ea", "#3b82f6", "#000000"]'));
   const [apiKey, setApiKey] = useState(localStorage.getItem('thor_openai_token') || '');
   const [isApiKeySaved, setIsApiKeySaved] = useState(!!localStorage.getItem('thor_openai_token'));
+  const [userPhoto, setUserPhoto] = useState<string | null>(localStorage.getItem('thor_user_photo'));
+  const [brandLogo, setBrandLogo] = useState<string | null>(localStorage.getItem('thor_brand_logo'));
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'logo') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        if (type === 'photo') {
+          setUserPhoto(base64String);
+          localStorage.setItem('thor_user_photo', base64String);
+          toast.success("Foto de perfil salva no projeto!");
+        } else {
+          setBrandLogo(base64String);
+          localStorage.setItem('thor_brand_logo', base64String);
+          toast.success("Logomarca salva no projeto!");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleClearFile = (type: 'photo' | 'logo') => {
+    if (type === 'photo') {
+      setUserPhoto(null);
+      localStorage.removeItem('thor_user_photo');
+    } else {
+      setBrandLogo(null);
+      localStorage.removeItem('thor_brand_logo');
+    }
+    toast.info(`${type === 'photo' ? 'Foto' : 'Logo'} removida.`);
+  };
 
   const handleSaveApiKey = () => {
     if (!apiKey.startsWith('sk-')) {
@@ -43,14 +76,18 @@ const ThorCreativeDashboard = () => {
 
   const handleColorAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (selectedColors.length < 4) {
-      setSelectedColors([...selectedColors, e.target.value]);
+      const newColors = [...selectedColors, e.target.value];
+      setSelectedColors(newColors);
+      localStorage.setItem('thor_colors', JSON.stringify(newColors));
     } else {
       toast.error("Máximo de 4 cores permitido.");
     }
   };
 
   const removeColor = (index: number) => {
-    setSelectedColors(selectedColors.filter((_, i) => i !== index));
+    const newColors = selectedColors.filter((_, i) => i !== index);
+    setSelectedColors(newColors);
+    localStorage.setItem('thor_colors', JSON.stringify(newColors));
   };
 
   const handleGenerate = () => {
@@ -247,32 +284,54 @@ const ThorCreativeDashboard = () => {
                           </div>
                           
                           {faceMode === 'with-face' && (
-                            <label className="flex-1 cursor-pointer">
-                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) toast.success(`Foto "${file.name}" carregada!`);
-                              }} />
-                              <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 hover:border-purple-500/50 transition-all">
-                                <ImageIcon size={32} className="text-gray-500 mb-2" />
-                                <p className="text-sm font-medium">Subir Foto da Pessoa</p>
-                                <p className="text-xs text-gray-500">A face será preservada em todas as imagens</p>
-                              </div>
-                            </label>
+                            <div className="flex-1">
+                              {!userPhoto ? (
+                                <label className="cursor-pointer">
+                                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'photo')} />
+                                  <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 hover:border-purple-500/50 transition-all">
+                                    <ImageIcon size={32} className="text-gray-500 mb-2" />
+                                    <p className="text-sm font-medium">Subir Foto da Pessoa</p>
+                                    <p className="text-xs text-gray-500">A face será preservada em todas as imagens</p>
+                                  </div>
+                                </label>
+                              ) : (
+                                <div className="relative border border-purple-500/30 rounded-xl p-4 bg-purple-500/5 flex flex-col items-center">
+                                  <img src={userPhoto} alt="User" className="w-20 h-20 rounded-full object-cover border-2 border-purple-500 shadow-lg shadow-purple-500/20 mb-2" />
+                                  <p className="text-xs font-medium text-purple-400">Rosto Salvo</p>
+                                  <button 
+                                    onClick={() => handleClearFile('photo')}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
 
                         <div className="space-y-4">
-                          <label className="cursor-pointer block">
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) toast.success(`Logomarca "${file.name}" carregada!`);
-                            }} />
-                            <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 hover:border-purple-500/50 transition-all">
-                              <Layout size={32} className="text-gray-500 mb-2" />
-                              <p className="text-sm font-medium">Incluir Logomarca</p>
-                              <p className="text-xs text-gray-500">A logo será aplicada harmoniosamente</p>
+                          {!brandLogo ? (
+                            <label className="cursor-pointer block">
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} />
+                              <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-2 hover:bg-white/5 hover:border-purple-500/50 transition-all">
+                                <Layout size={32} className="text-gray-500 mb-2" />
+                                <p className="text-sm font-medium">Incluir Logomarca</p>
+                                <p className="text-xs text-gray-500">A logo será aplicada harmoniosamente</p>
+                              </div>
+                            </label>
+                          ) : (
+                            <div className="relative border border-blue-500/30 rounded-xl p-4 bg-blue-500/5 flex flex-col items-center">
+                              <img src={brandLogo} alt="Logo" className="h-20 max-w-full object-contain mb-2" />
+                              <p className="text-xs font-medium text-blue-400">Logo Salva</p>
+                              <button 
+                                onClick={() => handleClearFile('logo')}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                              >
+                                ✕
+                              </button>
                             </div>
-                          </label>
+                          )}
                         </div>
                       </div>
                     </Card>
