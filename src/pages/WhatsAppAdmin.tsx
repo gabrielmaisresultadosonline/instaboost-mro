@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, LogOut, Plus, Trash2, GripVertical } from "lucide-react";
+import { Save, LogOut, Plus, Trash2, GripVertical, Zap } from "lucide-react";
 
 const ADMIN_SESSION_STORAGE_KEY = "whatsapp_admin_session_token";
 
