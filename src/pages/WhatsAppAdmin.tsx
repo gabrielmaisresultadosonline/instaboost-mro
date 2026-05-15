@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, LogOut } from "lucide-react";
+import { Save, LogOut, Plus, Trash2, MessageSquare, GripVertical } from "lucide-react";
 
 const ADMIN_SESSION_STORAGE_KEY = "whatsapp_admin_session_token";
 
@@ -321,6 +321,85 @@ const WhatsAppAdmin = () => {
           <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700 h-12 font-bold text-lg">
             <Save className="w-5 h-5 mr-2" /> {saving ? "Salvando..." : "Salvar Configurações"}
           </Button>
+        </div>
+
+        {/* Options Management */}
+        <div className="space-y-4 pb-12">
+          <div className="flex items-center justify-between">
+            <h2 className="text-white font-semibold text-lg">Botões de Opção</h2>
+            <Button onClick={handleAddOption} size="sm" className="bg-green-600 hover:bg-green-700">
+              <Plus className="w-4 h-4 mr-1" /> Adicionar Botão
+            </Button>
+          </div>
+
+          {options.length === 0 ? (
+            <div className="bg-[#1e1e2e] rounded-2xl p-8 border border-dashed border-gray-700 text-center">
+              <p className="text-gray-500">Nenhum botão configurado. Adicione um para começar.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {options.map((option) => (
+                <div key={option.id} className="bg-[#1e1e2e] rounded-2xl p-6 border border-gray-800 space-y-4 relative group">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-gray-400 text-xs">Texto do Botão</Label>
+                          <Input 
+                            value={option.label} 
+                            onChange={(e) => updateOption(option.id, "label", e.target.value)} 
+                            className="bg-[#2a2a3e] border-gray-700 text-white" 
+                            placeholder="Ex: Suporte Técnico" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-gray-400 text-xs">Ícone</Label>
+                          <select 
+                            value={option.icon_type} 
+                            onChange={(e) => updateOption(option.id, "icon_type", e.target.value)}
+                            className="w-full h-10 rounded-md bg-[#2a2a3e] border border-gray-700 text-white px-3 text-sm outline-none focus:ring-2 focus:ring-green-500"
+                          >
+                            {ICON_OPTIONS.map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-gray-400 text-xs">Mensagem do WhatsApp (enviada ao clicar)</Label>
+                        <textarea 
+                          value={option.message} 
+                          onChange={(e) => updateOption(option.id, "message", e.target.value)}
+                          className="w-full min-h-[80px] rounded-md bg-[#2a2a3e] border border-gray-700 text-white p-3 text-sm outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                          placeholder="Olá, gostaria de suporte..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        onClick={() => handleDeleteOption(option.id)}
+                        className="h-10 w-10"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                      <Button 
+                        variant="secondary" 
+                        size="icon" 
+                        onClick={() => handleSaveOption(option)}
+                        className="h-10 w-10 bg-blue-600 hover:bg-blue-700 text-white border-none"
+                      >
+                        <Save className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
