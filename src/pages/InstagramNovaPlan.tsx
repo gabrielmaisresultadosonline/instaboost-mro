@@ -158,7 +158,7 @@ const InstagramNovaPlan = () => {
     } catch (error) { console.error("Error:", error); toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
 
-  useEffect(() => { trackPageView('Sales Page - Instagram MRO'); }, []);
+  useEffect(() => { trackPageView('Sales Page - Instagram MRO - Nova'); }, []);
 
   useEffect(() => {
     const loadSettings = async () => {
