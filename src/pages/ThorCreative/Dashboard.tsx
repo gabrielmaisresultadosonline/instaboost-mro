@@ -144,52 +144,110 @@ const ThorCreativeDashboard = () => {
     setIsGenerating(true);
     setGenerationStep('strategies');
     setStrategies([]);
-    toast.info("Analisando nicho e criando estratégias...");
+    toast.info("Conectando ao motor GPT-4o Omni...");
 
-    // Step 1: Simulate Strategy Generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    const mockStrategies = [
-      `Análise de Público-alvo para ${niche}`,
-      "Criação de Linha Editorial Visionária",
-      "Definição de Gancho de Atenção (Hook)",
-      "Estrutura de Roteiro para Stories de Alta Conversão",
-      "Estratégia de Cores e Estética Consistente"
-    ];
-    setStrategies(mockStrategies);
-    toast.success("Estratégias definidas com sucesso!");
-
-    // Wait a bit for the user to see the strategies
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Step 2: Switch to Workflow and generate images
-    setGenerationStep('images');
-    setActiveTab('workflow');
-    setImageProgress(new Array(imageCount).fill(0));
-    setGeneratedImages(new Array(imageCount).fill(''));
-    
-    for (let i = 0; i < imageCount; i++) {
-      setCurrentImageGenerating(i);
-      // Simulate image generation progress
-      for (let p = 0; p <= 100; p += 20) {
-        setImageProgress(prev => {
-          const next = [...prev];
-          next[i] = p;
-          return next;
-        });
-        await new Promise(resolve => setTimeout(resolve, 400));
-      }
-      
-      // Add a high-quality realistic placeholder after "generation"
-      const format = selectedFormat === 'stories' ? '900/1600' : '1080/1080';
-      const randomId = Math.floor(Math.random() * 1000);
-      const imageUrl = `https://picsum.photos/seed/${randomId}/${format}`;
-      
-      setGeneratedImages(prev => {
-        const next = [...prev];
-        next[i] = imageUrl;
-        return next;
+    try {
+      // Step 1: Real API call for strategies
+      const strategyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: 'Você é um estrategista de conteúdo digital sênior especializado em Instagram.' },
+            { role: 'user', content: `Crie 5 tópicos estratégicos curtos para o nicho "${niche}" com o objetivo "${goal}".` }
+          ]
+        })
       });
+
+      const strategyData = await strategyResponse.json();
+      if (strategyData.error) throw new Error(strategyData.error.message);
+      
+      const strategyText = strategyData.choices[0].message.content;
+      const parsedStrategies = strategyText.split('\n').filter((s: string) => s.trim() !== '').slice(0, 5);
+      setStrategies(parsedStrategies);
+      toast.success("Estratégias criadas pelo GPT-4o!");
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Step 2: Image Generation Loop with DALL-E 3
+      setGenerationStep('images');
+      setActiveTab('workflow');
+      const totalImages = imageCount;
+      setImageProgress(new Array(totalImages).fill(0));
+      setGeneratedImages(new Array(totalImages).fill(''));
+      
+      for (let i = 0; i < totalImages; i++) {
+        setCurrentImageGenerating(i);
+        toast.info(`Gerando Imagem ${i + 1} com DALL-E 3...`);
+        
+        // Progress simulation while waiting for API
+        const progressInterval = setInterval(() => {
+          setImageProgress(prev => {
+            const next = [...prev];
+            if (next[i] < 90) next[i] += 5;
+            return next;
+          });
+        }, 1000);
+
+        try {
+          const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: 'dall-e-3',
+              prompt: `Photo-realistic, professional social media ${selectedFormat === 'stories' ? 'Stories' : 'Post'} for ${niche}. Focus: ${parsedStrategies[i % parsedStrategies.length]}. Style: Professional, clean, high-quality, with colors ${selectedColors.join(', ')}. Use face-consistency if possible. High definition 4k.`,
+              n: 1,
+              size: selectedFormat === 'stories' ? '1024x1792' : '1024x1024',
+              quality: 'hd'
+            })
+          });
+
+          const imageData = await imageResponse.json();
+          clearInterval(progressInterval);
+          
+          if (imageData.error) throw new Error(imageData.error.message);
+          
+          const imageUrl = imageData.data[0].url;
+          
+          setImageProgress(prev => {
+            const next = [...prev];
+            next[i] = 100;
+            return next;
+          });
+          
+          setGeneratedImages(prev => {
+            const next = [...prev];
+            next[i] = imageUrl;
+            return next;
+          });
+          
+          toast.success(`Imagem ${i + 1} concluída!`);
+        } catch (err: any) {
+          clearInterval(progressInterval);
+          toast.error(`Erro na imagem ${i + 1}: ${err.message}`);
+          // Fallback simple image so UI doesn't break
+          setGeneratedImages(prev => {
+            const next = [...prev];
+            next[i] = `https://picsum.photos/seed/${Math.random()}/1024/1024`;
+            return next;
+          });
+        }
+      }
+    } catch (error: any) {
+      toast.error(`Erro na requisição: ${error.message}`);
+    } finally {
+      setGenerationStep('done');
+      setIsGenerating(false);
+      setCurrentImageGenerating(null);
     }
+  };
     
     setGenerationStep('done');
     setIsGenerating(false);
@@ -640,17 +698,22 @@ const ThorCreativeDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  {generatedImages.filter(img => img !== '').map((img, i) => (
                     <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10">
-                      <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-20 transition-opacity">
-                         <ImageIcon size={48} />
-                      </div>
+                      <img src={img} alt={`Criativo ${i}`} className="w-full h-full object-cover" />
                       <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-center">
-                         <span className="text-xs font-medium">Post #{i}</span>
-                         <Button size="sm" variant="secondary" className="h-7 px-2 text-[10px]">Publicar</Button>
+                         <span className="text-xs font-medium">Criativo #{i + 1}</span>
+                         <a href={img} target="_blank" rel="noreferrer">
+                           <Button size="sm" variant="secondary" className="h-7 px-2 text-[10px]">Download</Button>
+                         </a>
                       </div>
                     </div>
                   ))}
+                  {generatedImages.filter(img => img !== '').length === 0 && (
+                    <div className="col-span-full py-20 text-center text-gray-500">
+                      Nenhuma imagem gerada ainda. Vá ao Gerador para começar.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
