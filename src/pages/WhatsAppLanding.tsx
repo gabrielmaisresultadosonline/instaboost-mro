@@ -46,6 +46,7 @@ const WhatsAppLanding = () => {
           page_subtitle?: string;
           button_text?: string;
           whatsapp_message?: string;
+          photo_url?: string;
           options?: OptionItem[];
         };
 
@@ -55,6 +56,7 @@ const WhatsAppLanding = () => {
           page_subtitle: config.page_subtitle ?? "Sobre o que gostaria de falar clique no botão abaixo.",
           button_text: config.button_text ?? "FALAR NO WHATSAPP",
           whatsapp_message: config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
+          photo_url: config.photo_url ?? "/gabriel-photo.webp",
         });
         setOptions(Array.isArray(config.options) ? config.options : []);
         setLoadError(false);
