@@ -261,6 +261,14 @@ const WhatsAppAdmin = () => {
             <Label className="text-gray-300">Subtítulo da página</Label>
             <Input value={settings.page_subtitle} onChange={(e) => setSettings({ ...settings, page_subtitle: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" />
           </div>
+          <div>
+            <Label className="text-gray-300">Texto do botão principal</Label>
+            <Input value={settings.button_text} onChange={(e) => setSettings({ ...settings, button_text: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="FALAR NO WHATSAPP" />
+          </div>
+          <div>
+            <Label className="text-gray-300">Mensagem padrão do WhatsApp</Label>
+            <Input value={settings.whatsapp_message} onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="Olá, vim pelo site..." />
+          </div>
           <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700">
             <Save className="w-4 h-4 mr-2" /> {saving ? "Salvando..." : "Salvar Configurações"}
           </Button>
