@@ -28,6 +28,18 @@ const ThorCreativeDashboard = () => {
   const [faceMode, setFaceMode] = useState('with-face');
   const [imageCount, setImageCount] = useState(7);
   const [selectedColors, setSelectedColors] = useState<string[]>(['#9333ea', '#3b82f6', '#000000']);
+  const [apiKey, setApiKey] = useState(localStorage.getItem('thor_openai_token') || '');
+  const [isApiKeySaved, setIsApiKeySaved] = useState(!!localStorage.getItem('thor_openai_token'));
+
+  const handleSaveApiKey = () => {
+    if (!apiKey.startsWith('sk-')) {
+      toast.error("Por favor, insira um token OpenAI válido (iniciando com sk-).");
+      return;
+    }
+    localStorage.setItem('thor_openai_token', apiKey);
+    setIsApiKeySaved(true);
+    toast.success("Token salvo com sucesso e conectado!");
+  };
 
   const handleColorAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (selectedColors.length < 4) {
@@ -42,6 +54,11 @@ const ThorCreativeDashboard = () => {
   };
 
   const handleGenerate = () => {
+    if (!isApiKeySaved) {
+      toast.error("Configure e salve seu token OpenAI nas configurações antes de gerar.");
+      setActiveTab('settings');
+      return;
+    }
     if (!niche || !goal) {
       toast.error("Por favor, preencha o seu nicho e objetivo.");
       return;
@@ -417,9 +434,27 @@ const ThorCreativeDashboard = () => {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-400">OpenAI API Key</label>
                       <div className="flex gap-2">
-                        <Input type="password" placeholder="sk-..." className="bg-black/20 border-white/10 flex-1" value="••••••••••••••••" />
-                        <Button variant="outline" className="border-white/10">Atualizar</Button>
+                        <Input 
+                          type="password" 
+                          placeholder="sk-..." 
+                          className="bg-black/20 border-white/10 flex-1" 
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                        />
+                        <Button 
+                          variant={isApiKeySaved ? "outline" : "default"} 
+                          className={isApiKeySaved ? "border-white/10" : "bg-purple-600 hover:bg-purple-700"}
+                          onClick={handleSaveApiKey}
+                        >
+                          {isApiKeySaved ? "Atualizar" : "Salvar e Conectar"}
+                        </Button>
                       </div>
+                      {isApiKeySaved && (
+                        <p className="text-xs text-green-500 flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                          Conectado com sucesso
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500">Seu token é usado para gerar os textos e imagens de forma privada.</p>
                     </div>
                   </div>
