@@ -259,88 +259,19 @@ const WhatsAppAdmin = () => {
 
         {/* Settings */}
         <div className="bg-[#1e1e2e] rounded-2xl p-6 space-y-5 border border-gray-800">
-          <h2 className="text-white font-semibold text-lg">Configurações Gerais</h2>
+          <h2 className="text-white font-semibold text-lg text-center mb-4">Configurar Número</h2>
           <div>
             <Label className="text-gray-300">Número do WhatsApp (com DDI)</Label>
-            <Input value={settings.whatsapp_number} onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="5511999999999" />
+            <Input 
+              value={settings.whatsapp_number} 
+              onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })} 
+              className="bg-[#2a2a3e] border-gray-700 text-white h-12 text-lg text-center" 
+              placeholder="5511999999999" 
+            />
           </div>
-          <div>
-            <Label className="text-gray-300">Título da página</Label>
-            <Input value={settings.page_title} onChange={(e) => setSettings({ ...settings, page_title: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" />
-          </div>
-          <div>
-            <Label className="text-gray-300">Subtítulo da página</Label>
-            <Input value={settings.page_subtitle} onChange={(e) => setSettings({ ...settings, page_subtitle: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" />
-          </div>
-          <div>
-            <Label className="text-gray-300">Texto do botão principal</Label>
-            <Input value={settings.button_text} onChange={(e) => setSettings({ ...settings, button_text: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="FALAR NO WHATSAPP" />
-          </div>
-          <div>
-            <Label className="text-gray-300">Mensagem padrão do WhatsApp</Label>
-            <Input value={settings.whatsapp_message} onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="Olá, vim pelo site..." />
-          </div>
-          <div>
-            <Label className="text-gray-300">URL da Foto de Perfil</Label>
-            <Input value={settings.photo_url} onChange={(e) => setSettings({ ...settings, photo_url: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="/gabriel-photo.webp" />
-          </div>
-          <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700">
-            <Save className="w-4 h-4 mr-2" /> {saving ? "Salvando..." : "Salvar Configurações"}
+          <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700 h-12 font-bold text-lg">
+            <Save className="w-5 h-5 mr-2" /> {saving ? "Salvando..." : "Salvar Número"}
           </Button>
-        </div>
-
-        {/* Options */}
-        <div className="bg-[#1e1e2e] rounded-2xl p-6 space-y-5 border border-gray-800">
-          <div className="flex items-center justify-between">
-            <h2 className="text-white font-semibold text-lg">Opções de Contato</h2>
-            <Button onClick={handleAddOption} size="sm" className="bg-green-600 hover:bg-green-700">
-              <Plus className="w-4 h-4 mr-1" /> Adicionar
-            </Button>
-          </div>
-
-          {options.map((option, idx) => (
-            <div key={option.id} className="bg-[#2a2a3e] rounded-xl p-4 space-y-3 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <GripVertical className="w-4 h-4 text-gray-500" />
-                  <span className="text-white font-medium text-sm">Opção {idx + 1}</span>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => handleDeleteOption(option.id)} className="text-red-400 hover:text-red-300 hover:bg-red-900/20 h-8 w-8 p-0">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div>
-                <Label className="text-gray-400 text-xs">Texto do botão</Label>
-                <Input value={option.label} onChange={(e) => updateOption(option.id, "label", e.target.value)} className="bg-[#1e1e2e] border-gray-600 text-white text-sm" />
-              </div>
-              <div>
-                <Label className="text-gray-400 text-xs">Mensagem enviada no WhatsApp</Label>
-                <Input value={option.message} onChange={(e) => updateOption(option.id, "message", e.target.value)} className="bg-[#1e1e2e] border-gray-600 text-white text-sm" />
-              </div>
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <Label className="text-gray-400 text-xs">Ícone</Label>
-                  <select
-                    value={option.icon_type}
-                    onChange={(e) => updateOption(option.id, "icon_type", e.target.value)}
-                    className="w-full h-10 rounded-md border border-gray-600 bg-[#1e1e2e] text-white text-sm px-3"
-                  >
-                    {ICON_OPTIONS.map((ic) => (
-                      <option key={ic.value} value={ic.value}>{ic.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="w-24">
-                  <Label className="text-gray-400 text-xs">Cor</Label>
-                  <input type="color" value={option.color} onChange={(e) => updateOption(option.id, "color", e.target.value)} className="w-full h-10 rounded-md border border-gray-600 bg-[#1e1e2e] cursor-pointer" />
-                </div>
-              </div>
-              <Button onClick={() => handleSaveOption(option)} size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-sm">
-                <Save className="w-3 h-3 mr-1" /> Salvar Opção
-              </Button>
-            </div>
-          ))}
         </div>
       </div>
     </div>
