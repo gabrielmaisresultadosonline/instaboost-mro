@@ -96,6 +96,26 @@ const WhatsAppSettingsTab = () => {
             className="bg-secondary/50 mt-1"
           />
         </div>
+        
+        <div>
+          <Label>Texto do botão principal</Label>
+          <Input
+            value={settings.button_text}
+            onChange={(e) => setSettings({ ...settings, button_text: e.target.value })}
+            className="bg-secondary/50 mt-1"
+            placeholder="FALAR NO WHATSAPP"
+          />
+        </div>
+
+        <div>
+          <Label>Mensagem padrão do WhatsApp</Label>
+          <Input
+            value={settings.whatsapp_message}
+            onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })}
+            className="bg-secondary/50 mt-1"
+            placeholder="Olá, vim pelo site..."
+          />
+        </div>
 
         <div>
           <Label>Subtítulo da página</Label>
