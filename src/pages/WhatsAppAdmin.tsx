@@ -76,6 +76,8 @@ const WhatsAppAdmin = () => {
       whatsapp_number: nextSettings.whatsapp_number || "",
       page_title: nextSettings.page_title || "",
       page_subtitle: nextSettings.page_subtitle || "",
+      button_text: nextSettings.button_text || "",
+      whatsapp_message: nextSettings.whatsapp_message || "",
     });
     setOptions(Array.isArray(response.options) ? (response.options as OptionItem[]) : []);
     setAuthenticated(true);
