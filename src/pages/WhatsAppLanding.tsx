@@ -27,6 +27,7 @@ const WhatsAppLanding = () => {
     page_subtitle: "Sobre o que gostaria de falar clique no botão abaixo.",
     button_text: "FALAR NO WHATSAPP",
     whatsapp_message: "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
+    photo_url: "/gabriel-photo.webp",
   });
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [loading, setLoading] = useState(true);
