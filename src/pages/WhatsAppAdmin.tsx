@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, LogOut, Plus, Trash2, GripVertical } from "lucide-react";
+import { Save, LogOut, Plus, Trash2, GripVertical, Zap } from "lucide-react";
 
 const ADMIN_SESSION_STORAGE_KEY = "whatsapp_admin_session_token";
 
@@ -36,6 +36,9 @@ const WhatsAppAdmin = () => {
     whatsapp_number: "",
     page_title: "",
     page_subtitle: "",
+    button_text: "",
+    whatsapp_message: "",
+    photo_url: "",
   });
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [saving, setSaving] = useState(false);
@@ -74,6 +77,9 @@ const WhatsAppAdmin = () => {
       whatsapp_number: nextSettings.whatsapp_number || "",
       page_title: nextSettings.page_title || "",
       page_subtitle: nextSettings.page_subtitle || "",
+      button_text: nextSettings.button_text || "",
+      whatsapp_message: nextSettings.whatsapp_message || "",
+      photo_url: nextSettings.photo_url || "",
     });
     setOptions(Array.isArray(response.options) ? (response.options as OptionItem[]) : []);
     setAuthenticated(true);
@@ -127,6 +133,9 @@ const WhatsAppAdmin = () => {
         whatsapp_number: settings.whatsapp_number,
         page_title: settings.page_title,
         page_subtitle: settings.page_subtitle,
+        button_text: settings.button_text,
+        whatsapp_message: settings.whatsapp_message,
+        photo_url: settings.photo_url,
       },
     });
 
@@ -234,10 +243,18 @@ const WhatsAppAdmin = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] p-4">
       <div className="max-w-lg mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">Admin WhatsApp</h1>
-          <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
-            <LogOut className="w-4 h-4 mr-1" /> Sair
-          </Button>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold text-white">Admin WhatsApp</h1>
+            <p className="text-xs text-gray-400">Página de links e opções de contato</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.open('/apiwhatsappacess', '_blank')} className="text-blue-400 border-blue-900/50 hover:bg-blue-900/20">
+              <Zap className="w-3 h-3 mr-1" /> WhatsApp API
+            </Button>
+            <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
+              <LogOut className="w-4 h-4 mr-1" /> Sair
+            </Button>
+          </div>
         </div>
 
         {/* Settings */}
@@ -254,6 +271,18 @@ const WhatsAppAdmin = () => {
           <div>
             <Label className="text-gray-300">Subtítulo da página</Label>
             <Input value={settings.page_subtitle} onChange={(e) => setSettings({ ...settings, page_subtitle: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" />
+          </div>
+          <div>
+            <Label className="text-gray-300">Texto do botão principal</Label>
+            <Input value={settings.button_text} onChange={(e) => setSettings({ ...settings, button_text: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="FALAR NO WHATSAPP" />
+          </div>
+          <div>
+            <Label className="text-gray-300">Mensagem padrão do WhatsApp</Label>
+            <Input value={settings.whatsapp_message} onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="Olá, vim pelo site..." />
+          </div>
+          <div>
+            <Label className="text-gray-300">URL da Foto de Perfil</Label>
+            <Input value={settings.photo_url} onChange={(e) => setSettings({ ...settings, photo_url: e.target.value })} className="bg-[#2a2a3e] border-gray-700 text-white" placeholder="/gabriel-photo.webp" />
           </div>
           <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700">
             <Save className="w-4 h-4 mr-2" /> {saving ? "Salvando..." : "Salvar Configurações"}

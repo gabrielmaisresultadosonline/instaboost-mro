@@ -4282,6 +4282,7 @@ export type Database = {
           id: string
           page_subtitle: string
           page_title: string
+          photo_url: string | null
           session_secret: string | null
           updated_at: string
           whatsapp_message: string
@@ -4295,6 +4296,7 @@ export type Database = {
           id?: string
           page_subtitle?: string
           page_title?: string
+          photo_url?: string | null
           session_secret?: string | null
           updated_at?: string
           whatsapp_message?: string
@@ -4308,6 +4310,7 @@ export type Database = {
           id?: string
           page_subtitle?: string
           page_title?: string
+          photo_url?: string | null
           session_secret?: string | null
           updated_at?: string
           whatsapp_message?: string

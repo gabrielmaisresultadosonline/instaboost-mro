@@ -27,6 +27,7 @@ const WhatsAppLanding = () => {
     page_subtitle: "Sobre o que gostaria de falar clique no botão abaixo.",
     button_text: "FALAR NO WHATSAPP",
     whatsapp_message: "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
+    photo_url: "/gabriel-photo.webp",
   });
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,7 @@ const WhatsAppLanding = () => {
           page_subtitle?: string;
           button_text?: string;
           whatsapp_message?: string;
+          photo_url?: string;
           options?: OptionItem[];
         };
 
@@ -54,6 +56,7 @@ const WhatsAppLanding = () => {
           page_subtitle: config.page_subtitle ?? "Sobre o que gostaria de falar clique no botão abaixo.",
           button_text: config.button_text ?? "FALAR NO WHATSAPP",
           whatsapp_message: config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
+          photo_url: config.photo_url ?? "/gabriel-photo.webp",
         });
         setOptions(Array.isArray(config.options) ? config.options : []);
         setLoadError(false);
@@ -105,7 +108,7 @@ const WhatsAppLanding = () => {
         {/* Photo */}
         <div className="flex justify-center">
           <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-green-500 overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.3)]">
-            <img src="/gabriel-photo.webp" alt="Gabriel" className="w-full h-full object-cover" />
+            <img src={settings.photo_url || "/gabriel-photo.webp"} alt="Perfil" className="w-full h-full object-cover" />
           </div>
         </div>
 

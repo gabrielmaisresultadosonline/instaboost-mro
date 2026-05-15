@@ -103,7 +103,7 @@ serve(async (req) => {
 
     const { data: settings, error: settingsError } = await supabase
       .from("whatsapp_page_settings")
-      .select("id, whatsapp_number, page_title, page_subtitle, button_text, whatsapp_message, admin_email, admin_password, session_secret")
+      .select("id, whatsapp_number, page_title, page_subtitle, button_text, whatsapp_message, photo_url, admin_email, admin_password, session_secret")
       .limit(1)
       .single();
 
@@ -192,6 +192,7 @@ serve(async (req) => {
           page_subtitle: settings.page_subtitle ?? "",
           button_text: settings.button_text ?? "",
           whatsapp_message: settings.whatsapp_message ?? "",
+          photo_url: settings.photo_url ?? "",
         },
         options: options ?? [],
       });
@@ -204,6 +205,8 @@ serve(async (req) => {
       const buttonText = typeof body.button_text === "string" ? body.button_text.trim().slice(0, 120) : "";
       const whatsappMessage = typeof body.whatsapp_message === "string" ? body.whatsapp_message.trim().slice(0, 1000) : "";
 
+      const photoUrl = typeof body.photo_url === "string" ? body.photo_url.trim() : "";
+      
       if (!whatsappNumber) {
         return respond({ success: false, error: "Número do WhatsApp é obrigatório" });
       }
@@ -216,6 +219,7 @@ serve(async (req) => {
           page_subtitle: pageSubtitle,
           button_text: buttonText,
           whatsapp_message: whatsappMessage,
+          photo_url: photoUrl,
           updated_at: new Date().toISOString(),
         })
         .eq("id", settings.id);

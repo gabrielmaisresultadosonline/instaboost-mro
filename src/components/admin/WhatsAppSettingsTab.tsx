@@ -14,13 +14,15 @@ const WhatsAppSettingsTab = () => {
     whatsapp_number: "",
     page_title: "",
     page_subtitle: "",
+    button_text: "",
+    whatsapp_message: "",
   });
 
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
         .from("whatsapp_page_settings")
-        .select("id, whatsapp_number, page_title, page_subtitle")
+        .select("id, whatsapp_number, page_title, page_subtitle, button_text, whatsapp_message")
         .limit(1)
         .single();
       if (data) {
@@ -29,6 +31,8 @@ const WhatsAppSettingsTab = () => {
           whatsapp_number: data.whatsapp_number,
           page_title: data.page_title,
           page_subtitle: data.page_subtitle,
+          button_text: data.button_text || "",
+          whatsapp_message: data.whatsapp_message || "",
         });
       }
       setLoading(false);
@@ -44,6 +48,8 @@ const WhatsAppSettingsTab = () => {
         whatsapp_number: settings.whatsapp_number,
         page_title: settings.page_title,
         page_subtitle: settings.page_subtitle,
+        button_text: settings.button_text,
+        whatsapp_message: settings.whatsapp_message,
         updated_at: new Date().toISOString(),
       })
       .eq("id", settings.id);
@@ -88,6 +94,26 @@ const WhatsAppSettingsTab = () => {
             value={settings.page_title}
             onChange={(e) => setSettings({ ...settings, page_title: e.target.value })}
             className="bg-secondary/50 mt-1"
+          />
+        </div>
+        
+        <div>
+          <Label>Texto do botão principal</Label>
+          <Input
+            value={settings.button_text}
+            onChange={(e) => setSettings({ ...settings, button_text: e.target.value })}
+            className="bg-secondary/50 mt-1"
+            placeholder="FALAR NO WHATSAPP"
+          />
+        </div>
+
+        <div>
+          <Label>Mensagem padrão do WhatsApp</Label>
+          <Input
+            value={settings.whatsapp_message}
+            onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })}
+            className="bg-secondary/50 mt-1"
+            placeholder="Olá, vim pelo site..."
           />
         </div>
 
