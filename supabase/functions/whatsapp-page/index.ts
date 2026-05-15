@@ -103,7 +103,7 @@ serve(async (req) => {
 
     const { data: settings, error: settingsError } = await supabase
       .from("whatsapp_page_settings")
-      .select("id, whatsapp_number, page_title, page_subtitle, button_text, whatsapp_message, admin_email, admin_password, session_secret")
+      .select("id, whatsapp_number, page_title, page_subtitle, button_text, whatsapp_message, photo_url, admin_email, admin_password, session_secret")
       .limit(1)
       .single();
 
