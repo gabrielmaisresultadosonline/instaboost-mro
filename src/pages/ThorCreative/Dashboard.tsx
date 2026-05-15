@@ -147,7 +147,7 @@ const ThorCreativeDashboard = () => {
     toast.info("Conectando ao motor GPT-4o Omni...");
 
     try {
-      // Step 1: Real API call for strategies
+      // Step 1: Real API call for strategies and refined prompts
       const strategyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -157,19 +157,31 @@ const ThorCreativeDashboard = () => {
         body: JSON.stringify({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: 'Você é um estrategista de conteúdo digital sênior especializado em Instagram.' },
-            { role: 'user', content: `Crie 5 tópicos estratégicos curtos para o nicho "${niche}" com o objetivo "${goal}".` }
-          ]
+            { 
+              role: 'system', 
+              content: 'Você é um estrategista de conteúdo digital e engenheiro de prompts sênior. Sua tarefa é criar estratégias de conteúdo e prompts altamente detalhados para o DALL-E 3.' 
+            },
+            { 
+              role: 'user', 
+              content: `Nicho: ${niche}. Objetivo: ${goal}. Cores da marca: ${selectedColors.join(', ')}. Formato: ${selectedFormat}. 
+              Crie uma lista de ${imageCount} itens. Para cada item, forneça:
+              1. Uma frase curta da estratégia.
+              2. Um prompt em INGLÊS extremamente detalhado para o DALL-E 3 gerar uma imagem fotorrealista e profissional, garantindo consistência visual. Se houver uma foto de referência (face-consistency), mencione um "placeholder character with the same facial features".
+              
+              Responda no formato JSON: {"items": [{"strategy": "...", "prompt": "..."}, ...]}` 
+            }
+          ],
+          response_format: { type: "json_object" }
         })
       });
 
       const strategyData = await strategyResponse.json();
       if (strategyData.error) throw new Error(strategyData.error.message);
       
-      const strategyText = strategyData.choices[0].message.content;
-      const parsedStrategies = strategyText.split('\n').filter((s: string) => s.trim() !== '').slice(0, 5);
-      setStrategies(parsedStrategies);
-      toast.success("Estratégias criadas pelo GPT-4o!");
+      const content = JSON.parse(strategyData.choices[0].message.content);
+      const generatedItems = content.items;
+      setStrategies(generatedItems.map((item: any) => item.strategy));
+      toast.success("Estratégias e Prompts otimizados pelo GPT-4o!");
 
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -184,14 +196,13 @@ const ThorCreativeDashboard = () => {
         setCurrentImageGenerating(i);
         toast.info(`Gerando Imagem ${i + 1} com DALL-E 3...`);
         
-        // Progress simulation while waiting for API
         const progressInterval = setInterval(() => {
           setImageProgress(prev => {
             const next = [...prev];
-            if (next[i] < 90) next[i] += 5;
+            if (next[i] < 95) next[i] += 2;
             return next;
           });
-        }, 1000);
+        }, 800);
 
         try {
           const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -202,10 +213,11 @@ const ThorCreativeDashboard = () => {
             },
             body: JSON.stringify({
               model: 'dall-e-3',
-              prompt: `Photo-realistic, professional social media ${selectedFormat === 'stories' ? 'Stories' : 'Post'} for ${niche}. Focus: ${parsedStrategies[i % parsedStrategies.length]}. Style: Professional, clean, high-quality, with colors ${selectedColors.join(', ')}. Use face-consistency if possible. High definition 4k.`,
+              prompt: generatedItems[i].prompt,
               n: 1,
               size: selectedFormat === 'stories' ? '1024x1792' : '1024x1024',
-              quality: 'hd'
+              quality: 'hd',
+              style: 'vivid'
             })
           });
 
@@ -246,13 +258,8 @@ const ThorCreativeDashboard = () => {
       setGenerationStep('done');
       setIsGenerating(false);
       setCurrentImageGenerating(null);
+      toast.success(`Parabéns! ${imageCount} criativos gerados com sucesso.`);
     }
-  };
-    
-    setGenerationStep('done');
-    setIsGenerating(false);
-    setCurrentImageGenerating(null);
-    toast.success(`Parabéns! ${imageCount} criativos gerados com sucesso.`);
   };
 
   return (
