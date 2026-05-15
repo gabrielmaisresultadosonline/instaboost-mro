@@ -175,6 +175,7 @@ const App = () => (
           <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagram-nova-plan" element={<InstagramNovaPlan />} />
+          <Route path="/instagramm-nova" element={<InstagramNovaPlan />} />
           <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
           <Route path="/promo/:affiliateId" element={<PromoSwitcher />} />
           <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
