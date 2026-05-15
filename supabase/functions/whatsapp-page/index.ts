@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days session token lifespan
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
