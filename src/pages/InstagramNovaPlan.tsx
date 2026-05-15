@@ -152,8 +152,8 @@ const InstagramNovaPlan = () => {
       if (checkError) { console.error("Error creating checkout:", checkError); toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
-      // Track purchase attempt (Lead/Purchase intent)
-      trackPurchase(plan.price, `Plano ${plan.name}`, email);
+      // Track initiate checkout intent (Lead) - this is correct as it happens before payment
+      trackInitiateCheckout(`Plano ${plan.name}`, plan.price);
       window.location.href = checkData.payment_link;
     } catch (error) { console.error("Error:", error); toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
