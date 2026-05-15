@@ -163,12 +163,18 @@ serve(async (req) => {
 
     const sessionSecret = typeof settings.session_secret === "string" ? settings.session_secret.trim() : "";
     const token = normalizeToken(body.token);
-    const session = token
-      ? await verifySessionToken(sessionSecret, token, ["whatsapp-admin"]) ??
-        await verifySessionToken(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", token, ["instagram-admin"])
-      : null;
+    
+    // Check if token exists first
+    if (!token) {
+      console.error("[whatsapp-page] No token provided");
+      return respond({ success: false, error: "Sessão expirada. Faça login novamente." }, 401);
+    }
+
+    const session = await verifySessionToken(sessionSecret, token, ["whatsapp-admin"]) ??
+                   await verifySessionToken(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", token, ["instagram-admin"]);
 
     if (!session) {
+      console.error("[whatsapp-page] Invalid or expired token:", token.substring(0, 10) + "...");
       return respond({ success: false, error: "Sessão expirada. Faça login novamente." }, 401);
     }
 
