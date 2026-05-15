@@ -21,8 +21,8 @@ import { toast } from "sonner";
 
 const ThorCreativeDashboard = () => {
   const [activeTab, setActiveTab] = useState('generator');
-  const [niche, setNiche] = useState('');
-  const [goal, setGoal] = useState('');
+  const [niche, setNiche] = useState(localStorage.getItem('thor_niche') || '');
+  const [goal, setGoal] = useState(localStorage.getItem('thor_goal') || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState('both'); // stories, posts, both
   const [faceMode, setFaceMode] = useState('with-face');
@@ -267,7 +267,10 @@ const ThorCreativeDashboard = () => {
                             placeholder="Ex: Marketing Digital, Nutrição, Advocacia..." 
                             className="bg-black/20 border-white/10 focus:border-purple-500 text-white h-12"
                             value={niche}
-                            onChange={(e) => setNiche(e.target.value)}
+                            onChange={(e) => {
+                              setNiche(e.target.value);
+                              localStorage.setItem('thor_niche', e.target.value);
+                            }}
                           />
                         </div>
                         <div className="space-y-2">
@@ -279,7 +282,10 @@ const ThorCreativeDashboard = () => {
                             className="w-full min-h-[100px] bg-black/20 border border-white/10 rounded-lg p-4 focus:outline-none focus:border-purple-500 transition-colors text-sm text-white"
                             placeholder="Descreva suas ideias ou o que deseja alcançar com esses posts..."
                             value={goal}
-                            onChange={(e) => setGoal(e.target.value)}
+                            onChange={(e) => {
+                              setGoal(e.target.value);
+                              localStorage.setItem('thor_goal', e.target.value);
+                            }}
                           />
                         </div>
                       </div>
