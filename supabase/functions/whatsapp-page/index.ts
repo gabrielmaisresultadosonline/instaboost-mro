@@ -219,6 +219,7 @@ serve(async (req) => {
           page_subtitle: pageSubtitle,
           button_text: buttonText,
           whatsapp_message: whatsappMessage,
+          photo_url: photoUrl,
           updated_at: new Date().toISOString(),
         })
         .eq("id", settings.id);
