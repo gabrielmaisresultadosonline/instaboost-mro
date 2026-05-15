@@ -284,18 +284,42 @@ const WhatsAppAdmin = () => {
 
         {/* Settings */}
         <div className="bg-[#1e1e2e] rounded-2xl p-6 space-y-5 border border-gray-800">
-          <h2 className="text-white font-semibold text-lg text-center mb-4">Configurar Número</h2>
-          <div>
-            <Label className="text-gray-300">Número do WhatsApp (com DDI)</Label>
-            <Input 
-              value={settings.whatsapp_number} 
-              onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })} 
-              className="bg-[#2a2a3e] border-gray-700 text-white h-12 text-lg text-center" 
-              placeholder="5511999999999" 
-            />
+          <h2 className="text-white font-semibold text-lg text-center mb-4">Configurações Gerais</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Título da Página</Label>
+              <Input 
+                value={settings.page_title} 
+                onChange={(e) => setSettings({ ...settings, page_title: e.target.value })} 
+                className="bg-[#2a2a3e] border-gray-700 text-white" 
+                placeholder="Ex: Gabriel está disponível agora" 
+              />
+            </div>
+
+            <div>
+              <Label className="text-gray-300">Subtítulo da Página</Label>
+              <Input 
+                value={settings.page_subtitle} 
+                onChange={(e) => setSettings({ ...settings, page_subtitle: e.target.value })} 
+                className="bg-[#2a2a3e] border-gray-700 text-white" 
+                placeholder="Ex: Sobre o que gostaria de falar..." 
+              />
+            </div>
+
+            <div>
+              <Label className="text-gray-300">Número do WhatsApp (com DDI)</Label>
+              <Input 
+                value={settings.whatsapp_number} 
+                onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })} 
+                className="bg-[#2a2a3e] border-gray-700 text-white h-12 text-lg" 
+                placeholder="5511999999999" 
+              />
+            </div>
           </div>
+
           <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-green-600 hover:bg-green-700 h-12 font-bold text-lg">
-            <Save className="w-5 h-5 mr-2" /> {saving ? "Salvando..." : "Salvar Número"}
+            <Save className="w-5 h-5 mr-2" /> {saving ? "Salvando..." : "Salvar Configurações"}
           </Button>
         </div>
       </div>
