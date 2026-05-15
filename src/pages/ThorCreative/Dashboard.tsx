@@ -267,60 +267,70 @@ const ThorCreativeDashboard = () => {
 
             {activeTab === 'workflow' && (
               <div className="animate-in fade-in zoom-in-95 duration-500">
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold mb-2">Workflow de Atendimento</h1>
-                  <p className="text-gray-400">Visualize seu fluxo de automação e estratégias de conversão.</p>
+                <div className="mb-8 flex justify-between items-end">
+                  <div>
+                    <h1 className="text-3xl font-bold mb-2">Workflow do Projeto</h1>
+                    <p className="text-gray-400">Sequência estratégica de criativos conectados para sua campanha.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="border-white/10 text-xs h-8">Resetar Fluxo</Button>
+                    <Button className="bg-purple-600 hover:bg-purple-700 text-xs h-8">Salvar Estrutura</Button>
+                  </div>
                 </div>
 
-                <Card className="bg-[#16161E] border-white/5 p-8 min-h-[600px] relative overflow-hidden flex items-center justify-center">
-                  <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #444 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+                <Card className="bg-[#16161E] border-white/5 p-12 min-h-[650px] relative overflow-x-auto flex items-start justify-center">
+                  <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                   
-                  {/* Mock Workflow Diagram */}
-                  <div className="flex flex-col items-center gap-12 relative z-10 scale-90 md:scale-100">
-                    <div className="bg-purple-600 p-4 rounded-xl shadow-lg shadow-purple-900/40 min-w-[150px] text-center border border-purple-400/30">
-                      <span className="font-bold">Início: Criativo</span>
+                  {/* Visual Workflow - Connected Images */}
+                  <div className="flex items-center gap-0 relative z-10 py-10">
+                    {[1, 2, 3, 4, 5].map((step, index) => (
+                      <React.Fragment key={step}>
+                        <div className="flex flex-col items-center group">
+                          {/* Card representing a creative/image */}
+                          <div className="relative">
+                            <div className="w-32 h-40 bg-black/40 rounded-xl border-2 border-white/10 overflow-hidden group-hover:border-purple-500/50 transition-all shadow-2xl relative z-10">
+                              <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
+                                <ImageIcon size={24} className="text-gray-600 mb-2" />
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Imagem {step}</span>
+                                <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                  <div className="bg-purple-500 h-full" style={{ width: `${20 * step}%` }}></div>
+                                </div>
+                              </div>
+                              {/* Connector Dots */}
+                              <div className="absolute top-1/2 -left-1.5 w-3 h-3 bg-purple-500 rounded-full border-2 border-[#16161E] z-20"></div>
+                              <div className="absolute top-1/2 -right-1.5 w-3 h-3 bg-purple-500 rounded-full border-2 border-[#16161E] z-20"></div>
+                            </div>
+                            
+                            {/* Label underneath */}
+                            <div className="mt-4 text-center">
+                              <p className="text-[10px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block">
+                                {index === 0 ? 'Atração' : index === 4 ? 'Conversão' : 'Engajamento'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Connector Arrow/Line */}
+                        {index < 4 && (
+                          <div className="w-16 h-[2px] bg-gradient-to-r from-purple-500 to-purple-500/20 relative -mt-10">
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 border-l-[6px] border-t-[4px] border-b-[4px] border-t-transparent border-b-transparent border-l-purple-500/50"></div>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+
+                    {/* Annotation/Cloud for AI */}
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white/5 border border-white/10 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-2 shadow-xl">
+                      <Sparkles size={14} className="text-purple-400" />
+                      <span className="text-[10px] text-gray-300 font-medium">IA gerando consistência visual entre blocos...</span>
                     </div>
-                    
-                    <div className="w-[2px] h-12 bg-gradient-to-b from-purple-600 to-blue-500 relative">
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-blue-500"></div>
-                    </div>
+                  </div>
 
-                    <div className="grid grid-cols-3 gap-16">
-                      <div className="flex flex-col items-center">
-                        <div className="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-900/40 min-w-[150px] text-center border border-blue-400/30">
-                          <span className="font-bold">Interação Post</span>
-                        </div>
-                        <div className="w-[2px] h-12 bg-blue-500 relative">
-                           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-blue-500"></div>
-                        </div>
-                        <div className="bg-[#222] p-4 rounded-xl border border-white/10 min-w-[150px] text-center">
-                          <span className="text-sm">IA Responde Comentário</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <div className="bg-pink-600 p-4 rounded-xl shadow-lg shadow-pink-900/40 min-w-[150px] text-center border border-pink-400/30">
-                          <span className="font-bold">Direct Automation</span>
-                        </div>
-                        <div className="w-[2px] h-12 bg-pink-500 relative">
-                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-pink-500"></div>
-                        </div>
-                        <div className="bg-[#222] p-4 rounded-xl border border-white/10 min-w-[150px] text-center">
-                          <span className="text-sm">Fluxo Conversacional</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <div className="bg-orange-600 p-4 rounded-xl shadow-lg shadow-orange-900/40 min-w-[150px] text-center border border-orange-400/30">
-                          <span className="font-bold">Lead Qualificado</span>
-                        </div>
-                        <div className="w-[2px] h-12 bg-orange-500 relative">
-                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-orange-500"></div>
-                        </div>
-                        <div className="bg-[#222] p-4 rounded-xl border border-white/10 min-w-[150px] text-center">
-                          <span className="text-sm">Venda / WhatsApp</span>
-                        </div>
-                      </div>
+                  {/* Sidebar Info for Workflow */}
+                  <div className="absolute left-8 bottom-8 max-w-[200px] space-y-4">
+                    <div className="p-3 bg-black/20 rounded-lg border border-white/5">
+                      <p className="text-[10px] text-gray-500 mb-1">Estratégia</p>
+                      <p className="text-xs font-semibold">Funil de 5 Etapas</p>
                     </div>
                   </div>
                 </Card>
