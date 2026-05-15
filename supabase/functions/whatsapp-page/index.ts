@@ -205,6 +205,8 @@ serve(async (req) => {
       const buttonText = typeof body.button_text === "string" ? body.button_text.trim().slice(0, 120) : "";
       const whatsappMessage = typeof body.whatsapp_message === "string" ? body.whatsapp_message.trim().slice(0, 1000) : "";
 
+      const photoUrl = typeof body.photo_url === "string" ? body.photo_url.trim() : "";
+      
       if (!whatsappNumber) {
         return respond({ success: false, error: "Número do WhatsApp é obrigatório" });
       }
