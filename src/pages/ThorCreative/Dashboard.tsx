@@ -214,8 +214,6 @@ const ThorCreativeDashboard = () => {
       setActiveTab('workflow');
       const totalImages = generatedItems.length; // Use actual valid count
       setImageProgress(new Array(totalImages).fill(0));
-      setGeneratedImages(new Array(totalImages * 2).fill('')); 
-      
       const initialImages = new Array(totalImages * 2).fill('');
       setGeneratedImages(initialImages);
       for (let i = 0; i < totalImages; i++) {
