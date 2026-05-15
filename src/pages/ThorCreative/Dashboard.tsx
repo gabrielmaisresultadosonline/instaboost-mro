@@ -612,7 +612,8 @@ const ThorCreativeDashboard = () => {
                       <Sparkles size={14} className="text-purple-400" />
                       <span className="text-[10px] text-gray-300 font-medium">IA gerando consistência visual entre blocos...</span>
                     </div>
-                  </ScrollArea>
+                  </div>
+                </ScrollArea>
 
                   {/* Sidebar Info for Workflow */}
                   <div className="absolute left-8 bottom-8 max-w-[200px] space-y-4">
