@@ -453,9 +453,18 @@ serve(async (req) => {
     // Calcular dias de acesso
     const daysAccess = 365; // All new plans are annual (365 days)
 
-    // Criar usuário na API do SquareCloud (ou verificar se já existe)
-    const apiResult = await createInstagramUser(order.username, order.username, daysAccess, order.plan_type);
-    log("API user creation result", apiResult);
+    // Verificar se usuário já existe antes de criar
+    const userExists = await checkUserExists(order.username);
+    let apiResult;
+    
+    if (userExists) {
+      log("User already exists on SquareCloud, skipping creation", { username: order.username });
+      apiResult = { success: true, alreadyExists: true, message: "Usuário já existe" };
+    } else {
+      // Criar usuário na API do SquareCloud
+      apiResult = await createInstagramUser(order.username, order.username, daysAccess, order.plan_type);
+      log("API user creation result", apiResult);
+    }
 
     // Determinar email real do cliente (remover prefixo de afiliado se houver)
     let customerEmail = order.email;
