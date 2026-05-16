@@ -695,41 +695,67 @@ const LiveAdmin = () => {
         )}
 
         {tab === "settings" && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <Settings className="w-5 h-5" /> Configurações
-            </h2>
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">🌐 URL do VPS (domínio do servidor de vídeo)</label>
-              <Input 
-                placeholder="https://seu-dominio.com" 
-                value={vpsUrl} 
-                onChange={(e) => {
-                  setVpsUrl(e.target.value);
-                  localStorage.setItem("live_vps_url", e.target.value);
-                }} 
-                className="bg-gray-800 border-gray-700 text-white" 
-              />
-              <p className="text-xs text-gray-500 mt-1">Ex: https://seudominio.com — necessário para upload de vídeos grandes (até 3GB)</p>
-            </div>
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">Link padrão do Grupo WhatsApp</label>
-              <Input placeholder="https://chat.whatsapp.com/..." value={defaultWhatsApp} onChange={(e) => setDefaultWhatsApp(e.target.value)} className="bg-gray-800 border-gray-700 text-white" />
-            </div>
-            <Button onClick={saveSettings} className="bg-red-600 hover:bg-red-700">
-              Salvar Configurações
-            </Button>
-
-            <div className="pt-4 border-t border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-300 mb-2">📋 Configuração do Servidor de Vídeo</h3>
-              <div className="bg-gray-800 rounded-lg p-4 text-xs text-gray-400 space-y-1 font-mono">
-                <p># No VPS Hostinger, execute:</p>
-                <p className="text-green-400">cd /var/www/ia-mro</p>
-                <p className="text-green-400">chmod +x deploy/setup-video-server.sh</p>
-                <p className="text-green-400">sudo ./deploy/setup-video-server.sh seu-dominio.com</p>
-                <p className="mt-2"># Isso instala ffmpeg + video server + configura Nginx</p>
-                <p># Vídeos serão transcodados em 480p, 720p e 1080p (HLS)</p>
+          <div className="space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-400" /> Servidor de Vídeo (VPS)
+              </h2>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className={`p-2 rounded-full ${vpsStatus === "online" ? "bg-green-500/20" : vpsStatus === "offline" ? "bg-red-500/20" : "bg-blue-500/20"}`}>
+                  {vpsStatus === "online" ? <ShieldCheck className="w-5 h-5 text-green-400" /> : vpsStatus === "offline" ? <ShieldAlert className="w-5 h-5 text-red-400" /> : <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Status do Servidor: <span className={vpsStatus === "online" ? "text-green-400" : vpsStatus === "offline" ? "text-red-400" : "text-blue-400"}>
+                    {vpsStatus === "online" ? "Online" : vpsStatus === "offline" ? "Offline ou Não Configurado" : "Verificando..."}
+                  </span></p>
+                  <p className="text-xs text-gray-500">O servidor é necessário para processar vídeos grandes e criar o streaming (HLS).</p>
+                </div>
+                <Button size="sm" variant="outline" onClick={checkVpsStatus} disabled={vpsStatus === "checking"}>
+                  Testar Conexão
+                </Button>
               </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">🌐 URL do VPS (domínio do servidor de vídeo)</label>
+                <Input 
+                  placeholder="https://seu-dominio.com" 
+                  value={vpsUrl} 
+                  onChange={(e) => {
+                    setVpsUrl(e.target.value);
+                    localStorage.setItem("live_vps_url", e.target.value);
+                  }} 
+                  className="bg-gray-800 border-gray-700 text-white" 
+                />
+                <p className="text-xs text-gray-500 mt-1">Ex: https://video.maisresultadosonline.com.br</p>
+              </div>
+
+              <div className="pt-4 border-t border-gray-800">
+                <h3 className="text-sm font-semibold text-gray-300 mb-2">🚀 Como Ativar o Servidor de Vídeo</h3>
+                <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                  Para hospedar vídeos de até 3GB e ter streaming adaptativo (igual Netflix/YouTube), você precisa de um VPS (Hostinger, DigitalOcean, etc.).
+                </p>
+                <div className="bg-gray-950 rounded-lg p-4 text-[11px] text-gray-400 space-y-2 font-mono border border-gray-800">
+                  <p className="text-yellow-500/80"># 1. Acesse seu VPS via SSH e execute:</p>
+                  <p className="text-green-400">wget https://raw.githubusercontent.com/seu-repo/main/deploy/setup-video-server.sh</p>
+                  <p className="text-green-400">chmod +x setup-video-server.sh</p>
+                  <p className="text-green-400">sudo ./setup-video-server.sh seu-dominio.com</p>
+                  <p className="mt-2 text-gray-500 italic"># Isso instalará tudo automaticamente.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Settings className="w-5 h-5" /> Configurações Gerais
+              </h2>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Link padrão do Grupo WhatsApp</label>
+                <Input placeholder="https://chat.whatsapp.com/..." value={defaultWhatsApp} onChange={(e) => setDefaultWhatsApp(e.target.value)} className="bg-gray-800 border-gray-700 text-white" />
+              </div>
+              <Button onClick={saveSettings} className="bg-red-600 hover:bg-red-700">
+                Salvar Configurações
+              </Button>
             </div>
           </div>
         )}
