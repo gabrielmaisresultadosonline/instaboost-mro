@@ -74,35 +74,70 @@ async function checkUserExists(username: string): Promise<boolean> {
 // Criar usuário na API SquareCloud/Instagram
 async function createInstagramUser(username: string, password: string, daysAccess: number, plan: string): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
-    log("Creating Instagram user via Admin API", { username, daysAccess, plan });
+    // Determinar payload e URL baseado no plano (igual ao manage-user-access)
+    const isSpecialPlan = ['solo', 'pro', 'agencia'].includes(plan);
+    const createUrl = isSpecialPlan 
+      ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
+      : `${INSTAGRAM_API_URL}/adicionar-usuario`;
+
+    // No manage-user-access, 'annual' usa o payload genérico
+    const payload = isSpecialPlan
+      ? { username, password, plano: plan }
+      : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
+
+    log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
 
     const adminName = Deno.env.get("MRO_ADMIN_NAME") || "ADMIN";
     const adminPass = Deno.env.get("MRO_ADMIN_PASS") || "SENHA_ADMIN";
 
-    const response = await fetch(`${INSTAGRAM_API_URL}/admin/criar-usuario-plano`, {
+    // Primeiro tentar habilitar o usuário (como no manage-user-access)
+    try {
+      await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario: username, senha: password }),
+      });
+      log("Enable user call sent");
+    } catch (e) {
+      log("Enable user failed (non-blocking)", e);
+    }
+
+    const response = await fetch(createUrl, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
         "x-admin-name": adminName,
         "x-admin-pass": adminPass
       },
-      body: JSON.stringify({
-        username,
-        password,
-        plano: plan
-      }),
+      body: JSON.stringify(payload),
     });
 
-    const result = await response.json();
-    log("Create user plan result", result);
+    const responseText = await response.text();
+    log("API Response raw", { status: response.status, body: responseText });
 
-    if (response.ok && result.success) {
-      return { success: true, alreadyExists: false, message: "Usuário criado com sucesso com plano " + plan };
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      result = { success: response.ok, error: "Non-JSON response" };
+    }
+
+    if (response.ok && (result.success || responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("already exists"))) {
+      const alreadyExists = responseText.toLowerCase().includes("already exists") || responseText.toLowerCase().includes("já existe");
+      return { 
+        success: true, 
+        alreadyExists, 
+        message: alreadyExists ? "Usuário já existe" : "Usuário criado com sucesso" 
+      };
     } else {
-      return { success: false, alreadyExists: false, message: result.error || "Erro ao criar usuário com plano" };
+      return { 
+        success: false, 
+        alreadyExists: false, 
+        message: result.error || result.message || responseText || "Erro ao criar usuário" 
+      };
     }
   } catch (error) {
-    log("Error creating Instagram user with plan", { error: String(error) });
+    log("Error creating Instagram user", { error: String(error) });
     return { success: false, alreadyExists: false, message: String(error) };
   }
 }
