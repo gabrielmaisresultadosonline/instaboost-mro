@@ -46,18 +46,39 @@ const LiveAdmin = () => {
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
   const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "https://video.maisresultadosonline.com.br");
-
-  // Previously uploaded videos
-  const [serverVideos, setServerVideos] = useState<any[]>([]);
-  const [loadingVideos, setLoadingVideos] = useState(false);
-  const [showVideoList, setShowVideoList] = useState(false);
+  const [vpsStatus, setVpsStatus] = useState<"checking" | "online" | "offline" | "none">("none");
 
   const getVideoServerUrl = () => {
-    // Use configured VPS URL, fallback to same origin
     const stored = vpsUrl || localStorage.getItem("live_vps_url");
     if (stored) return stored.replace(/\/$/, '');
-    return window.location.origin;
+    return "https://video.maisresultadosonline.com.br";
   };
+
+  const checkVpsStatus = async () => {
+    setVpsStatus("checking");
+    try {
+      const baseUrl = getVideoServerUrl();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const res = await fetch(`${baseUrl}/api/video/list`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (res.ok) {
+        setVpsStatus("online");
+      } else {
+        setVpsStatus("offline");
+      }
+    } catch {
+      setVpsStatus("offline");
+    }
+  };
+
+  useEffect(() => {
+    if (authenticated) {
+      checkVpsStatus();
+    }
+  }, [authenticated, vpsUrl]);
 
   const login = async () => {
     setLoggingIn(true);
