@@ -74,35 +74,70 @@ async function checkUserExists(username: string): Promise<boolean> {
 // Criar usuário na API SquareCloud/Instagram
 async function createInstagramUser(username: string, password: string, daysAccess: number, plan: string): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
-    log("Creating Instagram user via Admin API", { username, daysAccess, plan });
+    // Determinar payload e URL baseado no plano (igual ao manage-user-access)
+    const isSpecialPlan = ['solo', 'pro', 'agencia'].includes(plan);
+    const createUrl = isSpecialPlan 
+      ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
+      : `${INSTAGRAM_API_URL}/adicionar-usuario`;
+
+    // No manage-user-access, 'annual' usa o payload genérico
+    const payload = isSpecialPlan
+      ? { username, password, plano: plan }
+      : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
+
+    log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
 
     const adminName = Deno.env.get("MRO_ADMIN_NAME") || "ADMIN";
     const adminPass = Deno.env.get("MRO_ADMIN_PASS") || "SENHA_ADMIN";
 
-    const response = await fetch(`${INSTAGRAM_API_URL}/admin/criar-usuario-plano`, {
+    // Primeiro tentar habilitar o usuário (como no manage-user-access)
+    try {
+      await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario: username, senha: password }),
+      });
+      log("Enable user call sent");
+    } catch (e) {
+      log("Enable user failed (non-blocking)", e);
+    }
+
+    const response = await fetch(createUrl, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
         "x-admin-name": adminName,
         "x-admin-pass": adminPass
       },
-      body: JSON.stringify({
-        username,
-        password,
-        plano: plan
-      }),
+      body: JSON.stringify(payload),
     });
 
-    const result = await response.json();
-    log("Create user plan result", result);
+    const responseText = await response.text();
+    log("API Response raw", { status: response.status, body: responseText });
 
-    if (response.ok && result.success) {
-      return { success: true, alreadyExists: false, message: "Usuário criado com sucesso com plano " + plan };
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      result = { success: response.ok, error: "Non-JSON response" };
+    }
+
+    if (response.ok && (result.success || responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("already exists"))) {
+      const alreadyExists = responseText.toLowerCase().includes("already exists") || responseText.toLowerCase().includes("já existe");
+      return { 
+        success: true, 
+        alreadyExists, 
+        message: alreadyExists ? "Usuário já existe" : "Usuário criado com sucesso" 
+      };
     } else {
-      return { success: false, alreadyExists: false, message: result.error || "Erro ao criar usuário com plano" };
+      return { 
+        success: false, 
+        alreadyExists: false, 
+        message: result.error || result.message || responseText || "Erro ao criar usuário" 
+      };
     }
   } catch (error) {
-    log("Error creating Instagram user with plan", { error: String(error) });
+    log("Error creating Instagram user", { error: String(error) });
     return { success: false, alreadyExists: false, message: String(error) };
   }
 }
@@ -453,9 +488,18 @@ serve(async (req) => {
     // Calcular dias de acesso
     const daysAccess = 365; // All new plans are annual (365 days)
 
-    // Criar usuário na API do SquareCloud (ou verificar se já existe)
-    const apiResult = await createInstagramUser(order.username, order.username, daysAccess, order.plan_type);
-    log("API user creation result", apiResult);
+    // Verificar se usuário já existe antes de criar
+    const userExists = await checkUserExists(order.username);
+    let apiResult;
+    
+    if (userExists) {
+      log("User already exists on SquareCloud, skipping creation", { username: order.username });
+      apiResult = { success: true, alreadyExists: true, message: "Usuário já existe" };
+    } else {
+      // Criar usuário na API do SquareCloud
+      apiResult = await createInstagramUser(order.username, order.username, daysAccess, order.plan_type);
+      log("API user creation result", apiResult);
+    }
 
     // Determinar email real do cliente (remover prefixo de afiliado se houver)
     let customerEmail = order.email;
@@ -471,6 +515,29 @@ serve(async (req) => {
       log("Email send result", { emailSent });
     } else {
       log("Email already sent previously, skipping");
+    }
+
+    // Tentar registrar na tabela de acessos criados para visibilidade no admin
+    try {
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + daysAccess);
+      
+      await supabase.from("created_accesses").insert({
+        customer_email: customerEmail,
+        customer_name: order.username,
+        username: order.username,
+        password: order.username,
+        service_type: "instagram",
+        access_type: order.plan_type === "lifetime" ? "lifetime" : "annual",
+        days_access: daysAccess,
+        expiration_date: order.plan_type === "lifetime" ? null : expirationDate.toISOString(),
+        api_created: apiResult.success,
+        email_sent: emailSent,
+        notes: `Criado automaticamente via Webhook (NSU: ${order.nsu_order})`
+      });
+      log("Access record created in created_accesses table");
+    } catch (e) {
+      log("Error creating access record (non-blocking)", e);
     }
 
     // Marcar como completo usando atualização atômica para evitar processamento duplicado
