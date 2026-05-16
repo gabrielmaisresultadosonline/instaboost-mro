@@ -488,11 +488,16 @@ const LiveAdmin = () => {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <label className="flex items-center gap-3 cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg px-4 py-6 hover:border-red-500 transition text-center justify-center">
-                        <Upload className="w-6 h-6 text-gray-400" />
+                      <label className={`flex flex-col items-center gap-3 cursor-pointer bg-gray-800 border-2 border-dashed ${vpsStatus === 'offline' ? 'border-red-500/50' : 'border-gray-600'} rounded-lg px-4 py-8 hover:border-red-500 transition text-center justify-center`}>
+                        <div className={`p-3 rounded-full ${vpsStatus === 'offline' ? 'bg-red-500/10' : 'bg-gray-700/50'}`}>
+                          <Upload className={`w-8 h-8 ${vpsStatus === 'offline' ? 'text-red-400' : 'text-gray-400'}`} />
+                        </div>
                         <div>
-                          <span className="text-gray-300 text-sm block">Clique para enviar um novo vídeo (MP4, até 3GB)</span>
-                          <span className="text-gray-500 text-xs">Será hospedado diretamente no seu servidor</span>
+                          <span className="text-gray-200 text-base font-medium block">Enviar Vídeo para Live (MP4)</span>
+                          <span className="text-gray-500 text-xs mt-1 block">Arquivos de até 3GB • Transcoding HLS Automático</span>
+                          {vpsStatus === 'offline' && (
+                            <span className="text-red-400 text-[10px] mt-2 block font-bold uppercase tracking-wider">⚠️ Servidor de Vídeo Offline</span>
+                          )}
                         </div>
                         <input type="file" accept="video/*" className="hidden" onChange={(e) => handleVideoUpload(e)} />
                       </label>
