@@ -482,6 +482,29 @@ serve(async (req) => {
       log("Email already sent previously, skipping");
     }
 
+    // Tentar registrar na tabela de acessos criados para visibilidade no admin
+    try {
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + daysAccess);
+      
+      await supabase.from("created_accesses").insert({
+        customer_email: customerEmail,
+        customer_name: order.username,
+        username: order.username,
+        password: order.username,
+        service_type: "instagram",
+        access_type: order.plan_type === "lifetime" ? "lifetime" : "annual",
+        days_access: daysAccess,
+        expiration_date: order.plan_type === "lifetime" ? null : expirationDate.toISOString(),
+        api_created: apiResult.success,
+        email_sent: emailSent,
+        notes: `Criado automaticamente via Webhook (NSU: ${order.nsu_order})`
+      });
+      log("Access record created in created_accesses table");
+    } catch (e) {
+      log("Error creating access record (non-blocking)", e);
+    }
+
     // Marcar como completo usando atualização atômica para evitar processamento duplicado
     const { data: completedOrder, error: completeError } = await supabase
       .from("mro_orders")
