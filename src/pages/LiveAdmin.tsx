@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import {
-  Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle, Trash2
+  Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle, Trash2, Globe, ShieldCheck, ShieldAlert
 } from "lucide-react";
 
 const LiveAdmin = () => {
@@ -46,6 +46,7 @@ const LiveAdmin = () => {
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
   const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "https://video.maisresultadosonline.com.br");
+  const [vpsStatus, setVpsStatus] = useState<"checking" | "online" | "offline" | "none">("none");
 
   // Previously uploaded videos
   const [serverVideos, setServerVideos] = useState<any[]>([]);
@@ -53,11 +54,38 @@ const LiveAdmin = () => {
   const [showVideoList, setShowVideoList] = useState(false);
 
   const getVideoServerUrl = () => {
-    // Use configured VPS URL, fallback to same origin
     const stored = vpsUrl || localStorage.getItem("live_vps_url");
     if (stored) return stored.replace(/\/$/, '');
-    return window.location.origin;
+    return "https://video.maisresultadosonline.com.br";
   };
+
+  const checkVpsStatus = async () => {
+    setVpsStatus("checking");
+    try {
+      const baseUrl = getVideoServerUrl();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const res = await fetch(`${baseUrl}/api/video/list`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (res.ok) {
+        setVpsStatus("online");
+      } else {
+        setVpsStatus("offline");
+      }
+    } catch {
+      setVpsStatus("offline");
+    }
+  };
+
+  useEffect(() => {
+    if (authenticated) {
+      checkVpsStatus();
+      loadSessions();
+      loadSettings();
+    }
+  }, [authenticated, vpsUrl]);
 
   const login = async () => {
     setLoggingIn(true);
@@ -68,8 +96,6 @@ const LiveAdmin = () => {
       if (data?.success) {
         setAuthenticated(true);
         sessionStorage.setItem("live_admin_auth", "true");
-        loadSessions();
-        loadSettings();
       } else {
         toast.error("Credenciais inválidas");
       }
@@ -83,8 +109,6 @@ const LiveAdmin = () => {
   useEffect(() => {
     if (sessionStorage.getItem("live_admin_auth") === "true") {
       setAuthenticated(true);
-      loadSessions();
-      loadSettings();
     }
   }, []);
 
@@ -464,11 +488,16 @@ const LiveAdmin = () => {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <label className="flex items-center gap-3 cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg px-4 py-6 hover:border-red-500 transition text-center justify-center">
-                        <Upload className="w-6 h-6 text-gray-400" />
+                      <label className={`flex flex-col items-center gap-3 cursor-pointer bg-gray-800 border-2 border-dashed ${vpsStatus === 'offline' ? 'border-red-500/50' : 'border-gray-600'} rounded-lg px-4 py-8 hover:border-red-500 transition text-center justify-center`}>
+                        <div className={`p-3 rounded-full ${vpsStatus === 'offline' ? 'bg-red-500/10' : 'bg-gray-700/50'}`}>
+                          <Upload className={`w-8 h-8 ${vpsStatus === 'offline' ? 'text-red-400' : 'text-gray-400'}`} />
+                        </div>
                         <div>
-                          <span className="text-gray-300 text-sm block">Clique para enviar um novo vídeo (MP4, até 3GB)</span>
-                          <span className="text-gray-500 text-xs">Será hospedado diretamente no seu servidor</span>
+                          <span className="text-gray-200 text-base font-medium block">Enviar Vídeo para Live (MP4)</span>
+                          <span className="text-gray-500 text-xs mt-1 block">Arquivos de até 3GB • Transcoding HLS Automático</span>
+                          {vpsStatus === 'offline' && (
+                            <span className="text-red-400 text-[10px] mt-2 block font-bold uppercase tracking-wider">⚠️ Servidor de Vídeo Offline</span>
+                          )}
                         </div>
                         <input type="file" accept="video/*" className="hidden" onChange={(e) => handleVideoUpload(e)} />
                       </label>
@@ -671,41 +700,67 @@ const LiveAdmin = () => {
         )}
 
         {tab === "settings" && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <Settings className="w-5 h-5" /> Configurações
-            </h2>
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">🌐 URL do VPS (domínio do servidor de vídeo)</label>
-              <Input 
-                placeholder="https://seu-dominio.com" 
-                value={vpsUrl} 
-                onChange={(e) => {
-                  setVpsUrl(e.target.value);
-                  localStorage.setItem("live_vps_url", e.target.value);
-                }} 
-                className="bg-gray-800 border-gray-700 text-white" 
-              />
-              <p className="text-xs text-gray-500 mt-1">Ex: https://seudominio.com — necessário para upload de vídeos grandes (até 3GB)</p>
-            </div>
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">Link padrão do Grupo WhatsApp</label>
-              <Input placeholder="https://chat.whatsapp.com/..." value={defaultWhatsApp} onChange={(e) => setDefaultWhatsApp(e.target.value)} className="bg-gray-800 border-gray-700 text-white" />
-            </div>
-            <Button onClick={saveSettings} className="bg-red-600 hover:bg-red-700">
-              Salvar Configurações
-            </Button>
-
-            <div className="pt-4 border-t border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-300 mb-2">📋 Configuração do Servidor de Vídeo</h3>
-              <div className="bg-gray-800 rounded-lg p-4 text-xs text-gray-400 space-y-1 font-mono">
-                <p># No VPS Hostinger, execute:</p>
-                <p className="text-green-400">cd /var/www/ia-mro</p>
-                <p className="text-green-400">chmod +x deploy/setup-video-server.sh</p>
-                <p className="text-green-400">sudo ./deploy/setup-video-server.sh seu-dominio.com</p>
-                <p className="mt-2"># Isso instala ffmpeg + video server + configura Nginx</p>
-                <p># Vídeos serão transcodados em 480p, 720p e 1080p (HLS)</p>
+          <div className="space-y-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-400" /> Servidor de Vídeo (VPS)
+              </h2>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className={`p-2 rounded-full ${vpsStatus === "online" ? "bg-green-500/20" : vpsStatus === "offline" ? "bg-red-500/20" : "bg-blue-500/20"}`}>
+                  {vpsStatus === "online" ? <ShieldCheck className="w-5 h-5 text-green-400" /> : vpsStatus === "offline" ? <ShieldAlert className="w-5 h-5 text-red-400" /> : <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Status do Servidor: <span className={vpsStatus === "online" ? "text-green-400" : vpsStatus === "offline" ? "text-red-400" : "text-blue-400"}>
+                    {vpsStatus === "online" ? "Online" : vpsStatus === "offline" ? "Offline ou Não Configurado" : "Verificando..."}
+                  </span></p>
+                  <p className="text-xs text-gray-500">O servidor é necessário para processar vídeos grandes e criar o streaming (HLS).</p>
+                </div>
+                <Button size="sm" variant="outline" onClick={checkVpsStatus} disabled={vpsStatus === "checking"}>
+                  Testar Conexão
+                </Button>
               </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">🌐 URL do VPS (domínio do servidor de vídeo)</label>
+                <Input 
+                  placeholder="https://seu-dominio.com" 
+                  value={vpsUrl} 
+                  onChange={(e) => {
+                    setVpsUrl(e.target.value);
+                    localStorage.setItem("live_vps_url", e.target.value);
+                  }} 
+                  className="bg-gray-800 border-gray-700 text-white" 
+                />
+                <p className="text-xs text-gray-500 mt-1">Ex: https://video.maisresultadosonline.com.br</p>
+              </div>
+
+              <div className="pt-4 border-t border-gray-800">
+                <h3 className="text-sm font-semibold text-gray-300 mb-2">🚀 Como Ativar o Servidor de Vídeo</h3>
+                <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                  Para hospedar vídeos de até 3GB e ter streaming adaptativo (igual Netflix/YouTube), você precisa de um VPS (Hostinger, DigitalOcean, etc.).
+                </p>
+                <div className="bg-gray-950 rounded-lg p-4 text-[11px] text-gray-400 space-y-2 font-mono border border-gray-800">
+                  <p className="text-yellow-500/80"># 1. Acesse seu VPS via SSH e execute:</p>
+                  <p className="text-green-400">wget https://raw.githubusercontent.com/seu-repo/main/deploy/setup-video-server.sh</p>
+                  <p className="text-green-400">chmod +x setup-video-server.sh</p>
+                  <p className="text-green-400">sudo ./setup-video-server.sh seu-dominio.com</p>
+                  <p className="mt-2 text-gray-500 italic"># Isso instalará tudo automaticamente.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Settings className="w-5 h-5" /> Configurações Gerais
+              </h2>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Link padrão do Grupo WhatsApp</label>
+                <Input placeholder="https://chat.whatsapp.com/..." value={defaultWhatsApp} onChange={(e) => setDefaultWhatsApp(e.target.value)} className="bg-gray-800 border-gray-700 text-white" />
+              </div>
+              <Button onClick={saveSettings} className="bg-red-600 hover:bg-red-700">
+                Salvar Configurações
+              </Button>
             </div>
           </div>
         )}
