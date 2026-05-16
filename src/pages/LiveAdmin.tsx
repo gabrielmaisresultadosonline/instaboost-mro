@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import {
-  Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle, Trash2
+  Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle, Trash2, Globe, ShieldCheck, ShieldAlert
 } from "lucide-react";
 
 const LiveAdmin = () => {
@@ -48,6 +48,11 @@ const LiveAdmin = () => {
   const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "https://video.maisresultadosonline.com.br");
   const [vpsStatus, setVpsStatus] = useState<"checking" | "online" | "offline" | "none">("none");
 
+  // Previously uploaded videos
+  const [serverVideos, setServerVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [showVideoList, setShowVideoList] = useState(false);
+
   const getVideoServerUrl = () => {
     const stored = vpsUrl || localStorage.getItem("live_vps_url");
     if (stored) return stored.replace(/\/$/, '');
@@ -77,6 +82,8 @@ const LiveAdmin = () => {
   useEffect(() => {
     if (authenticated) {
       checkVpsStatus();
+      loadSessions();
+      loadSettings();
     }
   }, [authenticated, vpsUrl]);
 
@@ -89,8 +96,6 @@ const LiveAdmin = () => {
       if (data?.success) {
         setAuthenticated(true);
         sessionStorage.setItem("live_admin_auth", "true");
-        loadSessions();
-        loadSettings();
       } else {
         toast.error("Credenciais inválidas");
       }
@@ -104,8 +109,6 @@ const LiveAdmin = () => {
   useEffect(() => {
     if (sessionStorage.getItem("live_admin_auth") === "true") {
       setAuthenticated(true);
-      loadSessions();
-      loadSettings();
     }
   }, []);
 
