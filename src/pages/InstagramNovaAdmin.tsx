@@ -1405,7 +1405,6 @@ Participe também do nosso GRUPO DE AVISOS
       const existingPriority = statusPriority[existing.status] || 0;
 
       // Se o novo tem prioridade maior ou é mais recente com mesma prioridade, substitui
-      // Isso garante que se houver um 'completed' ou 'paid', o 'pending' não apareça na lista
       if (currentPriority > existingPriority || (currentPriority === existingPriority && new Date(current.created_at) > new Date(existing.created_at))) {
         acc[existingIndex] = current;
       }
@@ -1413,7 +1412,8 @@ Participe também do nosso GRUPO DE AVISOS
     return acc;
   }, []);
 
-  const filteredOrders = deduplicatedOrders.filter(order => {
+  const filteredOrders = (deduplicatedOrders || []).filter(order => {
+    if (!order) return false;
     const matchesSearch = 
       order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
