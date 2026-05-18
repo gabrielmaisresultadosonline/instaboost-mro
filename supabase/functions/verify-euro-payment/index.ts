@@ -144,19 +144,24 @@ serve(async (req) => {
       try {
         log("Creating user access in SquareCloud (manual)", { username: order.username });
         
-        const createUserUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users`;
+        const createUserUrl = `https://dashboardmroinstagramvini-online.squareweb.app/admin/criar-usuario-plano`;
         const createResponse = await fetch(createUserUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "x-admin-name": "MRO",
+            "x-admin-pass": "Ga145523@"
+          },
           body: JSON.stringify({
             username: order.username,
             password: order.username,
-            days: 365,
+            plano: "solo", // Padrão Euro como solo
+            dias: 365,
             email: order.email,
           }),
         });
 
-        if (createResponse.ok) {
+        if (createResponse.ok || (await createResponse.clone().json().catch(() => ({}))).success) {
           log("User created successfully in SquareCloud (manual)");
           
           await supabase
@@ -277,19 +282,24 @@ serve(async (req) => {
       try {
         log("Creating user access in SquareCloud", { username: order.username });
         
-        const createUserUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users`;
+        const createUserUrl = `https://dashboardmroinstagramvini-online.squareweb.app/admin/criar-usuario-plano`;
         const createResponse = await fetch(createUserUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "x-admin-name": "MRO",
+            "x-admin-pass": "Ga145523@"
+          },
           body: JSON.stringify({
             username: order.username,
             password: order.username,
-            days: 365,
+            plano: "solo", // Padrão Euro como solo
+            dias: 365,
             email: order.email,
           }),
         });
 
-        if (createResponse.ok) {
+        if (createResponse.ok || (await createResponse.clone().json().catch(() => ({}))).success) {
           log("User created successfully in SquareCloud");
           
           await supabase

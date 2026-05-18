@@ -102,7 +102,7 @@ async function createInstagramUser(username: string, password: string, daysAcces
 
     // No manage-user-access, 'annual' usa o payload genérico
     const payload = isSpecialPlan
-      ? { username, password, plano: plan }
+      ? { username, password, plano: plan, dias: 365, igUsers: "" }
       : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
 
     log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
@@ -126,10 +126,9 @@ async function createInstagramUser(username: string, password: string, daysAcces
       "Content-Type": "application/json"
     };
 
-    // Usar credenciais de admin fixas para o endpoint /admin/criar-usuario-plano
-    // conforme o padrão da API SquareCloud
-    headers["x-admin-name"] = "ADMIN";
-    headers["x-admin-pass"] = "SENHA_ADMIN";
+    // Usar credenciais de admin conforme padrão do sistema
+    headers["x-admin-name"] = "MRO";
+    headers["x-admin-pass"] = "Ga145523@";
 
     const response = await fetch(createUrl, {
       method: "POST",
