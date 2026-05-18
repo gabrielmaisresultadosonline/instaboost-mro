@@ -1371,17 +1371,27 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   // Agrupar e deduplicar pedidos por usuário para mostrar apenas o estado mais atual
-  // Mas mantendo a capacidade de ver o histórico se necessário (em abas específicas)
+  // Isso resolve o problema de mostrar "Pendente" quando o usuário já tem um acesso "Pago" ou "Completo"
   const deduplicatedOrders = orders.reduce((acc: MROOrder[], current) => {
-    // Chave única para o usuário (email ou username)
-    const userKey = current.email.toLowerCase();
-    const existingIndex = acc.findIndex(o => o.email.toLowerCase() === userKey);
+    // Chave única para o usuário (email real, sem prefixo de afiliado)
+    let userEmail = current.email.toLowerCase();
+    if (userEmail.includes(":")) {
+      userEmail = userEmail.split(":").slice(1).join(":");
+    }
+    
+    const existingIndex = acc.findIndex(o => {
+      let existingEmail = o.email.toLowerCase();
+      if (existingEmail.includes(":")) {
+        existingEmail = existingEmail.split(":").slice(1).join(":");
+      }
+      return existingEmail === userEmail;
+    });
 
     if (existingIndex === -1) {
       acc.push(current);
     } else {
       const existing = acc[existingIndex];
-      // Prioridade: paid/completed > pending > expired
+      // Prioridade: completed > paid > pending > expired
       const statusPriority: Record<string, number> = {
         completed: 4,
         paid: 3,
@@ -1393,6 +1403,7 @@ Participe também do nosso GRUPO DE AVISOS
       const existingPriority = statusPriority[existing.status] || 0;
 
       // Se o novo tem prioridade maior ou é mais recente com mesma prioridade, substitui
+      // Isso garante que se houver um 'completed' ou 'paid', o 'pending' não apareça na lista
       if (currentPriority > existingPriority || (currentPriority === existingPriority && new Date(current.created_at) > new Date(existing.created_at))) {
         acc[existingIndex] = current;
       }
