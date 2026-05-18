@@ -992,6 +992,7 @@ Participe também do nosso GRUPO DE AVISOS
       // Removida deduplicação agressiva para permitir ver todos os históricos (pendentes, expirados, etc)
       // conforme solicitado pelo usuário para "voltar como estava antes"
       setOrders(processedOrders);
+      ordersRef.current = processedOrders;
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao carregar dados");
@@ -1350,6 +1351,8 @@ Participe também do nosso GRUPO DE AVISOS
       }
 
       toast.success("Pedido excluído com sucesso!");
+      // Atualizar localmente antes de recarregar
+      setOrders(prev => prev.filter(o => o.id !== order.id));
       loadOrders();
     } catch (error) {
       console.error("Error:", error);
