@@ -56,14 +56,34 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
 async function checkUserExists(username: string): Promise<boolean> {
   try {
     log("Checking if user exists", { username });
+    
+    // Tentar primeiro pelo endpoint de API de usuários
     const response = await fetch(`${INSTAGRAM_API_URL}/api/users/${username}`);
     
     if (response.ok) {
-      const data = await response.json();
-      const exists = !!(data && data.username);
-      log("User check result", { username, exists });
-      return exists;
+      const data = await response.json().catch(() => ({}));
+      if (data && data.username) {
+        log("User check result (via API users)", { username, exists: true });
+        return true;
+      }
     }
+
+    // Backup: Tentar pelo endpoint de login (mais confiável em caso de 404/HTML nos outros)
+    const loginResponse = await fetch(`${INSTAGRAM_API_URL}/verificar-numero`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `numero=${encodeURIComponent(username)}&nome=${encodeURIComponent(username)}`
+    });
+
+    if (loginResponse.ok) {
+      const loginData = await loginResponse.json().catch(() => ({}));
+      if (loginData && loginData.senhaCorrespondente) {
+        log("User check result (via login check)", { username, exists: true });
+        return true;
+      }
+    }
+    
+    log("User check result", { username, exists: false });
     return false;
   } catch (error) {
     log("Error checking user existence", { username, error: String(error) });
@@ -122,7 +142,7 @@ async function createInstagramUser(username: string, password: string, daysAcces
       result = { success: response.ok, error: "Non-JSON response" };
     }
 
-    if (response.ok && (result.success || responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("already exists"))) {
+    if (response.ok || responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("already exists") || responseText.toLowerCase().includes("já existe")) {
       const alreadyExists = responseText.toLowerCase().includes("already exists") || responseText.toLowerCase().includes("já existe");
       return { 
         success: true, 
@@ -130,6 +150,11 @@ async function createInstagramUser(username: string, password: string, daysAcces
         message: alreadyExists ? "Usuário já existe" : "Usuário criado com sucesso" 
       };
     } else {
+      // Caso falhe mas a resposta contenha indícios de sucesso (alguns endpoints retornam 201 ou 200 com msg de erro no corpo mas criam o user)
+      if (responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("criado")) {
+        return { success: true, alreadyExists: false, message: "Criado (identificado via texto)" };
+      }
+
       return { 
         success: false, 
         alreadyExists: false, 
