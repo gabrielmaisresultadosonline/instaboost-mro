@@ -370,6 +370,18 @@ serve(async (req) => {
     // Extrair dados do webhook InfiniPay
     const orderNsu = payload.order_nsu as string | undefined;
     const items = (payload.items || []) as Array<{ description?: string; name?: string }>;
+    const isPaid = payload.paid === true || payload.status === "paid" || payload.status === "APPROVED";
+
+    log("Check payment status", { orderNsu, orderId, isPaid, manualApprove });
+
+    // Se não for aprovação manual e não estiver marcado como pago, não processar
+    if (!manualApprove && !resendEmailOnly && !isPaid) {
+      log("Webhook received but payment is not confirmed (paid=false)", { status: payload.status });
+      return new Response(
+        JSON.stringify({ success: true, message: "Payment pending, skipping" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     if (!orderNsu && !orderId) {
       log("No order_nsu or order_id in payload");
