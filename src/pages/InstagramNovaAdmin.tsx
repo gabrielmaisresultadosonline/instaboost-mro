@@ -1373,7 +1373,7 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   // Agrupar e deduplicar pedidos por usuário para mostrar apenas o estado mais atual
-  // Isso resolve o problema de mostrar "Pendente" quando o usuário já tem um acesso "Pago" ou "Completo"
+  // Para a aba principal, removemos a deduplicação agressiva para permitir ver os pendentes reais
   const deduplicatedOrders = orders.reduce((acc: MROOrder[], current) => {
     // Chave única para o usuário (email real, sem prefixo de afiliado)
     let userEmail = current.email.toLowerCase();
@@ -1393,20 +1393,21 @@ Participe também do nosso GRUPO DE AVISOS
       acc.push(current);
     } else {
       const existing = acc[existingIndex];
-      // Prioridade: completed > paid > pending > expired
-      const statusPriority: Record<string, number> = {
-        completed: 4,
-        paid: 3,
-        pending: 2,
-        expired: 1
-      };
+      
+      // Se já temos um registro de SUCESSO (paid ou completed), ignoramos pendentes/expirados para este usuário
+      const isCurrentSuccess = ["paid", "completed"].includes(current.status);
+      const isExistingSuccess = ["paid", "completed"].includes(existing.status);
 
-      const currentPriority = statusPriority[current.status] || 0;
-      const existingPriority = statusPriority[existing.status] || 0;
-
-      // Se o novo tem prioridade maior ou é mais recente com mesma prioridade, substitui
-      if (currentPriority > existingPriority || (currentPriority === existingPriority && new Date(current.created_at) > new Date(existing.created_at))) {
+      if (isCurrentSuccess && !isExistingSuccess) {
+        // Substitui o pendente pelo sucesso
         acc[existingIndex] = current;
+      } else if (!isCurrentSuccess && isExistingSuccess) {
+        // Já temos um sucesso, ignora este novo pendente
+      } else {
+        // Ambos são pendentes ou ambos são sucesso, mantém o mais recente
+        if (new Date(current.created_at) > new Date(existing.created_at)) {
+          acc[existingIndex] = current;
+        }
       }
     }
     return acc;
