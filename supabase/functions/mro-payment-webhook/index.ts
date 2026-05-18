@@ -107,8 +107,8 @@ async function createInstagramUser(username: string, password: string, daysAcces
 
     log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
 
-    const adminName = Deno.env.get("MRO_ADMIN_NAME") || "ADMIN";
-    const adminPass = Deno.env.get("MRO_ADMIN_PASS") || "SENHA_ADMIN";
+    const adminName = Deno.env.get("MRO_ADMIN_NAME");
+    const adminPass = Deno.env.get("MRO_ADMIN_PASS");
 
     // Primeiro tentar habilitar o usuário (como no manage-user-access)
     try {
@@ -122,13 +122,18 @@ async function createInstagramUser(username: string, password: string, daysAcces
       log("Enable user failed (non-blocking)", e);
     }
 
+    const headers: Record<string, string> = { 
+      "Content-Type": "application/json"
+    };
+
+    if (adminName && adminPass) {
+      headers["x-admin-name"] = adminName;
+      headers["x-admin-pass"] = adminPass;
+    }
+
     const response = await fetch(createUrl, {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-admin-name": adminName,
-        "x-admin-pass": adminPass
-      },
+      headers,
       body: JSON.stringify(payload),
     });
 

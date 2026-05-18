@@ -143,7 +143,7 @@ serve(async (req) => {
           body: {
             order_nsu: nsu_order,
             items: [{
-              description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+              description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
             }]
           }
         });
@@ -224,7 +224,7 @@ serve(async (req) => {
             body: {
               order_nsu: nsu_order,
               items: [{
-                description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+                description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
               }]
             }
           });
@@ -311,7 +311,7 @@ serve(async (req) => {
                 body: {
                   order_nsu: nsu_order,
                   items: [{
-                    description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+                    description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
                   }]
                 }
               });
@@ -387,7 +387,7 @@ serve(async (req) => {
             body: {
               order_nsu: nsu_order,
               items: [{
-                description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+                description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
               }]
             }
           });
