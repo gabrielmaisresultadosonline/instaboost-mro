@@ -939,7 +939,9 @@ Participe também do nosso GRUPO DE AVISOS
           clearAdminSession();
         }
         console.error("Error loading orders:", error || response?.error);
-        toast.error(response?.error || "Erro ao carregar pedidos");
+        // Não mostrar erro de toast aqui se for apenas carregamento automático silencioso
+        if (!tokenOverride) toast.error(response?.error || "Erro ao carregar pedidos");
+        setLoading(false);
         return;
       }
 
@@ -1442,6 +1444,12 @@ Participe também do nosso GRUPO DE AVISOS
     pending: filteredOrders.filter(o => o.status === "pending"),
     expired: filteredOrders.filter(o => o.status === "expired"),
   };
+
+  // Depuração para o log: se o contador mostrar pendente mas a lista estiver vazia
+  const pendingCount = groupedOrders.pending.length;
+  if (pendingCount > 0 && filteredOrders.length > 0) {
+    console.log(`[DEBUG] Pendentes encontrados: ${pendingCount}`);
+  }
 
   // Calcular dias restantes baseado no plan_type
   const getDaysRemaining = (order: MROOrder) => {
