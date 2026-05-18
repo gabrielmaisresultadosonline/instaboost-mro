@@ -1350,6 +1350,8 @@ Participe também do nosso GRUPO DE AVISOS
       }
 
       toast.success("Pedido excluído com sucesso!");
+      // Atualizar localmente antes de recarregar
+      setOrders(prev => prev.filter(o => o.id !== order.id));
       loadOrders();
     } catch (error) {
       console.error("Error:", error);
