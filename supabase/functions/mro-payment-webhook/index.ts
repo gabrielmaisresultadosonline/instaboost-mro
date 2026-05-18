@@ -102,7 +102,7 @@ async function createInstagramUser(username: string, password: string, daysAcces
 
     // No manage-user-access, 'annual' usa o payload genérico
     const payload = isSpecialPlan
-      ? { username, password, plano: plan }
+      ? { username, password, plano: plan, dias: 365, igUsers: "" }
       : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
 
     log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
