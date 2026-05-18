@@ -282,7 +282,7 @@ async function createInstagramUser(username: string, password: string, daysAcces
       : `${INSTAGRAM_API_URL}/adicionar-usuario`;
 
     const payload = plan && ['solo', 'pro', 'agencia'].includes(plan)
-      ? { username, password, plano: plan }
+      ? { username, password, plano: plan, dias: 365, igUsers: "" }
       : { username, password, time: daysAccess, igUsers: '', accounts, extraIgSlots };
 
     // First enable user
@@ -295,13 +295,17 @@ async function createInstagramUser(username: string, password: string, daysAcces
     // Create user
     const response = await fetch(createUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-admin-name': 'MRO',
+        'x-admin-pass': 'Ga145523@'
+      },
       body: JSON.stringify(payload),
     });
 
     const result = await response.json().catch(() => ({}));
     logStep("Instagram user creation result", result);
-    return response.ok;
+    return response.ok || result.success === true;
   } catch (error: any) {
     logStep("Error creating Instagram user", { error: error?.message || String(error) });
     return false;
