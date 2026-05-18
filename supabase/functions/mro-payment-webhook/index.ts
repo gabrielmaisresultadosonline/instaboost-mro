@@ -126,10 +126,10 @@ async function createInstagramUser(username: string, password: string, daysAcces
       "Content-Type": "application/json"
     };
 
-    if (adminName && adminPass) {
-      headers["x-admin-name"] = adminName;
-      headers["x-admin-pass"] = adminPass;
-    }
+    // Usar credenciais de admin fixas para o endpoint /admin/criar-usuario-plano
+    // conforme o padrão da API SquareCloud
+    headers["x-admin-name"] = "ADMIN";
+    headers["x-admin-pass"] = "SENHA_ADMIN";
 
     const response = await fetch(createUrl, {
       method: "POST",
