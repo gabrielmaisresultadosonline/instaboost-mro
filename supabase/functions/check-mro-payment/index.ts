@@ -206,7 +206,8 @@ serve(async (req) => {
         const checkData = await checkResponse.json();
         log("InfiniPay payment_check response", checkData);
 
-        if (checkData.paid) {
+        // checkData.paid é o campo principal retornado pela API da InfiniPay
+        if (checkData.paid || checkData.status === "paid" || checkData.status === "APPROVED") {
           log("Payment confirmed via API, updating order and triggering webhook");
 
           // Atualizar para paid primeiro
@@ -293,7 +294,7 @@ serve(async (req) => {
             const checkData = await checkResponse.json();
             log("InfiniPay payment_check with lenc response", checkData);
 
-            if (checkData.paid) {
+            if (checkData.paid || checkData.status === "paid" || checkData.status === "APPROVED") {
               log("Payment confirmed via lenc, updating order and triggering webhook");
 
               // Atualizar para paid
@@ -371,7 +372,7 @@ serve(async (req) => {
         const directCheckData = await directCheckResponse.json();
         log("InfiniPay direct check response", directCheckData);
 
-        if (directCheckData.paid) {
+        if (directCheckData.paid || directCheckData.status === "paid" || directCheckData.status === "APPROVED") {
           log("Payment confirmed via direct check, updating order and triggering webhook");
 
           await supabase
