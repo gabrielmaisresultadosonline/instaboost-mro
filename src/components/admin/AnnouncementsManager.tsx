@@ -422,13 +422,6 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           : a
       );
     }
-              buttonText: formData.buttonText || undefined,
-              buttonUrl: formData.buttonUrl || undefined,
-              updatedAt: new Date().toISOString()
-            }
-          : a
-      );
-    }
 
     setAnnouncements(updatedAnnouncements);
     await saveAnnouncements(updatedAnnouncements);
