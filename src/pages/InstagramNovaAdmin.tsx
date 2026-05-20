@@ -1289,7 +1289,8 @@ Participe também do nosso GRUPO DE AVISOS
       const { data, error } = await supabase.functions.invoke("mro-payment-webhook", {
         body: { 
           order_id: order.id,
-          manual_approve: true
+          manual_approve: true,
+          adminToken: getAdminSessionToken()
         }
       });
 

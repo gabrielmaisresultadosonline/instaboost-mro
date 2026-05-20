@@ -345,11 +345,68 @@ serve(async (req) => {
 
   try {
     log("Received webhook request");
+    
+    // Check if it's an authorized internal call or admin call
+    const authHeader = req.headers.get("authorization") || "";
+    const isServiceRole = authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "never-match-this");
+    
+    // Read raw body first as we might need it for both verification paths
+    const rawBody = await req.text();
+    let body: Record<string, any> = {};
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      log("Error parsing body", { error: String(e) });
+    }
 
-    // Verify webhook signature for security
-    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "MRO-PAYMENT-WEBHOOK");
-    if (!verification.verified) {
-      return verification.response;
+    let verified = false;
+    if (isServiceRole) {
+      log("Authorized internal call detected (Service Role)");
+      verified = true;
+    } else if (body.manual_approve === true && body.adminToken) {
+      log("Manual approve attempt with adminToken, verifying...");
+      // For InstagramNovaAdmin, tokens are signed with Service Role Key
+      const [payloadPart, signaturePart] = (body.adminToken as string).split(".");
+      if (payloadPart && signaturePart) {
+        try {
+          const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+          const key = await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(secret),
+            { name: "HMAC", hash: "SHA-256" },
+            false,
+            ["verify"],
+          );
+          const fromBase64Url = (v: string) => Uint8Array.from(atob(v.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((v.length + 3) % 4)), (c) => c.charCodeAt(0));
+          const isValid = await crypto.subtle.verify("HMAC", key, fromBase64Url(signaturePart), new TextEncoder().encode(payloadPart));
+          
+          if (isValid) {
+            const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(payloadPart)));
+            if (payload.scope === "instagram-admin" && payload.exp > Date.now()) {
+              log("Admin token verified successfully");
+              verified = true;
+            }
+          }
+        } catch (e) {
+          log("Token verification error", { error: String(e) });
+        }
+      }
+    }
+
+    let verification;
+    if (verified) {
+      verification = { verified: true, body, rawBody };
+    } else {
+      // Re-construct a Request-like object for verifyInfinitePayWebhook since we already read the body
+      const mockReq = {
+        text: () => Promise.resolve(rawBody),
+        headers: req.headers,
+      };
+      verification = await verifyInfinitePayWebhook(mockReq as any, corsHeaders, "MRO-PAYMENT-WEBHOOK");
+      if (!verification.verified) {
+        log("Webhook verification failed or not an authorized call");
+        return (verification as any).response;
+      }
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
