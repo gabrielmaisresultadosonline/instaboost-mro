@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const adminToken = await createAdminSessionToken(
-        { email: normalizedEmail, scope: "renda-extra-v2-admin", exp: Date.now() + 1000 * 60 * 60 * 12 },
+        { email: normalizedEmail, scope: "renda-extra-v2-admin", exp: Date.now() + 1000 * 60 * 60 * 24 * 30 },
         sessionSecret,
       );
 
