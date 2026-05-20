@@ -136,9 +136,10 @@ ${launchDateEnabled ? `
 </a>
 </div>
 
+${launchDateEnabled ? `
 <p style="margin:20px 0;font-size:14px;color:#666;text-align:center;">
 Fique atento! Você receberá um email de lembrete no dia do lançamento.
-</p>
+</p>` : ''}
 
 </td>
 </tr>
