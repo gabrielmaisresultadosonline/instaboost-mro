@@ -178,6 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
       const payload = {
         whatsapp_group_link: parsed.data.settings.whatsapp_group_link?.trim() || null,
         launch_date: parsed.data.settings.launch_date || null,
+        launch_date_enabled: parsed.data.settings.launch_date_enabled ?? false,
         updated_at: new Date().toISOString(),
       };
 
