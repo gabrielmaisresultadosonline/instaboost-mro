@@ -611,14 +611,17 @@ const RendaExtra = () => {
           
           {/* Title Below Image - slightly overlapping */}
           <div className="text-center -mt-12 sm:-mt-16 md:-mt-20 relative z-10">
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-tight uppercase">
-              <span className="text-white" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9))' }}>
-                Fature mais de <span className="text-gold-shimmer">5 mil reais</span>
+            <h1 className="flex flex-col items-center leading-tight uppercase font-black">
+              <span className="text-white text-xl sm:text-2xl md:text-3xl" style={{ filter: 'drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9))' }}>
+                Fature mais de
               </span>
-              <br />
-              <span className="text-green-400 tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>com a MRO!</span>
+              <span className="text-5xl sm:text-7xl md:text-8xl text-gold-shimmer py-2 px-4 my-1 block scale-110 sm:scale-100" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9))' }}>
+                5 MIL MENSAL
+              </span>
+              <span className="text-green-400 text-2xl sm:text-3xl md:text-5xl tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>
+                Com a MRO!
+              </span>
             </h1>
-            {/* Subtitle - Hidden as it is now in the title */}
           </div>
 
           {/* Description */}
