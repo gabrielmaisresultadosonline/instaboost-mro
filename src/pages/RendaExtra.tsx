@@ -29,7 +29,8 @@ const RendaExtra = () => {
 
   const [showNoComputerWarning, setShowNoComputerWarning] = useState(false);
   const [canProceedAfterWarning, setCanProceedAfterWarning] = useState(false);
-  const [launchDateText, setLaunchDateText] = useState("21 de Janeiro de 2026");
+  const [launchDateText, setLaunchDateText] = useState("");
+  const [launchDateEnabled, setLaunchDateEnabled] = useState(false);
 
   // Steps are dynamic now - if user doesn't work, skip salary question
   const getEffectiveTotalSteps = () => {
