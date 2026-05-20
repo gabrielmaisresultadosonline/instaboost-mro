@@ -123,10 +123,11 @@ serve(async (req) => {
 
 <p style="margin:0 0 20px 0;font-size:16px;">Ficamos muito felizes em receber seu cadastro para o lançamento do <strong>Método MRO de Renda Extra</strong>!</p>
 
+${launchDateEnabled ? `
 <div style="background:#f8f9fa;padding:20px;border-radius:10px;margin:25px 0;border-left:4px solid #FFD700;">
 <p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;">📅 Data do Lançamento:</p>
 <p style="margin:0;font-size:20px;color:#000;font-weight:bold;">${launchDate}</p>
-</div>
+</div>` : ''}
 
 <div style="text-align:center;margin:30px 0;">
 <p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Entre no nosso grupo do WhatsApp:</p>
