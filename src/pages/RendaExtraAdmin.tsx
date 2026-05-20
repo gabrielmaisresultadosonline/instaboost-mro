@@ -13,7 +13,7 @@ import {
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
   CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle
 } from "lucide-react";
-import WppBotPanel from "@/components/admin/WppBotPanel";
+// WppBotPanel removed
 
 interface Lead {
   id: string;
@@ -370,10 +370,6 @@ const RendaExtraAdmin = () => {
               <Mail className="w-4 h-4 mr-2" />
               Log de Emails
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="data-[state=active]:bg-gray-700">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              WhatsApp
-            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
@@ -535,10 +531,6 @@ const RendaExtraAdmin = () => {
             </Card>
           </TabsContent>
 
-          {/* WhatsApp Bot Tab */}
-          <TabsContent value="whatsapp">
-            <WppBotPanel adminToken={adminToken} onUnauthorized={handleLogout} />
-          </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings">
