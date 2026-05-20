@@ -142,6 +142,8 @@ serve(async (req) => {
         const webhookResult = await supabase.functions.invoke("mro-payment-webhook", {
           body: {
             order_nsu: nsu_order,
+            paid: true,
+            status: "paid",
             items: [{
               description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
             }]
@@ -224,6 +226,8 @@ serve(async (req) => {
           await supabase.functions.invoke("mro-payment-webhook", {
             body: {
               order_nsu: nsu_order,
+              paid: true,
+              status: "paid",
               items: [{
                 description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
               }]
@@ -311,6 +315,8 @@ serve(async (req) => {
               await supabase.functions.invoke("mro-payment-webhook", {
                 body: {
                   order_nsu: nsu_order,
+                  paid: true,
+                  status: "paid",
                   items: [{
                     description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
                   }]
@@ -387,6 +393,8 @@ serve(async (req) => {
           await supabase.functions.invoke("mro-payment-webhook", {
             body: {
               order_nsu: nsu_order,
+              paid: true,
+              status: "paid",
               items: [{
                 description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "trial" ? "TRIAL" : order.plan_type === "solo" ? "SOLO" : order.plan_type === "pro" ? "PRO" : order.plan_type === "agencia" ? "AGENCIA" : "ANUAL"}_${order.username}_${order.email}`
               }]
