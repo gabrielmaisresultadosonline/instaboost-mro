@@ -63,11 +63,15 @@ const handler = async (req: Request): Promise<Response> => {
     if (action === "getPublicSettings") {
       const { data: settings } = await supabase
         .from("renda_extra_v2_settings")
-        .select("launch_date")
+        .select("launch_date, launch_date_enabled")
         .limit(1)
         .single();
 
-      return new Response(JSON.stringify({ success: true, launch_date: settings?.launch_date ?? null }), {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        launch_date: settings?.launch_date ?? null,
+        launch_date_enabled: !!settings?.launch_date_enabled
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
