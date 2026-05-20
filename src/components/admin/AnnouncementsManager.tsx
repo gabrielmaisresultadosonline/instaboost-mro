@@ -990,7 +990,9 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             <p className="text-sm">Clique em "Novo Aviso" para criar</p>
           </div>
         ) : (
-          announcements.map((announcement) => (
+          announcements
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map((announcement) => (
             <div 
               key={announcement.id} 
               className={`glass-card p-4 flex items-center gap-4 transition-opacity ${
