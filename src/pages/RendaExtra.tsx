@@ -686,9 +686,11 @@ const RendaExtra = () => {
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
             Aprenda Grátis!
           </h2>
-          <p className="text-gray-500 text-base">
-            Lançamento: <span className="text-yellow-400 font-semibold">{launchDateText}</span>
-          </p>
+          {launchDateEnabled && launchDateText && (
+            <p className="text-gray-500 text-base">
+              Lançamento: <span className="text-yellow-400 font-semibold">{launchDateText}</span>
+            </p>
+          )}
         </div>
       </section>
 
