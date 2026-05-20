@@ -27,7 +27,7 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   viewCount?: number;
-  targetArea?: 'all' | 'instagram' | 'zapmro' | 'extension' | 'extension2';
+  targetArea?: string;
   // Extension-specific fields
   delaySeconds?: number;
   frequencyType?: 'once' | 'times_per_day' | 'times_per_hours';
@@ -54,8 +54,10 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const [isUploading, setIsUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file' | 'paste'>('url');
-  const [showExtensionDocs, setShowExtensionDocs] = useState(false);
-  const [showExtension2Docs, setShowExtension2Docs] = useState(false);
+  const [extensionDocsPath, setExtensionDocsPath] = useState<string | null>(null);
+  const [availableExtensions, setAvailableExtensions] = useState<string[]>(['extension', 'extension2']);
+  const [showNewExtensionInput, setShowNewExtensionInput] = useState(false);
+  const [newExtensionName, setNewExtensionName] = useState('');
   const [showDocsForAnnouncement, setShowDocsForAnnouncement] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
@@ -103,34 +105,47 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         allAnnouncements = [...(parsed.announcements || [])];
       }
 
-      // Load extension announcements
-      for (const extKey of ['extension', 'extension2'] as const) {
-        const fileName = extKey === 'extension' ? 'extension-announcements.json' : 'extension2-announcements.json';
-        const { data: extensionData, error: extensionError } = await supabase.storage
-          .from('user-data')
-          .download(`admin/${fileName}`);
-        
-        if (extensionError) {
-          if (!extensionError.message.includes('not found')) {
-            console.error(`Erro ao carregar avisos da ${extKey}:`, extensionError);
+      // Load all extension announcements by listing files
+      const { data: files, error: listError } = await supabase.storage
+        .from('user-data')
+        .list('admin', {
+          search: 'extension'
+        });
+
+      if (listError) {
+        console.error('Erro ao listar arquivos de extensão:', listError);
+      } else {
+        const extensionFiles = files?.filter(f => f.name.endsWith('-announcements.json')) || [];
+        const detectedExtensions: string[] = ['extension', 'extension2'];
+
+        for (const file of extensionFiles) {
+          const extKey = file.name.replace('-announcements.json', '');
+          if (!detectedExtensions.includes(extKey)) {
+            detectedExtensions.push(extKey);
           }
-        } else {
-          const text = await extensionData.text();
-          const parsed = JSON.parse(text);
-          const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
-            ...a,
-            targetArea: extKey,
-            forceRead: false,
-            forceReadSeconds: 5,
-            maxViews: 1,
-            viewCount: 0
-          }));
-          allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
+
+          const { data: extensionData, error: extensionError } = await supabase.storage
+            .from('user-data')
+            .download(`admin/${file.name}`);
+          
+          if (!extensionError) {
+            const text = await extensionData.text();
+            const parsed = JSON.parse(text);
+            const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
+              ...a,
+              targetArea: extKey,
+              forceRead: false,
+              forceReadSeconds: 5,
+              maxViews: 1,
+              viewCount: 0
+            }));
+            allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
+          }
         }
+        setAvailableExtensions(detectedExtensions.sort());
       }
 
       setAnnouncements(allAnnouncements);
-      console.log(`📢 ${allAnnouncements.length} avisos carregados (regulares + extensão)`);
     } catch (error) {
       console.error('Erro ao carregar avisos:', error);
       setAnnouncements([]);
@@ -142,12 +157,18 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const saveAnnouncements = async (data: Announcement[]) => {
     setIsSaving(true);
     try {
-      // Separate extension announcements from regular announcements
-      const extensionAnnouncements = data.filter(a => a.targetArea === 'extension');
-      const extension2Announcements = data.filter(a => a.targetArea === 'extension2');
-      const regularAnnouncements = data.filter(a => a.targetArea !== 'extension' && a.targetArea !== 'extension2');
+      // Group announcements by target area
+      const groups: Record<string, Announcement[]> = {};
+      data.forEach(a => {
+        const area = a.targetArea || 'all';
+        if (!groups[area]) groups[area] = [];
+        groups[area].push(a);
+      });
 
       // Save regular announcements
+      const regularAreas = ['all', 'instagram', 'zapmro'];
+      const regularAnnouncements = data.filter(a => !a.targetArea || regularAreas.includes(a.targetArea));
+      
       const regularPayload: AnnouncementsData = {
         announcements: regularAnnouncements,
         lastUpdated: new Date().toISOString()
@@ -155,26 +176,27 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
       const regularBlob = new Blob([JSON.stringify(regularPayload, null, 2)], { type: 'application/json' });
       
-      const { error: regularError } = await supabase.storage
+      await supabase.storage
         .from('user-data')
         .upload('admin/announcements.json', regularBlob, { 
           upsert: true,
           contentType: 'application/json'
         });
 
-      if (regularError) throw regularError;
-
       // Save extension announcements to separate files
-      for (const [extAnnouncements, fileName] of [
-        [extensionAnnouncements, 'extension-announcements.json'],
-        [extension2Announcements, 'extension2-announcements.json']
-      ] as [Announcement[], string][]) {
+      const extensionAreas = Object.keys(groups).filter(area => area.startsWith('extension'));
+      
+      for (const area of extensionAreas) {
+        const fileName = area === 'extension' ? 'extension-announcements.json' : `${area}-announcements.json`;
+        const extAnnouncements = groups[area];
+        
         const extensionPayload = {
           announcements: extAnnouncements.map(a => ({
             id: a.id,
             title: a.title,
             content: a.content,
             thumbnailUrl: a.thumbnailUrl,
+            youtubeUrl: a.youtubeUrl,
             buttonText: a.buttonText,
             buttonUrl: a.buttonUrl,
             isActive: a.isActive,
@@ -330,6 +352,21 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   };
 
   const handleSave = async () => {
+    let finalTargetArea = formData.targetArea || 'all';
+    
+    // If a new extension was specified
+    if (showNewExtensionInput && newExtensionName.trim()) {
+      const sanitizedName = newExtensionName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      finalTargetArea = `extension${sanitizedName}`;
+      
+      if (!availableExtensions.includes(finalTargetArea)) {
+        setAvailableExtensions(prev => [...prev, finalTargetArea].sort());
+      }
+      
+      setShowNewExtensionInput(false);
+      setNewExtensionName('');
+    }
+
     if (!formData.title || !formData.content) {
       toast({ title: 'Preencha título e conteúdo', variant: 'destructive' });
       return;
@@ -348,7 +385,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         forceRead: formData.forceRead ?? false,
         forceReadSeconds: formData.forceReadSeconds ?? 5,
         maxViews: formData.maxViews ?? 1,
-        targetArea: formData.targetArea || 'all',
+        targetArea: finalTargetArea,
         delaySeconds: formData.delaySeconds || 0,
         frequencyType: formData.frequencyType || 'once',
         frequencyValue: formData.frequencyValue || 1,
@@ -373,7 +410,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
               forceRead: formData.forceRead ?? false,
               forceReadSeconds: formData.forceReadSeconds ?? 5,
               maxViews: formData.maxViews ?? 1,
-              targetArea: formData.targetArea || 'all',
+              targetArea: finalTargetArea,
               delaySeconds: formData.delaySeconds || 0,
               frequencyType: formData.frequencyType || 'once',
               frequencyValue: formData.frequencyValue || 1,
@@ -441,24 +478,20 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           </span>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowExtensionDocs(true)} 
-            className="gap-2 text-purple-400 border-purple-400/30 hover:bg-purple-500/10"
-          >
-            <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Docs Extensão 1</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowExtension2Docs(true)} 
-            className="gap-2 text-cyan-400 border-cyan-400/30 hover:bg-cyan-500/10"
-          >
-            <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Docs Extensão 2</span>
-          </Button>
+          {availableExtensions.map(ext => (
+            <Button 
+              key={ext}
+              variant="outline" 
+              size="sm"
+              onClick={() => setExtensionDocsPath(ext)} 
+              className="gap-2 text-purple-400 border-purple-400/30 hover:bg-purple-500/10"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                Docs {ext === 'extension' ? 'Extensão' : `Extensão ${ext.replace('extension', '')}`}
+              </span>
+            </Button>
+          ))}
           <Button variant="outline" onClick={loadAnnouncements} className="gap-2">
             <RefreshCw className="w-4 h-4" />
             <span className="hidden sm:inline">Atualizar</span>
@@ -684,20 +717,59 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 <select
                   id="targetArea"
                   value={formData.targetArea || 'all'}
-                  onChange={(e) => setFormData({ ...formData, targetArea: e.target.value as any })}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === 'new_extension') {
+                      setShowNewExtensionInput(true);
+                    } else {
+                      setFormData({ ...formData, targetArea: value as any });
+                      setShowNewExtensionInput(false);
+                    }
+                  }}
                   className="w-full mt-1 bg-secondary border border-border rounded-md px-3 py-2"
                 >
                   <option value="all">Todas as áreas</option>
                   <option value="instagram">Apenas Instagram (MRO)</option>
                   <option value="zapmro">Apenas ZAPMRO</option>
-                  <option value="extension">🧩 Extensão Chrome (Externa)</option>
-                  <option value="extension2">🧩 Extensão Chrome 2 (Externa)</option>
+                  {availableExtensions.map(ext => (
+                    <option key={ext} value={ext}>
+                      🧩 {ext === 'extension' ? 'Extensão Chrome' : `Extensão Chrome ${ext.replace('extension', '')}`}
+                    </option>
+                  ))}
+                  <option value="new_extension">+ Criar novo caminho de extensão...</option>
                 </select>
               </div>
             </div>
+            
+            {showNewExtensionInput && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="newExtensionName">Número ou Nome da Nova Extensão</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="newExtensionName"
+                    value={newExtensionName}
+                    onChange={(e) => setNewExtensionName(e.target.value)}
+                    placeholder="Ex: 3, 4, pro..."
+                    className="flex-1"
+                    autoFocus
+                  />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowNewExtensionInput(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Isso criará um novo endpoint para esta extensão específica.
+                </p>
+              </div>
+            )}
 
             {/* Extension-specific settings */}
-            {(formData.targetArea === 'extension' || formData.targetArea === 'extension2') && (
+            {(formData.targetArea?.startsWith('extension')) && (
               <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 space-y-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Chrome className="w-5 h-5 text-purple-400" />
@@ -821,7 +893,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             )}
 
             {/* Regular announcement settings (non-extension) */}
-            {formData.targetArea !== 'extension' && formData.targetArea !== 'extension2' && (
+            {!formData.targetArea?.startsWith('extension') && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
@@ -876,7 +948,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             )}
 
             {/* Extension active toggle */}
-            {(formData.targetArea === 'extension' || formData.targetArea === 'extension2') && (
+            {(formData.targetArea?.startsWith('extension')) && (
               <div className="flex items-center gap-3">
                 <Switch
                   checked={formData.isActive ?? true}
@@ -976,7 +1048,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Criado: {new Date(announcement.createdAt).toLocaleDateString('pt-BR')}
-                  {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && announcement.frequencyType && (
+                  {announcement.targetArea?.startsWith('extension') && announcement.frequencyType && (
                     <span className="ml-2 text-purple-400">
                       • {announcement.frequencyType === 'once' 
                         ? '1x total' 
@@ -990,7 +1062,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Docs button for extension announcements */}
-                {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && (
+                {announcement.targetArea?.startsWith('extension') && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1045,22 +1117,17 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
       {/* Extension Docs Modal */}
       <ExtensionAnnouncementDocs 
-        isOpen={showExtensionDocs || (showDocsForAnnouncement !== null && announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension')}
+        isOpen={!!extensionDocsPath || showDocsForAnnouncement !== null} 
         onClose={() => {
-          setShowExtensionDocs(false);
+          setExtensionDocsPath(null);
           setShowDocsForAnnouncement(null);
-        }}
+        }} 
         announcementId={showDocsForAnnouncement || undefined}
-        targetArea="extension"
-      />
-      <ExtensionAnnouncementDocs 
-        isOpen={showExtension2Docs || (showDocsForAnnouncement !== null && announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension2')}
-        onClose={() => {
-          setShowExtension2Docs(false);
-          setShowDocsForAnnouncement(null);
-        }}
-        announcementId={showDocsForAnnouncement || undefined}
-        targetArea="extension2"
+        targetArea={
+          showDocsForAnnouncement 
+            ? announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea || 'extension'
+            : extensionDocsPath || 'extension'
+        }
       />
     </div>
   );

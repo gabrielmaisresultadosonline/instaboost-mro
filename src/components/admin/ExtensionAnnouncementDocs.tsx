@@ -10,7 +10,7 @@ interface ExtensionAnnouncementDocsProps {
   announcementId?: string;
   isOpen: boolean;
   onClose: () => void;
-  targetArea?: 'extension' | 'extension2';
+  targetArea?: string;
 }
 
 const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea = 'extension' }: ExtensionAnnouncementDocsProps) => {
@@ -29,9 +29,12 @@ const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea
 
   if (!isOpen) return null;
 
-  const fileName = targetArea === 'extension2' ? 'extension2-announcements.json' : 'extension-announcements.json';
-  const storageKey = targetArea === 'extension2' ? 'mro_extension2_announcements' : 'mro_extension_announcements';
-  const label = targetArea === 'extension2' ? 'Extensão Chrome 2' : 'Extensão Chrome';
+  const isSpecialExtension = targetArea.startsWith('extension') && targetArea !== 'extension';
+  const extensionNumber = targetArea.replace('extension', '');
+  
+  const fileName = targetArea === 'extension' ? 'extension-announcements.json' : `${targetArea}-announcements.json`;
+  const storageKey = `mro_${targetArea}_announcements`;
+  const label = targetArea === 'extension' ? 'Extensão Chrome' : `Extensão Chrome ${extensionNumber}`;
   const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
 
   const fetchCode = `// 🔔 Buscar avisos da extensão
