@@ -345,11 +345,28 @@ serve(async (req) => {
 
   try {
     log("Received webhook request");
-
-    // Verify webhook signature for security
-    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "MRO-PAYMENT-WEBHOOK");
-    if (!verification.verified) {
-      return verification.response;
+    
+    // Check if it's an authorized internal call or admin call
+    const authHeader = req.headers.get("authorization") || "";
+    const isServiceRole = authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "never-match-this");
+    
+    let verification;
+    if (isServiceRole) {
+      log("Authorized internal call detected (Service Role)");
+      const rawBody = await req.text();
+      try {
+        const body = JSON.parse(rawBody);
+        verification = { verified: true, body, rawBody };
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: corsHeaders });
+      }
+    } else {
+      // Verify webhook signature for security (InfinitePay requests)
+      verification = await verifyInfinitePayWebhook(req, corsHeaders, "MRO-PAYMENT-WEBHOOK");
+      if (!verification.verified) {
+        log("Webhook verification failed");
+        return (verification as any).response;
+      }
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
