@@ -168,19 +168,16 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         groups[area].push(a);
       });
 
-      // Save regular announcements (all, instagram, zapmro or any non-extension)
-      const regularAnnouncements = data.filter(a => {
-        const area = a.targetArea || 'all';
-        return !area.startsWith('extension');
-      });
-      
+      // Save regular announcements (all, instagram, zapmro)
       const regularPayload: AnnouncementsData = {
-        announcements: regularAnnouncements,
+        announcements: data.filter(a => {
+          const area = a.targetArea || 'all';
+          return !area.startsWith('extension');
+        }),
         lastUpdated: new Date().toISOString()
       };
 
       const regularBlob = new Blob([JSON.stringify(regularPayload, null, 2)], { type: 'application/json' });
-      
       await supabase.storage
         .from('user-data')
         .upload('admin/announcements.json', regularBlob, { 
@@ -189,10 +186,15 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         });
 
       // Save extension announcements to separate files
-      const extensionAreas = Object.keys(groups).filter(area => area.startsWith('extension'));
+      // We iterate over all areas that start with "extension"
+      const allAreas = Object.keys(groups);
+      const extensionAreas = allAreas.filter(area => area.startsWith('extension'));
+      
+      // Also make sure we don't lose files for extensions that have no announcements in the current list
+      // (though in this component the list 'data' should contain everything)
       
       for (const area of extensionAreas) {
-        const fileName = area === 'extension' ? 'extension-announcements.json' : `${area}-announcements.json`;
+        const fileName = `${area}-announcements.json`;
         const extAnnouncements = groups[area];
         
         const extensionPayload = {
@@ -210,13 +212,16 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             frequencyValue: a.frequencyValue || 1,
             frequencyHours: a.frequencyHours || 1,
             createdAt: a.createdAt,
-            updatedAt: a.updatedAt
+            updatedAt: a.updatedAt,
+            forceRead: a.forceRead,
+            forceReadSeconds: a.forceReadSeconds,
+            maxViews: a.maxViews,
+            viewCount: a.viewCount
           })),
           lastUpdated: new Date().toISOString()
         };
 
         const extensionBlob = new Blob([JSON.stringify(extensionPayload, null, 2)], { type: 'application/json' });
-        
         await supabase.storage
           .from('user-data')
           .upload(`admin/${fileName}`, extensionBlob, { 
