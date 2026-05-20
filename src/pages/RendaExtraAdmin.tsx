@@ -109,13 +109,15 @@ const RendaExtraAdmin = () => {
     
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
+      console.log("Loading admin data with token...");
+      const { data, error } = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "getData", adminToken: token }
       });
 
-      if (response.error) {
+      if (error) {
+        console.error("Function error:", error);
         // Handle 401 Unauthorized from the function
-        if (response.error.status === 401) {
+        if (error.status === 401 || (error as any).message?.includes("401")) {
           handleLogout();
           toast({ 
             title: "Sessão expirada", 
@@ -124,17 +126,20 @@ const RendaExtraAdmin = () => {
           });
           return;
         }
-        throw response.error;
+        throw error;
       }
       
-      if (response.data?.success === false) {
-        if (response.data.error?.includes("Sessão expirada")) {
+      if (!data || data.success === false) {
+        if (data?.error?.includes("Sessão expirada")) {
           handleLogout();
         }
-        throw new Error(response.data.error || "Falha ao carregar dados");
+        throw new Error(data?.error || "Falha ao carregar dados");
       }
 
-      const data = response.data;
+      // If we got here, the token is valid
+      setAdminToken(token);
+      setIsLoggedIn(true);
+      
       setLeads(data.leads || []);
       setEmailLogs(data.emailLogs || []);
       setAnalytics(data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
@@ -156,7 +161,7 @@ const RendaExtraAdmin = () => {
       console.error("Error loading data:", error);
       
       // Also check for 401 in the caught error
-      if (error.status === 401 || error.message?.includes("401")) {
+      if (error.status === 401 || error.message?.includes("401") || error.message?.includes("non-2xx")) {
         handleLogout();
       }
 
