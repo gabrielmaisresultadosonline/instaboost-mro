@@ -29,7 +29,8 @@ const RendaExtra = () => {
 
   const [showNoComputerWarning, setShowNoComputerWarning] = useState(false);
   const [canProceedAfterWarning, setCanProceedAfterWarning] = useState(false);
-  const [launchDateText, setLaunchDateText] = useState("21 de Janeiro de 2026");
+  const [launchDateText, setLaunchDateText] = useState("");
+  const [launchDateEnabled, setLaunchDateEnabled] = useState(false);
 
   // Steps are dynamic now - if user doesn't work, skip salary question
   const getEffectiveTotalSteps = () => {
@@ -47,10 +48,13 @@ const RendaExtra = () => {
       const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "getPublicSettings" }
       });
-      if (response.data?.launch_date) {
+      if (response.data?.launch_date && response.data?.launch_date_enabled) {
         const date = new Date(response.data.launch_date);
         const formatted = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
         setLaunchDateText(formatted);
+        setLaunchDateEnabled(true);
+      } else {
+        setLaunchDateEnabled(false);
       }
     } catch (error) {
       console.error("Error fetching launch date:", error);
@@ -682,9 +686,11 @@ const RendaExtra = () => {
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
             Aprenda Grátis!
           </h2>
-          <p className="text-gray-500 text-base">
-            Lançamento: <span className="text-yellow-400 font-semibold">{launchDateText}</span>
-          </p>
+          {launchDateEnabled && launchDateText && (
+            <p className="text-gray-500 text-base">
+              Lançamento: <span className="text-yellow-400 font-semibold">{launchDateText}</span>
+            </p>
+          )}
         </div>
       </section>
 

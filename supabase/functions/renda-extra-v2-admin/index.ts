@@ -19,6 +19,7 @@ const UpdateSettingsSchema = z.object({
   settings: z.object({
     whatsapp_group_link: z.string().trim().max(500).nullable().optional(),
     launch_date: z.string().datetime().nullable().optional(),
+    launch_date_enabled: z.boolean().optional(),
   }),
   adminToken: z.string().optional(),
 });
@@ -62,11 +63,15 @@ const handler = async (req: Request): Promise<Response> => {
     if (action === "getPublicSettings") {
       const { data: settings } = await supabase
         .from("renda_extra_v2_settings")
-        .select("launch_date")
+        .select("launch_date, launch_date_enabled")
         .limit(1)
         .single();
 
-      return new Response(JSON.stringify({ success: true, launch_date: settings?.launch_date ?? null }), {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        launch_date: settings?.launch_date ?? null,
+        launch_date_enabled: !!settings?.launch_date_enabled
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -138,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
       const [leadsRes, emailLogsRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes] = await Promise.all([
         supabase.from("renda_extra_v2_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_v2_email_logs").select("*").order("created_at", { ascending: false }),
-        supabase.from("renda_extra_v2_settings").select("whatsapp_group_link, launch_date").limit(1).single(),
+        supabase.from("renda_extra_v2_settings").select("whatsapp_group_link, launch_date, launch_date_enabled").limit(1).single(),
         supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString()),
         supabase.from("renda_extra_v2_leads").select("*", { count: "exact", head: true }),
@@ -173,6 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
       const payload = {
         whatsapp_group_link: parsed.data.settings.whatsapp_group_link?.trim() || null,
         launch_date: parsed.data.settings.launch_date || null,
+        launch_date_enabled: parsed.data.settings.launch_date_enabled ?? false,
         updated_at: new Date().toISOString(),
       };
 

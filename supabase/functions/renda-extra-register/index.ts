@@ -90,10 +90,11 @@ serve(async (req) => {
     // Get settings for WhatsApp group link
     const { data: settings } = await supabase
       .from("renda_extra_v2_settings")
-      .select("whatsapp_group_link, launch_date")
+      .select("whatsapp_group_link, launch_date, launch_date_enabled")
       .single();
 
     const whatsappGroupLink = settings?.whatsapp_group_link || "https://chat.whatsapp.com/example";
+    const launchDateEnabled = !!settings?.launch_date_enabled;
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
 
     // Send confirmation email via SMTP
@@ -122,10 +123,11 @@ serve(async (req) => {
 
 <p style="margin:0 0 20px 0;font-size:16px;">Ficamos muito felizes em receber seu cadastro para o lançamento do <strong>Método MRO de Renda Extra</strong>!</p>
 
+${launchDateEnabled ? `
 <div style="background:#f8f9fa;padding:20px;border-radius:10px;margin:25px 0;border-left:4px solid #FFD700;">
 <p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;">📅 Data do Lançamento:</p>
 <p style="margin:0;font-size:20px;color:#000;font-weight:bold;">${launchDate}</p>
-</div>
+</div>` : ''}
 
 <div style="text-align:center;margin:30px 0;">
 <p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Entre no nosso grupo do WhatsApp:</p>
@@ -134,9 +136,10 @@ serve(async (req) => {
 </a>
 </div>
 
+${launchDateEnabled ? `
 <p style="margin:20px 0;font-size:14px;color:#666;text-align:center;">
 Fique atento! Você receberá um email de lembrete no dia do lançamento.
-</p>
+</p>` : ''}
 
 </td>
 </tr>
