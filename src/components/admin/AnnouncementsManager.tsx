@@ -54,8 +54,10 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const [isUploading, setIsUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file' | 'paste'>('url');
-  const [showExtensionDocs, setShowExtensionDocs] = useState(false);
-  const [showExtension2Docs, setShowExtension2Docs] = useState(false);
+  const [extensionDocsPath, setExtensionDocsPath] = useState<string | null>(null);
+  const [availableExtensions, setAvailableExtensions] = useState<string[]>(['extension', 'extension2']);
+  const [showNewExtensionInput, setShowNewExtensionInput] = useState(false);
+  const [newExtensionName, setNewExtensionName] = useState('');
   const [showDocsForAnnouncement, setShowDocsForAnnouncement] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
@@ -350,6 +352,21 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   };
 
   const handleSave = async () => {
+    let finalTargetArea = formData.targetArea || 'all';
+    
+    // If a new extension was specified
+    if (showNewExtensionInput && newExtensionName.trim()) {
+      const sanitizedName = newExtensionName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      finalTargetArea = `extension${sanitizedName}`;
+      
+      if (!availableExtensions.includes(finalTargetArea)) {
+        setAvailableExtensions(prev => [...prev, finalTargetArea].sort());
+      }
+      
+      setShowNewExtensionInput(false);
+      setNewExtensionName('');
+    }
+
     if (!formData.title || !formData.content) {
       toast({ title: 'Preencha título e conteúdo', variant: 'destructive' });
       return;
@@ -368,7 +385,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         forceRead: formData.forceRead ?? false,
         forceReadSeconds: formData.forceReadSeconds ?? 5,
         maxViews: formData.maxViews ?? 1,
-        targetArea: formData.targetArea || 'all',
+        targetArea: finalTargetArea,
         delaySeconds: formData.delaySeconds || 0,
         frequencyType: formData.frequencyType || 'once',
         frequencyValue: formData.frequencyValue || 1,
@@ -398,6 +415,13 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
               frequencyType: formData.frequencyType || 'once',
               frequencyValue: formData.frequencyValue || 1,
               frequencyHours: formData.frequencyHours || 1,
+              buttonText: formData.buttonText || undefined,
+              buttonUrl: formData.buttonUrl || undefined,
+              updatedAt: new Date().toISOString()
+            }
+          : a
+      );
+    }
               buttonText: formData.buttonText || undefined,
               buttonUrl: formData.buttonUrl || undefined,
               updatedAt: new Date().toISOString()
@@ -1031,7 +1055,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Criado: {new Date(announcement.createdAt).toLocaleDateString('pt-BR')}
-                  {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && announcement.frequencyType && (
+                  {announcement.targetArea?.startsWith('extension') && announcement.frequencyType && (
                     <span className="ml-2 text-purple-400">
                       • {announcement.frequencyType === 'once' 
                         ? '1x total' 
@@ -1045,7 +1069,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Docs button for extension announcements */}
-                {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && (
+                {announcement.targetArea?.startsWith('extension') && (
                   <Button
                     variant="ghost"
                     size="sm"
