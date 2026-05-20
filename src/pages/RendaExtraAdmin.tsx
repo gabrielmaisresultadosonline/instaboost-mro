@@ -156,7 +156,8 @@ const RendaExtraAdmin = () => {
         }
         setSettings({
           whatsapp_group_link: data.settings.whatsapp_group_link || "",
-          launch_date: formattedLaunchDate
+          launch_date: formattedLaunchDate,
+          launch_date_enabled: !!data.settings.launch_date_enabled
         });
       }
     } catch (error: any) {
