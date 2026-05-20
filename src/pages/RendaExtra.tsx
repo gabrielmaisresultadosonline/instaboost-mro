@@ -707,14 +707,7 @@ const RendaExtra = () => {
             </p>
           </div>
 
-          {/* Image and Ouça Agora Button */}
-          <div className="max-w-sm mx-auto text-center space-y-6">
-            <img 
-              src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
-              alt="Ferramenta MRO" 
-              className="w-full drop-shadow-2xl hover:scale-105 transition-transform duration-500"
-            />
-          </div>
+          {/* Ouça Agora Button section removed */}
 
 
           {/* Requirements */}
