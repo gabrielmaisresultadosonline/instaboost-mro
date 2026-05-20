@@ -531,10 +531,6 @@ const RendaExtraAdmin = () => {
             </Card>
           </TabsContent>
 
-          {/* WhatsApp Bot Tab */}
-          <TabsContent value="whatsapp">
-            <WppBotPanel adminToken={adminToken} onUnauthorized={handleLogout} />
-          </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings">
