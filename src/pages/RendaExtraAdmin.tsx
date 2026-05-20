@@ -558,20 +558,44 @@ const RendaExtraAdmin = () => {
                   <p className="text-gray-500 text-sm mt-1">Este link será enviado por email e mostrado após o cadastro</p>
                 </div>
 
-                <div>
-                  <Label htmlFor="launchDate" className="text-gray-300 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Data do Lançamento
-                  </Label>
-                  <Input
-                    id="launchDate"
-                    type="datetime-local"
-                    value={settings.launch_date}
-                    onChange={(e) => setSettings({ ...settings, launch_date: e.target.value })}
-                    className="mt-2 bg-gray-700 border-gray-600 text-white"
-                  />
-                  <p className="text-gray-500 text-sm mt-1">No dia do lançamento, um email de lembrete será enviado para todos os cadastrados</p>
+                <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-gray-600">
+                  <div className="space-y-1">
+                    <Label className="text-white text-base flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-400" />
+                      Recurso de Lançamento
+                    </Label>
+                    <p className="text-gray-400 text-sm">Ative para mostrar datas no site e enviar emails de lembrete</p>
+                  </div>
+                  <Button 
+                    variant={settings.launch_date_enabled ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSettings({ ...settings, launch_date_enabled: !settings.launch_date_enabled })}
+                    className={settings.launch_date_enabled ? "bg-green-600 hover:bg-green-700" : ""}
+                  >
+                    {settings.launch_date_enabled ? (
+                      <><ToggleRight className="w-5 h-5 mr-2" /> Ativado</>
+                    ) : (
+                      <><ToggleLeft className="w-5 h-5 mr-2" /> Desativado</>
+                    )}
+                  </Button>
                 </div>
+
+                {settings.launch_date_enabled && (
+                  <div>
+                    <Label htmlFor="launchDate" className="text-gray-300 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Data do Lançamento
+                    </Label>
+                    <Input
+                      id="launchDate"
+                      type="datetime-local"
+                      value={settings.launch_date}
+                      onChange={(e) => setSettings({ ...settings, launch_date: e.target.value })}
+                      className="mt-2 bg-gray-700 border-gray-600 text-white"
+                    />
+                    <p className="text-gray-500 text-sm mt-1">No dia do lançamento, um email de lembrete será enviado para todos os cadastrados</p>
+                  </div>
+                )}
 
                 <Button onClick={saveSettings} disabled={loading} className="w-full md:w-auto">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
