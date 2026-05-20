@@ -19,6 +19,7 @@ const UpdateSettingsSchema = z.object({
   settings: z.object({
     whatsapp_group_link: z.string().trim().max(500).nullable().optional(),
     launch_date: z.string().datetime().nullable().optional(),
+    launch_date_enabled: z.boolean().optional(),
   }),
   adminToken: z.string().optional(),
 });
