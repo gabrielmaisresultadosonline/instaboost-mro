@@ -175,16 +175,27 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
   const saveAnnouncements = async (data: Announcement[]) => {
     setIsSaving(true);
+    console.log('💾 Salvando avisos...', data.length);
     try {
-      // Group announcements by target area
+      // Agrupar anúncios por área de destino
       const groups: Record<string, Announcement[]> = {};
+      
+      // Inicializar grupos para extensões conhecidas para garantir que possamos limpá-las se necessário
+      availableExtensions.forEach(ext => {
+        groups[ext] = [];
+      });
+      // Grupos padrão
+      groups['all'] = [];
+      groups['instagram'] = [];
+      groups['zapmro'] = [];
+
       data.forEach(a => {
         const area = a.targetArea || 'all';
         if (!groups[area]) groups[area] = [];
         groups[area].push(a);
       });
 
-      // Save regular announcements (all, instagram, zapmro)
+      // 1. Salvar anúncios regulares (all, instagram, zapmro) em announcements.json
       const regularPayload: AnnouncementsData = {
         announcements: data.filter(a => {
           const area = a.targetArea || 'all';
@@ -193,6 +204,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         lastUpdated: new Date().toISOString()
       };
 
+      console.log('📝 Salvando admin/announcements.json');
       const regularBlob = new Blob([JSON.stringify(regularPayload, null, 2)], { type: 'application/json' });
       await supabase.storage
         .from('user-data')
@@ -201,17 +213,15 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           contentType: 'application/json'
         });
 
-      // Save extension announcements to separate files
-      // We iterate over all areas that start with "extension"
-      const allAreas = Object.keys(groups);
-      const extensionAreas = allAreas.filter(area => area.startsWith('extension'));
-      
-      // Also make sure we don't lose files for extensions that have no announcements in the current list
-      // (though in this component the list 'data' should contain everything)
+      // 2. Salvar anúncios de extensão em arquivos separados
+      const allGroupKeys = Object.keys(groups);
+      const extensionAreas = allGroupKeys.filter(area => area.startsWith('extension'));
       
       for (const area of extensionAreas) {
         const fileName = `${area}-announcements.json`;
         const extAnnouncements = groups[area];
+        
+        console.log(`📝 Salvando admin/${fileName} (${extAnnouncements.length} avisos)`);
         
         const extensionPayload = {
           announcements: extAnnouncements.map(a => ({
@@ -246,13 +256,12 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           });
       }
 
-      toast({ title: 'Avisos salvos!', description: 'Alterações publicadas para usuários' });
-      console.log('📢 Avisos salvos com sucesso');
+      toast({ title: 'Avisos salvos!', description: 'Alterações publicadas com sucesso' });
     } catch (error) {
       console.error('Erro ao salvar avisos:', error);
       toast({ 
         title: 'Erro ao salvar', 
-        description: 'Não foi possível salvar os avisos', 
+        description: 'Verifique o console para mais detalhes', 
         variant: 'destructive' 
       });
     } finally {
