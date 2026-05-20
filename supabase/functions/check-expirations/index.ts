@@ -12,6 +12,87 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-EXPIRATIONS] ${step}${detailsStr}`);
 };
 
+async function sendLaunchReminderEmail(
+  email: string,
+  name: string,
+  smtpPassword: string,
+): Promise<boolean> {
+  try {
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.hostinger.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: "suporte@maisresultadosonline.com.br",
+          password: smtpPassword,
+        },
+      },
+    });
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 30px; text-align: center; }
+    .header h1 { color: #000; margin: 0; font-size: 24px; }
+    .content { padding: 30px; background: #f9f9f9; }
+    .main-box { background: #fff; border: 2px solid #FFD700; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center; }
+    .button { display: inline-block; background: #000; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 É HOJE! O Grande Lançamento</h1>
+  </div>
+  <div class="content">
+    <p>Olá <strong>${name}</strong>!</p>
+    
+    <div class="main-box">
+      <h2 style="color: #000; margin: 0;">✨ Chegou o Momento!</h2>
+      <p style="font-size: 18px; margin: 10px 0;">O <strong>Método MRO de Renda Extra</strong> acaba de ser liberado!</p>
+    </div>
+    
+    <p>Não perca a oportunidade de transformar sua realidade financeira com nossa ferramenta automática.</p>
+    
+    <p><strong>Acesse agora antes que as vagas se encerrem:</strong></p>
+    
+    <center>
+      <a href="https://maisresultadosonline.com.br" class="button">🔗 ACESSAR MÉTODO AGORA</a>
+    </center>
+    
+    <p style="color: #666; font-size: 14px; text-align: center;">
+      Dúvidas? Entre em nosso grupo ou chame no suporte.
+    </p>
+  </div>
+  <div class="footer">
+    <p>MRO - Mais Resultados Online</p>
+    <p>© 2026 Todos os direitos reservados.</p>
+  </div>
+</body>
+</html>
+    `;
+
+    await client.send({
+      from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
+      to: email,
+      subject: "🚀 É HOJE! O Grande Lançamento MRO Renda Extra",
+      content: "O lançamento MRO Renda Extra começou! Acesse em maisresultadosonline.com.br",
+      html: htmlContent,
+    });
+
+    await client.close();
+    return true;
+  } catch (error: any) {
+    logStep("Error sending launch email", { error: error?.message });
+    return false;
+  }
+}
+
 async function sendExpirationWarningEmail(
   email: string,
   username: string,
@@ -225,9 +306,48 @@ serve(async (req) => {
     const results = {
       warningsSent: 0,
       expiredSent: 0,
+      launchRemindersSent: 0,
       errors: 0,
       details: [] as Array<{ email: string; type: string; success: boolean }>,
     };
+
+    // 0. Check for Launch Reminders
+    logStep("Checking for launch reminders");
+    const { data: settings } = await supabase
+      .from("renda_extra_v2_settings")
+      .select("launch_date, launch_date_enabled")
+      .single();
+
+    if (settings?.launch_date_enabled && settings?.launch_date) {
+      const launchDate = new Date(settings.launch_date);
+      // If launch is today (any time today)
+      if (launchDate.toDateString() === now.toDateString()) {
+        logStep("Launch is TODAY! Checking for unsent reminders");
+        const { data: leads } = await supabase
+          .from("renda_extra_leads")
+          .select("*")
+          .eq("email_lembrete_enviado", false);
+
+        if (leads && leads.length > 0) {
+          logStep(`Found ${leads.length} leads to notify about launch`);
+          for (const lead of leads) {
+            const sent = await sendLaunchReminderEmail(lead.email, lead.nome_completo, smtpPassword);
+            if (sent) {
+              await supabase
+                .from("renda_extra_leads")
+                .update({ 
+                  email_lembrete_enviado: true,
+                  email_lembrete_enviado_at: new Date().toISOString()
+                })
+                .eq("id", lead.id);
+              results.launchRemindersSent++;
+            } else {
+              results.errors++;
+            }
+          }
+        }
+      }
+    }
 
     // 1. Find accesses expiring tomorrow (1 day warning)
     logStep("Checking for accesses expiring tomorrow");
