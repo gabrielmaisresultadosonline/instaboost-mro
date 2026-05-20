@@ -60,7 +60,8 @@ const RendaExtraAdmin = () => {
   
   const [settings, setSettings] = useState({
     whatsapp_group_link: "",
-    launch_date: ""
+    launch_date: "",
+    launch_date_enabled: false
   });
   const [searchQuery, setSearchQuery] = useState("");
 
