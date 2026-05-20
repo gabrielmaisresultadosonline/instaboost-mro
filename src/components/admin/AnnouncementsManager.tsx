@@ -87,80 +87,87 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
   const loadAnnouncements = async () => {
     setIsLoading(true);
+    console.log('🔄 Carregando todos os avisos de todas as extensões...');
     try {
       let allAnnouncements: Announcement[] = [];
+      const detectedExtensions: string[] = ['extension', 'extension2'];
 
-      // Load regular announcements
-      const { data: regularData, error: regularError } = await supabase.storage
-        .from('user-data')
-        .download('admin/announcements.json');
-      
-      if (regularError) {
-        if (!regularError.message.includes('not found')) {
-          console.error('Erro ao carregar avisos regulares:', regularError);
+      // 1. Carregar avisos regulares (announcements.json)
+      try {
+        const { data: regularData, error: regularError } = await supabase.storage
+          .from('user-data')
+          .download('admin/announcements.json');
+        
+        if (!regularError && regularData) {
+          const text = await regularData.text();
+          const parsed: AnnouncementsData = JSON.parse(text);
+          const regularList = (parsed.announcements || []).map(a => ({
+            ...a,
+            targetArea: a.targetArea || 'all'
+          }));
+          allAnnouncements = [...regularList];
+          console.log(`✅ Carregados ${regularList.length} avisos de announcements.json`);
         }
-      } else {
-        const text = await regularData.text();
-        const parsed: AnnouncementsData = JSON.parse(text);
-        allAnnouncements = [...(parsed.announcements || [])];
+      } catch (e) {
+        console.error('Erro ao baixar announcements.json:', e);
       }
 
-      // Load all JSON files in the admin directory to find announcements
+      // 2. Listar e carregar todos os arquivos de extensão (*-announcements.json)
       const { data: files, error: listError } = await supabase.storage
         .from('user-data')
         .list('admin');
 
       if (listError) {
         console.error('Erro ao listar arquivos do storage:', listError);
-      } else {
-        const detectedExtensions: string[] = ['extension', 'extension2'];
-        const announcementFiles = files?.filter(f => f.name.endsWith('-announcements.json')) || [];
+      } else if (files) {
+        const announcementFiles = files.filter(f => 
+          f.name.endsWith('-announcements.json') && f.name !== 'announcements.json'
+        );
+        
+        console.log(`📂 Arquivos de avisos detectados: ${announcementFiles.map(f => f.name).join(', ')}`);
 
-        const extensionPromises = announcementFiles.map(async (file) => {
-          const extKey = file.name.replace('-announcements.json', '');
-          
-          const { data: extensionData, error: extensionError } = await supabase.storage
-            .from('user-data')
-            .download(`admin/${file.name}`);
-          
-          if (extensionError) return [];
-
-          const text = await extensionData.text();
+        for (const file of announcementFiles) {
           try {
-            const parsed = JSON.parse(text);
-            return (parsed.announcements || []).map((a: any) => ({
-              ...a,
-              targetArea: extKey,
-              forceRead: a.forceRead ?? false,
-              forceReadSeconds: a.forceReadSeconds ?? 5,
-              maxViews: a.maxViews ?? 1,
-              viewCount: a.viewCount ?? 0
-            }));
+            const extKey = file.name.replace('-announcements.json', '');
+            if (!detectedExtensions.includes(extKey)) {
+              detectedExtensions.push(extKey);
+            }
+
+            const { data: extensionData, error: extensionError } = await supabase.storage
+              .from('user-data')
+              .download(`admin/${file.name}`);
+            
+            if (!extensionError && extensionData) {
+              const text = await extensionData.text();
+              const parsed = JSON.parse(text);
+              const extList = (parsed.announcements || []).map((a: any) => ({
+                ...a,
+                targetArea: extKey,
+                forceRead: a.forceRead ?? false,
+                forceReadSeconds: a.forceReadSeconds ?? 5,
+                maxViews: a.maxViews ?? 1,
+                viewCount: a.viewCount ?? 0
+              }));
+              
+              allAnnouncements = [...allAnnouncements, ...extList];
+              console.log(`✅ Carregados ${extList.length} avisos de ${file.name}`);
+            }
           } catch (e) {
             console.error(`Erro ao processar arquivo ${file.name}:`, e);
-            return [];
           }
-        });
-
-        const extensionResults = await Promise.all(extensionPromises);
-        extensionResults.forEach(res => {
-          allAnnouncements = [...allAnnouncements, ...res];
-        });
-
-        // Update detected extensions
-        announcementFiles.forEach(file => {
-          const extKey = file.name.replace('-announcements.json', '');
-          if (!detectedExtensions.includes(extKey)) {
-            detectedExtensions.push(extKey);
-          }
-        });
-        setAvailableExtensions(detectedExtensions.sort());
+        }
       }
 
+      setAvailableExtensions(detectedExtensions.sort());
       setAnnouncements(allAnnouncements);
+      console.log(`📢 Total de avisos carregados: ${allAnnouncements.length}`);
     } catch (error) {
-      console.error('Erro ao carregar avisos:', error);
-      setAnnouncements([]);
+      console.error('Erro geral ao carregar avisos:', error);
+      toast({ 
+        title: 'Erro ao carregar', 
+        description: 'Não foi possível carregar todos os avisos', 
+        variant: 'destructive' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -168,16 +175,27 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
   const saveAnnouncements = async (data: Announcement[]) => {
     setIsSaving(true);
+    console.log('💾 Salvando avisos...', data.length);
     try {
-      // Group announcements by target area
+      // Agrupar anúncios por área de destino
       const groups: Record<string, Announcement[]> = {};
+      
+      // Inicializar grupos para extensões conhecidas para garantir que possamos limpá-las se necessário
+      availableExtensions.forEach(ext => {
+        groups[ext] = [];
+      });
+      // Grupos padrão
+      groups['all'] = [];
+      groups['instagram'] = [];
+      groups['zapmro'] = [];
+
       data.forEach(a => {
         const area = a.targetArea || 'all';
         if (!groups[area]) groups[area] = [];
         groups[area].push(a);
       });
 
-      // Save regular announcements (all, instagram, zapmro)
+      // 1. Salvar anúncios regulares (all, instagram, zapmro) em announcements.json
       const regularPayload: AnnouncementsData = {
         announcements: data.filter(a => {
           const area = a.targetArea || 'all';
@@ -186,6 +204,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         lastUpdated: new Date().toISOString()
       };
 
+      console.log('📝 Salvando admin/announcements.json');
       const regularBlob = new Blob([JSON.stringify(regularPayload, null, 2)], { type: 'application/json' });
       await supabase.storage
         .from('user-data')
@@ -194,17 +213,15 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           contentType: 'application/json'
         });
 
-      // Save extension announcements to separate files
-      // We iterate over all areas that start with "extension"
-      const allAreas = Object.keys(groups);
-      const extensionAreas = allAreas.filter(area => area.startsWith('extension'));
-      
-      // Also make sure we don't lose files for extensions that have no announcements in the current list
-      // (though in this component the list 'data' should contain everything)
+      // 2. Salvar anúncios de extensão em arquivos separados
+      const allGroupKeys = Object.keys(groups);
+      const extensionAreas = allGroupKeys.filter(area => area.startsWith('extension'));
       
       for (const area of extensionAreas) {
         const fileName = `${area}-announcements.json`;
         const extAnnouncements = groups[area];
+        
+        console.log(`📝 Salvando admin/${fileName} (${extAnnouncements.length} avisos)`);
         
         const extensionPayload = {
           announcements: extAnnouncements.map(a => ({
@@ -239,13 +256,12 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           });
       }
 
-      toast({ title: 'Avisos salvos!', description: 'Alterações publicadas para usuários' });
-      console.log('📢 Avisos salvos com sucesso');
+      toast({ title: 'Avisos salvos!', description: 'Alterações publicadas com sucesso' });
     } catch (error) {
       console.error('Erro ao salvar avisos:', error);
       toast({ 
         title: 'Erro ao salvar', 
-        description: 'Não foi possível salvar os avisos', 
+        description: 'Verifique o console para mais detalhes', 
         variant: 'destructive' 
       });
     } finally {
