@@ -143,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
       const [leadsRes, emailLogsRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes] = await Promise.all([
         supabase.from("renda_extra_v2_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_v2_email_logs").select("*").order("created_at", { ascending: false }),
-        supabase.from("renda_extra_v2_settings").select("whatsapp_group_link, launch_date").limit(1).single(),
+        supabase.from("renda_extra_v2_settings").select("whatsapp_group_link, launch_date, launch_date_enabled").limit(1).single(),
         supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString()),
         supabase.from("renda_extra_v2_leads").select("*", { count: "exact", head: true }),
