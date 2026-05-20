@@ -168,9 +168,11 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         groups[area].push(a);
       });
 
-      // Save regular announcements
-      const regularAreas = ['all', 'instagram', 'zapmro'];
-      const regularAnnouncements = data.filter(a => !a.targetArea || regularAreas.includes(a.targetArea));
+      // Save regular announcements (all, instagram, zapmro or any non-extension)
+      const regularAnnouncements = data.filter(a => {
+        const area = a.targetArea || 'all';
+        return !area.startsWith('extension');
+      });
       
       const regularPayload: AnnouncementsData = {
         announcements: regularAnnouncements,
