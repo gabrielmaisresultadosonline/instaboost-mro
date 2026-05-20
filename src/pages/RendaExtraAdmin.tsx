@@ -11,7 +11,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
-  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle
+  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle,
+  ToggleLeft, ToggleRight
 } from "lucide-react";
 // WppBotPanel removed
 
