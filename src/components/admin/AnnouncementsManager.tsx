@@ -1117,22 +1117,17 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
       {/* Extension Docs Modal */}
       <ExtensionAnnouncementDocs 
-        isOpen={showExtensionDocs || (showDocsForAnnouncement !== null && announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension')}
+        isOpen={!!extensionDocsPath || showDocsForAnnouncement !== null} 
         onClose={() => {
-          setShowExtensionDocs(false);
+          setExtensionDocsPath(null);
           setShowDocsForAnnouncement(null);
-        }}
+        }} 
         announcementId={showDocsForAnnouncement || undefined}
-        targetArea="extension"
-      />
-      <ExtensionAnnouncementDocs 
-        isOpen={showExtension2Docs || (showDocsForAnnouncement !== null && announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension2')}
-        onClose={() => {
-          setShowExtension2Docs(false);
-          setShowDocsForAnnouncement(null);
-        }}
-        announcementId={showDocsForAnnouncement || undefined}
-        targetArea="extension2"
+        targetArea={
+          showDocsForAnnouncement 
+            ? announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea || 'extension'
+            : extensionDocsPath || 'extension'
+        }
       />
     </div>
   );
