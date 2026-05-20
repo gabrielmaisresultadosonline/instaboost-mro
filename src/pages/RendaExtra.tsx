@@ -48,10 +48,13 @@ const RendaExtra = () => {
       const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "getPublicSettings" }
       });
-      if (response.data?.launch_date) {
+      if (response.data?.launch_date && response.data?.launch_date_enabled) {
         const date = new Date(response.data.launch_date);
         const formatted = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
         setLaunchDateText(formatted);
+        setLaunchDateEnabled(true);
+      } else {
+        setLaunchDateEnabled(false);
       }
     } catch (error) {
       console.error("Error fetching launch date:", error);
