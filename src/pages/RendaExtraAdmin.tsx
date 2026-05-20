@@ -66,8 +66,7 @@ const RendaExtraAdmin = () => {
   useEffect(() => {
     const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
     if (savedToken) {
-      setAdminToken(savedToken);
-      setIsLoggedIn(true);
+      // Don't set isLoggedIn to true yet, wait for loadData to confirm
       loadData(savedToken);
     }
   }, []);
