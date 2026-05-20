@@ -714,13 +714,6 @@ const RendaExtra = () => {
               alt="Ferramenta MRO" 
               className="w-full drop-shadow-2xl hover:scale-105 transition-transform duration-500"
             />
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-black text-xl py-8 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group"
-            >
-              OUÇA AGORA
-              <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
           </div>
 
 
