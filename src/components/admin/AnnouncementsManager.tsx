@@ -116,35 +116,44 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         const detectedExtensions: string[] = ['extension', 'extension2'];
         const announcementFiles = files?.filter(f => f.name.endsWith('-announcements.json')) || [];
 
-        for (const file of announcementFiles) {
+        const extensionPromises = announcementFiles.map(async (file) => {
           const extKey = file.name.replace('-announcements.json', '');
-          if (!detectedExtensions.includes(extKey)) {
-            detectedExtensions.push(extKey);
-          }
-
+          
           const { data: extensionData, error: extensionError } = await supabase.storage
             .from('user-data')
             .download(`admin/${file.name}`);
           
-          if (!extensionError) {
-            const text = await extensionData.text();
-            try {
-              const parsed = JSON.parse(text);
-              const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
-                ...a,
-                targetArea: extKey,
-                // Ensure defaults for extension announcements
-                forceRead: a.forceRead ?? false,
-                forceReadSeconds: a.forceReadSeconds ?? 5,
-                maxViews: a.maxViews ?? 1,
-                viewCount: a.viewCount ?? 0
-              }));
-              allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
-            } catch (e) {
-              console.error(`Erro ao processar arquivo ${file.name}:`, e);
-            }
+          if (extensionError) return [];
+
+          const text = await extensionData.text();
+          try {
+            const parsed = JSON.parse(text);
+            return (parsed.announcements || []).map((a: any) => ({
+              ...a,
+              targetArea: extKey,
+              forceRead: a.forceRead ?? false,
+              forceReadSeconds: a.forceReadSeconds ?? 5,
+              maxViews: a.maxViews ?? 1,
+              viewCount: a.viewCount ?? 0
+            }));
+          } catch (e) {
+            console.error(`Erro ao processar arquivo ${file.name}:`, e);
+            return [];
           }
-        }
+        });
+
+        const extensionResults = await Promise.all(extensionPromises);
+        extensionResults.forEach(res => {
+          allAnnouncements = [...allAnnouncements, ...res];
+        });
+
+        // Update detected extensions
+        announcementFiles.forEach(file => {
+          const extKey = file.name.replace('-announcements.json', '');
+          if (!detectedExtensions.includes(extKey)) {
+            detectedExtensions.push(extKey);
+          }
+        });
         setAvailableExtensions(detectedExtensions.sort());
       }
 
@@ -990,7 +999,9 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             <p className="text-sm">Clique em "Novo Aviso" para criar</p>
           </div>
         ) : (
-          announcements.map((announcement) => (
+          announcements
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map((announcement) => (
             <div 
               key={announcement.id} 
               className={`glass-card p-4 flex items-center gap-4 transition-opacity ${
