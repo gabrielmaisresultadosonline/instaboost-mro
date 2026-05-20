@@ -3782,6 +3782,7 @@ export type Database = {
           created_at: string
           id: string
           launch_date: string | null
+          launch_date_enabled: boolean | null
           updated_at: string
           whatsapp_group_link: string | null
         }
@@ -3791,6 +3792,7 @@ export type Database = {
           created_at?: string
           id?: string
           launch_date?: string | null
+          launch_date_enabled?: boolean | null
           updated_at?: string
           whatsapp_group_link?: string | null
         }
@@ -3800,6 +3802,7 @@ export type Database = {
           created_at?: string
           id?: string
           launch_date?: string | null
+          launch_date_enabled?: boolean | null
           updated_at?: string
           whatsapp_group_link?: string | null
         }
