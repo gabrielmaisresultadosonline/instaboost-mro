@@ -1008,9 +1008,10 @@ Participe também do nosso GRUPO DE AVISOS
       const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
       const currentOrders = ordersRef.current;
       
-      // Filtrar pedidos pendentes criados nos últimos 30 minutos
+      // Filtrar pedidos pendentes ou pagos (que ainda não completaram) criados nos últimos 30 minutos
       const recentPendingOrders = currentOrders.filter(o => {
-        if (o.status !== "pending") return false;
+        if (o.status !== "pending" && o.status !== "paid") return false;
+        if (o.status === "paid" && o.completed_at) return false; // Já completou mas o status ainda não atualizou na lista?
         const createdAt = new Date(o.created_at);
         return createdAt >= thirtyMinutesAgo;
       });
