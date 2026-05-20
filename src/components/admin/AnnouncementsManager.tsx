@@ -105,20 +105,18 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         allAnnouncements = [...(parsed.announcements || [])];
       }
 
-      // Load all extension announcements by listing files
+      // Load all JSON files in the admin directory to find announcements
       const { data: files, error: listError } = await supabase.storage
         .from('user-data')
-        .list('admin', {
-          search: 'extension'
-        });
+        .list('admin');
 
       if (listError) {
-        console.error('Erro ao listar arquivos de extensão:', listError);
+        console.error('Erro ao listar arquivos do storage:', listError);
       } else {
-        const extensionFiles = files?.filter(f => f.name.endsWith('-announcements.json')) || [];
         const detectedExtensions: string[] = ['extension', 'extension2'];
+        const announcementFiles = files?.filter(f => f.name.endsWith('-announcements.json')) || [];
 
-        for (const file of extensionFiles) {
+        for (const file of announcementFiles) {
           const extKey = file.name.replace('-announcements.json', '');
           if (!detectedExtensions.includes(extKey)) {
             detectedExtensions.push(extKey);
@@ -130,16 +128,21 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           
           if (!extensionError) {
             const text = await extensionData.text();
-            const parsed = JSON.parse(text);
-            const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
-              ...a,
-              targetArea: extKey,
-              forceRead: false,
-              forceReadSeconds: 5,
-              maxViews: 1,
-              viewCount: 0
-            }));
-            allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
+            try {
+              const parsed = JSON.parse(text);
+              const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
+                ...a,
+                targetArea: extKey,
+                // Ensure defaults for extension announcements
+                forceRead: a.forceRead ?? false,
+                forceReadSeconds: a.forceReadSeconds ?? 5,
+                maxViews: a.maxViews ?? 1,
+                viewCount: a.viewCount ?? 0
+              }));
+              allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
+            } catch (e) {
+              console.error(`Erro ao processar arquivo ${file.name}:`, e);
+            }
           }
         }
         setAvailableExtensions(detectedExtensions.sort());
@@ -165,9 +168,11 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         groups[area].push(a);
       });
 
-      // Save regular announcements
-      const regularAreas = ['all', 'instagram', 'zapmro'];
-      const regularAnnouncements = data.filter(a => !a.targetArea || regularAreas.includes(a.targetArea));
+      // Save regular announcements (all, instagram, zapmro or any non-extension)
+      const regularAnnouncements = data.filter(a => {
+        const area = a.targetArea || 'all';
+        return !area.startsWith('extension');
+      });
       
       const regularPayload: AnnouncementsData = {
         announcements: regularAnnouncements,
