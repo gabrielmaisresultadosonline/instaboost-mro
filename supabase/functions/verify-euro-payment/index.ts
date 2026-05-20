@@ -63,7 +63,8 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    const body = await req.json();
+    const rawBody = await req.text();
+    const body = JSON.parse(rawBody || "{}");
     const { session_id, order_id, manual_approve } = body;
     
     log("Request body received", { session_id, order_id, manual_approve });
