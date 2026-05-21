@@ -844,12 +844,12 @@ const InstagramNovaPlan = () => {
               <X className="w-5 h-5" />
             </button>
             <div className="text-center mb-6">
-              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "solo" ? "bg-emerald-500/20" : selectedPlan === "pro" ? "bg-amber-500/20" : "bg-purple-500/20"}`}>
-                <Sparkles className={`w-7 h-7 ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`} />
+              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "pro" ? "bg-amber-500/20" : "bg-purple-500/20"}`}>
+                <Sparkles className={`w-7 h-7 ${selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`} />
               </div>
               <h3 className="text-xl font-bold text-white">Plano {PLANS[selectedPlan].name}</h3>
               <p className="text-2xl font-bold mt-2">
-                <span className={selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}>
+                <span className={selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}>
                   R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
                 </span>
               </p>
@@ -871,9 +871,9 @@ const InstagramNovaPlan = () => {
               </div>
               <div className="bg-zinc-800/30 rounded-lg p-3 space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-zinc-400">Usuário/Senha</span><span className="text-white font-mono">{username || "---"}</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "solo" ? "text-emerald-400" : selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`}>R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}</span></div>
               </div>
-              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "solo" ? "bg-emerald-500 hover:bg-emerald-600 text-black" : selectedPlan === "pro" ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black" : "bg-purple-600 hover:bg-purple-700 text-white"}`}
+              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "pro" ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black" : "bg-purple-600 hover:bg-purple-700 text-white"}`}
                 disabled={loading || !!usernameError || !username || !email || !phone}>
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Gerando...</>) : (<><CreditCard className="mr-2 h-5 w-5" />Ir para Pagamento</>)}
               </Button>
