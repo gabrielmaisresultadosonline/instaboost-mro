@@ -531,7 +531,7 @@ const InstagramNovaPlan = () => {
 
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-black mb-4">
-              ESCOLHA SEU <span className="text-amber-400">PLANO</span>
+              ESCOLHA SEU <span className="text-amber-400">PLANO ANUAL</span>
             </h2>
             <p className="text-gray-400 text-lg mb-6">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
