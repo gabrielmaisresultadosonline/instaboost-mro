@@ -59,7 +59,6 @@ interface SalesSettings {
 }
 
 const PLANS = {
-  solo: { name: "Solo", price: 197.00, days: 365, installment: "20,21", accounts: 1 },
   pro: { name: "Pro", price: 397.00, days: 365, installment: "41", accounts: 4 },
   agencia: { name: "Agência", price: 997.00, days: 365, installment: "102", accounts: 10 },
 };
@@ -82,7 +81,7 @@ const InstagramNovaPlan = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"solo" | "pro" | "agencia">("pro");
+  const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -257,7 +256,7 @@ const InstagramNovaPlan = () => {
   const affiliateBonus = "Cadastro Afiliado - Comissão de R$97 Por venda";
 
   const faqs = [
-    { q: "Quais são os planos disponíveis hoje?", a: "Oferecemos três opções de planos anuais: Plano Solo (1 conta fixa), Plano Pro (4 contas fixas + 5 testes mensais) e Plano Agência (10 contas fixas + 10 testes mensais). Todos os planos são assinaturas anuais que garantem acesso total à ferramenta e suporte especializado." },
+    { q: "Quais são os planos disponíveis hoje?", a: "Oferecemos duas opções de planos anuais: Plano Pro (4 contas fixas + 5 testes mensais) e Plano Agência (10 contas fixas + 10 testes mensais). Ambos os planos são assinaturas anuais que garantem acesso total à ferramenta e suporte especializado." },
     { q: "O que é a automação de Direct (DM) em massa?", a: "É uma funcionalidade exclusiva da V7+ Plus que permite enviar mensagens automáticas no Direct para novos seguidores, seus seguidores atuais e até seguidores de qualquer outra página — tudo com copy otimizada pelo Corretor de IA exclusivo MRO." },
     { q: "O que são os Filtros Inteligentes (Público Quente)?", a: "São filtros avançados de segmentação que identificam pessoas que já demonstraram interesse no seu nicho — como quem curtiu posts, comentou ou segue perfis concorrentes. Isso garante mais precisão, mais respostas e mais conversões." },
     { q: "Isso em massa não gera bloqueio?", a: "Não. Nosso sistema simula um humano com tela ligada, interações espaçadas e pausas naturais. Você deixa rodando por 7 a 8 horas diárias com segurança. O algoritmo entende como uso real, evitando bloqueios." },
@@ -310,7 +309,7 @@ const InstagramNovaPlan = () => {
             <div className="relative mt-4 mb-4 flex flex-col items-center">
               <div className="inline-flex items-center gap-2 bg-amber-400 border border-amber-500 rounded-full px-6 py-2 mb-1 shadow-[0_0_15px_rgba(251,191,36,0.4)]">
                 <div className="w-2 h-2 rounded-full bg-black animate-pulse" />
-                <span className="text-black font-bold text-base tracking-wide uppercase">Planos a partir de R$20</span>
+                <span className="text-black font-bold text-base tracking-wide uppercase">Planos a partir de R$41</span>
               </div>
             </div>
 
@@ -346,7 +345,7 @@ const InstagramNovaPlan = () => {
         <div className="max-w-4xl mx-auto px-4">
           <h3 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
             COMECE A ESCALAR SEU PERFIL <br className="hidden md:block" />
-            <span className="text-emerald-400">POR APENAS R$20</span>
+            <span className="text-emerald-400">POR APENAS R$41</span>
           </h3>
           <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
           <Button 
@@ -475,7 +474,7 @@ const InstagramNovaPlan = () => {
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
               <div className="text-left">
                 <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest mb-1">Início imediato</p>
-                <p className="text-white text-2xl font-black">A partir de <span className="text-emerald-400">R$20/mês</span></p>
+                <p className="text-white text-2xl font-black">A partir de <span className="text-emerald-400">R$41/mês</span></p>
               </div>
               <div className="h-12 w-px bg-zinc-800 hidden md:block" />
               <Button 
@@ -539,46 +538,7 @@ const InstagramNovaPlan = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Plano Solo */}
-            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl transition-all hover:scale-[1.02] ${selectedPlan === 'solo' ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-zinc-700'}`}>
-              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Solo</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">1 conta simultânea</p>
-              <div className="text-center mb-6">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-[1000] text-emerald-400">R$20</span>
-                </div>
-                <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$197</span></p>
-              </div>
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-gray-300">1 conta fixa</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-gray-300">Ferramenta Completa</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-gray-300">Suporte Prioritário</span>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => { 
-                    trackLead('Instagram MRO - Plano Solo'); 
-                    setSelectedPlan("solo"); 
-                    setShowCheckoutModal(true); 
-                    trackInitiateCheckout('Plano Solo', 197.00);
-                  }}>
-                  <ShoppingCart className="w-6 h-6" />
-                  ESCOLHER SOLO
-                </Button>
-                <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
-              </div>
-            </div>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
 
             {/* Plano Pro */}
             <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl transition-all hover:scale-[1.05] z-10 ${selectedPlan === 'pro' ? 'border-amber-500 ring-4 ring-amber-500/20' : 'border-amber-500/50'}`}>
