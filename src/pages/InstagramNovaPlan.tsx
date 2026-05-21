@@ -530,6 +530,9 @@ const InstagramNovaPlan = () => {
         <div className="max-w-6xl mx-auto relative z-10">
 
           <div className="text-center mb-12">
+            <span className="inline-block bg-amber-500/10 text-amber-500 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
+              Planos Anuais
+            </span>
             <h2 className="text-3xl md:text-5xl font-black mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO ANUAL</span>
             </h2>
