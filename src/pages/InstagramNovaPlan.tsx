@@ -548,23 +548,35 @@ const InstagramNovaPlan = () => {
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">⭐ RECOMENDADO</div>
               </div>
-              <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Pro</h3>
+              <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Pro Anual</h3>
               <p className="text-gray-400 text-center mb-6 text-sm">4 contas simultâneas</p>
               <div className="text-center mb-6">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$41</span>
+                <div className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$397</div>
+                <div className="flex items-baseline justify-center gap-1 mt-2">
+                  <span className="text-lg sm:text-xl text-gray-400">ou 12x de</span>
+                  <span className="text-3xl font-bold text-white">R$41</span>
                 </div>
-                <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$397</span></p>
               </div>
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">4 contas fixas</span>
+                  <span className="text-gray-300 font-bold">Ferramenta completa</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="text-gray-300">5 testes mensais</span>
+                  <span className="text-gray-300 font-bold">Inteligência artificial</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-300 font-bold">Suporte</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-300 font-bold">Grupo Vip no WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-300">4 contas fixas</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -588,27 +600,39 @@ const InstagramNovaPlan = () => {
 
             {/* Plano Agência */}
             <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl transition-all hover:scale-[1.02] ${selectedPlan === 'agencia' ? 'border-purple-500 ring-2 ring-purple-500/20' : 'border-zinc-700'}`}>
-              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Agência</h3>
+              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Agência Anual</h3>
               <p className="text-gray-400 text-center mb-6 text-sm">10 contas simultâneas</p>
               <div className="text-center mb-6">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-[1000] text-purple-400">R$102</span>
+                <div className="text-5xl sm:text-6xl font-[1000] text-purple-400">R$997</div>
+                <div className="flex items-baseline justify-center gap-1 mt-2">
+                  <span className="text-lg sm:text-xl text-gray-400">em até 12x de</span>
+                  <span className="text-3xl font-bold text-white">R$102</span>
                 </div>
-                <p className="text-gray-500 mt-2 text-xs">ou à vista PIX <span className="text-white font-bold">R$997</span></p>
               </div>
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">10 contas fixas</span>
+                  <span className="text-gray-300 font-bold">Ferramenta completa</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300">10 testes mensais</span>
+                  <span className="text-gray-300 font-bold">Inteligência artificial</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300">Suporte Agência VIP</span>
+                  <span className="text-gray-300 font-bold">Suporte</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-300 font-bold">Grupo Vip no WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-300">10 contas fixas</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-300">Vídeos Passo a Passo</span>
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2">
