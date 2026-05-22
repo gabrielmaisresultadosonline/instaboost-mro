@@ -278,6 +278,8 @@ const App = () => (
           <Route path="/whitelabel" element={<WhiteLabel />} />
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
           <Route path="/atualizar" element={<Atualizar />} />
+          <Route path="/atualizarver" element={<Atualizar />} />
+
 
 
           
