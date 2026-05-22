@@ -2363,10 +2363,9 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
   // Vendas filtradas por afiliado (para aba de vendas)
   const getFilteredAffiliateSales = () => {
     if (selectedAffiliateFilter === "all") {
-      // Todas as vendas de afiliados JÁ ENVIADAS
+      // Todas as vendas de afiliados
       return orders.filter(o => 
         (o.status === "paid" || o.status === "completed") && 
-        o.whatsapp_sent && // Apenas os já enviados
         affiliates.some(a => o.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`))
       );
     } else {
