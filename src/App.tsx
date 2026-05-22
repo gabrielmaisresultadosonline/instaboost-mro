@@ -117,6 +117,8 @@ import WhiteLabel from "./pages/WhiteLabel";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import InstagramNovaPlan from "./pages/InstagramNovaPlan";
 import ThorCreativeDashboard from "./pages/ThorCreative/Dashboard";
+import Atualizar from "./pages/Atualizar";
+
 
 const queryClient = new QueryClient();
 
@@ -275,6 +277,10 @@ const App = () => (
           <Route path="/parceirooficial" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
+          <Route path="/atualizar" element={<Atualizar />} />
+          <Route path="/atualizarver" element={<Atualizar />} />
+
+
 
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
