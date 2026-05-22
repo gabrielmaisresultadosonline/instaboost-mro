@@ -60,10 +60,11 @@ const Atualizar = () => {
                 <div className="space-y-2">
                   <h3 className="text-lg font-bold text-white uppercase tracking-wide">Acesse sua área de membros</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Clique no botão abaixo para ir direto para o portal de downloads oficial da ferramenta.
+                    Acesse a sua área de membros no link abaixo e vá até a seção <strong>"Instalar e Utilizar"</strong>.
                   </p>
                 </div>
               </div>
+
 
               {/* Step 2 */}
               <div className="flex gap-6 items-start p-6 rounded-2xl bg-white/5 border border-white/5 transition-all hover:bg-white/[0.07]">
@@ -71,12 +72,13 @@ const Atualizar = () => {
                   2
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Remova a versão antiga</h3>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-wide">Baixe e Instale a nova versão</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Basta remover a versão antiga, apagar os arquivos e instalar a nova versão novamente seguindo o tutorial da área de membros.
+                    Basta remover a versão antiga, apagar os arquivos antigos, baixar a nova versão e repetir o processo de instalação novamente.
                   </p>
                 </div>
               </div>
+
 
               {/* Step 3 */}
               <div className="flex gap-6 items-start p-6 rounded-2xl bg-white/5 border border-white/5 transition-all hover:bg-white/[0.07]">
