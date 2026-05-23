@@ -30,6 +30,7 @@ import DescontoAlunosRendaExtrasss from "./pages/DescontoAlunosRendaExtrasss";
 import DescontoAlunosRendaExtrass from "./pages/DescontoAlunosRendaExtrass";
 import InstagramPromoMila from "./pages/InstagramPromoMila";
 import AffiliatePromoPage from "./pages/AffiliatePromoPage";
+import AffiliateRendaExtraPromo from "./pages/AffiliateRendaExtraPromo";
 import AffiliateResumo from "./pages/AffiliateResumo";
 import PromoSwitcher from "./pages/PromoSwitcher";
 import Membro from "./pages/Membro";
@@ -181,6 +182,7 @@ const App = () => (
           <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
           <Route path="/promo/:affiliateId" element={<PromoSwitcher />} />
           <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
+          <Route path="/promorendaextra/:affiliateId" element={<AffiliateRendaExtraPromo />} />
           <Route path="/parceiro/:slug" element={<PartnerDashboard />} />
           <Route path="/dash/:slug" element={<PartnerDashboard />} />
           <Route path="/resumo-parceiro/:slug" element={<PartnerDashboard />} />

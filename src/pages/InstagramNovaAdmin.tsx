@@ -3030,23 +3030,45 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   
                   {/* Link do afiliado */}
                   {affiliateId && (
-                    <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                      <label className="text-sm text-green-400 mb-1 block font-medium">Link do Afiliado:</label>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 text-sm text-green-300 bg-zinc-800 px-3 py-2 rounded font-mono">
-                          {window.location.origin}/promo/{affiliateId.toLowerCase()}
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/promo/${affiliateId.toLowerCase()}`);
-                            toast.success("Link copiado!");
-                          }}
-                          className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <label className="text-sm text-green-400 mb-1 block font-medium">Link Página MRO:</label>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-sm text-green-300 bg-zinc-800 px-3 py-2 rounded font-mono">
+                            {window.location.origin}/promo/{affiliateId.toLowerCase()}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${window.location.origin}/promo/${affiliateId.toLowerCase()}`);
+                              toast.success("Link copiado!");
+                            }}
+                            className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <label className="text-sm text-blue-400 mb-1 block font-medium">Link Renda Extra:</label>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-sm text-blue-300 bg-zinc-800 px-3 py-2 rounded font-mono">
+                            {window.location.origin}/promorendaextra/{affiliateId.toLowerCase()}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${window.location.origin}/promorendaextra/${affiliateId.toLowerCase()}`);
+                              toast.success("Link copiado!");
+                            }}
+                            className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
