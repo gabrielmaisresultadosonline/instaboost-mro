@@ -208,7 +208,7 @@ const AffiliateRendaExtraPromo = () => {
         return;
       }
 
-      trackInitiateCheckout(`MRO Renda Extra Affiliate ${affiliate?.name}`, 300);
+      trackInitiateCheckout(`MRO Renda Extra Affiliate ${affiliate?.name}`, 397);
       window.location.href = checkData.payment_link;
       
       setEmail("");
