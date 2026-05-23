@@ -2194,11 +2194,13 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
   // Copiar link com senha
   const copyTrackingLink = (affId: string) => {
-    const link = getTrackingLink(affId);
-    const password = affiliatePasswords[affId] || affId.toLowerCase();
-    const text = `📊 Link de Acompanhamento MRO\n\n🔗 Link: ${link}\n🔐 Senha: ${password}`;
+    const text = `Links de Afiliado MRO:
+Link MRO: ${window.location.origin}/promo/${affId.toLowerCase()}
+Link Renda Extra: ${window.location.origin}/promorendaextra/${affId.toLowerCase()}
+Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`;
+
     navigator.clipboard.writeText(text);
-    toast.success("Link e senha copiados!");
+    toast.success("Links copiados!");
   };
 
   // Enviar email de boas-vindas para afiliado
@@ -2212,6 +2214,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     
     try {
       const affiliateLink = `${window.location.origin}/promo/${affiliate.id.toLowerCase()}`;
+      const rendaExtraLink = `${window.location.origin}/promorendaextra/${affiliate.id.toLowerCase()}`;
       
       const { data, error } = await supabase.functions.invoke("affiliate-commission-email", {
         body: {
@@ -2223,6 +2226,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           promoEndDate: affiliate.promoEndDate,
           promoEndTime: affiliate.promoEndTime,
           affiliateLink,
+          rendaExtraLink,
           isLifetime: affiliate.isLifetime || false
         }
       });
