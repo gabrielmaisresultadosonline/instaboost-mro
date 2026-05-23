@@ -178,7 +178,7 @@ const AffiliateRendaExtraPromo = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$300 (conforme DescontoAlunosRendaExtras)
+      // Preço promocional: R$397
       // Adicionando prefixo do afiliado no email
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
@@ -186,7 +186,7 @@ const AffiliateRendaExtraPromo = () => {
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
-          amount: 300,
+          amount: 397,
           checkUserExists: true
         }
       });
@@ -208,7 +208,7 @@ const AffiliateRendaExtraPromo = () => {
         return;
       }
 
-      trackInitiateCheckout(`MRO Renda Extra Affiliate ${affiliate?.name}`, 300);
+      trackInitiateCheckout(`MRO Renda Extra Affiliate ${affiliate?.name}`, 397);
       window.location.href = checkData.payment_link;
       
       setEmail("");
@@ -447,11 +447,11 @@ const AffiliateRendaExtraPromo = () => {
             <h3 className="text-2xl sm:text-3xl font-black mb-6">MRO RENDA EXTRA</h3>
             
             <div className="mb-8">
-               <span className="text-gray-400 line-through text-lg sm:text-xl block mb-2">De R$ 997,00</span>
+               <span className="text-gray-400 line-through text-lg sm:text-xl block mb-2">De R$ 497,00</span>
                <div className="flex flex-col items-center justify-center">
                   <span className="text-white text-lg font-bold mb-1">Apenas</span>
-                  <span className="text-5xl sm:text-7xl font-black text-green-400">R$ 300</span>
-                  <span className="text-green-400/70 font-bold mt-1">À VISTA OU PARCELADO</span>
+                  <span className="text-5xl sm:text-7xl font-black text-green-400">R$ 397</span>
+                  <span className="text-green-400/70 font-bold mt-1 uppercase">Ou em até 12x de R$41</span>
                </div>
             </div>
 
