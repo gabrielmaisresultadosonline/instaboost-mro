@@ -178,7 +178,7 @@ const AffiliateRendaExtraPromo = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$300 (conforme DescontoAlunosRendaExtras)
+      // Preço promocional: R$397
       // Adicionando prefixo do afiliado no email
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
@@ -186,7 +186,7 @@ const AffiliateRendaExtraPromo = () => {
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
-          amount: 300,
+          amount: 397,
           checkUserExists: true
         }
       });
