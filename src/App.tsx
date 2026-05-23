@@ -183,6 +183,7 @@ const App = () => (
           <Route path="/promo/:affiliateId" element={<PromoSwitcher />} />
           <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
           <Route path="/promorendaextra/:affiliateId" element={<AffiliateRendaExtraPromo />} />
+          <Route path="/promorendaextra" element={<AffiliateRendaExtraPromo />} />
           <Route path="/parceiro/:slug" element={<PartnerDashboard />} />
           <Route path="/dash/:slug" element={<PartnerDashboard />} />
           <Route path="/resumo-parceiro/:slug" element={<PartnerDashboard />} />
