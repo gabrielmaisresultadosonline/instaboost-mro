@@ -91,7 +91,12 @@ const AffiliateRendaExtraPromo = () => {
   // Carregar dados do afiliado
   useEffect(() => {
     const loadAffiliate = async () => {
-      if (!affiliateId) {
+      let id = affiliateId;
+      if (!id && window.location.hash) {
+        id = window.location.hash.replace('#', '');
+      }
+
+      if (!id) {
         setNotFound(true);
         setLoadingAffiliate(false);
         return;
@@ -110,7 +115,7 @@ const AffiliateRendaExtraPromo = () => {
 
         const text = await data.text();
         const affiliates: AffiliateData[] = JSON.parse(text);
-        const found = affiliates.find(a => a.id.toLowerCase() === affiliateId.toLowerCase());
+        const found = affiliates.find(a => a.id.toLowerCase() === id?.toLowerCase());
 
         if (!found || !found.active) {
           setNotFound(true);
