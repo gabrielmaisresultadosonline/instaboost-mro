@@ -327,6 +327,26 @@ const DescontoAlunosRendaExtra = () => {
     "Suporte prioritário"
   ];
 
+  if (loadingAffiliate) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-green-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound || !affiliate) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="text-center">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Promoção não encontrada</h1>
+          <p className="text-gray-400">Esta promoção pode ter expirado ou não existe.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
