@@ -225,7 +225,7 @@ const DescontoAlunosRendaExtra = () => {
 
   // Track PageView on mount and fetch settings
   useEffect(() => {
-    trackPageView('Sales Page - Instagram MRO Promo 2');
+    trackPageView(`Sales Page - Renda Extra Affiliate ${affiliate?.name || ''}`);
     
     const fetchSettings = async () => {
       try {
