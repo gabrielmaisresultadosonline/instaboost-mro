@@ -56,7 +56,60 @@ import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 
+interface AffiliateData {
+  id: string;
+  name: string;
+  email: string;
+  photoUrl: string;
+  active: boolean;
+}
+
 const DescontoAlunosRendaExtra = () => {
+  const { affiliateId } = useParams<{ affiliateId: string }>();
+  const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
+  const [loadingAffiliate, setLoadingAffiliate] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  // Carregar dados do afiliado
+  useEffect(() => {
+    const loadAffiliate = async () => {
+      let id = affiliateId;
+      if (!id && window.location.hash) {
+        id = window.location.hash.replace('#', '');
+      }
+      if (!id) {
+        setNotFound(true);
+        setLoadingAffiliate(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase.storage
+          .from('user-data')
+          .download('admin/affiliates.json');
+        if (error || !data) {
+          setNotFound(true);
+          setLoadingAffiliate(false);
+          return;
+        }
+        const text = await data.text();
+        const affiliates: AffiliateData[] = JSON.parse(text);
+        const found = affiliates.find(a => a.id.toLowerCase() === id?.toLowerCase());
+        if (!found || !found.active) {
+          setNotFound(true);
+          setLoadingAffiliate(false);
+          return;
+        }
+        setAffiliate(found);
+      } catch (e) {
+        console.error("Error:", e);
+        setNotFound(true);
+      } finally {
+        setLoadingAffiliate(false);
+      }
+    };
+    loadAffiliate();
+  }, [affiliateId]);
+
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
