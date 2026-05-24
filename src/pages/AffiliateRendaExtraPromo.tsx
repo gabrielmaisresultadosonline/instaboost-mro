@@ -423,6 +423,27 @@ const DescontoAlunosRendaExtra = () => {
       <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           
+          {/* Affiliate Info */}
+          <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+            {affiliate.photoUrl ? (
+              <img 
+                src={affiliate.photoUrl} 
+                alt={affiliate.name} 
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 border-4 border-green-500 shadow-lg shadow-green-500/30 object-cover"
+              />
+            ) : (
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 border-4 border-green-500 shadow-lg shadow-green-500/30 bg-green-900 flex items-center justify-center">
+                <User className="w-12 h-12 text-white" />
+              </div>
+            )}
+            <div className="inline-block bg-green-500/10 border border-green-500/30 rounded-full px-6 py-2">
+              <p className="text-green-400 text-sm sm:text-base font-bold">
+                🎁 Promoção especial — {affiliate.name}
+              </p>
+            </div>
+          </div>
+
+          
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
           {/* Animated Title */}
