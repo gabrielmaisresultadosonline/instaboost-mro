@@ -145,34 +145,38 @@ serve(async (req) => {
           html,
         });
         sent++;
-        await supabase.from("empresas_email_logs").insert({
-          lead_id: lead.id,
-          email_to: lead.email,
-          email_type: campaign,
-          subject,
-          status: "sent",
-        });
+        if (lead.id) {
+          await supabase.from("empresas_email_logs").insert({
+            lead_id: lead.id,
+            email_to: lead.email,
+            email_type: campaign,
+            subject,
+            status: "sent",
+          });
+        }
       } catch (e) {
         failed++;
-        await supabase.from("empresas_email_logs").insert({
-          lead_id: lead.id,
-          email_to: lead.email,
-          email_type: campaign,
-          subject,
-          status: "failed",
-          error_message: e instanceof Error ? e.message : String(e),
-        });
+        if (lead.id) {
+          await supabase.from("empresas_email_logs").insert({
+            lead_id: lead.id,
+            email_to: lead.email,
+            email_type: campaign,
+            subject,
+            status: "failed",
+            error_message: e instanceof Error ? e.message : String(e),
+          });
+        }
       }
       // small anti-spam delay
-      await new Promise((r) => setTimeout(r, 600));
+      if (targets.length > 1) await new Promise((r) => setTimeout(r, 600));
     }
 
     try { await client.close(); } catch (_) { /* noop */ }
 
-    log("done", { campaign, sent, failed, total: targets.length });
+    log("done", { campaign, sent, failed, total: targets.length, test: isTest });
 
     return new Response(
-      JSON.stringify({ success: true, total: targets.length, sent, failed }),
+      JSON.stringify({ success: true, total: targets.length, sent, failed, test: isTest }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
