@@ -530,30 +530,29 @@ const InstagramPromo30Dias = () => {
 
           <div className="text-center mb-12">
             <span className="inline-block bg-amber-500/10 text-amber-500 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
-              Planos Anuais
+              Promoção Especial
             </span>
             <h2 className="text-3xl md:text-5xl font-black mb-4">
-              ESCOLHA SEU <span className="text-amber-400">PLANO ANUAL</span>
+              TESTE POR <span className="text-amber-400">30 DIAS</span>
             </h2>
             <p className="text-gray-400 text-lg mb-6">
-              A solução definitiva para crescer no Instagram sem gastar com anúncios
+              Apenas <span className="text-amber-400 font-black">R$97</span> — teste a ferramenta completa por 30 dias em até 4 contas
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-
-            {/* Plano Pro */}
-            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl transition-all hover:scale-[1.05] z-10 ${selectedPlan === 'pro' ? 'border-amber-500 ring-4 ring-amber-500/20' : 'border-amber-500/50'}`}>
+          <div className="grid grid-cols-1 gap-6 max-w-xl mx-auto">
+            {/* Plano Teste 30 Dias */}
+            <div className="relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl transition-all hover:scale-[1.03] z-10 border-amber-500 ring-4 ring-amber-500/20">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">⭐ RECOMENDADO</div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">⭐ TESTE 30 DIAS</div>
               </div>
-              <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Pro Anual</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">4 contas simultâneas</p>
+              <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Teste 30 Dias</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">4 contas por 30 dias</p>
               <div className="text-center mb-6">
-                <div className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$397</div>
+                <div className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$97</div>
                 <div className="flex items-baseline justify-center gap-1 mt-2">
-                  <span className="text-lg sm:text-xl text-gray-400">ou 12x de</span>
-                  <span className="text-3xl font-bold text-white">R$41</span>
+                  <span className="text-lg sm:text-xl text-gray-400">teste por</span>
+                  <span className="text-3xl font-bold text-white">30 dias</span>
                 </div>
               </div>
               <div className="space-y-2 mb-6">
@@ -567,7 +566,7 @@ const InstagramPromo30Dias = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">Suporte</span>
+                  <span className="text-gray-300 font-bold">Suporte básico</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -575,7 +574,7 @@ const InstagramPromo30Dias = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="text-gray-300">4 contas fixas</span>
+                  <span className="text-gray-300">4 contas por 30 dias</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -584,68 +583,16 @@ const InstagramPromo30Dias = () => {
               </div>
               <div className="flex flex-col items-center gap-2">
                 <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => { 
-                    trackLead('Instagram MRO - Plano Pro'); 
-                    setSelectedPlan("pro"); 
-                    setShowCheckoutModal(true); 
-                    trackInitiateCheckout('Plano Pro', 397.00);
+                  onClick={() => {
+                    trackLead('Instagram MRO - Teste 30 Dias');
+                    setSelectedPlan("teste");
+                    setShowCheckoutModal(true);
+                    trackInitiateCheckout('Teste 30 Dias', 97.00);
                   }}>
                   <ShoppingCart className="w-6 h-6" />
-                  ESCOLHER PRO
+                  TESTAR AGORA POR R$97
                 </Button>
-                <span className="text-amber-500/70 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
-              </div>
-            </div>
-
-            {/* Plano Agência */}
-            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl transition-all hover:scale-[1.02] ${selectedPlan === 'agencia' ? 'border-purple-500 ring-2 ring-purple-500/20' : 'border-zinc-700'}`}>
-              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Agência Anual</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">10 contas simultâneas</p>
-              <div className="text-center mb-6">
-                <div className="text-5xl sm:text-6xl font-[1000] text-purple-400">R$997</div>
-                <div className="flex items-baseline justify-center gap-1 mt-2">
-                  <span className="text-lg sm:text-xl text-gray-400">em até 12x de</span>
-                  <span className="text-3xl font-bold text-white">R$102</span>
-                </div>
-              </div>
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">Ferramenta completa</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">Inteligência artificial</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">Suporte</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300 font-bold">Grupo Vip no WhatsApp</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300">10 contas fixas</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="text-gray-300">Vídeos Passo a Passo</span>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => { 
-                    trackLead('Instagram MRO - Plano Agência'); 
-                    setSelectedPlan("agencia"); 
-                    setShowCheckoutModal(true); 
-                    trackInitiateCheckout('Plano Agência', 997.00);
-                  }}>
-                  <ShoppingCart className="w-6 h-6" />
-                  ESCOLHER AGÊNCIA
-                </Button>
-                <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
+                <span className="text-amber-500/70 font-bold text-xs uppercase tracking-widest">( 30 DIAS )</span>
               </div>
             </div>
           </div>
