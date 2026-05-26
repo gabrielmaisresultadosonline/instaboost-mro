@@ -47,13 +47,11 @@ const PERFIS: { key: PerfilKey; label: string; icon: typeof Building2 }[] = [
   { key: "iniciando_digital", label: "Estou começando no digital", icon: Smartphone },
 ];
 
-type DispositivoKey = "celular" | "computador" | "notebook" | "nenhum";
+type DispositivoKey = "sim" | "nao";
 
 const DISPOSITIVOS: { key: DispositivoKey; label: string; icon: typeof Smartphone }[] = [
-  { key: "celular", label: "Celular", icon: Smartphone },
-  { key: "computador", label: "Computador de mesa", icon: Monitor },
-  { key: "notebook", label: "Notebook", icon: Laptop },
-  { key: "nenhum", label: "Nenhum", icon: Ban },
+  { key: "sim", label: "Sim, tenho", icon: Laptop },
+  { key: "nao", label: "Não tenho", icon: Ban },
 ];
 
 const Empresas = () => {
