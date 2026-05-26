@@ -56,6 +56,14 @@ const perfilOf = (l: Lead) => {
   return { label: "—", icon: Users };
 };
 
+const DISPOSITIVO_LABELS: Record<string, string> = {
+  celular: "Celular",
+  computador: "Computador",
+  notebook: "Notebook",
+  nenhum: "Nenhum",
+};
+const dispositivoLabel = (v: string | null) => (v && DISPOSITIVO_LABELS[v]) || "—";
+
 const EmpresasAdmin = () => {
   const [auth, setAuth] = useState(false);
   const [email, setEmail] = useState("");
