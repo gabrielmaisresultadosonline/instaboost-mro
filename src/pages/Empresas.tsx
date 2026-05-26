@@ -91,13 +91,6 @@ const Empresas = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-      <Helmet>
-        <title>Grupo Grátis MRO Empresas - Cresça no Digital</title>
-        <meta
-          name="description"
-          content="Participe grátis do grupo especial MRO para empresas, pequenos negócios, vendedores e prestadores de serviço."
-        />
-      </Helmet>
 
       {/* HERO */}
       <section className="px-6 pt-12 pb-10 max-w-4xl mx-auto text-center">
