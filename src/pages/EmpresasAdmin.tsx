@@ -248,6 +248,12 @@ const EmpresasAdmin = () => {
               <Users className="w-4 h-4 mr-2" /> Leads ({total})
             </TabsTrigger>
             <TabsTrigger
+              value="campanhas"
+              className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
+            >
+              <Megaphone className="w-4 h-4 mr-2" /> Campanhas
+            </TabsTrigger>
+            <TabsTrigger
               value="settings"
               className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
             >
