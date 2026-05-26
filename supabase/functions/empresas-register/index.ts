@@ -44,7 +44,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const {
-      nome_completo, whatsapp, email,
+      nome_completo, whatsapp, email, dispositivo,
       tem_empresa, vende_produto, presta_servico,
       iniciando_digital, marca_e_passa,
     } = body ?? {};
@@ -58,10 +58,14 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const allowedDisp = ["celular", "computador", "notebook", "nenhum"];
+    const dispClean = typeof dispositivo === "string" && allowedDisp.includes(dispositivo) ? dispositivo : null;
+
     const { data: lead, error: insErr } = await supabase
       .from("empresas_leads")
       .insert({
         nome_completo, whatsapp, email,
+        dispositivo: dispClean,
         tem_empresa, vende_produto, presta_servico,
         iniciando_digital, marca_e_passa,
       })
