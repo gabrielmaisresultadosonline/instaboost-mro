@@ -59,11 +59,10 @@ interface SalesSettings {
 }
 
 const PLANS = {
-  pro: { name: "Pro", price: 397.00, days: 365, installment: "41", accounts: 4 },
-  agencia: { name: "Agência", price: 997.00, days: 365, installment: "102", accounts: 10 },
+  teste: { name: "Teste 30 Dias", price: 97.00, days: 30, installment: "97", accounts: 4 },
 };
 
-const InstagramNovaPlan = () => {
+const InstagramPromo30Dias = () => {
   const [searchParams] = useSearchParams();
   const partnerSlug = searchParams.get('p');
   const [partner, setPartner] = useState<{id: string, name: string} | null>(null);
@@ -81,7 +80,7 @@ const InstagramNovaPlan = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
+  const [selectedPlan, setSelectedPlan] = useState<"teste">("teste");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -916,4 +915,4 @@ const InstagramNovaPlan = () => {
   );
 };
 
-export default InstagramNovaPlan;
+export default InstagramPromo30Dias;
