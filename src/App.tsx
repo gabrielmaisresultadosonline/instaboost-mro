@@ -70,6 +70,8 @@ import TesteGratisUsuario from "./pages/TesteGratisUsuario";
 import RendaExtra from "./pages/RendaExtra";
 import RendaExtra2 from "./pages/RendaExtra2";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
+import Empresas from "./pages/Empresas";
+import EmpresasAdmin from "./pages/EmpresasAdmin";
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
@@ -224,6 +226,8 @@ const App = () => (
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           <Route path="/rendaextra" element={<RendaExtra />} />
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
+          <Route path="/empresas" element={<Empresas />} />
+          <Route path="/empresas/admin" element={<EmpresasAdmin />} />
           <Route path="/rendaextra2" element={<RendaExtra2 />} />
           <Route path="/rendaextra2/admin" element={<RendaExtraAdmin />} />
           <Route path="/rendaext" element={<RendaExt />} />
