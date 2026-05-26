@@ -80,7 +80,7 @@ const InstagramPromo30Dias = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"teste">("teste");
+  const [selectedPlan, setSelectedPlan] = useState<"trial">("trial");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
