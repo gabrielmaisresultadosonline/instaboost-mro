@@ -393,6 +393,9 @@ const EmpresasAdmin = () => {
                               {p.label}
                             </span>
                           </td>
+                          <td className="px-5 py-3 text-xs text-gray-300 whitespace-nowrap">
+                            {dispositivoLabel(l.dispositivo)}
+                          </td>
                           <td className="px-5 py-3">
                             {l.email_confirmacao_enviado ? (
                               <span className="inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold">
