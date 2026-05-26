@@ -278,3 +278,6 @@ verify_jwt = false
 verify_jwt = false
 [functions.whatsapp-page]
 verify_jwt = false
+
+[functions.empresas-register]
+verify_jwt = false
