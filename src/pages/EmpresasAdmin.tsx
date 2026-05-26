@@ -38,6 +38,15 @@ interface Settings {
   page_subtitle: string | null;
 }
 
+interface EmailLog {
+  id: string;
+  email_to: string;
+  email_type: string;
+  subject: string | null;
+  status: string | null;
+  created_at: string;
+}
+
 const perfilOf = (l: Lead) => {
   if (l.tem_empresa === "sim") return { label: "Tem empresa", icon: Building2 };
   if (l.vende_produto === "sim") return { label: "Vende produto", icon: Package };
