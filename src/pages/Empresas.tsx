@@ -94,6 +94,7 @@ const Empresas = () => {
     if (step === 1 && !validEmail(form.email)) return toast.error("Email inválido");
     if (step === 2 && form.whatsapp.replace(/\D/g, "").length < 10)
       return toast.error("WhatsApp inválido");
+    if (step === 3 && !form.dispositivo) return toast.error("Escolha uma opção");
     setStep((s) => s + 1);
   };
 
