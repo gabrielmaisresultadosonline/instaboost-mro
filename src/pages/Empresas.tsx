@@ -106,6 +106,7 @@ const Empresas = () => {
       if (error || !data?.success)
         throw new Error(data?.error || error?.message || "Erro ao cadastrar");
       setDone({ link: data.whatsappGroupLink || settings?.whatsapp_group_link || "" });
+      try { trackLead("Empresas - Grupo WhatsApp"); } catch {}
       toast.success("Cadastro confirmado!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao cadastrar");
