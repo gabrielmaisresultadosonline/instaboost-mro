@@ -346,6 +346,43 @@ const Empresas = () => {
                   {step === 3 && (
                     <StepBlock
                       eyebrow={`Passo 4 de ${totalSteps}`}
+                      title="Qual aparelho você tem hoje?"
+                      subtitle="Selecione o que você usa para trabalhar."
+                    >
+                      <div className="space-y-2">
+                        {DISPOSITIVOS.map(({ key, label, icon: Icon }) => {
+                          const active = form.dispositivo === key;
+                          return (
+                            <button
+                              type="button"
+                              key={key}
+                              onClick={() => setForm({ ...form, dispositivo: key })}
+                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
+                                active
+                                  ? "bg-yellow-400/10 border-yellow-400 text-white"
+                                  : "bg-white/[0.02] border-white/10 text-gray-300 hover:border-white/30"
+                              }`}
+                            >
+                              <div
+                                className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                                  active ? "bg-yellow-400 text-black" : "bg-white/5 text-yellow-400"
+                                }`}
+                              >
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <span className="text-sm font-medium flex-1">{label}</span>
+                              {active && (
+                                <CheckCircle2 className="w-5 h-5 text-yellow-400 shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </StepBlock>
+                  )}
+                  {step === 4 && (
+                    <StepBlock
+                      eyebrow={`Passo 5 de ${totalSteps}`}
                       title="O que melhor te descreve?"
                       subtitle="Escolha apenas uma opção."
                     >
