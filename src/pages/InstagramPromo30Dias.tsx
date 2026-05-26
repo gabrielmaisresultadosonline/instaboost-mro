@@ -313,7 +313,7 @@ const InstagramPromo30Dias = () => {
             </div>
 
             <p className="relative mt-2 text-sm md:text-base text-gray-400">
-              Instale em seu notebook, macbook ou computador de mesa! coloque apenas R$97
+              Instale em seu notebook, macbook ou computador de mesa!
             </p>
           </div>
 
