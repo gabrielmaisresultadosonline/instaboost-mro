@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Save, Users, Link as LinkIcon, RefreshCw } from "lucide-react";
+import {
+  Lock, Save, Users, Link as LinkIcon, RefreshCw, Mail,
+  Search, Building2, Package, Wrench, Smartphone, CheckCircle2, XCircle, TrendingUp,
+} from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
@@ -35,6 +37,14 @@ interface Settings {
   page_subtitle: string | null;
 }
 
+const perfilOf = (l: Lead) => {
+  if (l.tem_empresa === "sim") return { label: "Tem empresa", icon: Building2 };
+  if (l.vende_produto === "sim") return { label: "Vende produto", icon: Package };
+  if (l.presta_servico === "sim") return { label: "Presta serviço", icon: Wrench };
+  if (l.iniciando_digital === "sim") return { label: "Iniciando digital", icon: Smartphone };
+  return { label: "—", icon: Users };
+};
+
 const EmpresasAdmin = () => {
   const [auth, setAuth] = useState(false);
   const [email, setEmail] = useState("");
@@ -43,6 +53,7 @@ const EmpresasAdmin = () => {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     if (sessionStorage.getItem("empresas-admin-auth") === "1") setAuth(true);
@@ -53,25 +64,26 @@ const EmpresasAdmin = () => {
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       sessionStorage.setItem("empresas-admin-auth", "1");
       setAuth(true);
-    } else {
-      toast.error("Credenciais inválidas");
-    }
+    } else toast.error("Credenciais inválidas");
+  };
+
+  const logout = () => {
+    sessionStorage.removeItem("empresas-admin-auth");
+    setAuth(false);
   };
 
   const loadAll = async () => {
     setLoading(true);
     const [{ data: s }, { data: l }] = await Promise.all([
       supabase.from("empresas_settings").select("*").limit(1).maybeSingle(),
-      supabase.from("empresas_leads").select("*").order("created_at", { ascending: false }).limit(500),
+      supabase.from("empresas_leads").select("*").order("created_at", { ascending: false }).limit(1000),
     ]);
     setSettings(s as Settings | null);
     setLeads((l as Lead[]) || []);
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (auth) loadAll();
-  }, [auth]);
+  useEffect(() => { if (auth) loadAll(); }, [auth]);
 
   const saveSettings = async () => {
     if (!settings) return;
@@ -89,141 +101,308 @@ const EmpresasAdmin = () => {
 
   if (!auth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5" /> Admin Empresas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={login} className="space-y-4">
-              <div>
-                <Label>Email</Label>
-                <Input value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div>
-                <Label>Senha</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-              <Button type="submit" className="w-full">Entrar</Button>
-            </form>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6">
+        <div className="pointer-events-none fixed inset-0 opacity-30">
+          <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-yellow-400/10 rounded-full blur-3xl" />
+        </div>
+        <div className="relative z-10 w-full max-w-md bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-yellow-400 text-black flex items-center justify-center">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="font-extrabold text-xl">Admin · Empresas</h1>
+              <p className="text-xs text-gray-500">Painel de gestão</p>
+            </div>
+          </div>
+          <form onSubmit={login} className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Email</Label>
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11 bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Senha</Label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-11 bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+              />
+            </div>
+            <Button type="submit" className="w-full h-11 bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+              Entrar
+            </Button>
+          </form>
+        </div>
       </div>
     );
   }
 
+  const total = leads.length;
+  const enviados = leads.filter((l) => l.email_confirmacao_enviado).length;
+  const hoje = leads.filter((l) => {
+    const d = new Date(l.created_at);
+    const n = new Date();
+    return d.toDateString() === n.toDateString();
+  }).length;
+  const comEmpresa = leads.filter((l) => l.tem_empresa === "sim").length;
+
+  const filtered = leads.filter((l) => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return (
+      l.nome_completo?.toLowerCase().includes(q) ||
+      l.email?.toLowerCase().includes(q) ||
+      l.whatsapp?.toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Admin · /empresas</h1>
-          <Button variant="outline" onClick={loadAll} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Atualizar
-          </Button>
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="pointer-events-none fixed inset-0 opacity-20">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-yellow-400/10 rounded-full blur-3xl" />
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur sticky top-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Logo size="sm" />
+            <div className="hidden sm:block">
+              <div className="text-[11px] uppercase tracking-widest text-yellow-400 font-semibold">Admin</div>
+              <div className="font-bold text-sm">/empresas</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadAll}
+              disabled={loading}
+              className="text-gray-300 hover:text-white hover:bg-white/5"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Atualizar</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              className="text-gray-400 hover:text-white hover:bg-white/5"
+            >
+              Sair
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <StatCard label="Total de leads" value={total} icon={Users} accent />
+          <StatCard label="Cadastros hoje" value={hoje} icon={TrendingUp} />
+          <StatCard label="Emails enviados" value={enviados} icon={Mail} />
+          <StatCard label="Com empresa" value={comEmpresa} icon={Building2} />
         </div>
 
-        <Tabs defaultValue="settings">
-          <TabsList>
-            <TabsTrigger value="settings"><LinkIcon className="w-4 h-4 mr-2" />Configurações</TabsTrigger>
-            <TabsTrigger value="leads"><Users className="w-4 h-4 mr-2" />Leads ({leads.length})</TabsTrigger>
+        <Tabs defaultValue="leads">
+          <TabsList className="bg-[#111] border border-white/10 p-1 h-auto">
+            <TabsTrigger
+              value="leads"
+              className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
+            >
+              <Users className="w-4 h-4 mr-2" /> Leads ({total})
+            </TabsTrigger>
+            <TabsTrigger
+              value="settings"
+              className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
+            >
+              <LinkIcon className="w-4 h-4 mr-2" /> Configurações
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader><CardTitle>Configurações da página</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {settings && (
-                  <>
-                    <div>
-                      <Label>Link do Grupo do WhatsApp</Label>
-                      <Input
-                        value={settings.whatsapp_group_link}
-                        onChange={(e) => setSettings({ ...settings, whatsapp_group_link: e.target.value })}
-                        placeholder="https://chat.whatsapp.com/..."
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Este link será enviado por email para todos os cadastrados.
-                      </p>
-                    </div>
-                    <div>
-                      <Label>Título da página</Label>
-                      <Input
-                        value={settings.page_title || ""}
-                        onChange={(e) => setSettings({ ...settings, page_title: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>Subtítulo</Label>
-                      <Textarea
-                        value={settings.page_subtitle || ""}
-                        onChange={(e) => setSettings({ ...settings, page_subtitle: e.target.value })}
-                        rows={3}
-                      />
-                    </div>
-                    <Button onClick={saveSettings}>
-                      <Save className="w-4 h-4 mr-2" /> Salvar
-                    </Button>
-                  </>
+          <TabsContent value="leads" className="mt-5">
+            <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
+              <div className="p-4 md:p-5 border-b border-white/10 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <h2 className="font-bold text-lg">Cadastros do grupo</h2>
+                <div className="relative w-full sm:w-72">
+                  <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Input
+                    placeholder="Buscar nome, email ou WhatsApp..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="pl-9 bg-white/[0.03] border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+                  />
+                </div>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden divide-y divide-white/5">
+                {filtered.length === 0 && (
+                  <div className="p-8 text-center text-gray-500 text-sm">Nenhum cadastro.</div>
                 )}
-              </CardContent>
-            </Card>
+                {filtered.map((l) => {
+                  const p = perfilOf(l);
+                  return (
+                    <div key={l.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-semibold truncate">{l.nome_completo}</div>
+                          <div className="text-xs text-gray-400 truncate">{l.email}</div>
+                          <div className="text-xs text-gray-500">{l.whatsapp}</div>
+                        </div>
+                        {l.email_confirmacao_enviado ? (
+                          <Badge className="bg-yellow-400 text-black hover:bg-yellow-400 shrink-0">Enviado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-white/20 text-gray-300 shrink-0">Pendente</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <p.icon className="w-3.5 h-3.5 text-yellow-400" />
+                        {p.label}
+                        <span className="ml-auto text-gray-600">
+                          {new Date(l.created_at).toLocaleString("pt-BR")}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-white/[0.02] text-gray-400 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="text-left px-5 py-3 font-semibold">Data</th>
+                      <th className="text-left px-5 py-3 font-semibold">Nome</th>
+                      <th className="text-left px-5 py-3 font-semibold">Email</th>
+                      <th className="text-left px-5 py-3 font-semibold">WhatsApp</th>
+                      <th className="text-left px-5 py-3 font-semibold">Perfil</th>
+                      <th className="text-left px-5 py-3 font-semibold">Email enviado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filtered.map((l) => {
+                      const p = perfilOf(l);
+                      return (
+                        <tr key={l.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-5 py-3 text-xs text-gray-400 whitespace-nowrap">
+                            {new Date(l.created_at).toLocaleString("pt-BR")}
+                          </td>
+                          <td className="px-5 py-3 font-medium">{l.nome_completo}</td>
+                          <td className="px-5 py-3 text-gray-300">{l.email}</td>
+                          <td className="px-5 py-3 text-gray-300 whitespace-nowrap">{l.whatsapp}</td>
+                          <td className="px-5 py-3">
+                            <span className="inline-flex items-center gap-1.5 text-xs bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">
+                              <p.icon className="w-3 h-3 text-yellow-400" />
+                              {p.label}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3">
+                            {l.email_confirmacao_enviado ? (
+                              <span className="inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold">
+                                <CheckCircle2 className="w-4 h-4" /> Enviado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-gray-500 text-xs">
+                                <XCircle className="w-4 h-4" /> Pendente
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="text-center text-gray-500 py-12 text-sm">
+                          Nenhum cadastro encontrado.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="leads">
-            <Card>
-              <CardHeader><CardTitle>Cadastros do grupo</CardTitle></CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>WhatsApp</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Empresa</TableHead>
-                        <TableHead>Produto</TableHead>
-                        <TableHead>Serviço</TableHead>
-                        <TableHead>Iniciando</TableHead>
-                        <TableHead>Marca/Passa</TableHead>
-                        <TableHead>Email</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {leads.map((l) => (
-                        <TableRow key={l.id}>
-                          <TableCell className="text-xs">{new Date(l.created_at).toLocaleString("pt-BR")}</TableCell>
-                          <TableCell>{l.nome_completo}</TableCell>
-                          <TableCell>{l.whatsapp}</TableCell>
-                          <TableCell>{l.email}</TableCell>
-                          <TableCell>{l.tem_empresa || "-"}</TableCell>
-                          <TableCell>{l.vende_produto || "-"}</TableCell>
-                          <TableCell>{l.presta_servico || "-"}</TableCell>
-                          <TableCell>{l.iniciando_digital || "-"}</TableCell>
-                          <TableCell>{l.marca_e_passa || "-"}</TableCell>
-                          <TableCell>
-                            {l.email_confirmacao_enviado
-                              ? <Badge className="bg-emerald-600">Enviado</Badge>
-                              : <Badge variant="secondary">Pendente</Badge>}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {leads.length === 0 && (
-                        <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum cadastro ainda.</TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+          <TabsContent value="settings" className="mt-5">
+            <div className="bg-[#111] border border-white/10 rounded-2xl p-5 md:p-7 max-w-2xl">
+              <h2 className="font-bold text-lg mb-1">Configurações da página</h2>
+              <p className="text-sm text-gray-400 mb-6">
+                Estas configurações afetam a página <span className="text-yellow-400 font-semibold">/empresas</span>.
+              </p>
+
+              {settings && (
+                <div className="space-y-5">
+                  <div>
+                    <Label className="text-gray-300">Link do Grupo do WhatsApp</Label>
+                    <Input
+                      value={settings.whatsapp_group_link}
+                      onChange={(e) => setSettings({ ...settings, whatsapp_group_link: e.target.value })}
+                      placeholder="https://chat.whatsapp.com/..."
+                      className="h-11 bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      Este link é enviado por email para todos os cadastrados.
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-300">Título da página</Label>
+                    <Input
+                      value={settings.page_title || ""}
+                      onChange={(e) => setSettings({ ...settings, page_title: e.target.value })}
+                      className="h-11 bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-gray-300">Subtítulo</Label>
+                    <Textarea
+                      value={settings.page_subtitle || ""}
+                      onChange={(e) => setSettings({ ...settings, page_subtitle: e.target.value })}
+                      rows={3}
+                      className="bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+                    />
+                  </div>
+                  <Button onClick={saveSettings} className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+                    <Save className="w-4 h-4 mr-2" /> Salvar configurações
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 };
+
+const StatCard = ({
+  label, value, icon: Icon, accent,
+}: { label: string; value: number; icon: typeof Users; accent?: boolean }) => (
+  <div
+    className={`rounded-2xl border p-4 md:p-5 ${
+      accent
+        ? "bg-gradient-to-br from-yellow-400/10 to-transparent border-yellow-400/30"
+        : "bg-[#111] border-white/10"
+    }`}
+  >
+    <div className="flex items-center justify-between mb-3">
+      <span className="text-xs uppercase tracking-wider text-gray-400 font-semibold">{label}</span>
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+        accent ? "bg-yellow-400 text-black" : "bg-white/5 text-yellow-400"
+      }`}>
+        <Icon className="w-4 h-4" />
+      </div>
+    </div>
+    <div className="text-2xl md:text-3xl font-extrabold">{value}</div>
+  </div>
+);
 
 export default EmpresasAdmin;
