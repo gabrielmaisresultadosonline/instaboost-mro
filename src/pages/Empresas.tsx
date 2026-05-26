@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import { trackLead } from "@/lib/facebookTracking";
 
 interface Settings {
   whatsapp_group_link: string;
