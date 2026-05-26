@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Lock, Save, Users, Link as LinkIcon, RefreshCw, Mail,
   Search, Building2, Package, Wrench, Smartphone, CheckCircle2, XCircle, TrendingUp,
-  Send, Megaphone,
+  Send, Megaphone, History,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
@@ -38,6 +38,15 @@ interface Settings {
   page_subtitle: string | null;
 }
 
+interface EmailLog {
+  id: string;
+  email_to: string;
+  email_type: string;
+  subject: string | null;
+  status: string | null;
+  created_at: string;
+}
+
 const perfilOf = (l: Lead) => {
   if (l.tem_empresa === "sim") return { label: "Tem empresa", icon: Building2 };
   if (l.vende_produto === "sim") return { label: "Vende produto", icon: Package };
@@ -53,6 +62,7 @@ const EmpresasAdmin = () => {
 
   const [settings, setSettings] = useState<Settings | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [logs, setLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -75,12 +85,14 @@ const EmpresasAdmin = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    const [{ data: s }, { data: l }] = await Promise.all([
+    const [{ data: s }, { data: l }, { data: lg }] = await Promise.all([
       supabase.from("empresas_settings").select("*").limit(1).maybeSingle(),
       supabase.from("empresas_leads").select("*").order("created_at", { ascending: false }).limit(1000),
+      supabase.from("empresas_email_logs").select("id,email_to,email_type,subject,status,created_at").order("created_at", { ascending: false }).limit(500),
     ]);
     setSettings(s as Settings | null);
     setLeads((l as Lead[]) || []);
+    setLogs((lg as EmailLog[]) || []);
     setLoading(false);
   };
 
@@ -275,6 +287,12 @@ const EmpresasAdmin = () => {
               className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
             >
               <Megaphone className="w-4 h-4 mr-2" /> Campanhas
+            </TabsTrigger>
+            <TabsTrigger
+              value="historico"
+              className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
+            >
+              <History className="w-4 h-4 mr-2" /> Histórico ({logs.length})
             </TabsTrigger>
             <TabsTrigger
               value="settings"
@@ -472,6 +490,113 @@ const EmpresasAdmin = () => {
               Os emails usam o <span className="text-yellow-400 font-semibold">link do grupo</span> salvo na aba Configurações. Envio com pequeno delay anti-spam.
             </p>
           </TabsContent>
+
+          <TabsContent value="historico" className="mt-5">
+            <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
+              <div className="p-4 md:p-5 border-b border-white/10 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-bold text-lg">Histórico de envios</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Todos os emails enviados (confirmação, link corrigido e remarketing).</p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 px-3 py-1 rounded-full font-semibold">
+                    Confirmação: {logs.filter(x => x.email_type === "confirmacao").length}
+                  </span>
+                  <span className="bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 px-3 py-1 rounded-full font-semibold">
+                    Link Corrigido: {logs.filter(x => x.email_type === "link_corrigido").length}
+                  </span>
+                  <span className="bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 px-3 py-1 rounded-full font-semibold">
+                    Remarketing: {logs.filter(x => x.email_type === "remarketing").length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Mobile */}
+              <div className="md:hidden divide-y divide-white/5">
+                {logs.length === 0 && (
+                  <div className="p-8 text-center text-gray-500 text-sm">Nenhum envio registrado ainda.</div>
+                )}
+                {logs.map((log) => (
+                  <div key={log.id} className="p-4 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-medium text-sm truncate">{log.email_to}</div>
+                      {log.status === "sent" ? (
+                        <Badge className="bg-yellow-400 text-black hover:bg-yellow-400 shrink-0 text-[10px]">Enviado</Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-red-400/40 text-red-400 shrink-0 text-[10px]">Falhou</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="bg-white/5 border border-white/10 text-gray-300 px-2 py-0.5 rounded-full">
+                        {log.email_type === "confirmacao" ? "Confirmação"
+                          : log.email_type === "link_corrigido" ? "Link Corrigido"
+                          : log.email_type === "remarketing" ? "Remarketing"
+                          : log.email_type}
+                      </span>
+                      <span className="text-gray-500 ml-auto">{new Date(log.created_at).toLocaleString("pt-BR")}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-white/[0.02] text-gray-400 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="text-left px-5 py-3 font-semibold">Data</th>
+                      <th className="text-left px-5 py-3 font-semibold">Email</th>
+                      <th className="text-left px-5 py-3 font-semibold">Tipo</th>
+                      <th className="text-left px-5 py-3 font-semibold">Assunto</th>
+                      <th className="text-left px-5 py-3 font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {logs.map((log) => {
+                      const tipo = log.email_type === "confirmacao" ? "Confirmação"
+                        : log.email_type === "link_corrigido" ? "Link Corrigido"
+                        : log.email_type === "remarketing" ? "Remarketing"
+                        : log.email_type;
+                      return (
+                        <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-5 py-3 text-xs text-gray-400 whitespace-nowrap">
+                            {new Date(log.created_at).toLocaleString("pt-BR")}
+                          </td>
+                          <td className="px-5 py-3 text-gray-200">{log.email_to}</td>
+                          <td className="px-5 py-3">
+                            <span className="inline-flex items-center gap-1.5 text-xs bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 px-2.5 py-1 rounded-full font-semibold">
+                              {tipo}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-gray-400 text-xs max-w-md truncate">{log.subject || "—"}</td>
+                          <td className="px-5 py-3">
+                            {log.status === "sent" ? (
+                              <span className="inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold">
+                                <CheckCircle2 className="w-4 h-4" /> Enviado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-red-400 text-xs font-semibold">
+                                <XCircle className="w-4 h-4" /> Falhou
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {logs.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="text-center text-gray-500 py-12 text-sm">
+                          Nenhum envio registrado ainda.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+
+
 
           <TabsContent value="settings" className="mt-5">
             <div className="bg-[#111] border border-white/10 rounded-2xl p-5 md:p-7 max-w-2xl">
