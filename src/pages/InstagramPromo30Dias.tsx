@@ -308,7 +308,7 @@ const InstagramPromo30Dias = () => {
             <div className="relative mt-4 mb-4 flex flex-col items-center">
               <div className="inline-flex items-center gap-2 bg-amber-400 border border-amber-500 rounded-full px-6 py-2 mb-1 shadow-[0_0_15px_rgba(251,191,36,0.4)]">
                 <div className="w-2 h-2 rounded-full bg-black animate-pulse" />
-                <span className="text-black font-bold text-base tracking-wide uppercase">Teste 30 Dias por R$97</span>
+                <span className="text-black font-bold text-base tracking-wide uppercase">Apenas R$97</span>
               </div>
             </div>
 
