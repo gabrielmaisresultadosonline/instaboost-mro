@@ -59,7 +59,7 @@ interface SalesSettings {
 }
 
 const PLANS = {
-  teste: { name: "Teste 30 Dias", price: 97.00, days: 30, installment: "97", accounts: 4 },
+  trial: { name: "Teste 30 Dias", price: 97.00, days: 30, installment: "97", accounts: 4 },
 };
 
 const InstagramPromo30Dias = () => {
