@@ -85,12 +85,14 @@ const EmpresasAdmin = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    const [{ data: s }, { data: l }] = await Promise.all([
+    const [{ data: s }, { data: l }, { data: lg }] = await Promise.all([
       supabase.from("empresas_settings").select("*").limit(1).maybeSingle(),
       supabase.from("empresas_leads").select("*").order("created_at", { ascending: false }).limit(1000),
+      supabase.from("empresas_email_logs").select("id,email_to,email_type,subject,status,created_at").order("created_at", { ascending: false }).limit(500),
     ]);
     setSettings(s as Settings | null);
     setLeads((l as Lead[]) || []);
+    setLogs((lg as EmailLog[]) || []);
     setLoading(false);
   };
 
