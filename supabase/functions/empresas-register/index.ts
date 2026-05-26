@@ -58,7 +58,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowedDisp = ["celular", "computador", "notebook", "nenhum"];
+    const allowedDisp = ["sim", "nao", "celular", "computador", "notebook", "nenhum"];
     const dispClean = typeof dispositivo === "string" && allowedDisp.includes(dispositivo) ? dispositivo : null;
 
     const { data: lead, error: insErr } = await supabase
