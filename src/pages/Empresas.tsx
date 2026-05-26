@@ -130,7 +130,7 @@ const Empresas = () => {
     }
   };
 
-  const totalSteps = 4;
+  const totalSteps = 5;
   const progress = done ? 100 : ((step + (submitting ? 0.5 : 0)) / totalSteps) * 100;
 
   return (
