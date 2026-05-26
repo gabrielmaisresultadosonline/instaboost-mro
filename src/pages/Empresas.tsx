@@ -83,7 +83,7 @@ const Empresas = () => {
   const openModal = () => {
     setStep(0);
     setDone(null);
-    setForm({ nome_completo: "", email: "", whatsapp: "", perfil: "" });
+    setForm({ nome_completo: "", email: "", whatsapp: "", dispositivo: "", perfil: "" });
     setOpen(true);
   };
 
