@@ -101,23 +101,46 @@ const EmpresasAdmin = () => {
   };
 
   const [sending, setSending] = useState<string | null>(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [testName, setTestName] = useState("Teste");
 
-  const sendBroadcast = async (campaign: "link_corrigido" | "remarketing", onlyFailed: boolean) => {
+  const sendBroadcast = async (
+    campaign: "link_corrigido" | "remarketing",
+    mode: "all" | "pending" | "test",
+  ) => {
     const label = campaign === "link_corrigido" ? "Link Corrigido" : "Remarketing";
-    const audience = onlyFailed ? "apenas pendentes" : "TODOS os leads";
-    if (!confirm(`Enviar campanha "${label}" para ${audience}?`)) return;
-    setSending(campaign);
-    const t = toast.loading(`Enviando ${label}... (pode demorar)`);
+
+    const payload: Record<string, unknown> = { campaign };
+    let audienceMsg = "";
+    if (mode === "test") {
+      const e = testEmail.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+        toast.error("Informe um email de teste válido");
+        return;
+      }
+      payload.test_email = e;
+      payload.test_name = testName.trim() || "Teste";
+      audienceMsg = `email de teste ${e}`;
+    } else {
+      payload.only_failed = mode === "pending";
+      audienceMsg = mode === "pending" ? "apenas pendentes" : "TODOS os leads";
+    }
+
+    if (!confirm(`Enviar campanha "${label}" para ${audienceMsg}?`)) return;
+    setSending(`${campaign}-${mode}`);
+    const t = toast.loading(`Enviando ${label}...`);
     try {
       const { data, error } = await supabase.functions.invoke("empresas-broadcast", {
-        body: { campaign, only_failed: onlyFailed },
+        body: payload,
       });
       toast.dismiss(t);
       if (error || !(data as any)?.success) {
         toast.error((data as any)?.error || error?.message || "Falha ao enviar");
       } else {
-        toast.success(`Enviados: ${(data as any).sent} · Falhas: ${(data as any).failed} · Total: ${(data as any).total}`);
-        loadAll();
+        const d = data as any;
+        if (d.test) toast.success(`Email de teste enviado! (${d.sent} sucesso, ${d.failed} falha)`);
+        else toast.success(`Enviados: ${d.sent} · Falhas: ${d.failed} · Total: ${d.total}`);
+        if (mode !== "test") loadAll();
       }
     } catch (e) {
       toast.dismiss(t);
