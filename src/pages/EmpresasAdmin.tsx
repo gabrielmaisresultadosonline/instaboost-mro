@@ -372,6 +372,7 @@ const EmpresasAdmin = () => {
                       <th className="text-left px-5 py-3 font-semibold">Email</th>
                       <th className="text-left px-5 py-3 font-semibold">WhatsApp</th>
                       <th className="text-left px-5 py-3 font-semibold">Perfil</th>
+                      <th className="text-left px-5 py-3 font-semibold">Dispositivo</th>
                       <th className="text-left px-5 py-3 font-semibold">Email enviado</th>
                     </tr>
                   </thead>
