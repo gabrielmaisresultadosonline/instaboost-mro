@@ -366,6 +366,37 @@ const EmpresasAdmin = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="campanhas" className="mt-5">
+            <div className="grid md:grid-cols-2 gap-4">
+              <CampaignCard
+                title="Link Corrigido"
+                description='Reenvio com mensagem: "Link corrigido MRO! Acesse o GRUPO." Ideal para quem teve problema com o link anterior.'
+                badge="Reenvio"
+                accent
+                disabled={sending !== null}
+                loading={sending === "link_corrigido"}
+                onSendAll={() => sendBroadcast("link_corrigido", false)}
+                onSendPending={() => sendBroadcast("link_corrigido", true)}
+                pendingCount={leads.filter((l) => !l.email_confirmacao_enviado).length}
+                totalCount={leads.length}
+              />
+              <CampaignCard
+                title="Remarketing"
+                description='Mensagem: "Não deixe de participar do nosso grupo." Com o link atual salvo nas configurações.'
+                badge="Remarketing"
+                disabled={sending !== null}
+                loading={sending === "remarketing"}
+                onSendAll={() => sendBroadcast("remarketing", false)}
+                onSendPending={() => sendBroadcast("remarketing", true)}
+                pendingCount={leads.filter((l) => !l.email_confirmacao_enviado).length}
+                totalCount={leads.length}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-4">
+              Os emails usam o <span className="text-yellow-400 font-semibold">link do grupo</span> salvo na aba Configurações. Envio com pequeno delay anti-spam.
+            </p>
+          </TabsContent>
+
           <TabsContent value="settings" className="mt-5">
             <div className="bg-[#111] border border-white/10 rounded-2xl p-5 md:p-7 max-w-2xl">
               <h2 className="font-bold text-lg mb-1">Configurações da página</h2>
