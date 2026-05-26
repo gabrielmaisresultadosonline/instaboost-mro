@@ -518,7 +518,7 @@ const InstagramPromo30Dias = () => {
                 <Button size="lg" className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
                   onClick={() => {
                     trackLead('Instagram MRO - Teste 30 Dias');
-                    setSelectedPlan("teste");
+                    setSelectedPlan("trial");
                     setShowCheckoutModal(true);
                     trackInitiateCheckout('Teste 30 Dias', 97.00);
                   }}>
