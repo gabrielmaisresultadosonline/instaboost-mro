@@ -470,4 +470,59 @@ const StatCard = ({
   </div>
 );
 
+const CampaignCard = ({
+  title, description, badge, accent, disabled, loading,
+  onSendAll, onSendPending, pendingCount, totalCount,
+}: {
+  title: string;
+  description: string;
+  badge: string;
+  accent?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  onSendAll: () => void;
+  onSendPending: () => void;
+  pendingCount: number;
+  totalCount: number;
+}) => (
+  <div
+    className={`rounded-2xl border p-5 md:p-6 ${
+      accent
+        ? "bg-gradient-to-br from-yellow-400/10 to-transparent border-yellow-400/30"
+        : "bg-[#111] border-white/10"
+    }`}
+  >
+    <div className="flex items-start justify-between mb-3 gap-3">
+      <div>
+        <h3 className="font-extrabold text-lg">{title}</h3>
+        <Badge className="bg-yellow-400/15 text-yellow-400 border border-yellow-400/30 hover:bg-yellow-400/15 mt-1.5">
+          {badge}
+        </Badge>
+      </div>
+      <div className="w-10 h-10 rounded-lg bg-yellow-400 text-black flex items-center justify-center shrink-0">
+        <Send className="w-5 h-5" />
+      </div>
+    </div>
+    <p className="text-sm text-gray-400 mb-5 leading-relaxed">{description}</p>
+    <div className="flex flex-col sm:flex-row gap-2">
+      <Button
+        onClick={onSendAll}
+        disabled={disabled || totalCount === 0}
+        className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold disabled:opacity-50"
+      >
+        {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+        Enviar p/ todos ({totalCount})
+      </Button>
+      <Button
+        onClick={onSendPending}
+        disabled={disabled || pendingCount === 0}
+        variant="outline"
+        className="flex-1 border-white/15 bg-white/[0.02] text-white hover:bg-white/5 hover:text-white disabled:opacity-50"
+      >
+        Só pendentes ({pendingCount})
+      </Button>
+    </div>
+  </div>
+);
+
 export default EmpresasAdmin;
