@@ -344,8 +344,8 @@ const Empresas = () => {
                   {step === 3 && (
                     <StepBlock
                       eyebrow={`Passo 4 de ${totalSteps}`}
-                      title="Qual aparelho você tem hoje?"
-                      subtitle="Selecione o que você usa para trabalhar."
+                      title="Você tem computador, notebook ou MacBook hoje?"
+                      subtitle="Selecione uma opção para avançar."
                     >
                       <div className="space-y-2">
                         {DISPOSITIVOS.map(({ key, label, icon: Icon }) => {
