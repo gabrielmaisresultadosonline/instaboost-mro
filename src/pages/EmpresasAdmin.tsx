@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Lock, Save, Users, Link as LinkIcon, RefreshCw, Mail,
   Search, Building2, Package, Wrench, Smartphone, CheckCircle2, XCircle, TrendingUp,
+  Send, Megaphone,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
@@ -97,6 +98,33 @@ const EmpresasAdmin = () => {
       .eq("id", settings.id);
     if (error) toast.error(error.message);
     else toast.success("Configurações salvas");
+  };
+
+  const [sending, setSending] = useState<string | null>(null);
+
+  const sendBroadcast = async (campaign: "link_corrigido" | "remarketing", onlyFailed: boolean) => {
+    const label = campaign === "link_corrigido" ? "Link Corrigido" : "Remarketing";
+    const audience = onlyFailed ? "apenas pendentes" : "TODOS os leads";
+    if (!confirm(`Enviar campanha "${label}" para ${audience}?`)) return;
+    setSending(campaign);
+    const t = toast.loading(`Enviando ${label}... (pode demorar)`);
+    try {
+      const { data, error } = await supabase.functions.invoke("empresas-broadcast", {
+        body: { campaign, only_failed: onlyFailed },
+      });
+      toast.dismiss(t);
+      if (error || !(data as any)?.success) {
+        toast.error((data as any)?.error || error?.message || "Falha ao enviar");
+      } else {
+        toast.success(`Enviados: ${(data as any).sent} · Falhas: ${(data as any).failed} · Total: ${(data as any).total}`);
+        loadAll();
+      }
+    } catch (e) {
+      toast.dismiss(t);
+      toast.error(e instanceof Error ? e.message : "Erro inesperado");
+    } finally {
+      setSending(null);
+    }
   };
 
   if (!auth) {
