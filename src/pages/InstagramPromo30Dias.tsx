@@ -265,6 +265,26 @@ const InstagramPromo30Dias = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Expired Discount Popup */}
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div className="relative max-w-md w-full bg-gradient-to-br from-gray-900 to-black border border-red-500/40 rounded-2xl p-8 text-center shadow-2xl">
+          <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+            <X className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-2xl font-black mb-3 text-white">Esse desconto acabou</h2>
+          <p className="text-gray-300 mb-6">
+            A promoção desta página foi encerrada. Acesse a página principal para conhecer as ofertas disponíveis.
+          </p>
+          <a
+            href="/instagram-nova"
+            className="inline-flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-bold text-black hover:opacity-90 transition-opacity"
+          >
+            Acessar página principal
+            <ArrowRight className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
