@@ -74,7 +74,7 @@ serve(async (req) => {
     );
 
     const body = await req.json().catch(() => ({}));
-    const { campaign, only_failed } = body ?? {};
+    const { campaign, only_failed, test_email, test_name } = body ?? {};
 
     if (!["link_corrigido", "remarketing"].includes(campaign)) {
       return new Response(JSON.stringify({ success: false, error: "Campanha inválida" }),
@@ -91,22 +91,36 @@ serve(async (req) => {
       .from("empresas_settings").select("whatsapp_group_link").limit(1).maybeSingle();
     const groupLink = settings?.whatsapp_group_link || "https://chat.whatsapp.com/example";
 
-    let query = supabase.from("empresas_leads").select("id, nome_completo, email").limit(5000);
-    if (only_failed) query = query.eq("email_confirmacao_enviado", false);
-    const { data: leads, error: lerr } = await query;
-    if (lerr) {
-      return new Response(JSON.stringify({ success: false, error: lerr.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    let targets: Array<{ id: string | null; nome_completo: string; email: string }> = [];
+    const isTest = typeof test_email === "string" && test_email.trim().length > 0;
 
-    // Dedupe by email
-    const seen = new Set<string>();
-    const targets = (leads || []).filter((l) => {
-      const e = (l.email || "").toLowerCase().trim();
-      if (!e || seen.has(e)) return false;
-      seen.add(e);
-      return true;
-    });
+    if (isTest) {
+      const emailTrim = String(test_email).trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) {
+        return new Response(JSON.stringify({ success: false, error: "Email de teste inválido" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      targets = [{
+        id: null,
+        nome_completo: String(test_name || "Teste").slice(0, 100),
+        email: emailTrim,
+      }];
+    } else {
+      let query = supabase.from("empresas_leads").select("id, nome_completo, email").limit(5000);
+      if (only_failed) query = query.eq("email_confirmacao_enviado", false);
+      const { data: leads, error: lerr } = await query;
+      if (lerr) {
+        return new Response(JSON.stringify({ success: false, error: lerr.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const seen = new Set<string>();
+      targets = (leads || []).filter((l) => {
+        const e = (l.email || "").toLowerCase().trim();
+        if (!e || seen.has(e)) return false;
+        seen.add(e);
+        return true;
+      });
+    }
 
     const client = new SMTPClient({
       connection: {
