@@ -41,7 +41,6 @@ const PERFIS: { key: PerfilKey; label: string; icon: typeof Building2 }[] = [
   { key: "vende_produto", label: "Vendo produto", icon: Package },
   { key: "presta_servico", label: "Presto serviço", icon: Wrench },
   { key: "iniciando_digital", label: "Estou começando no digital", icon: Smartphone },
-  { key: "marca_e_passa", label: "Marca e passa (recorrente)", icon: Repeat },
 ];
 
 const Empresas = () => {
