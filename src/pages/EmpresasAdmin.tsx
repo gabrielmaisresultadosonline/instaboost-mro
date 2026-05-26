@@ -347,9 +347,12 @@ const EmpresasAdmin = () => {
                           <Badge variant="outline" className="border-white/20 text-gray-300 shrink-0">Pendente</Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <div className="flex items-center gap-2 text-xs text-gray-400 flex-wrap">
                         <p.icon className="w-3.5 h-3.5 text-yellow-400" />
                         {p.label}
+                        <span className="inline-flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                          📱 {dispositivoLabel(l.dispositivo)}
+                        </span>
                         <span className="ml-auto text-gray-600">
                           {new Date(l.created_at).toLocaleString("pt-BR")}
                         </span>
