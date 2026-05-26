@@ -1476,6 +1476,122 @@ export type Database = {
         }
         Relationships: []
       }
+      empresas_email_logs: {
+        Row: {
+          created_at: string
+          email_to: string
+          email_type: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresas_email_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresas_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_confirmacao_enviado: boolean | null
+          email_confirmacao_enviado_at: string | null
+          id: string
+          iniciando_digital: string | null
+          marca_e_passa: string | null
+          nome_completo: string
+          presta_servico: string | null
+          tem_empresa: string | null
+          updated_at: string
+          vende_produto: string | null
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          id?: string
+          iniciando_digital?: string | null
+          marca_e_passa?: string | null
+          nome_completo: string
+          presta_servico?: string | null
+          tem_empresa?: string | null
+          updated_at?: string
+          vende_produto?: string | null
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          id?: string
+          iniciando_digital?: string | null
+          marca_e_passa?: string | null
+          nome_completo?: string
+          presta_servico?: string | null
+          tem_empresa?: string | null
+          updated_at?: string
+          vende_produto?: string | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      empresas_settings: {
+        Row: {
+          created_at: string
+          id: string
+          page_subtitle: string | null
+          page_title: string | null
+          updated_at: string
+          whatsapp_group_link: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_subtitle?: string | null
+          page_title?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_subtitle?: string | null
+          page_title?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string
+        }
+        Relationships: []
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
