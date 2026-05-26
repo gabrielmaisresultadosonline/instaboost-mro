@@ -639,7 +639,7 @@ serve(async (req) => {
         username: order.username,
         password: order.username,
         service_type: "instagram",
-        access_type: order.plan_type === "lifetime" ? "lifetime" : "annual",
+        access_type: order.plan_type === "lifetime" ? "lifetime" : order.plan_type === "trial" ? "trial" : "annual",
         days_access: daysAccess,
         expiration_date: order.plan_type === "lifetime" ? null : expirationDate.toISOString(),
         api_created: apiResult.success,
