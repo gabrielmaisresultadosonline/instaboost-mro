@@ -108,6 +108,7 @@ const Empresas = () => {
         nome_completo: form.nome_completo,
         email: form.email,
         whatsapp: form.whatsapp,
+        dispositivo: form.dispositivo || null,
         tem_empresa: form.perfil === "tem_empresa" ? "sim" : "nao",
         vende_produto: form.perfil === "vende_produto" ? "sim" : "nao",
         presta_servico: form.perfil === "presta_servico" ? "sim" : "nao",
