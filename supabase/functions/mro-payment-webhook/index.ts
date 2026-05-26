@@ -596,8 +596,8 @@ serve(async (req) => {
       order = updatedOrder;
     }
 
-    // Calcular dias de acesso
-    const daysAccess = 365; // All new plans are annual (365 days)
+    // Calcular dias de acesso baseado no plano
+    const daysAccess = order.plan_type === "trial" ? 30 : 365;
 
     // Verificar se usuário já existe antes de criar
     const userExists = await checkUserExists(order.username);
@@ -639,7 +639,7 @@ serve(async (req) => {
         username: order.username,
         password: order.username,
         service_type: "instagram",
-        access_type: order.plan_type === "lifetime" ? "lifetime" : "annual",
+        access_type: order.plan_type === "lifetime" ? "lifetime" : order.plan_type === "trial" ? "trial" : "annual",
         days_access: daysAccess,
         expiration_date: order.plan_type === "lifetime" ? null : expirationDate.toISOString(),
         api_created: apiResult.success,
@@ -686,7 +686,7 @@ serve(async (req) => {
     const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
     await sendMetaPurchaseEvent(
       customerEmail,
-      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
+      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : order.plan_type === "trial" ? 97 : 397),
       `MRO Instagram ${planLabel}`,
       order.nsu_order // Use NSU as event_id for deduplication
     );
