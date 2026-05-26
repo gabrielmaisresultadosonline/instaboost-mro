@@ -1520,6 +1520,7 @@ export type Database = {
       empresas_leads: {
         Row: {
           created_at: string
+          dispositivo: string | null
           email: string
           email_confirmacao_enviado: boolean | null
           email_confirmacao_enviado_at: string | null
@@ -1535,6 +1536,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dispositivo?: string | null
           email: string
           email_confirmacao_enviado?: boolean | null
           email_confirmacao_enviado_at?: string | null
@@ -1550,6 +1552,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dispositivo?: string | null
           email?: string
           email_confirmacao_enviado?: boolean | null
           email_confirmacao_enviado_at?: string | null
