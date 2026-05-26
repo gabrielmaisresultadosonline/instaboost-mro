@@ -289,6 +289,12 @@ const EmpresasAdmin = () => {
               <Megaphone className="w-4 h-4 mr-2" /> Campanhas
             </TabsTrigger>
             <TabsTrigger
+              value="historico"
+              className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
+            >
+              <History className="w-4 h-4 mr-2" /> Histórico ({logs.length})
+            </TabsTrigger>
+            <TabsTrigger
               value="settings"
               className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
             >
