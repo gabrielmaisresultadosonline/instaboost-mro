@@ -19,6 +19,9 @@ import {
   Wrench,
   Smartphone,
   Repeat,
+  Monitor,
+  Laptop,
+  Ban,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
@@ -44,6 +47,15 @@ const PERFIS: { key: PerfilKey; label: string; icon: typeof Building2 }[] = [
   { key: "iniciando_digital", label: "Estou começando no digital", icon: Smartphone },
 ];
 
+type DispositivoKey = "celular" | "computador" | "notebook" | "nenhum";
+
+const DISPOSITIVOS: { key: DispositivoKey; label: string; icon: typeof Smartphone }[] = [
+  { key: "celular", label: "Celular", icon: Smartphone },
+  { key: "computador", label: "Computador de mesa", icon: Monitor },
+  { key: "notebook", label: "Notebook", icon: Laptop },
+  { key: "nenhum", label: "Nenhum", icon: Ban },
+];
+
 const Empresas = () => {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [open, setOpen] = useState(false);
@@ -55,6 +67,7 @@ const Empresas = () => {
     nome_completo: "",
     email: "",
     whatsapp: "",
+    dispositivo: "" as DispositivoKey | "",
     perfil: "" as PerfilKey | "",
   });
 
@@ -70,7 +83,7 @@ const Empresas = () => {
   const openModal = () => {
     setStep(0);
     setDone(null);
-    setForm({ nome_completo: "", email: "", whatsapp: "", perfil: "" });
+    setForm({ nome_completo: "", email: "", whatsapp: "", dispositivo: "", perfil: "" });
     setOpen(true);
   };
 
@@ -81,6 +94,7 @@ const Empresas = () => {
     if (step === 1 && !validEmail(form.email)) return toast.error("Email inválido");
     if (step === 2 && form.whatsapp.replace(/\D/g, "").length < 10)
       return toast.error("WhatsApp inválido");
+    if (step === 3 && !form.dispositivo) return toast.error("Escolha uma opção");
     setStep((s) => s + 1);
   };
 
@@ -94,6 +108,7 @@ const Empresas = () => {
         nome_completo: form.nome_completo,
         email: form.email,
         whatsapp: form.whatsapp,
+        dispositivo: form.dispositivo || null,
         tem_empresa: form.perfil === "tem_empresa" ? "sim" : "nao",
         vende_produto: form.perfil === "vende_produto" ? "sim" : "nao",
         presta_servico: form.perfil === "presta_servico" ? "sim" : "nao",
@@ -115,7 +130,7 @@ const Empresas = () => {
     }
   };
 
-  const totalSteps = 4;
+  const totalSteps = 5;
   const progress = done ? 100 : ((step + (submitting ? 0.5 : 0)) / totalSteps) * 100;
 
   return (
@@ -331,6 +346,43 @@ const Empresas = () => {
                   {step === 3 && (
                     <StepBlock
                       eyebrow={`Passo 4 de ${totalSteps}`}
+                      title="Qual aparelho você tem hoje?"
+                      subtitle="Selecione o que você usa para trabalhar."
+                    >
+                      <div className="space-y-2">
+                        {DISPOSITIVOS.map(({ key, label, icon: Icon }) => {
+                          const active = form.dispositivo === key;
+                          return (
+                            <button
+                              type="button"
+                              key={key}
+                              onClick={() => setForm({ ...form, dispositivo: key })}
+                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
+                                active
+                                  ? "bg-yellow-400/10 border-yellow-400 text-white"
+                                  : "bg-white/[0.02] border-white/10 text-gray-300 hover:border-white/30"
+                              }`}
+                            >
+                              <div
+                                className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                                  active ? "bg-yellow-400 text-black" : "bg-white/5 text-yellow-400"
+                                }`}
+                              >
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <span className="text-sm font-medium flex-1">{label}</span>
+                              {active && (
+                                <CheckCircle2 className="w-5 h-5 text-yellow-400 shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </StepBlock>
+                  )}
+                  {step === 4 && (
+                    <StepBlock
+                      eyebrow={`Passo 5 de ${totalSteps}`}
                       title="O que melhor te descreve?"
                       subtitle="Escolha apenas uma opção."
                     >

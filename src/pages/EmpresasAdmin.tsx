@@ -27,6 +27,7 @@ interface Lead {
   presta_servico: string | null;
   iniciando_digital: string | null;
   marca_e_passa: string | null;
+  dispositivo: string | null;
   email_confirmacao_enviado: boolean | null;
   created_at: string;
 }
@@ -54,6 +55,14 @@ const perfilOf = (l: Lead) => {
   if (l.iniciando_digital === "sim") return { label: "Iniciando digital", icon: Smartphone };
   return { label: "—", icon: Users };
 };
+
+const DISPOSITIVO_LABELS: Record<string, string> = {
+  celular: "Celular",
+  computador: "Computador",
+  notebook: "Notebook",
+  nenhum: "Nenhum",
+};
+const dispositivoLabel = (v: string | null) => (v && DISPOSITIVO_LABELS[v]) || "—";
 
 const EmpresasAdmin = () => {
   const [auth, setAuth] = useState(false);
@@ -338,9 +347,12 @@ const EmpresasAdmin = () => {
                           <Badge variant="outline" className="border-white/20 text-gray-300 shrink-0">Pendente</Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <div className="flex items-center gap-2 text-xs text-gray-400 flex-wrap">
                         <p.icon className="w-3.5 h-3.5 text-yellow-400" />
                         {p.label}
+                        <span className="inline-flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                          📱 {dispositivoLabel(l.dispositivo)}
+                        </span>
                         <span className="ml-auto text-gray-600">
                           {new Date(l.created_at).toLocaleString("pt-BR")}
                         </span>
@@ -360,6 +372,7 @@ const EmpresasAdmin = () => {
                       <th className="text-left px-5 py-3 font-semibold">Email</th>
                       <th className="text-left px-5 py-3 font-semibold">WhatsApp</th>
                       <th className="text-left px-5 py-3 font-semibold">Perfil</th>
+                      <th className="text-left px-5 py-3 font-semibold">Dispositivo</th>
                       <th className="text-left px-5 py-3 font-semibold">Email enviado</th>
                     </tr>
                   </thead>
@@ -380,6 +393,9 @@ const EmpresasAdmin = () => {
                               {p.label}
                             </span>
                           </td>
+                          <td className="px-5 py-3 text-xs text-gray-300 whitespace-nowrap">
+                            {dispositivoLabel(l.dispositivo)}
+                          </td>
                           <td className="px-5 py-3">
                             {l.email_confirmacao_enviado ? (
                               <span className="inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold">
@@ -396,7 +412,7 @@ const EmpresasAdmin = () => {
                     })}
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="text-center text-gray-500 py-12 text-sm">
+                        <td colSpan={7} className="text-center text-gray-500 py-12 text-sm">
                           Nenhum cadastro encontrado.
                         </td>
                       </tr>
