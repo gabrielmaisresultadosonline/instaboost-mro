@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Lock, Save, Users, Link as LinkIcon, RefreshCw, Mail,
   Search, Building2, Package, Wrench, Smartphone, CheckCircle2, XCircle, TrendingUp,
-  Send, Megaphone,
+  Send, Megaphone, History,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
