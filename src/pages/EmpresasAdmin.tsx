@@ -101,23 +101,46 @@ const EmpresasAdmin = () => {
   };
 
   const [sending, setSending] = useState<string | null>(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [testName, setTestName] = useState("Teste");
 
-  const sendBroadcast = async (campaign: "link_corrigido" | "remarketing", onlyFailed: boolean) => {
+  const sendBroadcast = async (
+    campaign: "link_corrigido" | "remarketing",
+    mode: "all" | "pending" | "test",
+  ) => {
     const label = campaign === "link_corrigido" ? "Link Corrigido" : "Remarketing";
-    const audience = onlyFailed ? "apenas pendentes" : "TODOS os leads";
-    if (!confirm(`Enviar campanha "${label}" para ${audience}?`)) return;
-    setSending(campaign);
-    const t = toast.loading(`Enviando ${label}... (pode demorar)`);
+
+    const payload: Record<string, unknown> = { campaign };
+    let audienceMsg = "";
+    if (mode === "test") {
+      const e = testEmail.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+        toast.error("Informe um email de teste válido");
+        return;
+      }
+      payload.test_email = e;
+      payload.test_name = testName.trim() || "Teste";
+      audienceMsg = `email de teste ${e}`;
+    } else {
+      payload.only_failed = mode === "pending";
+      audienceMsg = mode === "pending" ? "apenas pendentes" : "TODOS os leads";
+    }
+
+    if (!confirm(`Enviar campanha "${label}" para ${audienceMsg}?`)) return;
+    setSending(`${campaign}-${mode}`);
+    const t = toast.loading(`Enviando ${label}...`);
     try {
       const { data, error } = await supabase.functions.invoke("empresas-broadcast", {
-        body: { campaign, only_failed: onlyFailed },
+        body: payload,
       });
       toast.dismiss(t);
       if (error || !(data as any)?.success) {
         toast.error((data as any)?.error || error?.message || "Falha ao enviar");
       } else {
-        toast.success(`Enviados: ${(data as any).sent} · Falhas: ${(data as any).failed} · Total: ${(data as any).total}`);
-        loadAll();
+        const d = data as any;
+        if (d.test) toast.success(`Email de teste enviado! (${d.sent} sucesso, ${d.failed} falha)`);
+        else toast.success(`Enviados: ${d.sent} · Falhas: ${d.failed} · Total: ${d.total}`);
+        if (mode !== "test") loadAll();
       }
     } catch (e) {
       toast.dismiss(t);
@@ -366,7 +389,60 @@ const EmpresasAdmin = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="campanhas" className="mt-5">
+          <TabsContent value="campanhas" className="mt-5 space-y-4">
+            {/* Test email panel */}
+            <div className="bg-[#111] border border-yellow-400/30 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center">
+                  <Send className="w-4 h-4 text-yellow-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold">Envio de teste</h3>
+                  <p className="text-xs text-gray-400">Teste qualquer campanha em um email antes do disparo em massa.</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <Label className="text-gray-300 text-xs">Email de teste</Label>
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    className="h-10 bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300 text-xs">Nome (opcional)</Label>
+                  <Input
+                    placeholder="Teste"
+                    value={testName}
+                    onChange={(e) => setTestName(e.target.value)}
+                    className="h-10 bg-white/[0.03] border-white/10 text-white focus-visible:ring-yellow-400/40 focus-visible:border-yellow-400"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  onClick={() => sendBroadcast("link_corrigido", "test")}
+                  disabled={sending !== null}
+                  className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {sending === "link_corrigido-test" ? "Enviando..." : "Testar Link Corrigido"}
+                </Button>
+                <Button
+                  onClick={() => sendBroadcast("remarketing", "test")}
+                  disabled={sending !== null}
+                  variant="outline"
+                  className="flex-1 border-yellow-400/40 text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-300"
+                >
+                  <Megaphone className="w-4 h-4 mr-2" />
+                  {sending === "remarketing-test" ? "Enviando..." : "Testar Remarketing"}
+                </Button>
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
               <CampaignCard
                 title="Link Corrigido"
@@ -374,9 +450,9 @@ const EmpresasAdmin = () => {
                 badge="Reenvio"
                 accent
                 disabled={sending !== null}
-                loading={sending === "link_corrigido"}
-                onSendAll={() => sendBroadcast("link_corrigido", false)}
-                onSendPending={() => sendBroadcast("link_corrigido", true)}
+                loading={sending === "link_corrigido-all" || sending === "link_corrigido-pending"}
+                onSendAll={() => sendBroadcast("link_corrigido", "all")}
+                onSendPending={() => sendBroadcast("link_corrigido", "pending")}
                 pendingCount={leads.filter((l) => !l.email_confirmacao_enviado).length}
                 totalCount={leads.length}
               />
@@ -385,9 +461,9 @@ const EmpresasAdmin = () => {
                 description='Mensagem: "Não deixe de participar do nosso grupo." Com o link atual salvo nas configurações.'
                 badge="Remarketing"
                 disabled={sending !== null}
-                loading={sending === "remarketing"}
-                onSendAll={() => sendBroadcast("remarketing", false)}
-                onSendPending={() => sendBroadcast("remarketing", true)}
+                loading={sending === "remarketing-all" || sending === "remarketing-pending"}
+                onSendAll={() => sendBroadcast("remarketing", "all")}
+                onSendPending={() => sendBroadcast("remarketing", "pending")}
                 pendingCount={leads.filter((l) => !l.email_confirmacao_enviado).length}
                 totalCount={leads.length}
               />
