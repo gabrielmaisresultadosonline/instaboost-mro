@@ -596,8 +596,8 @@ serve(async (req) => {
       order = updatedOrder;
     }
 
-    // Calcular dias de acesso
-    const daysAccess = 365; // All new plans are annual (365 days)
+    // Calcular dias de acesso baseado no plano
+    const daysAccess = order.plan_type === "trial" ? 30 : 365;
 
     // Verificar se usuário já existe antes de criar
     const userExists = await checkUserExists(order.username);
