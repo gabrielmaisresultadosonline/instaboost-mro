@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Lock, Save, Users, Link as LinkIcon, RefreshCw, Mail,
   Search, Building2, Package, Wrench, Smartphone, CheckCircle2, XCircle, TrendingUp,
+  Send, Megaphone,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
@@ -97,6 +98,33 @@ const EmpresasAdmin = () => {
       .eq("id", settings.id);
     if (error) toast.error(error.message);
     else toast.success("Configurações salvas");
+  };
+
+  const [sending, setSending] = useState<string | null>(null);
+
+  const sendBroadcast = async (campaign: "link_corrigido" | "remarketing", onlyFailed: boolean) => {
+    const label = campaign === "link_corrigido" ? "Link Corrigido" : "Remarketing";
+    const audience = onlyFailed ? "apenas pendentes" : "TODOS os leads";
+    if (!confirm(`Enviar campanha "${label}" para ${audience}?`)) return;
+    setSending(campaign);
+    const t = toast.loading(`Enviando ${label}... (pode demorar)`);
+    try {
+      const { data, error } = await supabase.functions.invoke("empresas-broadcast", {
+        body: { campaign, only_failed: onlyFailed },
+      });
+      toast.dismiss(t);
+      if (error || !(data as any)?.success) {
+        toast.error((data as any)?.error || error?.message || "Falha ao enviar");
+      } else {
+        toast.success(`Enviados: ${(data as any).sent} · Falhas: ${(data as any).failed} · Total: ${(data as any).total}`);
+        loadAll();
+      }
+    } catch (e) {
+      toast.dismiss(t);
+      toast.error(e instanceof Error ? e.message : "Erro inesperado");
+    } finally {
+      setSending(null);
+    }
   };
 
   if (!auth) {
@@ -220,6 +248,12 @@ const EmpresasAdmin = () => {
               <Users className="w-4 h-4 mr-2" /> Leads ({total})
             </TabsTrigger>
             <TabsTrigger
+              value="campanhas"
+              className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
+            >
+              <Megaphone className="w-4 h-4 mr-2" /> Campanhas
+            </TabsTrigger>
+            <TabsTrigger
               value="settings"
               className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black text-gray-400 px-4 py-2"
             >
@@ -332,6 +366,37 @@ const EmpresasAdmin = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="campanhas" className="mt-5">
+            <div className="grid md:grid-cols-2 gap-4">
+              <CampaignCard
+                title="Link Corrigido"
+                description='Reenvio com mensagem: "Link corrigido MRO! Acesse o GRUPO." Ideal para quem teve problema com o link anterior.'
+                badge="Reenvio"
+                accent
+                disabled={sending !== null}
+                loading={sending === "link_corrigido"}
+                onSendAll={() => sendBroadcast("link_corrigido", false)}
+                onSendPending={() => sendBroadcast("link_corrigido", true)}
+                pendingCount={leads.filter((l) => !l.email_confirmacao_enviado).length}
+                totalCount={leads.length}
+              />
+              <CampaignCard
+                title="Remarketing"
+                description='Mensagem: "Não deixe de participar do nosso grupo." Com o link atual salvo nas configurações.'
+                badge="Remarketing"
+                disabled={sending !== null}
+                loading={sending === "remarketing"}
+                onSendAll={() => sendBroadcast("remarketing", false)}
+                onSendPending={() => sendBroadcast("remarketing", true)}
+                pendingCount={leads.filter((l) => !l.email_confirmacao_enviado).length}
+                totalCount={leads.length}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-4">
+              Os emails usam o <span className="text-yellow-400 font-semibold">link do grupo</span> salvo na aba Configurações. Envio com pequeno delay anti-spam.
+            </p>
+          </TabsContent>
+
           <TabsContent value="settings" className="mt-5">
             <div className="bg-[#111] border border-white/10 rounded-2xl p-5 md:p-7 max-w-2xl">
               <h2 className="font-bold text-lg mb-1">Configurações da página</h2>
@@ -402,6 +467,61 @@ const StatCard = ({
       </div>
     </div>
     <div className="text-2xl md:text-3xl font-extrabold">{value}</div>
+  </div>
+);
+
+const CampaignCard = ({
+  title, description, badge, accent, disabled, loading,
+  onSendAll, onSendPending, pendingCount, totalCount,
+}: {
+  title: string;
+  description: string;
+  badge: string;
+  accent?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  onSendAll: () => void;
+  onSendPending: () => void;
+  pendingCount: number;
+  totalCount: number;
+}) => (
+  <div
+    className={`rounded-2xl border p-5 md:p-6 ${
+      accent
+        ? "bg-gradient-to-br from-yellow-400/10 to-transparent border-yellow-400/30"
+        : "bg-[#111] border-white/10"
+    }`}
+  >
+    <div className="flex items-start justify-between mb-3 gap-3">
+      <div>
+        <h3 className="font-extrabold text-lg">{title}</h3>
+        <Badge className="bg-yellow-400/15 text-yellow-400 border border-yellow-400/30 hover:bg-yellow-400/15 mt-1.5">
+          {badge}
+        </Badge>
+      </div>
+      <div className="w-10 h-10 rounded-lg bg-yellow-400 text-black flex items-center justify-center shrink-0">
+        <Send className="w-5 h-5" />
+      </div>
+    </div>
+    <p className="text-sm text-gray-400 mb-5 leading-relaxed">{description}</p>
+    <div className="flex flex-col sm:flex-row gap-2">
+      <Button
+        onClick={onSendAll}
+        disabled={disabled || totalCount === 0}
+        className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold disabled:opacity-50"
+      >
+        {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+        Enviar p/ todos ({totalCount})
+      </Button>
+      <Button
+        onClick={onSendPending}
+        disabled={disabled || pendingCount === 0}
+        variant="outline"
+        className="flex-1 border-white/15 bg-white/[0.02] text-white hover:bg-white/5 hover:text-white disabled:opacity-50"
+      >
+        Só pendentes ({pendingCount})
+      </Button>
+    </div>
   </div>
 );
 
