@@ -57,6 +57,8 @@ const perfilOf = (l: Lead) => {
 };
 
 const DISPOSITIVO_LABELS: Record<string, string> = {
+  sim: "Sim, tem",
+  nao: "Não tem",
   celular: "Celular",
   computador: "Computador",
   notebook: "Notebook",
