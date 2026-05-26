@@ -27,6 +27,7 @@ interface Lead {
   presta_servico: string | null;
   iniciando_digital: string | null;
   marca_e_passa: string | null;
+  dispositivo: string | null;
   email_confirmacao_enviado: boolean | null;
   created_at: string;
 }
