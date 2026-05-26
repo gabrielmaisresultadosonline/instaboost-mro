@@ -19,6 +19,9 @@ import {
   Wrench,
   Smartphone,
   Repeat,
+  Monitor,
+  Laptop,
+  Ban,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
