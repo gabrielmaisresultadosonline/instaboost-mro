@@ -308,7 +308,7 @@ const InstagramPromo30Dias = () => {
             <div className="relative mt-4 mb-4 flex flex-col items-center">
               <div className="inline-flex items-center gap-2 bg-amber-400 border border-amber-500 rounded-full px-6 py-2 mb-1 shadow-[0_0_15px_rgba(251,191,36,0.4)]">
                 <div className="w-2 h-2 rounded-full bg-black animate-pulse" />
-                <span className="text-black font-bold text-base tracking-wide uppercase">Planos Anuais</span>
+                <span className="text-black font-bold text-base tracking-wide uppercase">Teste 30 Dias por R$97</span>
               </div>
             </div>
 
@@ -343,15 +343,15 @@ const InstagramPromo30Dias = () => {
       <div className="py-16 text-center bg-zinc-900/40 border-y border-zinc-800/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4">
           <h3 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
-            COMECE A ESCALAR SEU PERFIL <br className="hidden md:block" />
-            <span className="text-emerald-400">POR APENAS R$41</span>
+            TESTE A FERRAMENTA COMPLETA <br className="hidden md:block" />
+            <span className="text-emerald-400">POR APENAS R$97</span>
           </h3>
-          <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
+          <p className="text-gray-400 mb-8 text-lg">4 contas por 30 dias — teste agora sem compromisso</p>
           <Button 
             onClick={scrollToPricing}
             className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
           >
-            QUERO COMEÇAR AGORA
+            R$97 — TESTAR AGORA
           </Button>
         </div>
       </div>
@@ -465,22 +465,22 @@ const InstagramPromo30Dias = () => {
         <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-12">
             <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-              A Solução Mais <span className="text-emerald-400">Acessível</span> do Mercado
+              Teste por <span className="text-emerald-400">30 dias</span> sem compromisso
             </h2>
             <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-              Libere o poder da automação e IA no seu Instagram hoje mesmo. Planos flexíveis que cabem no seu bolso.
+              Libere o poder da automação e IA no seu Instagram hoje mesmo. Teste em 4 contas por 30 dias.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
               <div className="text-left">
                 <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest mb-1">Início imediato</p>
-                <p className="text-white text-2xl font-black">A partir de <span className="text-emerald-400">R$41/mês</span></p>
+                <p className="text-white text-2xl font-black">Apenas <span className="text-emerald-400">R$97</span> / 30 dias</p>
               </div>
               <div className="h-12 w-px bg-zinc-800 hidden md:block" />
               <Button 
                 onClick={scrollToPricing}
                 className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
               >
-                VER TODOS OS PLANOS
+                R$97 — TESTE AGORA
               </Button>
             </div>
           </div>
