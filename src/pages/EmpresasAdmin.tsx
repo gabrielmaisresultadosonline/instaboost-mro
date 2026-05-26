@@ -62,6 +62,7 @@ const EmpresasAdmin = () => {
 
   const [settings, setSettings] = useState<Settings | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [logs, setLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
 
