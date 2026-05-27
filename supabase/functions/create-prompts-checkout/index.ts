@@ -96,7 +96,7 @@ serve(async (req) => {
     log("Calling InfiniPay API", infinitepayPayload);
 
     const infinitepayResponse = await fetch(
-      "https://api.infinitepay.io/invoices/public/checkout/links",
+      "https://api.checkout.infinitepay.io/links",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

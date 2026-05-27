@@ -19,7 +19,7 @@ const log = (step: string, details?: unknown) => {
 async function checkPaymentByOrderNsu(orderNsu: string): Promise<{ paid: boolean; data?: any }> {
   try {
     const response = await fetch(
-      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      "https://api.checkout.infinitepay.io/payment_check",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ async function checkPaymentByProductEmail(email: string, productPrefix: string):
     log("Checking payment by product name", { productName, originalEmail: email, realEmail, affiliateId });
     
     const response = await fetch(
-      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      "https://api.checkout.infinitepay.io/payment_check",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

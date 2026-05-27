@@ -61,7 +61,7 @@ serve(async (req) => {
     let paid = false;
     try {
       const resp = await fetch(
-        "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+        "https://api.checkout.infinitepay.io/payment_check",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const INFINITEPAY_HANDLE = 'paguemro';
-const INFINITEPAY_CHECKOUT_LINKS_URL = 'https://api.infinitepay.io/invoices/public/checkout/links';
+const INFINITEPAY_CHECKOUT_LINKS_URL = 'https://api.checkout.infinitepay.io/links';
 const REDIRECT_URL = 'https://pay.maisresultadosonline.com.br/anuncios/obrigado-saldo';
 
 const log = (step: string, details?: unknown) => {

@@ -126,7 +126,7 @@ async function checkInfiniPayPayment(order: any, nsu_order: string, transaction_
   // Method 1: with transaction_nsu and slug
   if (transaction_nsu && slug) {
     try {
-      const res = await fetch("https://api.infinitepay.io/invoices/public/checkout/payment_check", {
+      const res = await fetch("https://api.checkout.infinitepay.io/payment_check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ handle: INFINITEPAY_HANDLE, order_nsu: nsu_order, transaction_nsu, slug }),
@@ -142,7 +142,7 @@ async function checkInfiniPayPayment(order: any, nsu_order: string, transaction_
       const url = new URL(order.infinitepay_link);
       const lenc = url.searchParams.get('lenc');
       if (lenc) {
-        const res = await fetch("https://api.infinitepay.io/invoices/public/checkout/payment_check", {
+        const res = await fetch("https://api.checkout.infinitepay.io/payment_check", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ handle: INFINITEPAY_HANDLE, order_nsu: nsu_order, slug: lenc }),
@@ -157,7 +157,7 @@ async function checkInfiniPayPayment(order: any, nsu_order: string, transaction_
 
   // Method 3: direct order_nsu check
   try {
-    const res = await fetch("https://api.infinitepay.io/invoices/public/checkout/payment_check", {
+    const res = await fetch("https://api.checkout.infinitepay.io/payment_check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ handle: INFINITEPAY_HANDLE, order_nsu: nsu_order }),
