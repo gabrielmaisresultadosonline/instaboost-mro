@@ -148,7 +148,7 @@ async function checkInfinitePayPaymentCheck(args: {
     log("Calling InfinitePay payment_check", { handle, order_nsu });
 
     const response = await fetch(
-      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      "https://api.checkout.infinitepay.io/payment_check",
       {
         method: "POST",
         headers: {

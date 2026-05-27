@@ -418,7 +418,7 @@ serve(async (req) => {
       };
 
       const infinitepayResponse = await fetch(
-        "https://api.infinitepay.io/invoices/public/checkout/links",
+        "https://api.checkout.infinitepay.io/links",
         { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(infinitepayPayload) }
       );
 
@@ -526,7 +526,7 @@ serve(async (req) => {
       // Try InfiniPay verification
       let paid = false;
       try {
-        const res = await fetch("https://api.infinitepay.io/invoices/public/checkout/payment_check", {
+        const res = await fetch("https://api.checkout.infinitepay.io/payment_check", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ handle: INFINITEPAY_HANDLE, order_nsu: user.payment_nsu }),
         });
@@ -538,7 +538,7 @@ serve(async (req) => {
           const linkUrl = new URL(order.infinitepay_link);
           const lenc = linkUrl.searchParams.get('lenc');
           if (lenc) {
-            const res = await fetch("https://api.infinitepay.io/invoices/public/checkout/payment_check", {
+            const res = await fetch("https://api.checkout.infinitepay.io/payment_check", {
               method: "POST", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ handle: INFINITEPAY_HANDLE, order_nsu: user.payment_nsu, slug: lenc }),
             });

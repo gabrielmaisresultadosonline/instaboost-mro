@@ -81,7 +81,7 @@ serve(async (req) => {
     let paymentLink: string;
     try {
       const resp = await fetch(
-        "https://api.infinitepay.io/invoices/public/checkout/links",
+        "https://api.checkout.infinitepay.io/links",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

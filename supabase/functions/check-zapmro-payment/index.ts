@@ -190,7 +190,7 @@ serve(async (req) => {
 
       try {
         const checkResponse = await fetch(
-          "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+          "https://api.checkout.infinitepay.io/payment_check",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -277,7 +277,7 @@ serve(async (req) => {
           
           // Tentar verificar o pagamento usando o lenc como slug
           const checkResponse = await fetch(
-            "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+            "https://api.checkout.infinitepay.io/payment_check",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -356,7 +356,7 @@ serve(async (req) => {
     log("Trying direct order_nsu check with InfiniPay");
     try {
       const directCheckResponse = await fetch(
-        "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+        "https://api.checkout.infinitepay.io/payment_check",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
