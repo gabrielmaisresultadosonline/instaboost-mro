@@ -155,15 +155,52 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
-      const [leadsRes, emailLogsRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes] = await Promise.all([
+      // Brazil (UTC-3) "today" midnight in UTC ISO
+      const brNow = new Date(Date.now() - 3 * 3600 * 1000);
+      const todayStartIso = new Date(Date.UTC(
+        brNow.getUTCFullYear(), brNow.getUTCMonth(), brNow.getUTCDate(), 3, 0, 0
+      )).toISOString();
+
+      // Read from v1 tables (where /rendaextra actually writes), keep settings on v2
+      const [leadsV1, leadsV2, emailLogsV1, emailLogsV2, settingsRes,
+             totalVisitsV1, totalVisitsV2, todayVisitsV1, todayVisitsV2,
+             totalLeadsV1, totalLeadsV2, todayLeadsV1, todayLeadsV2] = await Promise.all([
+        supabase.from("renda_extra_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_v2_leads").select("*").order("created_at", { ascending: false }),
+        supabase.from("renda_extra_email_logs").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_v2_email_logs").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_v2_settings").select("whatsapp_group_link, launch_date, launch_date_enabled").limit(1).single(),
+        supabase.from("renda_extra_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
-        supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString()),
+        supabase.from("renda_extra_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", todayStartIso),
+        supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", todayStartIso),
+        supabase.from("renda_extra_leads").select("*", { count: "exact", head: true }),
         supabase.from("renda_extra_v2_leads").select("*", { count: "exact", head: true }),
-        supabase.from("renda_extra_v2_leads").select("*", { count: "exact", head: true }).gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString()),
+        supabase.from("renda_extra_leads").select("*", { count: "exact", head: true }).gte("created_at", todayStartIso),
+        supabase.from("renda_extra_v2_leads").select("*", { count: "exact", head: true }).gte("created_at", todayStartIso),
       ]);
+
+      // Merge leads/emails from both versions, dedupe leads by email
+      const mergedLeadsRaw = [...(leadsV1.data || []), ...(leadsV2.data || [])];
+      const seenEmails = new Set<string>();
+      const mergedLeads = mergedLeadsRaw
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .filter((l: any) => {
+          const e = (l.email || "").toLowerCase().trim();
+          if (!e) return true;
+          if (seenEmails.has(e)) return false;
+          seenEmails.add(e);
+          return true;
+        });
+      const mergedEmailLogs = [...(emailLogsV1.data || []), ...(emailLogsV2.data || [])]
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const leadsRes = { data: mergedLeads };
+      const emailLogsRes = { data: mergedEmailLogs };
+      const totalVisitsRes = { count: (totalVisitsV1.count || 0) + (totalVisitsV2.count || 0) };
+      const todayVisitsRes = { count: (todayVisitsV1.count || 0) + (todayVisitsV2.count || 0) };
+      const totalLeadsRes = { count: mergedLeads.length };
+      const todayLeadsRes = { count: (todayLeadsV1.count || 0) + (todayLeadsV2.count || 0) };
 
       return new Response(JSON.stringify({
         success: true,
