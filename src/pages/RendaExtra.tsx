@@ -493,6 +493,42 @@ const RendaExtra = () => {
 
   return (
     <>
+      {/* Loading Overlay - Liberando vaga */}
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-gradient-to-br from-[#151a2e] to-[#0d1020] rounded-3xl p-6 sm:p-8 border border-red-500/30 shadow-2xl text-center">
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-red-500/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-500 animate-spin" />
+              <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-red-400 animate-pulse" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+              Estamos liberando sua vaga grátis...
+            </h3>
+            <p className="text-sm text-gray-400 mb-6">
+              Aguarde alguns segundos enquanto preparamos tudo para você.
+            </p>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-4 relative">
+              <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-red-500 via-red-400 to-red-600 rounded-full animate-[slide_1.5s_ease-in-out_infinite]" />
+            </div>
+            <div className="space-y-2 text-left text-xs sm:text-sm text-gray-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <span>Validando seus dados</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 text-red-400 animate-spin flex-shrink-0" />
+                <span>Reservando seu acesso ao grupo</span>
+              </div>
+              <div className="flex items-center gap-2 opacity-60">
+                <div className="w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0" />
+                <span>Enviando link por email</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quiz Popup Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
