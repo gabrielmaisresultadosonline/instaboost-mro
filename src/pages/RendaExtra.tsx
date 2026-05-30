@@ -437,29 +437,32 @@ const RendaExtra = () => {
             </>
           ) : (
             <div className="space-y-6 animate-fade-in">
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center">
-                <div className="text-yellow-400 text-5xl mb-4">⚠️</div>
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                <div className="text-red-400 text-5xl mb-4">🚫</div>
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
-                  Atenção!
+                  Cadastro Encerrado
                 </h3>
                 <p className="text-gray-300 text-base md:text-lg leading-relaxed">
-                  Você <span className="text-yellow-400 font-bold">vai precisar</span> de um <span className="text-white font-semibold">Notebook</span>, <span className="text-white font-semibold">Computador</span> ou <span className="text-white font-semibold">MacBook</span> para rodar o sistema e fazer o método!
+                  Você <span className="text-red-400 font-bold">vai precisar</span> de um <span className="text-white font-semibold">Computador</span>, <span className="text-white font-semibold">Notebook</span> ou <span className="text-white font-semibold">MacBook</span> para utilizar o método.
+                </p>
+                <p className="text-gray-300 text-base mt-4 leading-relaxed">
+                  Sem um desses, <span className="text-red-400 font-semibold">não vai conseguir utilizar</span> o sistema.
                 </p>
                 <p className="text-gray-400 text-sm mt-4">
-                  Sem um computador, você <span className="text-red-400 font-semibold">não vai conseguir rodar</span> o sistema.
+                  Evolua, adquira um <span className="text-white font-semibold">notebook</span> ou <span className="text-white font-semibold">computador de mesa</span> e volte aqui novamente para concluir o seu cadastro. 💪
                 </p>
+                {savingBlocked && (
+                  <p className="text-gray-500 text-xs mt-4 flex items-center justify-center gap-2">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Salvando seus dados...
+                  </p>
+                )}
               </div>
               <Button
                 type="button"
-                onClick={handleProceedWithoutComputer}
-                disabled={!canProceedAfterWarning}
-                className={`w-full font-semibold text-lg py-6 rounded-xl transition-all ${
-                  canProceedAfterWarning 
-                    ? "bg-red-500 hover:bg-red-600 text-white" 
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                }`}
+                onClick={() => setShowForm(false)}
+                className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-lg py-6 rounded-xl transition-all"
               >
-                {canProceedAfterWarning ? "Avançar mesmo assim" : "Aguarde 5 segundos para continuar..."}
+                Fechar
               </Button>
             </div>
           )}
