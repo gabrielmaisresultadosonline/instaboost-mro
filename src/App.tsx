@@ -227,6 +227,8 @@ const App = () => (
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           <Route path="/rendaextra" element={<RendaExtra />} />
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
+          <Route path="/grupo-rendaextra" element={<GrupoRendaExtra />} />
+          <Route path="/grupo/rendaextra" element={<GrupoRendaExtra />} />
           <Route path="/empresas" element={<Empresas />} />
           <Route path="/empresas/admin" element={<EmpresasAdmin />} />
           <Route path="/rendaextra2" element={<RendaExtra2 />} />
