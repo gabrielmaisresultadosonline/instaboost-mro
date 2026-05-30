@@ -64,6 +64,7 @@ const RendaExtraAdmin = () => {
     launch_date_enabled: false
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAllLeads, setShowAllLeads] = useState(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
