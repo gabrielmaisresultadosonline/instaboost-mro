@@ -29,6 +29,8 @@ const RendaExtra = () => {
 
   const [showNoComputerWarning, setShowNoComputerWarning] = useState(false);
   const [canProceedAfterWarning, setCanProceedAfterWarning] = useState(false);
+  const [blockedNoComputer, setBlockedNoComputer] = useState(false);
+  const [savingBlocked, setSavingBlocked] = useState(false);
   const [launchDateText, setLaunchDateText] = useState("");
   const [launchDateEnabled, setLaunchDateEnabled] = useState(false);
 
