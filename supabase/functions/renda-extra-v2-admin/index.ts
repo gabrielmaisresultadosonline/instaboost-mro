@@ -140,8 +140,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const session = await requireAdminSession(req, body, sessionSecret);
     if (!session) {
-      return new Response(JSON.stringify({ success: false, error: "Sessão expirada. Faça login novamente." }), {
-        status: 401,
+      return new Response(JSON.stringify({ success: false, error: "Sessão expirada. Faça login novamente.", sessionExpired: true }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
