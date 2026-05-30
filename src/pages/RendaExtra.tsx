@@ -139,10 +139,31 @@ const RendaExtra = () => {
     }
   };
 
-  const handleComputerSelect = (value: string) => {
+  const handleComputerSelect = async (value: string) => {
     setFormData({ ...formData, tipoComputador: value });
     if (value === "nenhum") {
       setShowNoComputerWarning(true);
+      // Save the lead as "blocked" - they won't receive the link
+      if (!savingBlocked && !blockedNoComputer) {
+        setSavingBlocked(true);
+        try {
+          await supabase.from("renda_extra_leads").insert({
+            nome_completo: formData.nomeCompleto,
+            email: formData.email,
+            whatsapp: formData.whatsapp,
+            trabalha_atualmente: formData.trabalhaAtualmente,
+            media_salarial: formData.mediaSalarial || null,
+            tipo_computador: "nenhum",
+            instagram_username: formData.instagramUsername || null,
+          });
+          setBlockedNoComputer(true);
+        } catch (err) {
+          console.error("Error saving blocked lead:", err);
+          setBlockedNoComputer(true);
+        } finally {
+          setSavingBlocked(false);
+        }
+      }
     } else {
       setShowNoComputerWarning(false);
       setCurrentStep(currentStep + 1);
@@ -150,8 +171,8 @@ const RendaExtra = () => {
   };
 
   const handleProceedWithoutComputer = () => {
-    setShowNoComputerWarning(false);
-    setCurrentStep(currentStep + 1);
+    // Disabled - user with no computer cannot proceed
+    return;
   };
 
   const handleSubmit = async () => {
