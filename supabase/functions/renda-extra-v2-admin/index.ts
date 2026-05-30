@@ -76,6 +76,21 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    if (action === "getGroupLink") {
+      const { data: settings } = await supabase
+        .from("renda_extra_v2_settings")
+        .select("whatsapp_group_link")
+        .limit(1)
+        .single();
+
+      return new Response(JSON.stringify({
+        success: true,
+        whatsapp_group_link: settings?.whatsapp_group_link || null,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: settingsRow } = await supabase
       .from("renda_extra_v2_settings")
       .select("admin_email, admin_password")

@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrass";
+const GROUP_LINK = "https://maisresultadosonline.com.br/grupo-rendaextra";
 
 const log = (message: string, data?: any) => {
   console.log(`[RENDA-EXTRA-REGISTER-V2] ${message}`, data ? JSON.stringify(data) : '');
@@ -131,40 +131,40 @@ serve(async (req) => {
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr>
-<td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
+<td style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Sua aula grátis está liberada!</h1>
+<h1 style="color:#fff;margin:15px 0 0 0;font-size:24px;">📲 Participe do grupo grátis no WhatsApp!</h1>
 </td>
 </tr>
 <tr>
 <td style="padding:30px;background:#ffffff;">
 
-<div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Aula grátis + Desconto exclusivo liberado!</p>
+<div style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
+<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Grupo VIP gratuito liberado para você!</p>
 </div>
 
 <p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${data.nome_completo}</strong>!</p>
 
-<p style="margin:0 0 20px 0;font-size:16px;">Seu cadastro foi confirmado! Agora você tem acesso à <strong>aula grátis</strong> e ao <strong>desconto exclusivo</strong> para começar agora mesmo a faturar com o método MRO.</p>
+<p style="margin:0 0 20px 0;font-size:16px;">Seu cadastro foi confirmado! Agora é só entrar no nosso <strong>grupo grátis no WhatsApp</strong>, onde vamos te mostrar exatamente como fazer <strong>5 mil reais mensais</strong> usando a ferramenta MRO. Participe e descubra você também!</p>
 
-<div style="background:#f8f9fa;padding:20px;border-radius:10px;margin:25px 0;border-left:4px solid #10b981;">
-<p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;">🎁 O que você vai receber:</p>
+<div style="background:#f8f9fa;padding:20px;border-radius:10px;margin:25px 0;border-left:4px solid #25D366;">
+<p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;">🎁 No grupo você vai descobrir:</p>
 <ul style="margin:10px 0 0 0;padding-left:20px;color:#333;font-size:15px;">
-<li>Acesso imediato à <strong>aula grátis</strong> completa</li>
-<li><strong>Desconto exclusivo</strong> liberado para você</li>
-<li>Passo a passo para faturar de 5 a 10 mil mensais</li>
+<li>Como fazer <strong>5k mensais</strong> com a ferramenta MRO</li>
+<li>Passo a passo prático que qualquer pessoa consegue aplicar</li>
+<li>Conteúdos exclusivos e tire suas dúvidas direto com a gente</li>
 </ul>
 </div>
 
 <div style="text-align:center;margin:30px 0;">
-<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Acesse agora a aula grátis:</p>
-<a href="${FREE_CLASS_LINK}" style="display:inline-block;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
-🎬 ACESSE AGORA A AULA GRÁTIS
+<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Participe agora:</p>
+<a href="${GROUP_LINK}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
+📲 ENTRAR NO GRUPO DO WHATSAPP
 </a>
 </div>
 
 <p style="margin:20px 0;font-size:14px;color:#666;text-align:center;">
-Não perca essa oportunidade! O desconto é por tempo limitado.
+As vagas no grupo são limitadas. Entre agora para não perder!
 </p>
 
 </td>
@@ -181,7 +181,7 @@ Não perca essa oportunidade! O desconto é por tempo limitado.
 
     const emailSent = await sendEmailViaSMTP(
       data.email,
-      "🎬 Sua aula grátis + desconto liberado! - MRO",
+      "📲 Participe do grupo grátis no WhatsApp - MRO",
       emailHtml
     );
 
@@ -190,8 +190,8 @@ Não perca essa oportunidade! O desconto é por tempo limitado.
       .insert({
         lead_id: lead.id,
         email_to: data.email,
-        email_type: "confirmacao",
-        subject: "Sua aula grátis + desconto liberado! - MRO",
+        email_type: "grupo_whatsapp",
+        subject: "Participe do grupo grátis no WhatsApp - MRO",
         status: emailSent ? "sent" : "failed",
         error_message: emailSent ? null : "SMTP not configured or send failed",
       });
@@ -210,7 +210,7 @@ Não perca essa oportunidade! O desconto é por tempo limitado.
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        freeClassLink: FREE_CLASS_LINK,
+        groupLink: GROUP_LINK,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
