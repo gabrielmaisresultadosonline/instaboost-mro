@@ -176,32 +176,41 @@ server {
     listen 80;
     server_name $DOMAIN;
 
+    client_max_body_size 3G;
+
     location / {
-        proxy_pass http://localhost:3001;
+        proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
-        
-        # Aumentar limites de upload
-        client_max_body_size 3G;
+
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;
+        if (\$request_method = OPTIONS) { return 204; }
     }
 
     location /videos/ {
         alias /var/www/video-server/videos/;
-        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Origin * always;
+        add_header Cross-Origin-Resource-Policy cross-origin always;
         autoindex on;
     }
 }
 EOF
 
-sudo ln -s /etc/nginx/sites-available/video-server /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/video-server /etc/nginx/sites-enabled/video-server
 sudo nginx -t && sudo systemctl restart nginx
 
 # 6. Configurar PM2 para manter o servidor rodando
 sudo npm install -g pm2
-pm2 start server.js --name "video-server"
+pm2 delete video-server >/dev/null 2>&1 || true
+pm2 start server.js --name "video-server" --update-env
 pm2 save
 pm2 startup
 
