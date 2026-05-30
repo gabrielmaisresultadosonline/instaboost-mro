@@ -210,7 +210,7 @@ As vagas no grupo são limitadas. Entre agora para não perder!
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        freeClassLink: FREE_CLASS_LINK,
+        groupLink: GROUP_LINK,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
