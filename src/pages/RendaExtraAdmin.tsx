@@ -440,41 +440,41 @@ const RendaExtraAdmin = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
+                <div className="w-full overflow-x-auto -mx-2 px-2">
+                  <Table className="min-w-[1100px]">
                     <TableHeader>
                       <TableRow className="border-gray-700">
-                        <TableHead className="text-gray-300">Nome</TableHead>
-                        <TableHead className="text-gray-300">Email</TableHead>
-                        <TableHead className="text-gray-300">WhatsApp</TableHead>
-                        <TableHead className="text-gray-300">Trabalha</TableHead>
-                        <TableHead className="text-gray-300">Salário</TableHead>
-                        <TableHead className="text-gray-300">Computador</TableHead>
-                        <TableHead className="text-gray-300">Instagram</TableHead>
-                        <TableHead className="text-gray-300">Data</TableHead>
-                        <TableHead className="text-gray-300">Email Enviado</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Nome</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Email</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">WhatsApp</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Trabalha</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Salário</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Computador</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Instagram</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Data</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Email Enviado</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredLeads.map((lead) => (
                         <TableRow key={lead.id} className="border-gray-700">
-                          <TableCell className="text-white font-medium">{lead.nome_completo}</TableCell>
-                          <TableCell className="text-gray-300">{lead.email}</TableCell>
-                          <TableCell className="text-gray-300">{lead.whatsapp}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-white font-medium whitespace-nowrap">{lead.nome_completo}</TableCell>
+                          <TableCell className="text-gray-300 whitespace-nowrap">{lead.email}</TableCell>
+                          <TableCell className="text-gray-300 whitespace-nowrap">{lead.whatsapp}</TableCell>
+                          <TableCell className="whitespace-nowrap">
                             {lead.trabalha_atualmente === true || lead.trabalha_atualmente === "true" ? (
                               <CheckCircle className="w-5 h-5 text-green-400" />
                             ) : (
                               <XCircle className="w-5 h-5 text-red-400" />
                             )}
                           </TableCell>
-                          <TableCell className="text-gray-300">{formatMediaSalarial(lead.media_salarial)}</TableCell>
-                          <TableCell className="text-gray-300 capitalize">{lead.tipo_computador}</TableCell>
-                          <TableCell className="text-gray-300">{lead.instagram_username || "-"}</TableCell>
-                          <TableCell className="text-gray-300">
+                          <TableCell className="text-gray-300 whitespace-nowrap">{formatMediaSalarial(lead.media_salarial)}</TableCell>
+                          <TableCell className="text-gray-300 capitalize whitespace-nowrap">{lead.tipo_computador}</TableCell>
+                          <TableCell className="text-gray-300 whitespace-nowrap">{lead.instagram_username || "-"}</TableCell>
+                          <TableCell className="text-gray-300 whitespace-nowrap">
                             {format(new Date(lead.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap">
                             {lead.email_confirmacao_enviado ? (
                               <CheckCircle className="w-5 h-5 text-green-400" />
                             ) : (
