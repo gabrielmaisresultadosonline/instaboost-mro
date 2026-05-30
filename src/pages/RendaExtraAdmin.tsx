@@ -64,6 +64,7 @@ const RendaExtraAdmin = () => {
     launch_date_enabled: false
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAllLeads, setShowAllLeads] = useState(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
@@ -456,7 +457,7 @@ const RendaExtraAdmin = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredLeads.map((lead) => (
+                      {(showAllLeads || searchQuery ? filteredLeads : filteredLeads.slice(0, 30)).map((lead) => (
                         <TableRow key={lead.id} className="border-gray-700">
                           <TableCell className="text-white font-medium whitespace-nowrap">{lead.nome_completo}</TableCell>
                           <TableCell className="text-gray-300 whitespace-nowrap">{lead.email}</TableCell>
@@ -486,6 +487,20 @@ const RendaExtraAdmin = () => {
                     </TableBody>
                   </Table>
                 </div>
+                {!searchQuery && filteredLeads.length > 30 && (
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-600 text-gray-200 hover:bg-gray-700"
+                      onClick={() => setShowAllLeads((v) => !v)}
+                    >
+                      {showAllLeads
+                        ? `Mostrar apenas os 30 mais recentes`
+                        : `Ver todos (${filteredLeads.length})`}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
