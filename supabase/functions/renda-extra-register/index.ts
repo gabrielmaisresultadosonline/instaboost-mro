@@ -93,7 +93,11 @@ serve(async (req) => {
       .select("whatsapp_group_link, launch_date, launch_date_enabled")
       .single();
 
-    const whatsappGroupLink = settings?.whatsapp_group_link || "https://chat.whatsapp.com/example";
+    // Permanent short link — always redirects to the current group URL saved in /rendaextra/admin
+    // This way, if the WhatsApp group link changes, emails already sent still work.
+    const SHORT_GROUP_LINK = "https://maisresultadosonline.com.br/grupo-rendaextra";
+    const whatsappGroupLink = SHORT_GROUP_LINK;
+    const directGroupLink = settings?.whatsapp_group_link || SHORT_GROUP_LINK;
     const launchDateEnabled = !!settings?.launch_date_enabled;
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
 
