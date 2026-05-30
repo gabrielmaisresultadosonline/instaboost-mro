@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Script de configuração do Servidor de Vídeo (HLS Transcoding)
 # Uso: sudo ./setup-video-server.sh seu-dominio.com
 
@@ -36,7 +38,7 @@ cat <<EOF > /var/www/video-server/package.json
 }
 EOF
 
-cat <<EOF > /var/www/video-server/server.js
+cat <<'EOF' > /var/www/video-server/server.js
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -48,11 +50,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const VIDEO_ROOT = path.join(__dirname, 'videos');
+const HLS_ROOT = path.join(VIDEO_ROOT, 'hls');
+const UPLOAD_ROOT = path.join(__dirname, 'uploads');
+
+for (const dir of [VIDEO_ROOT, HLS_ROOT, UPLOAD_ROOT]) {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
 // Servir arquivos estáticos (vídeos e HLS)
-app.use('/videos', express.static(path.join(__dirname, 'videos')));
+app.use('/videos', express.static(VIDEO_ROOT, {
+    setHeaders: (res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    }
+}));
+
+app.get('/health', (_req, res) => {
+    res.json({ success: true, service: 'video-server', status: 'online' });
+});
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
+    destination: (_req, _file, cb) => cb(null, UPLOAD_ROOT),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 
@@ -63,12 +82,12 @@ const upload = multer({
 
 const jobs = {};
 
-app.post('/api/video/upload', upload.single('video'), (req, file) => {
+app.post('/api/video/upload', upload.single('video'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, error: 'No file' });
 
     const inputPath = req.file.path;
     const fileName = path.parse(req.file.filename).name;
-    const outputDir = path.join(__dirname, 'videos', 'hls', fileName);
+    const outputDir = path.join(HLS_ROOT, fileName);
     
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
@@ -113,25 +132,28 @@ app.get('/api/video/status/:id', (req, res) => {
 });
 
 app.get('/api/video/list', (req, res) => {
-    const hlsDir = path.join(__dirname, 'videos', 'hls');
-    if (!fs.existsSync(hlsDir)) return res.json({ success: true, files: [] });
+    if (!fs.existsSync(HLS_ROOT)) return res.json({ success: true, files: [] });
     
-    const dirs = fs.readdirSync(hlsDir);
-    const files = dirs.map(name => {
-        const stats = fs.statSync(path.join(hlsDir, name));
-        return {
-            name,
-            url: '/videos/hls/' + name + '/master.m3u8',
-            size: 0, // HLS is many files, size is complex
-            created: stats.birthtime
-        };
-    });
+    const files = fs.readdirSync(HLS_ROOT)
+        .filter(name => fs.existsSync(path.join(HLS_ROOT, name, 'master.m3u8')))
+        .map(name => {
+            const stats = fs.statSync(path.join(HLS_ROOT, name));
+            return {
+                name,
+                url: '/videos/hls/' + name + '/master.m3u8',
+                hls_url: '/videos/hls/' + name + '/master.m3u8',
+                size: 0, // HLS é composto por vários arquivos
+                created: stats.birthtime
+            };
+        })
+        .sort((a, b) => new Date(b.created) - new Date(a.created));
+
     res.json({ success: true, files });
 });
 
 app.delete('/api/video/:name', (req, res) => {
     const name = req.params.name;
-    const dir = path.join(__dirname, 'videos', 'hls', name);
+    const dir = path.join(HLS_ROOT, name);
     if (fs.existsSync(dir)) {
         fs.rmSync(dir, { recursive: true });
         res.json({ success: true });
@@ -140,8 +162,8 @@ app.delete('/api/video/:name', (req, res) => {
     }
 });
 
-const PORT = 3001;
-app.listen(PORT, () => console.log('Video server running on port ' + PORT));
+const PORT = Number(process.env.PORT || 3001);
+app.listen(PORT, '0.0.0.0', () => console.log('Video server running on port ' + PORT));
 EOF
 
 # 4. Instalar dependências Node
@@ -154,32 +176,41 @@ server {
     listen 80;
     server_name $DOMAIN;
 
+    client_max_body_size 3G;
+
     location / {
-        proxy_pass http://localhost:3001;
+        proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
-        
-        # Aumentar limites de upload
-        client_max_body_size 3G;
+
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;
+        if (\$request_method = OPTIONS) { return 204; }
     }
 
     location /videos/ {
         alias /var/www/video-server/videos/;
-        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Origin * always;
+        add_header Cross-Origin-Resource-Policy cross-origin always;
         autoindex on;
     }
 }
 EOF
 
-sudo ln -s /etc/nginx/sites-available/video-server /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/video-server /etc/nginx/sites-enabled/video-server
 sudo nginx -t && sudo systemctl restart nginx
 
 # 6. Configurar PM2 para manter o servidor rodando
 sudo npm install -g pm2
-pm2 start server.js --name "video-server"
+pm2 delete video-server >/dev/null 2>&1 || true
+pm2 start server.js --name "video-server" --update-env
 pm2 save
 pm2 startup
 
