@@ -190,7 +190,7 @@ Fique atento! Você receberá um email de lembrete no dia do lançamento.
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        whatsappGroupLink,
+        whatsappGroupLink: directGroupLink,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
