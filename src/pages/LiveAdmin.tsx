@@ -46,7 +46,15 @@ const LiveAdmin = () => {
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
   const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "https://video.maisresultadosonline.com.br");
-  const [vpsStatus, setVpsStatus] = useState<"checking" | "online" | "offline" | "none">("none");
+  const [vpsStatus, setVpsStatus] = useState<"checking" | "online" | "offline" | "none">(() => {
+    try {
+      const raw = localStorage.getItem("live_vps_status");
+      if (!raw) return "none";
+      const { status, ts } = JSON.parse(raw);
+      if (Date.now() - ts < 5 * 60 * 1000 && (status === "online" || status === "offline")) return status;
+    } catch {}
+    return "none";
+  });
 
   // Previously uploaded videos
   const [serverVideos, setServerVideos] = useState<any[]>([]);
