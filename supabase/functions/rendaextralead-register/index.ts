@@ -87,17 +87,15 @@ serve(async (req) => {
 
     log("Lead inserted successfully", { leadId: lead.id });
 
-    // Get settings for WhatsApp group link
+    // Get settings for WhatsApp direct link
     const { data: settings } = await supabase
       .from("renda_extra_lead_settings")
-      .select("whatsapp_group_link, launch_date, launch_date_enabled")
+      .select("whatsapp_number, whatsapp_message, launch_date, launch_date_enabled")
       .single();
 
-    // Permanent short link — always redirects to the current group URL saved in /rendaextra/admin
-    // This way, if the WhatsApp group link changes, emails already sent still work.
-    const SHORT_GROUP_LINK = "https://maisresultadosonline.com.br/grupo-rendaextra";
-    const whatsappGroupLink = SHORT_GROUP_LINK;
-    const directGroupLink = settings?.whatsapp_group_link || SHORT_GROUP_LINK;
+    // Permanent short link — always redirects to the current WhatsApp number/message saved in /rendaextralead/admin.
+    // This way, if the number/message changes, emails already sent still take the lead to the most current number.
+    const SHORT_WHATSAPP_LINK = "https://maisresultadosonline.com.br/r/rxl-wa";
     const launchDateEnabled = !!settings?.launch_date_enabled;
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
 
@@ -135,7 +133,7 @@ ${launchDateEnabled ? `
 
 <div style="text-align:center;margin:30px 0;">
 <p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Fale com a gente agora no WhatsApp para liberarmos sua aula:</p>
-<a href="https://wa.me/555198488620?text=${encodeURIComponent('Olá gostaria de aprender sobre a renda extra')}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
+<a href="${SHORT_WHATSAPP_LINK}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
 📲 APRENDA GRÁTIS AGORA
 </a>
 <p style="margin:15px 0 0 0;font-size:14px;color:#666;">Entre em contato conosco e vamos liberar a aula agora para você!</p>
@@ -191,7 +189,7 @@ Fique atento! Você receberá um email de lembrete no dia do lançamento.
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        whatsappGroupLink: `https://wa.me/555198488620?text=${encodeURIComponent("Olá gostaria de aprender sobre a renda extra")}`,
+        whatsappGroupLink: SHORT_WHATSAPP_LINK,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

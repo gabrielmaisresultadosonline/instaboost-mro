@@ -60,6 +60,8 @@ const RendaExtraLeadAdmin = () => {
   
   const [settings, setSettings] = useState({
     whatsapp_group_link: "",
+    whatsapp_number: "",
+    whatsapp_message: "Olá gostaria de aprender sobre a renda extra",
     launch_date: "",
     launch_date_enabled: false
   });
@@ -157,6 +159,8 @@ const RendaExtraLeadAdmin = () => {
         }
         setSettings({
           whatsapp_group_link: data.settings.whatsapp_group_link || "",
+          whatsapp_number: data.settings.whatsapp_number || "",
+          whatsapp_message: data.settings.whatsapp_message || "Olá gostaria de aprender sobre a renda extra",
           launch_date: formattedLaunchDate,
           launch_date_enabled: !!data.settings.launch_date_enabled
         });
@@ -188,6 +192,8 @@ const RendaExtraLeadAdmin = () => {
           adminToken,
           settings: {
             whatsapp_group_link: settings.whatsapp_group_link,
+            whatsapp_number: settings.whatsapp_number,
+            whatsapp_message: settings.whatsapp_message,
             launch_date: settings.launch_date ? new Date(settings.launch_date).toISOString() : null,
             launch_date_enabled: settings.launch_date_enabled
           }
@@ -558,22 +564,67 @@ const RendaExtraLeadAdmin = () => {
                 <CardTitle className="text-white">Configurações</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <Label htmlFor="groupLink" className="text-gray-300 flex items-center gap-2">
-                    <Link2 className="w-4 h-4" />
-                    Link Direto do WhatsApp
-                  </Label>
-                  <Input
-                    id="groupLink"
-                    value={settings.whatsapp_group_link}
-                    onChange={(e) => setSettings({ ...settings, whatsapp_group_link: e.target.value })}
-                    className="mt-2 bg-gray-700 border-gray-600 text-white"
-                    placeholder="https://wa.me/555198488620?text=Olá%20gostaria%20de%20aprender%20sobre%20a%20renda%20extra"
-                  />
-                  <p className="text-gray-500 text-sm mt-1">
-                    Link de WhatsApp <span className="text-green-400">direto</span> (não é mais grupo). Enviado por email e exibido após o cadastro.
-                    Número atual: <span className="text-green-400">+55 51 9848-8620</span> · mensagem: "Olá gostaria de aprender sobre a renda extra"
-                  </p>
+                <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-lg space-y-4">
+                  <div>
+                    <Label htmlFor="waNumber" className="text-gray-300 flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-green-400" />
+                      Número do WhatsApp
+                    </Label>
+                    <Input
+                      id="waNumber"
+                      value={settings.whatsapp_number}
+                      onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })}
+                      className="mt-2 bg-gray-700 border-gray-600 text-white"
+                      placeholder="555198488620 (com DDI 55 + DDD + número)"
+                    />
+                    <p className="text-gray-500 text-sm mt-1">
+                      Apenas números. Ex: <span className="text-green-400">555198488620</span> (55 = Brasil, 51 = DDD).
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="waMessage" className="text-gray-300 flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-green-400" />
+                      Mensagem automática do WhatsApp
+                    </Label>
+                    <Input
+                      id="waMessage"
+                      value={settings.whatsapp_message}
+                      onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })}
+                      className="mt-2 bg-gray-700 border-gray-600 text-white"
+                      placeholder="Olá gostaria de aprender sobre a renda extra"
+                    />
+                    <p className="text-gray-500 text-sm mt-1">
+                      Mensagem que aparece pré-preenchida quando o lead clica no botão.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-gray-900/60 rounded-md border border-gray-700">
+                    <Label className="text-gray-300 flex items-center gap-2 mb-2">
+                      <Link2 className="w-4 h-4 text-yellow-400" />
+                      Link encurtado (fixo no email e no botão)
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-black/40 text-yellow-300 text-sm px-3 py-2 rounded break-all">
+                        https://maisresultadosonline.com.br/r/rxl-wa
+                      </code>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText("https://maisresultadosonline.com.br/r/rxl-wa");
+                          toast({ title: "Link copiado!" });
+                        }}
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                    <p className="text-gray-500 text-xs mt-2">
+                      Este link <strong>nunca muda</strong>. Ele sempre redireciona para o número e a mensagem configurados acima.
+                      Se você trocar o WhatsApp depois, todos os leads (incluindo emails antigos) cairão automaticamente no número novo.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-gray-600">
