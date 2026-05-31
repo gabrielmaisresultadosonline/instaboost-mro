@@ -249,6 +249,8 @@ const App = () => (
           <Route path="/inteligenciafotos/admin" element={<InteligenciaFotosAdmin />} />
           <Route path="/live" element={<Live />} />
           <Route path="/live/admin" element={<LiveAdmin />} />
+          <Route path="/livve" element={<Livve />} />
+          <Route path="/livve/admin" element={<LivveAdmin />} />
           <Route path="/licencaadmin" element={<LicencaAdmin />} />
           <Route path="/prompts" element={<PromptsMRO />} />
           <Route path="/prompts/admin" element={<PromptsMROAdmin />} />
