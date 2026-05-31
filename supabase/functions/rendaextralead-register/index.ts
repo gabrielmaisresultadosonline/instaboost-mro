@@ -189,7 +189,7 @@ Fique atento! Você receberá um email de lembrete no dia do lançamento.
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        whatsappGroupLink: `https://wa.me/555198488620?text=${encodeURIComponent("Olá gostaria de aprender sobre a renda extra")}`,
+        whatsappGroupLink: SHORT_WHATSAPP_LINK,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
