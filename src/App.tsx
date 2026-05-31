@@ -234,6 +234,7 @@ const App = () => (
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
+          <Route path="/r/rxl-wa" element={<RendaExtraLeadWaRedirect />} />
           <Route path="/grupo-rendaextra" element={<GrupoRendaExtra />} />
           <Route path="/grupo/rendaextra" element={<GrupoRendaExtra />} />
           <Route path="/empresas" element={<Empresas />} />
