@@ -71,6 +71,8 @@ import RendaExtra from "./pages/RendaExtra";
 import RendaExtra2 from "./pages/RendaExtra2";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
 import GrupoRendaExtra from "./pages/GrupoRendaExtra";
+import RendaExtraLead from "./pages/RendaExtraLead";
+import RendaExtraLeadAdmin from "./pages/RendaExtraLeadAdmin";
 import Empresas from "./pages/Empresas";
 import EmpresasAdmin from "./pages/EmpresasAdmin";
 import RendaExt from "./pages/RendaExt";
