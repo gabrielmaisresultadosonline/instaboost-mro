@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Radio, ExternalLink, MessageCircle, MessageSquareOff, Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
+import { Users, Radio, ExternalLink, MessageCircle, MessageSquareOff, Play, Pause, Volume2, VolumeX, Maximize, HelpCircle, Tag, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Hls from "hls.js";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 
-const Live = () => {
+const DISCOUNT_URL = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
+const DOUBTS_MESSAGE = "Assisti a aula de renda extra e fiquei com umas dúvidas";
+
+const Livve = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [fakeViewers, setFakeViewers] = useState(0);
@@ -19,12 +24,13 @@ const Live = () => {
   const hlsRef = useRef<Hls | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const { whatsappNumber } = useWhatsAppConfig();
   const visitorIdRef = useRef(
-    localStorage.getItem("live_visitor_id") || `v_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    localStorage.getItem("livve_visitor_id") || `v_${Date.now()}_${Math.random().toString(36).slice(2)}`
   );
 
   useEffect(() => {
-    localStorage.setItem("live_visitor_id", visitorIdRef.current);
+    localStorage.setItem("livve_visitor_id", visitorIdRef.current);
   }, []);
 
   useEffect(() => {
@@ -64,11 +70,11 @@ const Live = () => {
           const response = await fetch(fullHlsUrl, { method: "HEAD" });
           if (response.ok) {
             const hls = new Hls({
-              startLevel: 0, // Inicia na menor qualidade para conexões lentas
+              startLevel: 0,
               capLevelToPlayerSize: true,
               maxBufferLength: 30,
               maxMaxBufferLength: 60,
-              enableWorker: true, // Usa Web Worker para não travar a UI
+              enableWorker: true,
               lowLatencyMode: true,
               backBufferLength: 90,
             });
@@ -81,8 +87,7 @@ const Live = () => {
               setIsMuted(false);
               const playPromise = video.play();
               if (playPromise !== undefined) {
-                playPromise.catch((error) => {
-                  console.log("Autoplay with sound prevented, trying muted:", error);
+                playPromise.catch(() => {
                   video.muted = true;
                   setIsMuted(true);
                   video.play().catch(e => console.error("Playback failed:", e));
@@ -119,14 +124,13 @@ const Live = () => {
 
   const loadDirectVideo = (video: HTMLVideoElement, url: string) => {
     video.src = url;
-    video.preload = "metadata"; // Carrega apenas o necessário inicialmente
+    video.preload = "metadata";
     video.muted = false;
     video.volume = 1;
     setIsMuted(false);
     const playPromise = video.play();
     if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Direct play with sound prevented, trying muted:", error);
+      playPromise.catch(() => {
         video.muted = true;
         setIsMuted(true);
         video.play().catch(e => console.error("Playback failed:", e));
@@ -134,12 +138,11 @@ const Live = () => {
     }
   };
 
-  // Realistic fake viewers - starts low, gradually climbs with organic fluctuations
+  // Realistic fake viewers
   useEffect(() => {
     if (!session || session.status !== "active") return;
     const max = session.fake_viewers_max || 200;
 
-    // Start very low (2-5)
     let elapsedSeconds = 0;
     setFakeViewers(3);
 
@@ -150,45 +153,25 @@ const Live = () => {
         const minutesElapsed = elapsedSeconds / 60;
         let targetForPhase: number;
 
-        if (minutesElapsed < 1) {
-          // 0-1 min: very few (3-8)
-          targetForPhase = 3 + Math.floor(minutesElapsed * 5);
-        } else if (minutesElapsed < 3) {
-          // 1-3 min: slow climb (8-30)
-          targetForPhase = 8 + Math.floor((minutesElapsed - 1) * 11);
-        } else if (minutesElapsed < 6) {
-          // 3-6 min: moderate (30-100)
-          targetForPhase = 30 + Math.floor((minutesElapsed - 3) * 23);
-        } else if (minutesElapsed < 10) {
-          // 6-10 min: approaching max (100-max)
+        if (minutesElapsed < 1) targetForPhase = 3 + Math.floor(minutesElapsed * 5);
+        else if (minutesElapsed < 3) targetForPhase = 8 + Math.floor((minutesElapsed - 1) * 11);
+        else if (minutesElapsed < 6) targetForPhase = 30 + Math.floor((minutesElapsed - 3) * 23);
+        else if (minutesElapsed < 10) {
           const progress = (minutesElapsed - 6) / 4;
           targetForPhase = 100 + Math.floor(progress * (max - 100));
-        } else {
-          // 10+ min: fluctuate around max
-          targetForPhase = max;
-        }
+        } else targetForPhase = max;
 
         targetForPhase = Math.min(targetForPhase, max);
 
-        // Organic randomness
         const r = Math.random();
         let delta: number;
-
-        if (r < 0.1) {
-          // Pequena queda ocasional (máximo 1 ou 2 como solicitado)
-          delta = -(1 + Math.floor(Math.random() * 2));
-        } else if (r < 0.3) {
-          // Manter estável (delta 0)
-          delta = 0;
-        } else if (r < 0.7) {
-          // Tendência de subida gradual para o alvo
+        if (r < 0.1) delta = -(1 + Math.floor(Math.random() * 2));
+        else if (r < 0.3) delta = 0;
+        else if (r < 0.7) {
           const diff = targetForPhase - prev;
           delta = Math.max(0, Math.floor(diff * (0.1 + Math.random() * 0.2)));
           if (delta === 0 && prev < targetForPhase) delta = 1;
-        } else {
-          // Subida mais rápida
-          delta = 1 + Math.floor(Math.random() * 4);
-        }
+        } else delta = 1 + Math.floor(Math.random() * 4);
 
         const next = prev + delta;
         return Math.max(1, Math.min(max + 15, next));
@@ -198,7 +181,6 @@ const Live = () => {
     return () => clearInterval(interval);
   }, [session]);
 
-  // Track analytics
   const sendAnalytics = useCallback(
     async (percentage: number) => {
       if (!session) return;
@@ -220,7 +202,6 @@ const Live = () => {
     [session]
   );
 
-  // Video progress tracking
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !session) return;
@@ -283,8 +264,7 @@ const Live = () => {
   const changeVolume = (delta: number) => {
     const video = videoRef.current;
     if (!video) return;
-    const currentVol = video.volume;
-    const newVol = Math.max(0, Math.min(1, currentVol + delta));
+    const newVol = Math.max(0, Math.min(1, video.volume + delta));
     video.volume = newVol;
     setVolume(newVol);
     if (newVol > 0) {
@@ -299,11 +279,8 @@ const Live = () => {
   const toggleFullscreen = () => {
     const container = videoContainerRef.current;
     if (!container) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      container.requestFullscreen();
-    }
+    if (document.fullscreenElement) document.exitFullscreen();
+    else container.requestFullscreen();
   };
 
   const handleVideoContainerMove = () => {
@@ -315,24 +292,29 @@ const Live = () => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
     const onVolumeChange = () => {
       setVolume(video.volume);
       setIsMuted(video.muted);
     };
-
     video.addEventListener("play", onPlay);
     video.addEventListener("pause", onPause);
     video.addEventListener("volumechange", onVolumeChange);
-
     return () => {
       video.removeEventListener("play", onPlay);
       video.removeEventListener("pause", onPause);
       video.removeEventListener("volumechange", onVolumeChange);
     };
   }, [session]);
+
+  const discountUrl = session?.cta_button_link || DISCOUNT_URL;
+  const discountButtonText = session?.cta_button_text || "🎁 APROVEITAR O DESCONTO AGORA";
+
+  const openDoubts = () => {
+    if (!whatsappNumber) return;
+    openWhatsAppChat(whatsappNumber, DOUBTS_MESSAGE);
+  };
 
   if (loading) {
     return (
@@ -342,6 +324,7 @@ const Live = () => {
     );
   }
 
+  // Live encerrada / pausada
   if (!session || session.status === "paused") {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center p-4 sm:p-6 text-center">
@@ -351,37 +334,55 @@ const Live = () => {
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
           🔴 LIVE ENCERRADA
         </h1>
-        <p className="text-gray-400 text-sm sm:text-lg mb-6 sm:mb-8 max-w-md">
-          Aguarde no grupo do WhatsApp para ser notificado sobre a próxima live!
+        <p className="text-gray-300 text-base sm:text-lg mb-2 max-w-md">
+          Aguarde a próxima oferta.
         </p>
-        {session?.whatsapp_group_link && (
-          <a href={session.whatsapp_group_link} target="_blank" rel="noopener noreferrer">
-            <Button className="bg-green-600 hover:bg-green-700 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-xl gap-2 sm:gap-3">
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-              Entrar no Grupo do WhatsApp
+        <p className="text-gray-500 text-xs sm:text-sm mb-6 sm:mb-8 max-w-md">
+          Você ainda pode aproveitar o desconto disponível para os interessados:
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+          <a href={discountUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+            <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-6 rounded-xl gap-2 shadow-lg shadow-green-500/30 animate-pulse">
+              <Tag className="w-5 h-5" />
+              Aproveitar Desconto
             </Button>
           </a>
-        )}
+          <Button
+            onClick={openDoubts}
+            disabled={!whatsappNumber}
+            variant="outline"
+            className="flex-1 border-white/20 text-white hover:bg-white/10 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-6 rounded-xl gap-2"
+          >
+            <HelpCircle className="w-5 h-5" />
+            Tirar Dúvidas
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      {/* Header */}
-      <div className="bg-red-600 py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative">
+      {/* Header com escassez */}
+      <div className="bg-red-600 py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50 shadow-md gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="relative shrink-0">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse" />
             <div className="absolute inset-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-ping" />
           </div>
-          <span className="text-white font-bold text-xs sm:text-sm md:text-base">AO VIVO</span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="text-white font-bold text-xs sm:text-sm md:text-base truncate">SEMPRE LIVE</span>
+            <span className="text-white/90 text-[9px] sm:text-[11px] md:text-xs flex items-center gap-1 truncate">
+              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
+              <span className="truncate">Vamos encerrar em instantes</span>
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0">
           <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
           <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
           <span className="text-white font-semibold text-xs sm:text-sm">
-            {fakeViewers.toLocaleString()} assistindo
+            {fakeViewers.toLocaleString()}
           </span>
         </div>
       </div>
@@ -393,10 +394,10 @@ const Live = () => {
           <div className="flex-1 min-w-0">
             <div className="mb-2 sm:mb-3 px-1">
               <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white leading-tight">
-                {session.title || "Fazendo 5k com a MRO"}
+                {session.title || "Aula de Renda Extra"}
               </h1>
               <p className="text-gray-400 text-xs sm:text-sm mt-1">
-                {session.description || "Veja abaixo, estamos ao vivo 🔴"}
+                {session.description || "Estamos sempre ao vivo 🔴 — vamos encerrar em instantes"}
               </p>
             </div>
 
@@ -424,7 +425,7 @@ const Live = () => {
 
               <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded flex items-center gap-1 sm:gap-1.5 pointer-events-none">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
-                LIVE
+                SEMPRE LIVE
               </div>
 
               <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/80 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 pointer-events-none">
@@ -432,14 +433,10 @@ const Live = () => {
                 <span className="font-medium">{fakeViewers.toLocaleString()}</span>
               </div>
 
-              {/* Click to unmute overlay */}
               {isMuted && isPlaying && (
                 <div 
                   className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer z-10 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleMute();
-                  }}
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
                 >
                   <div className="bg-red-600 text-white px-5 sm:px-8 py-3 sm:py-4 rounded-full flex items-center gap-2 sm:gap-3 font-bold animate-pulse shadow-2xl border-2 border-white/20 hover:scale-105 transition-transform text-sm sm:text-base">
                     <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -448,7 +445,6 @@ const Live = () => {
                 </div>
               )}
 
-              {/* Custom controls */}
               <div
                 className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-3 sm:px-4 py-3 sm:py-5 flex items-center justify-between transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}
               >
@@ -456,18 +452,13 @@ const Live = () => {
                   <button onClick={togglePlay} className="text-white hover:text-red-400 transition-colors filter drop-shadow-md">
                     {isPlaying ? <Pause className="w-6 h-6 sm:w-8 sm:h-8" /> : <Play className="w-6 h-6 sm:w-8 sm:h-8" />}
                   </button>
-                  
                   <div className="flex items-center gap-2 group/volume">
                     <button onClick={toggleMute} className="text-white hover:text-red-400 transition-colors">
                       {isMuted || volume === 0 ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
                     </button>
                     <div className="hidden sm:flex items-center gap-2 w-0 group-hover/volume:w-24 transition-all duration-300 overflow-hidden">
                       <input 
-                        type="range" 
-                        min="0" 
-                        max="1" 
-                        step="0.1" 
-                        value={volume} 
+                        type="range" min="0" max="1" step="0.1" value={volume}
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
                           const video = videoRef.current;
@@ -496,7 +487,6 @@ const Live = () => {
                       <Volume2 className="w-4 h-4" />
                     </button>
                   </div>
-
                   <button onClick={toggleFullscreen} className="text-white hover:text-red-400 transition-colors filter drop-shadow-md">
                     <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
@@ -508,6 +498,18 @@ const Live = () => {
                   HD
                 </div>
               )}
+            </div>
+
+            {/* Botão de dúvidas SEMPRE visível abaixo do vídeo */}
+            <div className="mt-3 sm:mt-4">
+              <Button
+                onClick={openDoubts}
+                disabled={!whatsappNumber}
+                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-sm sm:text-base px-4 py-3 sm:py-4 rounded-xl gap-2 shadow-md"
+              >
+                <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                Ficou com dúvidas sobre algo nessa aula de renda extra?
+              </Button>
             </div>
           </div>
 
@@ -524,7 +526,6 @@ const Live = () => {
                   <span className="text-[10px] sm:text-xs">{fakeViewers.toLocaleString()}</span>
                 </div>
               </div>
-
               <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 text-center">
                 <div className="bg-gray-800/50 rounded-full p-3 sm:p-4 mb-3 sm:mb-4">
                   <MessageSquareOff className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
@@ -533,10 +534,9 @@ const Live = () => {
                   Chat desativado
                 </p>
                 <p className="text-gray-500 text-[10px] sm:text-xs leading-relaxed max-w-[220px]">
-                  Pode tirar suas dúvidas no final da live. Assista até o final para liberar o acesso exclusivo! 🔒
+                  Use o botão de dúvidas abaixo do vídeo para falar com a gente no WhatsApp. 🔒
                 </p>
               </div>
-
               <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-800">
                 <div className="flex items-center justify-center gap-1.5 text-gray-600">
                   <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
@@ -548,40 +548,41 @@ const Live = () => {
         </div>
       </div>
 
-      {/* CTA after video ends */}
+      {/* CTA after video ends - oferta de desconto */}
       {videoEnded && (
         <div className="max-w-4xl mx-auto px-3 sm:px-4 pb-8 sm:pb-12 animate-fade-in">
-          {session.cta_button_link && (
-            <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl sm:rounded-2xl p-5 sm:p-8 mb-6 sm:mb-8 text-center">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
-                {session.cta_button_text || "Acesse o GRUPO para liberar o desconto"}
-              </h2>
-              <p className="text-green-300 text-sm sm:text-base mb-4 sm:mb-6">e você faturar 5k! 🚀</p>
-              <a href={session.cta_button_link} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-green-600 hover:bg-green-700 text-white text-base sm:text-lg px-6 sm:px-10 py-4 sm:py-6 rounded-xl gap-2 sm:gap-3 animate-pulse">
-                  <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
-                  {session.cta_button_text || "Acessar Grupo"}
-                </Button>
-              </a>
+          <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/40 rounded-xl sm:rounded-2xl p-5 sm:p-8 mb-4 sm:mb-6 text-center shadow-xl">
+            <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/40 rounded-full px-3 py-1 mb-3 sm:mb-4">
+              <Clock className="w-3.5 h-3.5 text-red-300" />
+              <span className="text-red-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider">Desconto por tempo limitado</span>
             </div>
-          )}
-
-          <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-8">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">
-              {session.cta_title || "Fature mais de 5k prestando serviço para as empresas"}
-            </h3>
-            <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6">
-              {session.cta_description ||
-                "Rode a ferramenta na sua maquina/notebook/pc e cobre mensalmente das empresas por isso. Receba todo o passo a passo de como fechar contratos, de como apresentar esse serviço e como faturar de verdade."}
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3">
+              {session.cta_title || "Aproveite o desconto exclusivo!"}
+            </h2>
+            <p className="text-green-100/80 text-sm sm:text-base mb-4 sm:mb-6 max-w-2xl mx-auto">
+              {session.cta_description || "Disponível apenas para quem assistiu a aula. Aproveite enquanto está no ar."}
             </p>
-            {session.whatsapp_group_link && (
-              <a href={session.whatsapp_group_link} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 text-sm sm:text-base">
-                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Entrar no Grupo
-                </Button>
-              </a>
-            )}
+            <a href={discountUrl} target="_blank" rel="noopener noreferrer" className="inline-block w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-base sm:text-lg px-6 sm:px-10 py-5 sm:py-7 rounded-xl gap-2 sm:gap-3 animate-pulse shadow-lg shadow-green-500/40">
+                <Tag className="w-5 h-5 sm:w-6 sm:h-6" />
+                {discountButtonText}
+                <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            </a>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-6 text-center">
+            <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4">
+              Ficou com dúvidas sobre algo nessa aula de renda extra?
+            </p>
+            <Button
+              onClick={openDoubts}
+              disabled={!whatsappNumber}
+              className="bg-green-600 hover:bg-green-700 text-white gap-2 text-sm sm:text-base px-5 py-3"
+            >
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              Falar no WhatsApp
+            </Button>
           </div>
         </div>
       )}
@@ -589,4 +590,4 @@ const Live = () => {
   );
 };
 
-export default Live;
+export default Livve;
