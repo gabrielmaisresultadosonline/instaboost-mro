@@ -605,7 +605,7 @@ const RendaExtraLead = () => {
                         </>
                       ) : (
                         <>
-                          Participar do Grupo
+                          Aprenda Grátis Agora
                           <ArrowRight className="w-5 h-5 ml-2" />
                         </>
                       )}
