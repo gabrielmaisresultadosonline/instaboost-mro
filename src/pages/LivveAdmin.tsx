@@ -566,11 +566,12 @@ const LiveAdmin = () => {
                   </div>
                 </div>
 
-                <Input placeholder="Link do Grupo WhatsApp" value={newLive.whatsapp_group_link} onChange={(e) => setNewLive((p) => ({ ...p, whatsapp_group_link: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
-                <Input placeholder="Título do CTA final" value={newLive.cta_title} onChange={(e) => setNewLive((p) => ({ ...p, cta_title: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
-                <Textarea placeholder="Descrição do CTA final" value={newLive.cta_description} onChange={(e) => setNewLive((p) => ({ ...p, cta_description: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" rows={3} />
-                <Input placeholder="Texto do botão CTA" value={newLive.cta_button_text} onChange={(e) => setNewLive((p) => ({ ...p, cta_button_text: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
-                <Input placeholder="Link do botão CTA (grupo desconto)" value={newLive.cta_button_link} onChange={(e) => setNewLive((p) => ({ ...p, cta_button_link: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
+                <Input placeholder="Link do Grupo WhatsApp (opcional)" value={newLive.whatsapp_group_link} onChange={(e) => setNewLive((p) => ({ ...p, whatsapp_group_link: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
+                <Input placeholder="Título do CTA final (oferta de desconto)" value={newLive.cta_title} onChange={(e) => setNewLive((p) => ({ ...p, cta_title: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
+                <Textarea placeholder="Descrição do CTA final (escassez do desconto)" value={newLive.cta_description} onChange={(e) => setNewLive((p) => ({ ...p, cta_description: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" rows={3} />
+                <Input placeholder="Texto do botão de desconto" value={newLive.cta_button_text} onChange={(e) => setNewLive((p) => ({ ...p, cta_button_text: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
+                <Input placeholder="Link da página de desconto" value={newLive.cta_button_link} onChange={(e) => setNewLive((p) => ({ ...p, cta_button_link: e.target.value }))} className="bg-gray-800 border-gray-700 text-white" />
+                <p className="text-[11px] text-gray-500 -mt-1">Botão de "Tirar Dúvidas" usa automaticamente o WhatsApp configurado em /whatsapp.</p>
 
                 <div className="flex gap-3">
                   <Button onClick={createLive} disabled={loading} className="bg-red-600 hover:bg-red-700 flex-1">
