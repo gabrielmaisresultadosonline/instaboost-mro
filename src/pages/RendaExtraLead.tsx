@@ -234,6 +234,7 @@ const RendaExtraLead = () => {
   };
 
   if (submitted) {
+    const whatsappDirectLink = `https://wa.me/555198488620?text=${encodeURIComponent("Olá! Acabei de me cadastrar na página de Renda Extra. Quero aprender grátis agora, podem liberar minha aula?")}`;
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
@@ -243,15 +244,15 @@ const RendaExtraLead = () => {
               Cadastro Realizado!
             </h1>
             <p className="text-gray-400 text-lg mb-8">
-              Você receberá um email de confirmação. Agora, entre no grupo do WhatsApp!
+              Entre em contato conosco no WhatsApp agora e vamos liberar a sua aula!
             </p>
             <a 
-              href={groupLink || "#"} 
+              href={whatsappDirectLink} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-transform shadow-2xl shadow-green-500/20"
             >
-              Entrar no Grupo do WhatsApp
+              Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>
@@ -518,7 +519,7 @@ const RendaExtraLead = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-red-400 animate-spin flex-shrink-0" />
-                <span>Reservando seu acesso ao grupo</span>
+                <span>Reservando seu acesso</span>
               </div>
               <div className="flex items-center gap-2 opacity-60">
                 <div className="w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0" />
@@ -604,7 +605,7 @@ const RendaExtraLead = () => {
                         </>
                       ) : (
                         <>
-                          Participar do Grupo
+                          Aprenda Grátis Agora
                           <ArrowRight className="w-5 h-5 ml-2" />
                         </>
                       )}
@@ -718,7 +719,7 @@ const RendaExtraLead = () => {
               onClick={() => setShowForm(true)}
               className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
             >
-              Participar Grátis!
+              Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -733,7 +734,7 @@ const RendaExtraLead = () => {
             Aprenda a nova onda do mercado <span className="text-green-400">grátis</span>!
           </h3>
           <p className="text-gray-400 text-base">
-            Faça o cadastro e participe do grupo de lançamento grátis para entender melhor!
+            Faça o cadastro e fale com a gente no WhatsApp para liberarmos sua aula grátis!
           </p>
         </div>
       </section>
@@ -745,7 +746,7 @@ const RendaExtraLead = () => {
             onClick={() => setShowForm(true)}
             className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
           >
-            Participar Agora!
+            Aprenda Grátis Agora
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           
@@ -798,7 +799,7 @@ const RendaExtraLead = () => {
             onClick={() => setShowForm(true)}
             className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
           >
-            Participar Grátis!
+            Aprenda Grátis Agora
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
