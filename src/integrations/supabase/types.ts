@@ -3924,6 +3924,8 @@ export type Database = {
           launch_date_enabled: boolean | null
           updated_at: string
           whatsapp_group_link: string | null
+          whatsapp_message: string | null
+          whatsapp_number: string | null
         }
         Insert: {
           admin_email?: string | null
@@ -3934,6 +3936,8 @@ export type Database = {
           launch_date_enabled?: boolean | null
           updated_at?: string
           whatsapp_group_link?: string | null
+          whatsapp_message?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
           admin_email?: string | null
@@ -3944,6 +3948,8 @@ export type Database = {
           launch_date_enabled?: boolean | null
           updated_at?: string
           whatsapp_group_link?: string | null
+          whatsapp_message?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
