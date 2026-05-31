@@ -234,7 +234,7 @@ const RendaExtraLead = () => {
   };
 
   if (submitted) {
-    const whatsappDirectLink = `https://wa.me/555198488620?text=${encodeURIComponent("Olá! Acabei de me cadastrar na página de Renda Extra. Quero aprender grátis agora, podem liberar minha aula?")}`;
+    const whatsappDirectLink = `https://wa.me/555198488620?text=${encodeURIComponent("Olá gostaria de aprender sobre a renda extra")}`;
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
