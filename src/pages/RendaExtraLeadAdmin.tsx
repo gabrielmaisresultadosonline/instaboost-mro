@@ -561,16 +561,19 @@ const RendaExtraLeadAdmin = () => {
                 <div>
                   <Label htmlFor="groupLink" className="text-gray-300 flex items-center gap-2">
                     <Link2 className="w-4 h-4" />
-                    Link do Grupo WhatsApp
+                    Link Direto do WhatsApp
                   </Label>
                   <Input
                     id="groupLink"
                     value={settings.whatsapp_group_link}
                     onChange={(e) => setSettings({ ...settings, whatsapp_group_link: e.target.value })}
                     className="mt-2 bg-gray-700 border-gray-600 text-white"
-                    placeholder="https://chat.whatsapp.com/..."
+                    placeholder="https://wa.me/555198488620?text=Olá%20gostaria%20de%20aprender%20sobre%20a%20renda%20extra"
                   />
-                  <p className="text-gray-500 text-sm mt-1">Este link será enviado por email e mostrado após o cadastro</p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Link de WhatsApp <span className="text-green-400">direto</span> (não é mais grupo). Enviado por email e exibido após o cadastro.
+                    Número atual: <span className="text-green-400">+55 51 9848-8620</span> · mensagem: "Olá gostaria de aprender sobre a renda extra"
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-gray-600">
