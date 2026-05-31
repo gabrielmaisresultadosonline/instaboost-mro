@@ -519,7 +519,7 @@ const RendaExtraLead = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-red-400 animate-spin flex-shrink-0" />
-                <span>Reservando seu acesso ao grupo</span>
+                <span>Reservando seu acesso</span>
               </div>
               <div className="flex items-center gap-2 opacity-60">
                 <div className="w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0" />
