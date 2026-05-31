@@ -719,7 +719,7 @@ const RendaExtraLead = () => {
               onClick={() => setShowForm(true)}
               className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
             >
-              Participar Grátis!
+              Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
