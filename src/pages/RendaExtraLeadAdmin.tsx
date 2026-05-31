@@ -192,6 +192,8 @@ const RendaExtraLeadAdmin = () => {
           adminToken,
           settings: {
             whatsapp_group_link: settings.whatsapp_group_link,
+            whatsapp_number: settings.whatsapp_number,
+            whatsapp_message: settings.whatsapp_message,
             launch_date: settings.launch_date ? new Date(settings.launch_date).toISOString() : null,
             launch_date_enabled: settings.launch_date_enabled
           }
