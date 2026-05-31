@@ -86,6 +86,8 @@ import InteligenciaFotosAdmin from "./pages/InteligenciaFotosAdmin";
 import InstagramNovaP from "./pages/InstagramNovaP";
 import Live from "./pages/Live";
 import LiveAdmin from "./pages/LiveAdmin";
+import Livve from "./pages/Livve";
+import LivveAdmin from "./pages/LivveAdmin";
 import LicencaAdmin from "./pages/LicencaAdmin";
 import PromptsMRO from "./pages/PromptsMRO";
 import PromptsMROAdmin from "./pages/PromptsMROAdmin";
@@ -247,6 +249,8 @@ const App = () => (
           <Route path="/inteligenciafotos/admin" element={<InteligenciaFotosAdmin />} />
           <Route path="/live" element={<Live />} />
           <Route path="/live/admin" element={<LiveAdmin />} />
+          <Route path="/livve" element={<Livve />} />
+          <Route path="/livve/admin" element={<LivveAdmin />} />
           <Route path="/licencaadmin" element={<LicencaAdmin />} />
           <Route path="/prompts" element={<PromptsMRO />} />
           <Route path="/prompts/admin" element={<PromptsMROAdmin />} />
