@@ -71,6 +71,8 @@ import RendaExtra from "./pages/RendaExtra";
 import RendaExtra2 from "./pages/RendaExtra2";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
 import GrupoRendaExtra from "./pages/GrupoRendaExtra";
+import RendaExtraLead from "./pages/RendaExtraLead";
+import RendaExtraLeadAdmin from "./pages/RendaExtraLeadAdmin";
 import Empresas from "./pages/Empresas";
 import EmpresasAdmin from "./pages/EmpresasAdmin";
 import RendaExt from "./pages/RendaExt";
@@ -229,6 +231,8 @@ const App = () => (
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           <Route path="/rendaextra" element={<RendaExtra />} />
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
+          <Route path="/rendaextralead" element={<RendaExtraLead />} />
+          <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
           <Route path="/grupo-rendaextra" element={<GrupoRendaExtra />} />
           <Route path="/grupo/rendaextra" element={<GrupoRendaExtra />} />
           <Route path="/empresas" element={<Empresas />} />
