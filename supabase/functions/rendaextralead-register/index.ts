@@ -134,10 +134,11 @@ ${launchDateEnabled ? `
 </div>` : ''}
 
 <div style="text-align:center;margin:30px 0;">
-<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Entre no nosso grupo do WhatsApp:</p>
-<a href="${whatsappGroupLink}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
-📲 PARTICIPAR DO GRUPO
+<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Fale com a gente agora no WhatsApp para liberarmos sua aula:</p>
+<a href="https://wa.me/555198488620?text=${encodeURIComponent('Olá! Acabei de me cadastrar na página de Renda Extra. Quero aprender grátis agora, podem liberar minha aula?')}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
+📲 APRENDA GRÁTIS AGORA
 </a>
+<p style="margin:15px 0 0 0;font-size:14px;color:#666;">Entre em contato conosco e vamos liberar a aula agora para você!</p>
 </div>
 
 ${launchDateEnabled ? `
