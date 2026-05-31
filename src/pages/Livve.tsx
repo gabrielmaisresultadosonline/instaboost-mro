@@ -340,19 +340,6 @@ const Livve = () => {
       </div>
     );
   }
-          <Button
-            onClick={openDoubts}
-            disabled={!whatsappNumber}
-            variant="outline"
-            className="flex-1 border-white/20 text-white hover:bg-white/10 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-6 rounded-xl gap-2"
-          >
-            <HelpCircle className="w-5 h-5" />
-            Tirar Dúvidas
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
