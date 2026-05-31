@@ -18,6 +18,8 @@ const UpdateSettingsSchema = z.object({
   action: z.literal("updateSettings"),
   settings: z.object({
     whatsapp_group_link: z.string().trim().max(500).nullable().optional(),
+    whatsapp_number: z.string().trim().max(30).nullable().optional(),
+    whatsapp_message: z.string().trim().max(500).nullable().optional(),
     launch_date: z.string().datetime().nullable().optional(),
     launch_date_enabled: z.boolean().optional(),
   }),
@@ -28,6 +30,18 @@ const ProtectedActionSchema = z.object({
   action: z.enum(["getData", "resetAnalytics"]),
   adminToken: z.string().optional(),
 });
+
+const DEFAULT_MESSAGE = "Olá gostaria de aprender sobre a renda extra";
+
+function normalizeNumber(raw: string | null | undefined): string {
+  return (raw || "").replace(/\D/g, "");
+}
+
+function buildWaLink(number: string, message: string): string {
+  const n = normalizeNumber(number) || "555198488620";
+  const m = (message || DEFAULT_MESSAGE).trim() || DEFAULT_MESSAGE;
+  return `https://wa.me/${n}?text=${encodeURIComponent(m)}`;
+}
 
 async function readJson(req: Request) {
   try { return await req.json(); } catch { return {}; }
@@ -64,14 +78,25 @@ const handler = async (req: Request): Promise<Response> => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Public — used by the /r/rxl-wa short link page to resolve to the most current number/message
+    if (action === "getWhatsappRedirect") {
+      const { data: settings } = await supabase
+        .from("renda_extra_lead_settings")
+        .select("whatsapp_number, whatsapp_message")
+        .limit(1).single();
+      const url = buildWaLink(settings?.whatsapp_number || "", settings?.whatsapp_message || DEFAULT_MESSAGE);
+      return new Response(JSON.stringify({ success: true, url }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "getGroupLink") {
       const { data: settings } = await supabase
         .from("renda_extra_lead_settings")
-        .select("whatsapp_group_link")
+        .select("whatsapp_group_link, whatsapp_number, whatsapp_message")
         .limit(1).single();
       return new Response(JSON.stringify({
         success: true,
-        whatsapp_group_link: settings?.whatsapp_group_link || null,
+        whatsapp_group_link: settings?.whatsapp_group_link || buildWaLink(settings?.whatsapp_number || "", settings?.whatsapp_message || DEFAULT_MESSAGE),
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -128,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
       const [leadsRes, emailLogsRes, settingsRes, totalVisits, todayVisits, totalLeads, todayLeads] = await Promise.all([
         supabase.from("renda_extra_lead_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_lead_email_logs").select("*").order("created_at", { ascending: false }),
-        supabase.from("renda_extra_lead_settings").select("whatsapp_group_link, launch_date, launch_date_enabled").limit(1).single(),
+        supabase.from("renda_extra_lead_settings").select("whatsapp_group_link, whatsapp_number, whatsapp_message, launch_date, launch_date_enabled").limit(1).single(),
         supabase.from("renda_extra_lead_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("renda_extra_lead_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", todayStartIso),
         supabase.from("renda_extra_lead_leads").select("*", { count: "exact", head: true }),
@@ -155,12 +180,20 @@ const handler = async (req: Request): Promise<Response> => {
         return new Response(JSON.stringify({ success: false, error: "Dados de configuração inválidos" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const payload = {
-        whatsapp_group_link: parsed.data.settings.whatsapp_group_link?.trim() || null,
+      const payload: Record<string, unknown> = {
         launch_date: parsed.data.settings.launch_date || null,
         launch_date_enabled: parsed.data.settings.launch_date_enabled ?? false,
         updated_at: new Date().toISOString(),
       };
+      if (parsed.data.settings.whatsapp_group_link !== undefined) {
+        payload.whatsapp_group_link = parsed.data.settings.whatsapp_group_link?.trim() || null;
+      }
+      if (parsed.data.settings.whatsapp_number !== undefined) {
+        payload.whatsapp_number = normalizeNumber(parsed.data.settings.whatsapp_number) || null;
+      }
+      if (parsed.data.settings.whatsapp_message !== undefined) {
+        payload.whatsapp_message = parsed.data.settings.whatsapp_message?.trim() || DEFAULT_MESSAGE;
+      }
       const { error } = await supabase.from("renda_extra_lead_settings").update(payload).not("id", "is", null);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }),
