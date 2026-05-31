@@ -234,6 +234,7 @@ const RendaExtraLead = () => {
   };
 
   if (submitted) {
+    const whatsappDirectLink = `https://wa.me/555198488620?text=${encodeURIComponent("Olá! Acabei de me cadastrar na página de Renda Extra. Quero aprender grátis agora, podem liberar minha aula?")}`;
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
@@ -243,15 +244,15 @@ const RendaExtraLead = () => {
               Cadastro Realizado!
             </h1>
             <p className="text-gray-400 text-lg mb-8">
-              Você receberá um email de confirmação. Agora, entre no grupo do WhatsApp!
+              Entre em contato conosco no WhatsApp agora e vamos liberar a sua aula!
             </p>
             <a 
-              href={groupLink || "#"} 
+              href={whatsappDirectLink} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-transform shadow-2xl shadow-green-500/20"
             >
-              Entrar no Grupo do WhatsApp
+              Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>
