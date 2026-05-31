@@ -31,16 +31,16 @@ const LiveAdmin = () => {
 
   // New live form
   const [newLive, setNewLive] = useState({
-    title: "Fazendo 5k com a MRO",
+    title: "Aula de Renda Extra",
     video_url: "",
     hls_url: "",
     fake_viewers_min: 14,
     fake_viewers_max: 200,
     whatsapp_group_link: "",
-    cta_title: "Fature mais de 5k prestando serviço para as empresas",
-    cta_description: "Rode a ferramenta na sua maquina/notebook/pc e cobre mensalmente das empresas por isso. Receba todo o passo a passo de como fechar contratos, de como apresentar esse serviço e como faturar de verdade.",
-    cta_button_text: "Acesse o GRUPO para liberar o desconto",
-    cta_button_link: "",
+    cta_title: "Aproveite o desconto exclusivo!",
+    cta_description: "Disponível apenas para quem assistiu a aula. Aproveite enquanto está no ar.",
+    cta_button_text: "🎁 APROVEITAR O DESCONTO AGORA",
+    cta_button_link: "https://maisresultadosonline.com.br/descontoalunosrendaextrasss",
   });
 
   // Settings
