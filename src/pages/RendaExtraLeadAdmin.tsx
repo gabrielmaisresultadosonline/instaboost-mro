@@ -60,6 +60,8 @@ const RendaExtraLeadAdmin = () => {
   
   const [settings, setSettings] = useState({
     whatsapp_group_link: "",
+    whatsapp_number: "",
+    whatsapp_message: "Olá gostaria de aprender sobre a renda extra",
     launch_date: "",
     launch_date_enabled: false
   });
