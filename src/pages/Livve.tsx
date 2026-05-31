@@ -334,29 +334,9 @@ const Livve = () => {
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
           🔴 LIVE ENCERRADA
         </h1>
-        <p className="text-gray-300 text-base sm:text-lg mb-2 max-w-md">
+        <p className="text-gray-300 text-base sm:text-lg max-w-md">
           Aguarde a próxima oferta.
         </p>
-        <p className="text-gray-500 text-xs sm:text-sm mb-6 sm:mb-8 max-w-md">
-          Você ainda pode aproveitar o desconto disponível para os interessados:
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-          <a href={discountUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-            <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-6 rounded-xl gap-2 shadow-lg shadow-green-500/30 animate-pulse">
-              <Tag className="w-5 h-5" />
-              Aproveitar Desconto
-            </Button>
-          </a>
-          <Button
-            onClick={openDoubts}
-            disabled={!whatsappNumber}
-            variant="outline"
-            className="flex-1 border-white/20 text-white hover:bg-white/10 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-6 rounded-xl gap-2"
-          >
-            <HelpCircle className="w-5 h-5" />
-            Tirar Dúvidas
-          </Button>
-        </div>
       </div>
     );
   }
