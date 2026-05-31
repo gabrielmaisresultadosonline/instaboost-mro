@@ -87,17 +87,15 @@ serve(async (req) => {
 
     log("Lead inserted successfully", { leadId: lead.id });
 
-    // Get settings for WhatsApp group link
+    // Get settings for WhatsApp direct link
     const { data: settings } = await supabase
       .from("renda_extra_lead_settings")
-      .select("whatsapp_group_link, launch_date, launch_date_enabled")
+      .select("whatsapp_number, whatsapp_message, launch_date, launch_date_enabled")
       .single();
 
-    // Permanent short link — always redirects to the current group URL saved in /rendaextra/admin
-    // This way, if the WhatsApp group link changes, emails already sent still work.
-    const SHORT_GROUP_LINK = "https://maisresultadosonline.com.br/grupo-rendaextra";
-    const whatsappGroupLink = SHORT_GROUP_LINK;
-    const directGroupLink = settings?.whatsapp_group_link || SHORT_GROUP_LINK;
+    // Permanent short link — always redirects to the current WhatsApp number/message saved in /rendaextralead/admin.
+    // This way, if the number/message changes, emails already sent still take the lead to the most current number.
+    const SHORT_WHATSAPP_LINK = "https://maisresultadosonline.com.br/r/rxl-wa";
     const launchDateEnabled = !!settings?.launch_date_enabled;
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
 
