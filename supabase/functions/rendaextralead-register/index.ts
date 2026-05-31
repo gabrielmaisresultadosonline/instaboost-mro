@@ -191,7 +191,7 @@ Fique atento! Você receberá um email de lembrete no dia do lançamento.
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        whatsappGroupLink: directGroupLink,
+        whatsappGroupLink: `https://wa.me/555198488620?text=${encodeURIComponent("Olá! Acabei de me cadastrar na página de Renda Extra. Quero aprender grátis agora, podem liberar minha aula?")}`,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
