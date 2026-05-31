@@ -734,7 +734,7 @@ const RendaExtraLead = () => {
             Aprenda a nova onda do mercado <span className="text-green-400">grátis</span>!
           </h3>
           <p className="text-gray-400 text-base">
-            Faça o cadastro e participe do grupo de lançamento grátis para entender melhor!
+            Faça o cadastro e fale com a gente no WhatsApp para liberarmos sua aula grátis!
           </p>
         </div>
       </section>
