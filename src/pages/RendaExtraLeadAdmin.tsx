@@ -159,6 +159,8 @@ const RendaExtraLeadAdmin = () => {
         }
         setSettings({
           whatsapp_group_link: data.settings.whatsapp_group_link || "",
+          whatsapp_number: data.settings.whatsapp_number || "",
+          whatsapp_message: data.settings.whatsapp_message || "Olá gostaria de aprender sobre a renda extra",
           launch_date: formattedLaunchDate,
           launch_date_enabled: !!data.settings.launch_date_enabled
         });
