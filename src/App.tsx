@@ -86,6 +86,8 @@ import InteligenciaFotosAdmin from "./pages/InteligenciaFotosAdmin";
 import InstagramNovaP from "./pages/InstagramNovaP";
 import Live from "./pages/Live";
 import LiveAdmin from "./pages/LiveAdmin";
+import Livve from "./pages/Livve";
+import LivveAdmin from "./pages/LivveAdmin";
 import LicencaAdmin from "./pages/LicencaAdmin";
 import PromptsMRO from "./pages/PromptsMRO";
 import PromptsMROAdmin from "./pages/PromptsMROAdmin";
