@@ -67,6 +67,10 @@ const LiveAdmin = () => {
     return "https://video.maisresultadosonline.com.br";
   };
 
+  const persistVpsStatus = (status: "online" | "offline") => {
+    try { localStorage.setItem("live_vps_status", JSON.stringify({ status, ts: Date.now() })); } catch {}
+  };
+
   const checkVpsStatus = async () => {
     setVpsStatus("checking");
     try {
@@ -79,11 +83,14 @@ const LiveAdmin = () => {
       
       if (res.ok) {
         setVpsStatus("online");
+        persistVpsStatus("online");
       } else {
         setVpsStatus("offline");
+        persistVpsStatus("offline");
       }
     } catch {
       setVpsStatus("offline");
+      persistVpsStatus("offline");
     }
   };
 
