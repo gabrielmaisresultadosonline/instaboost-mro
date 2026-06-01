@@ -405,7 +405,7 @@ const Livve = () => {
 
               <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded flex items-center gap-1 sm:gap-1.5 pointer-events-none">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
-                SEMPRE LIVE
+                LIVE
               </div>
 
               <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/80 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 pointer-events-none">
