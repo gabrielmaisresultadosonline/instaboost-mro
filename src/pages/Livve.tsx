@@ -377,7 +377,7 @@ const Livve = () => {
                 {session.title || "Aula de Renda Extra"}
               </h1>
               <p className="text-gray-400 text-xs sm:text-sm mt-1">
-                {session.description || "Estamos sempre ao vivo 🔴 — vamos encerrar em instantes"}
+                {session.description || "Ao vivo 🔴 — aula disponível"}
               </p>
             </div>
 
