@@ -9,6 +9,23 @@ import {
   Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle, Trash2, Globe, ShieldCheck, ShieldAlert
 } from "lucide-react";
 
+const DEFAULT_VIDEO_SERVER_URL = "https://video.maisresultadosonline.com.br";
+
+const normalizeVideoServerUrl = (url?: string | null) => {
+  const trimmed = (url || "").trim();
+  if (!trimmed) return DEFAULT_VIDEO_SERVER_URL;
+
+  const withProtocol = trimmed
+    .replace(/^https\/\//i, "https://")
+    .replace(/^http\/\//i, "http://");
+
+  const normalized = /^https?:\/\//i.test(withProtocol)
+    ? withProtocol
+    : `https://${withProtocol}`;
+
+  return normalized.replace(/\/+$/, "");
+};
+
 const LiveAdmin = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [email, setEmail] = useState("");
@@ -45,7 +62,7 @@ const LiveAdmin = () => {
 
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
-  const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "https://video.maisresultadosonline.com.br");
+  const [vpsUrl, setVpsUrl] = useState(() => normalizeVideoServerUrl(localStorage.getItem("live_vps_url")));
   const [vpsStatus, setVpsStatus] = useState<"checking" | "online" | "offline" | "none">(() => {
     try {
       const raw = localStorage.getItem("live_vps_status");
@@ -62,9 +79,9 @@ const LiveAdmin = () => {
   const [showVideoList, setShowVideoList] = useState(false);
 
   const getVideoServerUrl = () => {
-    const stored = vpsUrl || localStorage.getItem("live_vps_url");
-    if (stored) return stored.replace(/\/$/, '');
-    return "https://video.maisresultadosonline.com.br";
+    const normalized = normalizeVideoServerUrl(vpsUrl || localStorage.getItem("live_vps_url"));
+    try { localStorage.setItem("live_vps_url", normalized); } catch {}
+    return normalized;
   };
 
   const persistVpsStatus = (status: "online" | "offline") => {
@@ -75,6 +92,7 @@ const LiveAdmin = () => {
     setVpsStatus("checking");
     try {
       const baseUrl = getVideoServerUrl();
+      setVpsUrl(baseUrl);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
