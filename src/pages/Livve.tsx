@@ -351,7 +351,7 @@ const Livve = () => {
             <div className="absolute inset-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-ping" />
           </div>
           <div className="flex flex-col leading-tight min-w-0">
-            <span className="text-white font-bold text-xs sm:text-sm md:text-base truncate">SEMPRE LIVE</span>
+            <span className="text-white font-bold text-xs sm:text-sm md:text-base truncate">LIVE</span>
             <span className="text-white/90 text-[9px] sm:text-[11px] md:text-xs flex items-center gap-1 truncate">
               <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
               <span className="truncate">Vamos encerrar em instantes</span>
@@ -405,7 +405,7 @@ const Livve = () => {
 
               <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded flex items-center gap-1 sm:gap-1.5 pointer-events-none">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
-                SEMPRE LIVE
+                LIVE
               </div>
 
               <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/80 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 pointer-events-none">
