@@ -480,17 +480,7 @@ const Livve = () => {
               )}
             </div>
 
-            {/* Botão de dúvidas SEMPRE visível abaixo do vídeo */}
-            <div className="mt-3 sm:mt-4">
-              <Button
-                onClick={openDoubts}
-                disabled={!whatsappNumber}
-                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-sm sm:text-base px-4 py-3 sm:py-4 rounded-xl gap-2 shadow-md"
-              >
-                <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                Ficou com dúvidas sobre algo nessa aula de renda extra?
-              </Button>
-            </div>
+            {/* Botão de dúvidas só aparece após o vídeo terminar */}
           </div>
 
           {/* Chat Disabled Panel */}
