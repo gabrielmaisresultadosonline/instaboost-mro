@@ -24,7 +24,11 @@ interface PropostaData {
   logoUrl: string | null;
   fontSizeBase: number;
   periodoGarantia: string;
+  showGrid: boolean;
+  showGraphs: boolean;
+  gridOpacity: number;
 }
+
 
 const defaultData: PropostaData = {
   minhaEmpresa: '',
