@@ -120,6 +120,8 @@ const Index = () => {
             console.log('🏠 Resetting to welcome choice on load');
             setShowDashboardChoice(true);
             setShowDashboard(false);
+            // Cleanup dashboard flag if we're showing the choice
+            localStorage.removeItem('mro_force_dashboard');
           }
 
           // Cleanup force flags after check
@@ -303,7 +305,7 @@ const Index = () => {
     // Sync all to server
     await syncSessionToPersistent(loggedInUsername);
     
-    if (updatedSession.profiles.length > 0 && !localStorage.getItem('mro_force_registration')) {
+    if (updatedSession.profiles.length > 0 && localStorage.getItem('mro_force_registration') !== 'true') {
       setShowDashboard(true);
       setHasRegisteredProfiles(true);
     }
