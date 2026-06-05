@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2, Lock } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2, Lock, Play } from 'lucide-react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
