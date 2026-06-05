@@ -1,36 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle, ArrowRight, Settings, Rocket, Lightbulb, ShieldCheck, UserPlus } from 'lucide-react';
-import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
-import { ProfileCard } from './ProfileCard';
-import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
-import { AnalysisCard } from './AnalysisCard';
-import { StrategyGenerator } from './StrategyGenerator';
-import { StrategyDisplay } from './StrategyDisplay';
-import { CaptionGenerator } from './CaptionGenerator';
-import { GrowthTracker } from './GrowthTracker';
-import { ProfileSelector } from './ProfileSelector';
-import { UserHeader } from './UserHeader';
-import { Logo } from './Logo';
-import { Button } from '@/components/ui/button';
-import { TutorialOverlay } from './TutorialOverlay';
-import { TutorialList } from './TutorialList';
-import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
-import { addStrategy, resetSession, getSession, updateProfile, updateAnalysis, setCloudSyncCallback } from '@/lib/storage';
-import { syncSessionToPersistent } from '@/lib/persistentStorage';
-import { getCurrentUser, saveUserToCloud } from '@/lib/userStorage';
-import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import { 
-  RotateCcw, 
+  ChevronDown, 
+  Download, 
+  Upload, 
+  CheckSquare, 
+  Square, 
+  Palette, 
+  Package, 
+  ChevronUp, 
+  Eye, 
+  X, 
+  Hash, 
+  Sparkles, 
   User, 
+  Tag, 
+  MapPin, 
+  Move, 
+  Sliders, 
+  ImagePlus, 
+  RotateCcw, 
+  ZoomIn, 
+  ArrowLeft, 
+  Image, 
+  Video, 
+  FileText, 
+  Instagram, 
+  Play, 
+  Loader2, 
+  TestTube, 
+  PenTool, 
+  ExternalLink, 
   BarChart3, 
+  MessageCircle, 
+  ArrowRight, 
+  Settings, 
+  Rocket, 
   Lightbulb, 
+  ShieldCheck, 
+  UserPlus,
   Type,
   TrendingUp,
   Wrench,
   Lock,
   Camera,
-  RefreshCw,
+  RefreshCw
 } from 'lucide-react';
 
 interface DashboardProps {
