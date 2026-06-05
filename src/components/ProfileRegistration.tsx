@@ -22,7 +22,12 @@ import {
   UserPlus,
   Download,
   Camera,
-  LayoutDashboard
+  LayoutDashboard,
+  ChevronDown,
+  Rocket,
+  Wrench,
+  Briefcase,
+  DollarSign
 } from 'lucide-react';
 import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { normalizeInstagramUsername } from '@/types/user';
