@@ -527,7 +527,6 @@ const Index = () => {
           <div className="animate-in fade-in zoom-in duration-1000 flex flex-col items-center gap-6">
             <Logo size="lg" className="scale-150 mb-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
             
-            <div className="text-center space-y-4">
             <div className="text-center space-y-3">
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
                 <span className="bg-gradient-to-r from-white via-amber-200 to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-pulse" style={{ animationDuration: '3s' }}>
@@ -540,7 +539,6 @@ const Index = () => {
               <p className="text-sm md:text-base text-white/30 max-w-xl mx-auto leading-relaxed font-medium">
                 Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
               </p>
-            </div>
             </div>
           </div>
 
