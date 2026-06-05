@@ -189,6 +189,10 @@ export const Dashboard = ({
                   <button
                     key={tab.id}
                     onClick={() => {
+                      if (tab.id === 'tutorial-video') {
+                        window.open('https://youtu.be/CPI6xSH4TjU', '_blank');
+                        return;
+                      }
                       if (tab.locked) {
                         import('sonner').then(({ toast }) => {
                           toast.error('Envie um print do perfil primeiro na aba "Perfil"');
@@ -199,11 +203,13 @@ export const Dashboard = ({
                     }}
                     data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs whitespace-nowrap ${
-                      tab.locked
-                        ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                        : activeTab === tab.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      tab.id === 'tutorial-video'
+                        ? 'bg-red-600 text-white hover:bg-red-700 font-bold shadow-lg shadow-red-600/20'
+                        : tab.locked
+                          ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                          : activeTab === tab.id
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
                     {tab.locked ? <Lock className="w-3 h-3" /> : tab.icon}
