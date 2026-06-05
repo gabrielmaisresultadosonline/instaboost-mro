@@ -128,7 +128,7 @@ const MROFerramenta = () => {
     } else {
       const fromEstrutura = localStorage.getItem('mro_from_estrutura') === 'true';
       if (fromEstrutura) {
-        localStorage.removeItem('mro_from_estrutura');
+        // No longer removing here because the user might go back and forth
         navigate('/estruturaderendaextra');
       } else {
         navigate('/instagram');
