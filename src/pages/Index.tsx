@@ -108,8 +108,7 @@ const Index = () => {
           
           if (forceRegistration) {
             console.log('🚀 Force Registration active');
-            localStorage.removeItem('mro_force_registration');
-            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup when specifically navigating to registration
+            sessionStorage.setItem('mro_initial_choice_made', 'true');
             setShowDashboardChoice(false);
             setShowDashboard(false);
           } else if (forceDashboard) {
