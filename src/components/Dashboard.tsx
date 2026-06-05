@@ -357,7 +357,7 @@ export const Dashboard = ({
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
             {/* Aviso para enviar print - primeira análise */}
-            {activeProfile.profile.needsScreenshotAnalysis && !hasRealPrintData && (
+            {activeProfile.profile.needsScreenshotAnalysis && !hasRealPrintData && !activeProfile.screenshotUrl && (
               <div className="glass-card glow-border p-4 sm:p-6 border-2 border-primary/50 bg-primary/5">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-full bg-primary/20 flex-shrink-0">
