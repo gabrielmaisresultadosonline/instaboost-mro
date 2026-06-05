@@ -560,8 +560,9 @@ const Index = () => {
                 <Rocket className="w-10 h-10" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors">RENDA EXTRA</h3>
-                <p className="text-white/40 text-sm font-medium">Preste serviço e fature +5k/mês.</p>
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors uppercase">Renda Extra</h3>
+                <p className="text-white/40 text-sm font-medium leading-relaxed">Fature prestando serviço para empresas.</p>
+                <p className="text-[10px] text-amber-500/40 font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-500">Você já tem a ferramenta, é só aplicar o método!</p>
               </div>
               <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500 transition-all duration-500 uppercase tracking-[0.2em]">
                 PRESTAR SERVIÇO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
