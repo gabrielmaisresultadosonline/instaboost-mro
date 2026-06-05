@@ -57,6 +57,8 @@ const Index = () => {
   const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | undefined>(undefined);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showInitialChoice, setShowDashboardChoice] = useState(false);
+  const [showMeuNegocioOptions, setShowMeuNegocioOptions] = useState(false);
+  const [showIAPopup, setShowIAPopup] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
   const [ageRestrictionProfile, setAgeRestrictionProfile] = useState<string | null>(null);
