@@ -9,7 +9,7 @@ import { PrivateProfileDialog } from '@/components/PrivateProfileDialog';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 import { CadastrarContaButton } from '@/components/CadastrarContaButton';
 import { Logo } from '@/components/Logo';
-import { Rocket, Briefcase, Play, ArrowRight, X } from 'lucide-react';
+import { Rocket, Briefcase, Play, ArrowRight, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
@@ -495,9 +495,25 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* VIP Access Badge */}
-        <div className="absolute top-0 left-0 w-full z-50">
-          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700">
-            ✨ VOCÊ ESTÁ NA ÁREA VIP MRO INTELIGENTE ✨
+        <div className="absolute top-0 left-0 w-full z-50 flex items-center justify-center">
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 px-8 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700 rounded-b-xl">
+            ✨ VOCÊ ESTÁ NA ÁREA VIP MRO ✨
+          </div>
+        </div>
+
+        {/* Logged-in user indicator */}
+        <div className="absolute top-4 right-4 z-[60] flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-2xl">
+            <User size={14} className="text-amber-500" />
+            <span className="text-white font-black text-xs tracking-wider uppercase">{getLoggedInUsername()}</span>
+            <div className="w-[1px] h-3 bg-white/10 mx-1" />
+            <button
+              onClick={handleLogout}
+              className="p-1 rounded-full hover:bg-red-500/20 transition-all group"
+              title="Sair"
+            >
+              <X size={14} className="text-white/40 group-hover:text-red-500 transition-colors" />
+            </button>
           </div>
         </div>
 
@@ -513,11 +529,14 @@ const Index = () => {
             <Logo size="lg" className="scale-150 mb-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
             
             <div className="text-center space-y-4">
-            <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
-              <span className="bg-gradient-to-r from-white via-amber-200 to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-pulse" style={{ animationDuration: '3s' }}>
-                SEJA BEM-VINDO(A) À MRO INTELIGENTE
-              </span>
-            </h1>
+              <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
+                <span className="bg-gradient-to-r from-white via-amber-200 to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-pulse" style={{ animationDuration: '3s' }}>
+                  SEJA BEM-VINDO(A) À MRO INTELIGENTE
+                </span>
+              </h1>
+              <p className="text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.2em] mb-2 drop-shadow-sm">
+                Ferramenta Inteligente para Instagram
+              </p>
             <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
               Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
             </p>
