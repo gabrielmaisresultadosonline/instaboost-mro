@@ -110,7 +110,10 @@ const Index = () => {
             setShowDashboardChoice(false);
             setShowDashboard(false);
             // DO NOT cleanup here, consume it only when showing the registration screen
+            setShowDashboardChoice(false);
+            setShowDashboard(false);
             return; // STOP execution here for registration to prevent cloud sync from jumping
+
 
           } else if (forceDashboard) {
             console.log('📊 Force Dashboard active');
