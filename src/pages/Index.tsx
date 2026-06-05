@@ -494,9 +494,8 @@ const Index = () => {
   if (showInitialChoice) {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        {/* VIP Access Badge */}
-        <div className="absolute top-0 left-0 w-full z-50 flex items-center justify-center">
-          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 px-8 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700 rounded-b-xl">
+        <div className="absolute top-0 left-0 w-full z-50">
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700">
             ✨ VOCÊ ESTÁ NA ÁREA VIP MRO ✨
           </div>
         </div>
