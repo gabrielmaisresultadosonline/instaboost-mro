@@ -997,18 +997,30 @@ const EstruturaRendaExtra = () => {
                 <div className="space-y-2">
                   <h3 className="text-white font-black text-2xl tracking-tight">Passo 1: Cadastrar Conta</h3>
                   <p className="text-white/40 text-sm leading-relaxed font-medium">
-                    Cadastre pelo menos 1 vez a conta do Instagram que vai utilizar para liberar o sistema.
+                    Cadastre sua conta no banco de dados e entenda como nossa IA analisa e potencializa seu perfil automaticamente.
                   </p>
                 </div>
 
-                <button 
-                  onClick={() => navigate('/instagram')} 
-                  className="mt-auto group w-full relative h-14 rounded-2xl bg-white text-black font-black text-base flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
-                >
-                  <span className="relative z-10 flex items-center gap-2 uppercase tracking-wider">
-                    Cadastrar Conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </button>
+                <div className="mt-auto flex gap-3">
+                  <button 
+                    onClick={() => navigate('/instagram')} 
+                    className="flex-1 group relative h-14 rounded-2xl bg-white text-black font-black text-sm flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
+                  >
+                    <span className="relative z-10 flex items-center gap-2 uppercase tracking-wider">
+                      Cadastrar Conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </button>
+                  
+                  <a
+                    href="https://www.youtube.com/watch?v=CPI6xSH4TjU"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
+                    title="Ver Tutorial"
+                  >
+                    <Play className="w-6 h-6 fill-current" />
+                  </a>
+                </div>
               </div>
             </div>
 
