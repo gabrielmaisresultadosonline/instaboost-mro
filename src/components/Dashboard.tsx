@@ -121,6 +121,7 @@ export const Dashboard = ({
   const hasRealPrintData = activeProfile?.profile.dataSource === 'screenshot' && !activeProfile?.profile.needsScreenshotAnalysis;
 
   const tabs = [
+    { id: 'tutorial-video', label: 'Tutorial', icon: <Play className="w-4 h-4" />, locked: false, color: 'bg-red-500 text-white hover:bg-red-600' },
     { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" />, locked: false },
     { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" />, locked: !hasRealPrintData },
     { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: !hasRealPrintData },
