@@ -1059,8 +1059,12 @@ const EstruturaRendaExtra = () => {
                   icon: <Settings className="w-10 h-10" />, 
                   color: 'from-fuchsia-400 to-purple-600',
                   glow: 'shadow-purple-500/20',
-                  action: () => navigate('/mro-ferramenta') 
+                  action: () => {
+                    localStorage.setItem('mro_from_estrutura', 'true');
+                    navigate('/mro-ferramenta');
+                  }
                 }
+
               ].map((card) => (
                 <button 
                   key={card.id} 
