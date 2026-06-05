@@ -39,6 +39,7 @@ import {
   Lightbulb, 
   ShieldCheck, 
   UserPlus,
+  DollarSign,
   Type,
   TrendingUp,
   Wrench,
