@@ -157,7 +157,10 @@ const MeuNegocioPage = () => {
                   <Button 
                     className="w-full py-8 rounded-2xl bg-emerald-800 text-white font-black text-sm uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-shine border border-emerald-500/30" 
                     style={{ animation: 'pulse-emerald 2s infinite' }}
-                    onClick={() => navigate('/instagram')}
+                    onClick={() => {
+                      localStorage.setItem('mro_force_registration', 'true');
+                      navigate('/instagram');
+                    }}
                   >
                     CADASTRAR E ANALISAR <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
@@ -211,6 +214,7 @@ const MeuNegocioPage = () => {
                             toast({ variant: "destructive", title: "Nenhum perfil cadastrado", description: "Cadastre uma conta primeiro no Passo 01." });
                             return;
                         }
+                        localStorage.setItem('mro_force_dashboard', 'true');
                         navigate('/instagram');
                     }}
                   >
