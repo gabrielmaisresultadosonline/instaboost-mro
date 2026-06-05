@@ -502,21 +502,23 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Logged-in user indicator */}
-        <div className="absolute top-4 right-4 z-[60] flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-2xl">
-            <User size={14} className="text-amber-500" />
-            <span className="text-white font-black text-xs tracking-wider uppercase">{getLoggedInUsername()}</span>
-            <div className="w-[1px] h-3 bg-white/10 mx-1" />
-            <button
-              onClick={handleLogout}
-              className="p-1 rounded-full hover:bg-red-500/20 transition-all group"
-              title="Sair"
-            >
-              <X size={14} className="text-white/40 group-hover:text-red-500 transition-colors" />
-            </button>
+        {/* Logged-in user indicator - Hidden when modals are open to avoid overlap */}
+        {!showMeuNegocioOptions && !showRendaExtraBonus && !showIAPopup && (
+          <div className="absolute top-4 right-4 z-[60] flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-2xl">
+              <User size={14} className="text-amber-500" />
+              <span className="text-white font-black text-xs tracking-wider uppercase">{getLoggedInUsername()}</span>
+              <div className="w-[1px] h-3 bg-white/10 mx-1" />
+              <button
+                onClick={handleLogout}
+                className="p-1 rounded-full hover:bg-red-500/20 transition-all group"
+                title="Sair"
+              >
+                <X size={14} className="text-white/40 group-hover:text-red-500 transition-colors" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Dynamic backgrounds */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
