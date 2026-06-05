@@ -528,17 +528,19 @@ const Index = () => {
             <Logo size="lg" className="scale-150 mb-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
             
             <div className="text-center space-y-4">
-              <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
+            <div className="text-center space-y-3">
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
                 <span className="bg-gradient-to-r from-white via-amber-200 to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-pulse" style={{ animationDuration: '3s' }}>
                   SEJA BEM-VINDO(A) À MRO INTELIGENTE
                 </span>
               </h1>
-              <p className="text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.2em] mb-2 drop-shadow-sm">
+              <p className="text-amber-500 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] drop-shadow-sm">
                 Ferramenta Inteligente para Instagram
               </p>
-            <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
-              Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
-            </p>
+              <p className="text-sm md:text-base text-white/30 max-w-xl mx-auto leading-relaxed font-medium">
+                Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
+              </p>
+            </div>
             </div>
           </div>
 
