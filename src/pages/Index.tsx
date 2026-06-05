@@ -108,13 +108,17 @@ const Index = () => {
           const forceDashboard = localStorage.getItem('mro_force_dashboard') === 'true';
           
           if (forceRegistration) {
+            console.log('🚀 Force Registration active');
             localStorage.removeItem('mro_force_registration');
             localStorage.removeItem('mro_returning_to_welcome');
+            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup
             setShowDashboardChoice(false);
             setShowDashboard(false);
           } else if (forceDashboard) {
+            console.log('📊 Force Dashboard active');
             localStorage.removeItem('mro_force_dashboard');
             localStorage.removeItem('mro_returning_to_welcome');
+            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup
             setShowDashboardChoice(false);
             setShowDashboard(true);
             setShowAnnouncements(true);
