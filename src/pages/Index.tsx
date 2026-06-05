@@ -9,7 +9,7 @@ import { PrivateProfileDialog } from '@/components/PrivateProfileDialog';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 import { CadastrarContaButton } from '@/components/CadastrarContaButton';
 import { Logo } from '@/components/Logo';
-import { Rocket, Briefcase, Play, ArrowRight, X, User } from 'lucide-react';
+import { Rocket, Briefcase, Play, ArrowRight, X, User, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
