@@ -586,7 +586,7 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="aspect-video w-full rounded-[2rem] overflow-hidden bg-black shadow-2xl border border-white/5">
+                <div className="max-w-xl mx-auto w-full aspect-video rounded-[2rem] overflow-hidden bg-black shadow-2xl border border-white/5">
                   <iframe
                     src="https://www.youtube.com/embed/-0CHlqHVe0g"
                     title="Live MRO Renda Extra"
@@ -596,20 +596,12 @@ const Index = () => {
                   />
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4">
-                  <a
-                    href="https://youtu.be/-0CHlqHVe0g"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-sm transition-all hover:bg-white/10 active:scale-95 uppercase tracking-widest"
-                  >
-                    <Play className="w-5 h-5 text-red-500 fill-red-500" /> VER LIVE COMPLETA
-                  </a>
+                <div className="flex justify-center pt-4">
                   <button
                     onClick={() => navigate('/estruturarendaextra')}
-                    className="flex-1 flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-amber-500 text-black font-black text-sm transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-xl shadow-amber-500/20"
+                    className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-emerald-500 text-black font-black text-lg transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] group"
                   >
-                    ACESSAR ESTRUTURA <ArrowRight className="w-5 h-5" />
+                    ACESSAR RENDA EXTRA AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                   </button>
                 </div>
               </div>
