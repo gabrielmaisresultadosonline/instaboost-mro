@@ -204,7 +204,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               <div className="flex flex-col items-start gap-2 mb-1 sm:mb-2">
                 <div className="flex items-center gap-3">
                   <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
-                  <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {profile.category && (
