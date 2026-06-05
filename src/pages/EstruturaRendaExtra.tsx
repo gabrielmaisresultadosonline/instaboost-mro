@@ -1465,6 +1465,7 @@ const EstruturaRendaExtra = () => {
               </div>
             </div>
           </div>
+        )}
 
         {/* Floating WhatsApp Help Button */}
         {whatsappNumber && (
