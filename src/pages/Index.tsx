@@ -66,6 +66,7 @@ const Index = () => {
   const [pendingSyncInstagrams, setPendingSyncInstagrams] = useState<string[]>([]);
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   const [showRendaExtraBonus, setShowRendaExtraBonus] = useState(false);
+  const [showRendaExtraPopup, setShowRendaExtraPopup] = useState(false);
   const { toast } = useToast();
 
   // Get current logged in username
@@ -717,6 +718,9 @@ const Index = () => {
         {showAnnouncements && hasScreenshot && (
           <AnnouncementPopup targetArea="instagram" onComplete={() => setShowAnnouncements(false)} />
         )}
+        {showRendaExtraPopup && (
+          <AnnouncementPopup targetArea="instagram" onComplete={() => setShowRendaExtraPopup(false)} />
+        )}
         <Dashboard
           session={session} 
           onSessionUpdate={handleSessionUpdate}
@@ -728,6 +732,10 @@ const Index = () => {
           onSync={handleManualSync}
           isLoading={isLoading}
           onLogout={handleLogout}
+          onShowRendaExtra={() => {
+            console.log('💰 Triggering Renda Extra popup');
+            setShowRendaExtraPopup(true);
+          }}
         />
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
