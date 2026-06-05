@@ -1067,7 +1067,7 @@ const EstruturaRendaExtra = () => {
                   glow: 'shadow-purple-500/20',
                   action: () => {
                     localStorage.setItem('mro_from_estrutura', 'true');
-                    navigate('/mro-ferramenta');
+                    setCurrentView('explore-options');
                   }
                 }
 
