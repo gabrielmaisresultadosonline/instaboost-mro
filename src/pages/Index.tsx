@@ -728,6 +728,7 @@ const Index = () => {
           onSync={handleManualSync}
           isLoading={isLoading}
           onLogout={handleLogout}
+          onShowRendaExtra={() => setShowRendaExtraBonus(true)}
         />
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
