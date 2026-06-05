@@ -152,7 +152,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+                <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
+              </div>
               {hasScreenshot ? (
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Print salvo. Clique em <strong>analisar perfil</strong> para carregar os dados reais pela primeira vez.
@@ -160,9 +163,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               ) : (
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar os dados reais</p>
               )}
-            </div>
-            <div className="shrink-0">
-              <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
             </div>
           </div>
 
