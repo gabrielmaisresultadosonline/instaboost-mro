@@ -39,7 +39,10 @@ const MeuNegocioPage = () => {
         <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/instagram')} 
+            onClick={() => {
+              localStorage.setItem('mro_returning_to_welcome', 'true');
+              navigate('/instagram');
+            }} 
             className="text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6"
           >
             <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
@@ -154,7 +157,7 @@ const MeuNegocioPage = () => {
                 </div>
                 <Button className="mt-auto w-full py-7 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20" onClick={() => {
                     if (!hasRegisteredProfiles) {
-                        toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta primeiro." });
+                        toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
                         return;
                     }
                     navigate('/mro-ferramenta');

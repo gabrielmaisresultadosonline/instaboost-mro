@@ -12,7 +12,10 @@ const RendaExtraPage = () => {
         <div className="flex justify-start">
             <Button 
                 variant="ghost" 
-                onClick={() => navigate('/')} 
+                onClick={() => {
+                  localStorage.setItem('mro_returning_to_welcome', 'true');
+                  navigate('/instagram');
+                }} 
                 className="text-white/60 hover:text-white hover:bg-white/5"
             >
                 <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
