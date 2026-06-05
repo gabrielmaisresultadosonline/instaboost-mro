@@ -14,6 +14,12 @@ import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
