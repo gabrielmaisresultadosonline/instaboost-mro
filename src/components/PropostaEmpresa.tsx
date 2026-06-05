@@ -24,7 +24,11 @@ interface PropostaData {
   logoUrl: string | null;
   fontSizeBase: number;
   periodoGarantia: string;
+  showGrid: boolean;
+  showGraphs: boolean;
+  gridOpacity: number;
 }
+
 
 const defaultData: PropostaData = {
   minhaEmpresa: '',
@@ -39,7 +43,11 @@ const defaultData: PropostaData = {
   logoUrl: null,
   fontSizeBase: 16,
   periodoGarantia: '7',
+  showGrid: true,
+  showGraphs: true,
+  gridOpacity: 0.03,
 };
+
 
 export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   const [data, setData] = useState<PropostaData>(defaultData);
@@ -98,77 +106,82 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     ctx.save();
     
     // Background Grid
-    ctx.globalAlpha = 0.03;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    for (let i = 0; i < W; i += 30) {
+    if (data.showGrid) {
+      ctx.globalAlpha = data.gridOpacity;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < W; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, H);
+        ctx.stroke();
+      }
+      for (let i = 0; i < H; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(W, i);
+        ctx.stroke();
+      }
+    }
+
+    if (data.showGraphs) {
+      // Top Right: Result Graph (Lines)
+      ctx.globalAlpha = 0.15;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, H);
+      ctx.moveTo(W - 180, 100);
+      ctx.lineTo(W - 140, 80);
+      ctx.lineTo(W - 110, 90);
+      ctx.lineTo(W - 60, 40);
+      ctx.stroke();
+      
+      // Points on graph
+      [ [W - 180, 100], [W - 140, 80], [W - 110, 90], [W - 60, 40] ].forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      });
+
+      // Bottom Left: Growth Bar Chart
+      ctx.globalAlpha = 0.12;
+      const bars = [30, 50, 40, 70, 60, 90];
+      bars.forEach((h, i) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(40 + (i * 25), H - 150, 15, -h);
+      });
+
+      // Middle/Floating: People Flow Icons (Simplified Silhouettes)
+      ctx.globalAlpha = 0.08;
+      for (let i = 0; i < 4; i++) {
+        const x = W - 100 - (i * 40);
+        const y = H - 200 + (i * 20);
+        // Head
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        // Body
+        ctx.beginPath();
+        ctx.moveTo(x - 10, y + 15);
+        ctx.quadraticCurveTo(x, y + 5, x + 10, y + 15);
+        ctx.lineTo(x + 10, y + 25);
+        ctx.lineTo(x - 10, y + 25);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Modern Geometric Accents
+      ctx.globalAlpha = 0.05;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(50, 50, 100, 100);
+      ctx.beginPath();
+      ctx.arc(W - 50, H - 50, 80, 0, Math.PI * 2);
       ctx.stroke();
     }
-    for (let i = 0; i < H; i += 30) {
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(W, i);
-      ctx.stroke();
-    }
-
-    // Top Right: Result Graph (Lines)
-    ctx.globalAlpha = 0.15;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(W - 180, 100);
-    ctx.lineTo(W - 140, 80);
-    ctx.lineTo(W - 110, 90);
-    ctx.lineTo(W - 60, 40);
-    ctx.stroke();
-    
-    // Points on graph
-    [ [W - 180, 100], [W - 140, 80], [W - 110, 90], [W - 60, 40] ].forEach(([x, y]) => {
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-    });
-
-    // Bottom Left: Growth Bar Chart
-    ctx.globalAlpha = 0.12;
-    const bars = [30, 50, 40, 70, 60, 90];
-    bars.forEach((h, i) => {
-      ctx.fillStyle = color;
-      ctx.fillRect(40 + (i * 25), H - 150, 15, -h);
-    });
-
-    // Middle/Floating: People Flow Icons (Simplified Silhouettes)
-    ctx.globalAlpha = 0.08;
-    for (let i = 0; i < 4; i++) {
-      const x = W - 100 - (i * 40);
-      const y = H - 200 + (i * 20);
-      // Head
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fill();
-      // Body
-      ctx.beginPath();
-      ctx.moveTo(x - 10, y + 15);
-      ctx.quadraticCurveTo(x, y + 5, x + 10, y + 15);
-      ctx.lineTo(x + 10, y + 25);
-      ctx.lineTo(x - 10, y + 25);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    // Modern Geometric Accents
-    ctx.globalAlpha = 0.05;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(50, 50, 100, 100);
-    ctx.beginPath();
-    ctx.arc(W - 50, H - 50, 80, 0, Math.PI * 2);
-    ctx.stroke();
     
     ctx.restore();
   };
+
 
   const renderPreview = async () => {
     if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
@@ -527,7 +540,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
-        const opacity = 0.2; // Reduzi opacidade para ser mais sutil
+        const opacity = 0.2; 
         const r = mixWithWhite(rgb.r, opacity);
         const g = mixWithWhite(rgb.g, opacity);
         const b = mixWithWhite(rgb.b, opacity);
@@ -537,53 +550,58 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setLineWidth(0.1);
 
         // Background Grid - subtle
-        doc.setDrawColor(r, g, b, 0.2);
-        for (let i = 0; i < pageWidth; i += 20) {
-          doc.line(i, 0, i, pageHeight);
-        }
-        for (let i = 0; i < pageHeight; i += 20) {
-          doc.line(0, i, pageWidth, i);
-        }
-
-        // Top Right: Result Graph (Lines) - Fixed position to avoid headers
-        doc.setLineWidth(0.4);
-        const gx = pageWidth - 50;
-        const gy = 55; // Lowered to avoid header gradient
-        doc.line(gx, gy, gx + 8, gy - 6);
-        doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
-        doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
-        
-        doc.circle(gx, gy, 0.8, 'F');
-        doc.circle(gx + 8, gy - 6, 0.8, 'F');
-        doc.circle(gx + 16, gy - 2, 0.8, 'F');
-        doc.circle(gx + 28, gy - 12, 0.8, 'F');
-
-        // Bottom Left: Growth Bar Chart - More side-aligned
-        const barX = 10;
-        const barY = pageHeight - 45;
-        const bars = [8, 12, 10, 20, 15, 25];
-        bars.forEach((h, i) => {
-          doc.rect(barX + (i * 6), barY, 4, -h, 'F');
-        });
-
-        // People Icons (Silhouettes) - Strategic placement
-        const pSize = 3;
-        for (let i = 0; i < 3; i++) {
-          const px = pageWidth - 35 - (i * 12);
-          const py = pageHeight - 65;
-          // Head
-          doc.circle(px, py, 1.5, 'F');
-          // Body
-          doc.setLineWidth(0.8);
-          doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
-          doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
-          doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
-          doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
+        if (data.showGrid) {
+          doc.setDrawColor(r, g, b, data.gridOpacity * 3); // Scale for PDF
+          for (let i = 0; i < pageWidth; i += 20) {
+            doc.line(i, 0, i, pageHeight);
+          }
+          for (let i = 0; i < pageHeight; i += 20) {
+            doc.line(0, i, pageWidth, i);
+          }
         }
 
-        // Small Instagram Icon Decoration (Bottom Right corner area)
-        drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
+        if (data.showGraphs) {
+          // Top Right: Result Graph (Lines) - Fixed position to avoid headers
+          doc.setLineWidth(0.4);
+          const gx = pageWidth - 50;
+          const gy = 55; // Lowered to avoid header gradient
+          doc.line(gx, gy, gx + 8, gy - 6);
+          doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
+          doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
+          
+          doc.circle(gx, gy, 0.8, 'F');
+          doc.circle(gx + 8, gy - 6, 0.8, 'F');
+          doc.circle(gx + 16, gy - 2, 0.8, 'F');
+          doc.circle(gx + 28, gy - 12, 0.8, 'F');
+
+          // Bottom Left: Growth Bar Chart - More side-aligned
+          const barX = 10;
+          const barY = pageHeight - 45;
+          const bars = [8, 12, 10, 20, 15, 25];
+          bars.forEach((h, i) => {
+            doc.rect(barX + (i * 6), barY, 4, -h, 'F');
+          });
+
+          // People Icons (Silhouettes) - Strategic placement
+          const pSize = 3;
+          for (let i = 0; i < 3; i++) {
+            const px = pageWidth - 35 - (i * 12);
+            const py = pageHeight - 65;
+            // Head
+            doc.circle(px, py, 1.5, 'F');
+            // Body
+            doc.setLineWidth(0.8);
+            doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
+            doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
+            doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
+            doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
+          }
+
+          // Small Instagram Icon Decoration (Bottom Right corner area)
+          drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
+        }
       };
+
 
 
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
@@ -985,6 +1003,39 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                 <div className="flex justify-between text-[10px] text-gray-500"><span>Pequeno</span><span>Padrão (16)</span><span>Grande</span></div>
               </div>
             </section>
+            
+            <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
+              <h2 className="text-xl font-bold flex items-center gap-2"><Palette className="text-pink-400" /> Estilo Decorativo</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Exibir Linhas de Grade</Label>
+                    <p className="text-[10px] text-gray-500 italic">Controla as linhas verticais/horizontais no fundo</p>
+                  </div>
+                  <Switch checked={data.showGrid} onCheckedChange={v => update('showGrid', v)} />
+                </div>
+
+                {data.showGrid && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label>Opacidade da Grade</Label>
+                      <span className="text-xs font-mono text-emerald-400">{Math.round(data.gridOpacity * 100)}%</span>
+                    </div>
+                    <input type="range" min="0" max="0.1" step="0.01" value={data.gridOpacity} onChange={e => update('gridOpacity', parseFloat(e.target.value))} className="w-full accent-emerald-500" />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Exibir Gráficos Flutuantes</Label>
+                    <p className="text-[10px] text-gray-500 italic">Controla os gráficos e ícones decorativos de fundo</p>
+                  </div>
+                  <Switch checked={data.showGraphs} onCheckedChange={v => update('showGraphs', v)} />
+                </div>
+              </div>
+            </section>
+
 
             <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
               <h2 className="text-xl font-bold flex items-center gap-2"><Target className="text-blue-400" /> Dados do Projeto</h2>
