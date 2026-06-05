@@ -103,33 +103,27 @@ const Index = () => {
           
           // ALWAYS show initial choice after login if it hasn't been shown in this session
           const choiceMade = sessionStorage.getItem('mro_initial_choice_made');
-          const isReturningFromSubPage = localStorage.getItem('mro_returning_to_welcome') === 'true';
           const forceRegistration = localStorage.getItem('mro_force_registration') === 'true';
           const forceDashboard = localStorage.getItem('mro_force_dashboard') === 'true';
           
           if (forceRegistration) {
             console.log('🚀 Force Registration active');
             localStorage.removeItem('mro_force_registration');
-            localStorage.removeItem('mro_returning_to_welcome');
-            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup
+            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup when specifically navigating to registration
             setShowDashboardChoice(false);
             setShowDashboard(false);
           } else if (forceDashboard) {
             console.log('📊 Force Dashboard active');
             localStorage.removeItem('mro_force_dashboard');
-            localStorage.removeItem('mro_returning_to_welcome');
-            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup
+            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup when specifically navigating to dashboard
             setShowDashboardChoice(false);
             setShowDashboard(true);
             setShowAnnouncements(true);
-          } else if (isReturningFromSubPage) {
-            setShowDashboardChoice(true);
-            localStorage.removeItem('mro_returning_to_welcome');
           } else if (!choiceMade) {
+            console.log('🏠 Showing initial welcome choice');
             setShowDashboardChoice(true);
           } else {
             setShowDashboard(true);
-            // Show announcements when user is already logged in and has profiles
             setShowAnnouncements(true);
           }
 
