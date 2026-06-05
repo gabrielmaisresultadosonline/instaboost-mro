@@ -683,9 +683,16 @@ const Index = () => {
         <ProfileRegistration 
           onProfileRegistered={handleProfileRegistered}
           onSyncComplete={handleSyncComplete}
-          onEnterMemberArea={handleEnterMemberArea}
-          onLogout={handleLogout}
+          onEnterMemberArea={() => {
+            localStorage.removeItem('mro_force_registration');
+            handleEnterMemberArea();
+          }}
+          onLogout={() => {
+            localStorage.removeItem('mro_force_registration');
+            handleLogout();
+          }}
         />
+
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
       </>
