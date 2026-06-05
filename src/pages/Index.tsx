@@ -495,9 +495,25 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* VIP Access Badge */}
-        <div className="absolute top-0 left-0 w-full z-50">
-          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700">
-            ✨ VOCÊ ESTÁ NA ÁREA VIP MRO INTELIGENTE ✨
+        <div className="absolute top-0 left-0 w-full z-50 flex items-center justify-center">
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 px-8 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700 rounded-b-xl">
+            ✨ VOCÊ ESTÁ NA ÁREA VIP MRO ✨
+          </div>
+        </div>
+
+        {/* Logged-in user indicator */}
+        <div className="absolute top-4 right-4 z-[60] flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-2xl">
+            <User size={14} className="text-amber-500" />
+            <span className="text-white font-black text-xs tracking-wider uppercase">{getLoggedInUsername()}</span>
+            <div className="w-[1px] h-3 bg-white/10 mx-1" />
+            <button
+              onClick={handleLogout}
+              className="p-1 rounded-full hover:bg-red-500/20 transition-all group"
+              title="Sair"
+            >
+              <X size={14} className="text-white/40 group-hover:text-red-500 transition-colors" />
+            </button>
           </div>
         </div>
 
