@@ -48,8 +48,16 @@ import {
   restoreProfileFromArchive,
   addProfile,
   getSession as getStorageSession,
-  setActiveProfile as setActiveProfileInStorage
+  setActiveProfile as setActiveProfileInStorage,
+  resetSession
 } from '@/lib/storage';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import { TutorialButton } from '@/components/TutorialButton';
