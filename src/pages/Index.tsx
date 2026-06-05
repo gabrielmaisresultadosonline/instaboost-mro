@@ -494,9 +494,8 @@ const Index = () => {
   if (showInitialChoice) {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        {/* VIP Access Badge */}
-        <div className="absolute top-0 left-0 w-full z-50 flex items-center justify-center">
-          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 px-8 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700 rounded-b-xl">
+        <div className="absolute top-0 left-0 w-full z-50">
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700">
             ✨ VOCÊ ESTÁ NA ÁREA VIP MRO ✨
           </div>
         </div>
@@ -528,22 +527,22 @@ const Index = () => {
           <div className="animate-in fade-in zoom-in duration-1000 flex flex-col items-center gap-6">
             <Logo size="lg" className="scale-150 mb-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
             
-            <div className="text-center space-y-4">
-              <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
+            <div className="text-center space-y-3">
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic animate-in fade-in duration-1000">
                 <span className="bg-gradient-to-r from-white via-amber-200 to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-pulse" style={{ animationDuration: '3s' }}>
                   SEJA BEM-VINDO(A) À MRO INTELIGENTE
                 </span>
               </h1>
-              <p className="text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.2em] mb-2 drop-shadow-sm">
+              <p className="text-amber-500 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] drop-shadow-sm">
                 Ferramenta Inteligente para Instagram
               </p>
-            <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
-              Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
-            </p>
+              <p className="text-sm md:text-base text-white/30 max-w-xl mx-auto leading-relaxed font-medium">
+                Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 w-full max-w-4xl">
             {/* Utilizar para meu negócio */}
             <button
               onClick={() => {
@@ -553,17 +552,17 @@ const Index = () => {
                   setShowAnnouncements(true);
                 }
               }}
-              className="group relative p-8 md:p-10 rounded-[3rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden"
+              className="group relative p-8 md:p-12 rounded-[3.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="w-20 h-20 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500">
-                <Briefcase className="w-10 h-10" />
+              <div className="w-24 h-24 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500 shadow-inner">
+                <Briefcase className="w-12 h-12" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-emerald-400 transition-colors">MEU NEGÓCIO</h3>
-                <p className="text-white/40 text-sm font-medium">Potencialize seu perfil com nossa IA.</p>
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-emerald-400 transition-colors uppercase tracking-tight">Meu Negócio</h3>
+                <p className="text-white/40 text-sm font-medium leading-relaxed">Potencialize seu perfil com nossa IA Inteligente.</p>
               </div>
-              <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500 transition-all duration-500 uppercase tracking-[0.2em]">
+              <div className="mt-4 flex items-center gap-2 px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-xs group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500 transition-all duration-500 uppercase tracking-[0.2em] shadow-lg">
                 ACESSAR AGORA <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
@@ -571,19 +570,19 @@ const Index = () => {
             {/* Renda Extra com MRO */}
             <button
               onClick={() => setShowRendaExtraBonus(true)}
-              className="group relative p-8 md:p-10 rounded-[3rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/30 hover:shadow-[0_20px_50px_rgba(245,158,11,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden"
+              className="group relative p-8 md:p-12 rounded-[3.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-3 hover:border-amber-500/30 hover:shadow-[0_20px_50px_rgba(245,158,11,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-6 right-6 z-20 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-bounce">BÔNUS</div>
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-500">
-                <Rocket className="w-10 h-10" />
+              <div className="w-24 h-24 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-500 shadow-inner">
+                <Rocket className="w-12 h-12" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors uppercase">Renda Extra</h3>
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors uppercase tracking-tight">Renda Extra</h3>
                 <p className="text-white/40 text-sm font-medium leading-relaxed">Fature prestando serviço para empresas.</p>
-                <p className="text-[10px] text-amber-500/40 font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-500">Você já tem a ferramenta, é só aplicar o método!</p>
+                <p className="text-[10px] text-amber-500 font-black uppercase tracking-[0.15em] opacity-0 group-hover:opacity-100 transition-all duration-500">Você já tem a ferramenta, é só aplicar o método!</p>
               </div>
-              <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500 transition-all duration-500 uppercase tracking-[0.2em]">
+              <div className="mt-4 flex items-center gap-2 px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-xs group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500 transition-all duration-500 uppercase tracking-[0.2em] shadow-lg">
                 PRESTAR SERVIÇO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
