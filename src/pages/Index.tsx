@@ -103,8 +103,11 @@ const Index = () => {
           
           // ALWAYS show initial choice after login if it hasn't been shown in this session
           const choiceMade = sessionStorage.getItem('mro_initial_choice_made');
-          if (!choiceMade) {
+          const isReturningFromSubPage = localStorage.getItem('mro_returning_to_welcome') === 'true';
+          
+          if (!choiceMade || isReturningFromSubPage) {
             setShowDashboardChoice(true);
+            localStorage.removeItem('mro_returning_to_welcome');
           } else {
             setShowDashboard(true);
             // Show announcements when user is already logged in and has profiles
