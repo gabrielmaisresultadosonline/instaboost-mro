@@ -732,7 +732,7 @@ const Index = () => {
                   <button
                     onClick={() => {
                       setShowIAPopup(false);
-                      setShowInitialChoice(false);
+                      setShowDashboardChoice(false);
                       if (hasRegisteredProfiles) {
                         setShowDashboard(true);
                         setShowAnnouncements(true);
