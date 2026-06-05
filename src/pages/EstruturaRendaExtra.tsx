@@ -1076,7 +1076,7 @@ const EstruturaRendaExtra = () => {
                     </button>
                   ))}
                 </div>
-                <button onClick={() => setCurrentView('menu')} className="w-full mt-auto py-4 bg-teal-500/10 hover:bg-teal-500/20 text-emerald-400 font-bold rounded-xl flex items-center justify-center transition-all">
+                <button onClick={() => setCurrentView('estrutura-links')} className="w-full mt-auto py-4 bg-teal-500/10 hover:bg-teal-500/20 text-emerald-400 font-bold rounded-xl flex items-center justify-center transition-all">
                   Clique para acessar <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
@@ -1106,10 +1106,11 @@ const EstruturaRendaExtra = () => {
                   ))}
                 </div>
                 
-                <button className="w-full mt-auto py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl flex items-center justify-center transition-all">
+                <button onClick={() => setCurrentView('fechar-contratos-links')} className="w-full mt-auto py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl flex items-center justify-center transition-all">
                   Clique para acessar <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
+
             </div>
 
             {/* Gerenciador */}
