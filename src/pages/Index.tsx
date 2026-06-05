@@ -569,7 +569,7 @@ const Index = () => {
 
             {/* Renda Extra com MRO */}
             <button
-              onClick={() => setShowRendaExtraBonus(true)}
+              onClick={() => navigate('/renda-extra')}
               className="group relative p-8 md:p-12 rounded-[3.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-3 hover:border-amber-500/30 hover:shadow-[0_20px_50px_rgba(245,158,11,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-6 right-6 z-20 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-bounce">BÔNUS</div>
