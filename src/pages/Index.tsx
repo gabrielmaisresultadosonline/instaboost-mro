@@ -635,7 +635,7 @@ const Index = () => {
                         setShowDashboard(true);
                         setShowAnnouncements(true);
                       } else {
-                        navigate('/meu-negocio');
+                        setShowDashboardChoice(true);
                       }
                     }}
                     className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-emerald-500 text-black font-black text-lg transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group"
