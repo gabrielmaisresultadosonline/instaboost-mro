@@ -644,7 +644,29 @@ const Index = () => {
                 
                 <div className="space-y-4">
                   <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display">Meu Negócio</div>
-                  <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight italic">O que deseja fazer?</h3>
+                  <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight italic uppercase">O que deseja fazer?</h3>
+                  
+                  {/* Step-by-step Guide */}
+                  <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-colors">
+                      <div className="w-8 h-8 shrink-0 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-xs">1º</div>
+                      <p className="text-[10px] text-white/60 leading-tight font-medium">Cadastre pelo menos 1 perfil do Instagram para iniciar.</p>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-colors">
+                      <div className="w-8 h-8 shrink-0 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-xs">2º</div>
+                      <p className="text-[10px] text-white/60 leading-tight font-medium">Siga as estratégias geradas pela nossa I.A. Inteligente.</p>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-colors">
+                      <div className="w-8 h-8 shrink-0 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-xs">3º</div>
+                      <p className="text-[10px] text-white/60 leading-tight font-medium">Aplique as estratégias no automático com a Ferramenta MRO.</p>
+                    </div>
+                  </div>
+
+                  <div className="max-w-2xl mx-auto pt-2">
+                    <p className="text-white/40 text-[11px] leading-relaxed font-medium bg-white/5 py-2 px-4 rounded-xl border border-white/5 italic">
+                      "O analisador de I.A. gera estratégias personalizadas para você aplicar com a ferramenta instalada em seu computador, trabalhando no automático para você."
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
