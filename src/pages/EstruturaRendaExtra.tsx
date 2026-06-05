@@ -1041,7 +1041,10 @@ const EstruturaRendaExtra = () => {
                   icon: <Lightbulb className="w-10 h-10" />, 
                   color: 'from-amber-400 to-orange-600',
                   glow: 'shadow-orange-500/20',
-                  action: () => setShowRendaExtraVideo(true) 
+                  action: () => {
+                    localStorage.removeItem('mro_from_estrutura');
+                    setShowRendaExtraVideo(true);
+                  }
                 },
                 { 
                   id: '02', 
@@ -1050,7 +1053,10 @@ const EstruturaRendaExtra = () => {
                   icon: <Rocket className="w-10 h-10" />, 
                   color: 'from-blue-400 to-indigo-600',
                   glow: 'shadow-blue-500/20',
-                  action: () => setCurrentView('tutoriais') 
+                  action: () => {
+                    localStorage.removeItem('mro_from_estrutura');
+                    setCurrentView('tutoriais');
+                  }
                 },
                 { 
                   id: '03', 
