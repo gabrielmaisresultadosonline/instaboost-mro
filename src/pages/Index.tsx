@@ -542,7 +542,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 w-full max-w-4xl">
             {/* Utilizar para meu negócio */}
             <button
               onClick={() => {
@@ -552,17 +552,17 @@ const Index = () => {
                   setShowAnnouncements(true);
                 }
               }}
-              className="group relative p-8 md:p-10 rounded-[3rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden"
+              className="group relative p-8 md:p-12 rounded-[3.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="w-20 h-20 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500">
-                <Briefcase className="w-10 h-10" />
+              <div className="w-24 h-24 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500 shadow-inner">
+                <Briefcase className="w-12 h-12" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-emerald-400 transition-colors">MEU NEGÓCIO</h3>
-                <p className="text-white/40 text-sm font-medium">Potencialize seu perfil com nossa IA.</p>
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-emerald-400 transition-colors uppercase tracking-tight">Meu Negócio</h3>
+                <p className="text-white/40 text-sm font-medium leading-relaxed">Potencialize seu perfil com nossa IA Inteligente.</p>
               </div>
-              <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500 transition-all duration-500 uppercase tracking-[0.2em]">
+              <div className="mt-4 flex items-center gap-2 px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-xs group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500 transition-all duration-500 uppercase tracking-[0.2em] shadow-lg">
                 ACESSAR AGORA <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
