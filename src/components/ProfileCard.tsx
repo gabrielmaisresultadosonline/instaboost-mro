@@ -212,8 +212,18 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex flex-col items-start gap-2 mb-1 sm:mb-2">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
+                  <button 
+                    onClick={() => window.open('https://youtu.be/CPI6xSH4TjU', '_blank')}
+                    className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg shadow-red-600/20 group w-fit"
+                  >
+                    <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform flex-shrink-0" />
+                    <div className="flex flex-col items-start leading-tight min-w-0">
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Aprenda Mais</span>
+                      <span className="text-xs font-bold truncate max-w-[200px] sm:max-w-none">Já conhece essa área aqui? Clicando aqui.</span>
+                    </div>
+                  </button>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {profile.category && (
