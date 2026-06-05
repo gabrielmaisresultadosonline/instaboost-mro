@@ -629,6 +629,124 @@ const Index = () => {
             </div>
           </div>
         )}
+
+        {/* Modal Escolha Meu Negócio */}
+        {showMeuNegocioOptions && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={() => setShowMeuNegocioOptions(false)}>
+            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="p-8 md:p-12 space-y-8 text-center relative">
+                <button 
+                  onClick={() => setShowMeuNegocioOptions(false)}
+                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors text-white/40"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                
+                <div className="space-y-4">
+                  <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display">Meu Negócio</div>
+                  <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight italic">O que deseja fazer?</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                  {/* Passo 1 - I.A. */}
+                  <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent">
+                    <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <Rocket className="w-8 h-8" />
+                      </div>
+                      <div className="text-left space-y-2">
+                        <h4 className="text-white font-black text-xl uppercase italic">I.A. e Cadastro</h4>
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">Cadastre seu perfil do Instagram para iniciar a análise inteligente com nossa IA MRO.</p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setShowMeuNegocioOptions(false);
+                          setShowIAPopup(true);
+                        }}
+                        className="mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-white text-black font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg"
+                      >
+                        CADASTRAR E ANALISAR <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Instalar Ferramenta */}
+                  <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent">
+                    <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                        <Briefcase className="w-8 h-8" />
+                      </div>
+                      <div className="text-left space-y-2">
+                        <h4 className="text-white font-black text-xl uppercase italic">Extensão MRO</h4>
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">Acesse a área de instalação para utilizar a ferramenta MRO completa em seu navegador.</p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          localStorage.setItem('mro_from_estrutura', 'false');
+                          navigate('/mro-ferramenta');
+                        }}
+                        className="mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-blue-500 text-white font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg shadow-blue-500/20"
+                      >
+                        INSTALAR E UTILIZAR <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Popup Explicativo I.A. */}
+        {showIAPopup && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={() => setShowIAPopup(false)}>
+            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="p-8 md:p-12 space-y-8 text-center relative">
+                <button 
+                  onClick={() => setShowIAPopup(false)}
+                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors text-white/40"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                
+                <div className="space-y-4">
+                  <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display">IA Inteligente MRO</div>
+                  <h3 className="text-2xl md:text-4xl font-black text-white tracking-tight leading-tight italic">Já conhece a área de análise?</h3>
+                  <p className="text-white/40 text-sm md:text-base leading-relaxed font-medium max-w-lg mx-auto">
+                    Nessa área, nossa IA identifica pontos positivos e negativos do seu perfil automaticamente, entregando estratégias validadas para aplicar com a ferramenta.
+                  </p>
+                </div>
+
+                <div className="max-w-xl mx-auto w-full aspect-video rounded-[2rem] overflow-hidden bg-black shadow-2xl border border-white/5">
+                  <iframe
+                    src="https://www.youtube.com/embed/CPI6xSH4TjU"
+                    title="Tutorial IA MRO"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em]">Já aprendeu como funciona?</p>
+                  <button
+                    onClick={() => {
+                      setShowIAPopup(false);
+                      setShowInitialChoice(false);
+                      if (hasRegisteredProfiles) {
+                        setShowDashboard(true);
+                        setShowAnnouncements(true);
+                      }
+                    }}
+                    className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-emerald-500 text-black font-black text-lg transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group"
+                  >
+                    ACESSAR ÁREA AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
