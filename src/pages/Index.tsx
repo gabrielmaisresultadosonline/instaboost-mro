@@ -104,8 +104,19 @@ const Index = () => {
           // ALWAYS show initial choice after login if it hasn't been shown in this session
           const choiceMade = sessionStorage.getItem('mro_initial_choice_made');
           const isReturningFromSubPage = localStorage.getItem('mro_returning_to_welcome') === 'true';
+          const forceRegistration = localStorage.getItem('mro_force_registration') === 'true';
+          const forceDashboard = localStorage.getItem('mro_force_dashboard') === 'true';
           
-          if (!choiceMade || isReturningFromSubPage) {
+          if (forceRegistration) {
+            localStorage.removeItem('mro_force_registration');
+            setShowDashboardChoice(false);
+            setShowDashboard(false);
+          } else if (forceDashboard) {
+            localStorage.removeItem('mro_force_dashboard');
+            setShowDashboardChoice(false);
+            setShowDashboard(true);
+            setShowAnnouncements(true);
+          } else if (!choiceMade || isReturningFromSubPage) {
             setShowDashboardChoice(true);
             localStorage.removeItem('mro_returning_to_welcome');
           } else {
