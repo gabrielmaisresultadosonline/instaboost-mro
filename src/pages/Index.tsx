@@ -109,6 +109,7 @@ const Index = () => {
             console.log('🚀 Force Registration active');
             setShowDashboardChoice(false);
             setShowDashboard(false);
+            // DO NOT cleanup here, consume it only when showing the registration screen
           } else if (forceDashboard) {
             console.log('📊 Force Dashboard active');
             setShowDashboardChoice(false);
@@ -302,7 +303,7 @@ const Index = () => {
     // Sync all to server
     await syncSessionToPersistent(loggedInUsername);
     
-    if (updatedSession.profiles.length > 0) {
+    if (updatedSession.profiles.length > 0 && !localStorage.getItem('mro_force_registration')) {
       setShowDashboard(true);
       setHasRegisteredProfiles(true);
     }
