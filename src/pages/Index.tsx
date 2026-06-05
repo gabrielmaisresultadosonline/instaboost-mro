@@ -502,7 +502,7 @@ const Index = () => {
         </div>
 
         {/* Logged-in user indicator - Hidden when modals are open to avoid overlap */}
-        {!showMeuNegocioOptions && !showRendaExtraBonus && !showIAPopup && (
+        {!showRendaExtraBonus && !showIAPopup && (
           <div className="absolute top-4 right-4 z-[60] flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-2xl">
               <User size={14} className="text-amber-500" />
