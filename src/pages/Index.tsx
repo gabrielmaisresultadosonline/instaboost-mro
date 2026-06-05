@@ -125,8 +125,11 @@ const Index = () => {
           }
 
           // Cleanup force flags after check
-          localStorage.removeItem('mro_force_registration');
-          localStorage.removeItem('mro_force_dashboard');
+          if (forceDashboard) {
+            localStorage.removeItem('mro_force_dashboard');
+          }
+          // Note: mro_force_registration is handled differently to keep the user on registration screen
+
 
           // FORCED UPDATE: Every time the user enters, sync with SquareCloud
           console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
