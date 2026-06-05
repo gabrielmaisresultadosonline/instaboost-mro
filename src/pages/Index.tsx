@@ -494,22 +494,35 @@ const Index = () => {
   if (showInitialChoice) {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] animate-pulse" />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
+        {/* VIP Access Badge */}
+        <div className="absolute top-0 left-0 w-full z-50">
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black py-1.5 text-center text-[10px] md:text-xs font-black uppercase tracking-[0.3em] shadow-lg animate-in slide-in-from-top duration-700">
+            ✨ VOCÊ ESTÁ NA ÁREA VIP MRO INTELIGENTE ✨
+          </div>
+        </div>
 
-        <div className="relative z-10 max-w-4xl w-full flex flex-col items-center gap-12">
-          <Logo size="lg" className="scale-125 mb-4" />
-          
-          <div className="text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-white via-white/80 to-white/50 bg-clip-text text-transparent">
-              SEJA BEM-VINDO(A) À MRO INTELIGENTE
-            </h1>
-            <p className="text-lg md:text-xl text-white/40 max-w-3xl mx-auto leading-relaxed font-medium">
-              Esta ferramenta é poderosa ao ponto de conseguir utilizar para seu negócio ou montar uma estrutura de prestação de serviço onde pode ganhar mensal de mais de 5 mil prestando serviço para empresas.
-            </p>
+        {/* Dynamic backgrounds */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] bg-amber-500/[0.07] rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl w-full flex flex-col items-center gap-8 md:gap-12 py-12">
+          <div className="animate-in fade-in zoom-in duration-1000 flex flex-col items-center gap-6">
+            <Logo size="lg" className="scale-150 mb-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
+            
+            <div className="text-center space-y-4">
+              <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic">
+                <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent">SEJA BEM-VINDO(A)</span>
+              </h1>
+              <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
+                Esta ferramenta é poderosa ao ponto de conseguir utilizar para seu negócio ou montar uma estrutura de prestação de serviço onde pode ganhar mensal de mais de 5 mil prestando serviço para empresas.
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full">
             {/* Utilizar para meu negócio */}
             <button
               onClick={() => {
@@ -519,50 +532,39 @@ const Index = () => {
                   setShowAnnouncements(true);
                 }
               }}
-              className="group relative p-8 md:p-12 rounded-[2.5rem] bg-[#12121f] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-primary/30 shadow-2xl flex flex-col items-center text-center gap-8 overflow-hidden"
+              className="group relative p-8 md:p-10 rounded-[3rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 blur-3xl group-hover:bg-primary/10 transition-colors" />
-              <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="w-20 h-20 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500">
                 <Briefcase className="w-10 h-10" />
               </div>
-              <div className="space-y-3">
-                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-primary transition-colors">UTILIZAR PARA MEU NEGÓCIO</h3>
-                <p className="text-white/40 text-sm md:text-base font-medium">Potencialize seu próprio perfil com nossa Inteligência Artificial.</p>
+              <div className="space-y-2">
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-emerald-400 transition-colors">MEU NEGÓCIO</h3>
+                <p className="text-white/40 text-sm font-medium">Potencialize seu perfil com nossa IA.</p>
               </div>
-              <div className="mt-4 flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-white/5 text-white/80 font-bold text-xs group-hover:bg-primary group-hover:text-black transition-all duration-500 uppercase tracking-widest">
+              <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500 transition-all duration-500 uppercase tracking-[0.2em]">
                 ACESSAR AGORA <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
 
             {/* Renda Extra com MRO */}
-            <div className="relative group">
-              <div className="absolute -top-4 -right-4 z-20 bg-yellow-500 text-black text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-yellow-500/20 animate-bounce">BÔNUS</div>
-              
-              <div className="relative p-8 md:p-12 rounded-[2.5rem] bg-[#12121f] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/30 shadow-2xl flex flex-col items-center text-center gap-8 overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 blur-3xl group-hover:bg-amber-500/10 transition-colors" />
-                <div className="w-20 h-20 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform duration-500">
-                  <Rocket className="w-10 h-10" />
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors">RENDA EXTRA COM A MRO</h3>
-                  <p className="text-white/40 text-sm md:text-base font-medium">Preste serviço com a MRO e fature mais de 5 mil mensal.</p>
-                </div>
-                
-                <div className="flex flex-col gap-3 w-full opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                  <button 
-                    onClick={() => setShowRendaExtraBonus(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-amber-500 text-black font-black text-sm transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-xl shadow-amber-500/20"
-                  >
-                    PRESTAR SERVIÇO <ArrowRight className="w-5 h-5" />
-                  </button>
-                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Você já tem a ferramenta, é só aplicar o método!</p>
-                </div>
-                
-                <div className="mt-4 flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-white/5 text-white/80 font-bold text-xs group-hover:hidden transition-all duration-500 uppercase tracking-widest">
-                  MAIS DETALHES
-                </div>
+            <button
+              onClick={() => setShowRendaExtraBonus(true)}
+              className="group relative p-8 md:p-10 rounded-[3rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/30 hover:shadow-[0_20px_50px_rgba(245,158,11,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden"
+            >
+              <div className="absolute top-6 right-6 z-20 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-bounce">BÔNUS</div>
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-500">
+                <Rocket className="w-10 h-10" />
               </div>
-            </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors">RENDA EXTRA</h3>
+                <p className="text-white/40 text-sm font-medium">Preste serviço e fature +5k/mês.</p>
+              </div>
+              <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500 transition-all duration-500 uppercase tracking-[0.2em]">
+                PRESTAR SERVIÇO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
           </div>
         </div>
 
