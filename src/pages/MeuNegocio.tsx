@@ -86,10 +86,11 @@ const MeuNegocioPage = () => {
           <Button 
             variant="ghost" 
             onClick={() => {
-              sessionStorage.removeItem('mro_initial_choice_made');
-              localStorage.removeItem('mro_returning_to_welcome');
+              localStorage.removeItem('mro_force_registration');
+              localStorage.removeItem('mro_force_dashboard');
               navigate('/instagram');
             }} 
+
 
             className="text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6"
           >

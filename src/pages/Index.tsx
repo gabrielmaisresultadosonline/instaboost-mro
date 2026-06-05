@@ -110,6 +110,8 @@ const Index = () => {
             setShowDashboardChoice(false);
             setShowDashboard(false);
             // DO NOT cleanup here, consume it only when showing the registration screen
+            return; // STOP execution here for registration to prevent cloud sync from jumping
+
           } else if (forceDashboard) {
             console.log('📊 Force Dashboard active');
             setShowDashboardChoice(false);
@@ -125,8 +127,11 @@ const Index = () => {
           }
 
           // Cleanup force flags after check
-          localStorage.removeItem('mro_force_registration');
-          localStorage.removeItem('mro_force_dashboard');
+          if (forceDashboard) {
+            localStorage.removeItem('mro_force_dashboard');
+          }
+          // Note: mro_force_registration is handled differently to keep the user on registration screen
+
 
           // FORCED UPDATE: Every time the user enters, sync with SquareCloud
           console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
@@ -669,8 +674,9 @@ const Index = () => {
     );
   }
 
-  // Logged in but no registered profiles - show registration
-  if (!hasRegisteredProfiles || (localStorage.getItem('mro_force_registration') === 'true')) {
+  // Logged in but no registered profiles OR forced registration - show registration
+  if (!hasRegisteredProfiles || localStorage.getItem('mro_force_registration') === 'true') {
+
     localStorage.removeItem('mro_force_registration'); // Consume it
 
     return (
@@ -679,9 +685,16 @@ const Index = () => {
         <ProfileRegistration 
           onProfileRegistered={handleProfileRegistered}
           onSyncComplete={handleSyncComplete}
-          onEnterMemberArea={handleEnterMemberArea}
-          onLogout={handleLogout}
+          onEnterMemberArea={() => {
+            localStorage.removeItem('mro_force_registration');
+            handleEnterMemberArea();
+          }}
+          onLogout={() => {
+            localStorage.removeItem('mro_force_registration');
+            handleLogout();
+          }}
         />
+
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
       </>
