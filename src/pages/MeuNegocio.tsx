@@ -86,9 +86,11 @@ const MeuNegocioPage = () => {
           <Button 
             variant="ghost" 
             onClick={() => {
-              localStorage.setItem('mro_returning_to_welcome', 'true');
+              sessionStorage.removeItem('mro_initial_choice_made');
+              localStorage.removeItem('mro_returning_to_welcome');
               navigate('/instagram');
             }} 
+
             className="text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6"
           >
             <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
