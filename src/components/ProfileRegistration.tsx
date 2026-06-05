@@ -22,7 +22,12 @@ import {
   UserPlus,
   Download,
   Camera,
-  LayoutDashboard
+  LayoutDashboard,
+  ChevronDown,
+  Rocket,
+  Wrench,
+  Briefcase,
+  DollarSign
 } from 'lucide-react';
 import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { normalizeInstagramUsername } from '@/types/user';
@@ -43,8 +48,16 @@ import {
   restoreProfileFromArchive,
   addProfile,
   getSession as getStorageSession,
-  setActiveProfile as setActiveProfileInStorage
+  setActiveProfile as setActiveProfileInStorage,
+  resetSession
 } from '@/lib/storage';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import { TutorialButton } from '@/components/TutorialButton';
@@ -75,6 +88,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Tutorial system
   const tutorial = useTutorial();
@@ -381,21 +395,66 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  variant={registeredIGs.length > 0 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    if (registeredIGs.length > 0) {
-                      if (onEnterMemberArea) onEnterMemberArea();
-                    } else {
-                      toast({ title: 'Nenhum perfil cadastrado', description: 'Cadastre um perfil para acessar a análise completa', variant: 'default' });
-                    }
-                  }}
-                  className={registeredIGs.length > 0 ? "bg-primary hover:bg-primary/90" : ""}
-                >
-                  <LayoutDashboard className="w-4 h-4 mr-1" />
-                  Área de Membros
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-4 py-2 h-9 rounded-full whitespace-nowrap shrink-0 gap-2"
+                    >
+                      <Wrench className="w-4 h-4 shrink-0" />
+                      MENU PRINCIPAL
+                      <ChevronDown className="w-4 h-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-[#0d0d16] border-white/10 p-2 rounded-xl z-[100]">
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        localStorage.removeItem('mro_force_dashboard');
+                        localStorage.removeItem('mro_force_registration');
+                        window.location.reload();
+                      }}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Rocket className="w-4 h-4 text-primary" />
+                      <span className="font-bold text-sm">INÍCIO</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/mro-ferramenta')}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Wrench className="w-4 h-4 text-yellow-500" />
+                      <span className="font-bold text-sm">INSTALAR E UTILIZAR</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/meu-negocio')}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Briefcase className="w-4 h-4 text-blue-400" />
+                      <span className="font-bold text-sm">MEU NEGÓCIO</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        localStorage.setItem('mro_force_registration', 'true');
+                        window.location.reload();
+                      }}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Instagram className="w-4 h-4 text-pink-500" />
+                      <span className="font-bold text-sm">CADASTRAR INSTAGRAM</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        // This uses a custom event to trigger the renda extra popup from Index.tsx if needed, 
+                        // or we can just navigate to a route that handles it. 
+                        // Since we are in ProfileRegistration, we'll navigate to home and try to trigger it.
+                        navigate('/renda-extra');
+                      }}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <DollarSign className="w-4 h-4 text-emerald-400" />
+                      <span className="font-bold text-sm">RENDA EXTRA</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
