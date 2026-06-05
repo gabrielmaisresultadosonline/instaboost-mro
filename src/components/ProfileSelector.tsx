@@ -82,18 +82,6 @@ export const ProfileSelector = ({
                   {profile.id === activeProfileId && (
                     <Check className="w-4 h-4 text-primary" />
                   )}
-                   <button
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       if (confirm(`Remover @${profile.profile.username} da sessão?`)) {
-                         onRemoveProfile(profile.id);
-                       }
-                     }}
-                     className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
-                     title="Remover perfil"
-                   >
-                     <X className="w-3 h-3" />
-                   </button>
                 </div>
               </DropdownMenuItem>
             ))}
