@@ -101,30 +101,29 @@ const Index = () => {
           
           setSession(existingSession);
           
-          // ALWAYS show initial choice after login if it hasn't been shown in this session
-          const choiceMade = sessionStorage.getItem('mro_initial_choice_made');
+          // Logic for welcome screen vs dashboard
           const forceRegistration = localStorage.getItem('mro_force_registration') === 'true';
           const forceDashboard = localStorage.getItem('mro_force_dashboard') === 'true';
           
           if (forceRegistration) {
             console.log('🚀 Force Registration active');
-            sessionStorage.setItem('mro_initial_choice_made', 'true');
             setShowDashboardChoice(false);
             setShowDashboard(false);
           } else if (forceDashboard) {
             console.log('📊 Force Dashboard active');
-            localStorage.removeItem('mro_force_dashboard');
-            sessionStorage.setItem('mro_initial_choice_made', 'true'); // Prevent choice popup when specifically navigating to dashboard
             setShowDashboardChoice(false);
             setShowDashboard(true);
             setShowAnnouncements(true);
-          } else if (!choiceMade) {
-            console.log('🏠 Showing initial welcome choice');
-            setShowDashboardChoice(true);
           } else {
-            setShowDashboard(true);
-            setShowAnnouncements(true);
+            // ALWAYS show welcome choice on refresh/load if not forced to a specific area
+            console.log('🏠 Resetting to welcome choice on load');
+            setShowDashboardChoice(true);
+            setShowDashboard(false);
           }
+
+          // Cleanup force flags after check
+          localStorage.removeItem('mro_force_registration');
+          localStorage.removeItem('mro_force_dashboard');
 
           // FORCED UPDATE: Every time the user enters, sync with SquareCloud
           console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
@@ -134,6 +133,7 @@ const Index = () => {
             handleSyncComplete(squareResult.instagrams);
           }
         }
+
       } catch (error) {
         console.error('[Index] Error in auth check:', error);
         setIsLoggedIn(false);
