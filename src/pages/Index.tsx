@@ -687,6 +687,14 @@ const Index = () => {
                       </div>
                       <button 
                         onClick={() => {
+                          if (!hasRegisteredProfiles) {
+                            toast({
+                              variant: "destructive",
+                              title: "Acesso bloqueado",
+                              description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa.",
+                            });
+                            return;
+                          }
                           localStorage.setItem('mro_from_estrutura', 'false');
                           navigate('/mro-ferramenta');
                         }}
