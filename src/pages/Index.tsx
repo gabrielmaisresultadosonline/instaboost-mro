@@ -66,6 +66,7 @@ const Index = () => {
   const [pendingSyncInstagrams, setPendingSyncInstagrams] = useState<string[]>([]);
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   const [showRendaExtraBonus, setShowRendaExtraBonus] = useState(false);
+  const [showRendaExtraPopup, setShowRendaExtraPopup] = useState(false);
   const { toast } = useToast();
 
   // Get current logged in username
