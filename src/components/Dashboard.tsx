@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle, ArrowRight, Settings, Rocket, Lightbulb, ShieldCheck, UserPlus } from 'lucide-react';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
