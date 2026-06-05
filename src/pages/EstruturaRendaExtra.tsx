@@ -1031,98 +1031,181 @@ const EstruturaRendaExtra = () => {
         <div className="relative z-10 flex-1 px-4 pb-10 md:pb-16">
           <div className="max-w-6xl mx-auto space-y-6">
             
-            {/* Top Cards: 01, 02, 03 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Steps Navigation - Top Cards: 01, 02, 03 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { id: '01', title: 'Entenda como fazer 5 mil de renda extra mensal.', subtitle: 'Aprenda a mexer na ferramenta primeiro e saber o que está oferecendo!', icon: <Lightbulb className="w-10 h-10 text-yellow-400" />, gradient: 'from-orange-500/20 to-yellow-500/20 border-orange-500/50', action: () => setShowRendaExtraVideo(true) },
-                { id: '02', title: 'Aprenda como fazer tudo', subtitle: 'Aprenda o passo a passo completo de como utilizar a ferramenta.', icon: <Rocket className="w-10 h-10 text-blue-400" />, gradient: 'from-blue-500/20 to-cyan-500/20 border-blue-500/50', action: () => setCurrentView('tutoriais') },
-                { id: '03', title: 'Aprenda como mexer na ferramenta.', subtitle: 'Primeiro, explore e entenda tudo que a ferramenta pode oferecer.', icon: <Settings className="w-10 h-10 text-purple-400" />, gradient: 'from-purple-500/20 to-fuchsia-500/20 border-purple-500/50', action: () => navigate('/mro-ferramenta') }
+                { 
+                  id: '01', 
+                  title: 'Entenda a Estratégia', 
+                  subtitle: 'Assista ao vídeo e entenda como faturar 5 mil/mês.', 
+                  icon: <Lightbulb className="w-10 h-10" />, 
+                  color: 'from-amber-400 to-orange-600',
+                  glow: 'shadow-orange-500/20',
+                  action: () => setShowRendaExtraVideo(true) 
+                },
+                { 
+                  id: '02', 
+                  title: 'Aprenda o Método', 
+                  subtitle: 'Passo a passo completo de utilização da ferramenta.', 
+                  icon: <Rocket className="w-10 h-10" />, 
+                  color: 'from-blue-400 to-indigo-600',
+                  glow: 'shadow-blue-500/20',
+                  action: () => setCurrentView('tutoriais') 
+                },
+                { 
+                  id: '03', 
+                  title: 'Explore a Ferramenta', 
+                  subtitle: 'Domine todos os recursos que a MRO oferece.', 
+                  icon: <Settings className="w-10 h-10" />, 
+                  color: 'from-fuchsia-400 to-purple-600',
+                  glow: 'shadow-purple-500/20',
+                  action: () => navigate('/mro-ferramenta') 
+                }
               ].map((card) => (
-                <button key={card.id} onClick={card.action} className={`group p-6 rounded-2xl bg-gradient-to-br ${card.gradient} border-2 transition-all hover:scale-[1.02] flex flex-col items-start text-left`}>
-                  <div className="text-white/40 font-black text-2xl mb-4">{card.id}</div>
-                  <div className="mb-4">{card.icon}</div>
-                  <h3 className="text-white font-bold text-lg mb-2">{card.title}</h3>
-                  <p className="text-white/60 text-sm mb-6 flex-1">{card.subtitle}</p>
-                  <div className="flex items-center text-emerald-400 font-bold text-sm">
-                    Clique para acessar <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform" />
+                <button 
+                  key={card.id} 
+                  onClick={card.action} 
+                  className={`group relative p-8 rounded-[2rem] bg-[#12121f] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-white/20 shadow-2xl ${card.glow} flex flex-col items-start text-left overflow-hidden`}
+                >
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${card.color} opacity-5 blur-3xl group-hover:opacity-20 transition-opacity`} />
+                  
+                  <div className="flex items-center justify-between w-full mb-6">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${card.color} p-0.5 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+                      <div className="w-full h-full bg-[#12121f] rounded-[calc(1rem-2px)] flex items-center justify-center text-white">
+                        {card.icon}
+                      </div>
+                    </div>
+                    <span className="text-4xl font-black text-white/5 italic tracking-tighter group-hover:text-white/10 transition-colors">{card.id}</span>
+                  </div>
+
+                  <h3 className="text-white font-black text-xl mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/50 transition-all">{card.title}</h3>
+                  <p className="text-white/40 text-sm mb-8 leading-relaxed font-medium">{card.subtitle}</p>
+                  
+                  <div className="mt-auto flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 border border-white/5 text-white/80 font-bold text-xs group-hover:bg-white group-hover:text-black transition-all duration-500">
+                    COMEÇAR AGORA <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </button>
               ))}
             </div>
 
-            {/* Bottom Section: 04 and 05 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* 04 */}
-              <div className="p-8 rounded-2xl bg-gradient-to-br from-teal-900/20 to-emerald-900/20 border-2 border-emerald-500/50 flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                   <span className="text-white/40 font-black text-2xl">04</span>
-                   <h3 className="text-white font-bold text-xl">Conteúdo da sua estrutura</h3>
-                </div>
-                <p className="text-white/60 text-sm">Tudo que você precisa para criar sua presença profissional e atrair empresas.</p>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Crie sua Logomarca', icon: <PenTool /> },
-                    { label: 'Post Creator', icon: <Image /> },
-                    { label: 'Gerando sua Foto', icon: <Instagram /> },
-                    { label: 'Materiais Disponíveis', icon: <Video /> },
-                  ].map((item, i) => (
-                    <div key={i} className="bg-black/10 p-4 rounded-xl flex flex-col items-center gap-2 border border-white/5 opacity-80">
-                      <div className="text-emerald-400/60">{item.icon}</div>
-                      <span className="text-white/60 text-[10px] font-bold text-center leading-tight uppercase tracking-wider">{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={() => setCurrentView('estrutura-links')} className="w-full mt-auto py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-black rounded-xl flex items-center justify-center transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
-                  CLIQUE PARA ACESSAR <ArrowRight className="w-4 h-4 ml-2" />
-                </button>
-              </div>
-
-              {/* 05 */}
-              <div className="p-8 rounded-2xl bg-gradient-to-br from-red-900/20 to-rose-900/20 border-2 border-red-500/50 flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                   <span className="text-white/40 font-black text-2xl">05</span>
-                   <h3 className="text-white font-bold text-xl">Fechar contratos, gerar testes e relatórios</h3>
-                </div>
-                <p className="text-white/60 text-sm">Gerencie, envie e acompanhe tudo de forma prática e profissional.</p>
-                
-                <div className="space-y-3">
-                  {[
-                    { label: 'Gere um contrato para seu cliente', icon: <FileText /> },
-                    { label: 'Envie para a empresa', icon: <Sparkles /> },
-                    { label: 'Gerar teste grátis', icon: <TestTube /> },
-                    { label: 'Relatórios de empresas', icon: <BarChart3 /> },
-                  ].map((item, i) => (
-                     <div key={i} className="flex items-center justify-between p-4 bg-black/10 rounded-xl border border-white/5 opacity-80">
-                       <div className="flex items-center gap-3">
-                         <span className="text-red-400/60">{item.icon}</span>
-                         <span className="text-white/60 font-bold text-xs uppercase tracking-wide">{item.label}</span>
-                       </div>
-                       <ArrowRight className="w-4 h-4 text-white/10" />
+            {/* Main Sections: 04 and 05 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* 04 - ESTRUTURA */}
+              <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent">
+                <div className="relative h-full p-8 md:p-10 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8 overflow-hidden shadow-2xl">
+                  {/* Background decoration */}
+                  <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
+                  
+                  <div className="flex items-center justify-between relative z-10">
+                     <div className="space-y-1">
+                       <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black tracking-widest uppercase mb-2">Estrutura Profissional</span>
+                       <h3 className="text-white font-black text-3xl tracking-tight">Crie sua Presença</h3>
                      </div>
-                  ))}
+                     <span className="text-5xl font-black text-white/5 italic">04</span>
+                  </div>
+                  
+                  <p className="text-white/40 text-sm max-w-md relative z-10 leading-relaxed font-medium">Tudo que você precisa para criar sua marca e atrair empresas de forma automática e lucrativa.</p>
+                  
+                  <div className="grid grid-cols-2 gap-4 relative z-10">
+                    {[
+                      { label: 'Logomarca', icon: <PenTool className="w-5 h-5" /> },
+                      { label: 'Post Creator', icon: <Image className="w-5 h-5" /> },
+                      { label: 'Foto Pro', icon: <Instagram className="w-5 h-5" /> },
+                      { label: 'Materiais', icon: <Video className="w-5 h-5" /> },
+                    ].map((item, i) => (
+                      <div key={i} className="group/item bg-white/[0.03] border border-white/5 p-5 rounded-2xl flex flex-col items-center gap-3 transition-all duration-300 hover:bg-white/[0.06] hover:border-emerald-500/30">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/5 flex items-center justify-center text-emerald-400 group-hover/item:scale-110 transition-transform">
+                          {item.icon}
+                        </div>
+                        <span className="text-white/70 text-[11px] font-bold text-center uppercase tracking-widest">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    onClick={() => setCurrentView('estrutura-links')} 
+                    className="group w-full relative h-16 rounded-2xl bg-emerald-500 text-black font-black text-lg flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] overflow-hidden active:scale-95"
+                  >
+                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <span className="relative z-10 flex items-center gap-3">
+                      ACESSAR ESTRUTURA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                    </span>
+                  </button>
                 </div>
-                
-                <button onClick={() => setCurrentView('fechar-contratos-links')} className="w-full mt-auto py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl flex items-center justify-center transition-all shadow-lg shadow-red-500/20 active:scale-[0.98]">
-                  CLIQUE PARA ACESSAR <ArrowRight className="w-4 h-4 ml-2" />
+              </div>
+
+              {/* 05 - FECHAMENTO */}
+              <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-red-500/20 via-transparent to-transparent">
+                <div className="relative h-full p-8 md:p-10 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8 overflow-hidden shadow-2xl">
+                  {/* Background decoration */}
+                  <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-red-500/10 rounded-full blur-[80px] pointer-events-none" />
+                  
+                  <div className="flex items-center justify-between relative z-10">
+                     <div className="space-y-1">
+                       <span className="inline-block px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black tracking-widest uppercase mb-2">Gestão e Conversão</span>
+                       <h3 className="text-white font-black text-3xl tracking-tight">Escalando Vendas</h3>
+                     </div>
+                     <span className="text-5xl font-black text-white/5 italic">05</span>
+                  </div>
+                  
+                  <p className="text-white/40 text-sm max-w-md relative z-10 leading-relaxed font-medium">Gerencie clientes, envie propostas irresistíveis e acompanhe resultados em tempo real.</p>
+                  
+                  <div className="space-y-3 relative z-10">
+                    {[
+                      { label: 'Contrato Profissional', icon: <FileText className="w-5 h-5" /> },
+                      { label: 'Proposta Estratégica', icon: <Sparkles className="w-5 h-5" /> },
+                      { label: 'Geração de Testes', icon: <TestTube className="w-5 h-5" /> },
+                      { label: 'Relatórios de Gestão', icon: <BarChart3 className="w-5 h-5" /> },
+                    ].map((item, i) => (
+                       <div key={i} className="flex items-center justify-between p-4 bg-white/[0.03] rounded-2xl border border-white/5 opacity-80 hover:opacity-100 hover:bg-white/[0.06] hover:border-red-500/30 transition-all duration-300">
+                         <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-lg bg-red-500/5 flex items-center justify-center text-red-400">
+                             {item.icon}
+                           </div>
+                           <span className="text-white/70 font-bold text-xs uppercase tracking-widest">{item.label}</span>
+                         </div>
+                         <ArrowRight className="w-4 h-4 text-white/10" />
+                       </div>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    onClick={() => setCurrentView('fechar-contratos-links')} 
+                    className="group w-full relative h-16 rounded-2xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-lg flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] overflow-hidden active:scale-95 border-t border-white/20"
+                  >
+                    <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <span className="relative z-10 flex items-center gap-3">
+                      ACESSAR ÁREA DE VENDAS <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Accounts Manager Section */}
+            <div className="relative group overflow-hidden rounded-[3rem] p-0.5 bg-gradient-to-r from-emerald-500/30 via-transparent to-green-500/30">
+              <div className="relative bg-[#0d0d16]/80 backdrop-blur-xl p-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div className="flex flex-col lg:flex-row items-center gap-8 text-center lg:text-left">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-emerald-500/40 rounded-3xl blur-2xl group-hover:scale-125 transition-transform duration-500" />
+                    <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-400 to-green-600 rounded-3xl flex items-center justify-center text-[#0d0d16] shadow-2xl">
+                      <ShieldCheck className="w-12 h-12" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-white tracking-tight uppercase">Gerenciar Contas Premium</h3>
+                    <p className="text-white/50 text-sm max-w-xl leading-relaxed font-medium">Possui mais de 8 contas ativas? Utilize nosso gerenciador avançado de perfis para centralizar sua operação.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowGerenciadorPopup(true)} 
+                  className="px-10 py-5 bg-white text-black font-black rounded-2xl transition-all duration-300 hover:scale-[1.05] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-3"
+                >
+                  ABRIR GERENCIADOR <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
-
-
             </div>
 
-            {/* Gerenciador */}
-            <div className="flex items-center justify-between p-8 rounded-2xl bg-gradient-to-r from-emerald-900/30 to-green-900/30 border border-emerald-500/30">
-              <div className="flex items-center gap-4">
-                <ShieldCheck className="w-12 h-12 text-emerald-400" />
-                <div>
-                  <h3 className="text-xl font-bold text-white">Gerenciar Contas</h3>
-                  <p className="text-white/60 text-sm">Se tens mais de 8 contas ativas conosco, pode utilizar nosso gerenciador de perfis.</p>
-                </div>
-              </div>
-              <button onClick={() => setShowGerenciadorPopup(true)} className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl transition-all">
-                Gerenciar Contas <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
 
           </div>
 
