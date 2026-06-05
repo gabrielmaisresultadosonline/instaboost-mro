@@ -306,6 +306,7 @@ const App = () => (
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
           <Route path="/atualizar" element={<Atualizar />} />
           <Route path="/atualizarver" element={<Atualizar />} />
+          <Route path="/licenciado" element={<Licenciado />} />
 
 
 
