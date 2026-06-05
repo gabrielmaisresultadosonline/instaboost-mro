@@ -98,17 +98,16 @@ const MeuNegocioPage = () => {
 
         <div className="space-y-6 text-center">
           <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display italic">Meu Negócio</div>
-          <h3 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight italic uppercase drop-shadow-2xl">O que deseja fazer?</h3>
+          <h3 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight italic uppercase drop-shadow-2xl">Como iniciar no seu negócio?</h3>
           
           <div className="flex flex-col items-center gap-4 pt-2">
             <button 
               onClick={() => setShowGuide(!showGuide)}
-              className="group flex flex-col items-center gap-2 transition-all"
+              className="group flex flex-col items-center gap-3 transition-all"
             >
-              <span className="text-amber-500 font-black text-sm uppercase tracking-widest group-hover:text-amber-400">Como iniciar no seu negócio?</span>
-              <div className="flex items-center gap-2 px-6 py-2 rounded-full bg-amber-500 text-black font-black text-[10px] uppercase tracking-tighter hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                {showGuide ? <ChevronUp className="w-3 h-3" /> : <Info className="w-3 h-3" />}
-                {showGuide ? "Fechar guia" : "Saber mais / Passo a passo"}
+              <div className="flex items-center gap-3 px-10 py-4 rounded-full bg-amber-500 text-black font-black text-xs md:text-sm uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(245,158,11,0.4)]">
+                {showGuide ? <ChevronUp className="w-5 h-5" /> : <Info className="w-5 h-5" />}
+                {showGuide ? "Fechar guia de início" : "Saber mais / Passo a passo"}
               </div>
             </button>
 
