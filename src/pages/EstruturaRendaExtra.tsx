@@ -1061,23 +1061,19 @@ const EstruturaRendaExtra = () => {
                 <p className="text-white/60 text-sm">Tudo que você precisa para criar sua presença profissional e atrair empresas.</p>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { label: 'Crie sua Logomarca', icon: <PenTool />, action: () => setShowLogoPopup(true) },
-                    { label: 'Post Creator', icon: <Image />, action: () => setCurrentView('posts-creator') },
-                    { label: 'Gerando sua Foto', icon: <Instagram />, action: () => {
-                      const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
-                      sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
-                      navigate('/prompts/dashboard');
-                    }},
-                    { label: 'Materiais Disponíveis', icon: <Video />, action: () => setCurrentView('materiais') },
+                    { label: 'Crie sua Logomarca', icon: <PenTool /> },
+                    { label: 'Post Creator', icon: <Image /> },
+                    { label: 'Gerando sua Foto', icon: <Instagram /> },
+                    { label: 'Materiais Disponíveis', icon: <Video /> },
                   ].map((item, i) => (
-                    <button key={i} onClick={item.action} className="bg-black/20 hover:bg-black/40 p-4 rounded-xl flex flex-col items-center gap-2 transition-all">
-                      <div className="text-emerald-400">{item.icon}</div>
-                      <span className="text-white text-xs font-bold text-center">{item.label}</span>
-                    </button>
+                    <div key={i} className="bg-black/10 p-4 rounded-xl flex flex-col items-center gap-2 border border-white/5 opacity-80">
+                      <div className="text-emerald-400/60">{item.icon}</div>
+                      <span className="text-white/60 text-[10px] font-bold text-center leading-tight uppercase tracking-wider">{item.label}</span>
+                    </div>
                   ))}
                 </div>
-                <button onClick={() => setCurrentView('estrutura-links')} className="w-full mt-auto py-4 bg-teal-500/10 hover:bg-teal-500/20 text-emerald-400 font-bold rounded-xl flex items-center justify-center transition-all">
-                  Clique para acessar <ArrowRight className="w-4 h-4 ml-2" />
+                <button onClick={() => setCurrentView('estrutura-links')} className="w-full mt-auto py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-black rounded-xl flex items-center justify-center transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
+                  CLIQUE PARA ACESSAR <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
 
@@ -1091,25 +1087,26 @@ const EstruturaRendaExtra = () => {
                 
                 <div className="space-y-3">
                   {[
-                    { label: 'Gere um contrato para seu cliente', icon: <FileText />, action: () => setCurrentView('contrato') },
-                    { label: 'Envie para a empresa', icon: <Sparkles />, action: () => setCurrentView('proposta-empresa') },
-                    { label: 'Gerar teste grátis', icon: <TestTube />, action: () => setCurrentView('testes') },
-                    { label: 'Relatórios de empresas', icon: <BarChart3 />, action: () => setCurrentView('relatorios') },
+                    { label: 'Gere um contrato para seu cliente', icon: <FileText /> },
+                    { label: 'Envie para a empresa', icon: <Sparkles /> },
+                    { label: 'Gerar teste grátis', icon: <TestTube /> },
+                    { label: 'Relatórios de empresas', icon: <BarChart3 /> },
                   ].map((item, i) => (
-                     <button key={i} onClick={item.action} className="flex items-center justify-between p-4 bg-black/20 hover:bg-black/40 rounded-xl transition-all group">
+                     <div key={i} className="flex items-center justify-between p-4 bg-black/10 rounded-xl border border-white/5 opacity-80">
                        <div className="flex items-center gap-3">
-                         <span className="text-red-400">{item.icon}</span>
-                         <span className="text-white font-bold text-sm">{item.label}</span>
+                         <span className="text-red-400/60">{item.icon}</span>
+                         <span className="text-white/60 font-bold text-xs uppercase tracking-wide">{item.label}</span>
                        </div>
-                       <ArrowRight className="w-4 h-4 text-white/40 group-hover:translate-x-1 transition-transform" />
-                     </button>
+                       <ArrowRight className="w-4 h-4 text-white/10" />
+                     </div>
                   ))}
                 </div>
                 
-                <button onClick={() => setCurrentView('fechar-contratos-links')} className="w-full mt-auto py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl flex items-center justify-center transition-all">
-                  Clique para acessar <ArrowRight className="w-4 h-4 ml-2" />
+                <button onClick={() => setCurrentView('fechar-contratos-links')} className="w-full mt-auto py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl flex items-center justify-center transition-all shadow-lg shadow-red-500/20 active:scale-[0.98]">
+                  CLIQUE PARA ACESSAR <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
+
 
             </div>
 
