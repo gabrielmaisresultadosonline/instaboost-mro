@@ -21,7 +21,7 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List, Mail } from 'lucide-react';
+import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List, Mail, ChevronDown } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
 import { getSession, updateAnalysis, clearStrategies } from '@/lib/storage';
@@ -155,125 +155,107 @@ export const UserHeader = ({ onLogout, onReanalysisComplete, tutorial, activeTab
 
   return (
     <div className="flex items-center gap-1 sm:gap-3 min-w-0 max-w-full">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 text-xs sm:text-sm max-w-[180px] lg:max-w-[220px] xl:max-w-none min-w-0">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 hover:bg-secondary/70 border-none text-xs sm:text-sm max-w-[180px] lg:max-w-[220px] xl:max-w-none min-w-0 h-auto">
             <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-            <span className="font-medium truncate">{user.username}</span>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAdminModal(true);
-              }}
-              className="p-0.5 sm:p-1 hover:bg-secondary rounded-full transition-colors flex-shrink-0"
-              title="Acesso Admin"
-            >
-              <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-amber-500 transition-colors" />
-            </button>
-            
-            {isLifetime ? (
-              <div className="hidden xs:flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
-                <span className="hidden sm:inline text-amber-500 font-semibold text-xs">Vitalício</span>
-                {user.creativesUnlocked ? (
-                  <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500" />
-                ) : (
-                  <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
-                )}
+            <span className="font-bold truncate">MEU PERFIL</span>
+            <ChevronDown className="w-3 h-3 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64 p-2 bg-[#0d0d16] border-white/10 shadow-2xl rounded-2xl">
+          <DropdownMenuLabel className="px-3 py-2">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-black text-white">{user.username}</span>
+              <span className="text-[10px] text-white/40 font-medium uppercase tracking-wider">{user.email || 'Usuário MRO'}</span>
+            </div>
+          </DropdownMenuLabel>
+          
+          <DropdownMenuSeparator className="bg-white/5" />
+          
+          <div className="py-2 px-1 space-y-1">
+            <DropdownMenuItem className="rounded-xl focus:bg-white/5 cursor-default flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-white/40" />
+                <span className="text-xs font-bold text-white/70">Acesso</span>
               </div>
-            ) : (
-              <span className="hidden xs:flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
-                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                {user.daysRemaining}d
-              </span>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <div className="text-center space-y-1">
-            <p className="font-semibold">{user.username}</p>
-            <p className="text-xs text-muted-foreground">{daysText}</p>
-            {isLifetime && (
-              <p className={`text-xs ${creativesAccess.allowed ? 'text-green-400' : 'text-amber-400'}`}>
-                Criativos: {creativesAccess.allowed ? 'Liberado' : 'Bloqueado'}
-              </p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-
-      {user.email && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowEmailModal(true)}
-              className="p-1.5 sm:p-2 h-auto hover:text-primary transition-colors"
-            >
-              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Ver e-mail cadastrado</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-
-      {/* Help icon - red, next to logout */}
-      {tutorial && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-1.5 sm:p-2 h-auto">
-              <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-red-500" />
-              Como usar o sistema?
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => {
-                if (activeTab === 'strategies') {
-                  tutorial.startTutorial(strategyTutorial);
-                } else {
-                  tutorial.startTutorial(dashboardTutorial);
-                }
-              }}
-              className="cursor-pointer"
-            >
-              <Play className="w-4 h-4 mr-2 text-primary" />
-              <div>
-                <div className="font-medium">Tutorial Interativo</div>
-                <div className="text-xs text-muted-foreground">Guia passo a passo na tela</div>
-              </div>
+              {isLifetime ? (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                  <Crown className="w-3 h-3 text-amber-500" />
+                  <span className="text-[10px] text-amber-500 font-black uppercase tracking-tighter">Vitalício</span>
+                </div>
+              ) : (
+                <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                  <span className="text-[10px] text-white/70 font-black uppercase tracking-tighter">{user.daysRemaining} dias</span>
+                </div>
+              )}
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => {
-                if (activeTab === 'strategies') {
-                  tutorial.startListView(strategyTutorial);
-                } else {
-                  tutorial.startListView(dashboardTutorial);
-                }
-              }}
-              className="cursor-pointer"
-            >
-              <List className="w-4 h-4 mr-2 text-primary" />
-              <div>
-                <div className="font-medium">Ver Tutorial</div>
-                <div className="text-xs text-muted-foreground">Lista completa de instruções</div>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
 
-      <Button variant="ghost" size="sm" onClick={handleLogout} className="p-1.5 sm:p-2 h-auto">
-        <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-      </Button>
+            {user.email && (
+              <DropdownMenuItem 
+                onClick={() => setShowEmailModal(true)}
+                className="rounded-xl focus:bg-white/5 cursor-pointer flex items-center gap-2"
+              >
+                <Mail className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-bold text-white/70">Ver E-mail</span>
+              </DropdownMenuItem>
+            )}
+
+            {tutorial && (
+              <>
+                <DropdownMenuSeparator className="bg-white/5" />
+                <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Ajuda e Tutorial</DropdownMenuLabel>
+                
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (activeTab === 'strategies') {
+                      tutorial.startTutorial(strategyTutorial);
+                    } else {
+                      tutorial.startTutorial(dashboardTutorial);
+                    }
+                  }}
+                  className="rounded-xl focus:bg-white/5 cursor-pointer flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-white/70">Tutorial Interativo</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (activeTab === 'strategies') {
+                      tutorial.startListView(strategyTutorial);
+                    } else {
+                      tutorial.startListView(dashboardTutorial);
+                    }
+                  }}
+                  className="rounded-xl focus:bg-white/5 cursor-pointer flex items-center gap-2"
+                >
+                  <List className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-white/70">Lista de Instruções</span>
+                </DropdownMenuItem>
+              </>
+            )}
+
+            <DropdownMenuSeparator className="bg-white/5" />
+            
+            <DropdownMenuItem 
+              onClick={() => setShowAdminModal(true)}
+              className="rounded-xl focus:bg-amber-500/10 cursor-pointer flex items-center gap-2 text-amber-500"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span className="text-xs font-black uppercase tracking-wider">Acesso Admin</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              className="rounded-xl focus:bg-red-500/10 cursor-pointer flex items-center gap-2 text-red-500"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-xs font-black uppercase tracking-wider">Sair da Conta</span>
+            </DropdownMenuItem>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Email View Modal */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
