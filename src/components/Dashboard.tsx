@@ -221,7 +221,18 @@ export const Dashboard = ({
                     className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
                   >
                     <Rocket className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-sm">BEM VINDO</span>
+                    <span className="font-bold text-sm">INÍCIO</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      if (onShowRendaExtra) {
+                        onShowRendaExtra();
+                      }
+                    }}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold text-sm">RENDA EXTRA</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => navigate('/mro-ferramenta')}
