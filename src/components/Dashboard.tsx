@@ -44,8 +44,15 @@ import {
   Wrench,
   Lock,
   Camera,
-  RefreshCw
+  RefreshCw,
+  Briefcase
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
@@ -187,17 +194,51 @@ export const Dashboard = ({
           {/* Desktop/Tablet Header */}
           {/* Desktop Header (xl+) */}
           <div className="hidden xl:flex items-center justify-between gap-2 min-w-0">
-            {/* Left: Logo + MRO Button */}
+            {/* Left: Logo + Menu Principal */}
             <div className="flex items-center gap-2 shrink-0">
               <Logo size="sm" />
-              <Button
-                onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs xl:text-sm px-3 xl:px-5 py-2 h-9 xl:h-10 rounded-full whitespace-nowrap shrink-0"
-                data-tutorial="mro-button"
-              >
-                <Wrench className="w-4 h-4 mr-1 xl:mr-2 shrink-0" />
-                INSTALAR E UTILIZAR FERRAMENTA
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs xl:text-sm px-3 xl:px-5 py-2 h-9 xl:h-10 rounded-full whitespace-nowrap shrink-0 gap-2"
+                    data-tutorial="mro-button"
+                  >
+                    <Wrench className="w-4 h-4 shrink-0" />
+                    MENU PRINCIPAL
+                    <ChevronDown className="w-4 h-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 bg-[#0d0d16] border-white/10 p-2 rounded-xl">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      localStorage.removeItem('mro_force_dashboard');
+                      localStorage.removeItem('mro_force_registration');
+                      window.location.reload();
+                    }}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Rocket className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-sm">BEM VINDO</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/mro-ferramenta')}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Wrench className="w-4 h-4 text-yellow-500" />
+                    <span className="font-bold text-sm">INSTALAR E UTILIZAR</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      localStorage.setItem('mro_force_registration', 'true');
+                      window.location.reload();
+                    }}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Briefcase className="w-4 h-4 text-blue-400" />
+                    <span className="font-bold text-sm">MEU NEGÓCIO</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Center: Profile Selector + Tabs */}
@@ -269,16 +310,50 @@ export const Dashboard = ({
               <Logo size="sm" />
             </div>
 
-            {/* Linha 2: INSTALAR E UTILIZAR FERRAMENTA centralizado */}
+            {/* Linha 2: MENU PRINCIPAL centralizado */}
             <div className="flex justify-center">
-              <Button
-                onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-6 py-2 h-10 rounded-full"
-                data-tutorial="mro-button"
-              >
-                <Wrench className="w-4 h-4 mr-2" />
-                INSTALAR E UTILIZAR FERRAMENTA
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-6 py-2 h-10 rounded-full gap-2"
+                    data-tutorial="mro-button"
+                  >
+                    <Wrench className="w-4 h-4" />
+                    MENU PRINCIPAL
+                    <ChevronDown className="w-4 h-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-56 bg-[#0d0d16] border-white/10 p-2 rounded-xl">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      localStorage.removeItem('mro_force_dashboard');
+                      localStorage.removeItem('mro_force_registration');
+                      window.location.reload();
+                    }}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Rocket className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-sm">BEM VINDO</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/mro-ferramenta')}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Wrench className="w-4 h-4 text-yellow-500" />
+                    <span className="font-bold text-sm">INSTALAR E UTILIZAR</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      localStorage.setItem('mro_force_registration', 'true');
+                      window.location.reload();
+                    }}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Briefcase className="w-4 h-4 text-blue-400" />
+                    <span className="font-bold text-sm">MEU NEGÓCIO</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Linha 3: Tutorial + Conta + User */}
@@ -337,14 +412,48 @@ export const Dashboard = ({
             <div className="flex flex-wrap items-center justify-center gap-2">
               <div className="flex items-center gap-2 shrink-0">
                 <Logo size="sm" />
-                <Button
-                  onClick={() => navigate('/mro-ferramenta')}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs lg:text-sm px-4 lg:px-5 py-2 h-10 rounded-full whitespace-nowrap shrink-0"
-                  data-tutorial="mro-button"
-                >
-                  <Wrench className="w-4 h-4 mr-2" />
-                  INSTALAR E UTILIZAR FERRAMENTA
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs lg:text-sm px-4 lg:px-5 py-2 h-10 rounded-full whitespace-nowrap shrink-0 gap-2"
+                      data-tutorial="mro-button"
+                    >
+                      <Wrench className="w-4 h-4" />
+                      MENU PRINCIPAL
+                      <ChevronDown className="w-4 h-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 bg-[#0d0d16] border-white/10 p-2 rounded-xl">
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        localStorage.removeItem('mro_force_dashboard');
+                        localStorage.removeItem('mro_force_registration');
+                        window.location.reload();
+                      }}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Rocket className="w-4 h-4 text-primary" />
+                      <span className="font-bold text-sm">BEM VINDO</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/mro-ferramenta')}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Wrench className="w-4 h-4 text-yellow-500" />
+                      <span className="font-bold text-sm">INSTALAR E UTILIZAR</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        localStorage.setItem('mro_force_registration', 'true');
+                        window.location.reload();
+                      }}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Briefcase className="w-4 h-4 text-blue-400" />
+                      <span className="font-bold text-sm">MEU NEGÓCIO</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-2 min-w-0" data-tutorial="user-menu">
