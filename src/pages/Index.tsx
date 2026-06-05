@@ -816,11 +816,17 @@ const Index = () => {
 
         {/* Popup Explicativo I.A. */}
         {showIAPopup && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={() => setShowIAPopup(false)}>
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={() => {
+            setShowIAPopup(false);
+            setShowMeuNegocioOptions(true);
+          }}>
             <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
               <div className="p-8 md:p-12 space-y-8 text-center relative">
                 <button 
-                  onClick={() => setShowIAPopup(false)}
+                  onClick={() => {
+                    setShowIAPopup(false);
+                    setShowMeuNegocioOptions(true);
+                  }}
                   className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors text-white/40"
                 >
                   <X className="w-6 h-6" />
