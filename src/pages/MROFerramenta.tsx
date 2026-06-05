@@ -126,9 +126,16 @@ const MROFerramenta = () => {
       setSelectedContent(null);
       setSelectedModule(null);
     } else {
-      navigate('/instagram');
+      const fromEstrutura = localStorage.getItem('mro_from_estrutura') === 'true';
+      if (fromEstrutura) {
+        localStorage.removeItem('mro_from_estrutura');
+        navigate('/estruturaderendaextra');
+      } else {
+        navigate('/instagram');
+      }
     }
   };
+
 
   // Get video contents with numbering
   const getVideoIndex = (module: TutorialModule, contentId: string): number => {
