@@ -1003,6 +1003,39 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                 <div className="flex justify-between text-[10px] text-gray-500"><span>Pequeno</span><span>Padrão (16)</span><span>Grande</span></div>
               </div>
             </section>
+            
+            <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
+              <h2 className="text-xl font-bold flex items-center gap-2"><Palette className="text-pink-400" /> Estilo Decorativo</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Exibir Linhas de Grade</Label>
+                    <p className="text-[10px] text-gray-500 italic">Controla as linhas verticais/horizontais no fundo</p>
+                  </div>
+                  <Switch checked={data.showGrid} onCheckedChange={v => update('showGrid', v)} />
+                </div>
+
+                {data.showGrid && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label>Opacidade da Grade</Label>
+                      <span className="text-xs font-mono text-emerald-400">{Math.round(data.gridOpacity * 100)}%</span>
+                    </div>
+                    <input type="range" min="0" max="0.1" step="0.01" value={data.gridOpacity} onChange={e => update('gridOpacity', parseFloat(e.target.value))} className="w-full accent-emerald-500" />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="space-y-0.5">
+                    <Label>Exibir Gráficos Flutuantes</Label>
+                    <p className="text-[10px] text-gray-500 italic">Controla os gráficos e ícones decorativos de fundo</p>
+                  </div>
+                  <Switch checked={data.showGraphs} onCheckedChange={v => update('showGraphs', v)} />
+                </div>
+              </div>
+            </section>
+
 
             <section className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
               <h2 className="text-xl font-bold flex items-center gap-2"><Target className="text-blue-400" /> Dados do Projeto</h2>
