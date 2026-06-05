@@ -49,6 +49,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 
 const Index = () => {
+  const navigate = useNavigate();
   const [session, setSession] = useState<MROSession>(createEmptySession());
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
