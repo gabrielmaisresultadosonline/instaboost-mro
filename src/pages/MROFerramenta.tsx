@@ -129,7 +129,7 @@ const MROFerramenta = () => {
       const fromEstrutura = localStorage.getItem('mro_from_estrutura') === 'true';
       if (fromEstrutura) {
         // No longer removing here because the user might go back and forth
-        navigate('/estruturaderendaextra');
+        navigate('/estruturarendaextra');
       } else {
         navigate('/instagram');
       }
