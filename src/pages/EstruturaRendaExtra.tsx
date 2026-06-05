@@ -1002,25 +1002,34 @@ const EstruturaRendaExtra = () => {
                   </p>
                 </div>
 
-                <div className="mt-auto flex gap-3">
+                <div className="mt-auto flex flex-col gap-3">
                   <button 
-                    onClick={() => navigate('/instagram')} 
-                    className="flex-1 group relative h-14 rounded-2xl bg-white text-black font-black text-sm flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
+                    onClick={() => setShowRegisterChoice(true)} 
+                    className="w-full group relative h-14 rounded-2xl bg-white text-black font-black text-sm flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
                   >
                     <span className="relative z-10 flex items-center gap-2 uppercase tracking-wider">
-                      Cadastrar Conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      Cadastre uma nova conta para usar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </button>
-                  
-                  <a
-                    href="https://www.youtube.com/watch?v=CPI6xSH4TjU"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
-                    title="Ver Tutorial"
-                  >
-                    <Play className="w-6 h-6 fill-current" />
-                  </a>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => navigate('/instagram')} 
+                      className="flex-1 group relative h-12 rounded-xl bg-white/5 border border-white/10 text-white/70 font-bold text-[10px] flex items-center justify-center transition-all duration-300 hover:bg-white/10 uppercase tracking-widest"
+                    >
+                      Cadastro Rápido
+                    </button>
+                    
+                    <a
+                      href="https://www.youtube.com/watch?v=CPI6xSH4TjU"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
+                      title="Ver Tutorial"
+                    >
+                      <Play className="w-5 h-5 fill-current" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
