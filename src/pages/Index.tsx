@@ -109,16 +109,20 @@ const Index = () => {
           
           if (forceRegistration) {
             localStorage.removeItem('mro_force_registration');
+            localStorage.removeItem('mro_returning_to_welcome');
             setShowDashboardChoice(false);
             setShowDashboard(false);
           } else if (forceDashboard) {
             localStorage.removeItem('mro_force_dashboard');
+            localStorage.removeItem('mro_returning_to_welcome');
             setShowDashboardChoice(false);
             setShowDashboard(true);
             setShowAnnouncements(true);
-          } else if (!choiceMade || isReturningFromSubPage) {
+          } else if (isReturningFromSubPage) {
             setShowDashboardChoice(true);
             localStorage.removeItem('mro_returning_to_welcome');
+          } else if (!choiceMade) {
+            setShowDashboardChoice(true);
           } else {
             setShowDashboard(true);
             // Show announcements when user is already logged in and has profiles

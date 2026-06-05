@@ -64,7 +64,7 @@ const MeuNegocioPage = () => {
   useEffect(() => {
     const authStatus = isAuthenticated();
     if (!authStatus) {
-      navigate('/instagram');
+      navigate('/instagram', { replace: true });
       return;
     }
     setIsAuth(true);
