@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LoginPage } from '@/components/LoginPage';
 import { ProfileRegistration } from '@/components/ProfileRegistration';
 import { Dashboard } from '@/components/Dashboard';
