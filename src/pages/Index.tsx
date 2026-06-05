@@ -816,12 +816,12 @@ const Index = () => {
 
         {/* Popup Explicativo I.A. */}
         {showIAPopup && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={() => {
+          <div className="fixed inset-0 z-[70] flex items-start md:items-center justify-center bg-black/95 backdrop-blur-md p-4 overflow-y-auto" onClick={() => {
             setShowIAPopup(false);
             setShowMeuNegocioOptions(true);
           }}>
-            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-              <div className="p-8 md:p-12 space-y-8 text-center relative">
+            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-2xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="p-6 md:p-12 space-y-8 text-center relative max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <button 
                   onClick={() => {
                     setShowIAPopup(false);
