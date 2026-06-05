@@ -570,19 +570,19 @@ const Index = () => {
             {/* Renda Extra com MRO */}
             <button
               onClick={() => setShowRendaExtraBonus(true)}
-              className="group relative p-8 md:p-10 rounded-[3rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/30 hover:shadow-[0_20px_50px_rgba(245,158,11,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden"
+              className="group relative p-8 md:p-12 rounded-[3.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-3 hover:border-amber-500/30 hover:shadow-[0_20px_50px_rgba(245,158,11,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-6 right-6 z-20 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-bounce">BÔNUS</div>
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-500">
-                <Rocket className="w-10 h-10" />
+              <div className="w-24 h-24 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-500 shadow-inner">
+                <Rocket className="w-12 h-12" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors uppercase">Renda Extra</h3>
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors uppercase tracking-tight">Renda Extra</h3>
                 <p className="text-white/40 text-sm font-medium leading-relaxed">Fature prestando serviço para empresas.</p>
-                <p className="text-[10px] text-amber-500/40 font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-500">Você já tem a ferramenta, é só aplicar o método!</p>
+                <p className="text-[10px] text-amber-500 font-black uppercase tracking-[0.15em] opacity-0 group-hover:opacity-100 transition-all duration-500">Você já tem a ferramenta, é só aplicar o método!</p>
               </div>
-              <div className="mt-4 flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/80 font-black text-xs group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500 transition-all duration-500 uppercase tracking-[0.2em]">
+              <div className="mt-4 flex items-center gap-2 px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-xs group-hover:bg-amber-500 group-hover:text-black group-hover:border-amber-500 transition-all duration-500 uppercase tracking-[0.2em] shadow-lg">
                 PRESTAR SERVIÇO <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
