@@ -642,155 +642,175 @@ const Index = () => {
                   <X className="w-6 h-6" />
                 </button>
                 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display">Meu Negócio</div>
-                  <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight italic uppercase">O que deseja fazer?</h3>
+                  <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight italic uppercase">O que deseja fazer?</h3>
                   
-                  {/* Step-by-step Guide */}
-                  <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-colors">
-                      <div className="w-8 h-8 shrink-0 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-xs">1º</div>
-                      <p className="text-[10px] text-white/60 leading-tight font-medium">Cadastre pelo menos 1 perfil do Instagram para iniciar.</p>
+                  {/* Step-by-step Guide - Larger and More Detailed */}
+                  <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                    <div className="flex flex-col gap-3 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-all duration-300">
+                      <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-sm shadow-[0_0_15px_rgba(16,185,129,0.1)]">1º</div>
+                      <h5 className="text-white font-black text-sm uppercase italic">Conexão Inicial</h5>
+                      <p className="text-xs text-white/50 leading-relaxed font-medium">Cadastre pelo menos 1 perfil do Instagram para que nossa I.A. possa realizar a leitura completa dos seus dados.</p>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-colors">
-                      <div className="w-8 h-8 shrink-0 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-xs">2º</div>
-                      <p className="text-[10px] text-white/60 leading-tight font-medium">Siga as estratégias geradas pela nossa I.A. Inteligente.</p>
+                    <div className="flex flex-col gap-3 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-all duration-300">
+                      <div className="w-10 h-10 shrink-0 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-sm shadow-[0_0_15px_rgba(168,85,247,0.1)]">2º</div>
+                      <h5 className="text-white font-black text-sm uppercase italic">Análise Inteligente</h5>
+                      <p className="text-xs text-white/50 leading-relaxed font-medium">Nossa I.A. gera estratégias personalizadas e insights validados baseados no seu nicho e desempenho atual.</p>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-colors">
-                      <div className="w-8 h-8 shrink-0 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-xs">3º</div>
-                      <p className="text-[10px] text-white/60 leading-tight font-medium">Aplique as estratégias no automático com a Ferramenta MRO.</p>
+                    <div className="flex flex-col gap-3 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-all duration-300">
+                      <div className="w-10 h-10 shrink-0 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-sm shadow-[0_0_15px_rgba(59,130,246,0.1)]">3º</div>
+                      <h5 className="text-white font-black text-sm uppercase italic">Execução Automática</h5>
+                      <p className="text-xs text-white/50 leading-relaxed font-medium">Utilize a Ferramenta MRO instalada para aplicar as estratégias no automático e escalar sua presença digital.</p>
                     </div>
                   </div>
 
-                  <div className="max-w-2xl mx-auto pt-2">
-                    <p className="text-white/40 text-[11px] leading-relaxed font-medium bg-white/5 py-2 px-4 rounded-xl border border-white/5 italic">
-                      "O analisador de I.A. gera estratégias personalizadas para você aplicar com a ferramenta instalada em seu computador, trabalhando no automático para você."
+                  <div className="max-w-3xl mx-auto pt-2">
+                    <p className="text-white/40 text-xs md:text-sm leading-relaxed font-medium bg-white/5 py-4 px-8 rounded-[2rem] border border-white/5 italic shadow-inner">
+                      "O analisador de I.A. identifica o que pode melhorar e entrega o caminho pronto para você executar com a ferramenta MRO trabalhando 24h por você."
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 items-stretch">
                   {/* Passo 1 - I.A. */}
-                  <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent">
-                    <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-xl">
+                  <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent h-full">
+                    <div className="relative h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
+                      <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-2xl shadow-inner">
                         01
                       </div>
-                      <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">CADASTRE SEU INSTAGRAM NA IA DA MRO</h4>
-                        <p className="text-white/40 text-[10px] leading-relaxed font-medium">Conecte sua conta em poucos segundos e descubra insights estratégicos para aumentar seu desempenho e presença digital.</p>
-                        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl mt-2">
-                          <p className="text-amber-500 text-[9px] font-black uppercase leading-tight tracking-wider">
+                      <div className="text-left space-y-4">
+                        <h4 className="text-white font-black text-2xl uppercase italic leading-tight">CADASTRE SEU INSTAGRAM NA IA DA MRO</h4>
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">Conecte sua conta em poucos segundos e descubra insights estratégicos para aumentar seu desempenho e presença digital.</p>
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl mt-2">
+                          <p className="text-amber-500 text-[10px] font-black uppercase leading-tight tracking-wider">
                             ATENÇÃO: O cadastro é feito 1 vez. Este cadastro fica em nosso banco de dados e não precisa cadastrar novamente.
                           </p>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => {
-                          setShowMeuNegocioOptions(false);
-                          setShowIAPopup(true);
-                        }}
-                        className="mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-white text-black font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg"
-                      >
-                        CADASTRAR E ANALISAR <ArrowRight className="w-4 h-4" />
-                      </button>
+                      <div className="mt-auto pt-4">
+                        <button 
+                          onClick={() => {
+                            setShowMeuNegocioOptions(false);
+                            setShowIAPopup(true);
+                          }}
+                          className="w-full flex items-center justify-center gap-2 px-6 py-5 rounded-2xl bg-white text-black font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-xl"
+                        >
+                          CADASTRAR E ANALISAR <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Passo 2 - Dashboard Direct (The new Robot icon button) */}
-                  <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent">
-                    <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
+                  {/* Passo 2 - Dashboard Direct */}
+                  <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent h-full">
+                    <div className="relative h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
                       <div className="flex justify-between items-start">
-                        <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-xl">
+                        <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-2xl shadow-inner">
                           02
                         </div>
                         {hasRegisteredProfiles && (
-                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 animate-pulse">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                            <span className="text-[10px] font-black text-emerald-500 uppercase">ON</span>
+                          <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 animate-pulse">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">ON</span>
                           </div>
                         )}
                       </div>
                       
-                      <div className="text-left space-y-2 flex-grow">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="p-2 rounded-lg bg-white/5 border border-white/10">
-                            <Instagram className="w-5 h-5 text-purple-400" />
+                      <div className="text-left space-y-4 flex-grow">
+                        <div className="flex items-center gap-3">
+                          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 shadow-inner">
+                            <Instagram className="w-7 h-7 text-purple-400" />
                           </div>
-                          <h4 className="text-white font-black text-lg uppercase italic">INTELIGÊNCIA MRO</h4>
+                          <h4 className="text-white font-black text-2xl uppercase italic">INTELIGÊNCIA MRO</h4>
                         </div>
                         
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">
+                          {hasRegisteredProfiles 
+                            ? "Acesse agora seu painel de estratégias validadas e relatórios de desempenho gerados pela nossa tecnologia."
+                            : "Dashboard de análises avançadas com Inteligência Artificial para monitorar e expandir seus perfis."}
+                        </p>
+
                         {hasRegisteredProfiles ? (
-                          <p className="text-emerald-400 text-xs font-bold flex items-center gap-2">
-                            Você tem {getRegisteredIGs().length} perfil(s) vinculado(s)!
-                          </p>
+                          <div className="py-3 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                            <p className="text-emerald-400 text-xs font-black uppercase tracking-wider flex items-center gap-2">
+                              <CheckSquare className="w-4 h-4" /> {getRegisteredIGs().length} perfil(s) vinculado(s)!
+                            </p>
+                          </div>
                         ) : (
-                          <p className="text-white/40 text-[10px] leading-relaxed font-medium">Dashboard de análises avançadas com Inteligência Artificial para seus perfis.</p>
-                        )}
-                        
-                        {!hasRegisteredProfiles && (
-                          <div className="mt-2 py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                            <p className="text-red-400 text-[9px] font-black uppercase tracking-wider text-center">Nenhuma conta cadastrada!</p>
+                          <div className="py-3 px-4 rounded-2xl bg-red-500/10 border border-red-500/20">
+                            <p className="text-red-400 text-[10px] font-black uppercase tracking-wider text-center">Nenhuma conta cadastrada!</p>
                           </div>
                         )}
                       </div>
 
-                      <button 
-                        onClick={() => {
-                          if (!hasRegisteredProfiles) {
-                            toast({
-                              variant: "destructive",
-                              title: "Nenhum perfil cadastrado",
-                              description: "Você não tem nenhuma conta cadastrada. Cadastre uma conta primeiro no Passo 01.",
-                            });
-                            return;
-                          }
-                          setShowMeuNegocioOptions(false);
-                          setShowDashboardChoice(false);
-                          setShowDashboard(true);
-                          setShowAnnouncements(true);
-                        }}
-                        className={`mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg ${
-                          hasRegisteredProfiles 
-                            ? "bg-purple-600 text-white shadow-purple-600/20" 
-                            : "bg-white/5 text-white/20 border border-white/10"
-                        }`}
-                      >
-                        ACESSAR DASHBOARD <ArrowRight className="w-4 h-4" />
-                      </button>
+                      <div className="mt-auto pt-4">
+                        <button 
+                          onClick={() => {
+                            if (!hasRegisteredProfiles) {
+                              toast({
+                                variant: "destructive",
+                                title: "Nenhum perfil cadastrado",
+                                description: "Você não tem nenhuma conta cadastrada. Cadastre uma conta primeiro no Passo 01.",
+                              });
+                              return;
+                            }
+                            setShowMeuNegocioOptions(false);
+                            setShowDashboardChoice(false);
+                            setShowDashboard(true);
+                            setShowAnnouncements(true);
+                          }}
+                          className={`w-full flex items-center justify-center gap-2 px-6 py-5 rounded-2xl font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-xl ${
+                            hasRegisteredProfiles 
+                              ? "bg-purple-600 text-white shadow-purple-600/20" 
+                              : "bg-white/5 text-white/20 border border-white/10"
+                          }`}
+                        >
+                          ACESSAR DASHBOARD <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* Passo 3 - Ferramenta */}
-                  <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent">
-                    <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-xl">
+                  <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent h-full">
+                    <div className="relative h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
+                      <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-2xl shadow-inner">
                         03
                       </div>
-                      <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">FERRAMENTA MRO</h4>
-                        <p className="text-white/40 text-[10px] leading-relaxed font-medium">Acesso direto, utilize a ferramenta completa em seu navegador com as contas já vinculadas.</p>
+                      <div className="text-left space-y-4">
+                        <h4 className="text-white font-black text-2xl uppercase italic leading-tight">FERRAMENTA MRO</h4>
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">Acesso direto, utilize a ferramenta completa em seu navegador com as contas já vinculadas para automação de tarefas.</p>
+                        <div className="py-3 px-4 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                          <p className="text-blue-400 text-[10px] font-black uppercase tracking-wider text-center">Software Instalado & Pronto</p>
+                        </div>
                       </div>
-                      <button 
-                        onClick={() => {
-                          if (!hasRegisteredProfiles) {
-                            toast({
-                              variant: "destructive",
-                              title: "Acesso bloqueado",
-                              description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa.",
-                            });
-                            return;
-                          }
-                          localStorage.setItem('mro_from_estrutura', 'false');
-                          navigate('/mro-ferramenta');
-                        }}
-                        className="mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-blue-500 text-white font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg shadow-blue-500/20"
-                      >
-                        INSTALAR E UTILIZAR <ArrowRight className="w-4 h-4" />
-                      </button>
+                      <div className="mt-auto pt-4">
+                        <button 
+                          onClick={() => {
+                            if (!hasRegisteredProfiles) {
+                              toast({
+                                variant: "destructive",
+                                title: "Acesso bloqueado",
+                                description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa.",
+                              });
+                              return;
+                            }
+                            localStorage.setItem('mro_from_estrutura', 'false');
+                            navigate('/mro-ferramenta');
+                          }}
+                          className="w-full flex items-center justify-center gap-2 px-6 py-5 rounded-2xl bg-blue-600 text-white font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-xl shadow-blue-600/20"
+                        >
+                          INSTALAR E UTILIZAR <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
               </div>
             </div>
           </div>
