@@ -6,6 +6,51 @@ import { getRegisteredIGs, isAuthenticated, getCurrentUser } from '@/lib/userSto
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
 
+// Add the pulse and shine animations to the page
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes shine-loop {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes pulse-soft {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+    70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  }
+  @keyframes pulse-emerald {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  @keyframes pulse-purple {
+    0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(168, 85, 247, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+  }
+  @keyframes pulse-blue {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  }
+  .animate-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .animate-shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shine-loop 3s infinite;
+  }
+`;
+document.head.appendChild(style);
+
 const MeuNegocioPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -109,9 +154,15 @@ const MeuNegocioPage = () => {
                       <p className="text-amber-500 text-[10px] font-black uppercase leading-tight tracking-wider">ATENÇÃO: O CADASTRO É FEITO 1 VEZ. ESTE CADASTRO FIC EM NOSSO BANCO DE DADOS E NÃO PRECISA CADASTRAR NOVAMENTE.</p>
                   </div>
                 </div>
-                <Button className="mt-auto w-full py-7 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-colors shadow-xl" onClick={() => navigate('/instagram')}>
-                    CADASTRAR E ANALISAR <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="mt-auto pt-4">
+                  <Button 
+                    className="w-full py-8 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] animate-shine" 
+                    style={{ animation: 'pulse-soft 2s infinite' }}
+                    onClick={() => navigate('/instagram')}
+                  >
+                    CADASTRAR E ANALISAR <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -148,15 +199,25 @@ const MeuNegocioPage = () => {
                     </div>
                   )}
                 </div>
-                <Button className={`mt-auto w-full py-7 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all ${hasRegisteredProfiles ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-white/5 text-white/20 border border-white/10'}`} onClick={() => {
-                    if (!hasRegisteredProfiles) {
-                        toast({ variant: "destructive", title: "Nenhum perfil cadastrado", description: "Cadastre uma conta primeiro no Passo 01." });
-                        return;
-                    }
-                    navigate('/instagram');
-                }}>
-                    ACESSAR DASHBOARD <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="mt-auto pt-4">
+                  <Button 
+                    className={`w-full py-8 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all animate-shine ${
+                      hasRegisteredProfiles 
+                        ? 'bg-purple-600 text-white hover:bg-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.4)]' 
+                        : 'bg-white/5 text-white/20 border border-white/10'
+                    }`}
+                    style={hasRegisteredProfiles ? { animation: 'pulse-purple 2.5s infinite' } : {}}
+                    onClick={() => {
+                        if (!hasRegisteredProfiles) {
+                            toast({ variant: "destructive", title: "Nenhum perfil cadastrado", description: "Cadastre uma conta primeiro no Passo 01." });
+                            return;
+                        }
+                        navigate('/instagram');
+                    }}
+                  >
+                      ACESSAR DASHBOARD <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -171,15 +232,21 @@ const MeuNegocioPage = () => {
                     <p className="text-blue-400 text-[10px] font-black uppercase tracking-wider italic">Software Instalado & Pronto</p>
                   </div>
                 </div>
-                <Button className="mt-auto w-full py-7 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20" onClick={() => {
-                    if (!hasRegisteredProfiles) {
-                        toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
-                        return;
-                    }
-                    navigate('/mro-ferramenta');
-                }}>
-                    INSTALAR E UTILIZAR <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="mt-auto pt-4">
+                  <Button 
+                    className="w-full py-8 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest hover:bg-blue-500 transition-all shadow-[0_0_25px_rgba(59,130,246,0.4)] animate-shine" 
+                    style={{ animation: 'pulse-blue 3s infinite' }}
+                    onClick={() => {
+                      if (!hasRegisteredProfiles) {
+                          toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
+                          return;
+                      }
+                      navigate('/mro-ferramenta');
+                    }}
+                  >
+                      INSTALAR E UTILIZAR <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
               </div>
             </div>
         </div>
