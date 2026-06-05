@@ -46,6 +46,25 @@ import {
   Camera,
   RefreshCw
 } from 'lucide-react';
+import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
+import { ProfileCard } from './ProfileCard';
+import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
+import { AnalysisCard } from './AnalysisCard';
+import { StrategyGenerator } from './StrategyGenerator';
+import { StrategyDisplay } from './StrategyDisplay';
+import { CaptionGenerator } from './CaptionGenerator';
+import { GrowthTracker } from './GrowthTracker';
+import { ProfileSelector } from './ProfileSelector';
+import { UserHeader } from './UserHeader';
+import { Logo } from './Logo';
+import { Button } from '@/components/ui/button';
+import { TutorialOverlay } from './TutorialOverlay';
+import { TutorialList } from './TutorialList';
+import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
+import { addStrategy, resetSession, getSession, updateProfile, updateAnalysis, setCloudSyncCallback } from '@/lib/storage';
+import { syncSessionToPersistent } from '@/lib/persistentStorage';
+import { getCurrentUser, saveUserToCloud } from '@/lib/userStorage';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardProps {
   session: MROSession;
