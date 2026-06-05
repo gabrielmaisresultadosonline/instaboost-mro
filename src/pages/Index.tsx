@@ -718,6 +718,9 @@ const Index = () => {
         {showAnnouncements && hasScreenshot && (
           <AnnouncementPopup targetArea="instagram" onComplete={() => setShowAnnouncements(false)} />
         )}
+        {showRendaExtraPopup && (
+          <AnnouncementPopup targetArea="instagram" onComplete={() => setShowRendaExtraPopup(false)} />
+        )}
         <Dashboard
           session={session} 
           onSessionUpdate={handleSessionUpdate}
@@ -729,7 +732,10 @@ const Index = () => {
           onSync={handleManualSync}
           isLoading={isLoading}
           onLogout={handleLogout}
-          onShowRendaExtra={() => setShowRendaExtraBonus(true)}
+          onShowRendaExtra={() => {
+            console.log('💰 Triggering Renda Extra popup');
+            setShowRendaExtraPopup(true);
+          }}
         />
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
