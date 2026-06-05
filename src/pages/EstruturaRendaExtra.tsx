@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle, ArrowRight, Settings, Rocket, Lightbulb, ShieldCheck } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle, ArrowRight, Settings, Rocket, Lightbulb, ShieldCheck, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
@@ -289,7 +289,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'proposta-empresa' | 'tutoriais' | 'testes' | 'relatorios' | 'gerenciador-windows' | 'estrutura-links' | 'fechar-contratos-links';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'proposta-empresa' | 'tutoriais' | 'testes' | 'relatorios' | 'gerenciador-windows' | 'estrutura-links' | 'fechar-contratos-links' | 'explore-options';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
@@ -960,6 +960,91 @@ const EstruturaRendaExtra = () => {
     return <ReportGenerator onBack={() => setCurrentView('menu')} mroUsername={mroUsername} />;
   }
 
+  if (currentView === 'explore-options') {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[150px] animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-500/[0.03] rounded-full blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto w-full px-4 py-12 md:py-20 flex flex-col items-center justify-center min-h-screen space-y-12">
+          <div className="text-center space-y-4">
+             <button
+              onClick={() => setCurrentView('menu')}
+              className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm mb-6"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar para o Menu
+            </button>
+            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-fuchsia-400 to-purple-600 bg-clip-text text-transparent">
+              Explore a Ferramenta MRO
+            </h2>
+            <p className="text-white/40 text-lg font-medium">Siga os passos abaixo para começar a utilizar o sistema profissionalmente.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+            {/* Passo 1 - Cadastrar Conta */}
+            <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-fuchsia-500/20 via-transparent to-transparent">
+              <div className="relative h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6 overflow-hidden shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="w-16 h-16 rounded-2xl bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400">
+                    <UserPlus className="w-8 h-8" />
+                  </div>
+                  <span className="text-4xl font-black text-white/5 italic">01</span>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-white font-black text-2xl tracking-tight">Passo 1: Cadastrar Conta</h3>
+                  <p className="text-white/40 text-sm leading-relaxed font-medium">
+                    Cadastre pelo menos 1 vez a conta do Instagram que vai utilizar para liberar o sistema.
+                  </p>
+                </div>
+
+                <button 
+                  onClick={() => navigate('/instagram')} 
+                  className="mt-auto group w-full relative h-14 rounded-2xl bg-white text-black font-black text-base flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
+                >
+                  <span className="relative z-10 flex items-center gap-2 uppercase tracking-wider">
+                    Cadastrar Conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Passo 2 - Instalar e Utilizar */}
+            <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent">
+              <div className="relative h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6 overflow-hidden shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                    <Rocket className="w-8 h-8" />
+                  </div>
+                  <span className="text-4xl font-black text-white/5 italic">02</span>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-white font-black text-2xl tracking-tight">Passo 2: Instale e Utilize</h3>
+                  <p className="text-white/40 text-sm leading-relaxed font-medium">
+                    Após cadastrar seu perfil, instale a ferramenta e comece a utilizar todas as funcionalidades sem limites.
+                  </p>
+                </div>
+
+                <button 
+                  onClick={() => navigate('/mro-ferramenta')} 
+                  className="mt-auto group w-full relative h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-base flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] overflow-hidden active:scale-95"
+                >
+                  <span className="relative z-10 flex items-center gap-2 uppercase tracking-wider">
+                    Instalar e Utilizar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
@@ -1067,7 +1152,7 @@ const EstruturaRendaExtra = () => {
                   glow: 'shadow-purple-500/20',
                   action: () => {
                     localStorage.setItem('mro_from_estrutura', 'true');
-                    navigate('/mro-ferramenta');
+                    setCurrentView('explore-options');
                   }
                 }
 
