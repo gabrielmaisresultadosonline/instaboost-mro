@@ -51,12 +51,14 @@ const Index = () => {
   const [loadingSubMessage, setLoadingSubMessage] = useState('');
   const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | undefined>(undefined);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showInitialChoice, setShowDashboardChoice] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
   const [ageRestrictionProfile, setAgeRestrictionProfile] = useState<string | null>(null);
   const [privateProfile, setPrivateProfile] = useState<string | null>(null);
   const [pendingSyncInstagrams, setPendingSyncInstagrams] = useState<string[]>([]);
   const [showAnnouncements, setShowAnnouncements] = useState(false);
+  const [showRendaExtraBonus, setShowRendaExtraBonus] = useState(false);
   const { toast } = useToast();
 
   // Get current logged in username
