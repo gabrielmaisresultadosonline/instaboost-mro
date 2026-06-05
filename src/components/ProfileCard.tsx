@@ -152,7 +152,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+                <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
+              </div>
               {hasScreenshot ? (
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Print salvo. Clique em <strong>analisar perfil</strong> para carregar os dados reais pela primeira vez.
@@ -160,9 +163,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               ) : (
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar os dados reais</p>
               )}
-            </div>
-            <div className="shrink-0">
-              <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
             </div>
           </div>
 
@@ -203,7 +203,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex flex-col items-start gap-2 mb-1 sm:mb-2">
-                <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
+                  <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
+                </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {profile.category && (
                     <span className="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[180px] truncate">
@@ -229,9 +232,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                   )}
                 </div>
               </div>
-            </div>
-            <div className="shrink-0">
-              <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
             </div>
           </div>
 
