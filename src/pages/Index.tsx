@@ -9,7 +9,7 @@ import { PrivateProfileDialog } from '@/components/PrivateProfileDialog';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 import { CadastrarContaButton } from '@/components/CadastrarContaButton';
 import { Logo } from '@/components/Logo';
-import { Rocket, Briefcase, Play, ArrowRight, X, User } from 'lucide-react';
+import { Rocket, Briefcase, Play, ArrowRight, X, User, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
@@ -633,7 +633,7 @@ const Index = () => {
         {/* Modal Escolha Meu Negócio */}
         {showMeuNegocioOptions && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={() => setShowMeuNegocioOptions(false)}>
-            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-5xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
               <div className="p-8 md:p-12 space-y-8 text-center relative">
                 <button 
                   onClick={() => setShowMeuNegocioOptions(false)}
@@ -647,7 +647,7 @@ const Index = () => {
                   <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight italic">O que deseja fazer?</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                   {/* Passo 1 - I.A. */}
                   <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent">
                     <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
@@ -656,10 +656,10 @@ const Index = () => {
                       </div>
                       <div className="text-left space-y-2">
                         <h4 className="text-white font-black text-xl uppercase italic">CADASTRE SEU INSTAGRAM NA IA DA MRO</h4>
-                        <p className="text-white/40 text-xs leading-relaxed font-medium">Conecte sua conta em poucos segundos e descubra insights estratégicos para aumentar seu desempenho e presença digital.</p>
+                        <p className="text-white/40 text-[10px] leading-relaxed font-medium">Conecte sua conta em poucos segundos e descubra insights estratégicos para aumentar seu desempenho e presença digital.</p>
                         <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl mt-2">
-                          <p className="text-amber-500 text-[10px] font-black uppercase leading-tight tracking-wider">
-                            ATENÇÃO: O cadastro é feito 1 vez. Este cadastro fica em nosso banco de dados e não precisa cadastrar novamente. Após a conta cadastrada, já pode utilizar a ferramenta MRO.
+                          <p className="text-amber-500 text-[9px] font-black uppercase leading-tight tracking-wider">
+                            ATENÇÃO: O cadastro é feito 1 vez. Este cadastro fica em nosso banco de dados e não precisa cadastrar novamente.
                           </p>
                         </div>
                       </div>
@@ -675,15 +675,79 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Passo 2 - Ferramenta */}
+                  {/* Passo 2 - Dashboard Direct (The new Robot icon button) */}
+                  <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent">
+                    <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
+                      <div className="flex justify-between items-start">
+                        <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-xl">
+                          02
+                        </div>
+                        {hasRegisteredProfiles && (
+                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 animate-pulse">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                            <span className="text-[10px] font-black text-emerald-500 uppercase">ON</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="text-left space-y-2 flex-grow">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                            <Instagram className="w-5 h-5 text-purple-400" />
+                          </div>
+                          <h4 className="text-white font-black text-lg uppercase italic">INTELIGÊNCIA MRO</h4>
+                        </div>
+                        
+                        {hasRegisteredProfiles ? (
+                          <p className="text-emerald-400 text-xs font-bold flex items-center gap-2">
+                            Você tem {getRegisteredIGs().length} perfil(s) vinculado(s)!
+                          </p>
+                        ) : (
+                          <p className="text-white/40 text-[10px] leading-relaxed font-medium">Dashboard de análises avançadas com Inteligência Artificial para seus perfis.</p>
+                        )}
+                        
+                        {!hasRegisteredProfiles && (
+                          <div className="mt-2 py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                            <p className="text-red-400 text-[9px] font-black uppercase tracking-wider text-center">Nenhuma conta cadastrada!</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button 
+                        onClick={() => {
+                          if (!hasRegisteredProfiles) {
+                            toast({
+                              variant: "destructive",
+                              title: "Nenhum perfil cadastrado",
+                              description: "Você não tem nenhuma conta cadastrada. Cadastre uma conta primeiro no Passo 01.",
+                            });
+                            return;
+                          }
+                          setShowMeuNegocioOptions(false);
+                          setShowDashboardChoice(false);
+                          setShowDashboard(true);
+                          setShowAnnouncements(true);
+                        }}
+                        className={`mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg ${
+                          hasRegisteredProfiles 
+                            ? "bg-purple-600 text-white shadow-purple-600/20" 
+                            : "bg-white/5 text-white/20 border border-white/10"
+                        }`}
+                      >
+                        ACESSAR DASHBOARD <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Passo 3 - Ferramenta */}
                   <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent">
                     <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
                       <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-xl">
-                        02
+                        03
                       </div>
                       <div className="text-left space-y-2">
                         <h4 className="text-white font-black text-xl uppercase italic">FERRAMENTA MRO</h4>
-                        <p className="text-white/40 text-xs leading-relaxed font-medium">Acesso direto, já tenho conta do instagram cadastrada. Utilize a ferramenta completa em seu navegador.</p>
+                        <p className="text-white/40 text-[10px] leading-relaxed font-medium">Acesso direto, utilize a ferramenta completa em seu navegador com as contas já vinculadas.</p>
                       </div>
                       <button 
                         onClick={() => {
@@ -701,50 +765,6 @@ const Index = () => {
                         className="mt-auto w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-blue-500 text-white font-black text-xs transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest shadow-lg shadow-blue-500/20"
                       >
                         INSTALAR E UTILIZAR <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dashboard Direct Access (Always visible with conditional content) */}
-                <div className="pt-4 flex flex-col items-center gap-4">
-                  <div className="w-full max-w-lg p-1 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-emerald-500/20">
-                    <div className="bg-[#0d0d16] p-4 rounded-2xl border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="text-left">
-                        {hasRegisteredProfiles ? (
-                          <>
-                            <p className="text-white font-bold text-sm">Você tem {getRegisteredIGs().length} perfil(s) vinculado(s)!</p>
-                            <p className="text-white/40 text-[10px] uppercase font-black tracking-widest">Acesso direto liberado</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-white font-bold text-sm">Nenhuma conta cadastrada!</p>
-                            <p className="text-amber-500/60 text-[10px] uppercase font-black tracking-widest">Cadastre uma conta primeiro</p>
-                          </>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          if (!hasRegisteredProfiles) {
-                            toast({
-                              variant: "destructive",
-                              title: "Nenhum perfil cadastrado",
-                              description: "Você não tem nenhuma conta cadastrada. Cadastre uma conta primeiro no Passo 01.",
-                            });
-                            return;
-                          }
-                          setShowMeuNegocioOptions(false);
-                          setShowDashboardChoice(false);
-                          setShowDashboard(true);
-                          setShowAnnouncements(true);
-                        }}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs transition-all hover:scale-105 active:scale-95 uppercase tracking-widest shadow-lg ${
-                          hasRegisteredProfiles 
-                            ? "bg-emerald-500 text-black shadow-emerald-500/20" 
-                            : "bg-white/5 text-white/40 border border-white/10"
-                        }`}
-                      >
-                        ACESSAR DASHBOARD <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
