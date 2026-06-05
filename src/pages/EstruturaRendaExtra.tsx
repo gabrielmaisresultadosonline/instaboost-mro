@@ -301,6 +301,7 @@ const EstruturaRendaExtra = () => {
   const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [showGerenciadorPopup, setShowGerenciadorPopup] = useState(false);
   const [showRendaExtraVideo, setShowRendaExtraVideo] = useState(false);
+  const [showRegisterChoice, setShowRegisterChoice] = useState(false);
   const { whatsappNumber } = useWhatsAppConfig();
   
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
@@ -1001,25 +1002,34 @@ const EstruturaRendaExtra = () => {
                   </p>
                 </div>
 
-                <div className="mt-auto flex gap-3">
+                <div className="mt-auto flex flex-col gap-3">
                   <button 
-                    onClick={() => navigate('/instagram')} 
-                    className="flex-1 group relative h-14 rounded-2xl bg-white text-black font-black text-sm flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
+                    onClick={() => setShowRegisterChoice(true)} 
+                    className="w-full group relative h-14 rounded-2xl bg-white text-black font-black text-sm flex items-center justify-center transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] overflow-hidden active:scale-95"
                   >
                     <span className="relative z-10 flex items-center gap-2 uppercase tracking-wider">
-                      Cadastrar Conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      Cadastre uma nova conta para usar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </button>
-                  
-                  <a
-                    href="https://www.youtube.com/watch?v=CPI6xSH4TjU"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
-                    title="Ver Tutorial"
-                  >
-                    <Play className="w-6 h-6 fill-current" />
-                  </a>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => navigate('/instagram')} 
+                      className="flex-1 group relative h-12 rounded-xl bg-white/5 border border-white/10 text-white/70 font-bold text-[10px] flex items-center justify-center transition-all duration-300 hover:bg-white/10 uppercase tracking-widest"
+                    >
+                      Cadastro Rápido
+                    </button>
+                    
+                    <a
+                      href="https://www.youtube.com/watch?v=CPI6xSH4TjU"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
+                      title="Ver Tutorial"
+                    >
+                      <Play className="w-5 h-5 fill-current" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1404,6 +1414,53 @@ const EstruturaRendaExtra = () => {
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Prosseguir →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Register Choice Popup */}
+        {showRegisterChoice && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" onClick={() => setShowRegisterChoice(false)}>
+            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="p-8 md:p-10 space-y-8 text-center">
+                <div className="space-y-3">
+                  <h3 className="text-white font-black text-2xl md:text-3xl tracking-tight">Tipo de Cadastro</h3>
+                  <p className="text-white/40 text-sm md:text-base leading-relaxed font-medium">
+                    Gostaria de cadastrar na parte dos testes antes de cadastrar de forma fixa?
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={() => {
+                      setShowRegisterChoice(false);
+                      setCurrentView('testes');
+                    }}
+                    className="group relative h-20 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 text-emerald-400 font-black text-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/20 active:scale-95"
+                  >
+                    <span className="text-xs uppercase tracking-[0.2em] font-bold opacity-60 mb-1">Passo Inicial</span>
+                    SIM, CADASTRAR TESTE
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowRegisterChoice(false);
+                      navigate('/instagram');
+                    }}
+                    className="group relative h-20 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 text-blue-400 font-black text-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.02] hover:bg-blue-500/20 active:scale-95"
+                  >
+                    <span className="text-xs uppercase tracking-[0.2em] font-bold opacity-60 mb-1">Uso Profissional</span>
+                    NÃO, CADASTRO FIXO
+                  </button>
+                </div>
+
+                <button 
+                  onClick={() => setShowRegisterChoice(false)}
+                  className="text-white/20 hover:text-white/40 text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  Cancelar e Voltar
                 </button>
               </div>
             </div>
