@@ -44,8 +44,15 @@ import {
   Wrench,
   Lock,
   Camera,
-  RefreshCw
+  RefreshCw,
+  Briefcase
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
