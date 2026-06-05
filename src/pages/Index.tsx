@@ -637,7 +637,7 @@ const Index = () => {
               <div className="p-8 md:p-12 space-y-8 text-center relative">
                 <button 
                   onClick={() => setShowMeuNegocioOptions(false)}
-                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors text-white/40"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 p-2 rounded-full hover:bg-white/5 transition-colors text-white/40 z-[100]"
                 >
                   <X className="w-6 h-6" />
                 </button>
