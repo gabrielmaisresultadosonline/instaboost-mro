@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Instagram, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle, ArrowRight, Settings, Rocket, Lightbulb, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
@@ -1024,110 +1024,105 @@ const EstruturaRendaExtra = () => {
 
         {/* Dashboard Content */}
         <div className="relative z-10 flex-1 px-4 pb-10 md:pb-16">
-          <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-stretch gap-5 lg:gap-8">
-
-            {/* Left Cards */}
-            <div className="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 flex flex-col gap-4">
-              {/* Entenda sobre a Renda Extra - FIRST */}
-              <button
-                onClick={() => setShowRendaExtraVideo(true)}
-                className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 border-2 border-yellow-400/50 hover:border-yellow-300 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-yellow-600/20 hover:shadow-yellow-500/30"
-              >
-                <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
-                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/25 flex items-center justify-center">
-                    <Play className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" fill="currentColor" />
+          <div className="max-w-6xl mx-auto space-y-6">
+            
+            {/* Top Cards: 01, 02, 03 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[
+                { id: '01', title: 'Entenda como fazer 5 mil de renda extra mensal.', subtitle: 'Aprenda a mexer na ferramenta primeiro e saber o que está oferecendo!', icon: <Lightbulb className="w-10 h-10 text-yellow-400" />, gradient: 'from-orange-500/20 to-yellow-500/20 border-orange-500/50', action: () => setShowRendaExtraVideo(true) },
+                { id: '02', title: 'Aprenda como fazer tudo', subtitle: 'Aprenda o passo a passo completo de como utilizar a ferramenta.', icon: <Rocket className="w-10 h-10 text-blue-400" />, gradient: 'from-blue-500/20 to-cyan-500/20 border-blue-500/50', action: () => setCurrentView('tutoriais') },
+                { id: '03', title: 'Aprenda como mexer na ferramenta.', subtitle: 'Primeiro, explore e entenda tudo que a ferramenta pode oferecer.', icon: <Settings className="w-10 h-10 text-purple-400" />, gradient: 'from-purple-500/20 to-fuchsia-500/20 border-purple-500/50', action: () => navigate('/mro-ferramenta') }
+              ].map((card) => (
+                <button key={card.id} onClick={card.action} className={`group p-6 rounded-2xl bg-gradient-to-br ${card.gradient} border-2 transition-all hover:scale-[1.02] flex flex-col items-start text-left`}>
+                  <div className="text-white/40 font-black text-2xl mb-4">{card.id}</div>
+                  <div className="mb-4">{card.icon}</div>
+                  <h3 className="text-white font-bold text-lg mb-2">{card.title}</h3>
+                  <p className="text-white/60 text-sm mb-6 flex-1">{card.subtitle}</p>
+                  <div className="flex items-center text-emerald-400 font-bold text-sm">
+                    Clique para acessar <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform" />
                   </div>
-                </div>
-                <div className="relative z-10 text-left lg:text-center">
-                  <p className="text-white font-black text-2xl lg:text-3xl leading-tight">
-                    Entenda sobre<br className="hidden lg:block" /> a Renda Extra
-                  </p>
-                  <p className="text-white/70 text-xs mt-3 font-medium">Clique para assistir</p>
-                </div>
-              </button>
-
-              <p className="text-center text-white/50 text-xs font-bold italic">
-                ⬇️ Aprenda como fazer tudo isso! ⬇️
-              </p>
-
-              {/* Aprenda como fazer tudo - SECOND */}
-              <button
-                onClick={() => setCurrentView('tutoriais')}
-                className="group w-full relative overflow-hidden rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-500 hover:border-red-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-red-600/20 hover:shadow-red-500/30"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-red-700/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
-                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/20 flex items-center justify-center">
-                    <Play className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" fill="currentColor" />
-                  </div>
-                </div>
-                <div className="relative z-10 text-left lg:text-center">
-                  <p className="text-white font-black italic text-2xl lg:text-3xl leading-tight">
-                    Aprenda como<br className="hidden lg:block" /> fazer tudo!
-                  </p>
-                  <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
-                    <span className="w-4 h-[1px] bg-white/40"></span>
-                    Clique para acessar
-                    <span className="w-4 h-[1px] bg-white/40"></span>
-                  </p>
-                </div>
-              </button>
+                </button>
+              ))}
             </div>
 
-            {/* Right Panel - Dashboard */}
-            <div className="flex-1 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12121f] to-[#0e0e18] shadow-2xl overflow-hidden backdrop-blur-sm">
-              {/* Panel header */}
-              <div className="border-b border-white/[0.06] bg-white/[0.02] px-6 py-5 md:py-6 text-center relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/[0.03] to-transparent" />
-                <h2 className="relative text-2xl md:text-3xl font-black tracking-tight">Tudo que você vai precisar.</h2>
-                <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione abaixo...</p>
+            {/* Bottom Section: 04 and 05 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* 04 */}
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-teal-900/20 to-emerald-900/20 border-2 border-emerald-500/50 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                   <span className="text-white/40 font-black text-2xl">04</span>
+                   <h3 className="text-white font-bold text-xl">Conteúdo da sua estrutura</h3>
+                </div>
+                <p className="text-white/60 text-sm">Tudo que você precisa para criar sua presença profissional e atrair empresas.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Crie sua Logomarca', icon: <PenTool />, action: () => setShowLogoPopup(true) },
+                    { label: 'Post Creator', icon: <Image />, action: () => setCurrentView('posts-creator') },
+                    { label: 'Gerando sua Foto', icon: <Instagram />, action: () => {
+                      const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
+                      sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
+                      navigate('/prompts/dashboard');
+                    }},
+                    { label: 'Materiais Disponíveis', icon: <Video />, action: () => setCurrentView('materiais') },
+                  ].map((item, i) => (
+                    <button key={i} onClick={item.action} className="bg-black/20 hover:bg-black/40 p-4 rounded-xl flex flex-col items-center gap-2 transition-all">
+                      <div className="text-emerald-400">{item.icon}</div>
+                      <span className="text-white text-xs font-bold text-center">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => setCurrentView('menu')} className="w-full mt-auto py-4 bg-teal-500/10 hover:bg-teal-500/20 text-emerald-400 font-bold rounded-xl flex items-center justify-center transition-all">
+                  Clique para acessar <ArrowRight className="w-4 h-4 ml-2" />
+                </button>
               </div>
 
-              {/* Tool buttons */}
-
-              {/* Tool buttons */}
-              <div className="p-5 md:p-8 flex flex-col gap-3">
-                {[
-                  { label: 'Crie sua Logomarca', icon: <PenTool className="h-5 w-5" />, hoverGradient: 'hover:from-rose-500 hover:via-fuchsia-500 hover:to-violet-500', hoverShadow: 'hover:shadow-rose-500/35', action: () => setShowLogoPopup(true) },
-                  { label: 'Posts Creator', icon: <Image className="h-5 w-5" />, hoverGradient: 'hover:from-purple-600 hover:via-pink-500 hover:to-orange-400', hoverShadow: 'hover:shadow-purple-500/35', action: () => setCurrentView('posts-creator') },
-                  { label: 'Gerando sua Foto Profissional', icon: <Instagram className="h-5 w-5" />, hoverGradient: 'hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500', hoverShadow: 'hover:shadow-emerald-500/35', action: () => {
-                    const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
-                    sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
-                    navigate('/prompts/dashboard');
-                  }},
-                  { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, hoverGradient: 'hover:from-blue-600 hover:to-cyan-500', hoverShadow: 'hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
-                   { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, hoverGradient: 'hover:from-amber-500 hover:to-orange-500', hoverShadow: 'hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
-                   { label: 'Envie para a empresa', icon: <Sparkles className="h-5 w-5" />, hoverGradient: 'hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500', hoverShadow: 'hover:shadow-emerald-500/35', action: () => setCurrentView('proposta-empresa') },
-                   { label: 'Gerar Teste Grátis', icon: <TestTube className="h-5 w-5" />, hoverGradient: 'hover:from-yellow-500 hover:via-yellow-400 hover:to-orange-500', hoverShadow: 'hover:shadow-yellow-500/35', action: () => setCurrentView('testes') },
-                  { label: 'Relatórios de Empresas', icon: <BarChart3 className="h-5 w-5" />, hoverGradient: 'hover:from-green-500 hover:via-emerald-500 hover:to-teal-500', hoverShadow: 'hover:shadow-green-500/35', action: () => setCurrentView('relatorios') },
-                ].map((tool, i) => (
-                  <button
-                    key={i}
-                    onClick={tool.action}
-                    className={`group relative w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-[#1a1a2e] to-[#252540] ${tool.hoverGradient} text-white/80 hover:text-white font-bold text-sm md:text-base shadow-lg shadow-black/20 ${tool.hoverShadow} transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden border border-white/[0.08] hover:border-white/20`}
-                  >
-                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
-                    <span className="relative z-10">{tool.icon}</span>
-                    <span className="relative z-10">{tool.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Gerenciador Windows Section */}
-              <div className="mt-10 pt-8 border-t border-white/10">
-                <button
-                  onClick={() => setShowGerenciadorPopup(true)}
-                  className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 border-2 border-orange-400/50 hover:border-orange-300 transition-all duration-500 cursor-pointer p-6 flex items-center justify-center gap-4 shadow-xl shadow-orange-600/20 hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
-                  <Download className="h-6 w-6 relative z-10" />
-                  <span className="relative z-10 font-bold text-base md:text-lg uppercase tracking-wide">
-                    Utilizando mais de 10 contas ao mesmo tempo!
-                  </span>
+              {/* 05 */}
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-red-900/20 to-rose-900/20 border-2 border-red-500/50 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                   <span className="text-white/40 font-black text-2xl">05</span>
+                   <h3 className="text-white font-bold text-xl">Fechar contratos, gerar testes e relatórios</h3>
+                </div>
+                <p className="text-white/60 text-sm">Gerencie, envie e acompanhe tudo de forma prática e profissional.</p>
+                
+                <div className="space-y-3">
+                  {[
+                    { label: 'Gere um contrato para seu cliente', icon: <FileText />, action: () => setCurrentView('contrato') },
+                    { label: 'Envie para a empresa', icon: <Sparkles />, action: () => setCurrentView('proposta-empresa') },
+                    { label: 'Gerar teste grátis', icon: <TestTube />, action: () => setCurrentView('testes') },
+                    { label: 'Relatórios de empresas', icon: <BarChart3 />, action: () => setCurrentView('relatorios') },
+                  ].map((item, i) => (
+                     <button key={i} onClick={item.action} className="flex items-center justify-between p-4 bg-black/20 hover:bg-black/40 rounded-xl transition-all group">
+                       <div className="flex items-center gap-3">
+                         <span className="text-red-400">{item.icon}</span>
+                         <span className="text-white font-bold text-sm">{item.label}</span>
+                       </div>
+                       <ArrowRight className="w-4 h-4 text-white/40 group-hover:translate-x-1 transition-transform" />
+                     </button>
+                  ))}
+                </div>
+                
+                <button className="w-full mt-auto py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl flex items-center justify-center transition-all">
+                  Clique para acessar <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
             </div>
+
+            {/* Gerenciador */}
+            <div className="flex items-center justify-between p-8 rounded-2xl bg-gradient-to-r from-emerald-900/30 to-green-900/30 border border-emerald-500/30">
+              <div className="flex items-center gap-4">
+                <ShieldCheck className="w-12 h-12 text-emerald-400" />
+                <div>
+                  <h3 className="text-xl font-bold text-white">Gerenciar Contas</h3>
+                  <p className="text-white/60 text-sm">Se tens mais de 8 contas ativas conosco, pode utilizar nosso gerenciador de perfis.</p>
+                </div>
+              </div>
+              <button onClick={() => setShowGerenciadorPopup(true)} className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl transition-all">
+                Gerenciar Contas <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
           </div>
+
         </div>
 
         {/* Renda Extra Video Popup */}
