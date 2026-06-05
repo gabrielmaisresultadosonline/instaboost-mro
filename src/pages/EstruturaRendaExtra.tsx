@@ -301,6 +301,7 @@ const EstruturaRendaExtra = () => {
   const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [showGerenciadorPopup, setShowGerenciadorPopup] = useState(false);
   const [showRendaExtraVideo, setShowRendaExtraVideo] = useState(false);
+  const [showRegisterChoice, setShowRegisterChoice] = useState(false);
   const { whatsappNumber } = useWhatsAppConfig();
   
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
