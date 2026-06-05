@@ -651,12 +651,12 @@ const Index = () => {
                   {/* Passo 1 - I.A. */}
                   <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent">
                     <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                        <Rocket className="w-8 h-8" />
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-xl">
+                        01
                       </div>
                       <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">Inteligência Artificial, conectar no seu instagram.</h4>
-                        <p className="text-white/40 text-xs leading-relaxed font-medium">Cadastre seu perfil do Instagram para iniciar a análise inteligente com nossa IA MRO.</p>
+                        <h4 className="text-white font-black text-xl uppercase italic">CADASTRE SEU INSTAGRAM NA IA DA MRO</h4>
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">Conecte sua conta em poucos segundos e descubra insights estratégicos para aumentar seu desempenho e presença digital.</p>
                         <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl mt-2">
                           <p className="text-amber-500 text-[10px] font-black uppercase leading-tight tracking-wider">
                             ATENÇÃO: O cadastro é feito 1 vez. Este cadastro fica em nosso banco de dados e não precisa cadastrar novamente. Após a conta cadastrada, já pode utilizar a ferramenta MRO.
@@ -675,15 +675,15 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Instalar Ferramenta */}
+                  {/* Passo 2 - Ferramenta */}
                   <div className="relative group p-1 rounded-[2rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent">
                     <div className="relative h-full p-6 rounded-[1.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                        <Briefcase className="w-8 h-8" />
+                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-xl">
+                        02
                       </div>
                       <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">Ferramenta MRO</h4>
-                        <p className="text-white/40 text-xs leading-relaxed font-medium">Acesse a área de instalação para utilizar a ferramenta MRO completa em seu navegador.</p>
+                        <h4 className="text-white font-black text-xl uppercase italic">FERRAMENTA MRO</h4>
+                        <p className="text-white/40 text-xs leading-relaxed font-medium">Acesso direto, já tenho conta do instagram cadastrada. Utilize a ferramenta completa em seu navegador.</p>
                       </div>
                       <button 
                         onClick={() => {
