@@ -1048,8 +1048,8 @@ const EstruturaRendaExtra = () => {
                 },
                 { 
                   id: '02', 
-                  title: 'Aprenda o Método', 
-                  subtitle: 'Passo a passo completo de utilização da ferramenta.', 
+                  title: 'Aprenda o método', 
+                  subtitle: 'Entenda tudo como aplicar e se posicionar (Vídeo Aula)', 
                   icon: <Rocket className="w-10 h-10" />, 
                   color: 'from-blue-400 to-indigo-600',
                   glow: 'shadow-blue-500/20',
@@ -1060,8 +1060,8 @@ const EstruturaRendaExtra = () => {
                 },
                 { 
                   id: '03', 
-                  title: 'Explore a Ferramenta', 
-                  subtitle: 'Domine todos os recursos que a MRO oferece.', 
+                  title: 'Explore a ferramenta', 
+                  subtitle: 'Instale e utilize o sistema', 
                   icon: <Settings className="w-10 h-10" />, 
                   color: 'from-fuchsia-400 to-purple-600',
                   glow: 'shadow-purple-500/20',
