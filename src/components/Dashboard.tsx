@@ -232,14 +232,21 @@ export const Dashboard = ({
                     <span className="font-bold text-sm">INSTALAR E UTILIZAR</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
+                    onClick={() => navigate('/meu-negocio')}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Briefcase className="w-4 h-4 text-blue-400" />
+                    <span className="font-bold text-sm">MEU NEGÓCIO</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => {
                       localStorage.setItem('mro_force_registration', 'true');
                       window.location.reload();
                     }}
                     className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
                   >
-                    <Briefcase className="w-4 h-4 text-blue-400" />
-                    <span className="font-bold text-sm">MEU NEGÓCIO</span>
+                    <Instagram className="w-4 h-4 text-pink-500" />
+                    <span className="font-bold text-sm">CADASTRAR INSTAGRAM</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => {
