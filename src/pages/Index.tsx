@@ -672,8 +672,9 @@ const Index = () => {
     );
   }
 
-  // Logged in but no registered profiles - show registration
-  if (!hasRegisteredProfiles || (localStorage.getItem('mro_force_registration') === 'true')) {
+  // Logged in but no registered profiles OR forced registration - show registration
+  if (!hasRegisteredProfiles || localStorage.getItem('mro_force_registration') === 'true') {
+
     localStorage.removeItem('mro_force_registration'); // Consume it
 
     return (
