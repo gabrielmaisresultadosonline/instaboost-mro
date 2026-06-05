@@ -18,7 +18,8 @@ import {
   Headphones,
   FileText,
   MousePointer2,
-  Lock
+  Lock,
+  TrendingUp
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
