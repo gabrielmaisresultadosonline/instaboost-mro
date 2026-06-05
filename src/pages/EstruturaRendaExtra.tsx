@@ -1332,6 +1332,103 @@ const EstruturaRendaExtra = () => {
     return <EstruturaTutoriais onBack={() => setCurrentView('menu')} />;
   }
 
+  if (currentView === 'estrutura-links') {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col p-6">
+        <div className="max-w-4xl mx-auto w-full space-y-8">
+          <button onClick={() => setCurrentView('menu')} className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+            <ArrowLeft size={20} /> Voltar para o Dashboard
+          </button>
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold tracking-widest uppercase mb-2">
+              Sua Estrutura Profissional
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black text-white">CONTEÚDO DA SUA ESTRUTURA</h1>
+            <p className="text-white/60 text-sm max-w-xl mx-auto">Tudo que você precisa para criar sua presença profissional e atrair empresas de forma automática.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { label: 'Crie sua Logomarca', subtitle: 'Identidade visual profissional', icon: <PenTool className="w-6 h-6" />, action: () => setShowLogoPopup(true), color: 'emerald' },
+              { label: 'Post Creator', subtitle: 'Crie posts de alta conversão', icon: <Image className="w-6 h-6" />, action: () => setCurrentView('posts-creator'), color: 'emerald' },
+              { label: 'Gerando sua Foto', subtitle: 'IA para fotos profissionais', icon: <Instagram className="w-6 h-6" />, action: () => {
+                const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
+                sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
+                navigate('/prompts/dashboard');
+              }, color: 'emerald' },
+              { label: 'Materiais Disponíveis', subtitle: 'Scripts e arquivos prontos', icon: <Video className="w-6 h-6" />, action: () => setCurrentView('materiais'), color: 'emerald' },
+            ].map((tool, i) => (
+              <button
+                key={i}
+                onClick={tool.action}
+                className="group relative flex items-center justify-between p-6 bg-[#12121f] border border-white/5 rounded-2xl hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all duration-300"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="p-4 bg-emerald-500/10 rounded-2xl text-emerald-400 group-hover:scale-110 transition-transform duration-500">
+                    {tool.icon}
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-black text-lg text-white group-hover:text-emerald-400 transition-colors">{tool.label}</span>
+                    <span className="block text-xs text-white/40 group-hover:text-white/60 transition-colors">{tool.subtitle}</span>
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-black transition-all duration-500">
+                  <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentView === 'fechar-contratos-links') {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col p-6">
+        <div className="max-w-4xl mx-auto w-full space-y-8">
+          <button onClick={() => setCurrentView('menu')} className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+            <ArrowLeft size={20} /> Voltar para o Dashboard
+          </button>
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold tracking-widest uppercase mb-2">
+              Gestão e Fechamento
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black text-white">FECHAR CONTRATOS E RELATÓRIOS</h1>
+            <p className="text-white/60 text-sm max-w-xl mx-auto">Gerencie, envie e acompanhe tudo de forma prática e profissional para escalar seu negócio.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { label: 'Gere um contrato', subtitle: 'Contratos profissionais em segundos', icon: <FileText className="w-6 h-6" />, action: () => setCurrentView('contrato'), color: 'red' },
+              { label: 'Envie para a empresa', subtitle: 'Propostas estratégicas de alto valor', icon: <Sparkles className="w-6 h-6" />, action: () => setCurrentView('proposta-empresa'), color: 'red' },
+              { label: 'Gerar teste grátis', subtitle: 'Atraia clientes com provas reais', icon: <TestTube className="w-6 h-6" />, action: () => setCurrentView('testes'), color: 'red' },
+              { label: 'Relatórios de empresas', subtitle: 'Analise métricas e resultados', icon: <BarChart3 className="w-6 h-6" />, action: () => setCurrentView('relatorios'), color: 'red' },
+            ].map((tool, i) => (
+              <button
+                key={i}
+                onClick={tool.action}
+                className="group relative flex items-center justify-between p-6 bg-[#12121f] border border-white/5 rounded-2xl hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-300"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="p-4 bg-red-500/10 rounded-2xl text-red-400 group-hover:scale-110 transition-transform duration-500">
+                    {tool.icon}
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-black text-lg text-white group-hover:text-red-400 transition-colors">{tool.label}</span>
+                    <span className="block text-xs text-white/40 group-hover:text-white/60 transition-colors">{tool.subtitle}</span>
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-red-500 group-hover:text-black transition-all duration-500">
+                  <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
