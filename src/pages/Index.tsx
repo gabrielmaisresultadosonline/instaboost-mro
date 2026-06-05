@@ -513,12 +513,12 @@ const Index = () => {
             <Logo size="lg" className="scale-150 mb-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]" />
             
             <div className="text-center space-y-4">
-              <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic">
-                <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent">SEJA BEM-VINDO(A)</span>
-              </h1>
-              <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
-                Esta ferramenta é poderosa ao ponto de conseguir utilizar para seu negócio ou montar uma estrutura de prestação de serviço onde pode ganhar mensal de mais de 5 mil prestando serviço para empresas.
-              </p>
+            <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none italic">
+              <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent">SEJA BEM-VINDO(A) À MRO INTELIGENTE</span>
+            </h1>
+            <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
+              Esta é uma plataforma desenvolvida para otimizar processos, aumentar a produtividade e gerar resultados para empresas de diversos segmentos. Com ela, você pode aplicar soluções em seu próprio negócio ou estruturar uma operação de prestação de serviços, criando uma nova fonte de receita recorrente.
+            </p>
             </div>
           </div>
 
