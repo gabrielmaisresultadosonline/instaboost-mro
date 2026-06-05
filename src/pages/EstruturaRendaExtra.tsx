@@ -289,7 +289,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'proposta-empresa' | 'tutoriais' | 'testes' | 'relatorios' | 'gerenciador-windows' | 'estrutura-links' | 'fechar-contratos-links';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'proposta-empresa' | 'tutoriais' | 'testes' | 'relatorios' | 'gerenciador-windows' | 'estrutura-links' | 'fechar-contratos-links' | 'explore-options';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
