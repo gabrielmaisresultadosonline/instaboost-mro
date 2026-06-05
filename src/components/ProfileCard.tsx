@@ -152,16 +152,17 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <h2 className="text-lg sm:text-2xl font-display font-black break-all">@{profile.username}</h2>
+                
                 <button 
                   onClick={() => window.open('https://youtu.be/CPI6xSH4TjU', '_blank')}
-                  className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg shadow-red-600/20 group w-fit"
+                  className="inline-flex items-center gap-4 px-6 py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-[0_10px_25px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_35px_rgba(220,38,38,0.5)] group w-full sm:w-fit border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
                 >
-                  <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform flex-shrink-0" />
-                  <div className="flex flex-col items-start leading-tight min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Aprenda Mais</span>
-                    <span className="text-xs font-bold truncate max-w-[200px] sm:max-w-none">Já conhece essa área aqui? Clicando aqui.</span>
+                  <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform flex-shrink-0 text-white" />
+                  <div className="flex flex-col items-start leading-tight">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-0.5">Aprenda Mais</span>
+                    <span className="text-sm font-black whitespace-nowrap text-left uppercase tracking-tight">Já conhece essa área aqui? Como utilizar?</span>
                   </div>
                 </button>
               </div>
