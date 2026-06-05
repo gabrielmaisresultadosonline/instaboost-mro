@@ -25,7 +25,7 @@ import { motion } from 'framer-motion';
 
 const Licenciado = () => {
   const handleWhatsAppContact = () => {
-    window.open('https://wa.me/555192036540?text=Olá, quero receber informações para me tornar um Licenciado MRO.', '_blank');
+    window.open('https://wa.me/555174001588?text=Olá, quero receber informações para me tornar um Licenciado MRO.', '_blank');
   };
 
   const benefits = [
