@@ -8,6 +8,8 @@ import { getAdminData } from "./lib/adminConfig";
 import { trackPageView } from "./lib/facebookTracking";
 import ToolSelector from "./pages/ToolSelector";
 import Index from "./pages/Index";
+import MeuNegocioPage from "./pages/MeuNegocio";
+import RendaExtraPage from "./pages/RendaExtra";
 import ZapMRO from "./pages/ZapMRO";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
@@ -168,6 +170,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<ToolSelector />} />
           <Route path="/instagram" element={<Index />} />
+          <Route path="/meu-negocio" element={<MeuNegocioPage />} />
+          <Route path="/renda-extra" element={<RendaExtraPage />} />
           <Route path="/zapmro" element={<ZapMRO />} />
           <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
           <Route path="/zapmro/vendas/prom" element={<ZapMROVendasProm />} />
