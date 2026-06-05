@@ -130,6 +130,7 @@ import InstagramNovaPlan from "./pages/InstagramNovaPlan";
 import InstagramPromo30Dias from "./pages/InstagramPromo30Dias";
 import ThorCreativeDashboard from "./pages/ThorCreative/Dashboard";
 import Atualizar from "./pages/Atualizar";
+import Licenciado from "./pages/Licenciado";
 
 
 const queryClient = new QueryClient();
@@ -305,6 +306,7 @@ const App = () => (
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
           <Route path="/atualizar" element={<Atualizar />} />
           <Route path="/atualizarver" element={<Atualizar />} />
+          <Route path="/licenciado" element={<Licenciado />} />
 
 
 

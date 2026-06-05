@@ -248,6 +248,13 @@ export const Dashboard = ({
                     <span className="font-bold text-sm">CADASTRAR INSTAGRAM</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
+                    onClick={() => navigate('/licenciado')}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Briefcase className="w-4 h-4 text-amber-500" />
+                    <span className="font-bold text-sm">LICENCIADO</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => {
                       if (onShowRendaExtra) {
                         onShowRendaExtra();
@@ -381,6 +388,13 @@ export const Dashboard = ({
                     <span className="font-bold text-sm">CADASTRAR INSTAGRAM</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
+                    onClick={() => navigate('/licenciado')}
+                    className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                  >
+                    <Briefcase className="w-4 h-4 text-amber-500" />
+                    <span className="font-bold text-sm">LICENCIADO</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => {
                       if (onShowRendaExtra) {
                         onShowRendaExtra();
@@ -508,6 +522,13 @@ export const Dashboard = ({
                     >
                       <Instagram className="w-4 h-4 text-pink-500" />
                       <span className="font-bold text-sm">CADASTRAR INSTAGRAM</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/licenciado')}
+                      className="rounded-lg focus:bg-white/5 cursor-pointer py-2.5 gap-3"
+                    >
+                      <Briefcase className="w-4 h-4 text-amber-500" />
+                      <span className="font-bold text-sm">LICENCIADO</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => {
