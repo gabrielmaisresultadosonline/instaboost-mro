@@ -155,8 +155,8 @@ const MeuNegocioPage = () => {
                 </div>
                 <div className="mt-auto pt-4">
                   <Button 
-                    className="w-full py-8 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] animate-shine" 
-                    style={{ animation: 'pulse-soft 2s infinite' }}
+                    className="w-full py-8 rounded-2xl bg-emerald-800 text-white font-black text-sm uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-shine border border-emerald-500/30" 
+                    style={{ animation: 'pulse-emerald 2s infinite' }}
                     onClick={() => navigate('/instagram')}
                   >
                     CADASTRAR E ANALISAR <ArrowRight className="w-5 h-5 ml-2" />
@@ -202,10 +202,10 @@ const MeuNegocioPage = () => {
                   <Button 
                     className={`w-full py-8 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all animate-shine ${
                       hasRegisteredProfiles 
-                        ? 'bg-purple-600 text-white hover:bg-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.4)]' 
+                        ? 'bg-emerald-800 text-white hover:bg-emerald-700 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-500/30' 
                         : 'bg-white/5 text-white/20 border border-white/10'
                     }`}
-                    style={hasRegisteredProfiles ? { animation: 'pulse-purple 2.5s infinite' } : {}}
+                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 2.5s infinite' } : {}}
                     onClick={() => {
                         if (!hasRegisteredProfiles) {
                             toast({ variant: "destructive", title: "Nenhum perfil cadastrado", description: "Cadastre uma conta primeiro no Passo 01." });
@@ -233,8 +233,12 @@ const MeuNegocioPage = () => {
                 </div>
                 <div className="mt-auto pt-4">
                   <Button 
-                    className="w-full py-8 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest hover:bg-blue-500 transition-all shadow-[0_0_25px_rgba(59,130,246,0.4)] animate-shine" 
-                    style={{ animation: 'pulse-blue 3s infinite' }}
+                    className={`w-full py-8 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all animate-shine ${
+                      hasRegisteredProfiles 
+                        ? 'bg-emerald-800 text-white hover:bg-emerald-700 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-500/30' 
+                        : 'bg-white/5 text-white/20 border border-white/10'
+                    }`}
+                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 3s infinite' } : {}}
                     onClick={() => {
                       if (!hasRegisteredProfiles) {
                           toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
