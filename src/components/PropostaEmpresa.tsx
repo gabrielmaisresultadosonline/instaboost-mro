@@ -43,7 +43,11 @@ const defaultData: PropostaData = {
   logoUrl: null,
   fontSizeBase: 16,
   periodoGarantia: '7',
+  showGrid: true,
+  showGraphs: true,
+  gridOpacity: 0.03,
 };
+
 
 export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
   const [data, setData] = useState<PropostaData>(defaultData);
