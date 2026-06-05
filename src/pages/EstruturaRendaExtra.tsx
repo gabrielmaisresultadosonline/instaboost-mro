@@ -963,6 +963,11 @@ const EstruturaRendaExtra = () => {
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
+        {/* Banner de Atualização */}
+        <div className="bg-yellow-400 text-black px-4 py-2 text-center text-xs md:text-sm font-bold animate-in slide-in-from-top duration-500 relative z-50">
+          ⚠️ Estamos atualizando alguns conteúdos. Nossa página está passando por atualizações, mas você pode usar normalmente.
+        </div>
+
         {/* Logged-in user indicator */}
         <div className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/10">
           <User size={14} className="text-yellow-400" />
