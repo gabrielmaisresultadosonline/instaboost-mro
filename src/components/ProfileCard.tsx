@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2, Lock } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2, Lock, Play } from 'lucide-react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -152,8 +152,18 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+                <button 
+                  onClick={() => window.open('https://youtu.be/CPI6xSH4TjU', '_blank')}
+                  className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg shadow-red-600/20 group w-fit"
+                >
+                  <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform flex-shrink-0" />
+                  <div className="flex flex-col items-start leading-tight min-w-0">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Aprenda Mais</span>
+                    <span className="text-xs font-bold truncate max-w-[200px] sm:max-w-none">Já conhece essa área aqui? Clicando aqui.</span>
+                  </div>
+                </button>
               </div>
               {hasScreenshot ? (
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -202,8 +212,18 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex flex-col items-start gap-2 mb-1 sm:mb-2">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
+                  <button 
+                    onClick={() => window.open('https://youtu.be/CPI6xSH4TjU', '_blank')}
+                    className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all duration-300 shadow-lg shadow-red-600/20 group w-fit"
+                  >
+                    <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform flex-shrink-0" />
+                    <div className="flex flex-col items-start leading-tight min-w-0">
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Aprenda Mais</span>
+                      <span className="text-xs font-bold truncate max-w-[200px] sm:max-w-none">Já conhece essa área aqui? Clicando aqui.</span>
+                    </div>
+                  </button>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {profile.category && (
