@@ -94,18 +94,22 @@ const Index = () => {
           
           setSession(existingSession);
           
-          if (existingSession.profiles.length > 0) {
+          // ALWAYS show initial choice after login if it hasn't been shown in this session
+          const choiceMade = sessionStorage.getItem('mro_initial_choice_made');
+          if (!choiceMade) {
+            setShowDashboardChoice(true);
+          } else {
             setShowDashboard(true);
             // Show announcements when user is already logged in and has profiles
             setShowAnnouncements(true);
-            
-            // FORCED UPDATE: Every time the user enters, sync with SquareCloud
-            console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
-            const user = getCurrentUser();
-            const squareResult = await verifyRegisteredIGs(user?.username || '');
-            if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
-              handleSyncComplete(squareResult.instagrams);
-            }
+          }
+
+          // FORCED UPDATE: Every time the user enters, sync with SquareCloud
+          console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
+          const user = getCurrentUser();
+          const squareResult = await verifyRegisteredIGs(user?.username || '');
+          if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+            handleSyncComplete(squareResult.instagrams);
           }
         }
       } catch (error) {
