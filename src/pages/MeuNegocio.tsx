@@ -1,99 +1,164 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Rocket, Briefcase, ArrowRight, Instagram, CheckSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getRegisteredIGs } from '@/lib/userStorage';
+import { getRegisteredIGs, isAuthenticated, getCurrentUser } from '@/lib/userStorage';
 import { useToast } from '@/hooks/use-toast';
+import { Logo } from '@/components/Logo';
 
 const MeuNegocioPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const hasRegisteredProfiles = getRegisteredIGs().length > 0;
+  const [isAuth, setIsAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  const registeredProfiles = getRegisteredIGs();
+  const hasRegisteredProfiles = registeredProfiles.length > 0;
+
+  useEffect(() => {
+    const authStatus = isAuthenticated();
+    if (!authStatus) {
+      navigate('/instagram');
+      return;
+    }
+    setIsAuth(true);
+    setLoading(false);
+  }, [navigate]);
+
+  if (loading || !isAuth) return null;
 
   return (
-    <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/')} 
-          className="text-white/60 hover:text-white hover:bg-white/5"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
-        </Button>
+    <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="max-w-6xl mx-auto space-y-12 relative z-10">
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/instagram')} 
+            className="text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
+          </Button>
+          <Logo size="sm" />
+        </div>
 
         <div className="space-y-6 text-center">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display">Meu Negócio</div>
-          <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight italic uppercase">O que deseja fazer?</h3>
+          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display italic">Meu Negócio</div>
+          <h3 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight italic uppercase drop-shadow-2xl">O que deseja fazer?</h3>
           
-          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-            <div className="flex flex-col gap-3 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-all duration-300">
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-sm shadow-[0_0_15px_rgba(16,185,129,0.1)]">1º</div>
-              <h5 className="text-white font-black text-sm uppercase italic">Conexão Inicial</h5>
+          {/* Top Step-by-step Guide */}
+          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+            <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-all duration-500">
+              <div className="w-12 h-12 shrink-0 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-lg shadow-[0_0_20px_rgba(16,185,129,0.1)] group-hover:scale-110 transition-transform">1º</div>
+              <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Conexão Inicial</h5>
               <p className="text-xs text-white/50 leading-relaxed font-medium">Cadastre pelo menos 1 perfil do Instagram para que nossa I.A. possa realizar a leitura completa dos seus dados.</p>
             </div>
-            <div className="flex flex-col gap-3 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-all duration-300">
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-sm shadow-[0_0_15px_rgba(168,85,247,0.1)]">2º</div>
-              <h5 className="text-white font-black text-sm uppercase italic">Análise Inteligente</h5>
+            <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-all duration-500">
+              <div className="w-12 h-12 shrink-0 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-lg shadow-[0_0_20px_rgba(168,85,247,0.1)] group-hover:scale-110 transition-transform">2º</div>
+              <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Análise Inteligente</h5>
               <p className="text-xs text-white/50 leading-relaxed font-medium">Nossa I.A. gera estratégias personalizadas e insights validados baseados no seu nicho e desempenho atual.</p>
             </div>
-            <div className="flex flex-col gap-3 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-all duration-300">
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-sm shadow-[0_0_15px_rgba(59,130,246,0.1)]">3º</div>
-              <h5 className="text-white font-black text-sm uppercase italic">Execução Automática</h5>
+            <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-all duration-500">
+              <div className="w-12 h-12 shrink-0 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-lg shadow-[0_0_20px_rgba(59,130,246,0.1)] group-hover:scale-110 transition-transform">3º</div>
+              <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Execução Automática</h5>
               <p className="text-xs text-white/50 leading-relaxed font-medium">Utilize a Ferramenta MRO instalada para aplicar as estratégias no automático e escalar sua presença digital.</p>
             </div>
           </div>
+
+          <div className="max-w-3xl mx-auto pt-4">
+            <p className="text-white/40 text-xs md:text-sm leading-relaxed font-medium bg-white/5 py-4 px-8 rounded-[2rem] border border-white/5 italic shadow-inner">
+              "O analisador de I.A. identifica o que pode melhorar e entrega o caminho pronto para você executar com a ferramenta MRO trabalhando 24h por você."
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
-            {/* Step 1 */}
-            <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent">
-              <div className="h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-2xl">01</div>
-                <h4 className="text-white font-black text-2xl uppercase italic leading-tight">CADASTRE SEU INSTAGRAM</h4>
-                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl">
-                    <p className="text-amber-500 text-[10px] font-black uppercase">Cadastro feito 1x apenas.</p>
+        {/* Main Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 items-stretch pb-20">
+            {/* Action 1: Registration */}
+            <div className="relative group p-1 rounded-[3rem] bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent h-full">
+              <div className="h-full p-8 rounded-[2.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-2xl shadow-inner">01</div>
+                <div className="space-y-4">
+                  <h4 className="text-white font-black text-2xl uppercase italic leading-tight">CADASTRE SEU INSTAGRAM NA IA DA MRO</h4>
+                  <p className="text-white/40 text-xs leading-relaxed font-medium">Conecte sua conta em poucos segundos e descubra insights estratégicos para aumentar seu desempenho.</p>
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl">
+                      <p className="text-amber-500 text-[10px] font-black uppercase leading-tight tracking-wider">ATENÇÃO: O CADASTRO É FEITO 1 VEZ. ESTE CADASTRO FIC EM NOSSO BANCO DE DADOS E NÃO PRECISA CADASTRAR NOVAMENTE.</p>
+                  </div>
                 </div>
-                <Button className="mt-auto w-full py-6 rounded-2xl bg-white text-black font-black" onClick={() => navigate('/registration')}>
+                <Button className="mt-auto w-full py-7 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-colors shadow-xl" onClick={() => navigate('/instagram')}>
                     CADASTRAR E ANALISAR <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent">
-              <div className="h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                <div className="flex justify-between items-center">
-                    <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-2xl">02</div>
+            {/* Action 2: Dashboard */}
+            <div className="relative group p-1 rounded-[3rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent h-full">
+              <div className="h-full p-8 rounded-[2.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8">
+                <div className="flex justify-between items-start">
+                    <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-2xl shadow-inner">02</div>
                     {hasRegisteredProfiles && (
-                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black text-emerald-500 uppercase">ON</div>
+                        <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 animate-pulse">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">ON</span>
+                        </div>
                     )}
                 </div>
-                <h4 className="text-white font-black text-2xl uppercase italic leading-tight">INTELIGÊNCIA MRO</h4>
-                <div className="flex-grow">
-                    {hasRegisteredProfiles ? (
-                        <p className="text-emerald-400 text-sm font-bold flex items-center gap-2"><CheckSquare className="w-4 h-4" /> {getRegisteredIGs().length} perfil(s) vinculado(s)!</p>
-                    ) : (
-                        <p className="text-red-400 text-sm font-bold">Nenhuma conta cadastrada.</p>
-                    )}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 shadow-inner">
+                        <Instagram className="w-7 h-7 text-purple-400" />
+                    </div>
+                    <h4 className="text-white font-black text-2xl uppercase italic">INTELIGÊNCIA MRO</h4>
+                  </div>
+                  <p className="text-white/40 text-xs leading-relaxed font-medium">Acesse seu painel de estratégias validadas e relatórios de desempenho gerados pela nossa tecnologia.</p>
+                  
+                  {hasRegisteredProfiles ? (
+                    <div className="py-3 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                        <p className="text-emerald-400 text-xs font-black uppercase tracking-wider flex items-center gap-2">
+                            <CheckSquare className="w-4 h-4" /> {registeredProfiles.length} perfil(s) vinculado(s)!
+                        </p>
+                    </div>
+                  ) : (
+                    <div className="py-3 px-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-center">
+                        <p className="text-red-400 text-[10px] font-black uppercase tracking-wider">Nenhuma conta cadastrada!</p>
+                    </div>
+                  )}
                 </div>
-                <Button className="mt-auto w-full py-6 rounded-2xl bg-purple-600 text-white font-black" onClick={() => {
+                <Button className={`mt-auto w-full py-7 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all ${hasRegisteredProfiles ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-white/5 text-white/20 border border-white/10'}`} onClick={() => {
                     if (!hasRegisteredProfiles) {
-                        toast({ variant: "destructive", title: "Erro", description: "Cadastre uma conta primeiro." });
+                        toast({ variant: "destructive", title: "Nenhum perfil cadastrado", description: "Cadastre uma conta primeiro no Passo 01." });
                         return;
                     }
-                    navigate('/instagram'); // Assuming this triggers the dashboard
+                    navigate('/instagram');
                 }}>
                     ACESSAR DASHBOARD <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="relative group p-1 rounded-[2.5rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent">
-              <div className="h-full p-8 rounded-[2.4rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-2xl">03</div>
-                <h4 className="text-white font-black text-2xl uppercase italic leading-tight">FERRAMENTA MRO</h4>
-                <Button className="mt-auto w-full py-6 rounded-2xl bg-blue-600 text-white font-black" onClick={() => navigate('/mro-ferramenta')}>
+            {/* Action 3: Tool */}
+            <div className="relative group p-1 rounded-[3rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent h-full">
+              <div className="h-full p-8 rounded-[2.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8">
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-2xl shadow-inner">03</div>
+                <div className="space-y-4">
+                  <h4 className="text-white font-black text-2xl uppercase italic leading-tight">FERRAMENTA MRO</h4>
+                  <p className="text-white/40 text-xs leading-relaxed font-medium">Acesso direto, utilize a ferramenta completa em seu navegador com as contas já vinculadas para automação total.</p>
+                  <div className="py-3 px-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center">
+                    <p className="text-blue-400 text-[10px] font-black uppercase tracking-wider italic">Software Instalado & Pronto</p>
+                  </div>
+                </div>
+                <Button className="mt-auto w-full py-7 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20" onClick={() => {
+                    if (!hasRegisteredProfiles) {
+                        toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta primeiro." });
+                        return;
+                    }
+                    navigate('/mro-ferramenta');
+                }}>
                     INSTALAR E UTILIZAR <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
