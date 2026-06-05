@@ -100,7 +100,8 @@ export const Dashboard = ({
   onNavigateToRegister,
   onSync,
   isLoading,
-  onLogout
+  onLogout,
+  onShowRendaExtra
 }: DashboardProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
