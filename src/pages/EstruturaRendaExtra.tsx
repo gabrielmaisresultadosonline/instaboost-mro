@@ -1420,6 +1420,52 @@ const EstruturaRendaExtra = () => {
           </div>
         )}
 
+        {/* Register Choice Popup */}
+        {showRegisterChoice && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" onClick={() => setShowRegisterChoice(false)}>
+            <div className="bg-[#0d0d16] border border-white/10 rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="p-8 md:p-10 space-y-8 text-center">
+                <div className="space-y-3">
+                  <h3 className="text-white font-black text-2xl md:text-3xl tracking-tight">Tipo de Cadastro</h3>
+                  <p className="text-white/40 text-sm md:text-base leading-relaxed font-medium">
+                    Gostaria de cadastrar na parte dos testes antes de cadastrar de forma fixa?
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={() => {
+                      setShowRegisterChoice(false);
+                      setCurrentView('testes');
+                    }}
+                    className="group relative h-20 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 text-emerald-400 font-black text-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/20 active:scale-95"
+                  >
+                    <span className="text-xs uppercase tracking-[0.2em] font-bold opacity-60 mb-1">Passo Inicial</span>
+                    SIM, CADASTRAR TESTE
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowRegisterChoice(false);
+                      navigate('/instagram');
+                    }}
+                    className="group relative h-20 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 text-blue-400 font-black text-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.02] hover:bg-blue-500/20 active:scale-95"
+                  >
+                    <span className="text-xs uppercase tracking-[0.2em] font-bold opacity-60 mb-1">Uso Profissional</span>
+                    NÃO, CADASTRO FIXO
+                  </button>
+                </div>
+
+                <button 
+                  onClick={() => setShowRegisterChoice(false)}
+                  className="text-white/20 hover:text-white/40 text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  Cancelar e Voltar
+                </button>
+              </div>
+            </div>
+          </div>
+
         {/* Floating WhatsApp Help Button */}
         {whatsappNumber && (
           <a
