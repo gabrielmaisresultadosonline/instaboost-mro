@@ -139,10 +139,11 @@ const Index = () => {
       
       console.log(`🔐 Login completo: ${existingSession.profiles.length} perfis na sessão, ${squareIGs.length} IGs no SquareCloud`);
       
-      if (existingSession.profiles.length > 0) {
+      if (existingSession.profiles.length > 0 || squareIGs.length > 0) {
         setSession(existingSession);
-        setShowDashboard(true);
-        console.log(`☁️ Perfis já carregados da nuvem - mostrando dashboard direto`);
+        setShowDashboardChoice(true);
+        sessionStorage.setItem('mro_initial_choice_made', 'true');
+        console.log(`☁️ Login completo - preparando escolha inicial`);
       } else if (squareIGs.length > 0) {
         // No cloud data but has registered profiles in SquareCloud - AUTO SYNC
         console.log(`🔄 Nenhum dado na nuvem, sincronizando ${squareIGs.length} perfis do SquareCloud...`);
