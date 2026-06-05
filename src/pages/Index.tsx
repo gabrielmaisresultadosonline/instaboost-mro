@@ -668,7 +668,9 @@ const Index = () => {
   }
 
   // Logged in but no registered profiles - show registration
-  if (!hasRegisteredProfiles || (!showDashboard && !showInitialChoice)) {
+  if (!hasRegisteredProfiles || (localStorage.getItem('mro_force_registration') === 'true')) {
+    localStorage.removeItem('mro_force_registration'); // Consume it
+
     return (
       <>
         <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
