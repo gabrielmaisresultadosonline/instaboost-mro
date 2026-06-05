@@ -233,8 +233,12 @@ const MeuNegocioPage = () => {
                 </div>
                 <div className="mt-auto pt-4">
                   <Button 
-                    className="w-full py-8 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest hover:bg-blue-500 transition-all shadow-[0_0_25px_rgba(59,130,246,0.4)] animate-shine" 
-                    style={{ animation: 'pulse-blue 3s infinite' }}
+                    className={`w-full py-8 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all animate-shine ${
+                      hasRegisteredProfiles 
+                        ? 'bg-emerald-800 text-white hover:bg-emerald-700 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-500/30' 
+                        : 'bg-white/5 text-white/20 border border-white/10'
+                    }`}
+                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 3s infinite' } : {}}
                     onClick={() => {
                       if (!hasRegisteredProfiles) {
                           toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
