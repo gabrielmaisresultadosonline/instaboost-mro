@@ -706,45 +706,48 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Dashboard Direct Access (Only if profiles exist) */}
+                {/* Dashboard Direct Access (Always visible with conditional content) */}
                 <div className="pt-4 flex flex-col items-center gap-4">
-                  {hasRegisteredProfiles ? (
-                    <div className="w-full max-w-lg p-1 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-emerald-500/20">
-                      <div className="bg-[#0d0d16] p-4 rounded-2xl border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-left">
-                          <p className="text-white font-bold text-sm">Você tem {getRegisteredIGs().length} perfil(s) vinculado(s)!</p>
-                          <p className="text-white/40 text-[10px] uppercase font-black tracking-widest">Acesso direto liberado</p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setShowMeuNegocioOptions(false);
-                            setShowDashboardChoice(false);
-                            setShowDashboard(true);
-                            setShowAnnouncements(true);
-                          }}
-                          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-black font-black text-xs transition-all hover:scale-105 active:scale-95 uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-                        >
-                          ACESSAR DASHBOARD <ArrowRight className="w-4 h-4" />
-                        </button>
+                  <div className="w-full max-w-lg p-1 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-emerald-500/20">
+                    <div className="bg-[#0d0d16] p-4 rounded-2xl border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-left">
+                        {hasRegisteredProfiles ? (
+                          <>
+                            <p className="text-white font-bold text-sm">Você tem {getRegisteredIGs().length} perfil(s) vinculado(s)!</p>
+                            <p className="text-white/40 text-[10px] uppercase font-black tracking-widest">Acesso direto liberado</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-white font-bold text-sm">Nenhuma conta cadastrada!</p>
+                            <p className="text-amber-500/60 text-[10px] uppercase font-black tracking-widest">Cadastre uma conta primeiro</p>
+                          </>
+                        )}
                       </div>
+                      <button
+                        onClick={() => {
+                          if (!hasRegisteredProfiles) {
+                            toast({
+                              variant: "destructive",
+                              title: "Nenhum perfil cadastrado",
+                              description: "Você não tem nenhuma conta cadastrada. Cadastre uma conta primeiro no Passo 01.",
+                            });
+                            return;
+                          }
+                          setShowMeuNegocioOptions(false);
+                          setShowDashboardChoice(false);
+                          setShowDashboard(true);
+                          setShowAnnouncements(true);
+                        }}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs transition-all hover:scale-105 active:scale-95 uppercase tracking-widest shadow-lg ${
+                          hasRegisteredProfiles 
+                            ? "bg-emerald-500 text-black shadow-emerald-500/20" 
+                            : "bg-white/5 text-white/40 border border-white/10"
+                        }`}
+                      >
+                        ACESSAR DASHBOARD <ArrowRight className="w-4 h-4" />
+                      </button>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        toast({
-                          variant: "destructive",
-                          title: "Nenhum perfil cadastrado",
-                          description: "Indique iniciar o cadastro no Passo 01 para liberar o dashboard.",
-                        });
-                      }}
-                      className="group flex flex-col items-center gap-2 opacity-50 hover:opacity-100 transition-opacity"
-                    >
-                      <p className="text-white/40 text-[10px] uppercase font-black tracking-[0.2em]">Ainda não possui contas vinculadas</p>
-                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase italic border-b border-emerald-400/20 pb-1 group-hover:border-emerald-400 transition-colors">
-                        Iniciar primeiro cadastro <ArrowRight className="w-3 h-3" />
-                      </div>
-                    </button>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
