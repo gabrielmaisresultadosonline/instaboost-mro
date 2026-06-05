@@ -548,11 +548,7 @@ const Index = () => {
             {/* Utilizar para meu negócio */}
             <button
               onClick={() => {
-                setShowDashboardChoice(false);
-                if (hasRegisteredProfiles) {
-                  setShowDashboard(true);
-                  setShowAnnouncements(true);
-                }
+                setShowMeuNegocioOptions(true);
               }}
               className="group relative p-8 md:p-12 rounded-[3.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
