@@ -25,7 +25,6 @@ import {
   Image, 
   Video, 
   FileText, 
-  Instagram, 
   Play, 
   Loader2, 
   TestTube, 
