@@ -42,6 +42,7 @@ import {
   DollarSign,
   Type,
   TrendingUp,
+  Instagram,
   Wrench,
   Lock,
   Camera,
