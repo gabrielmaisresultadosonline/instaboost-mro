@@ -682,7 +682,7 @@ const Index = () => {
                         <Briefcase className="w-8 h-8" />
                       </div>
                       <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">Extensão MRO</h4>
+                        <h4 className="text-white font-black text-xl uppercase italic">Ferramenta MRO</h4>
                         <p className="text-white/40 text-xs leading-relaxed font-medium">Acesse a área de instalação para utilizar a ferramenta MRO completa em seu navegador.</p>
                       </div>
                       <button 
