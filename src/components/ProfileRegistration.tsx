@@ -88,6 +88,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Tutorial system
   const tutorial = useTutorial();
