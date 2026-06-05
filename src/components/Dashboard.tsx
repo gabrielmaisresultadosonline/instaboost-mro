@@ -85,6 +85,7 @@ interface DashboardProps {
   onSync?: () => void;
   isLoading?: boolean;
   onLogout?: () => void;
+  onShowRendaExtra?: () => void;
 }
 
 type Tab = 'profile' | 'analysis' | 'strategies' | 'legendas' | 'growth';
