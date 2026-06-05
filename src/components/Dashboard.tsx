@@ -1,6 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  ChevronDown, 
+  Download, 
+  Upload, 
+  CheckSquare, 
+  Square, 
+  Palette, 
+  Package, 
+  ChevronUp, 
+  Eye, 
+  X, 
+  Hash, 
+  Sparkles, 
+  User, 
+  Tag, 
+  MapPin, 
+  Move, 
+  Sliders, 
+  ImagePlus, 
+  RotateCcw, 
+  ZoomIn, 
+  ArrowLeft, 
+  Image, 
+  Video, 
+  FileText, 
+  Instagram, 
+  Play, 
+  Loader2, 
+  TestTube, 
+  PenTool, 
+  ExternalLink, 
+  BarChart3, 
+  MessageCircle, 
+  ArrowRight, 
+  Settings, 
+  Rocket, 
+  Lightbulb, 
+  ShieldCheck, 
+  UserPlus,
+  Type,
+  TrendingUp,
+  Wrench,
+  Lock,
+  Camera,
+  RefreshCw
+} from 'lucide-react';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
@@ -20,18 +65,6 @@ import { addStrategy, resetSession, getSession, updateProfile, updateAnalysis, s
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { getCurrentUser, saveUserToCloud } from '@/lib/userStorage';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  RotateCcw, 
-  User, 
-  BarChart3, 
-  Lightbulb, 
-  Type,
-  TrendingUp,
-  Wrench,
-  Lock,
-  Camera,
-  RefreshCw,
-} from 'lucide-react';
 
 interface DashboardProps {
   session: MROSession;
@@ -121,6 +154,7 @@ export const Dashboard = ({
   const hasRealPrintData = activeProfile?.profile.dataSource === 'screenshot' && !activeProfile?.profile.needsScreenshotAnalysis;
 
   const tabs = [
+    { id: 'tutorial-video', label: 'Tutorial', icon: <Play className="w-4 h-4" />, locked: false },
     { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" />, locked: false },
     { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" />, locked: !hasRealPrintData },
     { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: !hasRealPrintData },
@@ -188,6 +222,10 @@ export const Dashboard = ({
                   <button
                     key={tab.id}
                     onClick={() => {
+                      if (tab.id === 'tutorial-video') {
+                        window.open('https://youtu.be/CPI6xSH4TjU', '_blank');
+                        return;
+                      }
                       if (tab.locked) {
                         import('sonner').then(({ toast }) => {
                           toast.error('Envie um print do perfil primeiro na aba "Perfil"');
@@ -198,11 +236,13 @@ export const Dashboard = ({
                     }}
                     data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs whitespace-nowrap ${
-                      tab.locked
-                        ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                        : activeTab === tab.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      tab.id === 'tutorial-video'
+                        ? 'bg-red-600 text-white hover:bg-red-700 font-bold shadow-lg shadow-red-600/20'
+                        : tab.locked
+                          ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                          : activeTab === tab.id
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
                     {tab.locked ? <Lock className="w-3 h-3" /> : tab.icon}
@@ -264,6 +304,10 @@ export const Dashboard = ({
                 <button
                   key={tab.id}
                   onClick={() => {
+                    if (tab.id === 'tutorial-video') {
+                      window.open('https://youtu.be/CPI6xSH4TjU', '_blank');
+                      return;
+                    }
                     if (tab.locked) {
                       import('sonner').then(({ toast }) => {
                         toast.error('Envie um print do perfil primeiro');
@@ -273,11 +317,13 @@ export const Dashboard = ({
                     setActiveTab(tab.id as Tab);
                   }}
                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all duration-300 whitespace-nowrap text-xs ${
-                    tab.locked
-                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                      : activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    tab.id === 'tutorial-video'
+                      ? 'bg-red-600 text-white hover:bg-red-700 font-bold shadow-lg shadow-red-600/20'
+                      : tab.locked
+                        ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                        : activeTab === tab.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
                   {tab.locked ? <Lock className="w-3 h-3" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3 h-3' })}
@@ -327,6 +373,10 @@ export const Dashboard = ({
                 <button
                   key={tab.id}
                   onClick={() => {
+                    if (tab.id === 'tutorial-video') {
+                      window.open('https://youtu.be/CPI6xSH4TjU', '_blank');
+                      return;
+                    }
                     if (tab.locked) {
                       import('sonner').then(({ toast }) => {
                         toast.error('Envie um print do perfil primeiro');
@@ -336,11 +386,13 @@ export const Dashboard = ({
                     setActiveTab(tab.id as Tab);
                   }}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all duration-300 whitespace-nowrap text-xs ${
-                    tab.locked
-                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                      : activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    tab.id === 'tutorial-video'
+                      ? 'bg-red-600 text-white hover:bg-red-700 font-bold shadow-lg shadow-red-600/20'
+                      : tab.locked
+                        ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                        : activeTab === tab.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
                   {tab.locked ? <Lock className="w-3 h-3" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3 h-3' })}
