@@ -21,7 +21,7 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List, Mail } from 'lucide-react';
+import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List, Mail, ChevronDown } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
 import { getSession, updateAnalysis, clearStrategies } from '@/lib/storage';
