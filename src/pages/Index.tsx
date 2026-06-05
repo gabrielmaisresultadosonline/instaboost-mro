@@ -655,8 +655,13 @@ const Index = () => {
                         <Rocket className="w-8 h-8" />
                       </div>
                       <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">I.A. e Cadastro</h4>
+                        <h4 className="text-white font-black text-xl uppercase italic">Inteligência Artificial, conectar no seu instagram.</h4>
                         <p className="text-white/40 text-xs leading-relaxed font-medium">Cadastre seu perfil do Instagram para iniciar a análise inteligente com nossa IA MRO.</p>
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl mt-2">
+                          <p className="text-amber-500 text-[10px] font-black uppercase leading-tight tracking-wider">
+                            ATENÇÃO: O cadastro é feito 1 vez. Este cadastro fica em nosso banco de dados e não precisa cadastrar novamente. Após a conta cadastrada, já pode utilizar a ferramenta MRO.
+                          </p>
+                        </div>
                       </div>
                       <button 
                         onClick={() => {
@@ -677,7 +682,7 @@ const Index = () => {
                         <Briefcase className="w-8 h-8" />
                       </div>
                       <div className="text-left space-y-2">
-                        <h4 className="text-white font-black text-xl uppercase italic">Extensão MRO</h4>
+                        <h4 className="text-white font-black text-xl uppercase italic">Ferramenta MRO</h4>
                         <p className="text-white/40 text-xs leading-relaxed font-medium">Acesse a área de instalação para utilizar a ferramenta MRO completa em seu navegador.</p>
                       </div>
                       <button 
