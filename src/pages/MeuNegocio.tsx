@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Rocket, Briefcase, ArrowRight, Instagram, CheckSquare, X } from 'lucide-react';
+import { ArrowLeft, Rocket, Briefcase, ArrowRight, Instagram, CheckSquare, X, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRegisteredIGs, isAuthenticated, getCurrentUser } from '@/lib/userStorage';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +11,7 @@ const MeuNegocioPage = () => {
   const { toast } = useToast();
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showGuide, setShowGuide] = useState(false);
   
   const registeredProfiles = getRegisteredIGs();
   const hasRegisteredProfiles = registeredProfiles.length > 0;
@@ -54,29 +55,44 @@ const MeuNegocioPage = () => {
           <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em] mb-2 font-display italic">Meu Negócio</div>
           <h3 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight italic uppercase drop-shadow-2xl">O que deseja fazer?</h3>
           
-          {/* Top Step-by-step Guide */}
-          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-            <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-all duration-500">
-              <div className="w-12 h-12 shrink-0 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-lg shadow-[0_0_20px_rgba(16,185,129,0.1)] group-hover:scale-110 transition-transform">1º</div>
-              <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Conexão Inicial</h5>
-              <p className="text-xs text-white/50 leading-relaxed font-medium">Cadastre pelo menos 1 perfil do Instagram para que nossa I.A. possa realizar a leitura completa dos seus dados.</p>
-            </div>
-            <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-all duration-500">
-              <div className="w-12 h-12 shrink-0 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-lg shadow-[0_0_20px_rgba(168,85,247,0.1)] group-hover:scale-110 transition-transform">2º</div>
-              <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Análise Inteligente</h5>
-              <p className="text-xs text-white/50 leading-relaxed font-medium">Nossa I.A. gera estratégias personalizadas e insights validados baseados no seu nicho e desempenho atual.</p>
-            </div>
-            <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-all duration-500">
-              <div className="w-12 h-12 shrink-0 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-lg shadow-[0_0_20px_rgba(59,130,246,0.1)] group-hover:scale-110 transition-transform">3º</div>
-              <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Execução Automática</h5>
-              <p className="text-xs text-white/50 leading-relaxed font-medium">Utilize a Ferramenta MRO instalada para aplicar as estratégias no automático e escalar sua presença digital.</p>
-            </div>
-          </div>
+          <div className="flex flex-col items-center gap-4 pt-2">
+            <button 
+              onClick={() => setShowGuide(!showGuide)}
+              className="group flex flex-col items-center gap-2 transition-all"
+            >
+              <span className="text-amber-500 font-black text-sm uppercase tracking-widest group-hover:text-amber-400">Como iniciar no seu negócio?</span>
+              <div className="flex items-center gap-2 px-6 py-2 rounded-full bg-amber-500 text-black font-black text-[10px] uppercase tracking-tighter hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                {showGuide ? <ChevronUp className="w-3 h-3" /> : <Info className="w-3 h-3" />}
+                {showGuide ? "Fechar guia" : "Saber mais / Passo a passo"}
+              </div>
+            </button>
 
-          <div className="max-w-3xl mx-auto pt-4">
-            <p className="text-white/40 text-xs md:text-sm leading-relaxed font-medium bg-white/5 py-4 px-8 rounded-[2rem] border border-white/5 italic shadow-inner">
-              "O analisador de I.A. identifica o que pode melhorar e entrega o caminho pronto para você executar com a ferramenta MRO trabalhando 24h por você."
-            </p>
+            {/* Top Step-by-step Guide - Animated transition */}
+            <div className={`w-full transition-all duration-500 overflow-hidden ${showGuide ? 'max-h-[1000px] opacity-100 mt-6' : 'max-h-0 opacity-0'}`}>
+              <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-emerald-500/30 transition-all duration-500">
+                  <div className="w-12 h-12 shrink-0 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-lg shadow-[0_0_20px_rgba(16,185,129,0.1)] group-hover:scale-110 transition-transform">1º</div>
+                  <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Conexão Inicial</h5>
+                  <p className="text-xs text-white/50 leading-relaxed font-medium">Cadastre pelo menos 1 perfil do Instagram para que nossa I.A. possa realizar a leitura completa dos seus dados.</p>
+                </div>
+                <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-purple-500/30 transition-all duration-500">
+                  <div className="w-12 h-12 shrink-0 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-black text-lg shadow-[0_0_20px_rgba(168,85,247,0.1)] group-hover:scale-110 transition-transform">2º</div>
+                  <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Análise Inteligente</h5>
+                  <p className="text-xs text-white/50 leading-relaxed font-medium">Nossa I.A. gera estratégias personalizadas e insights validados baseados no seu nicho e desempenho atual.</p>
+                </div>
+                <div className="flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-left group hover:border-blue-500/30 transition-all duration-500">
+                  <div className="w-12 h-12 shrink-0 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-black text-lg shadow-[0_0_20px_rgba(59,130,246,0.1)] group-hover:scale-110 transition-transform">3º</div>
+                  <h5 className="text-white font-black text-sm uppercase italic tracking-wider">Execução Automática</h5>
+                  <p className="text-xs text-white/50 leading-relaxed font-medium">Utilize a Ferramenta MRO instalada para aplicar as estratégias no automático e escalar sua presença digital.</p>
+                </div>
+              </div>
+
+              <div className="max-w-3xl mx-auto pt-6">
+                <p className="text-white/40 text-xs md:text-sm leading-relaxed font-medium bg-white/5 py-4 px-8 rounded-[2rem] border border-white/5 italic shadow-inner">
+                  "O analisador de I.A. identifica o que pode melhorar e entrega o caminho pronto para você executar com a ferramenta MRO trabalhando 24h por você."
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
