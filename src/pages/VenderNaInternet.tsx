@@ -28,6 +28,7 @@ import logoMro from "@/assets/logo-mro.png";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPageView, trackFacebookEvent, trackPurchase, trackInitiateCheckout } from "@/lib/facebookTracking";
 
 export default function VenderNaInternet() {
   const navigate = useNavigate();
