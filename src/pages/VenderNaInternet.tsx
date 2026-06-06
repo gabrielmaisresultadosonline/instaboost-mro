@@ -262,7 +262,7 @@ export default function VenderNaInternet() {
 
           <div className="max-w-xl mx-auto mt-16">
             <Button 
-              onClick={scrollToPricing}
+              onClick={openCheckout}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
             >
               APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
