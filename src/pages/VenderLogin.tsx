@@ -404,7 +404,9 @@ export default function VenderLogin() {
               <span className="text-[10px] font-black uppercase tracking-widest">Tecnologia 100% Criptografada</span>
             </div>
           </form>
+          )}
         </CardContent>
+
       </Card>
     </div>
   );
