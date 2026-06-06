@@ -390,7 +390,7 @@ const Licenciado = () => {
             <Button 
               size="lg" 
               onClick={handleWhatsAppContact}
-              className="mt-16 bg-yellow-500 hover:bg-yellow-600 text-black font-black h-24 px-12 rounded-[2.5rem] text-xl md:text-2xl w-full transition-all hover:scale-105 shadow-[0_20px_50px_rgba(234,179,8,0.2)] group"
+              className="mt-16 bg-green-500 hover:bg-green-600 text-white font-black h-24 px-12 rounded-[2.5rem] text-xl md:text-2xl w-full transition-all hover:scale-105 shadow-[0_20px_50px_rgba(34,197,94,0.3)] group"
             >
               QUERO ME TORNAR UM LICENCIADO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
