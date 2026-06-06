@@ -20,7 +20,9 @@ import {
   Lock,
   User,
   Phone,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +54,7 @@ export default function VenderNaInternet() {
   const navigate = useNavigate();
   const pricingRef = useRef<HTMLDivElement>(null);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -411,13 +414,20 @@ export default function VenderNaInternet() {
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
                         <Input 
-                          type="password" 
+                          type={showPassword ? "text" : "password"} 
                           placeholder="••••••••" 
-                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          className="pl-12 pr-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
                           required
                           value={formData.senha}
                           onChange={e => setFormData({...formData, senha: e.target.value})}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-yellow-500 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
                       </div>
                     </div>
 
