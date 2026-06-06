@@ -28,6 +28,13 @@ const Licenciado = () => {
     window.open('https://wa.me/555174001588?text=Olá, quero receber informações para me tornar um Licenciado MRO.', '_blank');
   };
 
+  const scrollToInvestment = () => {
+    const el = document.getElementById('investimento');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const benefits = [
     { title: "Licença Oficial MRO", icon: ShieldCheck },
     { title: "Acesso à Plataforma Completa", icon: Globe },
@@ -117,7 +124,7 @@ const Licenciado = () => {
 
             <Button 
               size="lg" 
-              onClick={handleWhatsAppContact}
+              onClick={scrollToInvestment}
               className="bg-yellow-500 hover:bg-yellow-600 text-black font-black h-20 px-12 rounded-[2rem] text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(234,179,8,0.3)] group"
             >
               QUERO SER UM LICENCIADO MRO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
@@ -338,7 +345,7 @@ const Licenciado = () => {
       </section>
 
       {/* Seção 9 - INVESTIMENTO */}
-      <section className="py-32 px-4 relative">
+      <section id="investimento" className="py-32 px-4 relative">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-zinc-900/50 border-yellow-500/30 rounded-[3.5rem] p-8 md:p-16 text-center backdrop-blur-xl relative overflow-hidden group shadow-2xl shadow-yellow-500/5">
             <div className="absolute inset-0 bg-yellow-500/[0.02] group-hover:bg-yellow-500/[0.04] transition-all" />
