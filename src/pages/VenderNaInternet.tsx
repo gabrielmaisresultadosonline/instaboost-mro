@@ -312,6 +312,117 @@ export default function VenderNaInternet() {
         </div>
       </section>
 
+      {/* Pop-up de Checkout Responsivo */}
+      <AnimatePresence>
+        {showCheckout && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCheckout(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md"
+            >
+              <Card className="bg-zinc-900 border-zinc-800 text-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <button 
+                  onClick={() => setShowCheckout(false)}
+                  className="absolute right-6 top-6 text-gray-500 hover:text-white transition-colors z-20"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <CardHeader className="text-center space-y-2 pt-10">
+                  <div className="flex justify-center mb-2">
+                    <img src={logoMro} alt="MRO" className="h-12 object-contain" />
+                  </div>
+                  <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
+                    FINALIZAR CADASTRO
+                  </CardTitle>
+                  <CardDescription className="text-gray-400 font-medium">
+                    Preencha os dados abaixo para receber seu acesso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-10">
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Nome Completo</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          placeholder="Ex: João Silva" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.nome}
+                          onChange={e => setFormData({...formData, nome: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">E-mail de Acesso</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          type="email" 
+                          placeholder="seu@email.com" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.email}
+                          onChange={e => setFormData({...formData, email: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Senha Segura</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.senha}
+                          onChange={e => setFormData({...formData, senha: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">WhatsApp (DDD)</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          placeholder="(00) 00000-0000" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.whatsapp}
+                          onChange={e => setFormData({...formData, whatsapp: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-14 rounded-xl text-lg uppercase italic mt-4 shadow-lg shadow-green-500/10" disabled={loading}>
+                      {loading ? <Loader2 className="animate-spin" /> : "PAGAR R$ 25 AGORA"}
+                    </Button>
+
+                    <div className="flex items-center justify-center gap-2 pt-2 opacity-30">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span className="text-[8px] font-black uppercase tracking-widest">Tecnologia 100% Criptografada</span>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Footer */}
       <footer className="py-12 border-t border-white/5 text-center text-gray-500">
         <div className="max-w-7xl mx-auto px-4">
