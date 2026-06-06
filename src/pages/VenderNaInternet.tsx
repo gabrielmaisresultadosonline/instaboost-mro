@@ -84,10 +84,10 @@ export default function VenderNaInternet() {
 
             <Button 
               size="lg" 
-              onClick={handleCTA}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-black h-20 px-12 rounded-2xl text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(234,179,8,0.3)] group"
+              onClick={scrollToPricing}
+              className="bg-green-600 hover:bg-green-700 text-white font-black h-20 px-12 rounded-2xl text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(22,163,74,0.3)] group"
             >
-              QUERO GARANTIR MINHA VAGA AGORA <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
           </motion.div>
         </div>
