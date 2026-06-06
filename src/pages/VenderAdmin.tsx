@@ -260,8 +260,36 @@ export default function VenderAdmin() {
           </div>
         </header>
 
+        {/* Grupo VIP Link Settings */}
+        <Card className="bg-zinc-900/50 border-zinc-800 text-white mb-8">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-green-500" /> Link do Grupo VIP (enviado no e-mail)
+            </CardTitle>
+            <CardDescription className="text-gray-500 text-xs">
+              Este link substitui automaticamente o botão "Entrar no Grupo VIP" do e-mail de boas-vindas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row gap-3">
+            <Input
+              placeholder="https://chat.whatsapp.com/..."
+              value={grupoLink}
+              onChange={e => setGrupoLink(e.target.value)}
+              className="bg-black border-zinc-800 focus:border-green-500 h-12 font-mono text-sm flex-1"
+            />
+            <Button
+              onClick={saveGrupoLink}
+              disabled={savingLink}
+              className="bg-green-600 hover:bg-green-700 text-white font-black uppercase italic h-12 px-6"
+            >
+              {savingLink ? "Salvando..." : "Salvar Link"}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-12">
+
           <Card className="bg-zinc-900/50 border-zinc-800 text-white backdrop-blur-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
