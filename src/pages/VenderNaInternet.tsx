@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   CheckCircle2, 
@@ -14,18 +14,76 @@ import {
   Star,
   Users,
   Video,
-  Play
+  Play,
+  X,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Loader2
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import logoMro from "@/assets/logo-mro.png";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function VenderNaInternet() {
   const navigate = useNavigate();
   const pricingRef = useRef<HTMLDivElement>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    senha: "",
+    whatsapp: ""
+  });
 
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.from('vender_usuarios').insert([{
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha,
+        whatsapp: formData.whatsapp
+      }]).select().single();
+
+      if (error) throw error;
+
+      const { error: pError } = await supabase.from('vender_pagamentos').insert([{
+        usuario_id: data.id,
+        valor: 25.00,
+        status: 'pendente'
+      }]).select().single();
+
+      if (pError) throw pError;
+
+      toast.success("Cadastro realizado! Redirecionando para pagamento...");
+      
+      setTimeout(() => {
+        window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
+        setShowCheckout(false);
+        navigate('/vendernainternet/login');
+      }, 2000);
+
+    } catch (err: any) {
+      toast.error(err.message || "Erro no cadastro");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openCheckout = () => {
+    setShowCheckout(true);
   };
 
   const handleCTA = () => {
