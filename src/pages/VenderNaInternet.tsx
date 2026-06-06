@@ -64,6 +64,9 @@ export default function VenderNaInternet() {
 
       if (error) throw error;
 
+      // Track InitiateCheckout when registration is successful and moving to payment step
+      trackInitiateCheckout("MRO Vender Na Internet", 25.00);
+
       const { error: pError } = await supabase.from('vender_pagamentos').insert([{
         usuario_id: data.id,
         valor: 25.00,
