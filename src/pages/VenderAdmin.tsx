@@ -18,10 +18,12 @@ import {
   Users,
   Search,
   Eye,
-  ExternalLink
+  ExternalLink,
+  MessageCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import logoMro from "@/assets/logo-mro.png";
 import { trackPurchase } from "@/lib/facebookTracking";
 import {
   Dialog,
