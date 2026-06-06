@@ -298,6 +298,16 @@ serve(async (req) => {
           order_nsu
         );
 
+        // Fire-and-forget welcome email with credentials + grupo link
+        try {
+          await supabase.functions.invoke("vender-send-email", {
+            body: { user_id: vp.usuario_id },
+          });
+          log("VENDER welcome email triggered");
+        } catch (e) {
+          log("VENDER welcome email error (non-blocking)", { error: String(e) });
+        }
+
         log("VENDER order confirmed", { paymentId: vp.id, userId: vp.usuario_id });
         return new Response(JSON.stringify({ success: true, message: "VENDER confirmed" }), { status: 200, headers: corsHeaders });
       }

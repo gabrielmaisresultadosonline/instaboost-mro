@@ -13,6 +13,8 @@ import {
   UserCheck, 
   Lock, 
   Mail, 
+  MailCheck,
+  Send,
   ShieldCheck,
   LayoutDashboard,
   Users,
@@ -163,10 +165,27 @@ export default function VenderAdmin() {
         trackPurchase(25.00, "MRO Vender Na Internet", userToApprove.email);
       }
 
-      toast.success("Acesso liberado manualmente!");
+      // Send welcome email automatically
+      try {
+        await supabase.functions.invoke('vender-send-email', { body: { user_id: userId } });
+      } catch (e) { /* non-blocking */ }
+
+      toast.success("Acesso liberado e email enviado!");
       fetchData();
     } catch (err) {
       toast.error("Erro ao aprovar");
+    }
+  };
+
+  const handleResendEmail = async (userId: string) => {
+    try {
+      toast.loading("Enviando email...", { id: `mail-${userId}` });
+      const { error } = await supabase.functions.invoke('vender-send-email', { body: { user_id: userId } });
+      if (error) throw error;
+      toast.success("Email reenviado com sucesso!", { id: `mail-${userId}` });
+      fetchData();
+    } catch (err: any) {
+      toast.error("Erro ao enviar email: " + (err?.message || ""), { id: `mail-${userId}` });
     }
   };
 
@@ -468,6 +487,19 @@ export default function VenderAdmin() {
                             </DialogContent>
                           </Dialog>
 
+                          {status === 'pago' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title={u.email_enviado ? `Email enviado${u.email_enviado_at ? ' em ' + new Date(u.email_enviado_at).toLocaleString() : ''} - Clique para reenviar` : 'Enviar email de acesso'}
+                              className={`h-9 w-9 rounded-xl p-0 ${u.email_enviado
+                                ? 'text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10'
+                                : 'text-orange-500 border-orange-500/30 hover:bg-orange-500/10 animate-pulse'}`}
+                              onClick={() => handleResendEmail(u.id)}
+                            >
+                              {u.email_enviado ? <MailCheck className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                            </Button>
+                          )}
                           {status !== 'pago' && (
                             <Button 
                               size="sm" 

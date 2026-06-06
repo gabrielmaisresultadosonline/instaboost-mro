@@ -4709,6 +4709,8 @@ export type Database = {
           acesso_liberado: boolean | null
           created_at: string
           email: string
+          email_enviado: boolean
+          email_enviado_at: string | null
           id: string
           nome: string
           senha: string
@@ -4719,6 +4721,8 @@ export type Database = {
           acesso_liberado?: boolean | null
           created_at?: string
           email: string
+          email_enviado?: boolean
+          email_enviado_at?: string | null
           id?: string
           nome: string
           senha: string
@@ -4729,6 +4733,8 @@ export type Database = {
           acesso_liberado?: boolean | null
           created_at?: string
           email?: string
+          email_enviado?: boolean
+          email_enviado_at?: string | null
           id?: string
           nome?: string
           senha?: string
