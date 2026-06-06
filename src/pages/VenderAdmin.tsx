@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import { trackPurchase } from "@/lib/facebookTracking";
 
 export default function VenderAdmin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
