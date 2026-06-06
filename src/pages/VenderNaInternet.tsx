@@ -43,6 +43,10 @@ export default function VenderNaInternet() {
     whatsapp: ""
   });
 
+  useEffect(() => {
+    trackPageView("Vender Na Internet - Sales Page");
+  }, []);
+
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
