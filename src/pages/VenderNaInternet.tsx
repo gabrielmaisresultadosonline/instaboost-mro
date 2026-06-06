@@ -325,9 +325,12 @@ export default function VenderNaInternet() {
             <Button 
               size="lg" 
               onClick={openCheckout}
-              className="bg-green-600 hover:bg-green-700 text-white font-black h-24 px-12 rounded-3xl text-xl md:text-3xl transition-all hover:scale-105 shadow-[0_20px_50px_rgba(22,163,74,0.3)] w-full sm:w-auto"
+              className="bg-green-600 hover:bg-green-700 text-white font-black h-auto py-6 px-6 md:h-24 md:px-12 rounded-3xl text-lg md:text-3xl transition-all hover:scale-105 shadow-[0_20px_50px_rgba(22,163,74,0.3)] w-full sm:w-auto leading-tight"
             >
-              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-3 w-8 h-8" />
+              <span className="max-w-[280px] md:max-w-none break-words">
+                APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO
+              </span>
+              <ArrowRight className="ml-3 w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
             </Button>
             
             <p className="mt-8 text-gray-500 font-bold uppercase tracking-widest text-sm">
