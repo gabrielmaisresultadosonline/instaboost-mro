@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,11 @@ import logoMro from "@/assets/logo-mro.png";
 
 export default function VenderNaInternet() {
   const navigate = useNavigate();
+  const pricingRef = useRef<HTMLDivElement>(null);
+
+  const scrollToPricing = () => {
+    pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleCTA = () => {
     navigate('/vendernainternet/login');
