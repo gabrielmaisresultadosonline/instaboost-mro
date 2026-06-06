@@ -91,6 +91,11 @@ export default function VenderNaInternet() {
   };
 
   const openCheckout = () => {
+    trackFacebookEvent("AddToCart", {
+      content_name: "MRO Vender Na Internet",
+      value: 25.00,
+      currency: "BRL"
+    });
     setShowCheckout(true);
   };
 
