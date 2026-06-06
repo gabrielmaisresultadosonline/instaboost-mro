@@ -13,6 +13,8 @@ import {
   UserCheck, 
   Lock, 
   Mail, 
+  MailCheck,
+  Send,
   ShieldCheck,
   LayoutDashboard,
   Users,
