@@ -4683,6 +4683,27 @@ export type Database = {
           },
         ]
       }
+      vender_settings: {
+        Row: {
+          created_at: string
+          grupo_vip_link: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grupo_vip_link?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grupo_vip_link?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       vender_usuarios: {
         Row: {
           acesso_liberado: boolean | null
