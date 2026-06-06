@@ -82,6 +82,8 @@ export default function VenderAdmin() {
 
   const handleApprove = async (userId: string) => {
     try {
+      const userToApprove = users.find(u => u.id === userId);
+      
       const { error: uError } = await supabase
         .from('vender_usuarios')
         .update({ acesso_liberado: true })
@@ -95,6 +97,11 @@ export default function VenderAdmin() {
         .eq('usuario_id', userId);
 
       if (pError) throw pError;
+
+      // Track purchase when access is released
+      if (userToApprove) {
+        trackPurchase(25.00, "MRO Vender Na Internet", userToApprove.email);
+      }
 
       toast.success("Acesso liberado manualmente!");
       fetchData();
