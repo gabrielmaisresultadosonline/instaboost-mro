@@ -252,9 +252,62 @@ serve(async (req) => {
       paid_amount
     });
 
+    // VENDER NA INTERNET orders
+    if (isVenderOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("VENDER"))) {
+      log("Processing as VENDER order", { order_nsu, email });
+
+      let vp = null;
+      if (order_nsu) {
+        const r = await supabase
+          .from("vender_pagamentos")
+          .select("*, vender_usuarios(*)")
+          .eq("infinitepay_transaction_id", order_nsu)
+          .eq("status", "pendente")
+          .maybeSingle();
+        vp = r.data;
+      }
+      if (!vp && email) {
+        const r = await supabase
+          .from("vender_usuarios")
+          .select("id, email, vender_pagamentos!inner(*)")
+          .eq("email", email)
+          .eq("vender_pagamentos.status", "pendente")
+          .maybeSingle();
+        if (r.data && (r.data as any).vender_pagamentos?.length) {
+          vp = {
+            ...(r.data as any).vender_pagamentos[0],
+            vender_usuarios: { id: (r.data as any).id, email: (r.data as any).email },
+          };
+        }
+      }
+
+      if (vp) {
+        await supabase.from("vender_pagamentos").update({
+          status: "pago",
+          updated_at: new Date().toISOString(),
+        }).eq("id", vp.id);
+
+        await supabase.from("vender_usuarios").update({
+          acesso_liberado: true,
+        }).eq("id", vp.usuario_id);
+
+        await sendMetaPurchaseEvent(
+          email || vp.vender_usuarios?.email || "",
+          Number(vp.valor) || 25,
+          "MRO Vender Na Internet",
+          order_nsu
+        );
+
+        log("VENDER order confirmed", { paymentId: vp.id, userId: vp.usuario_id });
+        return new Response(JSON.stringify({ success: true, message: "VENDER confirmed" }), { status: 200, headers: corsHeaders });
+      }
+      log("VENDER: no pending payment found");
+    }
+
     // RENDAEXT orders
     if (isRendaExtOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("RENDAEXT"))) {
       log("Processing as RENDAEXT order", { order_nsu, email });
+
       
       const { data: order } = await supabase
         .from("rendaext_orders")
