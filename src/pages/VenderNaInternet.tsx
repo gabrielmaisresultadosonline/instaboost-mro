@@ -165,6 +165,14 @@ export default function VenderNaInternet() {
             <p className="text-xl font-medium text-gray-400 max-w-2xl mx-auto">
               Você terá acesso completo para entender como utilizar a ferramenta e aproveitar todo o seu potencial de faturamento.
             </p>
+            <div className="max-w-xl mx-auto mt-12">
+              <Button 
+                onClick={scrollToPricing}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
+              >
+                APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
           </motion.div>
         </div>
       </section>
