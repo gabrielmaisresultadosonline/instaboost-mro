@@ -117,9 +117,11 @@ export default function VenderAdmin() {
       if (saved === 'true') {
         setIsLoggedIn(true);
         fetchData();
+        fetchSettings();
       } else {
         setLoading(false);
       }
+
     };
     checkAuth();
   }, []);
