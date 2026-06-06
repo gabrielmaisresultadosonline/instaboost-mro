@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import logoMro from "@/assets/logo-mro.png";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPageView, trackFacebookEvent, trackPurchase, trackInitiateCheckout } from "@/lib/facebookTracking";
 
 export default function VenderNaInternet() {
   const navigate = useNavigate();
@@ -41,6 +42,10 @@ export default function VenderNaInternet() {
     senha: "",
     whatsapp: ""
   });
+
+  useEffect(() => {
+    trackPageView("Vender Na Internet - Sales Page");
+  }, []);
 
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,6 +63,9 @@ export default function VenderNaInternet() {
       }]).select().single();
 
       if (error) throw error;
+
+      // Track InitiateCheckout when registration is successful and moving to payment step
+      trackInitiateCheckout("MRO Vender Na Internet", 25.00);
 
       const { error: pError } = await supabase.from('vender_pagamentos').insert([{
         usuario_id: data.id,
@@ -83,6 +91,11 @@ export default function VenderNaInternet() {
   };
 
   const openCheckout = () => {
+    trackFacebookEvent("AddToCart", {
+      content_name: "MRO Vender Na Internet",
+      value: 25.00,
+      currency: "BRL"
+    });
     setShowCheckout(true);
   };
 
