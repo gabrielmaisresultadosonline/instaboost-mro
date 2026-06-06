@@ -348,7 +348,7 @@ const Licenciado = () => {
       <section id="investimento" className="py-32 px-4 relative">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-zinc-900/50 border-yellow-500/30 rounded-[3.5rem] p-8 md:p-16 text-center backdrop-blur-xl relative overflow-hidden group shadow-2xl shadow-yellow-500/5">
-            <div className="absolute inset-0 bg-yellow-500/[0.02] group-hover:bg-yellow-500/[0.04] transition-all" />
+            <div className="absolute inset-0 bg-yellow-500/[0.02] group-hover:bg-yellow-500/[0.04] transition-all pointer-events-none" />
             
             <Badge className="mb-8 bg-white/10 text-yellow-500 font-black px-6 py-2 rounded-full border-white/10 uppercase tracking-[0.2em]">Investimento Único</Badge>
             <h2 className="text-4xl md:text-7xl font-black text-white mb-4 italic uppercase leading-none">Torne-se um <span className="text-yellow-500">Licenciado MRO</span></h2>
