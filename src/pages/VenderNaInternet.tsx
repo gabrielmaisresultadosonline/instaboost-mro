@@ -30,6 +30,24 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackFacebookEvent, trackPurchase, trackInitiateCheckout } from "@/lib/facebookTracking";
 
+const YellowCTAButton = ({ onClick, children, className, size = "lg" }: { onClick: () => void, children: React.ReactNode, className?: string, size?: "lg" | "default" }) => (
+  <Button 
+    size={size} 
+    onClick={onClick}
+    className={`bg-yellow-500 hover:bg-yellow-600 text-black font-black transition-all hover:scale-105 shadow-[0_0_40px_rgba(234,179,8,0.3)] group relative overflow-hidden ${className}`}
+  >
+    <span className="relative z-10 flex items-center justify-center gap-2">
+      {children}
+    </span>
+    <motion.div
+      initial={{ left: "-100%" }}
+      animate={{ left: "100%" }}
+      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+      className="absolute top-0 w-20 h-full bg-white/30 skew-x-[-20deg] z-0"
+    />
+  </Button>
+);
+
 export default function VenderNaInternet() {
   const navigate = useNavigate();
   const pricingRef = useRef<HTMLDivElement>(null);
@@ -153,23 +171,14 @@ export default function VenderNaInternet() {
               A MRO ajuda você a vender todos os dias utilizando <span className="text-white font-bold">Inteligência Artificial e automação</span> no Instagram.
             </p>
 
-            <Button 
+            <YellowCTAButton 
               size="lg" 
               onClick={openCheckout}
-              className="bg-green-600 hover:bg-green-700 text-white font-black h-20 px-12 rounded-2xl text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(22,163,74,0.3)] group"
+              className="h-20 px-12 rounded-2xl text-xl md:text-2xl"
             >
-              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
-            </Button>
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-1 w-8 h-8 group-hover:translate-x-2 transition-transform" />
+            </YellowCTAButton>
           </motion.div>
-        </div>
-        
-        <div className="max-w-xl mx-auto mt-12 px-4">
-          <Button 
-            onClick={scrollToPricing}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
-          >
-            Apenas R$25 Vitalício - Pagamento Único <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
         </div>
       </section>
 
@@ -240,12 +249,12 @@ export default function VenderNaInternet() {
               Você terá acesso completo para entender como utilizar a ferramenta e aproveitar todo o seu potencial de faturamento.
             </p>
             <div className="max-w-xl mx-auto mt-12">
-              <Button 
+              <YellowCTAButton 
                 onClick={openCheckout}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
+                className="w-full h-16 rounded-2xl text-lg uppercase italic"
               >
-                APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+                APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-1 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </YellowCTAButton>
             </div>
           </motion.div>
         </div>
@@ -277,12 +286,12 @@ export default function VenderNaInternet() {
           </div>
 
           <div className="max-w-xl mx-auto mt-16">
-            <Button 
+            <YellowCTAButton 
               onClick={openCheckout}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
+              className="w-full h-16 rounded-2xl text-lg uppercase italic"
             >
-              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-1 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </YellowCTAButton>
           </div>
         </div>
       </section>
