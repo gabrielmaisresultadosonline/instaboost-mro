@@ -171,23 +171,14 @@ export default function VenderNaInternet() {
               A MRO ajuda você a vender todos os dias utilizando <span className="text-white font-bold">Inteligência Artificial e automação</span> no Instagram.
             </p>
 
-            <Button 
+            <YellowCTAButton 
               size="lg" 
               onClick={openCheckout}
-              className="bg-green-600 hover:bg-green-700 text-white font-black h-20 px-12 rounded-2xl text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(22,163,74,0.3)] group"
+              className="h-20 px-12 rounded-2xl text-xl md:text-2xl"
             >
-              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
-            </Button>
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-1 w-8 h-8 group-hover:translate-x-2 transition-transform" />
+            </YellowCTAButton>
           </motion.div>
-        </div>
-        
-        <div className="max-w-xl mx-auto mt-12 px-4">
-          <Button 
-            onClick={scrollToPricing}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
-          >
-            Apenas R$25 Vitalício - Pagamento Único <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
         </div>
       </section>
 
