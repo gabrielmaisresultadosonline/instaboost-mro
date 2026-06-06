@@ -180,6 +180,9 @@ export default function VenderNaInternet() {
                     "Imagine ter um funcionário trabalhando até 10 horas por dia, de forma automática, entrando em contato com potenciais clientes e ajudando sua empresa a vender mais."
                   </p>
                 </div>
+                <p className="text-yellow-500 font-bold italic">
+                  Entre para imersão e aprenda como a MRO pode te ajudar.
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4">
