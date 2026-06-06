@@ -124,7 +124,7 @@ const Licenciado = () => {
 
             <Button 
               size="lg" 
-              onClick={handleWhatsAppContact}
+              onClick={scrollToInvestment}
               className="bg-yellow-500 hover:bg-yellow-600 text-black font-black h-20 px-12 rounded-[2rem] text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(234,179,8,0.3)] group"
             >
               QUERO SER UM LICENCIADO MRO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
