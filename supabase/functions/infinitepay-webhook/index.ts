@@ -178,12 +178,20 @@ serve(async (req) => {
     let isMROOrder = false;
     let isPromptsOrder = false;
     let isRendaExtOrder = false;
+    let isVenderOrder = false;
     
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
-        
+
+        if (itemName.startsWith("VENDER_")) {
+          isVenderOrder = true;
+          email = itemName.replace("VENDER_", "").toLowerCase();
+          log("Parsed VENDER order", { email });
+          break;
+        }
+
         if (itemName.startsWith("RENDAEXT_")) {
           isRendaExtOrder = true;
           email = itemName.replace("RENDAEXT_", "").toLowerCase();
@@ -197,6 +205,7 @@ serve(async (req) => {
           log("Parsed PROMPTS order", { email });
           break;
         }
+
         
         if (itemName.startsWith("MROIG_")) {
           isMROOrder = true;
