@@ -315,6 +315,82 @@ export default function VenderAdmin() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex gap-2 justify-end">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10 hover:border-blue-500 h-9 w-9 rounded-xl p-0"
+                                onClick={() => setPreviewUser(u)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+                                  <Mail className="text-yellow-500 w-5 h-5" /> Prévia do E-mail de Boas-Vindas
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="mt-6 border border-zinc-800 rounded-3xl overflow-hidden bg-white text-black p-0">
+                                {/* Header do Email */}
+                                <div className="bg-black p-8 text-center border-b-4 border-yellow-500">
+                                  <img src={logoMro} alt="MRO" className="h-12 mx-auto" />
+                                </div>
+                                
+                                {/* Corpo do Email */}
+                                <div className="p-10 space-y-8">
+                                  <div className="space-y-4">
+                                    <h2 className="text-2xl font-black italic uppercase leading-tight">Olá, <span className="text-yellow-600">{u.nome.split(' ')[0]}!</span></h2>
+                                    <p className="text-lg font-medium text-zinc-700">Seu pagamento de <span className="font-black">R$ 25,00</span> foi aprovado com sucesso! Bem-vindo à <span className="font-black">MRO - Vender na Internet</span>.</p>
+                                  </div>
+
+                                  <div className="bg-zinc-100 p-8 rounded-3xl space-y-6 border-l-4 border-yellow-500">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500">Seus Dados de Acesso:</h3>
+                                    <div className="space-y-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                          <Mail className="w-5 h-5 text-yellow-600" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Login/Email:</p>
+                                          <p className="font-bold text-zinc-800">{u.email}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                          <Lock className="w-5 h-5 text-yellow-600" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Senha Provisória:</p>
+                                          <p className="font-bold text-zinc-800">{u.senha}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-6">
+                                    <p className="text-lg font-bold text-zinc-800">Próximos passos obrigatórios:</p>
+                                    <div className="grid gap-4">
+                                      <a href="/vendernainternet/login" target="_blank" className="flex items-center justify-between p-6 bg-black text-white rounded-2xl hover:scale-[1.02] transition-transform">
+                                        <span className="font-black italic uppercase tracking-tight">1. Acessar Área de Membros</span>
+                                        <ExternalLink className="w-5 h-5" />
+                                      </a>
+                                      <a href="https://chat.whatsapp.com/Gz7vF4lGz..." target="_blank" className="flex items-center justify-between p-6 bg-green-600 text-white rounded-2xl hover:scale-[1.02] transition-transform">
+                                        <span className="font-black italic uppercase tracking-tight">2. Entrar no Grupo VIP</span>
+                                        <MessageCircle className="w-5 h-5" />
+                                      </a>
+                                    </div>
+                                  </div>
+
+                                  <div className="pt-8 border-t border-zinc-200 text-center">
+                                    <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Assista a imersão completa e comece hoje mesmo!</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+
                           {status !== 'pago' && (
                             <Button 
                               size="sm" 
