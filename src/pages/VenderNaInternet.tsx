@@ -30,6 +30,24 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackFacebookEvent, trackPurchase, trackInitiateCheckout } from "@/lib/facebookTracking";
 
+const YellowCTAButton = ({ onClick, children, className, size = "lg" }: { onClick: () => void, children: React.ReactNode, className?: string, size?: "lg" | "default" }) => (
+  <Button 
+    size={size} 
+    onClick={onClick}
+    className={`bg-yellow-500 hover:bg-yellow-600 text-black font-black transition-all hover:scale-105 shadow-[0_0_40px_rgba(234,179,8,0.3)] group relative overflow-hidden ${className}`}
+  >
+    <span className="relative z-10 flex items-center justify-center gap-2">
+      {children}
+    </span>
+    <motion.div
+      initial={{ left: "-100%" }}
+      animate={{ left: "100%" }}
+      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+      className="absolute top-0 w-20 h-full bg-white/30 skew-x-[-20deg] z-0"
+    />
+  </Button>
+);
+
 export default function VenderNaInternet() {
   const navigate = useNavigate();
   const pricingRef = useRef<HTMLDivElement>(null);
