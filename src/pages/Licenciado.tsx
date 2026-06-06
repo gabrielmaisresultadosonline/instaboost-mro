@@ -28,6 +28,13 @@ const Licenciado = () => {
     window.open('https://wa.me/555174001588?text=Olá, quero receber informações para me tornar um Licenciado MRO.', '_blank');
   };
 
+  const scrollToInvestment = () => {
+    const el = document.getElementById('investimento');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const benefits = [
     { title: "Licença Oficial MRO", icon: ShieldCheck },
     { title: "Acesso à Plataforma Completa", icon: Globe },
