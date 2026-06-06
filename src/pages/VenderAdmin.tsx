@@ -132,7 +132,9 @@ export default function VenderAdmin() {
       setIsLoggedIn(true);
       localStorage.setItem('vender_admin_auth', 'true');
       fetchData();
+      fetchSettings();
       toast.success("Acesso administrativo autorizado");
+
     } else {
       toast.error("Credenciais inválidas");
     }
