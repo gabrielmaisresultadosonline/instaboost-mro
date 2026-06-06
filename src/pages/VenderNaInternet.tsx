@@ -215,7 +215,7 @@ export default function VenderNaInternet() {
 
       {/* Section 5 - Special Offer Card */}
       <section className="py-32 px-4 relative">
-        <div className="max-w-4xl mx-auto">
+        <div ref={pricingRef} className="max-w-4xl mx-auto">
           <Card className="bg-zinc-900/80 border-2 border-yellow-500/50 rounded-[4rem] p-8 md:p-20 text-center backdrop-blur-xl relative overflow-hidden shadow-2xl">
             <div className="absolute top-[-50px] left-[-50px] w-48 h-48 bg-yellow-500/10 blur-[80px] rounded-full" />
             
