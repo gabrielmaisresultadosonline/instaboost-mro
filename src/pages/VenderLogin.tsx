@@ -13,7 +13,11 @@ export default function VenderLogin() {
   const [isRegister, setIsRegister] = useState(true);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  
+  const [paymentInfo, setPaymentInfo] = useState<{ nsu: string; userId: string; link: string } | null>(null);
+  const [polling, setPolling] = useState(false);
+  const pollIntervalRef = useRef<number | null>(null);
+  const pollTimeoutRef = useRef<number | null>(null);
+
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -31,40 +35,137 @@ export default function VenderLogin() {
     }
   }, []);
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+      if (pollTimeoutRef.current) window.clearTimeout(pollTimeoutRef.current);
+    };
+  }, []);
+
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      window.clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (pollTimeoutRef.current) {
+      window.clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+    setPolling(false);
+  };
+
+  const startPolling = (userId: string, nsu: string) => {
+    setPolling(true);
+
+    const check = async () => {
+      try {
+        // 1) Direct DB check (webhook may have already marked it)
+        const { data: pago } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+
+        if (pago?.status === 'pago') {
+          await onPaymentConfirmed(userId);
+          return;
+        }
+
+        // 2) Active check against InfiniPay API
+        await supabase.functions.invoke('check-infinitepay-payment', {
+          body: { order_nsu: nsu, table: 'vender_pagamentos', email: formData.email.toLowerCase().trim(), product_prefix: 'VENDER' }
+        });
+
+        const { data: pago2 } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+
+        if (pago2?.status === 'pago') {
+          await onPaymentConfirmed(userId);
+        }
+      } catch (e) {
+        console.error('[polling] error', e);
+      }
+    };
+
+    // Poll every 8 seconds, for 15 minutes max
+    pollIntervalRef.current = window.setInterval(check, 8000);
+    pollTimeoutRef.current = window.setTimeout(() => {
+      stopPolling();
+      toast.error("Tempo de verificação expirado. Se você já pagou, clique em 'Já paguei' para conferir.");
+    }, 15 * 60 * 1000);
+
+    // Trigger an immediate first check
+    check();
+  };
+
+  const onPaymentConfirmed = async (userId: string) => {
+    stopPolling();
+    const { data: u } = await supabase
+      .from('vender_usuarios')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    if (u) {
+      localStorage.setItem('vender_user', JSON.stringify(u));
+      setUser(u);
+      toast.success("Pagamento confirmado! Acesso liberado.");
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('vender_usuarios').insert([{
-        nome: formData.nome,
-        email: formData.email,
-        senha: formData.senha,
-        whatsapp: formData.whatsapp
-      }]).select().single();
+      const { data, error } = await supabase.functions.invoke('vender-create-checkout', {
+        body: {
+          nome: formData.nome,
+          email: formData.email,
+          senha: formData.senha,
+          whatsapp: formData.whatsapp,
+        }
+      });
 
-      if (error) throw error;
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Erro ao gerar checkout");
+      }
 
-      const { error: pError } = await supabase.from('vender_pagamentos').insert([{
-        usuario_id: data.id,
-        valor: 25.00,
-        status: 'pendente'
-      }]).select().single();
-
-      if (pError) throw pError;
-
-      toast.success("Cadastro realizado! Redirecionando para pagamento...");
-      
-      setTimeout(() => {
-        window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
-        setIsRegister(false);
-      }, 2000);
-
+      setPaymentInfo({ nsu: data.order_nsu, userId: data.user_id, link: data.payment_link });
+      toast.success("Redirecionando para o pagamento...");
+      window.open(data.payment_link, '_blank');
+      startPolling(data.user_id, data.order_nsu);
     } catch (err: any) {
       toast.error(err.message || "Erro no cadastro");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleManualCheck = async () => {
+    if (!paymentInfo) return;
+    setLoading(true);
+    try {
+      await supabase.functions.invoke('check-infinitepay-payment', {
+        body: { order_nsu: paymentInfo.nsu, table: 'vender_pagamentos', email: formData.email.toLowerCase().trim(), product_prefix: 'VENDER' }
+      });
+      const { data: pago } = await supabase
+        .from('vender_pagamentos')
+        .select('status')
+        .eq('infinitepay_transaction_id', paymentInfo.nsu)
+        .maybeSingle();
+      if (pago?.status === 'pago') {
+        await onPaymentConfirmed(paymentInfo.userId);
+      } else {
+        toast.info("Pagamento ainda não confirmado. Aguarde alguns segundos.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
