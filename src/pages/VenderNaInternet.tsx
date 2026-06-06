@@ -56,7 +56,11 @@ export default function VenderNaInternet() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+  const [paymentInfo, setPaymentInfo] = useState<{ nsu: string; userId: string; link: string } | null>(null);
+  const [polling, setPolling] = useState(false);
+  const pollIntervalRef = useRef<number | null>(null);
+  const pollTimeoutRef = useRef<number | null>(null);
+
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -66,50 +70,95 @@ export default function VenderNaInternet() {
 
   useEffect(() => {
     trackPageView("Vender Na Internet - Sales Page");
+    return () => {
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+      if (pollTimeoutRef.current) window.clearTimeout(pollTimeoutRef.current);
+    };
   }, []);
 
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const stopPolling = () => {
+    if (pollIntervalRef.current) { window.clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
+    if (pollTimeoutRef.current) { window.clearTimeout(pollTimeoutRef.current); pollTimeoutRef.current = null; }
+    setPolling(false);
+  };
+
+  const onPaymentConfirmed = async (userId: string) => {
+    stopPolling();
+    const { data: u } = await supabase.from('vender_usuarios').select('*').eq('id', userId).maybeSingle();
+    if (u) {
+      localStorage.setItem('vender_user', JSON.stringify(u));
+      toast.success("Pagamento confirmado! Redirecionando...");
+      trackPurchase(25.00, "MRO Vender Na Internet", u.email);
+      setTimeout(() => navigate('/vendernainternet/login'), 1200);
+    }
+  };
+
+  const startPolling = (userId: string, nsu: string) => {
+    setPolling(true);
+    const check = async () => {
+      try {
+        const { data: pago } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+        if (pago?.status === 'pago') { await onPaymentConfirmed(userId); return; }
+
+        await supabase.functions.invoke('check-infinitepay-payment', {
+          body: { order_nsu: nsu, table: 'vender_pagamentos', email: formData.email.toLowerCase().trim(), product_prefix: 'VENDER' }
+        });
+
+        const { data: pago2 } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+        if (pago2?.status === 'pago') await onPaymentConfirmed(userId);
+      } catch (e) { console.error('[polling]', e); }
+    };
+
+    pollIntervalRef.current = window.setInterval(check, 8000);
+    pollTimeoutRef.current = window.setTimeout(() => {
+      stopPolling();
+      toast.error("Tempo de verificação expirado (15 min). Se já pagou, faça login.");
+    }, 15 * 60 * 1000);
+    check();
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('vender_usuarios').insert([{
-        nome: formData.nome,
-        email: formData.email,
-        senha: formData.senha,
-        whatsapp: formData.whatsapp
-      }]).select().single();
-
-      if (error) throw error;
-
-      // Track InitiateCheckout when registration is successful and moving to payment step
       trackInitiateCheckout("MRO Vender Na Internet", 25.00);
 
-      const { error: pError } = await supabase.from('vender_pagamentos').insert([{
-        usuario_id: data.id,
-        valor: 25.00,
-        status: 'pendente'
-      }]).select().single();
+      const { data, error } = await supabase.functions.invoke('vender-create-checkout', {
+        body: {
+          nome: formData.nome,
+          email: formData.email,
+          senha: formData.senha,
+          whatsapp: formData.whatsapp,
+        }
+      });
 
-      if (pError) throw pError;
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Erro ao gerar pagamento");
+      }
 
-      toast.success("Cadastro realizado! Redirecionando para pagamento...");
-      
-      setTimeout(() => {
-        window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
-        setShowCheckout(false);
-        navigate('/vendernainternet/obrigado');
-      }, 2000);
-
+      setPaymentInfo({ nsu: data.order_nsu, userId: data.user_id, link: data.payment_link });
+      toast.success("Abrindo pagamento InfiniPay...");
+      window.open(data.payment_link, '_blank');
+      startPolling(data.user_id, data.order_nsu);
     } catch (err: any) {
       toast.error(err.message || "Erro no cadastro");
     } finally {
       setLoading(false);
     }
   };
+
 
   const openCheckout = () => {
     trackFacebookEvent("AddToCart", {
