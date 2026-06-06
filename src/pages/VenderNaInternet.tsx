@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   CheckCircle2, 
@@ -14,14 +14,77 @@ import {
   Star,
   Users,
   Video,
-  Play
+  Play,
+  X,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Loader2
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import logoMro from "@/assets/logo-mro.png";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function VenderNaInternet() {
   const navigate = useNavigate();
+  const pricingRef = useRef<HTMLDivElement>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    senha: "",
+    whatsapp: ""
+  });
+
+  const scrollToPricing = () => {
+    pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.from('vender_usuarios').insert([{
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha,
+        whatsapp: formData.whatsapp
+      }]).select().single();
+
+      if (error) throw error;
+
+      const { error: pError } = await supabase.from('vender_pagamentos').insert([{
+        usuario_id: data.id,
+        valor: 25.00,
+        status: 'pendente'
+      }]).select().single();
+
+      if (pError) throw pError;
+
+      toast.success("Cadastro realizado! Redirecionando para pagamento...");
+      
+      setTimeout(() => {
+        window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
+        setShowCheckout(false);
+        navigate('/vendernainternet/login');
+      }, 2000);
+
+    } catch (err: any) {
+      toast.error(err.message || "Erro no cadastro");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openCheckout = () => {
+    setShowCheckout(true);
+  };
 
   const handleCTA = () => {
     navigate('/vendernainternet/login');
@@ -79,12 +142,21 @@ export default function VenderNaInternet() {
 
             <Button 
               size="lg" 
-              onClick={handleCTA}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-black h-20 px-12 rounded-2xl text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(234,179,8,0.3)] group"
+              onClick={openCheckout}
+              className="bg-green-600 hover:bg-green-700 text-white font-black h-20 px-12 rounded-2xl text-xl md:text-2xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(22,163,74,0.3)] group"
             >
-              QUERO GARANTIR MINHA VAGA AGORA <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-3 w-8 h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
           </motion.div>
+        </div>
+        
+        <div className="max-w-xl mx-auto mt-12 px-4">
+          <Button 
+            onClick={scrollToPricing}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
+          >
+            Apenas R$25 Vitalício - Pagamento Único <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </div>
       </section>
 
@@ -151,6 +223,14 @@ export default function VenderNaInternet() {
             <p className="text-xl font-medium text-gray-400 max-w-2xl mx-auto">
               Você terá acesso completo para entender como utilizar a ferramenta e aproveitar todo o seu potencial de faturamento.
             </p>
+            <div className="max-w-xl mx-auto mt-12">
+              <Button 
+                onClick={openCheckout}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
+              >
+                APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -179,12 +259,21 @@ export default function VenderNaInternet() {
               </div>
             ))}
           </div>
+
+          <div className="max-w-xl mx-auto mt-16">
+            <Button 
+              onClick={openCheckout}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-16 rounded-2xl text-lg transition-all hover:scale-105 shadow-xl shadow-green-500/20 group uppercase italic"
+            >
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Section 5 - Special Offer Card */}
       <section className="py-32 px-4 relative">
-        <div className="max-w-4xl mx-auto">
+        <div ref={pricingRef} className="max-w-4xl mx-auto">
           <Card className="bg-zinc-900/80 border-2 border-yellow-500/50 rounded-[4rem] p-8 md:p-20 text-center backdrop-blur-xl relative overflow-hidden shadow-2xl">
             <div className="absolute top-[-50px] left-[-50px] w-48 h-48 bg-yellow-500/10 blur-[80px] rounded-full" />
             
@@ -210,10 +299,10 @@ export default function VenderNaInternet() {
 
             <Button 
               size="lg" 
-              onClick={handleCTA}
+              onClick={openCheckout}
               className="bg-green-600 hover:bg-green-700 text-white font-black h-24 px-12 rounded-3xl text-xl md:text-3xl transition-all hover:scale-105 shadow-[0_20px_50px_rgba(22,163,74,0.3)] w-full sm:w-auto"
             >
-              QUERO MEU ACESSO AGORA <ArrowRight className="ml-3 w-8 h-8" />
+              APENAS R$25 VITALÍCIO - PAGAMENTO ÚNICO <ArrowRight className="ml-3 w-8 h-8" />
             </Button>
             
             <p className="mt-8 text-gray-500 font-bold uppercase tracking-widest text-sm">
@@ -222,6 +311,117 @@ export default function VenderNaInternet() {
           </Card>
         </div>
       </section>
+
+      {/* Pop-up de Checkout Responsivo */}
+      <AnimatePresence>
+        {showCheckout && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCheckout(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md"
+            >
+              <Card className="bg-zinc-900 border-zinc-800 text-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <button 
+                  onClick={() => setShowCheckout(false)}
+                  className="absolute right-6 top-6 text-gray-500 hover:text-white transition-colors z-20"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <CardHeader className="text-center space-y-2 pt-10">
+                  <div className="flex justify-center mb-2">
+                    <img src={logoMro} alt="MRO" className="h-12 object-contain" />
+                  </div>
+                  <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
+                    FINALIZAR CADASTRO
+                  </CardTitle>
+                  <CardDescription className="text-gray-400 font-medium">
+                    Preencha os dados abaixo para receber seu acesso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-10">
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Nome Completo</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          placeholder="Ex: João Silva" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.nome}
+                          onChange={e => setFormData({...formData, nome: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">E-mail de Acesso</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          type="email" 
+                          placeholder="seu@email.com" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.email}
+                          onChange={e => setFormData({...formData, email: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Senha Segura</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.senha}
+                          onChange={e => setFormData({...formData, senha: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">WhatsApp (DDD)</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Input 
+                          placeholder="(00) 00000-0000" 
+                          className="pl-12 bg-black border-zinc-800 focus:border-yellow-500 h-12 rounded-xl font-bold text-sm" 
+                          required
+                          value={formData.whatsapp}
+                          onChange={e => setFormData({...formData, whatsapp: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-14 rounded-xl text-lg uppercase italic mt-4 shadow-lg shadow-green-500/10" disabled={loading}>
+                      {loading ? <Loader2 className="animate-spin" /> : "PAGAR R$ 25 AGORA"}
+                    </Button>
+
+                    <div className="flex items-center justify-center gap-2 pt-2 opacity-30">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span className="text-[8px] font-black uppercase tracking-widest">Tecnologia 100% Criptografada</span>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <footer className="py-12 border-t border-white/5 text-center text-gray-500">
