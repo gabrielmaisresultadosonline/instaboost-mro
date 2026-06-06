@@ -134,6 +134,7 @@ import Licenciado from "./pages/Licenciado";
 import VenderNaInternet from "./pages/VenderNaInternet";
 import VenderLogin from "./pages/VenderLogin";
 import VenderAdmin from "./pages/VenderAdmin";
+import VenderObrigado from "./pages/VenderObrigado";
 
 
 const queryClient = new QueryClient();
@@ -313,6 +314,7 @@ const App = () => (
           <Route path="/vendernainternet" element={<VenderNaInternet />} />
           <Route path="/vendernainternet/login" element={<VenderLogin />} />
           <Route path="/vendernainternet/admin" element={<VenderAdmin />} />
+          <Route path="/vendernainternet/obrigado" element={<VenderObrigado />} />
 
 
 
