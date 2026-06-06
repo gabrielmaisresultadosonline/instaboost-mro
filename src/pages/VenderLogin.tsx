@@ -283,7 +283,46 @@ export default function VenderLogin() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-10">
+          {isRegister && paymentInfo ? (
+            <div className="space-y-5 text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black italic uppercase">Aguardando Pagamento</h3>
+                <p className="text-sm text-gray-400 mt-2">
+                  {polling ? "Verificando a cada 8s por até 15 min..." : "Verificação pausada."}
+                </p>
+              </div>
+              <div className="bg-black rounded-2xl p-4 text-left space-y-1 border border-zinc-800">
+                <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">NSU do pedido</p>
+                <p className="font-mono text-xs text-green-400 break-all">{paymentInfo.nsu}</p>
+              </div>
+              <Button
+                onClick={() => window.open(paymentInfo.link, '_blank')}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-14 rounded-2xl uppercase italic"
+              >
+                Reabrir Pagamento
+              </Button>
+              <Button
+                onClick={handleManualCheck}
+                variant="outline"
+                disabled={loading}
+                className="w-full border-zinc-800 text-gray-300 hover:bg-zinc-900 font-bold h-12 rounded-2xl uppercase text-xs"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "Já paguei — verificar agora"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => { stopPolling(); setPaymentInfo(null); }}
+                className="text-xs text-gray-500 hover:text-white underline"
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
           <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5">
+
             {isRegister && (
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Nome Completo</label>
