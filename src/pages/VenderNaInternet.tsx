@@ -54,6 +54,25 @@ export default function VenderNaInternet() {
               <span className="text-yellow-500">tráfego pago</span> para vender
             </h1>
             
+            {/* Video de Vendas Principal */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="max-w-4xl mx-auto mb-10 aspect-video rounded-3xl overflow-hidden border-4 border-zinc-900 shadow-2xl shadow-yellow-500/10"
+            >
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/LtGuQazIYjo"
+                title="Apresentação MRO"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              ></iframe>
+            </motion.div>
+            
             <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
               A MRO ajuda você a vender todos os dias utilizando <span className="text-white font-bold">Inteligência Artificial e automação</span> no Instagram.
             </p>
