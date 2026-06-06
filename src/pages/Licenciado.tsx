@@ -345,7 +345,7 @@ const Licenciado = () => {
       </section>
 
       {/* Seção 9 - INVESTIMENTO */}
-      <section className="py-32 px-4 relative">
+      <section id="investimento" className="py-32 px-4 relative">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-zinc-900/50 border-yellow-500/30 rounded-[3.5rem] p-8 md:p-16 text-center backdrop-blur-xl relative overflow-hidden group shadow-2xl shadow-yellow-500/5">
             <div className="absolute inset-0 bg-yellow-500/[0.02] group-hover:bg-yellow-500/[0.04] transition-all" />
