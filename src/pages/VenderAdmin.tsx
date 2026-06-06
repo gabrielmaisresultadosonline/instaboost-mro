@@ -40,8 +40,51 @@ export default function VenderAdmin() {
   const [users, setUsers] = useState<any[]>([]);
   const [stats, setStats] = useState({ pendente: 0, pago: 0, expirado: 0 });
   const [searchTerm, setSearchTerm] = useState("");
+  const [grupoLink, setGrupoLink] = useState("");
+  const [grupoLinkId, setGrupoLinkId] = useState<string | null>(null);
+  const [savingLink, setSavingLink] = useState(false);
 
   const [previewUser, setPreviewUser] = useState<any>(null);
+
+  const fetchSettings = async () => {
+    const { data } = await supabase
+      .from('vender_settings')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      setGrupoLink(data.grupo_vip_link || "");
+      setGrupoLinkId(data.id);
+    }
+  };
+
+  const saveGrupoLink = async () => {
+    setSavingLink(true);
+    try {
+      if (grupoLinkId) {
+        const { error } = await supabase
+          .from('vender_settings')
+          .update({ grupo_vip_link: grupoLink })
+          .eq('id', grupoLinkId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('vender_settings')
+          .insert({ grupo_vip_link: grupoLink })
+          .select()
+          .single();
+        if (error) throw error;
+        setGrupoLinkId(data.id);
+      }
+      toast.success("Link do Grupo VIP salvo!");
+    } catch (err) {
+      toast.error("Erro ao salvar link");
+    } finally {
+      setSavingLink(false);
+    }
+  };
+
 
   const fetchData = async () => {
     setLoading(true);
