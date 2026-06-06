@@ -134,6 +134,7 @@ import Licenciado from "./pages/Licenciado";
 import VenderNaInternet from "./pages/VenderNaInternet";
 import VenderLogin from "./pages/VenderLogin";
 import VenderAdmin from "./pages/VenderAdmin";
+import VenderObrigado from "./pages/VenderObrigado";
 
 
 const queryClient = new QueryClient();
