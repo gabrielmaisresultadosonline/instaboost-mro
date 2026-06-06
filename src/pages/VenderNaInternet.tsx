@@ -56,7 +56,11 @@ export default function VenderNaInternet() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+  const [paymentInfo, setPaymentInfo] = useState<{ nsu: string; userId: string; link: string } | null>(null);
+  const [polling, setPolling] = useState(false);
+  const pollIntervalRef = useRef<number | null>(null);
+  const pollTimeoutRef = useRef<number | null>(null);
+
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -66,50 +70,95 @@ export default function VenderNaInternet() {
 
   useEffect(() => {
     trackPageView("Vender Na Internet - Sales Page");
+    return () => {
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+      if (pollTimeoutRef.current) window.clearTimeout(pollTimeoutRef.current);
+    };
   }, []);
 
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const stopPolling = () => {
+    if (pollIntervalRef.current) { window.clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
+    if (pollTimeoutRef.current) { window.clearTimeout(pollTimeoutRef.current); pollTimeoutRef.current = null; }
+    setPolling(false);
+  };
+
+  const onPaymentConfirmed = async (userId: string) => {
+    stopPolling();
+    const { data: u } = await supabase.from('vender_usuarios').select('*').eq('id', userId).maybeSingle();
+    if (u) {
+      localStorage.setItem('vender_user', JSON.stringify(u));
+      toast.success("Pagamento confirmado! Redirecionando...");
+      trackPurchase(25.00, "MRO Vender Na Internet", u.email);
+      setTimeout(() => navigate('/vendernainternet/login'), 1200);
+    }
+  };
+
+  const startPolling = (userId: string, nsu: string) => {
+    setPolling(true);
+    const check = async () => {
+      try {
+        const { data: pago } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+        if (pago?.status === 'pago') { await onPaymentConfirmed(userId); return; }
+
+        await supabase.functions.invoke('check-infinitepay-payment', {
+          body: { order_nsu: nsu, table: 'vender_pagamentos', email: formData.email.toLowerCase().trim(), product_prefix: 'VENDER' }
+        });
+
+        const { data: pago2 } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+        if (pago2?.status === 'pago') await onPaymentConfirmed(userId);
+      } catch (e) { console.error('[polling]', e); }
+    };
+
+    pollIntervalRef.current = window.setInterval(check, 8000);
+    pollTimeoutRef.current = window.setTimeout(() => {
+      stopPolling();
+      toast.error("Tempo de verificação expirado (15 min). Se já pagou, faça login.");
+    }, 15 * 60 * 1000);
+    check();
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('vender_usuarios').insert([{
-        nome: formData.nome,
-        email: formData.email,
-        senha: formData.senha,
-        whatsapp: formData.whatsapp
-      }]).select().single();
-
-      if (error) throw error;
-
-      // Track InitiateCheckout when registration is successful and moving to payment step
       trackInitiateCheckout("MRO Vender Na Internet", 25.00);
 
-      const { error: pError } = await supabase.from('vender_pagamentos').insert([{
-        usuario_id: data.id,
-        valor: 25.00,
-        status: 'pendente'
-      }]).select().single();
+      const { data, error } = await supabase.functions.invoke('vender-create-checkout', {
+        body: {
+          nome: formData.nome,
+          email: formData.email,
+          senha: formData.senha,
+          whatsapp: formData.whatsapp,
+        }
+      });
 
-      if (pError) throw pError;
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Erro ao gerar pagamento");
+      }
 
-      toast.success("Cadastro realizado! Redirecionando para pagamento...");
-      
-      setTimeout(() => {
-        window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
-        setShowCheckout(false);
-        navigate('/vendernainternet/obrigado');
-      }, 2000);
-
+      setPaymentInfo({ nsu: data.order_nsu, userId: data.user_id, link: data.payment_link });
+      toast.success("Abrindo pagamento InfiniPay...");
+      window.open(data.payment_link, '_blank');
+      startPolling(data.user_id, data.order_nsu);
     } catch (err: any) {
       toast.error(err.message || "Erro no cadastro");
     } finally {
       setLoading(false);
     }
   };
+
 
   const openCheckout = () => {
     trackFacebookEvent("AddToCart", {
@@ -380,6 +429,42 @@ export default function VenderNaInternet() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pb-10">
+                  {paymentInfo ? (
+                    <div className="space-y-6 text-center">
+                      <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black italic uppercase">Aguardando Pagamento</h3>
+                        <p className="text-sm text-gray-400 mt-2">
+                          {polling ? "Verificando a cada 8s por até 15 min..." : "Verificação pausada."}
+                        </p>
+                      </div>
+                      <div className="bg-zinc-950 rounded-2xl p-4 text-left space-y-1">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">NSU do pedido</p>
+                        <p className="font-mono text-sm text-green-400 break-all">{paymentInfo.nsu}</p>
+                      </div>
+                      <Button
+                        onClick={() => window.open(paymentInfo.link, '_blank')}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-12 rounded-xl uppercase italic"
+                      >
+                        Reabrir Pagamento
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          stopPolling();
+                          setPaymentInfo(null);
+                        }}
+                        className="w-full border-zinc-800 text-gray-400 hover:bg-zinc-900 font-bold h-11 rounded-xl uppercase text-xs"
+                      >
+                        Cancelar
+                      </Button>
+                      <p className="text-[10px] text-gray-500">
+                        Após o pagamento, libera automaticamente. Você também pode entrar manualmente em /vendernainternet/login.
+                      </p>
+                    </div>
+                  ) : (
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Nome Completo</label>
@@ -455,7 +540,9 @@ export default function VenderNaInternet() {
                       <span className="text-[8px] font-black uppercase tracking-widest">Tecnologia 100% Criptografada</span>
                     </div>
                   </form>
+                  )}
                 </CardContent>
+
               </Card>
             </motion.div>
           </div>

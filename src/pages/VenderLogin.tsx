@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,11 @@ export default function VenderLogin() {
   const [isRegister, setIsRegister] = useState(true);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  
+  const [paymentInfo, setPaymentInfo] = useState<{ nsu: string; userId: string; link: string } | null>(null);
+  const [polling, setPolling] = useState(false);
+  const pollIntervalRef = useRef<number | null>(null);
+  const pollTimeoutRef = useRef<number | null>(null);
+
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -31,40 +35,137 @@ export default function VenderLogin() {
     }
   }, []);
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+      if (pollTimeoutRef.current) window.clearTimeout(pollTimeoutRef.current);
+    };
+  }, []);
+
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      window.clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (pollTimeoutRef.current) {
+      window.clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+    setPolling(false);
+  };
+
+  const startPolling = (userId: string, nsu: string) => {
+    setPolling(true);
+
+    const check = async () => {
+      try {
+        // 1) Direct DB check (webhook may have already marked it)
+        const { data: pago } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+
+        if (pago?.status === 'pago') {
+          await onPaymentConfirmed(userId);
+          return;
+        }
+
+        // 2) Active check against InfiniPay API
+        await supabase.functions.invoke('check-infinitepay-payment', {
+          body: { order_nsu: nsu, table: 'vender_pagamentos', email: formData.email.toLowerCase().trim(), product_prefix: 'VENDER' }
+        });
+
+        const { data: pago2 } = await supabase
+          .from('vender_pagamentos')
+          .select('status')
+          .eq('infinitepay_transaction_id', nsu)
+          .maybeSingle();
+
+        if (pago2?.status === 'pago') {
+          await onPaymentConfirmed(userId);
+        }
+      } catch (e) {
+        console.error('[polling] error', e);
+      }
+    };
+
+    // Poll every 8 seconds, for 15 minutes max
+    pollIntervalRef.current = window.setInterval(check, 8000);
+    pollTimeoutRef.current = window.setTimeout(() => {
+      stopPolling();
+      toast.error("Tempo de verificação expirado. Se você já pagou, clique em 'Já paguei' para conferir.");
+    }, 15 * 60 * 1000);
+
+    // Trigger an immediate first check
+    check();
+  };
+
+  const onPaymentConfirmed = async (userId: string) => {
+    stopPolling();
+    const { data: u } = await supabase
+      .from('vender_usuarios')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    if (u) {
+      localStorage.setItem('vender_user', JSON.stringify(u));
+      setUser(u);
+      toast.success("Pagamento confirmado! Acesso liberado.");
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('vender_usuarios').insert([{
-        nome: formData.nome,
-        email: formData.email,
-        senha: formData.senha,
-        whatsapp: formData.whatsapp
-      }]).select().single();
+      const { data, error } = await supabase.functions.invoke('vender-create-checkout', {
+        body: {
+          nome: formData.nome,
+          email: formData.email,
+          senha: formData.senha,
+          whatsapp: formData.whatsapp,
+        }
+      });
 
-      if (error) throw error;
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Erro ao gerar checkout");
+      }
 
-      const { error: pError } = await supabase.from('vender_pagamentos').insert([{
-        usuario_id: data.id,
-        valor: 25.00,
-        status: 'pendente'
-      }]).select().single();
-
-      if (pError) throw pError;
-
-      toast.success("Cadastro realizado! Redirecionando para pagamento...");
-      
-      setTimeout(() => {
-        window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
-        setIsRegister(false);
-      }, 2000);
-
+      setPaymentInfo({ nsu: data.order_nsu, userId: data.user_id, link: data.payment_link });
+      toast.success("Redirecionando para o pagamento...");
+      window.open(data.payment_link, '_blank');
+      startPolling(data.user_id, data.order_nsu);
     } catch (err: any) {
       toast.error(err.message || "Erro no cadastro");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleManualCheck = async () => {
+    if (!paymentInfo) return;
+    setLoading(true);
+    try {
+      await supabase.functions.invoke('check-infinitepay-payment', {
+        body: { order_nsu: paymentInfo.nsu, table: 'vender_pagamentos', email: formData.email.toLowerCase().trim(), product_prefix: 'VENDER' }
+      });
+      const { data: pago } = await supabase
+        .from('vender_pagamentos')
+        .select('status')
+        .eq('infinitepay_transaction_id', paymentInfo.nsu)
+        .maybeSingle();
+      if (pago?.status === 'pago') {
+        await onPaymentConfirmed(paymentInfo.userId);
+      } else {
+        toast.info("Pagamento ainda não confirmado. Aguarde alguns segundos.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +283,46 @@ export default function VenderLogin() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-10">
+          {isRegister && paymentInfo ? (
+            <div className="space-y-5 text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black italic uppercase">Aguardando Pagamento</h3>
+                <p className="text-sm text-gray-400 mt-2">
+                  {polling ? "Verificando a cada 8s por até 15 min..." : "Verificação pausada."}
+                </p>
+              </div>
+              <div className="bg-black rounded-2xl p-4 text-left space-y-1 border border-zinc-800">
+                <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">NSU do pedido</p>
+                <p className="font-mono text-xs text-green-400 break-all">{paymentInfo.nsu}</p>
+              </div>
+              <Button
+                onClick={() => window.open(paymentInfo.link, '_blank')}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-black h-14 rounded-2xl uppercase italic"
+              >
+                Reabrir Pagamento
+              </Button>
+              <Button
+                onClick={handleManualCheck}
+                variant="outline"
+                disabled={loading}
+                className="w-full border-zinc-800 text-gray-300 hover:bg-zinc-900 font-bold h-12 rounded-2xl uppercase text-xs"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "Já paguei — verificar agora"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => { stopPolling(); setPaymentInfo(null); }}
+                className="text-xs text-gray-500 hover:text-white underline"
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
           <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5">
+
             {isRegister && (
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Nome Completo</label>
@@ -264,7 +404,9 @@ export default function VenderLogin() {
               <span className="text-[10px] font-black uppercase tracking-widest">Tecnologia 100% Criptografada</span>
             </div>
           </form>
+          )}
         </CardContent>
+
       </Card>
     </div>
   );
