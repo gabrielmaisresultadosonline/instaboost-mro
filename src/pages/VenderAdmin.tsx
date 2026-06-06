@@ -39,6 +39,8 @@ export default function VenderAdmin() {
   const [stats, setStats] = useState({ pendente: 0, pago: 0, expirado: 0 });
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [previewUser, setPreviewUser] = useState<any>(null);
+
   const fetchData = async () => {
     setLoading(true);
     try {
