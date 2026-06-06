@@ -4642,6 +4642,80 @@ export type Database = {
         }
         Relationships: []
       }
+      vender_pagamentos: {
+        Row: {
+          created_at: string
+          id: string
+          infinitepay_transaction_id: string | null
+          payment_url: string | null
+          status: string
+          updated_at: string
+          usuario_id: string | null
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          infinitepay_transaction_id?: string | null
+          payment_url?: string | null
+          status?: string
+          updated_at?: string
+          usuario_id?: string | null
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          infinitepay_transaction_id?: string | null
+          payment_url?: string | null
+          status?: string
+          updated_at?: string
+          usuario_id?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vender_pagamentos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vender_usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vender_usuarios: {
+        Row: {
+          acesso_liberado: boolean | null
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          senha: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          acesso_liberado?: boolean | null
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          senha: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          acesso_liberado?: boolean | null
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          senha?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       whatsapp_page_options: {
         Row: {
           color: string
