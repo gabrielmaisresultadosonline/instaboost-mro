@@ -131,6 +131,9 @@ import InstagramPromo30Dias from "./pages/InstagramPromo30Dias";
 import ThorCreativeDashboard from "./pages/ThorCreative/Dashboard";
 import Atualizar from "./pages/Atualizar";
 import Licenciado from "./pages/Licenciado";
+import VenderNaInternet from "./pages/VenderNaInternet";
+import VenderLogin from "./pages/VenderLogin";
+import VenderAdmin from "./pages/VenderAdmin";
 
 
 const queryClient = new QueryClient();
@@ -307,6 +310,9 @@ const App = () => (
           <Route path="/atualizar" element={<Atualizar />} />
           <Route path="/atualizarver" element={<Atualizar />} />
           <Route path="/licenciado" element={<Licenciado />} />
+          <Route path="/vendernainternet" element={<VenderNaInternet />} />
+          <Route path="/vendernainternet/login" element={<VenderLogin />} />
+          <Route path="/vendernainternet/admin" element={<VenderAdmin />} />
 
 
 
