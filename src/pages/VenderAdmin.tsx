@@ -453,7 +453,7 @@ export default function VenderAdmin() {
                                         <span className="font-black italic uppercase tracking-tight">1. Acessar Área de Membros</span>
                                         <ExternalLink className="w-5 h-5" />
                                       </a>
-                                      <a href="https://chat.whatsapp.com/Gz7vF4lGz..." target="_blank" className="flex items-center justify-between p-6 bg-green-600 text-white rounded-2xl hover:scale-[1.02] transition-transform">
+                                      <a href={grupoLink || "#"} target="_blank" className="flex items-center justify-between p-6 bg-green-600 text-white rounded-2xl hover:scale-[1.02] transition-transform">
                                         <span className="font-black italic uppercase tracking-tight">2. Entrar no Grupo VIP</span>
                                         <MessageCircle className="w-5 h-5" />
                                       </a>
