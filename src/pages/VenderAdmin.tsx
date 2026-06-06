@@ -487,6 +487,19 @@ export default function VenderAdmin() {
                             </DialogContent>
                           </Dialog>
 
+                          {status === 'pago' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title={u.email_enviado ? `Email enviado${u.email_enviado_at ? ' em ' + new Date(u.email_enviado_at).toLocaleString() : ''} - Clique para reenviar` : 'Enviar email de acesso'}
+                              className={`h-9 w-9 rounded-xl p-0 ${u.email_enviado
+                                ? 'text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10'
+                                : 'text-orange-500 border-orange-500/30 hover:bg-orange-500/10 animate-pulse'}`}
+                              onClick={() => handleResendEmail(u.id)}
+                            >
+                              {u.email_enviado ? <MailCheck className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                            </Button>
+                          )}
                           {status !== 'pago' && (
                             <Button 
                               size="sm" 
