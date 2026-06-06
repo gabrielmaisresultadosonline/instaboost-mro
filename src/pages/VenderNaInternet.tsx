@@ -72,7 +72,7 @@ export default function VenderNaInternet() {
       setTimeout(() => {
         window.open('https://infinitepay.io/checkout?amount=2500', '_blank');
         setShowCheckout(false);
-        navigate('/vendernainternet/login');
+        navigate('/vendernainternet/obrigado');
       }, 2000);
 
     } catch (err: any) {
