@@ -163,10 +163,27 @@ export default function VenderAdmin() {
         trackPurchase(25.00, "MRO Vender Na Internet", userToApprove.email);
       }
 
-      toast.success("Acesso liberado manualmente!");
+      // Send welcome email automatically
+      try {
+        await supabase.functions.invoke('vender-send-email', { body: { user_id: userId } });
+      } catch (e) { /* non-blocking */ }
+
+      toast.success("Acesso liberado e email enviado!");
       fetchData();
     } catch (err) {
       toast.error("Erro ao aprovar");
+    }
+  };
+
+  const handleResendEmail = async (userId: string) => {
+    try {
+      toast.loading("Enviando email...", { id: `mail-${userId}` });
+      const { error } = await supabase.functions.invoke('vender-send-email', { body: { user_id: userId } });
+      if (error) throw error;
+      toast.success("Email reenviado com sucesso!", { id: `mail-${userId}` });
+      fetchData();
+    } catch (err: any) {
+      toast.error("Erro ao enviar email: " + (err?.message || ""), { id: `mail-${userId}` });
     }
   };
 
