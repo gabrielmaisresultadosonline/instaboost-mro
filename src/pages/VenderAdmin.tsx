@@ -16,11 +16,20 @@ import {
   ShieldCheck,
   LayoutDashboard,
   Users,
-  Search
+  Search,
+  Eye,
+  ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { trackPurchase } from "@/lib/facebookTracking";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function VenderAdmin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
