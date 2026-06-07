@@ -78,6 +78,18 @@ export default function VenderNaInternet() {
     };
   }, []);
 
+  useEffect(() => {
+    if (showDiscountEndedPopup) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showDiscountEndedPopup]);
+
+
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
