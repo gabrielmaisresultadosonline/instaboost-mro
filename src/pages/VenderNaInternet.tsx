@@ -60,6 +60,8 @@ export default function VenderNaInternet() {
   const [polling, setPolling] = useState(false);
   const pollIntervalRef = useRef<number | null>(null);
   const pollTimeoutRef = useRef<number | null>(null);
+  const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(true);
+
 
   const [formData, setFormData] = useState({
     nome: "",
