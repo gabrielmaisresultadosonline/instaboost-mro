@@ -550,6 +550,45 @@ export default function VenderNaInternet() {
           </div>
         )}
       </AnimatePresence>
+      {/* Popup DESCONTO ENCERRADO */}
+      <AnimatePresence>
+        {showDiscountEndedPopup && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-zinc-900 p-8 md:p-12 rounded-[3rem] border-2 border-yellow-500 max-w-lg w-full text-center shadow-2xl shadow-yellow-500/20 relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-yellow-500" />
+              
+              <div className="mb-8">
+                <div className="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <X className="w-10 h-10 text-yellow-500" />
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black mb-4 text-white uppercase italic tracking-tighter">
+                  DESCONTO <br />
+                  <span className="text-yellow-500 text-5xl md:text-6xl">ENCERRADO</span>
+                </h2>
+                <p className="text-gray-400 text-lg md:text-xl font-medium leading-relaxed">
+                  Lamentamos, mas o valor promocional de <span className="text-white font-bold">R$ 25</span> não está mais disponível nesta página.
+                </p>
+              </div>
+
+              <Button 
+                onClick={() => navigate('/instagram-nova')}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-black h-20 rounded-2xl text-xl uppercase italic shadow-xl shadow-yellow-500/20 group transition-all hover:scale-105"
+              >
+                Segue para pagina oficial
+                <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              
+              <p className="mt-6 text-gray-500 text-xs font-bold uppercase tracking-widest opacity-50">
+                Você será redirecionado para a oferta atual
+              </p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <footer className="py-12 border-t border-white/5 text-center text-gray-500">
@@ -563,5 +602,6 @@ export default function VenderNaInternet() {
         </div>
       </footer>
     </div>
+
   );
 }
