@@ -366,7 +366,7 @@ const InstagramNovaEuro = () => {
           
           {/* Animated Title */}
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-[60px] md:blur-[120px] rounded-full" />
+            <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-[60px] md:blur-[60px] md:blur-[120px] rounded-full" />
             <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
               NÃO GASTE MAIS COM ANÚNCIOS
             </h1>

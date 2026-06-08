@@ -231,7 +231,7 @@ const PromptsINDashboard = () => {
     return (
       <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-600/5 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-purple-600/8 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-purple-600/8 rounded-full blur-[60px] md:blur-[120px] pointer-events-none" />
         <div className="relative z-10 w-full max-w-md">
           <div className="bg-[#111118] border border-white/10 rounded-3xl p-8 md:p-10 shadow-2xl shadow-purple-900/10">
             <div className="text-center mb-8">

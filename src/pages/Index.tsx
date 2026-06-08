@@ -549,8 +549,8 @@ const Index = () => {
 
         {/* Dynamic backgrounds */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] bg-amber-500/[0.07] rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[60px] md:blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] bg-amber-500/[0.07] rounded-full blur-[70px] md:blur-[150px] animate-pulse" style={{ animationDelay: '2s' }} />
           <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]" />
         </div>
 

@@ -204,8 +204,8 @@ const RendaExt = () => {
       <div className="min-h-screen bg-[#0a0f1a] relative overflow-hidden flex items-center justify-center p-4">
         {/* Background Decorative Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 rounded-full blur-[60px] md:blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[60px] md:blur-[120px] animate-pulse" />
         </div>
 
         <div className="max-w-lg w-full text-center space-y-6 relative z-10 animate-fade-in">
@@ -236,9 +236,9 @@ const RendaExt = () => {
     <div className="min-h-screen bg-[#0a0f1a] text-white font-sans selection:bg-yellow-500/30 overflow-x-hidden">
       {/* Dynamic Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[50%] h-[50%] bg-yellow-500/5 rounded-full blur-[120px] animate-pulse-slow" />
-        <div className="absolute bottom-[-15%] left-[-5%] w-[50%] h-[50%] bg-orange-500/5 rounded-full blur-[120px] animate-pulse-slow" />
-        <div className="absolute top-[20%] left-[-10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[-15%] right-[-5%] w-[50%] h-[50%] bg-yellow-500/5 rounded-full blur-[60px] md:blur-[120px] animate-pulse-slow" />
+        <div className="absolute bottom-[-15%] left-[-5%] w-[50%] h-[50%] bg-orange-500/5 rounded-full blur-[60px] md:blur-[120px] animate-pulse-slow" />
+        <div className="absolute top-[20%] left-[-10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[60px] md:blur-[120px]" />
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-12 md:py-20 relative z-10">
@@ -381,7 +381,7 @@ const RendaExt = () => {
           <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-[2.5rem] blur opacity-20" />
           <div className="relative bg-gradient-to-br from-[#1a1f35] to-[#0a0f1a] border border-white/10 rounded-[2.5rem] p-10 md:p-16 text-center shadow-3xl overflow-hidden">
             {/* Inner background glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-yellow-500/5 blur-[100px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-yellow-500/5 blur-[50px] md:blur-[100px] pointer-events-none" />
             
             <div className="relative z-10">
               <p className="text-gray-400 text-sm uppercase tracking-[0.3em] font-bold mb-6">Comece agora por apenas</p>

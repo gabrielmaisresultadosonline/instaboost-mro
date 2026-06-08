@@ -311,8 +311,8 @@ const InstagramPromo30Dias = () => {
       {/* Hero Section */}
       <section className="relative pt-20 pb-8 px-4">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[60px] md:blur-[120px]" />
-          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[50px] md:blur-[100px]" />
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[60px] md:blur-[60px] md:blur-[120px]" />
+          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[50px] md:blur-[50px] md:blur-[100px]" />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-t from-purple-500/5 to-transparent" />
         </div>
         <div className="max-w-5xl mx-auto text-center relative">

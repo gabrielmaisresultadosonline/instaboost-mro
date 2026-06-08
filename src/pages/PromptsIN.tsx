@@ -120,8 +120,8 @@ const PromptsIN = () => {
       {/* Hero */}
       <section className="relative py-20 md:py-32 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-600/10 via-pink-600/5 to-transparent pointer-events-none" />
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-32 right-1/4 w-60 h-60 bg-pink-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-purple-600/10 rounded-full blur-[60px] md:blur-[120px] pointer-events-none" />
+        <div className="absolute top-32 right-1/4 w-60 h-60 bg-pink-600/10 rounded-full blur-[50px] md:blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 rounded-full px-5 py-2.5 mb-8">

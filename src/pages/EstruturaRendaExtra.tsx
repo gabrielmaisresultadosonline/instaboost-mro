@@ -965,8 +965,8 @@ const EstruturaRendaExtra = () => {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[150px] animate-pulse" />
-          <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-500/[0.03] rounded-full blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[70px] md:blur-[150px] animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-500/[0.03] rounded-full blur-[80px] md:blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto w-full px-4 py-12 md:py-20 flex flex-col items-center justify-center min-h-screen space-y-12">
@@ -1112,9 +1112,9 @@ const EstruturaRendaExtra = () => {
         </div>
         {/* Animated background elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-yellow-500/[0.04] rounded-full blur-[150px] animate-pulse" />
-          <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-orange-500/[0.03] rounded-full blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
-          <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] bg-purple-500/[0.03] rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '4s' }} />
+          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-yellow-500/[0.04] rounded-full blur-[70px] md:blur-[150px] animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-orange-500/[0.03] rounded-full blur-[80px] md:blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] bg-purple-500/[0.03] rounded-full blur-[60px] md:blur-[120px] animate-pulse" style={{ animationDelay: '4s' }} />
           {/* Grid overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
