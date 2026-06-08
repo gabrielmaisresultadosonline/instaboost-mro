@@ -87,7 +87,7 @@ const InstagramPromo30Dias = () => {
   const [usernameError, setUsernameError] = useState("");
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
-  const usernameCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const usernameCheckTimeoutRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(false);
 
   const checkUsernameAvailability = async (usernameToCheck: string): Promise<boolean | null> => {
@@ -265,7 +265,8 @@ const InstagramPromo30Dias = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Expired Discount Popup */}
+      {/* Expired Discount Popup - REMOVED TO PREVENT BLACK SCREEN ISSUES */}
+      {/* 
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
         <div className="relative max-w-md w-full bg-gradient-to-br from-gray-900 to-black border border-red-500/40 rounded-2xl p-8 text-center shadow-2xl">
           <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -284,6 +285,7 @@ const InstagramPromo30Dias = () => {
           </a>
         </div>
       </div>
+      */}
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
@@ -309,8 +311,8 @@ const InstagramPromo30Dias = () => {
       {/* Hero Section */}
       <section className="relative pt-20 pb-8 px-4">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px]" />
-          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[100px]" />
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[60px] md:blur-[60px] md:blur-[120px]" />
+          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[50px] md:blur-[50px] md:blur-[100px]" />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-t from-purple-500/5 to-transparent" />
         </div>
         <div className="max-w-5xl mx-auto text-center relative">

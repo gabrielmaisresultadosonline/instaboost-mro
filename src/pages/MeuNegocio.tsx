@@ -77,8 +77,8 @@ const MeuNegocioPage = () => {
     <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8 relative overflow-hidden">
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[50px] md:blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[50px] md:blur-[100px]" />
       </div>
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">

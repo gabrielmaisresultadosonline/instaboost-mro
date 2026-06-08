@@ -21,8 +21,8 @@ const RendaExtObrigado = () => {
     <div className="min-h-screen bg-[#0a0f1a] relative overflow-hidden flex flex-col items-center p-4">
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 rounded-full blur-[60px] md:blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[60px] md:blur-[120px] animate-pulse" />
       </div>
 
       <div className="max-w-2xl w-full text-center space-y-8 py-12 md:py-20 relative z-10 animate-fade-in">

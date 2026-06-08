@@ -267,7 +267,7 @@ export default function VenderLogin() {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 font-sans">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yellow-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yellow-500/5 blur-[60px] md:blur-[120px] rounded-full" />
       </div>
 
       <Card className="w-full max-w-md bg-zinc-900/80 border-zinc-800 text-white backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10">

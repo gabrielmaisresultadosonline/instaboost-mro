@@ -630,7 +630,7 @@ const AffiliatePromoPage = () => {
           {/* Automação Completa de Crescimento */}
           <div className="mb-10">
             <div className="relative bg-gradient-to-br from-amber-950/60 to-amber-900/30 border-2 border-amber-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none -translate-x-1/2" />
+              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[50px] md:blur-[100px] pointer-events-none -translate-x-1/2" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">

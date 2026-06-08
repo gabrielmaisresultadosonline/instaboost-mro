@@ -232,7 +232,8 @@ const InstagramNovaPromo = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Popup Desconto Encerrado */}
+      {/* Popup Desconto Encerrado - REMOVED TO PREVENT BLACK SCREEN ISSUES */}
+      {/* 
       {showDiscountEndedPopup && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)'}}>
           <div style={{background: 'linear-gradient(to bottom, #1a1a1a, #111)', border: '2px solid #ef4444', borderRadius: '1rem', padding: '2.5rem 2rem', maxWidth: '420px', width: '100%', textAlign: 'center'}}>
@@ -255,6 +256,7 @@ const InstagramNovaPromo = () => {
           </div>
         </div>
       )}
+      */}
 
       {/* Urgency Banner */}
       <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">

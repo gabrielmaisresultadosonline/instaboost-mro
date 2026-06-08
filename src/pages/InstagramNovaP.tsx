@@ -81,7 +81,7 @@ const InstagramNovaP = () => {
   const [usernameError, setUsernameError] = useState("");
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
-  const usernameCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const usernameCheckTimeoutRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(false);
 
   const checkUsernameAvailability = async (usernameToCheck: string): Promise<boolean | null> => {
@@ -212,7 +212,8 @@ const InstagramNovaP = () => {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
 
-      {/* ===== OVERLAY PROMOÇÃO ENCERRADA ===== */}
+      {/* ===== OVERLAY PROMOÇÃO ENCERRADA - REMOVED TO PREVENT BLACK SCREEN ISSUES ===== */}
+      {/* 
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}>
         <div className="w-full max-w-lg mx-auto text-center">
           <div className="flex justify-center mb-6">
@@ -245,6 +246,7 @@ const InstagramNovaP = () => {
           <p className="text-gray-600 text-sm">Clique acima para ver os planos disponíveis</p>
         </div>
       </div>
+      */}
       {/* ===== FIM OVERLAY ===== */}
 
       {/* Header */}
@@ -266,8 +268,8 @@ const InstagramNovaP = () => {
       {/* Hero Section */}
       <section className="relative pt-28 pb-16 px-4">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px]" />
-          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[100px]" />
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[60px] md:blur-[60px] md:blur-[120px]" />
+          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[50px] md:blur-[50px] md:blur-[100px]" />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-t from-purple-500/5 to-transparent" />
         </div>
         <div className="max-w-5xl mx-auto text-center relative">
@@ -404,7 +406,7 @@ const InstagramNovaP = () => {
           {/* Automação Completa de Crescimento */}
           <div className="mb-10">
             <div className="relative bg-gradient-to-br from-amber-950/60 to-amber-900/30 border-2 border-amber-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
-              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none -translate-x-1/2" />
+              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[50px] md:blur-[100px] pointer-events-none -translate-x-1/2" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">

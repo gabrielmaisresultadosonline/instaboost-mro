@@ -127,8 +127,8 @@ const WhiteLabel = () => {
     <div className="min-h-screen bg-black text-white font-sans selection:bg-yellow-400 selection:text-black">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yellow-500/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yellow-500/10 blur-[60px] md:blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/5 blur-[60px] md:blur-[120px] rounded-full" />
       </div>
 
       {/* Hero Section */}
@@ -460,7 +460,7 @@ const WhiteLabel = () => {
             </div>
 
             <div className="relative">
-              <div className="absolute -inset-4 bg-yellow-500/20 blur-[100px] rounded-full" />
+              <div className="absolute -inset-4 bg-yellow-500/20 blur-[50px] md:blur-[100px] rounded-full" />
               <Card className="bg-black border-yellow-500/20 rounded-[40px] p-12 relative z-10 text-center">
                 <h3 className="text-3xl font-black mb-6">OPORTUNIDADE ÚNICA</h3>
                 <p className="text-gray-400 mb-10 text-lg leading-relaxed">
@@ -510,7 +510,7 @@ const WhiteLabel = () => {
             </div>
 
             <div className="flex-1 relative">
-              <div className="absolute inset-0 bg-yellow-500/20 blur-[100px] rounded-full animate-pulse" />
+              <div className="absolute inset-0 bg-yellow-500/20 blur-[50px] md:blur-[100px] rounded-full animate-pulse" />
               <Card className="bg-black border-white/10 rounded-[40px] overflow-hidden relative z-10 shadow-2xl">
                 <CardContent className="p-12">
                   <div className="flex items-center gap-4 mb-8">
@@ -631,7 +631,7 @@ const WhiteLabel = () => {
       <section className="py-32 px-4 relative overflow-hidden">
         <div className="max-w-5xl mx-auto rounded-[50px] bg-gradient-to-b from-yellow-500 to-yellow-600 p-1 lg:p-[1px]">
           <div className="bg-black rounded-[49px] p-12 lg:p-24 text-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/10 blur-[100px] -mr-48 -mt-48 rounded-full" />
+            <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/10 blur-[50px] md:blur-[100px] -mr-48 -mt-48 rounded-full" />
             
             <Rocket className="w-16 h-16 text-yellow-500 mx-auto mb-8 animate-bounce" />
             <h2 className="text-4xl md:text-6xl font-black mb-8">

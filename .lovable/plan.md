@@ -1,26 +1,23 @@
-O usuário relatou dois problemas no Editor de Fluxos:
-1. As etiquetas (status) não estão sendo salvas corretamente ao configurar um bloco de "Ação CRM".
-2. O gatilho de "Frase Completa Exata" não está funcionando ou salvando corretamente.
+The "black screen" on mobile devices is likely caused by a combination of high-radius CSS blurs (which can crash mobile GPUs), potential JavaScript crashes in specific browser environments (like `localStorage` access or `NodeJS` type references), and possibly a permanent full-screen overlay in some variations of the page.
 
-### Problema 1: Etiquetas no bloco Ação CRM
-Ao analisar o código de `FlowEditor.tsx`, identifiquei que o nó `CRMActionNode` utiliza `data.statusLabel` para exibir a etiqueta, mas o formulário de edição atualiza `statusValue` e `statusLabel`. No entanto, na função `handleSave` do componente, os dados dos nós são salvos, mas pode haver uma inconsistência na forma como o estado local do nó selecionado reflete as mudanças. Vou garantir que a atualização do nó seja refletida imediatamente e que os nomes das propriedades estejam corretos.
+I will:
+1.  **Reduce/Optimize Blurs**: Lower the blur radius from `100px-180px` to more manageable values (or use simpler gradients) on the main Instagram Nova pages. High blur values are known to cause rendering failures on mobile.
+2.  **Fix Potential JS Crashes**:
+    *   Change `NodeJS.Timeout` to `any` in `useRef` to avoid potential `ReferenceError` in some browser environments.
+    *   Ensure all `localStorage` access is safely wrapped.
+3.  **Optimize Overlays**: In `InstagramNovaP.tsx` and `InstagramNovaPromo.tsx`, make sure the "Promoção Encerrada" overlay is not unintentionally blocking users or crashing the render.
+4.  **Meta Pixel Optimization**: Ensure the manual Pixel injection doesn't interfere with the React app initialization.
 
-### Problema 2: Gatilho de Frase Completa
-No `FlowEditor.tsx`, o campo `trigger_keywords` é salvo como um array (`split(',')`). Para o tipo `exact_phrase`, isso pode estar causando confusão ou erros de busca no backend. Além disso, o backend (`meta-whatsapp-crm`) processa o início do fluxo. Vou ajustar o editor para tratar `exact_phrase` de forma distinta (sem quebrar por vírgulas se for frase completa) e verificar se o backend está preparado para essa comparação exata.
+Specifically for `InstagramNovaPlan.tsx`:
+- Reduce `blur-[120px]` and `blur-[100px]` to `blur-[60px]` or use `opacity-50` with smaller blurs.
+- Fix `usernameCheckTimeoutRef` type.
+- Add a check for `window` before accessing certain properties.
 
-### Plano de Implementação:
+For `InstagramNovaP.tsx` and `InstagramNovaPromo.tsx`:
+- Reduce blurs.
+- Fix the permanent overlay that might be showing up as a "black screen" to users.
 
-**Frontend (src/components/crm/FlowEditor.tsx):**
-- Corrigir a atualização de dados do nó selecionado para garantir que etiquetas e outros campos sejam persistidos no estado global do fluxo.
-- Ajustar a lógica de salvamento do gatilho para diferenciar "Palavras-chave" (array) de "Frase Completa" (string única no array ou campo dedicado).
-- Adicionar logs de depuração para rastrear o que está sendo enviado ao Supabase.
-
-**Backend (supabase/functions/meta-whatsapp-crm/index.ts):**
-- (Se necessário após teste) Reforçar a lógica de detecção de gatilhos para suportar `exact_phrase` com comparação estrita de string.
-
-### Detalhes Técnicos:
-- No `CRMActionNode`, verificar se `data.statusLabel` está sendo exibido corretamente.
-- No formulário lateral, garantir que `updateNodeData` chame corretamente a atualização do nó no array `nodes` do React Flow.
-- No `handleSave`, tratar `triggerKeywords` baseado no `triggerType`.
-
-Vou começar corrigindo o `FlowEditor.tsx`.
+Technical Details:
+- Files: `src/pages/InstagramNovaPlan.tsx`, `src/pages/InstagramNovaP.tsx`, `src/pages/InstagramNovaPromo.tsx`.
+- Change `blur-[120px]` -> `blur-[60px]`.
+- Change `useRef<NodeJS.Timeout | null>` -> `useRef<any | null>`.
