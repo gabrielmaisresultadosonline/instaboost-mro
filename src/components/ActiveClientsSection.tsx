@@ -22,6 +22,7 @@ interface ActiveClientsSectionProps {
   title?: string;
   maxClients?: number;
   className?: string;
+  showRegistration?: boolean;
 }
 
 const formatFollowers = (count: number): string => {
