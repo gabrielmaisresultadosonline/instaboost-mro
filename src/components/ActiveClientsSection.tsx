@@ -36,7 +36,8 @@ const PAGE_SIZE = 96;
 export default function ActiveClientsSection({
   title = 'Clientes Ativos',
   maxClients = 15,
-  className = ''
+  className = '',
+  showRegistration = true
 }: ActiveClientsSectionProps) {
   const navigate = useNavigate();
   const [previewClients, setPreviewClients] = useState<ActiveClient[]>([]);
