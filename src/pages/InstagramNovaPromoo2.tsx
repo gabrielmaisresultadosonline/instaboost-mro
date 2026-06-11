@@ -384,7 +384,7 @@ const InstagramNovaPromoo2 = () => {
 
       {/* Active Clients */}
       <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
+        <ActiveClientsSection title="Clientes Ativos" maxClients={15} showRegistration={false} />
       </section>
 
       {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
