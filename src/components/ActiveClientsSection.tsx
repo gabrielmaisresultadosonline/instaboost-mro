@@ -251,9 +251,11 @@ export default function ActiveClientsSection({
           </div>
         )}
 
-        <p className="text-center text-gray-400 text-sm mt-6">
-          Perfis utilizando nossa inteligência artificial
-        </p>
+        {showRegistration && (
+          <p className="text-center text-gray-400 text-sm mt-6">
+            Perfis utilizando nossa inteligência artificial
+          </p>
+        )}
       </div>
 
       {showModal && (
