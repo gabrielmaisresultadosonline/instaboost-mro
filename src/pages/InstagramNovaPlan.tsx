@@ -307,9 +307,18 @@ const InstagramNovaPlan = () => {
 
 
 
-          <div className="mt-10 animate-bounce">
-            <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
-          </div>
+            <div className="mt-8 mb-4">
+              <Button 
+                onClick={scrollToPricing}
+                className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
+              >
+                VER PLANOS DISPONÍVEIS
+              </Button>
+            </div>
+
+            <div className="mt-6 animate-bounce">
+              <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
+            </div>
         </div>
       </section>
 
