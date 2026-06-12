@@ -179,11 +179,16 @@ const ToolSelector = () => {
         
         <button
           onClick={() => setShowMembersModal(true)}
-          className="z-10 px-10 py-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 backdrop-blur-md flex items-center gap-3 tracking-wide group"
+          className="z-10 px-10 py-4 rounded-full border border-amber-500/30 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 backdrop-blur-md flex items-center gap-3 tracking-wide group relative overflow-hidden"
         >
+          {/* Golden Reflection Effect */}
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-amber-400/40 to-transparent animate-shine-fast" />
+
+          
           <Users className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
           ACESSE SUA ÁREA DE MEMBROS
         </button>
+
       </div>
 
 
