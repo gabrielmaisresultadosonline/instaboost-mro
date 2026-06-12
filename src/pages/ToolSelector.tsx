@@ -173,11 +173,12 @@ const ToolSelector = () => {
       {/* Área de Membros Cliente Button */}
       <button
         onClick={() => setShowMembersModal(true)}
-        className="mt-6 md:mt-8 z-10 px-8 sm:px-12 py-5 sm:py-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-[1000] text-xl sm:text-2xl md:text-3xl transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(251,191,36,0.4)] flex items-center gap-4 sm:gap-6 uppercase tracking-tighter"
+        className="mt-12 md:mt-16 z-10 px-10 py-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 backdrop-blur-md flex items-center gap-3 tracking-wide group"
       >
-        <Users className="w-8 h-8 sm:w-10 sm:h-10" />
-        Acesse sua área de membros
+        <Users className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+        ACESSE SUA ÁREA DE MEMBROS
       </button>
+
 
 
       {/* Footer with business info */}
