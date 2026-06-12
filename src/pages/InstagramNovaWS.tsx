@@ -314,8 +314,6 @@ const InstagramNovaWS = () => {
           </div>
 
 
-          </div>
-
           {contentVisible && (
             <>
               <div className="mt-8 mb-4">
