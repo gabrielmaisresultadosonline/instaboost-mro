@@ -136,7 +136,9 @@ import VenderLogin from "./pages/VenderLogin";
 import VenderAdmin from "./pages/VenderAdmin";
 import VenderObrigado from "./pages/VenderObrigado";
 import CreatorDev from "./pages/CreatorDev";
+import CreatorDevProject from "./pages/CreatorDevProject";
 import CreatorDevAdmin from "./pages/CreatorDevAdmin";
+
 
 
 
@@ -311,7 +313,9 @@ const App = () => (
           <Route path="/parceirooficial" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
           <Route path="/creatordev" element={<CreatorDev />} />
+          <Route path="/creatordev/projeto" element={<CreatorDevProject />} />
           <Route path="/creatordev/admin" element={<CreatorDevAdmin />} />
+
 
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
           <Route path="/atualizar" element={<Atualizar />} />
