@@ -869,8 +869,13 @@ const InstagramNovaWS = () => {
       )}
 
       {/* Floating help removed as requested to be only at bottom */}
+        </>
+      )}
+      <FloatingWhatsAppHelp 
+        phoneNumber={salesSettings.whatsappNumber.replace(/\D/g, '')}
+        message="Olá! Estou na página do MRO e gostaria de tirar algumas dúvidas."
+      />
     </div>
-
   );
 };
 
