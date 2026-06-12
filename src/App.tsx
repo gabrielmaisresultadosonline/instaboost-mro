@@ -135,6 +135,9 @@ import VenderNaInternet from "./pages/VenderNaInternet";
 import VenderLogin from "./pages/VenderLogin";
 import VenderAdmin from "./pages/VenderAdmin";
 import VenderObrigado from "./pages/VenderObrigado";
+import CreatorDev from "./pages/CreatorDev";
+import CreatorDevAdmin from "./pages/CreatorDevAdmin";
+
 
 
 const queryClient = new QueryClient();
@@ -307,6 +310,9 @@ const App = () => (
           <Route path="/parceiro-oficial" element={<WhiteLabel />} />
           <Route path="/parceirooficial" element={<WhiteLabel />} />
           <Route path="/whitelabel" element={<WhiteLabel />} />
+          <Route path="/creatordev" element={<CreatorDev />} />
+          <Route path="/creatordev/admin" element={<CreatorDevAdmin />} />
+
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
           <Route path="/atualizar" element={<Atualizar />} />
           <Route path="/atualizarver" element={<Atualizar />} />

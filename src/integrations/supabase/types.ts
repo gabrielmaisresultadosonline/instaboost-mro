@@ -631,6 +631,57 @@ export type Database = {
         }
         Relationships: []
       }
+      creatordev_requests: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          project_description: string
+          status: string
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          project_description: string
+          status?: string
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          project_description?: string
+          status?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      creatordev_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       crm_activities: {
         Row: {
           activity_type: string
