@@ -690,7 +690,7 @@ const InstagramNovaPlan = () => {
             </div>
 
             <div className="max-w-2xl mx-auto">
-              {showVideoModal ? (
+              {showSecondaryVideo ? (
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
                   <iframe
                     src="https://www.youtube.com/embed/EHTtdvtoI_A?rel=0&autoplay=1"
@@ -702,7 +702,7 @@ const InstagramNovaPlan = () => {
                 </div>
               ) : (
                 <Button 
-                  onClick={() => setShowVideoModal(true)}
+                  onClick={() => setShowSecondaryVideo(true)}
                   className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 flex items-center gap-3 mx-auto"
                 >
                   <Play className="w-6 h-6 fill-current" />
