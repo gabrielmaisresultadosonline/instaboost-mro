@@ -870,7 +870,6 @@ const InstagramNovaWS = () => {
         </>
       )}
       <FloatingWhatsAppHelp 
-        phoneNumber={salesSettings.whatsappNumber.replace(/\D/g, '')}
         message="Olá! Estou na página do MRO e gostaria de tirar algumas dúvidas."
       />
     </div>
