@@ -101,17 +101,6 @@ const CreatorDevProject = () => {
             </p>
           </div>
           
-          <div className="space-y-6 pt-4">
-            <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.open('https://wa.me/555192036540', '_blank')}>
-              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all">
-                <MessageSquare className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-sm text-gray-500 font-bold uppercase tracking-wider">Dúvidas rápidas?</div>
-                <div className="font-bold">Chamar no WhatsApp</div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <Card className="bg-[#0f0f11] border-white/5 text-white rounded-[40px] overflow-hidden shadow-2xl relative">
