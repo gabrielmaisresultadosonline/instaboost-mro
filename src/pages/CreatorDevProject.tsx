@@ -28,22 +28,46 @@ const CreatorDevProject = () => {
     setLoading(true);
 
     try {
+      // 1. Save to Database
       const { error } = await supabase
         .from('creatordev_requests')
         .insert([formData]);
 
       if (error) throw error;
 
+      // 2. Notify Admin via Email (Edge Function)
       supabase.functions.invoke('creatordev-notify', {
         body: { type: 'new_request', data: formData }
       }).catch(err => console.error("Error calling notify function:", err));
 
-      toast.success("Projeto enviado com sucesso! Entraremos em contato em breve.");
+      // 3. Get Admin WhatsApp Number and Send Message
+      const { data: waData } = await supabase
+        .from('whatsapp_page_settings')
+        .select('whatsapp_number')
+        .limit(1)
+        .single();
+
+      const adminWhatsApp = waData?.whatsapp_number || '555192036540';
+      
+      const message = `🚀 *Nova Solicitação de Projeto - CreatorDev*\n\n` +
+                      `👤 *Nome:* ${formData.full_name}\n` +
+                      `📧 *Email:* ${formData.email}\n` +
+                      `📱 *WhatsApp:* ${formData.whatsapp}\n\n` +
+                      `💡 *Ideia do Projeto:*\n${formData.project_description}`;
+
+      const whatsappUrl = `https://wa.me/${adminWhatsApp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+      
+      toast.success("Projeto salvo! Redirecionando para o WhatsApp...");
+      
       setFormData({ full_name: '', whatsapp: '', email: '', project_description: '' });
       
-      // Redirect back after a short delay
-      setTimeout(() => navigate('/creatordev'), 2000);
+      // Redirect to WhatsApp
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+        navigate('/creatordev');
+      }, 1500);
     } catch (error: any) {
+
       toast.error("Erro ao enviar: " + error.message);
     } finally {
       setLoading(false);
