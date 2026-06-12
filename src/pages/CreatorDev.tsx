@@ -67,9 +67,10 @@ const CreatorDev = () => {
     { icon: <Database className="w-8 h-8 text-cyan-400" />, title: "Bancos de Dados", desc: "Estruturas de dados seguras e escaláveis." },
   ];
 
-  const scrollToContact = () => {
-    document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+  const goToContact = () => {
+    window.location.href = '/creatordev/projeto';
   };
+
 
   return (
     <div className="min-h-screen bg-[#050506] text-white selection:bg-blue-500/30 font-sans">
@@ -85,7 +86,8 @@ const CreatorDev = () => {
           <Button 
             variant="ghost" 
             className="text-gray-400 hover:text-white"
-            onClick={scrollToContact}
+            onClick={() => window.location.href = '/creatordev/projeto'}
+
           >
             Falar com Especialista
           </Button>
@@ -117,7 +119,8 @@ const CreatorDev = () => {
             <Button 
               size="lg" 
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-10 h-16 text-lg font-bold shadow-[0_0_30px_rgba(37,99,235,0.3)] group"
-              onClick={scrollToContact}
+              onClick={() => window.location.href = '/creatordev/projeto'}
+
             >
               Iniciar meu projeto
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -166,7 +169,8 @@ const CreatorDev = () => {
             <Button 
               variant="outline" 
               className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 rounded-xl h-14 px-8 font-bold"
-              onClick={scrollToContact}
+              onClick={() => window.location.href = '/creatordev/projeto'}
+
             >
               Ver todos os serviços
             </Button>
@@ -221,7 +225,8 @@ const CreatorDev = () => {
             </div>
             <Button 
               className="bg-white text-blue-600 hover:bg-gray-100 rounded-2xl h-16 px-10 font-black text-lg shadow-xl"
-              onClick={scrollToContact}
+              onClick={() => window.location.href = '/creatordev/projeto'}
+
             >
               Solicitar Orçamento Grátis
             </Button>
@@ -288,7 +293,7 @@ const CreatorDev = () => {
                <Button 
                 variant="link" 
                 className="text-gray-500 hover:text-white uppercase tracking-[0.2em] font-bold text-xs"
-                onClick={scrollToContact}
+                onClick={() => window.location.href = '/creatordev/projeto'}
               >
                 Start your journey with us
               </Button>
