@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera } from 'lucide-react';
+import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera, Code2 } from 'lucide-react';
 // Use Camera as fallback if Instagram is not available in some lucide versions
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
@@ -36,7 +36,7 @@ const ToolSelector = () => {
       id: 'instagram',
       name: 'Ferramenta para Instagram',
       subtitle: 'NÃO GASTE COM ANÚNCIOS',
-      description: 'Aumente seu engajamento e seguidores organicamente',
+      description: 'Envio em massa de mensagens, engajamento, clientes e vendas.',
       icon: InstagramIcon,
       color: 'from-pink-500 to-purple-600',
       hoverColor: 'hover:from-pink-600 hover:to-purple-700',
@@ -45,54 +45,19 @@ const ToolSelector = () => {
       salesPath: '/instagram-nova'
     },
     {
-      id: 'melhorar-publico',
-      name: 'Acertando o Público',
-      subtitle: 'META + MRO',
-      description: 'Acerte o público certo em seus anúncios',
-      icon: Target,
+      id: 'creatordev',
+      name: 'CreatorDev',
+      subtitle: 'DESENVOLVIMENTO SOB MEDIDA',
+      description: 'Desenvolvemos o sistema que sua empresa precisa.',
+      icon: Code2,
       color: 'from-blue-500 to-indigo-600',
       hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
       borderColor: 'border-blue-500/30',
-      badge: 'PÚBLICO',
-      salesPath: '/melhorarpublico'
-    },
-    {
-      id: 'whatsapp',
-      name: 'Ferramenta para WhatsApp',
-      subtitle: 'AUTOMAÇÃO INTELIGENTE',
-      description: 'Automatize suas conversas e vendas',
-      icon: MessageCircle,
-      color: 'from-green-500 to-emerald-600',
-      hoverColor: 'hover:from-green-600 hover:to-emerald-700',
-      borderColor: 'border-green-500/30',
-      badge: 'ZAP MRO',
-      salesPath: '/zapmro/vendas'
-    },
-    {
-      id: 'gestao',
-      name: 'Gestão Mensal Tráfego Pago',
-      subtitle: 'A GENTE FAZ POR VOCÊ',
-      description: 'Deixe sua gestão de anúncios com especialistas',
-      icon: TrendingUp,
-      color: 'from-amber-500 to-yellow-600',
-      hoverColor: 'hover:from-amber-600 hover:to-yellow-700',
-      borderColor: 'border-amber-500/30',
-      badge: 'GESTÃO',
-      salesPath: '/gestaomensal'
-    },
-    {
-      id: 'prompts',
-      name: 'Prompts de I.A.',
-      subtitle: 'BIBLIOTECA DE PROMPTS',
-      description: 'Gere fotos profissionais com inteligência artificial',
-      icon: Wand2,
-      color: 'from-purple-500 to-violet-600',
-      hoverColor: 'hover:from-purple-600 hover:to-violet-700',
-      borderColor: 'border-purple-500/30',
-      badge: 'PROMPTS MRO',
-      salesPath: '/prompts'
-    },
+      badge: 'FULL STACK',
+      salesPath: '/creatordev'
+    }
   ];
+
 
   const handleSalesClick = (path: string, toolName: string) => {
     trackViewContent(`Sales Page: ${toolName}`, 'Navigation');
@@ -208,11 +173,12 @@ const ToolSelector = () => {
       {/* Área de Membros Cliente Button */}
       <button
         onClick={() => setShowMembersModal(true)}
-        className="mt-6 md:mt-8 z-10 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-base sm:text-lg transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 sm:gap-3"
+        className="mt-6 md:mt-8 z-10 px-8 sm:px-12 py-5 sm:py-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-[1000] text-xl sm:text-2xl md:text-3xl transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(251,191,36,0.4)] flex items-center gap-4 sm:gap-6 uppercase tracking-tighter"
       >
-        <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-        Área de Membros Cliente
+        <Users className="w-8 h-8 sm:w-10 sm:h-10" />
+        Acesse sua área de membros
       </button>
+
 
       {/* Footer with business info */}
       <div className="mt-8 md:mt-12 text-center z-10 space-y-1 px-4">
