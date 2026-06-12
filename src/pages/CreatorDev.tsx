@@ -158,10 +158,11 @@ const CreatorDev = () => {
             <div className="space-y-4 max-w-2xl">
               <h2 className="text-3xl md:text-5xl font-black tracking-tight">SOLUÇÕES SOB MEDIDA PARA CADA NECESSIDADE</h2>
               <p className="text-gray-400 text-lg">
-                Desenvolvo sistemas web personalizados para empresas e profissionais de diversas áreas: 
+                Desenvolvemos sistemas web personalizados para empresas e profissionais de diversas áreas: 
                 delivery, academias, personal trainers, clínicas, imobiliárias, gestão empresarial, marketplaces e muito mais.
               </p>
             </div>
+
             <Button 
               variant="outline" 
               className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 rounded-xl h-14 px-8 font-bold"
@@ -197,8 +198,9 @@ const CreatorDev = () => {
             <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">DOMÍNIO TÉCNICO COMPLETO</h2>
             <div className="space-y-6">
               <p className="text-blue-100 text-lg md:text-xl font-medium">
-                Trabalho com desenvolvimento Full Stack, criando desde o painel administrativo até a interface do usuário.
+                Trabalhamos com desenvolvimento Full Stack, criando desde o painel administrativo até a interface do usuário.
               </p>
+
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   "Integração com APIs",
