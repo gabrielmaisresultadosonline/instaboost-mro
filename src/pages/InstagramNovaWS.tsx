@@ -63,7 +63,7 @@ const PLANS = {
   agencia: { name: "Agência", price: 697.00, days: 365, installment: "71", accounts: 10 },
 };
 
-const InstagramNovaPlan = () => {
+const InstagramNovaWS = () => {
   const [searchParams] = useSearchParams();
   const partnerSlug = searchParams.get('p');
   const [partner, setPartner] = useState<{id: string, name: string} | null>(null);
@@ -858,5 +858,7 @@ const InstagramNovaPlan = () => {
 
   );
 };
+
+export default InstagramNovaWS;
 
 export default InstagramNovaPlan;
