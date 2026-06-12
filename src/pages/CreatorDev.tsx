@@ -238,91 +238,37 @@ const CreatorDev = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact-form" className="py-32 px-6 relative">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-20">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-4xl md:text-6xl font-black tracking-tighter">VAMOS CRIAR ALGO<br /><span className="text-blue-500">MEMORÁVEL?</span></h2>
-                <p className="text-gray-400 text-xl leading-relaxed">
-                  Conte-nos sobre seu projeto. Nossa equipe técnica analisará sua necessidade e retornará com uma solução inovadora.
-                </p>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 group cursor-pointer">
-                  <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all">
-                    <MessageSquare className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 font-bold uppercase tracking-wider">Dúvidas rápidas?</div>
-                    <div className="font-bold">Chamar no WhatsApp</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Card className="bg-white/[0.03] border-white/5 text-white rounded-[32px] overflow-hidden backdrop-blur-sm">
-              <CardContent className="p-10">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Nome Completo</label>
-                    <Input 
-                      required
-                      placeholder="Ex: João Silva"
-                      className="bg-white/5 border-white/10 h-14 rounded-xl focus:border-blue-500 transition-all"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500">WhatsApp</label>
-                      <Input 
-                        required
-                        placeholder="(00) 00000-0000"
-                        className="bg-white/5 border-white/10 h-14 rounded-xl focus:border-blue-500 transition-all"
-                        value={formData.whatsapp}
-                        onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500">E-mail</label>
-                      <Input 
-                        required
-                        type="email"
-                        placeholder="contato@empresa.com"
-                        className="bg-white/5 border-white/10 h-14 rounded-xl focus:border-blue-500 transition-all"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Detalhes do Projeto</label>
-                    <Textarea 
-                      required
-                      placeholder="Descreva seu projeto, objetivos e funcionalidades desejadas..."
-                      className="bg-white/5 border-white/10 min-h-[160px] rounded-xl focus:border-blue-500 transition-all resize-none"
-                      value={formData.project_description}
-                      onChange={(e) => setFormData({...formData, project_description: e.target.value})}
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-16 rounded-2xl text-lg font-black shadow-lg group"
-                    disabled={loading}
-                  >
-                    {loading ? "Processando..." : "Enviar Solicitação"}
-                    <Rocket className="ml-2 w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+      {/* Final CTA Section */}
+      <section className="py-32 px-6 relative">
+        <div className="max-w-5xl mx-auto text-center space-y-12">
+          <h2 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight">
+            PRONTO PARA<br />
+            <span className="text-blue-500">O PRÓXIMO NÍVEL?</span>
+          </h2>
+          <p className="text-gray-400 text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed">
+            Estamos prontos para transformar sua visão em uma realidade digital escalável.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-12 h-20 text-xl font-black shadow-2xl group transition-all hover:scale-105"
+              onClick={() => window.location.href = '/creatordev/projeto'}
+            >
+              Começar agora
+              <Rocket className="ml-3 w-6 h-6 group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
+            </Button>
+            <Button 
+              variant="outline"
+              size="lg" 
+              className="border-white/10 hover:bg-white/5 rounded-2xl px-12 h-20 text-xl font-bold transition-all"
+              onClick={() => window.open('https://wa.me/555192036540', '_blank')}
+            >
+              Chamar no WhatsApp
+            </Button>
           </div>
         </div>
       </section>
+
 
       {/* Final Promo Text Card */}
       <section className="py-24 px-6 bg-[#0a0a0c]">
