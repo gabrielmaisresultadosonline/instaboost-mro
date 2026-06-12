@@ -127,6 +127,7 @@ import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 import WhiteLabel from "./pages/WhiteLabel";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import InstagramNovaPlan from "./pages/InstagramNovaPlan";
+import InstagramNovaWS from "./pages/InstagramNovaWS";
 import InstagramPromo30Dias from "./pages/InstagramPromo30Dias";
 import ThorCreativeDashboard from "./pages/ThorCreative/Dashboard";
 import Atualizar from "./pages/Atualizar";
@@ -194,6 +195,7 @@ const App = () => (
           <Route path="/mro-obrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/instagram-nova" element={<InstagramNovaPlan />} />
+          <Route path="/instagram-nova-ws" element={<InstagramNovaWS />} />
           <Route path="/instagrampromo" element={<InstagramPromo30Dias />} />
           <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />
           <Route path="/instagram-nova-admin/email" element={<InstagramNovaAdminEmail />} />
