@@ -91,6 +91,14 @@ const InstagramNovaWS = () => {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const usernameCheckTimeoutRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [contentVisible, setContentVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setContentVisible(true);
+    }, 60000); // 1 minute delay
+    return () => clearTimeout(timer);
+  }, []);
 
   const checkUsernameAvailability = async (usernameToCheck: string): Promise<boolean | null> => {
     if (usernameToCheck.length < 4) { setUsernameAvailable(null); return null; }
