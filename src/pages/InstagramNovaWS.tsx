@@ -91,6 +91,14 @@ const InstagramNovaWS = () => {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const usernameCheckTimeoutRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [contentVisible, setContentVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setContentVisible(true);
+    }, 60000); // 1 minute delay
+    return () => clearTimeout(timer);
+  }, []);
 
   const checkUsernameAvailability = async (usernameToCheck: string): Promise<boolean | null> => {
     if (usernameToCheck.length < 4) { setUsernameAvailable(null); return null; }
@@ -306,23 +314,28 @@ const InstagramNovaWS = () => {
           </div>
 
 
+          {contentVisible && (
+            <>
+              <div className="mt-8 mb-4">
+                <Button 
+                  onClick={scrollToPricing}
+                  className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
+                >
+                  VER PLANOS DISPONÍVEIS
+                </Button>
+              </div>
 
-            <div className="mt-8 mb-4">
-              <Button 
-                onClick={scrollToPricing}
-                className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
-              >
-                VER PLANOS DISPONÍVEIS
-              </Button>
-            </div>
-
-            <div className="mt-6 animate-bounce">
-              <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
-            </div>
+              <div className="mt-6 animate-bounce">
+                <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      {/* Active Clients section removed as requested */}
+      {contentVisible && (
+        <>
+          {/* Active Clients section removed as requested */}
 
 
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
@@ -854,8 +867,12 @@ const InstagramNovaWS = () => {
       )}
 
       {/* Floating help removed as requested to be only at bottom */}
+        </>
+      )}
+      <FloatingWhatsAppHelp 
+        message="Olá! Estou na página do MRO e gostaria de tirar algumas dúvidas."
+      />
     </div>
-
   );
 };
 
