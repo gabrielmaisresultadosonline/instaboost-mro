@@ -559,6 +559,21 @@ const InstagramNovaPlan = () => {
               </div>
             </div>
           </div>
+          
+          <div className="mt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h3 className="text-2xl md:text-3xl font-black text-white mb-4">Ficou com dúvidas?</h3>
+            <p className="text-gray-400 mb-6 text-lg">Fale no WhatsApp agora mesmo para falar com um especialista.</p>
+            <Button 
+              onClick={() => {
+                trackLead("Instagram Nova - WhatsApp CTA Below Pricing");
+                window.location.href = "/whatsapp";
+              }}
+              className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-lg px-10 py-7 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 flex items-center gap-3 mx-auto"
+            >
+              <WhatsAppIcon className="w-7 h-7" />
+              CONVERSAR NO WHATSAPP
+            </Button>
+          </div>
         </div>
       </section>
 
