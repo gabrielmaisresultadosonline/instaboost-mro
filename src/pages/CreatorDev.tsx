@@ -33,30 +33,8 @@ const CreatorDev = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  // Contact form moved to /creatordev/projeto
 
-    try {
-      const { error } = await supabase
-        .from('creatordev_requests')
-        .insert([formData]);
-
-      if (error) throw error;
-
-      supabase.functions.invoke('creatordev-notify', {
-        body: { type: 'new_request', data: formData }
-      }).catch(err => console.error("Error calling notify function:", err));
-
-      toast.success("Projeto enviado com sucesso! Entraremos em contato em breve.");
-      setFormData({ full_name: '', whatsapp: '', email: '', project_description: '' });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (error: any) {
-      toast.error("Erro ao enviar: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const services = [
     { icon: <Layout className="w-8 h-8 text-blue-400" />, title: "Sistemas Web Personalizados", desc: "Plataformas exclusivas desenhadas para o seu fluxo de trabalho." },
