@@ -60,7 +60,7 @@ interface SalesSettings {
 
 const PLANS = {
   pro: { name: "Pro", price: 397.00, days: 365, installment: "41", accounts: 4 },
-  agencia: { name: "Agência", price: 997.00, days: 365, installment: "102", accounts: 10 },
+  agencia: { name: "Agência", price: 697.00, days: 365, installment: "71", accounts: 10 },
 };
 
 const InstagramNovaPlan = () => {
@@ -468,7 +468,11 @@ const InstagramNovaPlan = () => {
               <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Pro Anual</h3>
               <p className="text-gray-400 text-center mb-6 text-sm">4 contas simultâneas</p>
               <div className="text-center mb-6">
-                <div className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$397</div>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
+                  <span className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$41</span>
+                </div>
+                <p className="text-gray-400 mt-2 font-bold">R$397 à vista</p>
               </div>
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
@@ -516,7 +520,11 @@ const InstagramNovaPlan = () => {
               <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Agência Anual</h3>
               <p className="text-gray-400 text-center mb-6 text-sm">10 contas simultâneas</p>
               <div className="text-center mb-6">
-                <div className="text-5xl sm:text-6xl font-[1000] text-purple-400">R$997</div>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
+                  <span className="text-6xl sm:text-7xl font-[1000] text-purple-400">R$71</span>
+                </div>
+                <p className="text-gray-400 mt-2 font-bold">R$697 à vista</p>
               </div>
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
@@ -550,7 +558,7 @@ const InstagramNovaPlan = () => {
                     trackLead('Instagram MRO - Plano Agência'); 
                     setSelectedPlan("agencia"); 
                     setShowCheckoutModal(true); 
-                    trackInitiateCheckout('Plano Agência', 997.00);
+                    trackInitiateCheckout('Plano Agência', 697.00);
                   }}>
                   <ShoppingCart className="w-6 h-6" />
                   ESCOLHER AGÊNCIA
