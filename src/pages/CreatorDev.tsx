@@ -59,7 +59,8 @@ const CreatorDev = () => {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Code2 className="w-5 h-5" />
             </div>
-            CREATOR<span className="text-blue-500">DEV</span>
+            MRO DEVELOPER <span className="text-blue-500">CREATORDEV</span>
+
           </div>
           <Button 
             variant="ghost" 
@@ -264,7 +265,7 @@ const CreatorDev = () => {
               "Transformamos ideias complexas em sistemas web completos, escaláveis e de alta performance."
             </h3>
             <div className="pt-4">
-              <div className="font-black text-xl uppercase tracking-widest">CreatorDev Team</div>
+              <div className="font-black text-xl uppercase tracking-widest">MRO DEVELOPER CREATORDEV Team</div>
               <div className="text-blue-500 text-sm font-bold">Expert Full Stack Development</div>
             </div>
             <div className="pt-8">
@@ -283,7 +284,7 @@ const CreatorDev = () => {
       {/* Footer */}
       <footer className="py-16 px-6 border-t border-white/5 text-center space-y-4">
         <div className="font-black text-xl tracking-tighter">
-          CREATOR<span className="text-blue-500">DEV</span>
+          MRO DEVELOPER <span className="text-blue-500">CREATORDEV</span>
         </div>
         <p className="text-gray-600 text-sm max-w-md mx-auto">
           Especialistas em engenharia de software e desenvolvimento web sob medida.
