@@ -860,5 +860,3 @@ const InstagramNovaWS = () => {
 };
 
 export default InstagramNovaWS;
-
-export default InstagramNovaPlan;
