@@ -266,26 +266,6 @@ const InstagramNovaPlan = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logoMro} alt="MRO" className="h-10 object-contain" />
-          <div className="flex items-center gap-3">
-            <a
-              href="/instagram"
-              className="rounded-full border border-amber-500/60 bg-amber-500/10 px-4 py-1.5 text-xs sm:text-sm font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
-            >
-              Fazer Login
-            </a>
-            <Button 
-              onClick={scrollToPricing}
-              className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black text-xs sm:text-sm px-4 shadow-[0_0_15px_rgba(57,255,20,0.4)]"
-            >
-              Garantir Acesso
-            </Button>
-          </div>
-        </div>
-      </header>
 
       {/* Hero Section */}
       <section className="relative pt-20 pb-8 px-4">
