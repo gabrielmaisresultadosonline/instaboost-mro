@@ -341,30 +341,9 @@ const InstagramNovaPlan = () => {
       {/* Active Clients section removed as requested */}
 
 
-      <div className="py-16 text-center bg-zinc-900/40 border-y border-zinc-800/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-4">
-          <h3 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
-            COMECE A ESCALAR SEU PERFIL
-          </h3>
-          <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
-          <Button 
-            onClick={scrollToPricing}
-            className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
-          >
-            QUERO COMEÇAR AGORA
-          </Button>
-        </div>
-      </div>
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full px-6 py-2 mb-4">
-              <Lightbulb className="w-5 h-5 text-amber-400" />
-              <span className="text-amber-400 font-bold text-sm">O QUE HÁ DE NOVO</span>
-            </div>
-            <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-2">
-              Totalmente otimizada com mais automação, mais inteligência e mais resultados
-            </p>
             <p className="text-2xl md:text-3xl font-black mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
               🎁 O que você vai receber no Plano MRO!
             </p>
