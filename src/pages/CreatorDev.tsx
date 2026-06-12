@@ -59,9 +59,9 @@ const CreatorDev = () => {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Code2 className="w-5 h-5" />
             </div>
-            MRO DEVELOPER <span className="text-blue-500">CREATORDEV</span>
-
+            MRO DEVELOPER
           </div>
+
           <Button 
             variant="ghost" 
             className="text-gray-400 hover:text-white"
