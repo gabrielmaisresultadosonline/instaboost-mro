@@ -344,8 +344,7 @@ const InstagramNovaPlan = () => {
       <div className="py-16 text-center bg-zinc-900/40 border-y border-zinc-800/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4">
           <h3 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
-            COMECE A ESCALAR SEU PERFIL <br className="hidden md:block" />
-            <span className="text-emerald-400">POR APENAS R$41</span>
+            COMECE A ESCALAR SEU PERFIL
           </h3>
           <p className="text-gray-400 mb-8 text-lg">Pare de gastar com anúncios e use a inteligência ao seu favor</p>
           <Button 
@@ -429,37 +428,6 @@ const InstagramNovaPlan = () => {
       </section>
 
 
-      {/* ====== RESUMO FINAL ====== */}
-      <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative bg-gradient-to-br from-amber-950/50 to-orange-950/50 border-2 border-amber-500/50 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 rounded-full px-6 py-2 mb-6">
-                <Flame className="w-5 h-5 text-amber-400" />
-                <span className="text-amber-400 font-bold text-sm">RESUMO FINAL</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black mb-8">
-                A MRO Inteligente V7+ Plus é uma <span className="text-amber-400">máquina de crescimento e vendas</span> no Instagram
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { emoji: "👉", label: "Automática", desc: "Funciona 24/7" },
-                  { emoji: "👉", label: "Inteligente", desc: "IA exclusiva" },
-                  { emoji: "👉", label: "Escalável", desc: "Sem limites" },
-                  { emoji: "👉", label: "Sem limites", desc: "Uso ilimitado" },
-                ].map((item, i) => (
-                  <div key={i} className="bg-black/40 border border-amber-500/20 rounded-xl p-4">
-                    <span className="text-2xl">{item.emoji}</span>
-                    <p className="text-white font-bold mt-2">{item.label}</p>
-                    <p className="text-gray-500 text-xs mt-1">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <div className="py-20 bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none blur-3xl rounded-full translate-x-1/2" />
@@ -472,11 +440,6 @@ const InstagramNovaPlan = () => {
               Libere o poder da automação e IA no seu Instagram hoje mesmo. Planos flexíveis que cabem no seu bolso.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              <div className="text-left">
-                <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest mb-1">Início imediato</p>
-                <p className="text-white text-2xl font-black">A partir de <span className="text-emerald-400">R$41/mês</span></p>
-              </div>
-              <div className="h-12 w-px bg-zinc-800 hidden md:block" />
               <Button 
                 onClick={scrollToPricing}
                 className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
@@ -552,10 +515,6 @@ const InstagramNovaPlan = () => {
               <p className="text-gray-400 text-center mb-6 text-sm">4 contas simultâneas</p>
               <div className="text-center mb-6">
                 <div className="text-6xl sm:text-7xl font-[1000] text-amber-400">R$397</div>
-                <div className="flex items-baseline justify-center gap-1 mt-2">
-                  <span className="text-lg sm:text-xl text-gray-400">ou 12x de</span>
-                  <span className="text-3xl font-bold text-white">R$41</span>
-                </div>
               </div>
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
@@ -604,10 +563,6 @@ const InstagramNovaPlan = () => {
               <p className="text-gray-400 text-center mb-6 text-sm">10 contas simultâneas</p>
               <div className="text-center mb-6">
                 <div className="text-5xl sm:text-6xl font-[1000] text-purple-400">R$997</div>
-                <div className="flex items-baseline justify-center gap-1 mt-2">
-                  <span className="text-lg sm:text-xl text-gray-400">em até 12x de</span>
-                  <span className="text-3xl font-bold text-white">R$102</span>
-                </div>
               </div>
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm">
@@ -797,48 +752,6 @@ const InstagramNovaPlan = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Pronto para <span className="text-amber-400">Escalar</span> seu Instagram?
-          </h2>
-          <p className="text-xl text-gray-400 mb-10">Junte-se a milhares de empreendedores que já transformaram seus perfis com a V7+ Plus</p>
-          
-          <div className="flex flex-col items-center gap-10">
-            <Button size="lg" className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
-              onClick={() => {
-                trackLead("Instagram Nova - Final CTA Scroll");
-                scrollToPricing();
-              }}>
-              <span className="flex items-center justify-center gap-2 flex-wrap text-center">
-                <span>GARANTIR MEU ACESSO AGORA</span>
-                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
-              </span>
-            </Button>
-
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden max-w-2xl mx-auto w-full">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="w-16 h-16 bg-[#25D366] rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
-                  <WhatsAppIcon className="w-9 h-9 text-white" />
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Ficou com dúvidas?</h3>
-                <p className="text-gray-300 mb-8 text-lg">Entre em contato conosco agora mesmo pelo WhatsApp para falar com um especialista.</p>
-                <Button 
-                  onClick={() => {
-                    trackLead("Instagram Nova - Final WhatsApp CTA");
-                    window.location.href = "/whatsapp";
-                  }}
-                  className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-lg px-10 py-7 rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 flex items-center gap-3 w-full sm:w-auto"
-                >
-                  FALAR COM SUPORTE NO WHATSAPP
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       
       {/* Posso usar trafego pago e a ferramenta MRO? Section */}
       <section className="py-20 px-4 bg-zinc-950/50">
