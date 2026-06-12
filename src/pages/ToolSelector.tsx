@@ -170,14 +170,22 @@ const ToolSelector = () => {
         ))}
       </div>
 
-      {/* Área de Membros Cliente Button */}
-      <button
-        onClick={() => setShowMembersModal(true)}
-        className="mt-12 md:mt-16 z-10 px-10 py-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 backdrop-blur-md flex items-center gap-3 tracking-wide group"
-      >
-        <Users className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-        ACESSE SUA ÁREA DE MEMBROS
-      </button>
+      {/* Área de Membros Cliente Section */}
+      <div className="mt-12 md:mt-16 flex flex-col items-center relative">
+        {/* Floating Bubble */}
+        <div className="absolute -top-12 animate-bounce bg-amber-500 text-black text-[10px] font-bold px-3 py-1 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-amber-500">
+          VOCÊ JÁ É CLIENTE?
+        </div>
+        
+        <button
+          onClick={() => setShowMembersModal(true)}
+          className="z-10 px-10 py-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 backdrop-blur-md flex items-center gap-3 tracking-wide group"
+        >
+          <Users className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+          ACESSE SUA ÁREA DE MEMBROS
+        </button>
+      </div>
+
 
 
 
