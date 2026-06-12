@@ -3,30 +3,16 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { trackPageView, trackLead, trackInitiateCheckout } from "@/lib/facebookTracking";
 import { toast } from "sonner";
-import { 
-  Sparkles, 
-  CheckCircle2, 
-  ArrowRight,
+import {
+  Sparkles,
+  CheckCircle2,
   Shield,
-  Clock,
   Play,
-  Heart,
-  Eye,
-  UserPlus,
-  Bot,
-  MessageCircle,
-  Video,
   Users,
-  Zap,
   X,
   ChevronDown,
-  Star,
-  Target,
-  Lightbulb,
-  Brain,
-  RefreshCw,
   Gift,
   Monitor,
   Laptop,
@@ -34,10 +20,12 @@ import {
   User,
   CreditCard,
   Loader2,
-  Phone
+  Phone,
+  TrendingUp,
+  ShoppingCart,
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
-import ActiveClientsSection from "@/components/ActiveClientsSection";
+import { MessageCircle as WhatsAppIcon } from "lucide-react";
 
 interface SalesSettings {
   whatsappNumber: string;
@@ -45,41 +33,40 @@ interface SalesSettings {
   ctaButtonText: string;
 }
 
-// Valores em Libras Esterlinas
+// Planos em Libras Esterlinas (£) - mesmo conteúdo da /instagram-nova
 const PLANS = {
-  annual: { name: "1 Conta", price: 197, days: 365, description: "Acesso com 1 conta" },
-  lifetime: { name: "4 Contas", price: 397, days: 999999, description: "Acesso com 4 contas" },
+  pro: { name: "Pro", price: 397, days: 365, installment: "41", accounts: 4 },
+  agencia: { name: "Agência", price: 997, days: 365, installment: "81", accounts: 10 },
 };
 
 const InstagramNovaEuro = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showBonusDetails, setShowBonusDetails] = useState(false);
   const pricingRef = useRef<HTMLDivElement>(null);
   const [salesSettings, setSalesSettings] = useState<SalesSettings>({
-    whatsappNumber: '+55 51 9203-6540',
-    whatsappMessage: 'Gostaria de saber sobre a promoção.',
-    ctaButtonText: 'Gostaria de aproveitar a promoção'
+    whatsappNumber: "+55 51 9203-6540",
+    whatsappMessage: "Gostaria de saber sobre a promoção.",
+    ctaButtonText: "Gostaria de aproveitar a promoção",
   });
-  
-  // Modal de cadastro
+
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [showSecondaryVideo, setShowSecondaryVideo] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
   // Check for success return from Stripe
   useEffect(() => {
     const success = searchParams.get("success");
     const returnSessionId = searchParams.get("session_id");
-    
     if (success === "true" && returnSessionId) {
       setLoading(true);
       verifyPayment(returnSessionId);
@@ -89,15 +76,13 @@ const InstagramNovaEuro = () => {
   const verifyPayment = async (sid: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("verify-euro-payment", {
-        body: { session_id: sid }
+        body: { session_id: sid },
       });
-
       if (error) {
         toast.error("Erro ao verificar pagamento");
         setLoading(false);
         return;
       }
-
       if (data.status === "completed") {
         toast.success("Pagamento confirmado e acesso liberado!");
         navigate("/mroobrigado?euro=true&username=" + (data.order?.username || ""));
@@ -114,83 +99,58 @@ const InstagramNovaEuro = () => {
     }
   };
 
-  // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
     setUsername(cleaned);
-    
-    if (value !== cleaned) {
-      setUsernameError("Apenas letras minúsculas, sem espaços ou números");
-    } else if (cleaned.length < 4) {
-      setUsernameError("Mínimo de 4 caracteres");
-    } else if (cleaned.length > 20) {
-      setUsernameError("Máximo de 20 caracteres");
-    } else {
-      setUsernameError("");
-    }
+    if (value !== cleaned) setUsernameError("Apenas letras minúsculas, sem espaços ou números");
+    else if (cleaned.length < 4) setUsernameError("Mínimo de 4 caracteres");
+    else if (cleaned.length > 20) setUsernameError("Máximo de 20 caracteres");
+    else setUsernameError("");
   };
 
-  // Criar checkout Stripe Euro e abrir pagamento
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!email || !email.includes("@")) {
-      toast.error("Por favor, insira um email válido");
+      toast.error("Please enter a valid email");
       return;
     }
-
     if (!username || username.length < 4) {
-      toast.error("Nome de usuário deve ter no mínimo 4 caracteres");
+      toast.error("Username must have at least 4 characters");
       return;
     }
-
     if (usernameError) {
       toast.error(usernameError);
       return;
     }
-
     setLoading(true);
-
     try {
       const plan = PLANS[selectedPlan];
-      
-      // Chamar edge function para criar checkout Stripe Euro
       const { data, error } = await supabase.functions.invoke("create-euro-checkout", {
-        body: { 
+        body: {
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
           planType: selectedPlan,
           amount: plan.price,
-          checkUserExists: true
-        }
+          checkUserExists: true,
+        },
       });
-
       if (error) {
         console.error("Error creating checkout:", error);
         toast.error("Erro ao criar link de pagamento. Tente novamente.");
         return;
       }
-
       if (data.userExists) {
         toast.error("Este nome de usuário já está em uso. Escolha outro.");
         setUsernameError("Usuário já existe, escolha outro");
         return;
       }
-
       if (!data.success) {
         toast.error(data.error || "Erro ao criar pagamento");
         return;
       }
-
-      // Redirecionar para Stripe checkout
+      trackInitiateCheckout(`Plano ${plan.name} GBP`, plan.price);
       window.location.href = data.payment_url;
-      
-      // Fechar modal
-      setShowCheckoutModal(false);
-      
-      toast.success("Checkout criado! Redirecionando para pagamento...");
-
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao processar. Tente novamente.");
@@ -199,23 +159,29 @@ const InstagramNovaEuro = () => {
     }
   };
 
-  // Track PageView on mount
   useEffect(() => {
-    trackPageView('Sales Page - Instagram MRO Euro');
+    trackPageView("Sales Page - Instagram MRO Euro (GBP)");
   }, []);
 
-  // Load sales settings from cloud
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('modules-storage', {
-          body: { action: 'load-call-settings' }
+        const { data, error } = await supabase.functions.invoke("modules-storage", {
+          body: { action: "load-call-settings" },
         });
         if (!error && data?.success && data?.data?.salesPageSettings) {
           setSalesSettings(data.data.salesPageSettings);
         }
+        const { data: waData } = await supabase
+          .from("whatsapp_page_settings")
+          .select("whatsapp_number")
+          .limit(1)
+          .single();
+        if (waData?.whatsapp_number) {
+          setSalesSettings((prev) => ({ ...prev, whatsappNumber: waData.whatsapp_number }));
+        }
       } catch (err) {
-        console.error('Error loading sales settings:', err);
+        console.error("Error loading sales settings:", err);
       }
     };
     loadSettings();
@@ -223,7 +189,7 @@ const InstagramNovaEuro = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
         if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
         if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
@@ -234,684 +200,506 @@ const InstagramNovaEuro = () => {
   }, []);
 
   const scrollToPricing = () => {
-    pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+    pricingRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   const openVideo = (url: string) => {
     setCurrentVideoUrl(url);
     setShowVideoModal(true);
   };
 
-  const iaFeatures = [
-    "Cria legendas prontas e otimizadas para seu conteúdo",
-    "Gera biografias profissionais para seu Instagram",
-    "Entrega os melhores horários para postar no seu nicho",
-    "Recomenda hashtags quentes e relevantes"
-  ];
-
-  const mroFeatures = [
-    { icon: Heart, title: "Curte fotos" },
-    { icon: UserPlus, title: "Segue perfis estratégicos" },
-    { icon: Users, title: "Segue e deixa de seguir também" },
-    { icon: Eye, title: "Reage aos Stories com \"amei\"" },
-    { icon: Target, title: "Remove seguidores fakes/comprados" },
-    { icon: Zap, title: "Interação com 200 pessoas por dia" }
-  ];
-
-  const areaMembroFeatures = [
-    "Vídeos estratégicos com passo a passo",
-    "Como deixar seu perfil mais atrativo e profissional",
-    "Como agendar suas postagens e deixar tudo no automático",
-    "Estratégias para bombar seu Instagram mesmo começando do zero"
-  ];
-
-  const grupoVipFeatures = [
-    "Acesse o grupo VIP",
-    "Tire dúvidas",
-    "Compartilhe resultados",
-    "Receba atualizações em primeira mão"
-  ];
-
-  const bonusIAFeatures = [
-    {
-      icon: Brain,
-      title: "Análise de I.A Completa",
-      description: "Nossa inteligência artificial analisa seu perfil em profundidade: bio, posts, engajamento e identifica oportunidades de melhoria"
-    },
-    {
-      icon: RefreshCw,
-      title: "Acompanhamento Anual",
-      description: "Suporte e acompanhamento durante todo o ano para garantir que você está sempre evoluindo"
-    },
-    {
-      icon: Sparkles,
-      title: "Estratégias Mensais (30 em 30 dias)",
-      description: "A cada 30 dias você recebe uma nova estratégia personalizada baseada no seu nicho"
-    },
-    {
-      icon: Lightbulb,
-      title: "Ideias de Conteúdo Ilimitadas",
-      description: "Dezenas de ideias de posts, reels e stories alinhadas com seu nicho"
-    },
-    {
-      icon: Target,
-      title: "Scripts de Vendas",
-      description: "Scripts prontos e gatilhos mentais para transformar seguidores em clientes"
-    }
-  ];
-
   const faqs = [
-    {
-      q: "Quais são os planos disponíveis hoje?",
-      a: "Oferecemos dois planos: o Plano Anual de 12 meses, que dá acesso completo por um ano, e o Plano Pagamento Único Vitalício, onde você paga apenas uma vez e tem acesso para sempre, incluindo todas as atualizações sem custo adicional."
-    },
-    {
-      q: "Por que interagir em massa vai me ajudar?",
-      a: "Ao curtir fotos, seguir perfis, reagir a stories e interagir com seguidores de concorrentes de forma estratégica, você gera um efeito de proximidade e visibilidade. Isso atrai atenção automática como se fosse um funcionário trabalhando por você — aumentando o engajamento, seguidores e possíveis vendas de forma consistente."
-    },
-    {
-      q: "Mas isso traz vendas, ou só seguidores?",
-      a: "Sim, o método é completo. Além da ferramenta de engajamento automático, oferecemos acesso a uma área de membros com vídeos estratégicos que ensinam como converter seguidores em clientes reais. Essa parte estratégica é exclusiva para clientes VIPs."
-    },
-    {
-      q: "Isso em massa não gera bloqueio?",
-      a: "Não. Nosso sistema simula um humano com tela ligada, interações espaçadas e pausas naturais. Você deixa rodando por 7 a 8 horas diárias com segurança. O algoritmo entende como uso real, evitando bloqueios. Interagimos com cerca de 200 pessoas por dia de forma inteligente e segura."
-    },
-    {
-      q: "Funciona só em computador?",
-      a: "Sim, nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks. Não funciona em celulares, tablets ou dispositivos móveis. Isso garante desempenho, estabilidade e maior segurança nas interações automáticas."
-    }
-  ];
-
-  const annualFeatures = [
-    "Ferramenta completa para Instagram",
-    "Acesso a 4 contas simultâneas fixas",
-    "5 testes todo mês para testar em seus clientes/outras contas",
-    "Área de membros por 1 ano",
-    "Vídeos estratégicos passo a passo",
-    "Grupo VIP no WhatsApp",
-    "Suporte prioritário"
-  ];
-
-  const lifetimeFeatures = [
-    "Ferramenta completa para Instagram",
-    "Acesso a 6 contas simultâneas fixas",
-    "5 testes todo mês para testar em seus clientes/outras contas",
-    "Área de membros VITALÍCIA",
-    "Vídeos estratégicos passo a passo",
-    "Grupo VIP no WhatsApp",
-    "Suporte prioritário",
-    "Atualizações gratuitas para sempre"
+    { q: "Quais são os planos disponíveis hoje?", a: "Oferecemos duas opções de planos anuais: Plano Pro (4 contas fixas + 5 testes mensais) e Plano Agência (10 contas fixas + 10 testes mensais). Ambos os planos são assinaturas anuais que garantem acesso total à ferramenta e suporte especializado." },
+    { q: "O que é a automação de Direct (DM) em massa?", a: "É uma funcionalidade exclusiva da V7+ Plus que permite enviar mensagens automáticas no Direct para novos seguidores, seus seguidores atuais e até seguidores de qualquer outra página — tudo com copy otimizada pelo Corretor de IA exclusivo MRO." },
+    { q: "O que são os Filtros Inteligentes (Público Quente)?", a: "São filtros avançados de segmentação que identificam pessoas que já demonstraram interesse no seu nicho — como quem curtiu posts, comentou ou segue perfis concorrentes. Isso garante mais precisão, mais respostas e mais conversões." },
+    { q: "Isso em massa não gera bloqueio?", a: "Não. Nosso sistema simula um humano com tela ligada, interações espaçadas e pausas naturais. Você deixa rodando por 7 a 8 horas diárias com segurança. O algoritmo entende como uso real, evitando bloqueios." },
+    { q: "Funciona só em computador?", a: "Sim, nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks. Não funciona em celulares, tablets ou dispositivos móveis." },
+    { q: "Como funciona a IA exclusiva da MRO?", a: "Nossa IA analisa seu perfil completo, gera estratégias de conteúdo, engajamento e vendas, otimiza sua BIO e entrega relatórios de acompanhamento — tudo personalizado para o seu nicho." },
   ];
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logoMro} alt="MRO" className="h-10 object-contain" />
-          <Button 
-            onClick={scrollToPricing}
-            className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
-          >
-            Garantir Acesso
-          </Button>
-        </div>
-      </header>
-
       {/* Hero Section */}
-      <section className="relative pt-28 pb-16 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
-          
-          {/* Animated Title */}
+      <section className="relative pt-20 pb-8 px-4">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[60px] md:blur-[120px]" />
+          <div className="absolute top-40 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-[50px] md:blur-[100px]" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-t from-purple-500/5 to-transparent" />
+        </div>
+        <div className="max-w-5xl mx-auto text-center relative">
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-[60px] md:blur-[60px] md:blur-[120px] rounded-full" />
-            <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
-              NÃO GASTE MAIS COM ANÚNCIOS
+            <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
+            <h1 className="relative text-4xl md:text-6xl lg:text-8xl font-[1000] mb-2 leading-tight tracking-tighter filter drop-shadow-[0_0_1px_rgba(255,255,255,0.8)]">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+                NÃO GASTE MAIS COM ANÚNCIOS
+              </span>
             </h1>
-            <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black">
-              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite]">
-                UTILIZE A MRO INTELIGENTE
+            <h2 className="relative text-2xl md:text-4xl lg:text-5xl font-[1000] mb-4">
+              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-tight">
+                Utilize a MRO Inteligente!
               </span>
             </h2>
+            <p className="relative mt-2 text-sm md:text-base text-gray-400">
+              Instale em seu notebook, macbook ou computador de mesa!
+            </p>
           </div>
 
-          {/* Main Video */}
-          <div className="mt-10 max-w-4xl mx-auto">
-            <div 
-              onClick={() => openVideo("U-WmszcYekA")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700 hover:border-amber-500/50 transition-all"
-            >
-              <img 
-                src="https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg" 
-                alt="Video MRO" 
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+          <div className="mt-6 max-w-4xl mx-auto" id="hero-video">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+              <iframe
+                src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
+                title="Video MRO"
+                className="w-full aspect-video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
               />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
-                  <Play className="w-10 h-10 text-white ml-1" fill="white" />
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Scroll Indicator */}
-          <div className="mt-10 animate-bounce">
+          <div className="mt-8 mb-4">
+            <Button
+              onClick={scrollToPricing}
+              className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
+            >
+              VER PLANOS DISPONÍVEIS
+            </Button>
+          </div>
+
+          <div className="mt-6 animate-bounce">
             <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
           </div>
         </div>
       </section>
 
-      {/* Active Clients Section */}
-      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
-      </section>
-
-      {/* O QUE VOCÊ VAI RECEBER */}
-      <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-950">
+      <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-16">
-            O QUE VOCÊ VAI <span className="text-amber-400">RECEBER</span>
-          </h2>
-
-          {/* IA Section */}
-          <div className="mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg px-4 py-2">
-                <span className="font-bold text-sm">NOVO</span>
-              </div>
-              <h3 className="text-2xl md:text-3xl font-bold">
-                Inteligência artificial automática
-              </h3>
-            </div>
-            
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 gap-4">
-                {iaFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-amber-400 font-medium mt-6 text-center text-lg">
-                Tudo isso personalizado para você, em segundos!
-              </p>
-            </div>
+          <div className="text-center mb-16">
+            <p className="text-2xl md:text-3xl font-black mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              🎁 O que você vai receber no Plano MRO!
+            </p>
           </div>
 
-          {/* MRO Principal */}
-          <div className="mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-amber-500 rounded-lg px-4 py-2">
-                <span className="font-bold text-black text-sm">PRINCIPAL</span>
-              </div>
-              <h3 className="text-2xl md:text-3xl font-bold">
-                FERRAMENTA MRO
-              </h3>
+          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12 text-left space-y-8">
+            <div>
+              <h3 className="text-xl font-black text-blue-400 mb-4">NOVO: Automação de Direct (DM) em Massa</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Envio automático para novos seguidores</li>
+                <li>• Envio para seus seguidores atuais</li>
+                <li>• Envio para seguidores de qualquer página</li>
+                <li>• Copy otimizada com Corretor de IA exclusivo MRO</li>
+              </ul>
             </div>
-            
-            <div className="bg-gray-900/50 border border-amber-500/30 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mroFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-4 bg-gray-800/50 rounded-xl p-4">
-                    <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
-                      <feature.icon className="w-6 h-6 text-amber-400" />
-                    </div>
-                    <span className="font-medium">{feature.title}</span>
-                  </div>
-                ))}
-              </div>
-              
-              <p className="text-gray-400 mt-8 text-center max-w-3xl mx-auto">
-                Tudo isso em alta escala, todos os dias, atraindo um novo público real e interessado em você.
-              </p>
-              
-              <div className="mt-6 text-center">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-6 py-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
-                  <span className="text-green-400 font-bold">Resultados comprovados em até 7 horas de uso!</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Area de Membros */}
-          <div className="mb-16">
-            <h3 className="text-2xl md:text-3xl font-bold mb-6">
-              ÁREA DE MEMBROS <span className="text-amber-400">VITALÍCIA</span>
-            </h3>
-            
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 gap-4">
-                {areaMembroFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <Video className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
-                ))}
-              </div>
+            <div>
+              <h3 className="text-xl font-black text-purple-400 mb-4">NOVO: Filtros Inteligentes (Público Quente)</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Segmentação avançada para atingir quem realmente tem interesse</li>
+                <li>• Mais precisão = mais respostas e conversões</li>
+              </ul>
             </div>
-          </div>
 
-          {/* Grupo VIP */}
-          <div className="mb-16">
-            <h3 className="text-2xl md:text-3xl font-bold mb-6">
-              GRUPO VIP DE <span className="text-green-400">SUPORTE E NETWORKING</span>
-            </h3>
-            
-            <div className="bg-gray-900/50 border border-green-500/30 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 gap-4">
-                {grupoVipFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <MessageCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
-                ))}
-              </div>
+            <div>
+              <h3 className="text-xl font-black text-amber-400 mb-4">PRINCIPAL: Automação Completa de Crescimento</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Seguir em massa</li>
+                <li>• Curtir fotos automaticamente</li>
+                <li>• Curtir stories</li>
+                <li>• Deixar de seguir</li>
+              </ul>
             </div>
-          </div>
 
-          {/* FAQ Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
-              <h4 className="font-bold text-lg mb-4">Por que interagir em massa vai me ajudar?</h4>
-              <p className="text-gray-400 text-sm">
-                Ao curtir fotos, seguir perfis, reagir a stories e interagir com seguidores de concorrentes de forma estratégica, você gera um efeito de proximidade e visibilidade. Isso atrai atenção automática como se fosse um funcionário trabalhando por você — aumentando o engajamento, seguidores e possíveis vendas de forma consistente.
-              </p>
+            <div>
+              <h3 className="text-xl font-black text-green-400 mb-4">AVANÇADO: Captura Avançada de Público</h3>
+              <p className="text-gray-400 mb-3">Extraia leads altamente qualificados:</p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Pessoas que curtem posts</li>
+                <li>• Pessoas que comentam</li>
+                <li>• Seguidores de qualquer perfil</li>
+                <li>• Quem o perfil está seguindo</li>
+              </ul>
+              <p className="mt-4 text-green-400 font-bold">👉 Você atinge exatamente quem já demonstra interesse.</p>
             </div>
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
-              <h4 className="font-bold text-lg mb-4">Mas isso traz vendas, ou só seguidores?</h4>
-              <p className="text-gray-400 text-sm">
-                Sim, o método é completo. Além da ferramenta de engajamento automático, oferecemos acesso a uma área de membros com vídeos estratégicos que ensinam como converter seguidores em clientes reais. Essa parte estratégica é exclusiva para clientes VIPs.
-              </p>
-            </div>
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
-              <h4 className="font-bold text-lg mb-4">Isso em massa não gera bloqueio?</h4>
-              <p className="text-gray-400 text-sm">
-                Não. Nosso sistema simula um humano com tela ligada, interações espaçadas e pausas naturais. Você deixa rodando por 7 a 8 horas diárias com segurança. O algoritmo entende como uso real, evitando bloqueios. Interagimos com cerca de 200 pessoas por dia de forma inteligente e segura.
-              </p>
+
+            <div>
+              <h3 className="text-xl font-black text-pink-400 mb-4">IA EXCLUSIVA: Inteligência Artificial Exclusiva</h3>
+              <p className="text-gray-400 mb-3">A MRO V7+ vai além da automação:</p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Análise completa do seu perfil</li>
+                <li>• Estratégias de conteúdo</li>
+                <li>• Estratégias de engajamento</li>
+                <li>• Estratégias de vendas</li>
+                <li>• Otimização da BIO</li>
+                <li>• Relatórios e acompanhamento</li>
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Guarantee Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-3xl p-8 md:p-12 text-center">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <Shield className="w-16 h-16 text-green-400" />
+      <div className="py-20 bg-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none blur-3xl rounded-full translate-x-1/2" />
+        <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-12">
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+              A Solução Mais <span className="text-emerald-400">Acessível</span> do Mercado
+            </h2>
+            <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+              Libere o poder da automação e IA no seu Instagram hoje mesmo. Planos flexíveis que cabem no seu bolso.
+            </p>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+              <Button
+                onClick={scrollToPricing}
+                className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
+              >
+                VER TODOS OS PLANOS
+              </Button>
             </div>
-            <span className="text-green-400 font-bold text-sm tracking-widest">GARANTIA</span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-6">
+          </div>
+        </div>
+      </div>
+
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative bg-gradient-to-br from-green-950/80 to-black border-2 border-green-500/50 rounded-3xl p-8 md:p-14 text-center shadow-2xl shadow-green-500/10 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 to-transparent pointer-events-none" />
+            <div className="relative flex items-center justify-center mb-6">
+              <div className="absolute w-28 h-28 rounded-full bg-green-500/10 animate-ping pointer-events-none" style={{ animationDuration: "3s" }} />
+              <div className="relative w-24 h-24 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center">
+                <Shield className="w-12 h-12 text-green-400" />
+              </div>
+            </div>
+            <span className="text-green-400 font-bold text-xs tracking-[0.3em] uppercase">GARANTIA TOTAL</span>
+            <h2 className="text-3xl md:text-5xl font-black mt-3 mb-6 leading-tight">
               30 Dias de Resultados <span className="text-green-400">Garantidos</span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
-              Nós garantimos engajamento, clientes, público e vendas utilizando nossa ferramenta de modo contínuo. 
-              Se em 30 dias você não estiver completamente satisfeito, <strong className="text-white">devolvemos 100% do seu investimento!</strong>
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-              <span className="bg-green-500/20 rounded-full px-4 py-2 text-green-400">Sem Risco</span>
-              <span className="bg-green-500/20 rounded-full px-4 py-2 text-green-400">Compra Segura</span>
-              <span className="bg-green-500/20 rounded-full px-4 py-2 text-green-400">Satisfação Garantida</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main 3 Bonuses Highlight */}
-      <section className="py-16 px-4 bg-black">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 rounded-full px-6 py-3 mb-4">
-              <Gift className="w-5 h-5 text-amber-400" />
-              <span className="text-amber-400 font-bold">+ BÔNUS INCLUSOS</span>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Bonus 1 - Análise de IA */}
-            <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-2 border-purple-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                <Brain className="w-8 h-8 text-purple-400" />
-              </div>
-              <div className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
-                BÔNUS #1
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-purple-300">Análise de I.A Completa</h3>
-              <p className="text-gray-400 text-sm">
-                Nossa inteligência artificial analisa seu perfil em profundidade: bio, posts, engajamento e identifica todas as oportunidades de melhoria baseado no seu nicho.
+            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl px-6 py-5 max-w-2xl mx-auto mb-8">
+              <p className="text-white text-lg md:text-xl leading-relaxed">
+                Se em <strong className="text-green-400">30 dias</strong> não tiver os resultados prometidos, <strong className="text-white">devolvemos o seu dinheiro.</strong>
               </p>
+              <p className="text-green-300 font-bold text-lg mt-2">Nós garantimos resultados. Sem risco para você.</p>
             </div>
-
-            {/* Bonus 2 - Acompanhamento Anual */}
-            <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-                <RefreshCw className="w-8 h-8 text-green-400" />
-              </div>
-              <div className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
-                BÔNUS #2
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-green-300">Acompanhamento Anual</h3>
-              <p className="text-gray-400 text-sm">
-                Suporte e acompanhamento durante todo o ano para garantir que você está sempre evoluindo e alcançando seus objetivos de crescimento.
-              </p>
-            </div>
-
-            {/* Bonus 3 - Estratégias Mensais */}
-            <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/20 border-2 border-amber-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-amber-400" />
-              </div>
-              <div className="bg-amber-500 text-black text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
-                BÔNUS #3
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-amber-300">Estratégias Mensais (30 em 30 dias)</h3>
-              <p className="text-gray-400 text-sm">
-                A cada 30 dias você recebe uma nova estratégia personalizada baseada no seu nicho e nos resultados do mês anterior.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* BONUS I.A Section - Additional */}
-      <section className="py-16 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">
-              E mais recursos da <span className="text-amber-400">I.A da MRO</span>
-            </h2>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-6">
-            {bonusIAFeatures.slice(3).map((feature, i) => (
-              <div 
-                key={i}
-                className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 w-full md:w-[calc(33.333%-1rem)] md:max-w-[350px]"
-              >
-                <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-amber-400" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+              {[
+                { emoji: "🔒", label: "Compra 100% Segura" },
+                { emoji: "💰", label: "Reembolso Garantido" },
+                { emoji: "✅", label: "Satisfação ou Dinheiro de Volta" },
+              ].map((item, i) => (
+                <div key={i} className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex items-center gap-2 justify-center">
+                  <span className="text-xl">{item.emoji}</span>
+                  <span className="text-green-300 text-sm font-semibold">{item.label}</span>
                 </div>
-                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                <p className="text-gray-400 text-sm">{feature.description}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+            <p className="text-gray-500 text-sm">Garantia válida por 30 dias após a data da compra.</p>
           </div>
         </div>
       </section>
 
-      {/* Pricing Section - EURO */}
+      {/* Pricing Section - GBP via Stripe */}
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent" />
-        
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-blue-600/20 border border-blue-500/50 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 animate-pulse">
               <span className="text-xl sm:text-2xl">🇬🇧</span>
-              <span className="text-blue-400 font-black text-sm sm:text-lg">PAGAMENTO EM LIBRAS</span>
+              <span className="text-blue-400 font-black text-sm sm:text-lg">PAGAMENTO EM LIBRAS (STRIPE)</span>
               <span className="text-xl sm:text-2xl">🇬🇧</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
-              ESCOLHA SEU <span className="text-amber-400">PLANO</span>
+            <span className="inline-block bg-amber-500/10 text-amber-500 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
+              Planos Anuais
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
+              ESCOLHA SEU <span className="text-amber-400">PLANO ANUAL</span>
             </h2>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-lg mb-6">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {/* Plano 1 Conta - GBP */}
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-blue-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-center text-blue-400">Plano 1 Conta</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo com 1 conta</p>
-
-              <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De £397</div>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-blue-400">£{PLANS.annual.price}</span>
-                </div>
-                <p className="text-gray-400 mt-2">Pagamento único via Stripe</p>
-              </div>
-
-              <div className="space-y-2 mb-6">
-                {annualFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button 
-                size="lg"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
-                onClick={() => {
-                  trackLead('Instagram MRO GBP - Plano 1 Conta');
-                  setSelectedPlan("annual");
-                  setShowCheckoutModal(true);
-                }}
-              >
-                GARANTIR PLANO 1 CONTA
-              </Button>
-            </div>
-
-            {/* Plano Vitalício - EURO */}
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl shadow-amber-500/30">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Plano Pro */}
+            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl transition-all hover:scale-[1.05] z-10 ${selectedPlan === "pro" ? "border-amber-500 ring-4 ring-amber-500/20" : "border-amber-500/50"}`}>
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">
-                  ⭐ MAIS POPULAR
+                  ⭐ RECOMENDADO
                 </div>
               </div>
-
-              <h3 className="text-2xl font-bold mb-2 text-center text-amber-400 mt-2">Plano 4 Contas</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo com 4 contas</p>
-
+              <h3 className="text-3xl font-black mb-2 text-center text-amber-400 mt-2">Plano Pro Anual</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">4 contas simultâneas</p>
               <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De £797</div>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-amber-400">£{PLANS.lifetime.price}</span>
+                  <span className="text-6xl sm:text-7xl font-[1000] text-amber-400">£{PLANS.pro.price}</span>
                 </div>
-                <p className="text-gray-400 mt-2">Pagamento único via Stripe</p>
+                <p className="text-gray-400 mt-2 font-bold">Pagamento único via Stripe</p>
               </div>
-
               <div className="space-y-2 mb-6">
-                {lifetimeFeatures.map((feature, i) => (
+                {[
+                  "Ferramenta completa",
+                  "Inteligência artificial",
+                  "Suporte",
+                  "Grupo Vip no WhatsApp",
+                  "4 contas fixas",
+                  "Vídeos Passo a Passo",
+                ].map((f, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                    <span className="text-gray-300">{feature}</span>
+                    <span className="text-gray-300 font-bold">{f}</span>
                   </div>
                 ))}
               </div>
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  size="lg"
+                  className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    trackLead("Instagram MRO GBP - Plano Pro");
+                    setSelectedPlan("pro");
+                    setShowCheckoutModal(true);
+                    trackInitiateCheckout("Plano Pro GBP", PLANS.pro.price);
+                  }}
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  ESCOLHER PRO
+                </Button>
+                <span className="text-amber-500/70 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
+              </div>
+            </div>
 
-              <Button 
-                size="lg"
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform"
-                onClick={() => {
-                  trackLead('Instagram MRO GBP - Plano 4 Contas');
-                  setSelectedPlan("lifetime");
-                  setShowCheckoutModal(true);
-                }}
-              >
-                GARANTIR PLANO 4 CONTAS
-              </Button>
+            {/* Plano Agência */}
+            <div className={`relative bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl transition-all hover:scale-[1.02] ${selectedPlan === "agencia" ? "border-purple-500 ring-2 ring-purple-500/20" : "border-zinc-700"}`}>
+              <h3 className="text-2xl font-black mb-2 text-center text-white">Plano Agência Anual</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">10 contas simultâneas</p>
+              <div className="text-center mb-6">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-6xl sm:text-7xl font-[1000] text-purple-400">£{PLANS.agencia.price}</span>
+                </div>
+                <p className="text-gray-400 mt-2 font-bold">Pagamento único via Stripe</p>
+              </div>
+              <div className="space-y-2 mb-6">
+                {[
+                  "Ferramenta completa",
+                  "Inteligência artificial",
+                  "Suporte",
+                  "Grupo Vip no WhatsApp",
+                  "10 contas fixas",
+                  "Vídeos Passo a Passo",
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                    <span className="text-gray-300 font-bold">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  size="lg"
+                  className="w-full bg-[#39FF14] hover:bg-[#32e612] text-black font-black py-7 rounded-xl shadow-[0_0_20px_rgba(57,255,20,0.4)] hover:shadow-[0_0_30px_rgba(57,255,20,0.6)] transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    trackLead("Instagram MRO GBP - Plano Agência");
+                    setSelectedPlan("agencia");
+                    setShowCheckoutModal(true);
+                    trackInitiateCheckout("Plano Agência GBP", PLANS.agencia.price);
+                  }}
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  ESCOLHER AGÊNCIA
+                </Button>
+                <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">( ANUAL )</span>
+              </div>
             </div>
           </div>
 
-          {/* Countdown Timer */}
-          <div className="text-center mt-8">
+          <div className="text-center mt-8 mb-4">
             <p className="text-red-400 font-bold text-sm sm:text-lg animate-pulse mb-4">⏰ Promoção válida apenas nas próximas:</p>
             <div className="flex items-center justify-center gap-1 sm:gap-2">
               <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
+                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.hours).padStart(2, "0")}h</span>
               </div>
               <span className="text-gray-500 text-lg sm:text-xl">:</span>
               <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
+                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.minutes).padStart(2, "0")}m</span>
               </div>
               <span className="text-gray-500 text-lg sm:text-xl">:</span>
               <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.seconds).padStart(2, "0")}s</span>
               </div>
             </div>
+          </div>
+
+          <div className="mt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h3 className="text-2xl md:text-3xl font-black text-white mb-4">Ficou com dúvidas?</h3>
+            <p className="text-gray-400 mb-6 text-lg">Fale no WhatsApp agora mesmo para falar com um especialista.</p>
+            <Button
+              onClick={() => {
+                trackLead("Instagram Nova Euro - WhatsApp CTA Below Pricing");
+                window.location.href = "/whatsapp";
+              }}
+              className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-lg px-10 py-7 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 flex items-center gap-3 mx-auto"
+            >
+              <WhatsAppIcon className="w-7 h-7" />
+              CONVERSAR NO WHATSAPP
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Bonus 5K Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
-              <Gift className="w-4 h-4 text-green-400" />
-              <span className="text-green-400 text-sm font-bold">BÔNUS GRÁTIS</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              FAÇA MAIS DE <span className="text-green-400">£5 MIL MENSAL</span> PRESTANDO SERVIÇO COM ESSA FERRAMENTA
+      <section className="relative py-24 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-gray-950 to-emerald-950" />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(245, 158, 11, 0.2) 0%, transparent 50%)" }} />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
+
+        <div className="relative max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-5xl font-black mb-6 leading-tight text-white">
+              Sabia que você pode prestar serviço e faturar com essa ferramenta mais de £5 mil mensal?
             </h2>
-            <p className="text-amber-400 font-medium text-lg">
-              Rode esse sistema para outras empresas e fature mensalmente por isso!
-            </p>
-          </div>
-
-          <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 mb-10">
-            <div className="space-y-4 text-gray-400">
-              <p>
-                Temos um método completo no qual você pode prestar serviços utilizando essa ferramenta, fechando contratos com empresas que buscam engajamento, clientes e vendas.
-              </p>
-              <p>
-                Você roda a ferramenta para o cliente, cobra uma mensalidade, e gera uma renda recorrente. Tudo pode ser feito de qualquer lugar do mundo com seu notebook.
-              </p>
-              <p>
-                Para quem deseja oferecer esse serviço, entregamos <strong className="text-white">4 contas vitalícias + 5 testes grátis por mês</strong> (de 1 dia cada).
-              </p>
-              <p>
-                Esses testes servem para apresentar o serviço: você roda a ferramenta por 1 dia, o cliente vê o resultado e você fecha um contrato mensal com ele.
-              </p>
-              <p className="text-xl font-bold text-amber-400 text-center mt-6">
-                OU SEJA, VOCÊ PODE FATURAR MAIS DE £5.000,00 POR MÊS PRESTANDO SERVIÇO COM ESSA FERRAMENTA!
-              </p>
-              <p className="text-center text-sm">
-                Caso precise de mais contas no futuro, cobramos £150 por conta adicional para quem já utiliza o sistema.
-              </p>
-            </div>
-          </div>
-
-          {/* Video 5K */}
-          <div className="max-w-3xl mx-auto">
-            <h4 className="text-center text-lg font-medium mb-4">
-              CONFIRA UMA APRESENTAÇÃO DE COMO DESENVOLVEMOS ESSA SOLUÇÃO:
-            </h4>
-            <div 
-              onClick={() => openVideo("WQwnAHNvSMU")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700"
+            <Button
+              onClick={() => setShowBonusDetails(!showBonusDetails)}
+              className="bg-emerald-500 hover:bg-emerald-600 text-black font-black text-lg px-10 py-6 rounded-full shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
             >
-              <img 
-                src="https://img.youtube.com/vi/WQwnAHNvSMU/maxresdefault.jpg" 
-                alt="Video 5K" 
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                  <Play className="w-8 h-8 text-white ml-1" fill="white" />
+              SABER COMO {showBonusDetails ? <ChevronDown className="ml-2 rotate-180" /> : <ChevronDown className="ml-2" />}
+            </Button>
+          </div>
+
+          {showBonusDetails && (
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-3 bg-emerald-500/20 border-2 border-emerald-400/50 rounded-full px-6 py-3 mb-6 shadow-lg shadow-emerald-500/20">
+                  <span className="text-2xl">💰</span>
+                  <span className="text-emerald-300 text-base font-black tracking-wider uppercase">Bônus Exclusivo</span>
+                  <span className="text-2xl">💰</span>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black mb-3 leading-tight">
+                  <span className="text-white">PRESTE SERVIÇO COM A MRO</span>
+                </h2>
+                <h3 className="text-3xl md:text-4xl font-black mb-6">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400">
+                    FATURE MAIS DE £5.000/MÊS
+                  </span>
+                </h3>
+                <p className="text-amber-400 font-bold text-xl max-w-2xl mx-auto">
+                  Rode esse sistema para outras empresas e ganhe mensalmente com isso!
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-10">
+                <div className="bg-black/40 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-400/60 transition-all hover:scale-105">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Laptop className="w-7 h-7 text-emerald-400" />
+                  </div>
+                  <h4 className="text-white font-bold text-lg mb-2">Trabalhe de Qualquer Lugar</h4>
+                  <p className="text-gray-400 text-sm">Tudo pode ser feito do seu notebook, de qualquer lugar do mundo</p>
+                </div>
+                <div className="bg-black/40 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-400/60 transition-all hover:scale-105">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-7 h-7 text-emerald-400" />
+                  </div>
+                  <h4 className="text-white font-bold text-lg mb-2">4 Contas Vitalícias</h4>
+                  <p className="text-gray-400 text-sm">+ 5 testes grátis por mês para apresentar o serviço aos clientes</p>
+                </div>
+                <div className="bg-black/40 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-400/60 transition-all hover:scale-105">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-7 h-7 text-emerald-400" />
+                  </div>
+                  <h4 className="text-white font-bold text-lg mb-2">Renda Recorrente</h4>
+                  <p className="text-gray-400 text-sm">Cobra uma mensalidade dos clientes e gera renda recorrente</p>
+                </div>
+              </div>
+
+              <div className="bg-black/60 backdrop-blur-sm border border-emerald-500/20 rounded-3xl p-8 md:p-10 mb-10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
+                <div className="relative space-y-5 text-gray-300 text-lg leading-relaxed">
+                  <p>Temos um <strong className="text-emerald-400">método completo</strong> no qual você pode prestar serviços utilizando essa ferramenta, fechando contratos com empresas que buscam engajamento, clientes e vendas.</p>
+                  <p>Você roda a ferramenta para o cliente, cobra uma mensalidade, e gera uma <strong className="text-emerald-400">renda recorrente</strong>.</p>
+                  <p>Os testes servem para apresentar o serviço: você roda a ferramenta por 1 dia, o cliente vê o resultado e você <strong className="text-white">fecha um contrato mensal</strong> com ele.</p>
+
+                  <div className="bg-gradient-to-r from-emerald-500/10 via-amber-500/10 to-emerald-500/10 border border-amber-400/30 rounded-2xl p-6 mt-8">
+                    <p className="text-2xl md:text-3xl font-black text-center text-amber-400 leading-tight">
+                      OU SEJA, VOCÊ PODE FATURAR MAIS DE<br />
+                      <span className="text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">£5.000,00/MÊS</span><br />
+                      <span className="text-xl text-amber-300">PRESTANDO SERVIÇO COM ESSA FERRAMENTA!</span>
+                    </p>
+                  </div>
+
+                  <p className="text-center text-gray-500 text-sm mt-4">Caso precise de mais contas no futuro, cobramos £150 por conta adicional para quem já utiliza o sistema.</p>
+                </div>
+              </div>
+
+              <div className="max-w-3xl mx-auto">
+                <h4 className="text-center text-xl font-bold mb-6 text-emerald-300">🎬 CONFIRA UMA APRESENTAÇÃO DE COMO DESENVOLVEMOS ESSA SOLUÇÃO:</h4>
+                <div onClick={() => openVideo("WQwnAHNvSMU")} className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl shadow-emerald-500/10 border-2 border-emerald-500/30 hover:border-emerald-400/60 transition-all">
+                  <img src="https://img.youtube.com/vi/WQwnAHNvSMU/maxresdefault.jpg" alt="Video 5K" className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/40">
+                      <Play className="w-8 h-8 text-white ml-1" fill="white" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <p className="text-center text-lg text-gray-300 mt-10">
-            Está pronto para começar? Entre em contato e garanta seu acesso vitalício agora mesmo!
-          </p>
+          )}
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* Tráfego Pago + MRO */}
+      <section className="py-20 px-4 bg-zinc-950/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-black/60 backdrop-blur-sm border border-emerald-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden text-center">
+            <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
+              Posso usar tráfego pago e a ferramenta MRO?
+            </h2>
+            <div className="space-y-6 text-gray-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+              <p>
+                Sim! A ferramenta MRO foi desenhada para <strong className="text-emerald-400">potencializar</strong> seus resultados.
+                Enquanto o tráfego pago traz novas pessoas para o seu perfil, a MRO garante que essas pessoas se tornem seguidores e clientes fiéis através da nossa automação inteligente.
+              </p>
+              <p className="text-base text-gray-400 italic">
+                Veja o vídeo abaixo para entender como essa combinação pode acelerar o seu crescimento.
+              </p>
+            </div>
+            <div className="max-w-2xl mx-auto">
+              {showSecondaryVideo ? (
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
+                  <iframe
+                    src="https://www.youtube.com/embed/EHTtdvtoI_A?rel=0&autoplay=1"
+                    title="Tráfego Pago e MRO"
+                    className="w-full aspect-video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setShowSecondaryVideo(true)}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 flex items-center gap-3 mx-auto"
+                >
+                  <Play className="w-6 h-6 fill-current" />
+                  VER O VÍDEO
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="py-20 px-4 bg-black">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
             Perguntas <span className="text-amber-400">Frequentes</span>
           </h2>
-
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div 
-                key={i}
-                className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden"
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-5 text-left"
-                >
+              <div key={i} className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left">
                   <span className="font-semibold pr-4">{faq.q}</span>
-                  <ChevronDown className={`w-5 h-5 text-amber-400 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-amber-400 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`} />
                 </button>
-                {openFaq === i && (
-                  <div className="px-5 pb-5 text-gray-400">
-                    {faq.a}
-                  </div>
-                )}
+                {openFaq === i && <div className="px-5 pb-5 text-gray-400">{faq.a}</div>}
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Still Have Doubts Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ainda está com <span className="text-amber-400">dúvidas</span>?
-            </h2>
-            <p className="text-gray-400 text-lg">
-              Veja no vídeo abaixo como nossa ferramenta pode transformar seus resultados sem gastar com anúncios pagos
-            </p>
-          </div>
-
-          {/* Final Video */}
-          <div className="max-w-3xl mx-auto">
-            <div 
-              onClick={() => openVideo("htcmVvznaBs")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700"
-            >
-              <img 
-                src="https://img.youtube.com/vi/htcmVvznaBs/maxresdefault.jpg" 
-                alt="Video Final" 
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                  <Play className="w-8 h-8 text-white ml-1" fill="white" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature Pills */}
-          <div className="grid md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 text-center">
-              <Zap className="w-10 h-10 text-amber-400 mx-auto mb-4" />
-              <h4 className="font-bold text-lg mb-2">Resultados Rápidos</h4>
-              <p className="text-gray-400 text-sm">
-                Em apenas 7 horas utilizando nossa ferramenta você já começa a ver os primeiros resultados no seu negócio
-              </p>
-            </div>
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 text-center">
-              <Star className="w-10 h-10 text-amber-400 mx-auto mb-4" />
-              <h4 className="font-bold text-lg mb-2">Engajamento Garantido</h4>
-              <p className="text-gray-400 text-sm">
-                Aumente significativamente o engajamento do seu público sem depender de algoritmos ou anúncios pagos
-              </p>
-            </div>
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 text-center">
-              <Target className="w-10 h-10 text-amber-400 mx-auto mb-4" />
-              <h4 className="font-bold text-lg mb-2">Mais Vendas</h4>
-              <p className="text-gray-400 text-sm">
-                Método comprovado que gera clientes e aumenta suas vendas de forma consistente e previsível
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -925,31 +713,9 @@ const InstagramNovaEuro = () => {
               <Laptop className="w-8 h-8 text-gray-400" />
             </div>
             <p className="text-gray-400 text-sm">
-              <strong className="text-white">Nota:</strong> Nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks. Não funciona em celulares, tablets ou dispositivos móveis.
+              <strong className="text-white">Nota:</strong> Nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Pronto para <span className="text-amber-400">Escalar</span> seu Instagram?
-          </h2>
-          <p className="text-xl text-gray-400 mb-10">
-            Junte-se a milhares de empreendedores que já transformaram seus perfis
-          </p>
-          <Button 
-            size="lg"
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
-            onClick={scrollToPricing}
-          >
-            <span className="flex items-center justify-center gap-2 flex-wrap text-center">
-              <span>GARANTIR MEU ACESSO AGORA</span>
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
-            </span>
-          </Button>
         </div>
       </section>
 
@@ -966,154 +732,59 @@ const InstagramNovaEuro = () => {
 
       {/* Video Modal */}
       {showVideoModal && (
-        <div 
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowVideoModal(false)}
-        >
-          <button 
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-            onClick={() => setShowVideoModal(false)}
-          >
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4" onClick={() => setShowVideoModal(false)}>
+          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" onClick={() => setShowVideoModal(false)}>
             <X className="w-6 h-6" />
           </button>
-          <div className="w-full max-w-5xl aspect-video" onClick={e => e.stopPropagation()}>
-            <iframe
-              src={`https://www.youtube.com/embed/${currentVideoUrl}?autoplay=1`}
-              className="w-full h-full rounded-xl"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
+          <div className="w-full max-w-5xl aspect-video" onClick={(e) => e.stopPropagation()}>
+            <iframe src={`https://www.youtube.com/embed/${currentVideoUrl}?autoplay=1`} className="w-full h-full rounded-xl" allow="autoplay; encrypted-media" allowFullScreen />
           </div>
         </div>
       )}
 
-      {/* Checkout Modal - EURO via Stripe */}
+      {/* Checkout Modal - Stripe GBP */}
       {showCheckoutModal && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowCheckoutModal(false)}
-        >
-          <div 
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative"
-            onClick={e => e.stopPropagation()}
-          >
-            <button 
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              onClick={() => setShowCheckoutModal(false)}
-            >
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" onClick={() => setShowCheckoutModal(false)}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" onClick={() => setShowCheckoutModal(false)}>
               <X className="w-5 h-5" />
             </button>
-
             <div className="text-center mb-6">
-              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
-                selectedPlan === "annual" 
-                  ? "bg-blue-500/20" 
-                  : "bg-gradient-to-br from-amber-500/20 to-orange-500/20"
-              }`}>
-                <Sparkles className={`w-7 h-7 ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`} />
+              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedPlan === "pro" ? "bg-amber-500/20" : "bg-purple-500/20"}`}>
+                <Sparkles className={`w-7 h-7 ${selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`} />
               </div>
-              <h3 className="text-xl font-bold text-white">
-                Plano {PLANS[selectedPlan].name}
-              </h3>
+              <h3 className="text-xl font-bold text-white">Plano {PLANS[selectedPlan].name}</h3>
               <p className="text-2xl font-bold mt-2">
-                <span className={selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
+                <span className={selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}>
                   £{PLANS[selectedPlan].price}
                 </span>
               </p>
               <p className="text-sm text-gray-400 mt-1">Pagamento via Stripe (Libras)</p>
             </div>
-
             <form onSubmit={handleCheckout} className="space-y-4">
               <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
-                  <Mail className="w-4 h-4" />
-                  Seu Email
-                </label>
-                <Input
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
-                  required
-                />
+                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Mail className="w-4 h-4" />Your Email</label>
+                <Input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
               </div>
-
               <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
-                  <Phone className="w-4 h-4" />
-                  Telefone (opcional)
-                </label>
-                <Input
-                  type="tel"
-                  placeholder="+351 912 345 678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
-                />
+                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Phone className="w-4 h-4" />Phone (optional)</label>
+                <Input type="tel" placeholder="+44 7000 000000" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" />
               </div>
-
               <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4" />
-                  Nome de Usuário (será sua senha também)
-                </label>
-                <Input
-                  type="text"
-                  placeholder="seuusuario"
-                  value={username}
-                  onChange={(e) => validateUsername(e.target.value)}
-                  className={`bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500 ${
-                    usernameError ? "border-red-500" : ""
-                  }`}
-                  required
-                />
-                {usernameError && (
-                  <p className="text-xs text-red-400 mt-1">{usernameError}</p>
-                )}
-                <p className="text-xs text-zinc-500 mt-1">
-                  Apenas letras minúsculas, sem espaços ou números
-                </p>
+                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><User className="w-4 h-4" />Username (will be your password too)</label>
+                <Input type="text" placeholder="yourusername" value={username} onChange={(e) => validateUsername(e.target.value)} className={`bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500 ${usernameError ? "border-red-500" : ""}`} required />
+                {usernameError && <p className="text-xs text-red-400 mt-1">{usernameError}</p>}
+                <p className="text-xs text-zinc-500 mt-1">Only lowercase letters, no spaces or numbers</p>
               </div>
-
               <div className="bg-zinc-800/30 rounded-lg p-3 space-y-1.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Usuário/Senha</span>
-                  <span className="text-white font-mono">{username || "---"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Total</span>
-                  <span className={`font-bold ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>
-                    £{PLANS[selectedPlan].price}
-                  </span>
-                </div>
+                <div className="flex justify-between"><span className="text-zinc-400">Username/Password</span><span className="text-white font-mono">{username || "---"}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">Total</span><span className={`font-bold ${selectedPlan === "pro" ? "text-amber-400" : "text-purple-400"}`}>£{PLANS[selectedPlan].price}</span></div>
               </div>
-
-              <Button
-                type="submit"
-                className={`w-full font-bold py-5 ${
-                  selectedPlan === "annual"
-                    ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-                    : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"
-                }`}
-                disabled={loading || !!usernameError || !username || !email}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    Pagar £{PLANS[selectedPlan].price} com Stripe
-                  </>
-                )}
+              <Button type="submit" className={`w-full font-bold py-5 ${selectedPlan === "pro" ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black" : "bg-purple-600 hover:bg-purple-700 text-white"}`}
+                disabled={loading || !!usernameError || !username || !email}>
+                {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</>) : (<><CreditCard className="mr-2 h-5 w-5" />Pay £{PLANS[selectedPlan].price} with Stripe</>)}
               </Button>
-
-              <p className="text-xs text-zinc-500 text-center">
-                Após o pagamento, seu acesso será liberado automaticamente
-              </p>
+              <p className="text-xs text-zinc-500 text-center">After payment, your access will be unlocked automatically</p>
             </form>
           </div>
         </div>
