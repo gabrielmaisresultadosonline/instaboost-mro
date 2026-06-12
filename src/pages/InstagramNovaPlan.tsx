@@ -81,6 +81,7 @@ const InstagramNovaPlan = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showSecondaryVideo, setShowSecondaryVideo] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
