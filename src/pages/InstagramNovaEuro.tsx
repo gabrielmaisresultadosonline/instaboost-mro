@@ -45,10 +45,10 @@ interface SalesSettings {
   ctaButtonText: string;
 }
 
-// Valores em Euro - mesmos valores numéricos que em Reais
+// Valores em Libras Esterlinas
 const PLANS = {
-  annual: { name: "Anual", price: 300, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 797, days: 999999, description: "Acesso para sempre" },
+  annual: { name: "1 Conta", price: 197, days: 365, description: "Acesso com 1 conta" },
+  lifetime: { name: "4 Contas", price: 397, days: 999999, description: "Acesso com 4 contas" },
 };
 
 const InstagramNovaEuro = () => {
@@ -650,9 +650,9 @@ const InstagramNovaEuro = () => {
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-blue-600/20 border border-blue-500/50 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 animate-pulse">
-              <span className="text-xl sm:text-2xl">🇪🇺</span>
-              <span className="text-blue-400 font-black text-sm sm:text-lg">PAGAMENTO EM EURO</span>
-              <span className="text-xl sm:text-2xl">🇪🇺</span>
+              <span className="text-xl sm:text-2xl">🇬🇧</span>
+              <span className="text-blue-400 font-black text-sm sm:text-lg">PAGAMENTO EM LIBRAS</span>
+              <span className="text-xl sm:text-2xl">🇬🇧</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO</span>
@@ -663,15 +663,15 @@ const InstagramNovaEuro = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {/* Plano Anual - EURO */}
+            {/* Plano 1 Conta - GBP */}
             <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-blue-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-center text-blue-400">Plano Anual</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo por 12 meses</p>
+              <h3 className="text-2xl font-bold mb-2 text-center text-blue-400">Plano 1 Conta</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo com 1 conta</p>
 
               <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De €497</div>
+                <div className="text-gray-500 line-through text-lg mb-1">De £397</div>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-blue-400">€{PLANS.annual.price}</span>
+                  <span className="text-4xl sm:text-5xl font-black text-blue-400">£{PLANS.annual.price}</span>
                 </div>
                 <p className="text-gray-400 mt-2">Pagamento único via Stripe</p>
               </div>
@@ -689,12 +689,12 @@ const InstagramNovaEuro = () => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
-                  trackLead('Instagram MRO Euro - Plano Anual');
+                  trackLead('Instagram MRO GBP - Plano 1 Conta');
                   setSelectedPlan("annual");
                   setShowCheckoutModal(true);
                 }}
               >
-                GARANTIR PLANO ANUAL
+                GARANTIR PLANO 1 CONTA
               </Button>
             </div>
 
@@ -706,13 +706,13 @@ const InstagramNovaEuro = () => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold mb-2 text-center text-amber-400 mt-2">Plano Vitalício</h3>
-              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo para sempre</p>
+              <h3 className="text-2xl font-bold mb-2 text-center text-amber-400 mt-2">Plano 4 Contas</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo com 4 contas</p>
 
               <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De €997</div>
+                <div className="text-gray-500 line-through text-lg mb-1">De £797</div>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-amber-400">€{PLANS.lifetime.price}</span>
+                  <span className="text-4xl sm:text-5xl font-black text-amber-400">£{PLANS.lifetime.price}</span>
                 </div>
                 <p className="text-gray-400 mt-2">Pagamento único via Stripe</p>
               </div>
@@ -730,12 +730,12 @@ const InstagramNovaEuro = () => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
-                  trackLead('Instagram MRO Euro - Plano Vitalício');
+                  trackLead('Instagram MRO GBP - Plano 4 Contas');
                   setSelectedPlan("lifetime");
                   setShowCheckoutModal(true);
                 }}
               >
-                GARANTIR PLANO VITALÍCIO
+                GARANTIR PLANO 4 CONTAS
               </Button>
             </div>
           </div>
@@ -769,7 +769,7 @@ const InstagramNovaEuro = () => {
               <span className="text-green-400 text-sm font-bold">BÔNUS GRÁTIS</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              FAÇA MAIS DE <span className="text-green-400">€5 MIL MENSAL</span> PRESTANDO SERVIÇO COM ESSA FERRAMENTA
+              FAÇA MAIS DE <span className="text-green-400">£5 MIL MENSAL</span> PRESTANDO SERVIÇO COM ESSA FERRAMENTA
             </h2>
             <p className="text-amber-400 font-medium text-lg">
               Rode esse sistema para outras empresas e fature mensalmente por isso!
@@ -791,10 +791,10 @@ const InstagramNovaEuro = () => {
                 Esses testes servem para apresentar o serviço: você roda a ferramenta por 1 dia, o cliente vê o resultado e você fecha um contrato mensal com ele.
               </p>
               <p className="text-xl font-bold text-amber-400 text-center mt-6">
-                OU SEJA, VOCÊ PODE FATURAR MAIS DE €5.000,00 POR MÊS PRESTANDO SERVIÇO COM ESSA FERRAMENTA!
+                OU SEJA, VOCÊ PODE FATURAR MAIS DE £5.000,00 POR MÊS PRESTANDO SERVIÇO COM ESSA FERRAMENTA!
               </p>
               <p className="text-center text-sm">
-                Caso precise de mais contas no futuro, cobramos €150 por conta adicional para quem já utiliza o sistema.
+                Caso precise de mais contas no futuro, cobramos £150 por conta adicional para quem já utiliza o sistema.
               </p>
             </div>
           </div>
@@ -1017,10 +1017,10 @@ const InstagramNovaEuro = () => {
               </h3>
               <p className="text-2xl font-bold mt-2">
                 <span className={selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
-                  €{PLANS[selectedPlan].price}
+                  £{PLANS[selectedPlan].price}
                 </span>
               </p>
-              <p className="text-sm text-gray-400 mt-1">Pagamento via Stripe (Euro)</p>
+              <p className="text-sm text-gray-400 mt-1">Pagamento via Stripe (Libras)</p>
             </div>
 
             <form onSubmit={handleCheckout} className="space-y-4">
@@ -1084,7 +1084,7 @@ const InstagramNovaEuro = () => {
                 <div className="flex justify-between">
                   <span className="text-zinc-400">Total</span>
                   <span className={`font-bold ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>
-                    €{PLANS[selectedPlan].price}
+                    £{PLANS[selectedPlan].price}
                   </span>
                 </div>
               </div>
@@ -1106,7 +1106,7 @@ const InstagramNovaEuro = () => {
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-5 w-5" />
-                    Pagar €{PLANS[selectedPlan].price} com Stripe
+                    Pagar £{PLANS[selectedPlan].price} com Stripe
                   </>
                 )}
               </Button>
