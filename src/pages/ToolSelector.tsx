@@ -79,12 +79,13 @@ const ToolSelector = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center py-8 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-amber-600/20 via-black to-blue-600/20 flex flex-col items-center py-8 px-4 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-60 md:w-80 h-60 md:h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-60 md:w-80 h-60 md:h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 md:w-96 h-72 md:h-96 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-amber-500/5 rounded-full blur-[100px] animate-bounce" style={{ animationDuration: '10s' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
       </div>
 
       {/* Logo */}
@@ -98,12 +99,9 @@ const ToolSelector = () => {
 
       {/* Title */}
       <div className="text-center mb-8 md:mb-12 z-10 px-2 max-w-2xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter uppercase">
-          Sua <span className="text-amber-400">Solução Inteligente</span>
-        </h1>
         <div className="space-y-4">
-          <p className="text-xl sm:text-2xl md:text-3xl text-gray-200 font-light tracking-tight leading-tight">
-            Soluções que <span className="text-amber-400 font-medium italic underline decoration-amber-500/30 underline-offset-4">cabem no seu bolso!</span>
+          <p className="text-xl sm:text-2xl md:text-4xl text-white font-light tracking-tight leading-tight">
+            Soluções que <span className="text-amber-400 font-normal italic underline decoration-amber-500/30 underline-offset-4">cabem no seu bolso!</span>
           </p>
           <p className="text-gray-400 text-sm sm:text-base md:text-lg font-medium tracking-wide uppercase opacity-80">
             Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
