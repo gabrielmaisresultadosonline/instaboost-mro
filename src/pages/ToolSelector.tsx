@@ -79,7 +79,7 @@ const ToolSelector = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center py-8 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-black flex flex-col items-center py-8 px-4 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-60 md:w-80 h-60 md:h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse" />
@@ -97,17 +97,20 @@ const ToolSelector = () => {
       </div>
 
       {/* Title */}
-      <div className="text-center mb-8 md:mb-12 z-10 px-2">
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">
-          Sua <span className="text-amber-400 animate-pulse">Solução Inteligente</span>
+      <div className="text-center mb-8 md:mb-12 z-10 px-2 max-w-2xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter uppercase">
+          Sua <span className="text-amber-400">Solução Inteligente</span>
         </h1>
-        <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-2 font-medium">
-          Soluções que <span className="text-green-400">cabem no seu bolso</span>!
-        </p>
-        <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-xl mx-auto">
-          Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
-        </p>
+        <div className="space-y-4">
+          <p className="text-xl sm:text-2xl md:text-3xl text-gray-200 font-light tracking-tight leading-tight">
+            Soluções que <span className="text-amber-400 font-medium italic underline decoration-amber-500/30 underline-offset-4">cabem no seu bolso!</span>
+          </p>
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg font-medium tracking-wide uppercase opacity-80">
+            Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
+          </p>
+        </div>
       </div>
+
 
       {/* Tool Cards - Sales Pages */}
       <div className="flex flex-wrap justify-center gap-4 md:gap-6 max-w-6xl w-full z-10 px-2 md:px-4">
