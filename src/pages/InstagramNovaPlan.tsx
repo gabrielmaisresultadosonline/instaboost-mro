@@ -81,6 +81,7 @@ const InstagramNovaPlan = () => {
   });
   
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showSecondaryVideo, setShowSecondaryVideo] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -668,6 +669,51 @@ const InstagramNovaPlan = () => {
         </div>
       </section>
 
+      {/* Posso usar trafego pago e a ferramenta MRO? Section */}
+      <section className="py-20 px-4 bg-zinc-950/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-black/60 backdrop-blur-sm border border-emerald-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden text-center">
+            <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
+            
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
+              Posso usar tráfego pago e a ferramenta MRO?
+            </h2>
+            
+            <div className="space-y-6 text-gray-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+              <p>
+                Sim! A ferramenta MRO foi desenhada para <strong className="text-emerald-400">potencializar</strong> seus resultados. 
+                Enquanto o tráfego pago traz novas pessoas para o seu perfil, a MRO garante que essas pessoas se tornem seguidores e clientes fiéis através da nossa automação inteligente.
+              </p>
+              <p className="text-base text-gray-400 italic">
+                Veja o vídeo abaixo para entender como essa combinação pode acelerar o seu crescimento.
+              </p>
+            </div>
+
+            <div className="max-w-2xl mx-auto">
+              {showSecondaryVideo ? (
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
+                  <iframe
+                    src="https://www.youtube.com/embed/EHTtdvtoI_A?rel=0&autoplay=1"
+                    title="Tráfego Pago e MRO"
+                    className="w-full aspect-video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setShowSecondaryVideo(true)}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 flex items-center gap-3 mx-auto"
+                >
+                  <Play className="w-6 h-6 fill-current" />
+                  VER O VÍDEO
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="py-20 px-4 bg-black">
         <div className="max-w-3xl mx-auto">
@@ -700,43 +746,6 @@ const InstagramNovaPlan = () => {
             <p className="text-gray-400 text-sm">
               <strong className="text-white">Nota:</strong> Nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      
-      {/* Posso usar trafego pago e a ferramenta MRO? Section */}
-      <section className="py-20 px-4 bg-zinc-950/50">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-black/60 backdrop-blur-sm border border-emerald-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden text-center">
-            <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
-            
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
-              Posso usar tráfego pago e a ferramenta MRO?
-            </h2>
-            
-            <div className="space-y-6 text-gray-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-              <p>
-                Sim! A ferramenta MRO foi desenhada para <strong className="text-emerald-400">potencializar</strong> seus resultados. 
-                Enquanto o tráfego pago traz novas pessoas para o seu perfil, a MRO garante que essas pessoas se tornem seguidores e clientes fiéis através da nossa automação inteligente.
-              </p>
-              <p className="text-base text-gray-400 italic">
-                Veja o vídeo abaixo para entender como essa combinação pode acelerar o seu crescimento.
-              </p>
-            </div>
-
-            <div className="max-w-2xl mx-auto">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
-                <iframe
-                  src="https://www.youtube.com/embed/EHTtdvtoI_A?rel=0"
-                  title="Tráfego Pago e MRO"
-                  className="w-full aspect-video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
           </div>
         </div>
       </section>
