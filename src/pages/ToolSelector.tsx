@@ -100,10 +100,10 @@ const ToolSelector = () => {
       {/* Title */}
       <div className="text-center mb-8 md:mb-12 z-10 px-2 max-w-2xl mx-auto">
         <div className="space-y-4">
-          <p className="text-xl sm:text-2xl md:text-4xl text-white font-light tracking-tight leading-tight">
-            Soluções que <span className="text-amber-400 font-normal italic underline decoration-amber-500/30 underline-offset-4">cabem no seu bolso!</span>
+          <p className="text-xl sm:text-2xl md:text-4xl text-white font-bold tracking-tight leading-tight font-sans">
+            Soluções que <span className="text-amber-400 italic underline decoration-amber-500/30 underline-offset-4">cabem no seu bolso!</span>
           </p>
-          <p className="text-gray-400 text-sm sm:text-base md:text-lg font-medium tracking-wide uppercase opacity-80">
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg font-light tracking-wide max-w-xl mx-auto font-sans opacity-90">
             Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
           </p>
         </div>
