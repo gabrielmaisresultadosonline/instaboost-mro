@@ -265,9 +265,10 @@ const CreatorDev = () => {
               "Transformamos ideias complexas em sistemas web completos, escaláveis e de alta performance."
             </h3>
             <div className="pt-4">
-              <div className="font-black text-xl uppercase tracking-widest">MRO DEVELOPER CREATORDEV Team</div>
+              <div className="font-black text-xl uppercase tracking-widest">MRO DEVELOPER Team</div>
               <div className="text-blue-500 text-sm font-bold">Expert Full Stack Development</div>
             </div>
+
             <div className="pt-8">
                <Button 
                 variant="link" 
@@ -284,8 +285,9 @@ const CreatorDev = () => {
       {/* Footer */}
       <footer className="py-16 px-6 border-t border-white/5 text-center space-y-4">
         <div className="font-black text-xl tracking-tighter">
-          MRO DEVELOPER <span className="text-blue-500">CREATORDEV</span>
+          MRO DEVELOPER
         </div>
+
         <p className="text-gray-600 text-sm max-w-md mx-auto">
           Especialistas em engenharia de software e desenvolvimento web sob medida.
         </p>
