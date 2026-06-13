@@ -44,13 +44,22 @@ const PostsPromptsVend = () => {
           </div>
         </div>
 
+        <div className="max-w-md mx-auto mb-6 bg-slate-900/70 border border-purple-500/40 rounded-2xl p-6 shadow-xl shadow-purple-500/20">
+          <p className="text-sm text-slate-400 uppercase tracking-wider mb-2">Acesso Vitalício</p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <span className="text-2xl text-slate-500 line-through">R$ 397</span>
+            <span className="text-5xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">R$ 67</span>
+          </div>
+          <p className="text-green-400 text-sm font-semibold">Pagamento único • Sem mensalidade</p>
+        </div>
+
         <Button
           size="lg"
           onClick={() => navigate("/postsprompts")}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-purple-500/30"
         >
           <Sparkles className="w-5 h-5 mr-2" />
-          Começar a Gerar Posts Agora
+          Quero por R$ 67 Vitalício
         </Button>
       </section>
 
