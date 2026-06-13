@@ -65,7 +65,8 @@ const PLANS = {
 
 const InstagramNovaPlan = () => {
   const [searchParams] = useSearchParams();
-  const partnerSlug = searchParams.get('p');
+  const { affiliateId } = useParams<{ affiliateId?: string }>();
+  const partnerSlug = (affiliateId || searchParams.get('p') || '').toLowerCase() || null;
   const [partner, setPartner] = useState<{id: string, name: string} | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
