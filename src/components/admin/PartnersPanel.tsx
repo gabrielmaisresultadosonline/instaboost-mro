@@ -32,7 +32,8 @@ import {
   UserPlus,
   Loader2,
   Globe,
-  Sparkles
+  Sparkles,
+  Mail
 } from 'lucide-react';
 
 interface Partner {
@@ -159,6 +160,34 @@ const PartnersPanel = () => {
         description: error.message,
         variant: "destructive"
       });
+    }
+  };
+
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+
+  const handleSendAccessEmail = async (partner: Partner) => {
+    if (!partner.email) {
+      toast({ title: "Parceiro sem email cadastrado", variant: "destructive" });
+      return;
+    }
+    setSendingEmailId(partner.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('partner-access-email', {
+        body: {
+          name: partner.name,
+          email: partner.email,
+          slug: partner.slug,
+          password: partner.password,
+          origin: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      if (data?.success === false) throw new Error(data?.error || 'Falha ao enviar');
+      toast({ title: "✅ Acessos enviados!", description: `Email enviado para ${partner.email}` });
+    } catch (e: any) {
+      toast({ title: "Erro ao enviar email", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingEmailId(null);
     }
   };
 
@@ -340,6 +369,9 @@ const PartnersPanel = () => {
                       </Button>
                       <Button variant="ghost" size="icon" title="Dashboard do Parceiro" onClick={() => window.open(`${window.location.origin}/dash/${partner.slug}`, '_blank')}>
                         <BarChart3 size={16} className="text-blue-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Enviar acessos e links por email" disabled={sendingEmailId === partner.id} onClick={() => handleSendAccessEmail(partner)}>
+                        {sendingEmailId === partner.id ? <Loader2 size={16} className="animate-spin text-purple-500" /> : <Mail size={16} className="text-purple-500" />}
                       </Button>
                       <Button variant="ghost" size="icon" title="Editar" onClick={() => {
                         setCurrentPartner(partner);
