@@ -84,6 +84,27 @@ const DescontoAlunosRendaExtra = () => {
         return;
       }
       try {
+        // 1. Check DB partners first
+        const { data: dbPartner } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('slug', id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (dbPartner) {
+          setAffiliate({
+            id: dbPartner.slug,
+            name: dbPartner.name,
+            email: dbPartner.email,
+            photoUrl: "",
+            active: true,
+            showPromoBanner: (dbPartner as any).show_promo_banner ?? true,
+          });
+          setLoadingAffiliate(false);
+          return;
+        }
+
         const { data, error } = await supabase.storage
           .from('user-data')
           .download('admin/affiliates.json');
