@@ -103,7 +103,28 @@ const AffiliatePromoPage = () => {
       }
 
       try {
-        // 1. Fallback to Supabase Storage (Legacy Affiliates)
+        // 1. Check DB partners first
+        const { data: dbPartner } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('slug', affiliateId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (dbPartner) {
+          setAffiliate({
+            id: dbPartner.slug,
+            name: dbPartner.name,
+            email: dbPartner.email,
+            photoUrl: "",
+            active: true,
+            showPromoBanner: (dbPartner as any).show_promo_banner ?? true,
+          });
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fallback to Supabase Storage (Legacy Affiliates)
         const { data, error } = await supabase.storage
           .from('user-data')
           .download('admin/affiliates.json');
