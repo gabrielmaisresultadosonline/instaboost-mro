@@ -62,6 +62,7 @@ interface AffiliateData {
   email: string;
   photoUrl: string;
   active: boolean;
+  showPromoBanner?: boolean;
 }
 
 const DescontoAlunosRendaExtra = () => {
