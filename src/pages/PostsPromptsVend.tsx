@@ -51,11 +51,12 @@ const PostsPromptsVend = () => {
             <span className="text-5xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">R$ 67</span>
           </div>
           <p className="text-green-400 text-sm font-semibold">Pagamento único • Sem mensalidade</p>
+          <p className="text-slate-400 text-xs mt-2">🛡️ Garantia incondicional de 7 dias • Pagamento via Kiwify</p>
         </div>
 
         <Button
           size="lg"
-          onClick={() => navigate("/postsprompts")}
+          onClick={() => window.location.href = "https://pay.kiwify.com.br/V3E8Qpl"}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-purple-500/30"
         >
           <Sparkles className="w-5 h-5 mr-2" />
@@ -131,7 +132,7 @@ const PostsPromptsVend = () => {
         </p>
         <Button
           size="lg"
-          onClick={() => navigate("/postsprompts")}
+          onClick={() => window.location.href = "https://pay.kiwify.com.br/V3E8Qpl"}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-purple-500/30"
         >
           <Sparkles className="w-5 h-5 mr-2" />
