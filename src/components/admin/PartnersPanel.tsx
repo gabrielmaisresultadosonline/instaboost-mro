@@ -297,6 +297,19 @@ const PartnersPanel = () => {
                   placeholder="DDD + Número"
                 />
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="banner" className="text-right">Banner Promo</Label>
+                <div className="col-span-3 flex items-center gap-3">
+                  <Switch
+                    id="banner"
+                    checked={currentPartner.show_promo_banner ?? true}
+                    onCheckedChange={(checked) => setCurrentPartner({...currentPartner, show_promo_banner: checked})}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Exibir foto e "🎁 Promoção especial {currentPartner.name || 'Nome'}" nas páginas
+                  </span>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button onClick={handleCreateOrUpdate} disabled={loading}>
