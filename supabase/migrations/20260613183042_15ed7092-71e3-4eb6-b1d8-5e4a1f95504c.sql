@@ -1,0 +1,1 @@
+ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS show_promo_banner boolean NOT NULL DEFAULT true;
