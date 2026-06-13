@@ -101,6 +101,7 @@ interface Affiliate {
   promoStartTime?: string; // HH:mm
   promoEndTime?: string;   // HH:mm
   isLifetime?: boolean;    // true = afiliado vitalício, recebe comissão na hora
+  showPromoBanner?: boolean; // true = exibir foto e nome na página de vendas
 }
 
 export default function InstagramNovaAdmin() {
@@ -3300,6 +3301,30 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                                       </Button>
                                     </>
                                   )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      const next = !(affiliate.showPromoBanner ?? true);
+                                      const updated = affiliates.map(a => a.id === affiliate.id ? { ...a, showPromoBanner: next } : a);
+                                      setAffiliates(updated);
+                                      try {
+                                        const blob = new Blob([JSON.stringify(updated)], { type: 'application/json' });
+                                        await supabase.storage.from('user-data').upload('admin/affiliates.json', blob, { contentType: 'application/json', upsert: true });
+                                        toast.success(next ? "Foto e nome ATIVADOS na página de vendas" : "Foto e nome OCULTADOS na página de vendas");
+                                      } catch (e: any) {
+                                        toast.error("Erro ao salvar: " + e.message);
+                                        setAffiliates(affiliates);
+                                      }
+                                    }}
+                                    className={(affiliate.showPromoBanner ?? true)
+                                      ? "border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
+                                      : "border-zinc-600 text-zinc-400 hover:bg-zinc-700/30"}
+                                    title="Ativar/desativar exibição da foto e nome na página /promo"
+                                  >
+                                    {(affiliate.showPromoBanner ?? true) ? <Eye className="w-4 h-4 mr-1" /> : <EyeOff className="w-4 h-4 mr-1" />}
+                                    {(affiliate.showPromoBanner ?? true) ? "Foto ON" : "Foto OFF"}
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
