@@ -364,13 +364,13 @@ const PartnersPanel = () => {
           <TableBody>
             {loading && partners.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
+                <TableCell colSpan={7} className="text-center py-10">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                 </TableCell>
               </TableRow>
             ) : filteredPartners.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                   Nenhum parceiro encontrado.
                 </TableCell>
               </TableRow>
