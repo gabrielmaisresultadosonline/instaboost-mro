@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -8,8 +10,16 @@ Deno.serve(async (req) => {
 
   try {
     const { description, format, colors } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY não configurada');
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+    const { data: settings } = await supabase.from("postsprompts_settings").select("openai_api_key").limit(1).maybeSingle();
+    const OPENAI_API_KEY = settings?.openai_api_key;
+    if (!OPENAI_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Chave OpenAI não configurada. Acesse /postsprompts/admin.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const dimensions = format === 'stories' ? '1080x1920 (formato stories vertical)' : '1080x1350 (formato feed Instagram)';
     const colorsList = (colors && colors.length > 0)
@@ -37,30 +47,25 @@ Cores escolhidas: ${colorsList}
 
 Gere agora o prompt profissional completo começando com "Crie uma imagem".`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
+        temperature: 0.8,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Muitas requisições. Aguarde um momento.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos esgotados. Adicione créditos na workspace.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      throw new Error(`AI Gateway error ${response.status}: ${errorText}`);
+      return new Response(JSON.stringify({ error: `OpenAI erro ${response.status}: ${errorText}` }), { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const data = await response.json();
