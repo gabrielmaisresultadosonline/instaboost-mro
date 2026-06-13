@@ -11,7 +11,7 @@ const PostsPromptsVend = () => {
     { icon: Calendar, title: "Posts para o Mês Todo", desc: "Gere o calendário completo de conteúdo em minutos, não em dias." },
     { icon: Palette, title: "Cores Personalizadas", desc: "Escolha até 4 cores da sua marca e mantenha identidade visual consistente." },
     { icon: ImageIcon, title: "Feed e Stories", desc: "Formatos otimizados 1080x1350 (feed) e 1080x1920 (stories)." },
-    { icon: Zap, title: "Velocidade Profissional", desc: "Prompts prontos para copiar e colar em qualquer IA de imagem." },
+    { icon: Zap, title: "Velocidade Profissional", desc: "Gere imagens prontas direto na IA MRO em segundos." },
     { icon: TrendingUp, title: "Qualidade que Vende", desc: "Designer gráfico sênior dentro da IA MRO — sem precisar contratar ninguém." },
   ];
 
@@ -44,13 +44,22 @@ const PostsPromptsVend = () => {
           </div>
         </div>
 
+        <div className="max-w-md mx-auto mb-6 bg-slate-900/70 border border-purple-500/40 rounded-2xl p-6 shadow-xl shadow-purple-500/20">
+          <p className="text-sm text-slate-400 uppercase tracking-wider mb-2">Acesso Vitalício</p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <span className="text-2xl text-slate-500 line-through">R$ 397</span>
+            <span className="text-5xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">R$ 67</span>
+          </div>
+          <p className="text-green-400 text-sm font-semibold">Pagamento único • Sem mensalidade</p>
+        </div>
+
         <Button
           size="lg"
           onClick={() => navigate("/postsprompts")}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-purple-500/30"
         >
           <Sparkles className="w-5 h-5 mr-2" />
-          Começar a Gerar Posts Agora
+          Quero por R$ 67 Vitalício
         </Button>
       </section>
 
@@ -101,7 +110,7 @@ const PostsPromptsVend = () => {
               "Paleta de cores personalizada (até 4 cores)",
               "Formatos Feed (1080x1350) e Stories (1080x1920)",
               "Prompts profissionais nível designer sênior",
-              "Copia e cola em qualquer IA de imagem",
+              "Geração de imagens 100% dentro da IA MRO",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -126,7 +135,7 @@ const PostsPromptsVend = () => {
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-purple-500/30"
         >
           <Sparkles className="w-5 h-5 mr-2" />
-          Acessar MROIMAGEM PRO
+          Garantir por R$ 67 Vitalício
         </Button>
       </section>
     </div>
