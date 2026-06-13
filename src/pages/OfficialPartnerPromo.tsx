@@ -468,7 +468,7 @@ const OfficialPartnerPromo = () => {
               </div>
             )}
             <p className="text-green-400 text-sm sm:text-base md:text-lg font-bold">
-              🎁 Promoção especial para alunos {affiliate.name}
+              🎁 Promoção especial {affiliate.name}
             </p>
           </div>
           
