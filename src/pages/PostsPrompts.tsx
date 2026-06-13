@@ -105,6 +105,63 @@ const PostsPrompts = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 flex items-center justify-center text-slate-300">
+        Verificando acesso...
+      </div>
+    );
+  }
+
+  if (!authEmail) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 py-10 px-4 flex items-center justify-center">
+        <Card className="bg-slate-800/60 border-slate-700 backdrop-blur shadow-2xl w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-white text-center flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-purple-400" />
+              </div>
+              <span>Área de Membros</span>
+              <span className="text-sm font-normal text-slate-400">
+                MRO<span className="text-purple-400">IMAGEM PRO</span>
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-slate-300 text-sm text-center">
+              Entre com o e-mail que você usou na compra (Kiwify).
+            </p>
+            <div className="space-y-2">
+              <Label className="text-slate-200">E-mail da compra</Label>
+              <Input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder="seu@email.com"
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+            </div>
+            <Button
+              onClick={handleLogin}
+              disabled={loginLoading}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-12"
+            >
+              {loginLoading ? "Verificando..." : "Acessar"}
+            </Button>
+            <p className="text-xs text-slate-500 text-center">
+              Ainda não tem acesso?{" "}
+              <a href="/postspromptsvend" className="text-purple-400 hover:underline">
+                Garanta por R$ 67 vitalício
+              </a>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 py-10 px-4">
       <div className="max-w-3xl mx-auto">
