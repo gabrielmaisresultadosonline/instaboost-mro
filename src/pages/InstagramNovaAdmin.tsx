@@ -3311,6 +3311,8 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                                       try {
                                         const blob = new Blob([JSON.stringify(updated)], { type: 'application/json' });
                                         await supabase.storage.from('user-data').upload('admin/affiliates.json', blob, { contentType: 'application/json', upsert: true });
+                                        // Também atualiza a tabela partners (fonte primária usada pela /promo)
+                                        await supabase.from('partners').update({ show_promo_banner: next } as any).eq('slug', affiliate.id);
                                         toast.success(next ? "Foto e nome ATIVADOS na página de vendas" : "Foto e nome OCULTADOS na página de vendas");
                                       } catch (e: any) {
                                         toast.error("Erro ao salvar: " + e.message);
