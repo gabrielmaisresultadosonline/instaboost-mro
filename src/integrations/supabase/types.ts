@@ -3275,6 +3275,24 @@ export type Database = {
         }
         Relationships: []
       }
+      postsprompts_settings: {
+        Row: {
+          id: string
+          openai_api_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          openai_api_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          openai_api_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       promo33_users: {
         Row: {
           created_at: string
