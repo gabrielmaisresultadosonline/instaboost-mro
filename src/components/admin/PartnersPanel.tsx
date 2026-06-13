@@ -395,6 +395,17 @@ const PartnersPanel = () => {
                       {partner.status === 'active' ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={partner.show_promo_banner ?? true}
+                        onCheckedChange={(checked) => handleToggleBanner(partner, checked)}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {(partner.show_promo_banner ?? true) ? 'Visível' : 'Oculto'}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-xs">{partner.whatsapp || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
