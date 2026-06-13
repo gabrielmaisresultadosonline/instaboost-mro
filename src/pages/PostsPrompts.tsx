@@ -1,15 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Copy, Check, Palette, Smartphone, Square, Plus, X } from "lucide-react";
+import { Sparkles, Copy, Check, Palette, Smartphone, Square, Plus, X, Lock, LogOut } from "lucide-react";
 
 const DEFAULT_COLORS = ["#000000", "#FFFFFF", "#3B82F6", "#EF4444"];
+const STORAGE_KEY = "postsprompts_buyer_email";
 
 const PostsPrompts = () => {
+  const [authEmail, setAuthEmail] = useState<string>("");
+  const [emailInput, setEmailInput] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) { setChecking(false); return; }
+    (async () => {
+      const { data } = await supabase.functions.invoke("postsprompts-admin", {
+        body: { action: "check_access", email: saved },
+      });
+      if ((data as any)?.allowed) setAuthEmail(saved);
+      else localStorage.removeItem(STORAGE_KEY);
+      setChecking(false);
+    })();
+  }, []);
+
+  const handleLogin = async () => {
+    const email = emailInput.trim().toLowerCase();
+    if (!email || !email.includes("@")) return toast.error("Digite um email válido");
+    setLoginLoading(true);
+    const { data } = await supabase.functions.invoke("postsprompts-admin", {
+      body: { action: "check_access", email },
+    });
+    setLoginLoading(false);
+    if ((data as any)?.allowed) {
+      localStorage.setItem(STORAGE_KEY, email);
+      setAuthEmail(email);
+      toast.success("Acesso liberado!");
+    } else {
+      toast.error("Email não encontrado. Use o email da sua compra na Kiwify.");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setAuthEmail("");
+  };
+
   const [description, setDescription] = useState("");
   const [format, setFormat] = useState<"feed" | "stories">("feed");
   const [colors, setColors] = useState<string[]>(["#000000"]);
