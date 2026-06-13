@@ -370,6 +370,9 @@ const PartnersPanel = () => {
                       <Button variant="ghost" size="icon" title="Dashboard do Parceiro" onClick={() => window.open(`${window.location.origin}/dash/${partner.slug}`, '_blank')}>
                         <BarChart3 size={16} className="text-blue-500" />
                       </Button>
+                      <Button variant="ghost" size="icon" title="Enviar acessos e links por email" disabled={sendingEmailId === partner.id} onClick={() => handleSendAccessEmail(partner)}>
+                        {sendingEmailId === partner.id ? <Loader2 size={16} className="animate-spin text-purple-500" /> : <Mail size={16} className="text-purple-500" />}
+                      </Button>
                       <Button variant="ghost" size="icon" title="Editar" onClick={() => {
                         setCurrentPartner(partner);
                         setIsEditing(true);
