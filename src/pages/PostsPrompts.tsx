@@ -165,6 +165,11 @@ const PostsPrompts = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 py-10 px-4">
       <div className="max-w-3xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+            <LogOut className="w-3 h-3" /> {authEmail} • sair
+          </button>
+        </div>
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm mb-4 border border-purple-500/30">
             <Sparkles className="w-4 h-4" />
