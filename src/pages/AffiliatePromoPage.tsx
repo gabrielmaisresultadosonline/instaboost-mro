@@ -61,6 +61,7 @@ interface AffiliateData {
   email: string;
   photoUrl: string;
   active: boolean;
+  showPromoBanner?: boolean;
   promoStartDate?: string;
   promoEndDate?: string;
   promoStartTime?: string;
