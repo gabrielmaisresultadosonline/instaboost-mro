@@ -1,10 +1,13 @@
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Calendar, Zap, TrendingUp, Check, Palette, Image as ImageIcon, Brain } from "lucide-react";
+import { Sparkles, Calendar, Zap, TrendingUp, Check, Palette, Image as ImageIcon, Brain, Shield, Lock } from "lucide-react";
+
+const KIWIFY_URL = "https://pay.kiwify.com.br/V3E8Qpl";
 
 const PostsPromptsVend = () => {
-  const navigate = useNavigate();
+  const scrollToOffer = () => {
+    document.getElementById("oferta")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const benefits = [
     { icon: Brain, title: "Inteligência Artificial MRO Inclusa", desc: "IA MRO profissional cria prompts perfeitos automaticamente para você." },
@@ -13,6 +16,15 @@ const PostsPromptsVend = () => {
     { icon: ImageIcon, title: "Feed e Stories", desc: "Formatos otimizados 1080x1350 (feed) e 1080x1920 (stories)." },
     { icon: Zap, title: "Velocidade Profissional", desc: "Gere imagens prontas direto na IA MRO em segundos." },
     { icon: TrendingUp, title: "Qualidade que Vende", desc: "Designer gráfico sênior dentro da IA MRO — sem precisar contratar ninguém." },
+  ];
+
+  const included = [
+    "Geração ilimitada de prompts com IA MRO",
+    "Posts para o mês todo em poucos minutos",
+    "Paleta de cores personalizada (até 4 cores)",
+    "Formatos Feed (1080x1350) e Stories (1080x1920)",
+    "Prompts profissionais nível designer sênior",
+    "Geração de imagens 100% dentro da IA MRO",
   ];
 
   return (
@@ -44,23 +56,13 @@ const PostsPromptsVend = () => {
           </div>
         </div>
 
-        <div className="max-w-md mx-auto mb-6 bg-slate-900/70 border border-purple-500/40 rounded-2xl p-6 shadow-xl shadow-purple-500/20">
-          <p className="text-sm text-slate-400 uppercase tracking-wider mb-2">Acesso Vitalício</p>
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="text-2xl text-slate-500 line-through">R$ 397</span>
-            <span className="text-5xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">R$ 67</span>
-          </div>
-          <p className="text-green-400 text-sm font-semibold">Pagamento único • Sem mensalidade</p>
-          <p className="text-slate-400 text-xs mt-2">🛡️ Garantia incondicional de 7 dias • Pagamento via Kiwify</p>
-        </div>
-
         <Button
           size="lg"
-          onClick={() => window.location.href = "https://pay.kiwify.com.br/V3E8Qpl"}
+          onClick={scrollToOffer}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-purple-500/30"
         >
           <Sparkles className="w-5 h-5 mr-2" />
-          Quero por R$ 67 Vitalício
+          Ver Oferta Especial
         </Button>
       </section>
 
@@ -98,46 +100,79 @@ const PostsPromptsVend = () => {
             );
           })}
         </div>
+        <div className="text-center mt-10">
+          <Button
+            size="lg"
+            onClick={scrollToOffer}
+            variant="outline"
+            className="border-purple-500/50 text-purple-200 hover:bg-purple-500/10 text-lg px-8 py-6 rounded-xl"
+          >
+            Ver Oferta Especial
+          </Button>
+        </div>
       </section>
 
-      {/* Included list */}
-      <section className="container mx-auto px-4 py-12">
-        <Card className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/30 p-6 sm:p-10 max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">O que está incluso</h2>
-          <ul className="space-y-3">
-            {[
-              "Geração ilimitada de prompts com IA MRO",
-              "Posts para o mês todo em poucos minutos",
-              "Paleta de cores personalizada (até 4 cores)",
-              "Formatos Feed (1080x1350) e Stories (1080x1920)",
-              "Prompts profissionais nível designer sênior",
-              "Geração de imagens 100% dentro da IA MRO",
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-slate-200">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </section>
+      {/* SPECIAL OFFER CONTAINER — único CTA Kiwify */}
+      <section id="oferta" className="container mx-auto px-4 py-16">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold uppercase tracking-wider px-4 py-1.5 rounded-full">
+              🎁 Oferta Especial
+            </span>
+          </div>
+          <Card className="bg-gradient-to-br from-purple-900/60 to-pink-900/40 border-2 border-purple-500/60 p-6 sm:p-10 shadow-2xl shadow-purple-500/30 rounded-3xl">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-2">MROIMAGEM PRO</h2>
+            <p className="text-center text-slate-300 mb-6">Acesso Vitalício • Pagamento Único</p>
 
-      {/* Final CTA */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold mb-4">Pronto para automatizar seu Instagram?</h2>
-        <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
-          Comece agora e gere o conteúdo do mês inteiro com inteligência artificial profissional.
-        </p>
-        <Button
-          size="lg"
-          onClick={() => window.location.href = "https://pay.kiwify.com.br/V3E8Qpl"}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-purple-500/30"
-        >
-          <Sparkles className="w-5 h-5 mr-2" />
-          Garantir por R$ 67 Vitalício
-        </Button>
+            {/* Price */}
+            <div className="text-center mb-8">
+              <p className="text-slate-400 text-base mb-1">De <span className="line-through">R$ 397</span> por apenas</p>
+              <div className="flex items-baseline justify-center gap-2">
+                <span className="text-2xl text-purple-300 font-bold">R$</span>
+                <span className="text-7xl font-extrabold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">67</span>
+              </div>
+              <p className="text-green-400 font-semibold mt-2">Pagamento único • Sem mensalidade</p>
+            </div>
+
+            {/* Benefits inside container */}
+            <div className="bg-slate-950/40 rounded-2xl p-5 mb-8">
+              <p className="text-purple-200 font-bold mb-4 text-center">✅ Tudo isso está incluso:</p>
+              <ul className="space-y-3">
+                {included.map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-slate-100 text-sm sm:text-base">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* The ONE CTA */}
+            <Button
+              size="lg"
+              onClick={() => window.location.href = KIWIFY_URL}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-xl font-bold py-7 rounded-xl shadow-lg shadow-green-500/40 animate-pulse"
+            >
+              <Sparkles className="w-6 h-6 mr-2" />
+              Quero Garantir Por R$ 67 Vitalício
+            </Button>
+
+            {/* Trust signals */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 text-sm text-slate-300">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-green-400" />
+                <span>Garantia de 7 dias</span>
+              </div>
+              <div className="hidden sm:block w-1 h-1 rounded-full bg-slate-600" />
+              <div className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-purple-400" />
+                <span>Pagamento seguro via Kiwify</span>
+              </div>
+            </div>
+          </Card>
+        </div>
       </section>
     </div>
   );
