@@ -196,6 +196,21 @@ const PartnersPanel = () => {
     }
   };
 
+  const handleToggleBanner = async (partner: Partner, checked: boolean) => {
+    setPartners(prev => prev.map(p => p.id === partner.id ? { ...p, show_promo_banner: checked } : p));
+    try {
+      const { error } = await supabase
+        .from('partners')
+        .update({ show_promo_banner: checked })
+        .eq('id', partner.id);
+      if (error) throw error;
+      toast({ title: checked ? "Foto e nome ativados" : "Foto e nome desativados", description: partner.name });
+    } catch (e: any) {
+      setPartners(prev => prev.map(p => p.id === partner.id ? { ...p, show_promo_banner: !checked } : p));
+      toast({ title: "Erro ao atualizar", description: e.message, variant: "destructive" });
+    }
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: `${label} copiado!`, description: text });
