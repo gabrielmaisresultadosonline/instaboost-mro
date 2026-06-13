@@ -7,12 +7,12 @@ const PostsPromptsVend = () => {
   const navigate = useNavigate();
 
   const benefits = [
-    { icon: Brain, title: "Inteligência Artificial Inclusa", desc: "GPT profissional cria prompts perfeitos automaticamente para você." },
+    { icon: Brain, title: "Inteligência Artificial MRO Inclusa", desc: "IA MRO profissional cria prompts perfeitos automaticamente para você." },
     { icon: Calendar, title: "Posts para o Mês Todo", desc: "Gere o calendário completo de conteúdo em minutos, não em dias." },
     { icon: Palette, title: "Cores Personalizadas", desc: "Escolha até 4 cores da sua marca e mantenha identidade visual consistente." },
     { icon: ImageIcon, title: "Feed e Stories", desc: "Formatos otimizados 1080x1350 (feed) e 1080x1920 (stories)." },
     { icon: Zap, title: "Velocidade Profissional", desc: "Prompts prontos para copiar e colar em qualquer IA de imagem." },
-    { icon: TrendingUp, title: "Qualidade que Vende", desc: "Designer gráfico sênior dentro da IA — sem precisar contratar ninguém." },
+    { icon: TrendingUp, title: "Qualidade que Vende", desc: "Designer gráfico sênior dentro da IA MRO — sem precisar contratar ninguém." },
   ];
 
   return (
@@ -25,10 +25,10 @@ const PostsPromptsVend = () => {
         </div>
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
           Gere posts para o <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">mês todo</span><br />
-          de forma automática com IA
+          de forma automática com IA MRO
         </h1>
         <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-          Inteligência artificial inclusa. Crie prompts profissionais de imagens em segundos e nunca mais fique sem conteúdo.
+          Inteligência Artificial MRO inclusa. Crie prompts profissionais de imagens em segundos e nunca mais fique sem conteúdo.
         </p>
 
         {/* Video */}
@@ -66,7 +66,7 @@ const PostsPromptsVend = () => {
           </p>
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
             Com a <strong className="text-purple-300">MROIMAGEM PRO</strong>, você tem um designer gráfico sênior trabalhando 24h por dia,
-            criando prompts prontos para gerar imagens de altíssima qualidade — minimalistas, profissionais e que convertem.
+            movido pela <strong className="text-purple-300">Inteligência Artificial MRO</strong>, criando prompts prontos para gerar imagens de altíssima qualidade — minimalistas, profissionais e que convertem.
           </p>
         </Card>
       </section>
@@ -96,7 +96,7 @@ const PostsPromptsVend = () => {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">O que está incluso</h2>
           <ul className="space-y-3">
             {[
-              "Geração ilimitada de prompts com GPT",
+              "Geração ilimitada de prompts com IA MRO",
               "Posts para o mês todo em poucos minutos",
               "Paleta de cores personalizada (até 4 cores)",
               "Formatos Feed (1080x1350) e Stories (1080x1920)",
