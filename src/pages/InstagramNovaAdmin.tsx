@@ -2215,6 +2215,8 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
     try {
       const affiliateLink = `${window.location.origin}/promo/${affiliate.id.toLowerCase()}`;
       const rendaExtraLink = `${window.location.origin}/promorendaextra/${affiliate.id.toLowerCase()}`;
+      const resumoLink = `${window.location.origin}/resumo/${affiliate.id.toLowerCase()}`;
+      const resumoPassword = affiliatePasswords[affiliate.id] || "";
       
       const { data, error } = await supabase.functions.invoke("affiliate-commission-email", {
         body: {
@@ -2227,6 +2229,8 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
           promoEndTime: affiliate.promoEndTime,
           affiliateLink,
           rendaExtraLink,
+          resumoLink,
+          resumoPassword,
           isLifetime: affiliate.isLifetime || false
         }
       });

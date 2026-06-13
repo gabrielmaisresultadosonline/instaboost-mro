@@ -39,7 +39,9 @@ serve(async (req) => {
       promoStartDate,
       promoEndDate,
       affiliateLink,
-      // For lifetime affiliates
+      rendaExtraLink,
+      resumoLink: welcomeResumoLink,
+      resumoPassword,
       isLifetime,
       // WhatsApp number (optional, will fallback to storage)
       whatsappNumber,
@@ -242,14 +244,54 @@ Assim contabilizando junto com a gente de forma <strong style="color:#fff;">tran
 </p>
 </div>
 
-<!-- Affiliate Link -->
+<!-- Links de Divulgação -->
+${affiliateLink || rendaExtraLink ? `
+<div style="background:#2d2d2d;border:2px solid #10b981;border-radius:15px;padding:25px;margin-bottom:25px;">
+<p style="margin:0 0 18px 0;color:#10b981;font-size:16px;font-weight:bold;">🔗 Seus Links de Divulgação</p>
 ${affiliateLink ? `
-<div style="background:#2d2d2d;border:2px dashed #10b981;border-radius:15px;padding:25px;text-align:center;margin-bottom:25px;">
-<p style="margin:0 0 15px 0;color:#10b981;font-size:14px;font-weight:bold;">🔗 Seu Link de Afiliado:</p>
-<div style="background:#000;padding:15px 20px;border-radius:10px;word-break:break-all;">
-<a href="${affiliateLink}" style="color:#10b981;font-family:monospace;font-size:14px;text-decoration:none;">${affiliateLink}</a>
+<p style="margin:0 0 8px 0;color:#FFD700;font-size:13px;font-weight:bold;">📱 Instagram Nova (Ferramenta MRO):</p>
+<div style="background:#000;padding:12px 15px;border-radius:8px;margin-bottom:18px;word-break:break-all;">
+<a href="${affiliateLink}" style="color:#10b981;font-family:monospace;font-size:13px;text-decoration:none;">${affiliateLink}</a>
+</div>` : ''}
+${rendaExtraLink ? `
+<p style="margin:0 0 8px 0;color:#FFD700;font-size:13px;font-weight:bold;">💸 Renda Extra:</p>
+<div style="background:#000;padding:12px 15px;border-radius:8px;word-break:break-all;">
+<a href="${rendaExtraLink}" style="color:#10b981;font-family:monospace;font-size:13px;text-decoration:none;">${rendaExtraLink}</a>
+</div>` : ''}
+<p style="margin:15px 0 0 0;color:#9ca3af;font-size:12px;">Use estes links em suas divulgações. Toda venda feita por eles gera comissão para você!</p>
 </div>
-<p style="margin:15px 0 0 0;color:#9ca3af;font-size:12px;">Use sempre este link para suas vendas!</p>
+` : ''}
+
+<!-- Painel de Resumo em Tempo Real -->
+${welcomeResumoLink ? `
+<div style="background:#2d2d2d;border:2px solid #FFD700;border-radius:15px;padding:25px;margin-bottom:25px;">
+<p style="margin:0 0 12px 0;color:#FFD700;font-size:16px;font-weight:bold;">📊 Seu Painel de Resumo (Tempo Real)</p>
+<p style="margin:0 0 15px 0;color:#fff;font-size:14px;line-height:1.7;">
+Acompanhe em tempo real <strong style="color:#FFD700;">todas as tentativas de compra</strong>, <strong style="color:#10b981;">todas as vendas aprovadas</strong> e <strong style="color:#FFD700;">comissões a receber</strong>.
+</p>
+<p style="margin:15px 0 8px 0;color:#FFD700;font-size:13px;font-weight:bold;">🔗 Link do Painel:</p>
+<div style="background:#000;padding:12px 15px;border-radius:8px;margin-bottom:15px;word-break:break-all;">
+<a href="${welcomeResumoLink}" style="color:#10b981;font-family:monospace;font-size:13px;text-decoration:none;">${welcomeResumoLink}</a>
+</div>
+${resumoPassword ? `
+<p style="margin:15px 0 8px 0;color:#FFD700;font-size:13px;font-weight:bold;">🔑 Sua Senha de Acesso:</p>
+<div style="background:#000;padding:15px 20px;border-radius:8px;text-align:center;border:1px dashed #FFD700;">
+<span style="color:#FFD700;font-family:monospace;font-size:20px;font-weight:bold;letter-spacing:2px;">${resumoPassword}</span>
+</div>
+<p style="margin:12px 0 0 0;color:#9ca3af;font-size:12px;">Guarde esta senha em local seguro. Ela é necessária para acessar seu painel.</p>
+` : ''}
+<div style="background:#1a1a1a;border-left:4px solid #10b981;padding:15px 18px;border-radius:0 10px 10px 0;margin-top:18px;">
+<p style="margin:0 0 8px 0;color:#10b981;font-size:13px;font-weight:bold;">✨ No painel você acompanha:</p>
+<ul style="margin:0;padding-left:18px;color:#fff;font-size:13px;line-height:1.8;">
+<li>📈 Todas as <strong>tentativas de compra</strong> dos seus leads</li>
+<li>✅ Todas as <strong>vendas aprovadas</strong> com nome e email do cliente</li>
+<li>💰 Total de <strong>comissões a receber</strong> em tempo real</li>
+<li>🎯 Histórico completo e atualizado automaticamente</li>
+</ul>
+</div>
+<div style="text-align:center;margin-top:18px;">
+<a href="${welcomeResumoLink}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:14px;">📊 Acessar Meu Painel</a>
+</div>
 </div>
 ` : ''}
 
