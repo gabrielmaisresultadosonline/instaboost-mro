@@ -3194,6 +3194,7 @@ export type Database = {
           name: string
           password: string | null
           pix_key: string | null
+          show_promo_banner: boolean
           slug: string
           status: string
           updated_at: string
@@ -3208,6 +3209,7 @@ export type Database = {
           name: string
           password?: string | null
           pix_key?: string | null
+          show_promo_banner?: boolean
           slug: string
           status?: string
           updated_at?: string
@@ -3222,6 +3224,7 @@ export type Database = {
           name?: string
           password?: string | null
           pix_key?: string | null
+          show_promo_banner?: boolean
           slug?: string
           status?: string
           updated_at?: string

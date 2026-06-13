@@ -61,6 +61,7 @@ interface AffiliateData {
   email: string;
   photoUrl: string;
   active: boolean;
+  showPromoBanner?: boolean;
   promoStartDate?: string;
   promoEndDate?: string;
   promoStartTime?: string;
@@ -115,7 +116,8 @@ const OfficialPartnerPromo = () => {
             name: dbPartner.name,
             email: dbPartner.email,
             photoUrl: "", // Partners might not have photoUrl yet
-            active: true
+            active: true,
+            showPromoBanner: (dbPartner as any).show_promo_banner ?? true
           });
           setPartnerId(dbPartner.id);
 
@@ -452,6 +454,7 @@ const OfficialPartnerPromo = () => {
       <section className="relative pt-4 sm:pt-6 md:pt-8 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Affiliate Photo & Special Badge */}
+          {(affiliate.showPromoBanner ?? true) && (
           <div className="mb-6 sm:mb-8">
             {affiliate.photoUrl ? (
               <img 
@@ -471,6 +474,7 @@ const OfficialPartnerPromo = () => {
               🎁 Promoção especial {affiliate.name}
             </p>
           </div>
+          )}
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           

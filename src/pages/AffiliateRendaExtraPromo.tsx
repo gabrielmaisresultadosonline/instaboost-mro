@@ -62,6 +62,7 @@ interface AffiliateData {
   email: string;
   photoUrl: string;
   active: boolean;
+  showPromoBanner?: boolean;
 }
 
 const DescontoAlunosRendaExtra = () => {
@@ -83,6 +84,27 @@ const DescontoAlunosRendaExtra = () => {
         return;
       }
       try {
+        // 1. Check DB partners first
+        const { data: dbPartner } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('slug', id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (dbPartner) {
+          setAffiliate({
+            id: dbPartner.slug,
+            name: dbPartner.name,
+            email: dbPartner.email,
+            photoUrl: "",
+            active: true,
+            showPromoBanner: (dbPartner as any).show_promo_banner ?? true,
+          });
+          setLoadingAffiliate(false);
+          return;
+        }
+
         const { data, error } = await supabase.storage
           .from('user-data')
           .download('admin/affiliates.json');
@@ -424,6 +446,7 @@ const DescontoAlunosRendaExtra = () => {
         <div className="max-w-5xl mx-auto text-center">
           
           {/* Affiliate Info */}
+          {(affiliate.showPromoBanner ?? true) && (
           <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
             {affiliate.photoUrl ? (
               <img 
@@ -442,6 +465,7 @@ const DescontoAlunosRendaExtra = () => {
               </p>
             </div>
           </div>
+          )}
 
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />

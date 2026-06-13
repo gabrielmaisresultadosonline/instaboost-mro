@@ -36,6 +36,8 @@ import {
   Mail
 } from 'lucide-react';
 
+import { Switch } from "@/components/ui/switch";
+
 interface Partner {
   id: string;
   name: string;
@@ -45,6 +47,7 @@ interface Partner {
   whatsapp: string | null;
   status: string;
   password?: string | null;
+  show_promo_banner?: boolean;
   created_at: string;
 }
 
@@ -104,7 +107,8 @@ const PartnersPanel = () => {
             pix_key: currentPartner.pix_key,
             whatsapp: currentPartner.whatsapp,
             status: currentPartner.status,
-            password: currentPartner.password
+            password: currentPartner.password,
+            show_promo_banner: currentPartner.show_promo_banner ?? true
           })
           .eq('id', currentPartner.id);
 
@@ -120,6 +124,7 @@ const PartnersPanel = () => {
             pix_key: currentPartner.pix_key,
             whatsapp: currentPartner.whatsapp,
             password: currentPartner.password,
+            show_promo_banner: currentPartner.show_promo_banner ?? true,
             status: 'active'
           }]);
 
@@ -291,6 +296,19 @@ const PartnersPanel = () => {
                   onChange={(e) => setCurrentPartner({...currentPartner, whatsapp: e.target.value})}
                   placeholder="DDD + Número"
                 />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="banner" className="text-right">Banner Promo</Label>
+                <div className="col-span-3 flex items-center gap-3">
+                  <Switch
+                    id="banner"
+                    checked={currentPartner.show_promo_banner ?? true}
+                    onCheckedChange={(checked) => setCurrentPartner({...currentPartner, show_promo_banner: checked})}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Exibir foto e "🎁 Promoção especial {currentPartner.name || 'Nome'}" nas páginas
+                  </span>
+                </div>
               </div>
             </div>
             <DialogFooter>
