@@ -72,7 +72,7 @@ const PostsPrompts = () => {
             Gerador de Prompts Profissionais
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-            Posts <span className="text-purple-400">Prompts</span>
+            MRO<span className="text-purple-400">IMAGEM PRO</span>
           </h1>
           <p className="text-slate-300 max-w-xl mx-auto">
             Descreva sua imagem, escolha cores e formato. Geramos um prompt profissional nível designer sênior pronto para usar em qualquer IA.
