@@ -141,33 +141,37 @@ const PostsPrompts = () => {
                   </Button>
                 )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {colors.map((color, idx) => (
                   <div key={idx} className="bg-slate-900 border border-slate-700 rounded-lg p-3 relative">
                     {colors.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeColor(idx)}
-                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-white"
+                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-white z-10"
                       >
                         <X className="w-3 h-3" />
                       </button>
                     )}
-                    <div className="text-xs text-slate-400 mb-1">Cor {idx + 1}</div>
-                    <div className="flex items-center gap-2">
+                    <div className="text-xs text-slate-400 mb-2">Cor {idx + 1}</div>
+                    <label
+                      className="block w-full h-16 rounded-md cursor-pointer border-2 border-slate-700 hover:border-purple-500 transition relative overflow-hidden"
+                      style={{ backgroundColor: color }}
+                      title="Clique para escolher a cor"
+                    >
                       <input
                         type="color"
                         value={color}
                         onChange={(e) => updateColor(idx, e.target.value)}
-                        className="w-10 h-10 rounded cursor-pointer bg-transparent border-0"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
-                      <input
-                        type="text"
-                        value={color}
-                        onChange={(e) => updateColor(idx, e.target.value)}
-                        className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white uppercase"
-                      />
-                    </div>
+                    </label>
+                    <input
+                      type="text"
+                      value={color}
+                      onChange={(e) => updateColor(idx, e.target.value)}
+                      className="mt-2 w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white uppercase text-center font-mono"
+                    />
                   </div>
                 ))}
               </div>
