@@ -36,6 +36,8 @@ import {
   Mail
 } from 'lucide-react';
 
+import { Switch } from "@/components/ui/switch";
+
 interface Partner {
   id: string;
   name: string;
@@ -45,6 +47,7 @@ interface Partner {
   whatsapp: string | null;
   status: string;
   password?: string | null;
+  show_promo_banner?: boolean;
   created_at: string;
 }
 
