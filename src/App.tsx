@@ -316,6 +316,7 @@ const App = () => (
           <Route path="/whitelabel" element={<WhiteLabel />} />
           <Route path="/creatordev" element={<CreatorDev />} />
           <Route path="/creatordev/projeto" element={<CreatorDevProject />} />
+import PostsPrompts from "./pages/PostsPrompts";
           <Route path="/creatordev/admin" element={<CreatorDevAdmin />} />
           <Route path="/postsprompts" element={<PostsPrompts />} />
 
