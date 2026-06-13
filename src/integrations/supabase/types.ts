@@ -3275,6 +3275,45 @@ export type Database = {
         }
         Relationships: []
       }
+      postsprompts_buyers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          kiwify_event: string | null
+          kiwify_order_id: string | null
+          last_event_at: string | null
+          name: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          kiwify_event?: string | null
+          kiwify_order_id?: string | null
+          last_event_at?: string | null
+          name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          kiwify_event?: string | null
+          kiwify_order_id?: string | null
+          last_event_at?: string | null
+          name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       postsprompts_settings: {
         Row: {
           id: string
