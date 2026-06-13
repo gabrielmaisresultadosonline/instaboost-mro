@@ -446,6 +446,7 @@ const AffiliatePromoPage = () => {
       <section className="relative pt-4 sm:pt-6 md:pt-8 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Affiliate Photo & Special Badge */}
+          {(affiliate.showPromoBanner ?? true) && (
           <div className="mb-6 sm:mb-8">
             {affiliate.photoUrl ? (
               <img 
@@ -465,6 +466,7 @@ const AffiliatePromoPage = () => {
               🎁 Promoção especial {affiliate.name}
             </p>
           </div>
+          )}
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
