@@ -39,7 +39,9 @@ serve(async (req) => {
       promoStartDate,
       promoEndDate,
       affiliateLink,
-      // For lifetime affiliates
+      rendaExtraLink,
+      resumoLink: welcomeResumoLink,
+      resumoPassword,
       isLifetime,
       // WhatsApp number (optional, will fallback to storage)
       whatsappNumber,
