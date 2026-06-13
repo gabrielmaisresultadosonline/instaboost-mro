@@ -163,6 +163,34 @@ const PartnersPanel = () => {
     }
   };
 
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+
+  const handleSendAccessEmail = async (partner: Partner) => {
+    if (!partner.email) {
+      toast({ title: "Parceiro sem email cadastrado", variant: "destructive" });
+      return;
+    }
+    setSendingEmailId(partner.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('partner-access-email', {
+        body: {
+          name: partner.name,
+          email: partner.email,
+          slug: partner.slug,
+          password: partner.password,
+          origin: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      if (data?.success === false) throw new Error(data?.error || 'Falha ao enviar');
+      toast({ title: "✅ Acessos enviados!", description: `Email enviado para ${partner.email}` });
+    } catch (e: any) {
+      toast({ title: "Erro ao enviar email", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingEmailId(null);
+    }
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: `${label} copiado!`, description: text });
