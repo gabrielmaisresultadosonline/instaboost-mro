@@ -3442,6 +3442,39 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                                   </Button>
                                 </div>
                               </div>
+
+                              {/* Links públicos de divulgação */}
+                              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {(() => {
+                                  const slug = affiliate.id.toLowerCase();
+                                  const igUrl = `${window.location.origin}/promo/${slug}`;
+                                  const reUrl = `${window.location.origin}/promorendaextra/${slug}`;
+                                  return (
+                                    <>
+                                      <div className="flex items-center gap-2 bg-zinc-900/60 border border-purple-500/30 rounded px-2 py-1.5">
+                                        <span className="text-[10px] font-bold text-purple-300 px-1.5 py-0.5 bg-purple-500/20 rounded">IG</span>
+                                        <code className="flex-1 text-xs text-purple-200 font-mono truncate">{igUrl}</code>
+                                        <Button size="sm" variant="outline" className="h-7 px-2 border-purple-500/50 text-purple-300 hover:bg-purple-500/10" onClick={() => { navigator.clipboard.writeText(igUrl); toast.success("Link IG copiado"); }} title="Copiar link IG">
+                                          <Copy className="w-3 h-3" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" className="h-7 px-2 border-purple-500/50 text-purple-300 hover:bg-purple-500/10" onClick={() => window.open(igUrl, '_blank')} title="Abrir link IG">
+                                          <Link className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                      <div className="flex items-center gap-2 bg-zinc-900/60 border border-emerald-500/30 rounded px-2 py-1.5">
+                                        <span className="text-[10px] font-bold text-emerald-300 px-1.5 py-0.5 bg-emerald-500/20 rounded">RE</span>
+                                        <code className="flex-1 text-xs text-emerald-200 font-mono truncate">{reUrl}</code>
+                                        <Button size="sm" variant="outline" className="h-7 px-2 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10" onClick={() => { navigator.clipboard.writeText(reUrl); toast.success("Link Renda Extra copiado"); }} title="Copiar link Renda Extra">
+                                          <Copy className="w-3 h-3" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" className="h-7 px-2 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10" onClick={() => window.open(reUrl, '_blank')} title="Abrir link Renda Extra">
+                                          <Link className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           </div>
                         );
