@@ -32,7 +32,8 @@ import {
   UserPlus,
   Loader2,
   Globe,
-  Sparkles
+  Sparkles,
+  Mail
 } from 'lucide-react';
 
 interface Partner {
