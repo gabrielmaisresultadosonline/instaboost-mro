@@ -116,7 +116,8 @@ const OfficialPartnerPromo = () => {
             name: dbPartner.name,
             email: dbPartner.email,
             photoUrl: "", // Partners might not have photoUrl yet
-            active: true
+            active: true,
+            showPromoBanner: (dbPartner as any).show_promo_banner ?? true
           });
           setPartnerId(dbPartner.id);
 
