@@ -356,6 +356,7 @@ const PartnersPanel = () => {
               <TableHead>Slug / Link</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead title="Exibir foto e nome do parceiro na página de vendas">Foto + Nome</TableHead>
               <TableHead>WhatsApp</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
