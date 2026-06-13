@@ -101,6 +101,7 @@ interface Affiliate {
   promoStartTime?: string; // HH:mm
   promoEndTime?: string;   // HH:mm
   isLifetime?: boolean;    // true = afiliado vitalício, recebe comissão na hora
+  showPromoBanner?: boolean; // true = exibir foto e nome na página de vendas
 }
 
 export default function InstagramNovaAdmin() {
