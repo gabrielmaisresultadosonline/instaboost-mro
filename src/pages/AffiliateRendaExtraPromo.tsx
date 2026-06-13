@@ -446,6 +446,7 @@ const DescontoAlunosRendaExtra = () => {
         <div className="max-w-5xl mx-auto text-center">
           
           {/* Affiliate Info */}
+          {(affiliate.showPromoBanner ?? true) && (
           <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
             {affiliate.photoUrl ? (
               <img 
@@ -464,6 +465,7 @@ const DescontoAlunosRendaExtra = () => {
               </p>
             </div>
           </div>
+          )}
 
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
