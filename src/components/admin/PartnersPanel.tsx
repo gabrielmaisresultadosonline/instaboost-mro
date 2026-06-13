@@ -107,7 +107,8 @@ const PartnersPanel = () => {
             pix_key: currentPartner.pix_key,
             whatsapp: currentPartner.whatsapp,
             status: currentPartner.status,
-            password: currentPartner.password
+            password: currentPartner.password,
+            show_promo_banner: currentPartner.show_promo_banner ?? true
           })
           .eq('id', currentPartner.id);
 
@@ -123,6 +124,7 @@ const PartnersPanel = () => {
             pix_key: currentPartner.pix_key,
             whatsapp: currentPartner.whatsapp,
             password: currentPartner.password,
+            show_promo_banner: currentPartner.show_promo_banner ?? true,
             status: 'active'
           }]);
 
