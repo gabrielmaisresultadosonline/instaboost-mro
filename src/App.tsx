@@ -80,6 +80,7 @@ import Empresas from "./pages/Empresas";
 import EmpresasAdmin from "./pages/EmpresasAdmin";
 import PostsPrompts from "./pages/PostsPrompts";
 import PostsPromptsAdmin from "./pages/PostsPromptsAdmin";
+import PostsPromptsVend from "./pages/PostsPromptsVend";
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
@@ -322,6 +323,7 @@ const App = () => (
           <Route path="/creatordev/admin" element={<CreatorDevAdmin />} />
           <Route path="/postsprompts" element={<PostsPrompts />} />
           <Route path="/postsprompts/admin" element={<PostsPromptsAdmin />} />
+          <Route path="/postspromptsvend" element={<PostsPromptsVend />} />
 
 
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
