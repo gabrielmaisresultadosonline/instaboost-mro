@@ -101,7 +101,7 @@ const PostsPromptsVend = () => {
               "Paleta de cores personalizada (até 4 cores)",
               "Formatos Feed (1080x1350) e Stories (1080x1920)",
               "Prompts profissionais nível designer sênior",
-              "Copia e cola em qualquer IA de imagem",
+              "Geração de imagens 100% dentro da IA MRO",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
