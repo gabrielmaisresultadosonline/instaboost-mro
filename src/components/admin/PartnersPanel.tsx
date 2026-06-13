@@ -196,6 +196,21 @@ const PartnersPanel = () => {
     }
   };
 
+  const handleToggleBanner = async (partner: Partner, checked: boolean) => {
+    setPartners(prev => prev.map(p => p.id === partner.id ? { ...p, show_promo_banner: checked } : p));
+    try {
+      const { error } = await supabase
+        .from('partners')
+        .update({ show_promo_banner: checked })
+        .eq('id', partner.id);
+      if (error) throw error;
+      toast({ title: checked ? "Foto e nome ativados" : "Foto e nome desativados", description: partner.name });
+    } catch (e: any) {
+      setPartners(prev => prev.map(p => p.id === partner.id ? { ...p, show_promo_banner: !checked } : p));
+      toast({ title: "Erro ao atualizar", description: e.message, variant: "destructive" });
+    }
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: `${label} copiado!`, description: text });
@@ -341,6 +356,7 @@ const PartnersPanel = () => {
               <TableHead>Slug / Link</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead title="Exibir foto e nome do parceiro na página de vendas">Foto + Nome</TableHead>
               <TableHead>WhatsApp</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -348,13 +364,13 @@ const PartnersPanel = () => {
           <TableBody>
             {loading && partners.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
+                <TableCell colSpan={7} className="text-center py-10">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                 </TableCell>
               </TableRow>
             ) : filteredPartners.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                   Nenhum parceiro encontrado.
                 </TableCell>
               </TableRow>
@@ -378,6 +394,17 @@ const PartnersPanel = () => {
                     <Badge variant={partner.status === 'active' ? 'default' : 'secondary'}>
                       {partner.status === 'active' ? 'Ativo' : 'Inativo'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={partner.show_promo_banner ?? true}
+                        onCheckedChange={(checked) => handleToggleBanner(partner, checked)}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {(partner.show_promo_banner ?? true) ? 'Visível' : 'Oculto'}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-xs">{partner.whatsapp || '-'}</TableCell>
                   <TableCell className="text-right">
