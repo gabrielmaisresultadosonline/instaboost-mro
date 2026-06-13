@@ -1,15 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Copy, Check, Palette, Smartphone, Square, Plus, X } from "lucide-react";
+import { Sparkles, Copy, Check, Palette, Smartphone, Square, Plus, X, Lock, LogOut } from "lucide-react";
 
 const DEFAULT_COLORS = ["#000000", "#FFFFFF", "#3B82F6", "#EF4444"];
+const STORAGE_KEY = "postsprompts_buyer_email";
 
 const PostsPrompts = () => {
+  const [authEmail, setAuthEmail] = useState<string>("");
+  const [emailInput, setEmailInput] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) { setChecking(false); return; }
+    (async () => {
+      const { data } = await supabase.functions.invoke("postsprompts-admin", {
+        body: { action: "check_access", email: saved },
+      });
+      if ((data as any)?.allowed) setAuthEmail(saved);
+      else localStorage.removeItem(STORAGE_KEY);
+      setChecking(false);
+    })();
+  }, []);
+
+  const handleLogin = async () => {
+    const email = emailInput.trim().toLowerCase();
+    if (!email || !email.includes("@")) return toast.error("Digite um email válido");
+    setLoginLoading(true);
+    const { data } = await supabase.functions.invoke("postsprompts-admin", {
+      body: { action: "check_access", email },
+    });
+    setLoginLoading(false);
+    if ((data as any)?.allowed) {
+      localStorage.setItem(STORAGE_KEY, email);
+      setAuthEmail(email);
+      toast.success("Acesso liberado!");
+    } else {
+      toast.error("Email não encontrado. Use o email da sua compra na Kiwify.");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setAuthEmail("");
+  };
+
   const [description, setDescription] = useState("");
   const [format, setFormat] = useState<"feed" | "stories">("feed");
   const [colors, setColors] = useState<string[]>(["#000000"]);
@@ -63,9 +105,71 @@ const PostsPrompts = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 flex items-center justify-center text-slate-300">
+        Verificando acesso...
+      </div>
+    );
+  }
+
+  if (!authEmail) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 py-10 px-4 flex items-center justify-center">
+        <Card className="bg-slate-800/60 border-slate-700 backdrop-blur shadow-2xl w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-white text-center flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-purple-400" />
+              </div>
+              <span>Área de Membros</span>
+              <span className="text-sm font-normal text-slate-400">
+                MRO<span className="text-purple-400">IMAGEM PRO</span>
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-slate-300 text-sm text-center">
+              Entre com o e-mail que você usou na compra (Kiwify).
+            </p>
+            <div className="space-y-2">
+              <Label className="text-slate-200">E-mail da compra</Label>
+              <Input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder="seu@email.com"
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+            </div>
+            <Button
+              onClick={handleLogin}
+              disabled={loginLoading}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-12"
+            >
+              {loginLoading ? "Verificando..." : "Acessar"}
+            </Button>
+            <p className="text-xs text-slate-500 text-center">
+              Ainda não tem acesso?{" "}
+              <a href="/postspromptsvend" className="text-purple-400 hover:underline">
+                Garanta por R$ 67 vitalício
+              </a>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 py-10 px-4">
       <div className="max-w-3xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+            <LogOut className="w-3 h-3" /> {authEmail} • sair
+          </button>
+        </div>
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm mb-4 border border-purple-500/30">
             <Sparkles className="w-4 h-4" />
