@@ -2217,7 +2217,28 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
       const affiliateLink = `${window.location.origin}/promo/${affiliate.id.toLowerCase()}`;
       const rendaExtraLink = `${window.location.origin}/promorendaextra/${affiliate.id.toLowerCase()}`;
       const resumoLink = `${window.location.origin}/resumo/${affiliate.id.toLowerCase()}`;
-      const resumoPassword = affiliatePasswords[affiliate.id] || "";
+      
+      // Garantir que a senha esteja carregada (busca direto se ainda não estiver em estado)
+      let resumoPassword = affiliatePasswords[affiliate.id] || "";
+      if (!resumoPassword) {
+        try {
+          const { data: pwdData } = await supabase.functions.invoke("affiliate-resumo-storage", {
+            body: { action: "get-config", affiliateId: affiliate.id }
+          });
+          if (pwdData?.password) {
+            resumoPassword = pwdData.password;
+            setAffiliatePasswords(prev => ({ ...prev, [affiliate.id]: pwdData.password }));
+          }
+        } catch (e) {
+          console.warn("Não foi possível carregar senha do afiliado", e);
+        }
+      }
+      
+      if (!resumoPassword) {
+        toast.error("Cadastre uma senha de acesso para o afiliado antes de enviar o email de boas-vindas.");
+        setSendingWelcomeEmail(null);
+        return;
+      }
       
       const { data, error } = await supabase.functions.invoke("affiliate-commission-email", {
         body: {
