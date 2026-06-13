@@ -11,7 +11,7 @@ const PostsPromptsVend = () => {
     { icon: Calendar, title: "Posts para o Mês Todo", desc: "Gere o calendário completo de conteúdo em minutos, não em dias." },
     { icon: Palette, title: "Cores Personalizadas", desc: "Escolha até 4 cores da sua marca e mantenha identidade visual consistente." },
     { icon: ImageIcon, title: "Feed e Stories", desc: "Formatos otimizados 1080x1350 (feed) e 1080x1920 (stories)." },
-    { icon: Zap, title: "Velocidade Profissional", desc: "Prompts prontos para copiar e colar em qualquer IA de imagem." },
+    { icon: Zap, title: "Velocidade Profissional", desc: "Gere imagens prontas direto na IA MRO em segundos." },
     { icon: TrendingUp, title: "Qualidade que Vende", desc: "Designer gráfico sênior dentro da IA MRO — sem precisar contratar ninguém." },
   ];
 
