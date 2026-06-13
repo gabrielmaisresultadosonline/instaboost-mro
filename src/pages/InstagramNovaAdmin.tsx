@@ -3309,10 +3309,14 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                                       const updated = affiliates.map(a => a.id === affiliate.id ? { ...a, showPromoBanner: next } : a);
                                       setAffiliates(updated);
                                       try {
-                                        const blob = new Blob([JSON.stringify(updated)], { type: 'application/json' });
-                                        await supabase.storage.from('user-data').upload('admin/affiliates.json', blob, { contentType: 'application/json', upsert: true });
-                                        // Também atualiza a tabela partners (fonte primária usada pela /promo)
-                                        await supabase.from('partners').update({ show_promo_banner: next } as any).eq('slug', affiliate.id);
+                                        // Salva via edge function (service role - única forma confiável de gravar admin/affiliates.json)
+                                        const { data: resp, error: fnErr } = await supabase.functions.invoke('affiliate-storage', {
+                                          body: { action: 'save', key: 'affiliates', data: updated }
+                                        });
+                                        if (fnErr || !resp?.success) throw new Error(fnErr?.message || resp?.error || 'Falha ao salvar na nuvem');
+                                        localStorage.setItem("mro_affiliates_history", JSON.stringify(updated));
+                                        // Também atualiza a tabela partners (fonte primária usada pela /promo quando o afiliado é partner oficial)
+                                        await supabase.from('partners').update({ show_promo_banner: next } as any).eq('slug', affiliate.id.toLowerCase());
                                         toast.success(next ? "Foto e nome ATIVADOS na página de vendas" : "Foto e nome OCULTADOS na página de vendas");
                                       } catch (e: any) {
                                         toast.error("Erro ao salvar: " + e.message);
