@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { trackFacebookEvent } from "@/lib/facebookTracking";
 import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
 import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X } from "lucide-react";
@@ -161,9 +162,13 @@ const RendaExtra2 = () => {
         user_agent: navigator.userAgent,
       });
 
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Lead");
-      }
+      // Fire Lead on both Pixel and Meta Conversions API (with dedup)
+      await trackFacebookEvent("Lead", {
+        content_name: "Renda Extra - Aula Grátis",
+        content_category: "lead_form",
+        email: formData.email,
+        phone: formData.whatsapp,
+      });
 
     } catch (error: any) {
       console.error("Error submitting form:", error);
