@@ -1310,8 +1310,16 @@ Participe também do nosso GRUPO DE AVISOS
           toast.success("Aprovação manual realizada! Acesso criado e email enviado.");
         }
         
+        // Disparar evento de Compra no Pixel do Facebook (dedup via order.id)
+        try {
+          trackPurchase(Number(order.amount) || 0, `MRO Renda Extra - ${order.username}`, order.email, `order_${order.id}`);
+        } catch (e) {
+          console.warn("Pixel Purchase tracking falhou:", e);
+        }
+
         // Enviar Webhook do CRM após aprovação manual bem-sucedida
         sendToCRMWebhook(order);
+
       } else {
         toast.warning(data.message || "Aprovação parcial realizada");
       }
