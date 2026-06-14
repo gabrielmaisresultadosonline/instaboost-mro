@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { n as trackPurchase } from "@/lib/facebookTracking";
+import { trackPurchase } from "@/lib/facebookTracking";
 
 import { 
   Loader2, 
