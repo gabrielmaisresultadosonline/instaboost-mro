@@ -91,76 +91,104 @@ export const LoginWithDiscountCTA = ({ onLoginSuccess }: Props) => {
       </div>
 
       <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : reset())}>
-        <DialogContent className="bg-zinc-950 border-yellow-500/30 text-white max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl text-white flex items-center gap-2">
-              <Gift className="w-6 h-6 text-yellow-400" />
-              Liberar seu Desconto
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Preencha abaixo e receba acesso ao desconto exclusivo no seu email.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="bg-gradient-to-b from-zinc-950 to-black border-yellow-500/40 text-white w-[calc(100vw-1.5rem)] max-w-md p-0 overflow-hidden max-h-[92vh] overflow-y-auto rounded-2xl">
+          <div className="bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-yellow-500/20 px-5 py-4 border-b border-yellow-500/30">
+            <DialogHeader className="space-y-1.5 text-left">
+              <DialogTitle className="text-xl sm:text-2xl text-white flex items-center gap-2 font-extrabold tracking-tight">
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-yellow-400/20 ring-1 ring-yellow-400/40">
+                  <Gift className="w-5 h-5 text-yellow-300" />
+                </span>
+                Liberar seu Desconto
+              </DialogTitle>
+              <DialogDescription className="text-zinc-200 text-sm font-medium">
+                Preencha abaixo e receba o link exclusivo no seu email.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
+          <div className="px-5 py-4 sm:px-6">
           {success ? (
-            <div className="py-6 text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20">
+            <div className="py-4 text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 ring-2 ring-green-400/40">
                 <CheckCircle2 className="w-9 h-9 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold">Desconto liberado! 🎉</h3>
-              <p className="text-sm text-zinc-300">
-                Enviamos um email para <strong className="text-yellow-400">{email}</strong> com o link
-                exclusivo de desconto. <br />
-                <span className="text-xs text-zinc-400">O link é válido por 48 horas.</span>
+              <h3 className="text-xl font-extrabold">Desconto liberado! 🎉</h3>
+              <p className="text-sm text-zinc-200">
+                Enviamos um email para <strong className="text-yellow-300 break-all">{email}</strong> com o link exclusivo de desconto.
               </p>
-              <Button onClick={reset} className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold">
+              <p className="text-xs text-zinc-400">⏱️ O link é válido por 48 horas.</p>
+              <Button onClick={reset} className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold h-12">
                 Fechar
               </Button>
             </div>
           ) : (
-            <form onSubmit={submit} className="space-y-3 pt-2">
-              <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-3 text-xs text-yellow-100 leading-relaxed">
-                <p className="font-bold mb-1">💰 Renda Extra com a Ferramenta MRO</p>
-                <p>
-                  Preste serviço como agência de marketing e fature <strong>R$ 5 MIL+/mês</strong>.
-                  Vamos te ensinar a fechar contratos, usar a ferramenta e começar a aplicar HOJE mesmo.
+            <form onSubmit={submit} className="space-y-4">
+              <div className="relative overflow-hidden rounded-xl border border-yellow-500/40 bg-gradient-to-br from-yellow-500/15 via-orange-500/10 to-yellow-500/5 p-4">
+                <div className="flex items-start gap-2.5 mb-2">
+                  <TrendingUp className="w-5 h-5 text-yellow-300 shrink-0 mt-0.5" />
+                  <p className="text-sm sm:text-base font-extrabold text-yellow-200 leading-tight">
+                    Renda Extra com a Ferramenta MRO
+                  </p>
+                </div>
+                <p className="text-[13px] sm:text-sm text-zinc-100 leading-relaxed font-medium">
+                  Preste serviço como agência de marketing e fature{" "}
+                  <span className="text-yellow-300 font-extrabold">R$ 5 MIL+/mês</span>.
+                  Aprenda a fechar contratos, usar a ferramenta e aplicar{" "}
+                  <span className="text-orange-300 font-bold">HOJE</span> mesmo.
                 </p>
-                <p className="mt-2 text-orange-300">⏰ Esse desconto vai ser liberado hoje.</p>
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-orange-500/15 border border-orange-500/30 px-3 py-2">
+                  <Clock className="w-4 h-4 text-orange-300 shrink-0" />
+                  <p className="text-xs sm:text-sm font-bold text-orange-200">
+                    Desconto liberado apenas HOJE.
+                  </p>
+                </div>
               </div>
 
-              <Input
-                placeholder="Seu nome completo"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white h-11"
-              />
-              <Input
-                type="email"
-                placeholder="Seu melhor email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white h-11"
-              />
-              <Input
-                placeholder="WhatsApp com DDD"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white h-11"
-              />
+              <div className="space-y-2.5">
+                <Input
+                  placeholder="Seu nome completo"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12 text-base font-medium focus-visible:ring-yellow-400/60"
+                />
+                <Input
+                  type="email"
+                  placeholder="Seu melhor email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12 text-base font-medium focus-visible:ring-yellow-400/60"
+                />
+                <Input
+                  placeholder="WhatsApp com DDD"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  inputMode="numeric"
+                  className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12 text-base font-medium focus-visible:ring-yellow-400/60"
+                />
+              </div>
+
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:opacity-90 text-black font-bold py-6 text-base"
+                className="w-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 hover:opacity-95 text-black font-extrabold h-14 text-base sm:text-lg shadow-lg shadow-orange-500/20 ring-1 ring-yellow-300/50"
               >
-                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (<><Sparkles className="w-5 h-5 mr-2" /> LIBERAR MEU DESCONTO</>)}
+                {submitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Rocket className="w-5 h-5 mr-2" /> LIBERAR MEU DESCONTO
+                  </>
+                )}
               </Button>
-              <p className="text-[11px] text-zinc-500 text-center">
-                Você receberá um email com o link exclusivo do desconto.
+              <p className="text-[11px] sm:text-xs text-zinc-400 text-center font-medium">
+                🔒 Você receberá um email com o link exclusivo do desconto.
               </p>
             </form>
           )}
+          </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 };
