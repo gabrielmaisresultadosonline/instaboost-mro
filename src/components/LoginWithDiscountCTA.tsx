@@ -3,9 +3,11 @@ import { LoginPage } from "@/components/LoginPage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Gift, Sparkles, Loader2, CheckCircle2, X } from "lucide-react";
+import { Gift, Sparkles, Loader2, CheckCircle2, TrendingUp, Clock, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackFacebookEvent } from "@/lib/facebookTracking";
+
 
 interface Props {
   onLoginSuccess: () => void;
