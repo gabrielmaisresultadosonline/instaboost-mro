@@ -1073,11 +1073,22 @@ Participe também do nosso GRUPO DE AVISOS
         confirmedPayments.forEach(result => {
           if (result) {
             toast.success(`Pagamento confirmado: ${result.order.username}`);
+            // Dispara Purchase no Pixel (uma única vez por pedido)
+            const firedKey = `mro_pixel_fired_${result.order.id}`;
+            if (!localStorage.getItem(firedKey)) {
+              try {
+                trackPurchase(Number(result.order.amount) || 0, `MRO Renda Extra - ${result.order.username}`, result.order.email, `order_${result.order.id}`);
+                localStorage.setItem(firedKey, "1");
+              } catch (e) {
+                console.warn("Pixel Purchase tracking falhou:", e);
+              }
+            }
             // Envia WhatsApp automaticamente no auto-check quando confirma
             sendToCRMWebhook(result.order);
           }
         });
       }
+
 
       setLastAutoCheck(new Date());
       loadOrders();
@@ -1101,11 +1112,23 @@ Participe também do nosso GRUPO DE AVISOS
       if (data.status === "completed" || data.status === "paid") {
         toast.success(data.status === "completed" ? "Pagamento confirmado e acesso liberado!" : "Pagamento confirmado! Processando acesso...");
         
+        // Dispara Purchase no Pixel (uma única vez por pedido)
+        const firedKey = `mro_pixel_fired_${order.id}`;
+        if (!localStorage.getItem(firedKey)) {
+          try {
+            trackPurchase(Number(order.amount) || 0, `MRO Renda Extra - ${order.username}`, order.email, `order_${order.id}`);
+            localStorage.setItem(firedKey, "1");
+          } catch (e) {
+            console.warn("Pixel Purchase tracking falhou:", e);
+          }
+        }
+        
         // Sempre envia para o CRM/WhatsApp quando confirmado no check manual
         sendToCRMWebhook(order);
       } else {
         toast.info("Pagamento ainda não confirmado");
       }
+
 
       loadOrders();
     } catch (error) {
