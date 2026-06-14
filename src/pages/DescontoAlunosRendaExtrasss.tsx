@@ -76,6 +76,113 @@ const DescontoAlunosRendaExtra = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ===== Gate: acesso liberado apenas via email cadastrado ou token do email =====
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [gateChecking, setGateChecking] = useState(true);
+  const [gateEmail, setGateEmail] = useState("");
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateExpired, setGateExpired] = useState(false);
+  const [gateNotFound, setGateNotFound] = useState(false);
+  const [waNumber, setWaNumber] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.rpc("get_whatsapp_public_config");
+        const cfg = data as { whatsapp_number?: string } | null;
+        if (cfg?.whatsapp_number) setWaNumber(cfg.whatsapp_number);
+      } catch {}
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await supabase.functions.invoke("estrutura4-discount", {
+          body: { action: "track_visit", page: "/descontoalunosrendaextrasss" },
+        });
+      } catch {}
+
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get("token");
+      const savedEmail = localStorage.getItem("est4_discount_email");
+
+      if (token) {
+        try {
+          const { data } = await supabase.functions.invoke("estrutura4-discount", {
+            body: { action: "verify_token", token },
+          });
+          if (data?.valid) {
+            localStorage.setItem("est4_discount_email", data.email);
+            setAccessGranted(true);
+            setGateChecking(false);
+            return;
+          }
+          if (data?.expired) setGateExpired(true);
+        } catch {}
+      }
+
+      if (savedEmail && !gateExpired) {
+        try {
+          const { data } = await supabase.functions.invoke("estrutura4-discount", {
+            body: { action: "verify_email", email: savedEmail },
+          });
+          if (data?.valid) {
+            setAccessGranted(true);
+            setGateChecking(false);
+            return;
+          }
+          if (data?.expired) {
+            setGateExpired(true);
+            localStorage.removeItem("est4_discount_email");
+          }
+        } catch {}
+      }
+
+      setGateChecking(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = gateEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      toast.error("Informe um email válido");
+      return;
+    }
+    setGateLoading(true);
+    setGateNotFound(false);
+    setGateExpired(false);
+    try {
+      const { data } = await supabase.functions.invoke("estrutura4-discount", {
+        body: { action: "verify_email", email },
+      });
+      if (data?.valid) {
+        localStorage.setItem("est4_discount_email", email);
+        setAccessGranted(true);
+      } else if (data?.expired) {
+        setGateExpired(true);
+      } else {
+        setGateNotFound(true);
+      }
+    } catch {
+      toast.error("Erro ao validar. Tente novamente.");
+    } finally {
+      setGateLoading(false);
+    }
+  };
+
+  const openWhatsAppExpired = () => {
+    const msg = encodeURIComponent("Acabei perdendo o desconto anterior, gostaria de aproveitar sobre o desconto renda extra HOJE.");
+    const num = (waNumber || "").replace(/\D/g, "");
+    if (!num) {
+      toast.error("WhatsApp indisponível no momento.");
+      return;
+    }
+    window.open(`https://wa.me/${num}?text=${msg}`, "_blank");
+  };
+
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
