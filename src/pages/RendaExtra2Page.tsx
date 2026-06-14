@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { trackPageView } from '@/lib/facebookTracking';
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+
+  useEffect(() => {
+    trackPageView('Renda Extra 2');
+  }, []);
+
 
   if (mode === 'choice') {
     return (
