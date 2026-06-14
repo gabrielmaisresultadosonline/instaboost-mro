@@ -1112,11 +1112,23 @@ Participe também do nosso GRUPO DE AVISOS
       if (data.status === "completed" || data.status === "paid") {
         toast.success(data.status === "completed" ? "Pagamento confirmado e acesso liberado!" : "Pagamento confirmado! Processando acesso...");
         
+        // Dispara Purchase no Pixel (uma única vez por pedido)
+        const firedKey = `mro_pixel_fired_${order.id}`;
+        if (!localStorage.getItem(firedKey)) {
+          try {
+            trackPurchase(Number(order.amount) || 0, `MRO Renda Extra - ${order.username}`, order.email, `order_${order.id}`);
+            localStorage.setItem(firedKey, "1");
+          } catch (e) {
+            console.warn("Pixel Purchase tracking falhou:", e);
+          }
+        }
+        
         // Sempre envia para o CRM/WhatsApp quando confirmado no check manual
         sendToCRMWebhook(order);
       } else {
         toast.info("Pagamento ainda não confirmado");
       }
+
 
       loadOrders();
     } catch (error) {
