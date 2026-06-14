@@ -10,6 +10,7 @@ import ToolSelector from "./pages/ToolSelector";
 import Index from "./pages/Index";
 import MeuNegocioPage from "./pages/MeuNegocio";
 import RendaExtraPage from "./pages/RendaExtra";
+import RendaExtraAasPage from "./pages/RendaExtraAas";
 import ZapMRO from "./pages/ZapMRO";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
@@ -251,7 +252,7 @@ const App = () => (
           <Route path="/testegratis/admin" element={<TesteGratisAdmin />} />
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           <Route path="/rendaextra" element={<RendaExtra2 />} />
-          <Route path="/rendaextraaas" element={<RendaExtraPage />} />
+          <Route path="/rendaextraaas" element={<RendaExtraAasPage />} />
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
