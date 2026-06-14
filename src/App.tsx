@@ -10,6 +10,7 @@ import ToolSelector from "./pages/ToolSelector";
 import Index from "./pages/Index";
 import MeuNegocioPage from "./pages/MeuNegocio";
 import RendaExtraPage from "./pages/RendaExtra";
+import RendaExtraAasPage from "./pages/RendaExtraAas";
 import ZapMRO from "./pages/ZapMRO";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
