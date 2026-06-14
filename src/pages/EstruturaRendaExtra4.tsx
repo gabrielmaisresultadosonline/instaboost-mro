@@ -950,8 +950,9 @@ const EstruturaRendaExtra = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return <LoginWithDiscountCTA onLoginSuccess={handleLoginSuccess} />;
   }
+
 
   if (currentView === 'testes') {
     return <EstruturaTrialDashboard onBack={() => setCurrentView('menu')} mroUsername={mroUsername} mroPassword={mroPassword} />;
