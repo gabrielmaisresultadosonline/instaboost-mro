@@ -40,6 +40,19 @@ export const LoginWithDiscountCTA = ({ onLoginSuccess }: Props) => {
       if (error || !data?.success) throw new Error(data?.error || "erro");
       setSuccess(true);
       toast.success("Pronto! Confira seu email — desconto liberado.");
+      try {
+        await trackFacebookEvent("Lead", {
+          content_name: "Desconto Estrutura Renda Extra 4",
+          content_category: "discount_lead",
+          value: 97,
+          currency: "BRL",
+          email: email.trim().toLowerCase(),
+          phone: whatsapp.replace(/\D/g, ""),
+        });
+      } catch (e) {
+        console.error("[FB-LEAD]", e);
+      }
+
     } catch (err) {
       console.error(err);
       toast.error("Não foi possível liberar agora. Tente novamente.");
