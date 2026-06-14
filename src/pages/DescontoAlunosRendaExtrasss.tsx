@@ -76,6 +76,113 @@ const DescontoAlunosRendaExtra = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ===== Gate: acesso liberado apenas via email cadastrado ou token do email =====
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [gateChecking, setGateChecking] = useState(true);
+  const [gateEmail, setGateEmail] = useState("");
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateExpired, setGateExpired] = useState(false);
+  const [gateNotFound, setGateNotFound] = useState(false);
+  const [waNumber, setWaNumber] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.rpc("get_whatsapp_public_config");
+        const cfg = data as { whatsapp_number?: string } | null;
+        if (cfg?.whatsapp_number) setWaNumber(cfg.whatsapp_number);
+      } catch {}
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await supabase.functions.invoke("estrutura4-discount", {
+          body: { action: "track_visit", page: "/descontoalunosrendaextrasss" },
+        });
+      } catch {}
+
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get("token");
+      const savedEmail = localStorage.getItem("est4_discount_email");
+
+      if (token) {
+        try {
+          const { data } = await supabase.functions.invoke("estrutura4-discount", {
+            body: { action: "verify_token", token },
+          });
+          if (data?.valid) {
+            localStorage.setItem("est4_discount_email", data.email);
+            setAccessGranted(true);
+            setGateChecking(false);
+            return;
+          }
+          if (data?.expired) setGateExpired(true);
+        } catch {}
+      }
+
+      if (savedEmail && !gateExpired) {
+        try {
+          const { data } = await supabase.functions.invoke("estrutura4-discount", {
+            body: { action: "verify_email", email: savedEmail },
+          });
+          if (data?.valid) {
+            setAccessGranted(true);
+            setGateChecking(false);
+            return;
+          }
+          if (data?.expired) {
+            setGateExpired(true);
+            localStorage.removeItem("est4_discount_email");
+          }
+        } catch {}
+      }
+
+      setGateChecking(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = gateEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      toast.error("Informe um email válido");
+      return;
+    }
+    setGateLoading(true);
+    setGateNotFound(false);
+    setGateExpired(false);
+    try {
+      const { data } = await supabase.functions.invoke("estrutura4-discount", {
+        body: { action: "verify_email", email },
+      });
+      if (data?.valid) {
+        localStorage.setItem("est4_discount_email", email);
+        setAccessGranted(true);
+      } else if (data?.expired) {
+        setGateExpired(true);
+      } else {
+        setGateNotFound(true);
+      }
+    } catch {
+      toast.error("Erro ao validar. Tente novamente.");
+    } finally {
+      setGateLoading(false);
+    }
+  };
+
+  const openWhatsAppExpired = () => {
+    const msg = encodeURIComponent("Acabei perdendo o desconto anterior, gostaria de aproveitar sobre o desconto renda extra HOJE.");
+    const num = (waNumber || "").replace(/\D/g, "");
+    if (!num) {
+      toast.error("WhatsApp indisponível no momento.");
+      return;
+    }
+    window.open(`https://wa.me/${num}?text=${msg}`, "_blank");
+  };
+
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
@@ -250,8 +357,85 @@ const DescontoAlunosRendaExtra = () => {
     "Suporte prioritário"
   ];
 
+  if (gateChecking) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-yellow-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!accessGranted) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md bg-gradient-to-br from-zinc-900 to-zinc-950 border border-yellow-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl">
+          {gateExpired ? (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mb-3">
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-2">Desconto Encerrado</h1>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Infelizmente seu desconto encerrou. Se tens interesse mesmo nesse método com a ferramenta MRO
+                  de faturamento de mais de <strong className="text-yellow-400">R$ 5 mil mensal</strong>, entre em contato no nosso WhatsApp —
+                  quem sabe podemos liberar algo pra você caso tenha interesse de adquirir hoje ainda.
+                </p>
+              </div>
+              <Button
+                onClick={openWhatsAppExpired}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-6 text-base rounded-xl"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" /> FALAR NO WHATSAPP
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/20 mb-3">
+                  <Gift className="w-8 h-8 text-yellow-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-2">Liberar Desconto</h1>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Você recebeu nosso email sobre o Renda Extra — parabéns pelo interesse!
+                  Utilize o mesmo email do cadastro abaixo para acessar o desconto.
+                </p>
+                <p className="text-yellow-400 text-xs mt-2 font-semibold">
+                  ⏰ Lembre-se: esse desconto não vai durar por muito tempo.
+                </p>
+              </div>
+              <form onSubmit={handleGateSubmit} className="space-y-3">
+                <Input
+                  type="email"
+                  value={gateEmail}
+                  onChange={(e) => setGateEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="bg-zinc-800 border-zinc-700 text-white h-12 text-base"
+                  required
+                />
+                {gateNotFound && (
+                  <p className="text-red-400 text-xs">
+                    Email não encontrado. Faça seu cadastro primeiro na página de acesso.
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={gateLoading}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:opacity-90 text-black font-bold py-6 text-base rounded-xl"
+                >
+                  {gateLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (<><Sparkles className="w-5 h-5 mr-2" /> ACESSAR DESCONTO</>)}
+                </Button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+
       <style>{`
         .btn-pulse-color {
           background: linear-gradient(to right, #facc15, #eab308) !important;

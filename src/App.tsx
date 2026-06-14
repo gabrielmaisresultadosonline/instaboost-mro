@@ -114,6 +114,7 @@ import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
 import Relatorios from "./pages/Relatorios";
 import EstruturaRendaExtra from "./pages/EstruturaRendaExtra";
 import EstruturaRendaExtra4 from "./pages/EstruturaRendaExtra4";
+import EstruturaRendaExtra4Admin from "./pages/EstruturaRendaExtra4Admin";
 import WhatsAppDireto from "./pages/WhatsAppDireto";
 import ApiWhatsAppAccess from "./pages/ApiWhatsAppAccess";
 import RendaExtraAula from "./pages/RendaExtraAula";
@@ -302,6 +303,7 @@ const App = () => (
           <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />
           <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
           <Route path="/estruturarendaextra4" element={<EstruturaRendaExtra4 />} />
+          <Route path="/estruturarendaextra4/admin" element={<EstruturaRendaExtra4Admin />} />
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
           <Route path="/apiwhatsappacess" element={<ApiWhatsAppAccess />} />
           

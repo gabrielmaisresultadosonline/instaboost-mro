@@ -281,3 +281,6 @@ verify_jwt = false
 
 [functions.empresas-register]
 verify_jwt = false
+
+[functions.estrutura4-discount]
+verify_jwt = false
