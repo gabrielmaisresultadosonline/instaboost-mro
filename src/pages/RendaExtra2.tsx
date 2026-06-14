@@ -375,29 +375,27 @@ const RendaExtra2 = () => {
             </>
           ) : (
             <div className="space-y-6 animate-fade-in">
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center">
-                <div className="text-yellow-400 text-5xl mb-4">⚠️</div>
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                <div className="text-red-400 text-5xl mb-4">🚫</div>
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
-                  Atenção!
+                  Você não pode utilizar agora
                 </h3>
                 <p className="text-gray-300 text-base md:text-lg leading-relaxed">
-                  Você <span className="text-yellow-400 font-bold">vai precisar</span> de um <span className="text-white font-semibold">Notebook</span>, <span className="text-white font-semibold">Computador</span> ou <span className="text-white font-semibold">MacBook</span> para rodar o sistema e fazer o método!
+                  Para receber a aula e utilizar o sistema você <span className="text-red-400 font-bold">precisa ter pelo menos</span> um <span className="text-white font-semibold">Notebook</span>, <span className="text-white font-semibold">Computador de Mesa</span> ou <span className="text-white font-semibold">MacBook</span>.
                 </p>
                 <p className="text-gray-400 text-sm mt-4">
-                  Sem um computador, você <span className="text-red-400 font-semibold">não vai conseguir rodar</span> o sistema.
+                  Quando você tiver algum deles, <span className="text-white font-semibold">volte aqui novamente</span> para concluir seu cadastro e receber o acesso à aula.
                 </p>
               </div>
               <Button
                 type="button"
-                onClick={handleProceedWithoutComputer}
-                disabled={!canProceedAfterWarning}
-                className={`w-full font-semibold text-lg py-6 rounded-xl transition-all ${
-                  canProceedAfterWarning 
-                    ? "bg-red-500 hover:bg-red-600 text-white" 
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                }`}
+                onClick={() => {
+                  setFormData({ ...formData, tipoComputador: "" });
+                  setShowNoComputerWarning(false);
+                }}
+                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold text-lg py-6 rounded-xl"
               >
-                {canProceedAfterWarning ? "Avançar mesmo assim" : "Aguarde 5 segundos para continuar..."}
+                Voltar e escolher outra opção
               </Button>
             </div>
           )}
