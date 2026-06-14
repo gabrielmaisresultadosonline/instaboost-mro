@@ -357,8 +357,85 @@ const DescontoAlunosRendaExtra = () => {
     "Suporte prioritário"
   ];
 
+  if (gateChecking) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-yellow-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!accessGranted) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md bg-gradient-to-br from-zinc-900 to-zinc-950 border border-yellow-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl">
+          {gateExpired ? (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mb-3">
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-2">Desconto Encerrado</h1>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Infelizmente seu desconto encerrou. Se tens interesse mesmo nesse método com a ferramenta MRO
+                  de faturamento de mais de <strong className="text-yellow-400">R$ 5 mil mensal</strong>, entre em contato no nosso WhatsApp —
+                  quem sabe podemos liberar algo pra você caso tenha interesse de adquirir hoje ainda.
+                </p>
+              </div>
+              <Button
+                onClick={openWhatsAppExpired}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-6 text-base rounded-xl"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" /> FALAR NO WHATSAPP
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/20 mb-3">
+                  <Gift className="w-8 h-8 text-yellow-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-2">Liberar Desconto</h1>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Você recebeu nosso email sobre o Renda Extra — parabéns pelo interesse!
+                  Utilize o mesmo email do cadastro abaixo para acessar o desconto.
+                </p>
+                <p className="text-yellow-400 text-xs mt-2 font-semibold">
+                  ⏰ Lembre-se: esse desconto não vai durar por muito tempo.
+                </p>
+              </div>
+              <form onSubmit={handleGateSubmit} className="space-y-3">
+                <Input
+                  type="email"
+                  value={gateEmail}
+                  onChange={(e) => setGateEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="bg-zinc-800 border-zinc-700 text-white h-12 text-base"
+                  required
+                />
+                {gateNotFound && (
+                  <p className="text-red-400 text-xs">
+                    Email não encontrado. Faça seu cadastro primeiro na página de acesso.
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={gateLoading}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:opacity-90 text-black font-bold py-6 text-base rounded-xl"
+                >
+                  {gateLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (<><Sparkles className="w-5 h-5 mr-2" /> ACESSAR DESCONTO</>)}
+                </Button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+
       <style>{`
         .btn-pulse-color {
           background: linear-gradient(to right, #facc15, #eab308) !important;
