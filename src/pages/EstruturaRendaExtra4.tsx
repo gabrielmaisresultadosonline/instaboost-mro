@@ -1087,7 +1087,7 @@ const EstruturaRendaExtra = () => {
         </div>
 
         {/* Logged-in user indicator */}
-        <div className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/10">
+        <div className="fixed top-3 right-4 z-[100] flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 border border-white/20 shadow-lg">
           <User size={14} className="text-yellow-400" />
           <span className="text-yellow-400 font-bold text-xs">{mroUsername}</span>
           <button
