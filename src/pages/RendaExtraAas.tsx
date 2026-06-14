@@ -39,7 +39,7 @@ const RendaExtraPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pt-4">
             {/* Prestar serviço com a MRO */}
             <button
-              onClick={() => setMode('prestar')}
+              onClick={() => navigate('/renda-extra2')}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="w-20 h-20 rounded-[1.75rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-all duration-500">
