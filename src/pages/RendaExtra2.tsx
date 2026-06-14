@@ -162,9 +162,13 @@ const RendaExtra2 = () => {
         user_agent: navigator.userAgent,
       });
 
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Lead");
-      }
+      // Fire Lead on both Pixel and Meta Conversions API (with dedup)
+      await trackFacebookEvent("Lead", {
+        content_name: "Renda Extra - Aula Grátis",
+        content_category: "lead_form",
+        email: formData.email,
+        phone: formData.whatsapp,
+      });
 
     } catch (error: any) {
       console.error("Error submitting form:", error);
