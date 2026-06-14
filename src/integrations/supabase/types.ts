@@ -1646,6 +1646,78 @@ export type Database = {
         }
         Relationships: []
       }
+      estrutura4_discount_leads: {
+        Row: {
+          accessed_discount_at: string | null
+          created_at: string
+          email: string
+          emails_sent_count: number
+          expires_at: string
+          id: string
+          last_email_sent_at: string | null
+          nome: string
+          source: string | null
+          token: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          accessed_discount_at?: string | null
+          created_at?: string
+          email: string
+          emails_sent_count?: number
+          expires_at: string
+          id?: string
+          last_email_sent_at?: string | null
+          nome: string
+          source?: string | null
+          token: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          accessed_discount_at?: string | null
+          created_at?: string
+          email?: string
+          emails_sent_count?: number
+          expires_at?: string
+          id?: string
+          last_email_sent_at?: string | null
+          nome?: string
+          source?: string | null
+          token?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      estrutura4_discount_visits: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          ip: string | null
+          page: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip?: string | null
+          page: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip?: string | null
+          page?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
