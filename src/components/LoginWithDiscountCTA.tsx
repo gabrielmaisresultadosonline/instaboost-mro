@@ -131,17 +131,14 @@ export const LoginWithDiscountCTA = ({ onLoginSuccess }: Props) => {
                   </p>
                 </div>
                 <p className="text-[13px] sm:text-sm text-zinc-100 leading-relaxed font-medium">
-                  Preste serviço como agência de marketing e fature{" "}
-                  <span className="text-yellow-300 font-extrabold">R$ 5 MIL+/mês</span>.
+                  Preste serviço como agência de marketing.
+                  <br />
+                  Fature <span className="text-yellow-300 font-extrabold">R$ 5 MIL+/mês</span>.
+                  <br />
                   Aprenda a fechar contratos, usar a ferramenta e aplicar{" "}
                   <span className="text-orange-300 font-bold">HOJE</span> mesmo.
                 </p>
-                <div className="mt-3 flex items-center gap-2 rounded-lg bg-orange-500/15 border border-orange-500/30 px-3 py-2">
-                  <Clock className="w-4 h-4 text-orange-300 shrink-0" />
-                  <p className="text-xs sm:text-sm font-bold text-orange-200">
-                    Desconto liberado apenas HOJE.
-                  </p>
-                </div>
+
               </div>
 
               <div className="space-y-2.5">
