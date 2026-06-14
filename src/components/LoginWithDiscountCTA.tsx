@@ -60,7 +60,7 @@ export const LoginWithDiscountCTA = ({ onLoginSuccess }: Props) => {
     <div className="relative">
       <LoginPage onLoginSuccess={onLoginSuccess} />
 
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-1.5rem)] max-w-md px-3">
+      <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-1.5rem)] max-w-md px-3 transition-opacity ${open ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <button
           onClick={() => setOpen(true)}
           className="w-full group relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 px-5 py-4 text-black shadow-2xl ring-1 ring-yellow-300/50 hover:scale-[1.02] transition-transform animate-pulse"
