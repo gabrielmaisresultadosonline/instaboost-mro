@@ -62,6 +62,7 @@ export default function EstruturaRendaExtra4Admin() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [videoAccess, setVideoAccess] = useState<any[]>([]);
 
   // Manual lead creation
   const [manualNome, setManualNome] = useState("");
@@ -195,12 +196,22 @@ export default function EstruturaRendaExtra4Admin() {
     }
   };
 
+  const loadVideoAccess = async (c: { email: string; password: string }) => {
+    try {
+      const { data } = await supabase.functions.invoke("estrutura4-discount", {
+        body: { action: "admin_video_access_list", email: c.email, password: c.password },
+      });
+      if (data?.success) setVideoAccess(data.rows || []);
+    } catch {}
+  };
+
   useEffect(() => {
     if (creds) {
       fetchData(creds);
       loadVideoCfg();
       loadServerVideos();
       loadRemarketing(creds);
+      loadVideoAccess(creds);
       const savedJobId = localStorage.getItem(TRANSCODING_STORAGE_KEY);
       if (savedJobId) pollTranscodingStatus(savedJobId);
     }
@@ -498,6 +509,7 @@ export default function EstruturaRendaExtra4Admin() {
             <TabsTrigger value="purchases" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-lime-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white"><ShoppingBag className="w-4 h-4 mr-1" />Compras ({totalPurchases})</TabsTrigger>
             <TabsTrigger value="visits" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white"><Activity className="w-4 h-4 mr-1" />Eventos ({visits.length})</TabsTrigger>
             <TabsTrigger value="remarketing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"><Megaphone className="w-4 h-4 mr-1" />Remarketing</TabsTrigger>
+            <TabsTrigger value="video-access" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"><Eye className="w-4 h-4 mr-1" />Acessos Desconto ({videoAccess.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4">
@@ -954,6 +966,75 @@ export default function EstruturaRendaExtra4Admin() {
                 </div>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="video-access" className="space-y-4">
+            <Card className="bg-zinc-950/60 border-zinc-800 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-white text-lg font-semibold flex items-center gap-2"><Eye className="w-5 h-5 text-indigo-400" /> Acessos em /rendaextradesconto</h3>
+                  <p className="text-zinc-400 text-sm">Quem acessou a página, até onde assistiu o vídeo e quais emails de followup já foram disparados.</p>
+                </div>
+                <Button variant="outline" size="sm" className="border-zinc-700" onClick={() => creds && loadVideoAccess(creds)}>Atualizar</Button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                {[
+                  { label: "Acessaram", value: videoAccess.length, color: "text-indigo-400" },
+                  { label: "Assistiram 25%", value: videoAccess.filter(v => (v.milestones_sent || {})["25"]).length, color: "text-sky-400" },
+                  { label: "Assistiram 50%", value: videoAccess.filter(v => (v.milestones_sent || {})["50"]).length, color: "text-amber-400" },
+                  { label: "Assistiram 100%", value: videoAccess.filter(v => (v.milestones_sent || {})["100"]).length, color: "text-emerald-400" },
+                  { label: "Abandonaram", value: videoAccess.filter(v => v.abandoned_email_sent_at).length, color: "text-rose-400" },
+                ].map((s) => (
+                  <div key={s.label} className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400">{s.label}</div>
+                    <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-zinc-400 text-left border-b border-zinc-800">
+                      <th className="py-2 px-2">Email</th>
+                      <th className="py-2 px-2">Nome</th>
+                      <th className="py-2 px-2">Acesso</th>
+                      <th className="py-2 px-2">Últ. progresso</th>
+                      <th className="py-2 px-2">Marco</th>
+                      <th className="py-2 px-2">Emails enviados</th>
+                      <th className="py-2 px-2">Abandono?</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {videoAccess.map((row) => {
+                      const ms = row.milestones_sent || {};
+                      const sentLabels = ["access", "25", "50", "75", "100", "abandon"].filter((k) => ms[k]);
+                      return (
+                        <tr key={row.id} className="border-b border-zinc-800/60 hover:bg-zinc-900/40">
+                          <td className="py-2 px-2 text-white">{row.email}</td>
+                          <td className="py-2 px-2 text-zinc-300">{row.nome || "-"}</td>
+                          <td className="py-2 px-2 text-zinc-400">{new Date(row.accessed_at).toLocaleString("pt-BR")}</td>
+                          <td className="py-2 px-2 text-zinc-400">{new Date(row.last_progress_at).toLocaleString("pt-BR")}</td>
+                          <td className="py-2 px-2">
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              row.last_milestone === "100" ? "bg-emerald-500/20 text-emerald-300" :
+                              row.last_milestone === "75" ? "bg-amber-500/20 text-amber-300" :
+                              row.last_milestone === "50" ? "bg-orange-500/20 text-orange-300" :
+                              row.last_milestone === "25" ? "bg-sky-500/20 text-sky-300" :
+                              "bg-zinc-700/40 text-zinc-300"
+                            }`}>{row.last_milestone === "access" ? "acessou" : `${row.last_milestone}%`}</span>
+                          </td>
+                          <td className="py-2 px-2 text-zinc-300">{sentLabels.join(", ") || "-"}</td>
+                          <td className="py-2 px-2">{row.abandoned_email_sent_at ? <span className="text-rose-400">sim</span> : <span className="text-zinc-500">não</span>}</td>
+                        </tr>
+                      );
+                    })}
+                    {videoAccess.length === 0 && (
+                      <tr><td colSpan={7} className="text-center text-zinc-500 py-8">Nenhum acesso registrado ainda.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

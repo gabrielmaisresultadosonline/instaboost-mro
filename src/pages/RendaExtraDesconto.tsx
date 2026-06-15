@@ -53,6 +53,7 @@ import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
+import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
 const RendaExtraDesconto = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -84,6 +85,9 @@ const RendaExtraDesconto = () => {
   const [gateExpired, setGateExpired] = useState(false);
   const [gateNotFound, setGateNotFound] = useState(false);
   const [waNumber, setWaNumber] = useState("");
+  const [grantedEmail, setGrantedEmail] = useState("");
+  const [grantedNome, setGrantedNome] = useState("");
+
 
   useEffect(() => {
     (async () => {
@@ -114,6 +118,8 @@ const RendaExtraDesconto = () => {
           });
           if (data?.valid) {
             localStorage.setItem("est4_discount_email", data.email);
+            setGrantedEmail(data.email);
+            setGrantedNome(data.nome || "");
             setAccessGranted(true);
             setGateChecking(false);
             return;
@@ -128,6 +134,8 @@ const RendaExtraDesconto = () => {
             body: { action: "verify_email", email: savedEmail },
           });
           if (data?.valid) {
+            setGrantedEmail(savedEmail);
+            setGrantedNome(data.nome || "");
             setAccessGranted(true);
             setGateChecking(false);
             return;
@@ -160,6 +168,8 @@ const RendaExtraDesconto = () => {
       });
       if (data?.valid) {
         localStorage.setItem("est4_discount_email", email);
+        setGrantedEmail(email);
+        setGrantedNome(data.nome || "");
         setAccessGranted(true);
       } else if (data?.expired) {
         setGateExpired(true);
@@ -543,17 +553,7 @@ const RendaExtraDesconto = () => {
                 Assista a <span className="text-green-400">AULA GRÁTIS</span> para entender tudo
               </h2>
             </div>
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
-              <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/-0CHlqHVe0g?rel=0&modestbranding=1" 
-                  title="Aula Grátis"
-                  className="w-full h-full" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen 
-                />
-              </div>
-            </div>
+            <DiscountVideoPlayer email={grantedEmail} nome={grantedNome} />
           </div>
 
           {/* CTA Button with arrows */}
