@@ -748,7 +748,11 @@ serve(async (req) => {
           last_milestone: milestone, milestones_sent: milestonesSent,
           abandoned_email_sent_at: shouldSendNow ? now : null,
         });
-        if (shouldSendNow) await sendVideoMilestoneEmail("100", email, useNome);
+        if (shouldSendNow) {
+          await sendVideoMilestoneEmail("100", email, useNome);
+          await startLeadFollowups(email);
+        }
+
       } else {
         const sent = (existing.milestones_sent as any) || {};
         const newSent = { ...sent, [milestone]: sent[milestone] || now };
