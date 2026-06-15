@@ -196,6 +196,15 @@ export default function EstruturaRendaExtra4Admin() {
     }
   };
 
+  const loadVideoAccess = async (c: { email: string; password: string }) => {
+    try {
+      const { data } = await supabase.functions.invoke("estrutura4-discount", {
+        body: { action: "admin_video_access_list", email: c.email, password: c.password },
+      });
+      if (data?.success) setVideoAccess(data.rows || []);
+    } catch {}
+  };
+
   useEffect(() => {
     if (creds) {
       fetchData(creds);
