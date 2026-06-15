@@ -263,6 +263,45 @@ export default function EstruturaRendaExtra4Admin() {
           <Stat icon={TrendingUp} label="Conversão lead → compra" value={`${leadsConverted} (${convRate}%)`} color="text-cyan-400" />
         </div>
 
+        {/* Vídeo do /renda-extra2 */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-2"><Video className="w-3 h-3" /> Vídeo exibido em /renda-extra2 (Prestar Serviço)</h2>
+        <Card className="p-4 bg-zinc-900 border-zinc-800 mb-6 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Input placeholder="Título (opcional)" value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white md:col-span-2" />
+            <Input placeholder="video_url (ex: /videos/arquivo.mp4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
+            <Input placeholder="hls_url (ex: /videos/hls/arquivo/master.m3u8)" value={hlsUrl} onChange={(e) => setHlsUrl(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
+            <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} variant="outline">
+              <Upload className="w-4 h-4 mr-2" /> {uploading ? `Enviando ${uploadProgress}%` : "Enviar vídeo p/ servidor"}
+            </Button>
+            <Button onClick={loadServerVideos} variant="outline" disabled={loadingVideos}>
+              {loadingVideos ? <Loader2 className="w-4 h-4 animate-spin" /> : "Recarregar lista"}
+            </Button>
+            <Button onClick={saveVideo} className="bg-emerald-600 hover:bg-emerald-700 ml-auto">
+              <Save className="w-4 h-4 mr-2" /> Salvar (publicar em /renda-extra2)
+            </Button>
+          </div>
+
+          {uploading && <Progress value={uploadProgress} />}
+
+          {serverVideos.length > 0 && (
+            <div className="border border-zinc-800 rounded-lg max-h-56 overflow-y-auto">
+              {serverVideos.map((v) => (
+                <div key={v.name} className="flex items-center gap-2 p-2 border-b border-zinc-800 last:border-0 text-sm">
+                  <Video className="w-4 h-4 text-zinc-500 shrink-0" />
+                  <span className="flex-1 truncate text-zinc-300">{v.name}</span>
+                  <Button size="sm" variant="outline" onClick={() => selectExistingVideo(v)}>Usar</Button>
+                  <Button size="sm" variant="ghost" onClick={() => deleteServerVideo(v.name)}><Trash2 className="w-3 h-3 text-red-400" /></Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+
         <Tabs defaultValue="leads">
           <TabsList className="bg-zinc-900">
             <TabsTrigger value="leads">Leads ({leads.length})</TabsTrigger>
