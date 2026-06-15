@@ -310,10 +310,30 @@ export default function EstruturaRendaExtra4Admin() {
   const clicksLicenciado = countPage("click:renda-extra2:licenciado");
   const clicksAcessar = countPage("click:renda-extra2:acessar-renda-extra-agora");
 
+  // Video engagement (events fired by RendaExtra2Page video player)
+  const videoStart = countPage("video:renda-extra2:start");
+  const video25 = countPage("video:renda-extra2:25");
+  const video50 = countPage("video:renda-extra2:50");
+  const video75 = countPage("video:renda-extra2:75");
+  const video100 = countPage("video:renda-extra2:100");
+  const videoStartUnique = uniqueIps("video:renda-extra2:start");
+  const video50Unique = uniqueIps("video:renda-extra2:50");
+  const video100Unique = uniqueIps("video:renda-extra2:100");
+
+  // Device split — based on /renda-extra2 visits user_agent
+  const isMobileUA = (ua: string | null) => !!ua && /Mobi|Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(ua);
+  const pageVisits = visits.filter((v) => v.page === "/renda-extra2");
+  const mobileVisits = pageVisits.filter((v) => isMobileUA(v.user_agent)).length;
+  const desktopVisits = pageVisits.length - mobileVisits;
+  const videoStartVisits = visits.filter((v) => v.page === "video:renda-extra2:start");
+  const mobileWatched = videoStartVisits.filter((v) => isMobileUA(v.user_agent)).length;
+  const desktopWatched = videoStartVisits.length - mobileWatched;
+
   // Funnel: prestar → acessar (by unique IP)
   const prestarIps = new Set(visits.filter((v) => v.page === "click:renda-extra2:prestar").map((v) => v.ip).filter(Boolean));
   const acessarIps = new Set(visits.filter((v) => v.page === "click:renda-extra2:acessar-renda-extra-agora").map((v) => v.ip).filter(Boolean));
   const prestarAndAcessar = [...prestarIps].filter((ip) => acessarIps.has(ip)).length;
+
 
   const totalPurchases = purchases.length;
   const purchaseEmails = new Set(purchases.map((p) => p.email.toLowerCase()));
@@ -352,6 +372,24 @@ export default function EstruturaRendaExtra4Admin() {
           <Stat icon={Rocket} label="Acessar Renda Extra Agora" value={clicksAcessar} color="text-emerald-300" />
           <Stat icon={TrendingUp} label="Prestar → Acessar (IPs únicos)" value={prestarAndAcessar} color="text-cyan-400" />
         </div>
+
+        {/* Engajamento do vídeo */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-2"><Video className="w-3 h-3" /> Engajamento do vídeo (/renda-extra2)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+          <Stat icon={Eye} label="Acessaram a página" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} />
+          <Stat icon={Rocket} label="Assistiram (deram play)" value={`${videoStart} (${videoStartUnique} únicos)`} color="text-emerald-300" />
+          <Stat icon={TrendingUp} label="Chegaram a 25%" value={video25} color="text-cyan-300" />
+          <Stat icon={TrendingUp} label="Chegaram a 50%" value={`${video50} (${video50Unique} únicos)`} color="text-amber-300" />
+          <Stat icon={CheckCircle2} label="Assistiram 100%" value={`${video100} (${video100Unique} únicos)`} color="text-emerald-400" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Stat icon={Eye} label="📱 Acessos por celular" value={mobileVisits} color="text-cyan-400" />
+          <Stat icon={Eye} label="🖥️ Acessos por computador" value={desktopVisits} color="text-violet-400" />
+          <Stat icon={Rocket} label="📱 Assistiram por celular" value={mobileWatched} color="text-cyan-300" />
+          <Stat icon={Rocket} label="🖥️ Assistiram por computador" value={desktopWatched} color="text-violet-300" />
+        </div>
+
+
 
         {/* Desconto / Funil de venda */}
         <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Funil de desconto e vendas</h2>
