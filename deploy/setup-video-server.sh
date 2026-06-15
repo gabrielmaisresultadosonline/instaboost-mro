@@ -16,7 +16,7 @@ echo "--- Iniciando configuração do Servidor de Vídeo para $DOMAIN ---"
 
 # 1. Atualizar pacotes
 sudo apt-get update
-sudo apt-get install -y ffmpeg curl nodejs npm nginx certbot python3-certbot-nginx
+sudo apt-get install -y ffmpeg curl nodejs nginx certbot python3-certbot-nginx
 
 # 2. Criar diretórios
 sudo mkdir -p /var/www/video-server/videos/hls
