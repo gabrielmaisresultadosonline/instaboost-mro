@@ -408,7 +408,21 @@ export default function EstruturaRendaExtra4Admin() {
                 <span className="font-mono text-amber-300">{transcoding.progress}%</span>
               </div>
               <Progress value={transcoding.progress} />
-              <div className="text-[10px] text-zinc-500">Job: {transcoding.jobId} — pode levar alguns minutos dependendo do tamanho do vídeo.</div>
+              <div className="flex justify-between items-center text-[10px] text-zinc-500">
+                <span>Job: {transcoding.jobId} — pode levar alguns minutos.</span>
+                <button type="button" onClick={() => { setShowLogs((s) => !s); fetchLogs(transcoding.jobId); }} className="underline hover:text-amber-300">
+                  {showLogs ? "Ocultar logs" : "Ver logs do servidor"}
+                </button>
+              </div>
+              {showLogs && (
+                <div className="mt-2 max-h-48 overflow-y-auto rounded bg-black/60 border border-zinc-700 p-2 font-mono text-[10px] text-zinc-300 whitespace-pre-wrap">
+                  {transcodeLogs.length === 0 ? (
+                    <div className="text-zinc-500">Nenhum log ainda. Aguardando ffmpeg iniciar…</div>
+                  ) : (
+                    transcodeLogs.map((l, i) => <div key={i}>{l}</div>)
+                  )}
+                </div>
+              )}
             </div>
           )}
 
