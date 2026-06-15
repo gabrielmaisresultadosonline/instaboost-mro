@@ -503,7 +503,7 @@ const RendaExtraDesconto = () => {
         {showRegisterConfirm && (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowRegisterConfirm(false)}>
             <div className="bg-zinc-900 border border-yellow-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-white font-bold text-lg text-center mb-2">Você já tem cadastro?</h3>
+              <h3 className="text-white font-bold text-lg text-center mb-2">Atenção</h3>
               <p className="text-zinc-400 text-sm text-center mb-5 leading-relaxed">
                 Se já tens cadastro, pode acessar com seu email no campo acima. Caso contrário, faça o cadastro agora e receba a aula grátis + desconto.
               </p>
