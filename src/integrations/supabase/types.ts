@@ -1979,6 +1979,129 @@ export type Database = {
         }
         Relationships: []
       }
+      instagrammnew_leads: {
+        Row: {
+          accessed_page_at: string | null
+          auto_remarketing_enabled: boolean
+          created_at: string
+          email: string
+          emails_sent_count: number
+          expires_at: string
+          id: string
+          last_email_sent_at: string | null
+          next_send_at: string | null
+          nome: string
+          remarketing_stage: number
+          source: string | null
+          token: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          accessed_page_at?: string | null
+          auto_remarketing_enabled?: boolean
+          created_at?: string
+          email: string
+          emails_sent_count?: number
+          expires_at: string
+          id?: string
+          last_email_sent_at?: string | null
+          next_send_at?: string | null
+          nome: string
+          remarketing_stage?: number
+          source?: string | null
+          token: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          accessed_page_at?: string | null
+          auto_remarketing_enabled?: boolean
+          created_at?: string
+          email?: string
+          emails_sent_count?: number
+          expires_at?: string
+          id?: string
+          last_email_sent_at?: string | null
+          next_send_at?: string | null
+          nome?: string
+          remarketing_stage?: number
+          source?: string | null
+          token?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      instagrammnew_settings: {
+        Row: {
+          created_at: string
+          hls_url: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+          video_title: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          hls_url?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          video_title?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          hls_url?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          video_title?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      instagrammnew_video_log: {
+        Row: {
+          abandoned_email_sent_at: string | null
+          accessed_at: string
+          created_at: string
+          email: string
+          id: string
+          last_milestone: string | null
+          last_progress_at: string
+          milestones_sent: Json
+          nome: string | null
+          updated_at: string
+        }
+        Insert: {
+          abandoned_email_sent_at?: string | null
+          accessed_at?: string
+          created_at?: string
+          email: string
+          id?: string
+          last_milestone?: string | null
+          last_progress_at?: string
+          milestones_sent?: Json
+          nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          abandoned_email_sent_at?: string | null
+          accessed_at?: string
+          created_at?: string
+          email?: string
+          id?: string
+          last_milestone?: string | null
+          last_progress_at?: string
+          milestones_sent?: Json
+          nome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inteligencia_fotos_admins: {
         Row: {
           created_at: string
