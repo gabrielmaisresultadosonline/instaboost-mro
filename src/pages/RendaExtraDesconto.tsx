@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
 const RendaExtraDesconto = () => {
+  const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -405,13 +407,13 @@ const RendaExtraDesconto = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/20 mb-3">
                   <Gift className="w-8 h-8 text-yellow-400" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-2">Liberar Desconto</h1>
+                <h1 className="text-2xl font-bold text-white mb-2">Liberar Aula Grátis e Desconto!</h1>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Você recebeu nosso email sobre o Renda Extra — parabéns pelo interesse!
-                  Utilize o mesmo email do cadastro abaixo para acessar o desconto.
+                  Acesse a aula grátis sobre a Renda Extra com seu email do cadastro utilizado anteriormente.
+                  Acesse com seu email abaixo:
                 </p>
                 <p className="text-yellow-400 text-xs mt-2 font-semibold">
-                  ⏰ Lembre-se: esse desconto não vai durar por muito tempo.
+                  ⏰ Lembre-se: essa aula grátis e o desconto não vão durar por muito tempo.
                 </p>
               </div>
               <form onSubmit={handleGateSubmit} className="space-y-3">
@@ -425,7 +427,7 @@ const RendaExtraDesconto = () => {
                 />
                 {gateNotFound && (
                   <p className="text-red-400 text-xs">
-                    Email não encontrado. Faça seu cadastro primeiro na página de acesso.
+                    Email não encontrado. Faça seu cadastro novamente no botão abaixo.
                   </p>
                 )}
                 <Button
@@ -433,9 +435,26 @@ const RendaExtraDesconto = () => {
                   disabled={gateLoading}
                   className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:opacity-90 text-black font-bold py-6 text-base rounded-xl"
                 >
-                  {gateLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (<><Sparkles className="w-5 h-5 mr-2" /> ACESSAR DESCONTO</>)}
+                  {gateLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (<><Sparkles className="w-5 h-5 mr-2" /> ACESSAR AULA GRÁTIS</>)}
                 </Button>
               </form>
+
+              <div className="mt-4 pt-4 border-t border-zinc-800">
+                <p className="text-zinc-400 text-xs text-center mb-2">
+                  Não fez cadastro? Não se lembra do cadastro?
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => navigate('/instagram')}
+                  variant="outline"
+                  className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-800 font-bold py-5 text-sm rounded-xl"
+                >
+                  Faça o cadastro novamente
+                </Button>
+                <p className="text-zinc-500 text-[10px] text-center mt-2 leading-relaxed">
+                  O mesmo cadastro libera a aula grátis e o desconto.
+                </p>
+              </div>
             </>
           )}
         </div>
