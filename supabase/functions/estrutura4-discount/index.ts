@@ -707,30 +707,42 @@ serve(async (req) => {
       }
       const { data: existing } = await supabase
         .from("estrutura4_discount_video_log")
-        .select("id, milestones_sent, nome")
+        .select("id, milestones_sent, nome, last_milestone")
         .eq("email", email)
         .maybeSingle();
       const now = new Date().toISOString();
       const useNome = nome || existing?.nome || "";
+
+      // Only "100" sends email immediately (user finished). 25/50/75 are recorded
+      // but the email only fires from the abandon queue (after inactivity).
+      const shouldSendNow = milestone === "100";
+
       if (!existing) {
+        const milestonesSent: Record<string, string> = { [milestone]: now };
         await supabase.from("estrutura4_discount_video_log").insert({
           email, nome: useNome || null,
           accessed_at: now, last_progress_at: now,
-          last_milestone: milestone, milestones_sent: { [milestone]: now },
+          last_milestone: milestone, milestones_sent: milestonesSent,
+          abandoned_email_sent_at: shouldSendNow ? now : null,
         });
-        if (VIDEO_EMAIL_TEMPLATES[milestone]) await sendVideoMilestoneEmail(milestone, email, useNome);
+        if (shouldSendNow) await sendVideoMilestoneEmail("100", email, useNome);
       } else {
         const sent = (existing.milestones_sent as any) || {};
+        const newSent = { ...sent, [milestone]: sent[milestone] || now };
+        const alreadySent100 = !!sent["100"];
         await supabase.from("estrutura4_discount_video_log")
           .update({
             last_progress_at: now,
             last_milestone: milestone,
-            abandoned_email_sent_at: null,
-            milestones_sent: { ...sent, [milestone]: sent[milestone] || now },
+            milestones_sent: newSent,
+            // Reset abandon flag only when user is still progressing (not 100%)
+            ...(shouldSendNow
+              ? (alreadySent100 ? {} : { abandoned_email_sent_at: now })
+              : { abandoned_email_sent_at: null }),
           })
           .eq("id", existing.id);
-        if (!sent[milestone] && VIDEO_EMAIL_TEMPLATES[milestone]) {
-          await sendVideoMilestoneEmail(milestone, email, useNome);
+        if (shouldSendNow && !alreadySent100) {
+          await sendVideoMilestoneEmail("100", email, useNome);
         }
       }
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -741,25 +753,37 @@ serve(async (req) => {
       if (provided !== CRON_SECRET) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      // 15min of inactivity AND no inactivity email sent yet AND didn't complete.
       const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
       const { data: rows } = await supabase
         .from("estrutura4_discount_video_log")
-        .select("id, email, nome, milestones_sent")
+        .select("id, email, nome, milestones_sent, last_milestone")
         .lt("last_progress_at", cutoff)
         .is("abandoned_email_sent_at", null)
         .neq("last_milestone", "100")
         .limit(50);
       let sentCount = 0;
       for (const r of rows || []) {
-        const ok = await sendVideoMilestoneEmail("abandon", r.email, r.nome || "");
+        // Pick template based on the furthest milestone actually reached.
+        const sent = (r.milestones_sent as any) || {};
+        let kind = "abandon";
+        if (sent["75"] || r.last_milestone === "75") kind = "50";
+        else if (sent["50"] || r.last_milestone === "50") kind = "50";
+        else if (sent["25"] || r.last_milestone === "25") kind = "25";
+        // If they only accessed (no milestone) → "abandon"
+        const ok = await sendVideoMilestoneEmail(kind, r.email, r.nome || "");
         await supabase.from("estrutura4_discount_video_log")
-          .update({ abandoned_email_sent_at: new Date().toISOString(), milestones_sent: { ...(r.milestones_sent as any || {}), abandon: new Date().toISOString() } })
+          .update({
+            abandoned_email_sent_at: new Date().toISOString(),
+            milestones_sent: { ...sent, [`inactivity_${kind}`]: new Date().toISOString() },
+          })
           .eq("id", r.id);
         if (ok) sentCount++;
         await new Promise((res) => setTimeout(res, 1200));
       }
       return new Response(JSON.stringify({ ok: true, processed: rows?.length || 0, sent: sentCount }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
     if (action === "admin_video_access_list") {
       const email = String(body.email || "").trim().toLowerCase();
