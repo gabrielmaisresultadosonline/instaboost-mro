@@ -64,6 +64,23 @@ export default function EstruturaRendaExtra4Admin() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [videoAccess, setVideoAccess] = useState<any[]>([]);
 
+  // ===== /instagrammnew state =====
+  const [ignLeads, setIgnLeads] = useState<any[]>([]);
+  const [ignVideoLog, setIgnVideoLog] = useState<any[]>([]);
+  const [ignPurchases, setIgnPurchases] = useState<any[]>([]);
+  const [ignVideoUrl, setIgnVideoUrl] = useState("");
+  const [ignHlsUrl, setIgnHlsUrl] = useState("");
+  const [ignVideoTitle, setIgnVideoTitle] = useState("");
+  const [ignUploading, setIgnUploading] = useState(false);
+  const [ignUploadProgress, setIgnUploadProgress] = useState(0);
+  const [ignTranscoding, setIgnTranscoding] = useState<{ jobId: string; progress: number; status: string } | null>(null);
+  const ignFileRef = useRef<HTMLInputElement>(null);
+  const ignTranscodeTimeout = useRef<number | null>(null);
+  const [ignManualNome, setIgnManualNome] = useState("");
+  const [ignManualEmail, setIgnManualEmail] = useState("");
+  const [ignManualWhats, setIgnManualWhats] = useState("");
+  const [ignManualSending, setIgnManualSending] = useState(false);
+
   // Manual lead creation
   const [manualNome, setManualNome] = useState("");
   const [manualEmail, setManualEmail] = useState("");
