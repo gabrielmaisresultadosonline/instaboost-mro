@@ -257,6 +257,19 @@ app.get('/api/video/status/:id', (req, res) => {
     res.json(job);
 });
 
+app.get('/api/video/logs/:id', (req, res) => {
+    const logFile = path.join(HLS_ROOT, req.params.id, 'transcode.log');
+    if (!fs.existsSync(logFile)) return res.json({ success: true, logs: [], note: 'no log yet' });
+    try {
+        const content = fs.readFileSync(logFile, 'utf8');
+        const lines = content.trim().split('\n');
+        const tail = lines.slice(-200);
+        res.json({ success: true, logs: tail, total: lines.length });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 app.get('/api/video/list', (req, res) => {
     if (!fs.existsSync(HLS_ROOT)) return res.json({ success: true, files: [] });
     
