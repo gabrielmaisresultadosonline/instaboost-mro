@@ -64,7 +64,7 @@ const RendaExtraPage = () => {
 
             {/* Licenciado MRO */}
             <button
-              onClick={() => navigate('/licenciado')}
+              onClick={() => { trackEvent('click:renda-extra2:licenciado'); navigate('/licenciado'); }}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-amber-500/20 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/50 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-5 right-5 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
