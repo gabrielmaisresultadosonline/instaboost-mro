@@ -327,8 +327,8 @@ app.get('/api/video/list', (req, res) => {
             const ready = fs.existsSync(path.join(HLS_ROOT, name, 'master.m3u8'));
             return {
                 name,
-                url: '/videos/hls/' + name + '/master.m3u8',
-                hls_url: '/videos/hls/' + name + '/master.m3u8',
+                url: publicHlsUrl(name),
+                hls_url: publicHlsUrl(name),
                 size: 0, // HLS é composto por vários arquivos
                 created: stats.birthtime,
                 status: ready ? 'completed' : job.status,
