@@ -112,64 +112,91 @@ export default function InstagrammNew() {
 
   if (!granted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-violet-950/30 to-black text-white flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md bg-gradient-to-br from-zinc-900 to-zinc-950 border border-violet-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl">
-          <div className="text-center mb-6">
-            <img src={logoMro} alt="MRO" className="h-14 mx-auto mb-4 object-contain" />
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-violet-500/20 mb-3">
-              <Sparkles className="w-8 h-8 text-violet-400" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">
-              {showRegister ? "Faça seu cadastro para assistir" : "Acessar Sistema MRO"}
-            </h1>
-            <p className="text-zinc-300 text-sm leading-relaxed">
-              {showRegister
-                ? "Cadastre-se e libere o acesso imediato à aula completa do sistema MRO."
-                : "Acesse com seu email cadastrado para assistir a aula completa do sistema MRO."}
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-black text-white">
+        {/* HERO */}
+        <section className="px-4 pt-10 pb-6 max-w-4xl mx-auto text-center">
+          <img src={logoMro} alt="MRO" className="h-14 sm:h-16 mx-auto mb-6 object-contain" />
+          <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/40 rounded-full px-4 py-1.5 mb-5">
+            <Sparkles className="w-4 h-4 text-yellow-400" />
+            <span className="text-yellow-300 font-bold text-xs uppercase tracking-wider">Sistema MRO</span>
           </div>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight mb-4">
+            Mais Vendas, Mais Clientes,<br />
+            <span className="text-yellow-400">Mais Engajamento</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed mb-3">
+            <span className="bg-yellow-400 text-black font-bold px-2 py-0.5 rounded">Sem gastar nenhum real com anúncios</span>
+          </p>
+          <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-2">
+            Com <strong className="text-white">Prospecção Ativa</strong> usando a ferramenta <strong className="text-yellow-400">MRO</strong>.
+          </p>
+          <p className="text-xl sm:text-2xl font-bold text-white mt-6 mb-2">
+            👉 Cadastre-se para ver tudo por completo
+          </p>
+          <p className="text-sm text-zinc-500 mb-8">Acesso 100% gratuito à aula completa</p>
+        </section>
 
-          {!showRegister ? (
-            <>
-              <form onSubmit={handleLogin} className="space-y-3">
-                <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12 text-base" required />
-                {notFound && <p className="text-red-400 text-xs">Email não encontrado. Faça o cadastro abaixo.</p>}
-                {expired && <p className="text-amber-400 text-xs">Seu acesso expirou. Faça um novo cadastro.</p>}
-                <Button type="submit" disabled={loginLoading}
-                  className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold py-6 text-base rounded-xl">
-                  {loginLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "ACESSAR AULA"}
+        {/* CTA CARD */}
+        <section className="px-4 pb-16 max-w-md mx-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+            {mode === "hero" && (
+              <div className="space-y-3">
+                <Button onClick={() => setMode("register")}
+                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-7 text-base rounded-xl shadow-lg shadow-yellow-400/20">
+                  FAZER CADASTRO E ASSISTIR
                 </Button>
-              </form>
-              <div className="mt-4 pt-4 border-t border-zinc-800">
-                <p className="text-zinc-400 text-xs text-center mb-2">Ainda não tem cadastro?</p>
-                <Button type="button" variant="outline" onClick={() => setShowRegister(true)}
-                  className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-800 font-bold py-5 rounded-xl">
-                  Cadastrar agora e liberar acesso
+                <Button onClick={() => setMode("login")} variant="outline"
+                  className="w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 hover:text-white font-bold py-6 rounded-xl">
+                  Já fiz cadastro — quero assistir
                 </Button>
               </div>
-            </>
-          ) : (
-            <>
-              <form onSubmit={handleRegister} className="space-y-3">
-                <Input type="text" value={regNome} onChange={(e) => setRegNome(e.target.value)}
-                  placeholder="Nome completo" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={120} />
-                <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
-                  placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={255} />
-                <Input type="tel" value={regWhats} onChange={(e) => setRegWhats(e.target.value)}
-                  placeholder="WhatsApp (com DDD)" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={20} />
-                <Button type="submit" disabled={regLoading}
-                  className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white font-bold py-5 rounded-xl">
-                  {regLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CADASTRAR E LIBERAR ACESSO"}
-                </Button>
-                <button type="button" onClick={() => setShowRegister(false)}
-                  className="w-full text-zinc-500 hover:text-zinc-300 text-xs mt-1" disabled={regLoading}>
-                  Já tenho cadastro
+            )}
+
+            {mode === "login" && (
+              <>
+                <h2 className="text-xl font-bold text-white mb-1 text-center">Acessar com seu email</h2>
+                <p className="text-zinc-400 text-sm text-center mb-4">Digite o email que você usou no cadastro.</p>
+                <form onSubmit={handleLogin} className="space-y-3">
+                  <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12 text-base" required />
+                  {notFound && <p className="text-red-400 text-xs">Email não encontrado. Faça o cadastro.</p>}
+                  {expired && <p className="text-amber-400 text-xs">Seu acesso expirou. Faça um novo cadastro.</p>}
+                  <Button type="submit" disabled={loginLoading}
+                    className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-base rounded-xl">
+                    {loginLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "ACESSAR AULA"}
+                  </Button>
+                </form>
+                <button type="button" onClick={() => setMode("hero")}
+                  className="w-full text-zinc-500 hover:text-zinc-300 text-xs mt-4">
+                  ← Voltar
                 </button>
-              </form>
-            </>
-          )}
-        </div>
+              </>
+            )}
+
+            {mode === "register" && (
+              <>
+                <h2 className="text-xl font-bold text-white mb-1 text-center">Cadastro rápido</h2>
+                <p className="text-zinc-400 text-sm text-center mb-4">Libere acesso imediato à aula completa.</p>
+                <form onSubmit={handleRegister} className="space-y-3">
+                  <Input type="text" value={regNome} onChange={(e) => setRegNome(e.target.value)}
+                    placeholder="Nome completo" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={120} />
+                  <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={255} />
+                  <Input type="tel" value={regWhats} onChange={(e) => setRegWhats(e.target.value)}
+                    placeholder="WhatsApp (com DDD)" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={20} />
+                  <Button type="submit" disabled={regLoading}
+                    className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-base rounded-xl">
+                    {regLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CADASTRAR E LIBERAR ACESSO"}
+                  </Button>
+                </form>
+                <button type="button" onClick={() => setMode("hero")}
+                  className="w-full text-zinc-500 hover:text-zinc-300 text-xs mt-4" disabled={regLoading}>
+                  ← Voltar
+                </button>
+              </>
+            )}
+          </div>
+        </section>
       </div>
     );
   }
