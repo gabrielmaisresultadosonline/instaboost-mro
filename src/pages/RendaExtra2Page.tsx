@@ -16,19 +16,8 @@ const RendaExtraPage = () => {
   if (mode === 'choice') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
-        <div className="max-w-5xl mx-auto space-y-10 relative">
-          <div className="flex justify-start">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                localStorage.setItem('mro_returning_to_welcome', 'true');
-                navigate('/instagram');
-              }}
-              className="text-white/60 hover:text-white hover:bg-white/5"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
-            </Button>
-          </div>
+        <div className="max-w-5xl mx-auto space-y-10 relative pt-6">
+
 
           <div className="text-center space-y-4">
             <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em]">
