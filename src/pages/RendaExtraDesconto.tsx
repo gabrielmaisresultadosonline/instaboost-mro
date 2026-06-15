@@ -54,7 +54,7 @@ import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 
-const DescontoAlunosRendaExtra = () => {
+const RendaExtraDesconto = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -1080,4 +1080,4 @@ const DescontoAlunosRendaExtra = () => {
   );
 };
 
-export default DescontoAlunosRendaExtra;
+export default RendaExtraDesconto;
