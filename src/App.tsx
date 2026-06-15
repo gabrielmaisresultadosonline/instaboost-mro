@@ -32,6 +32,7 @@ import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
 import DescontoAlunosRendaExtraAdmin from "./pages/DescontoAlunosRendaExtraAdmin";
 import DescontoAlunosRendaExtras from "./pages/DescontoAlunosRendaExtras";
 import DescontoAlunosRendaExtrasss from "./pages/DescontoAlunosRendaExtrasss";
+import RendaExtraDesconto from "./pages/RendaExtraDesconto";
 import DescontoAlunosRendaExtrass from "./pages/DescontoAlunosRendaExtrass";
 import InstagramPromoMila from "./pages/InstagramPromoMila";
 import AffiliatePromoPage from "./pages/AffiliatePromoPage";
