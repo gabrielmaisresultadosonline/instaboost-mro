@@ -82,12 +82,25 @@ const upload = multer({
 
 const jobs = {};
 
+const publicHlsUrl = (jobId) => '/videos/hls/' + encodeURIComponent(jobId) + '/master.m3u8';
+
+const sanitizeBaseName = (name) => {
+    const base = path.parse(name || 'video').name;
+    return base
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9._-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 140) || 'video';
+};
+
 const safeJob = (job) => ({
     id: job.id,
     status: job.status,
     progress: Math.max(0, Math.min(100, Math.round(job.progress || 0))),
     error: job.error || null,
-    hls_url: job.hls_url || ('/videos/hls/' + job.id + '/master.m3u8'),
+    hls_url: job.hls_url || publicHlsUrl(job.id),
     created_at: job.created_at,
     updated_at: job.updated_at
 });
@@ -105,11 +118,11 @@ const readJob = (jobId) => {
     }
 
     if (fs.existsSync(masterFile)) {
-        return safeJob({ id: jobId, ...(fromDisk || {}), status: 'completed', progress: 100, hls_url: '/videos/hls/' + jobId + '/master.m3u8' });
+        return safeJob({ id: jobId, ...(fromDisk || {}), status: 'completed', progress: 100, hls_url: publicHlsUrl(jobId) });
     }
 
     if (fromDisk) return safeJob({ id: jobId, ...fromDisk });
-    if (fs.existsSync(outputDir)) return safeJob({ id: jobId, status: 'processing', progress: 0, hls_url: '/videos/hls/' + jobId + '/master.m3u8' });
+    if (fs.existsSync(outputDir)) return safeJob({ id: jobId, status: 'processing', progress: 0, hls_url: publicHlsUrl(jobId) });
     return null;
 };
 
@@ -120,7 +133,7 @@ const writeJob = (jobId, patch) => {
     const next = {
         id: jobId,
         created_at: existing.created_at || now,
-        hls_url: '/videos/hls/' + jobId + '/master.m3u8',
+        hls_url: publicHlsUrl(jobId),
         ...existing,
         ...patch,
         updated_at: now
