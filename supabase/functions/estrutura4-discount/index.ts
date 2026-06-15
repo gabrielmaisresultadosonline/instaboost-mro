@@ -11,6 +11,13 @@ const corsHeaders = {
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
 const DISCOUNT_PATH = "/descontoalunosrendaextrasss";
+const VIDEO_DISCOUNT_PATH = "/rendaextradesconto";
+const buildDiscountLink = (token: string, source?: string | null) => {
+  const path = String(source || "").toLowerCase().includes("rendaextradesconto")
+    ? VIDEO_DISCOUNT_PATH
+    : DISCOUNT_PATH;
+  return `${SITE_URL}${path}?token=${token}`;
+};
 const SITE_URL = "https://maisresultadosonline.com.br";
 const CRON_SECRET = "est4-cron-2026-secure";
 
@@ -136,13 +143,15 @@ serve(async (req) => {
 
       const { data: existing } = await supabase
         .from("estrutura4_discount_leads")
-        .select("id, token, expires_at, emails_sent_count")
+        .select("id, token, expires_at, emails_sent_count, source")
         .eq("email", email)
         .maybeSingle();
 
       let leadId: string;
       let finalToken: string;
       let finalExpires: string;
+      const incomingSource = String(body.source || "estruturarendaextra4");
+      let finalSource = incomingSource;
 
       if (existing) {
         finalToken = existing.token;
@@ -152,6 +161,11 @@ serve(async (req) => {
           finalToken = token;
           finalExpires = expiresAt;
         }
+        // If lead is now coming from /rendaextradesconto, persist that source
+        // so future emails point back to that page.
+        finalSource = incomingSource.toLowerCase().includes("rendaextradesconto")
+          ? incomingSource
+          : (existing.source || incomingSource);
         const { error: upErr } = await supabase
           .from("estrutura4_discount_leads")
           .update({
@@ -159,6 +173,7 @@ serve(async (req) => {
             whatsapp,
             token: finalToken,
             expires_at: finalExpires,
+            source: finalSource,
             emails_sent_count: (existing.emails_sent_count || 0) + 1,
             last_email_sent_at: new Date().toISOString(),
             auto_remarketing_enabled: true,
@@ -181,7 +196,7 @@ serve(async (req) => {
             expires_at: finalExpires,
             emails_sent_count: 1,
             last_email_sent_at: new Date().toISOString(),
-            source: body.source || "estruturarendaextra4",
+            source: finalSource,
             auto_remarketing_enabled: true,
             remarketing_stage: 1,
             next_send_at: scheduleNext(1),
@@ -193,7 +208,7 @@ serve(async (req) => {
       }
 
       const hoursLeft = Math.max(1, Math.floor((new Date(finalExpires).getTime() - Date.now()) / 3600000));
-      const link = `${SITE_URL}${DISCOUNT_PATH}?token=${finalToken}`;
+      const link = buildDiscountLink(finalToken, finalSource);
       const html = buildEmailHtml(nome, link, hoursLeft);
       const sent = await sendEmail(email, "🔥 Seu desconto MRO foi liberado — R$ 397 por R$ 300", html);
 
@@ -539,7 +554,7 @@ serve(async (req) => {
       const nowIso = new Date().toISOString();
       const { data: due } = await supabase
         .from("estrutura4_discount_leads")
-        .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at")
+        .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at, source")
         .eq("auto_remarketing_enabled", true)
         .lte("next_send_at", nowIso)
         .lt("remarketing_stage", 4)
@@ -595,7 +610,7 @@ serve(async (req) => {
         }
 
         const hoursLeft = Math.max(1, Math.floor((new Date(lead.expires_at).getTime() - Date.now()) / 3600000));
-        const link = `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`;
+        const link = buildDiscountLink(lead.token, (lead as any).source);
         const html = tpl.build(lead.nome || "Aluno", link, hoursLeft);
         const sent = await sendEmail(emailLower, tpl.subject(hoursLeft), html);
 
@@ -658,12 +673,12 @@ serve(async (req) => {
       if (!tpl) return false;
       const { data: lead } = await supabase
         .from("estrutura4_discount_leads")
-        .select("token")
+        .select("token, source")
         .eq("email", email)
         .maybeSingle();
       const link = lead?.token
-        ? `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`
-        : `${SITE_URL}/rendaextradesconto`;
+        ? buildDiscountLink(lead.token, lead.source)
+        : `${SITE_URL}${VIDEO_DISCOUNT_PATH}`;
       return await sendEmail(email, tpl.subject, tpl.html(nome || "", link));
     };
 
