@@ -266,6 +266,51 @@ serve(async (req) => {
       });
     }
 
+    if (action === "get_video") {
+      const { data } = await supabase
+        .from("desconto_alunos_settings")
+        .select("video_url, hls_url, video_title")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return new Response(JSON.stringify({
+        video_url: data?.video_url || null,
+        hls_url: data?.hls_url || null,
+        video_title: data?.video_title || null,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "set_video") {
+      const email = String(body.email || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        return new Response(JSON.stringify({ success: false, error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const video_url = body.video_url ? String(body.video_url) : null;
+      const hls_url = body.hls_url ? String(body.hls_url) : null;
+      const video_title = body.video_title ? String(body.video_title) : null;
+
+      const { data: existing } = await supabase
+        .from("desconto_alunos_settings")
+        .select("id")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from("desconto_alunos_settings")
+          .update({ video_url, hls_url, video_title, updated_at: new Date().toISOString() })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("desconto_alunos_settings")
+          .insert({ video_url, hls_url, video_title, is_active: true });
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
