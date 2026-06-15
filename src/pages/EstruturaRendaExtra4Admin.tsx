@@ -84,7 +84,82 @@ export default function EstruturaRendaExtra4Admin() {
     }
   };
 
-  useEffect(() => { if (creds) fetchData(creds); }, [creds]);
+  useEffect(() => { if (creds) { fetchData(creds); loadVideoCfg(); loadServerVideos(); } }, [creds]);
+
+  const loadVideoCfg = async () => {
+    const { data } = await supabase.functions.invoke("estrutura4-discount", { body: { action: "get_video" } });
+    if (data) {
+      setVideoUrl(data.video_url || "");
+      setHlsUrl(data.hls_url || "");
+      setVideoTitle(data.video_title || "");
+    }
+  };
+
+  const loadServerVideos = async () => {
+    setLoadingVideos(true);
+    try {
+      const res = await fetch(`${VIDEO_SERVER}/api/video/list`);
+      const data = await res.json();
+      if (data?.success) setServerVideos(data.files || []);
+    } catch { setServerVideos([]); }
+    finally { setLoadingVideos(false); }
+  };
+
+  const selectExistingVideo = (video: any) => {
+    const baseName = video.name.replace(/\.[^.]+$/, '');
+    setVideoUrl(video.url);
+    setHlsUrl(`/videos/hls/${baseName}/master.m3u8`);
+    toast.success("Vídeo selecionado! Clique em Salvar.");
+  };
+
+  const deleteServerVideo = async (name: string) => {
+    if (!confirm(`Excluir "${name}"?`)) return;
+    try {
+      const res = await fetch(`${VIDEO_SERVER}/api/video/${encodeURIComponent(name)}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data?.success) { toast.success("Excluído!"); setServerVideos((p) => p.filter((v) => v.name !== name)); }
+      else toast.error("Erro ao excluir");
+    } catch { toast.error("Erro ao conectar ao servidor"); }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024 * 1024) { toast.error("Máx 3GB"); return; }
+    setUploading(true); setUploadProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+      const result = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${VIDEO_SERVER}/api/video/upload`);
+        xhr.timeout = 7200000;
+        xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100)); };
+        xhr.onload = () => xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(`Upload failed: ${xhr.status}`));
+        xhr.ontimeout = () => reject(new Error("Timeout"));
+        xhr.onerror = () => reject(new Error("Upload falhou"));
+        xhr.send(formData);
+      });
+      if (result.success) {
+        setVideoUrl(result.video_url);
+        setHlsUrl(result.hls_url);
+        toast.success("Upload concluído! Clique em Salvar.");
+        loadServerVideos();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro no upload");
+    } finally { setUploading(false); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
+  };
+
+  const saveVideo = async () => {
+    if (!creds) return;
+    const { data } = await supabase.functions.invoke("estrutura4-discount", {
+      body: { action: "set_video", email: creds.email, password: creds.password, video_url: videoUrl, hls_url: hlsUrl, video_title: videoTitle },
+    });
+    if (data?.success) toast.success("Vídeo salvo! Já disponível em /renda-extra2");
+    else toast.error("Erro ao salvar");
+  };
+
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
