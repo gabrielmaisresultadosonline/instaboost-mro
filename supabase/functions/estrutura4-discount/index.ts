@@ -12,6 +12,11 @@ const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
 const DISCOUNT_PATH = "/descontoalunosrendaextrasss";
 const SITE_URL = "https://maisresultadosonline.com.br";
+const CRON_SECRET = "est4-cron-2026-secure";
+
+// Follow-up schedule offsets in hours (from each prior send)
+// Stage 1 = initial. Stage 2 = +8h. Stage 3 = +10h after stage2. Stage 4 = +14h after stage3.
+const FOLLOWUP_OFFSETS_H = [8, 10, 14];
 
 const log = (msg: string, data?: unknown) =>
   console.log(`[ESTRUTURA4-DISCOUNT] ${msg}`, data ? JSON.stringify(data) : "");
@@ -83,6 +88,27 @@ const buildEmailHtml = (nome: string, link: string, hoursLeft: number) => `<!DOC
 <tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
 </table></body></html>`;
 
+const FOLLOWUP_TEMPLATES: Array<{ subject: (h: number) => string; build: (nome: string, link: string, hoursLeft: number) => string }> = [
+  {
+    subject: (h) => `⏳ Faltam ${h}h do seu desconto MRO — não perca`,
+    build: (nome, link, hoursLeft) => `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:linear-gradient(135deg,#FFD700,#FFA500);padding:30px;text-align:center;"><div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div><h1 style="color:#000;margin:15px 0 0;font-size:22px;">⏳ Seu desconto ainda está ativo</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;">Olá <strong>${nome}</strong>,</p><p style="font-size:16px;">Só lembrando: seu desconto exclusivo na <strong>Ferramenta MRO</strong> ainda está liberado, mas <strong>faltam apenas ${hoursLeft} horas</strong>.</p><div style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:20px;border-radius:10px;text-align:center;margin:25px 0;"><p style="margin:0;font-size:14px;text-decoration:line-through;opacity:.9;">De R$ 397/ano</p><p style="margin:8px 0 0;font-size:30px;font-weight:bold;">Por R$ 300/ano</p></div><p style="font-size:15px;">Não deixe pra última hora — alunos que entram cedo começam a faturar antes.</p><div style="text-align:center;margin:35px 0;"><a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;text-decoration:none;padding:18px 45px;border-radius:30px;font-size:18px;font-weight:bold;">🔓 ACESSAR MEU DESCONTO</a></div></td></tr><tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+  },
+  {
+    subject: (h) => `🚨 Restam só ${h}h — seu desconto MRO está acabando`,
+    build: (nome, link, hoursLeft) => `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:linear-gradient(135deg,#dc2626,#f59e0b);padding:30px;text-align:center;"><div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div><h1 style="color:#fff;margin:15px 0 0;font-size:22px;">🚨 Últimas horas do seu desconto</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;"><strong>${nome}</strong>, este é um aviso importante.</p><p style="font-size:16px;">Restam apenas <strong style="color:#dc2626;">${hoursLeft} horas</strong> para você garantir a Ferramenta MRO por R$ 300 (em vez de R$ 397). Depois disso o valor volta ao normal e <strong>não vamos liberar de novo</strong>.</p><div style="background:#fee2e2;border-left:4px solid #dc2626;padding:15px;border-radius:6px;margin:20px 0;"><p style="margin:0;font-size:14px;color:#991b1b;"><strong>Por que agir agora?</strong> Nossos alunos faturam R$ 5 mil+/mês prestando serviço de tráfego para empresas locais.</p></div><div style="text-align:center;margin:35px 0;"><a href="${link}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:18px 45px;border-radius:30px;font-size:18px;font-weight:bold;">⚡ GARANTIR DESCONTO AGORA</a></div></td></tr><tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+  },
+  {
+    subject: (h) => `⛔ ÚLTIMO AVISO — desconto MRO expira em ${h}h`,
+    build: (nome, link, hoursLeft) => `<!DOCTYPE html><html><body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:#000;padding:30px;text-align:center;"><div style="background:#dc2626;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">⛔ ÚLTIMO AVISO</div><h1 style="color:#fff;margin:15px 0 0;font-size:22px;">Seu desconto MRO expira em ${hoursLeft}h</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;"><strong>${nome}</strong>, esta é a última vez que enviamos esse email.</p><p style="font-size:16px;">Depois que o cronômetro zerar, <strong>o desconto some</strong> e o valor volta para R$ 397 — sem exceções.</p><p style="font-size:16px;">Se você quer mesmo aprender a faturar R$ 5 mil+/mês, <strong>essa é sua última chance</strong>.</p><div style="text-align:center;margin:35px 0;"><a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#000);color:#fff;text-decoration:none;padding:18px 45px;border-radius:30px;font-size:18px;font-weight:bold;border:2px solid #FFD700;">🔥 ENTRAR ANTES QUE ACABE</a><p style="margin:15px 0 0;font-size:12px;color:#666;">Após expirar, só será possível contratar pelo valor cheio via WhatsApp.</p></div></td></tr><tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+  },
+];
+
+const scheduleNext = (stageJustSent: number): string | null => {
+  const idx = stageJustSent - 1;
+  if (idx < 0 || idx >= FOLLOWUP_OFFSETS_H.length) return null;
+  return new Date(Date.now() + FOLLOWUP_OFFSETS_H[idx] * 3600000).toISOString();
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -135,6 +161,9 @@ serve(async (req) => {
             expires_at: finalExpires,
             emails_sent_count: (existing.emails_sent_count || 0) + 1,
             last_email_sent_at: new Date().toISOString(),
+            auto_remarketing_enabled: true,
+            remarketing_stage: 1,
+            next_send_at: scheduleNext(1),
           })
           .eq("id", existing.id);
         if (upErr) throw upErr;
@@ -153,6 +182,9 @@ serve(async (req) => {
             emails_sent_count: 1,
             last_email_sent_at: new Date().toISOString(),
             source: body.source || "estruturarendaextra4",
+            auto_remarketing_enabled: true,
+            remarketing_stage: 1,
+            next_send_at: scheduleNext(1),
           })
           .select("id")
           .single();
@@ -426,6 +458,9 @@ serve(async (req) => {
             expires_at: finalExpires,
             emails_sent_count: (existing.emails_sent_count || 0) + 1,
             last_email_sent_at: new Date().toISOString(),
+            auto_remarketing_enabled: true,
+            remarketing_stage: 1,
+            next_send_at: scheduleNext(1),
           })
           .eq("id", existing.id);
       } else {
@@ -440,6 +475,9 @@ serve(async (req) => {
             emails_sent_count: 1,
             last_email_sent_at: new Date().toISOString(),
             source: "remarketing-admin",
+            auto_remarketing_enabled: true,
+            remarketing_stage: 1,
+            next_send_at: scheduleNext(1),
           });
       }
 
@@ -460,6 +498,108 @@ serve(async (req) => {
       });
 
       return new Response(JSON.stringify({ success: true, sent, link }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "process_remarketing_queue") {
+      if (String(body.cron_secret || "") !== CRON_SECRET) {
+        return new Response(JSON.stringify({ success: false, error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const nowIso = new Date().toISOString();
+      const { data: due } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at")
+        .eq("auto_remarketing_enabled", true)
+        .lte("next_send_at", nowIso)
+        .is("accessed_discount_at", null)
+        .gt("expires_at", nowIso)
+        .lt("remarketing_stage", 4)
+        .order("next_send_at", { ascending: true })
+        .limit(50);
+
+      const leads = due || [];
+      if (leads.length === 0) {
+        return new Response(JSON.stringify({ success: true, processed: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Filter out leads that already bought
+      const emails = leads.map((l: any) => String(l.email).toLowerCase());
+      const paidSet = new Set<string>();
+      const { data: paid } = await supabase
+        .from("paid_users")
+        .select("email, subscription_status, subscription_end")
+        .in("email", emails);
+      (paid || []).forEach((p: any) => {
+        const active = ["active","paid","approved","confirmed"].includes(String(p.subscription_status||"").toLowerCase())
+          || (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now());
+        if (active) paidSet.add(String(p.email).toLowerCase());
+      });
+      const { data: mroOrders } = await supabase.from("mro_orders").select("email").in("status", ["paid","completed"]).in("email", emails);
+      (mroOrders || []).forEach((o: any) => paidSet.add(String(o.email).toLowerCase()));
+      const { data: createdAcc } = await supabase.from("created_accesses").select("customer_email").in("customer_email", emails);
+      (createdAcc || []).forEach((a: any) => paidSet.add(String(a.customer_email).toLowerCase()));
+
+      let processed = 0;
+      let skipped = 0;
+      for (const lead of leads) {
+        const emailLower = String(lead.email).toLowerCase();
+        if (paidSet.has(emailLower)) {
+          // Lead already bought — stop auto remarketing
+          await supabase.from("estrutura4_discount_leads")
+            .update({ auto_remarketing_enabled: false, next_send_at: null })
+            .eq("id", lead.id);
+          skipped++;
+          continue;
+        }
+
+        const currentStage: number = lead.remarketing_stage || 1;
+        const nextStage = currentStage + 1; // 2, 3 or 4
+        const tplIdx = nextStage - 2; // 0,1,2
+        const tpl = FOLLOWUP_TEMPLATES[tplIdx];
+        if (!tpl) {
+          await supabase.from("estrutura4_discount_leads")
+            .update({ auto_remarketing_enabled: false, next_send_at: null })
+            .eq("id", lead.id);
+          continue;
+        }
+
+        const hoursLeft = Math.max(1, Math.floor((new Date(lead.expires_at).getTime() - Date.now()) / 3600000));
+        const link = `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`;
+        const html = tpl.build(lead.nome || "Aluno", link, hoursLeft);
+        const sent = await sendEmail(emailLower, tpl.subject(hoursLeft), html);
+
+        const newNext = scheduleNext(nextStage);
+        await supabase.from("estrutura4_discount_leads")
+          .update({
+            emails_sent_count: nextStage,
+            remarketing_stage: nextStage,
+            last_email_sent_at: new Date().toISOString(),
+            next_send_at: newNext,
+            auto_remarketing_enabled: newNext !== null,
+          })
+          .eq("id", lead.id);
+
+        await supabase.from("estrutura4_remarketing_logs").insert({
+          email: emailLower,
+          nome: lead.nome,
+          source_page: `auto-stage-${nextStage}`,
+          link,
+          success: sent,
+          notes: sent ? `Follow-up automático estágio ${nextStage}` : "SMTP falhou",
+        });
+
+        processed++;
+        // Small delay to avoid SMTP burst
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+
+      return new Response(JSON.stringify({ success: true, processed, skipped, total: leads.length }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

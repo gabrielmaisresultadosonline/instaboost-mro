@@ -1658,13 +1658,16 @@ export type Database = {
       estrutura4_discount_leads: {
         Row: {
           accessed_discount_at: string | null
+          auto_remarketing_enabled: boolean
           created_at: string
           email: string
           emails_sent_count: number
           expires_at: string
           id: string
           last_email_sent_at: string | null
+          next_send_at: string | null
           nome: string
+          remarketing_stage: number
           source: string | null
           token: string
           updated_at: string
@@ -1672,13 +1675,16 @@ export type Database = {
         }
         Insert: {
           accessed_discount_at?: string | null
+          auto_remarketing_enabled?: boolean
           created_at?: string
           email: string
           emails_sent_count?: number
           expires_at: string
           id?: string
           last_email_sent_at?: string | null
+          next_send_at?: string | null
           nome: string
+          remarketing_stage?: number
           source?: string | null
           token: string
           updated_at?: string
@@ -1686,13 +1692,16 @@ export type Database = {
         }
         Update: {
           accessed_discount_at?: string | null
+          auto_remarketing_enabled?: boolean
           created_at?: string
           email?: string
           emails_sent_count?: number
           expires_at?: string
           id?: string
           last_email_sent_at?: string | null
+          next_send_at?: string | null
           nome?: string
+          remarketing_stage?: number
           source?: string | null
           token?: string
           updated_at?: string
