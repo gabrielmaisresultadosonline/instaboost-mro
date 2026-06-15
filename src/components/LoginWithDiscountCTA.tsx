@@ -117,7 +117,15 @@ export const LoginWithDiscountCTA = ({ onLoginSuccess }: Props) => {
                 Enviamos um email para <strong className="text-yellow-300 break-all">{email}</strong> com o link exclusivo de desconto.
               </p>
               <p className="text-xs text-zinc-400">⏱️ O link é válido por 48 horas.</p>
-              <Button onClick={reset} className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold h-12">
+              <a
+                href="https://maisresultadosonline.com.br/descontoalunosrendaextrasss"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-full bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold h-12 rounded-md animate-pulse"
+              >
+                Acessar Desconto Agora
+              </a>
+              <Button onClick={reset} variant="outline" className="w-full bg-transparent border-zinc-600 text-zinc-200 hover:bg-zinc-800 h-10">
                 Fechar
               </Button>
             </div>
