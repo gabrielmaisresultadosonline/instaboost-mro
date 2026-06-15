@@ -554,7 +554,7 @@ serve(async (req) => {
       const nowIso = new Date().toISOString();
       const { data: due } = await supabase
         .from("estrutura4_discount_leads")
-        .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at")
+        .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at, source")
         .eq("auto_remarketing_enabled", true)
         .lte("next_send_at", nowIso)
         .lt("remarketing_stage", 4)
