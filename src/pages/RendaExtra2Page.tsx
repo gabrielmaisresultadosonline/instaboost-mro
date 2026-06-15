@@ -17,7 +17,14 @@ const RendaExtraPage = () => {
   const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const [started, setStarted] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
@@ -36,7 +43,7 @@ const RendaExtraPage = () => {
     const isRel = (u: string) => u.startsWith('/');
     const fullVideo = video_url ? (isRel(video_url) ? `${VIDEO_SERVER}${video_url}` : video_url) : null;
     const fullHls = hls_url ? (isRel(hls_url) ? `${VIDEO_SERVER}${hls_url}` : hls_url) : null;
-    const loadDirect = () => { if (fullVideo) { video.src = fullVideo; video.play().catch(() => {}); } };
+    const loadDirect = () => { if (fullVideo) { video.src = fullVideo; } };
 
     if (fullHls && Hls.isSupported()) {
       (async () => {
@@ -46,18 +53,91 @@ const RendaExtraPage = () => {
           const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
           hls.loadSource(fullHls);
           hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}); });
           hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
           hlsRef.current = hls;
         } catch { loadDirect(); }
       })();
     } else if (fullHls && video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = fullHls; video.play().catch(() => {});
+      video.src = fullHls;
     } else {
       loadDirect();
     }
     return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
   }, [mode, videoCfg]);
+
+  // Block seeking: if user tries to seek (via keyboard, media keys, etc.), snap back.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    let lastTime = 0;
+    const onTime = () => {
+      const t = video.currentTime;
+      // allow forward progression up to ~1.5s per tick (normal playback)
+      if (t > lastTime + 1.5) {
+        video.currentTime = lastTime;
+      } else {
+        lastTime = t;
+      }
+      setCurrentTime(video.currentTime);
+    };
+    const onSeeking = () => {
+      if (Math.abs(video.currentTime - lastTime) > 1.5) {
+        video.currentTime = lastTime;
+      }
+    };
+    const onLoaded = () => setDuration(video.duration || 0);
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => { setPlaying(false); lastTime = 0; };
+    video.addEventListener('timeupdate', onTime);
+    video.addEventListener('seeking', onSeeking);
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('durationchange', onLoaded);
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+    video.addEventListener('ended', onEnded);
+    return () => {
+      video.removeEventListener('timeupdate', onTime);
+      video.removeEventListener('seeking', onSeeking);
+      video.removeEventListener('loadedmetadata', onLoaded);
+      video.removeEventListener('durationchange', onLoaded);
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+      video.removeEventListener('ended', onEnded);
+    };
+  }, [mode, started]);
+
+  const handleStart = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    setStarted(true);
+    v.play().catch(() => {});
+  };
+  const togglePlay = () => {
+    const v = videoRef.current; if (!v) return;
+    if (v.paused) v.play().catch(() => {}); else v.pause();
+  };
+  const toggleMute = () => {
+    const v = videoRef.current; if (!v) return;
+    v.muted = !v.muted; setMuted(v.muted);
+  };
+  const changeVolume = (val: number) => {
+    const v = videoRef.current; if (!v) return;
+    v.volume = val; setVolume(val);
+    if (val > 0 && v.muted) { v.muted = false; setMuted(false); }
+  };
+  const toggleFullscreen = () => {
+    const el = containerRef.current; if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else el.requestFullscreen?.();
+  };
+  const restart = () => {
+    const v = videoRef.current; if (!v) return;
+    v.currentTime = 0; v.play().catch(() => {});
+  };
+
+  const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
+
 
 
 
