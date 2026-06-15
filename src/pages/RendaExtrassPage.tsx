@@ -15,7 +15,7 @@ const trackEvent = (page: string) => {
 
 const RendaExtrassPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
