@@ -629,6 +629,152 @@ serve(async (req) => {
       });
     }
 
+    // ========== VIDEO ACCESS TRACKING (/rendaextradesconto) ==========
+    const VIDEO_EMAIL_TEMPLATES: Record<string, { subject: string; html: (nome: string, link: string) => string }> = {
+      access: {
+        subject: "👀 Vi que você acessou seu desconto MRO",
+        html: (nome, link) => `<!DOCTYPE html><html><body style="margin:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:linear-gradient(135deg,#FFD700,#FFA500);padding:30px;text-align:center;"><div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div><h1 style="color:#000;margin:15px 0 0;font-size:22px;">Vi que você acessou a página 👀</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;">Olá <strong>${nome || ""}</strong>,</p><p style="font-size:16px;">Notei que você acabou de acessar a página do seu desconto MRO. Que bom te ver por aqui!</p><p style="font-size:16px;">Assista o vídeo até o final — em poucos minutos você vai entender como nossos alunos faturam <strong>R$ 5 mil+/mês</strong> prestando serviço de tráfego para empresas locais.</p><div style="text-align:center;margin:30px 0;"><a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">▶️ VOLTAR PRO VÍDEO</a></div><p style="font-size:13px;color:#666;">Seu desconto está liberado por 48h. Não deixe passar.</p></td></tr><tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+      },
+      "25": {
+        subject: "🎬 Continua o vídeo — a melhor parte é depois dos 50%",
+        html: (nome, link) => `<!DOCTYPE html><html><body style="margin:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:#0ea5e9;padding:28px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Você assistiu 25% — continue!</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;">Olá <strong>${nome || ""}</strong>,</p><p style="font-size:16px;">Você começou a assistir o vídeo do seu desconto, mas parou cedo. A parte mais importante (o passo a passo de como faturar R$ 5 mil/mês) vem <strong>depois dos 50%</strong>.</p><p style="font-size:16px;">Se você ainda não fatura R$ 5 mil/mês como prestador de serviço, esses minutos podem virar o jogo pra você.</p><div style="text-align:center;margin:30px 0;"><a href="${link}" style="display:inline-block;background:#0ea5e9;color:#fff;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">▶️ CONTINUAR ASSISTINDO</a></div><p style="font-size:13px;color:#666;">Seu desconto de R$ 397 → R$ 300 expira em 48h.</p></td></tr><tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+      },
+      "50": {
+        subject: "🔥 Você passou da metade — vai garantir seu desconto?",
+        html: (nome, link) => `<!DOCTYPE html><html><body style="margin:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:linear-gradient(135deg,#f59e0b,#dc2626);padding:28px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Metade do vídeo concluída 🔥</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;"><strong>${nome || ""}</strong>, você passou dos 50% — sinal que tá curtindo o conteúdo.</p><p style="font-size:16px;">A oferta é simples: a Ferramenta MRO de <strong>R$ 397/ano por R$ 300/ano</strong>, liberada por <strong>48 horas</strong> apenas pra quem acessou essa página.</p><p style="font-size:16px;">Se você não fatura ainda R$ 5 mil/mês, esse desconto faz total diferença — você economiza e ainda recebe o método completo de prestação de serviço para empresas.</p><div style="text-align:center;margin:30px 0;"><a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#dc2626);color:#fff;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">🔓 GARANTIR DESCONTO</a></div></td></tr><tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+      },
+      "100": {
+        subject: "✅ Você assistiu tudo — agora é hora de garantir",
+        html: (nome, link) => `<!DOCTYPE html><html><body style="margin:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:linear-gradient(135deg,#10b981,#059669);padding:28px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Você assistiu 100% do vídeo ✅</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;"><strong>${nome || ""}</strong>, mostrou interesse real — assistiu o vídeo inteiro.</p><p style="font-size:16px;">Esse é o momento de agir. Seu desconto exclusivo de <strong>R$ 397 → R$ 300/ano</strong> está liberado por <strong>48 horas</strong> e não vamos abrir de novo.</p><p style="font-size:16px;">Nossos alunos que pagam o valor cheio também faturam — mas quem entra pelo desconto começa com vantagem. Aproveite.</p><div style="text-align:center;margin:30px 0;"><a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">💸 GARANTIR MEU DESCONTO</a></div></td></tr><tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+      },
+      abandon: {
+        subject: "⏰ Você saiu sem terminar — seu desconto ainda tá ativo",
+        html: (nome, link) => `<!DOCTYPE html><html><body style="margin:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222;"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;"><tr><td style="background:#1f2937;padding:28px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Você saiu sem terminar o vídeo</h1></td></tr><tr><td style="padding:30px;"><p style="font-size:16px;">Olá <strong>${nome || ""}</strong>,</p><p style="font-size:16px;">Reparei que você não terminou de assistir — sem problema, acontece. Mas se você ainda não fatura R$ 5 mil/mês prestando serviço, vale muito a pena terminar.</p><p style="font-size:16px;">Seu desconto de <strong>R$ 397 → R$ 300/ano</strong> foi liberado por <strong>48 horas</strong> e ainda está válido. Quando passar, o valor volta ao normal.</p><div style="text-align:center;margin:30px 0;"><a href="${link}" style="display:inline-block;background:#FFD700;color:#000;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">▶️ TERMINAR O VÍDEO</a></div></td></tr><tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999;font-size:12px;">© 2026 MRO</td></tr></table></body></html>`,
+      },
+    };
+
+    const sendVideoMilestoneEmail = async (kind: string, email: string, nome: string) => {
+      const tpl = VIDEO_EMAIL_TEMPLATES[kind];
+      if (!tpl) return false;
+      const { data: lead } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("token")
+        .eq("email", email)
+        .maybeSingle();
+      const link = lead?.token
+        ? `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`
+        : `${SITE_URL}/rendaextradesconto`;
+      return await sendEmail(email, tpl.subject, tpl.html(nome || "", link));
+    };
+
+    if (action === "track_video_access") {
+      const email = String(body.email || "").trim().toLowerCase();
+      const nome = String(body.nome || "").trim();
+      if (!email) return new Response(JSON.stringify({ ok: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { data: existing } = await supabase
+        .from("estrutura4_discount_video_log")
+        .select("id, milestones_sent")
+        .eq("email", email)
+        .maybeSingle();
+      const now = new Date().toISOString();
+      if (!existing) {
+        await supabase.from("estrutura4_discount_video_log").insert({
+          email, nome: nome || null, accessed_at: now, last_progress_at: now,
+          last_milestone: "access", milestones_sent: { access: now },
+        });
+        await sendVideoMilestoneEmail("access", email, nome);
+      } else {
+        const sent = (existing.milestones_sent as any) || {};
+        await supabase.from("estrutura4_discount_video_log")
+          .update({ last_progress_at: now, accessed_at: now, abandoned_email_sent_at: null })
+          .eq("id", existing.id);
+        if (!sent.access) {
+          await supabase.from("estrutura4_discount_video_log")
+            .update({ milestones_sent: { ...sent, access: now } })
+            .eq("id", existing.id);
+          await sendVideoMilestoneEmail("access", email, nome);
+        }
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "track_video_milestone") {
+      const email = String(body.email || "").trim().toLowerCase();
+      const milestone = String(body.milestone || ""); // "25" | "50" | "75" | "100"
+      const nome = String(body.nome || "").trim();
+      if (!email || !["25", "50", "75", "100"].includes(milestone)) {
+        return new Response(JSON.stringify({ ok: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const { data: existing } = await supabase
+        .from("estrutura4_discount_video_log")
+        .select("id, milestones_sent, nome")
+        .eq("email", email)
+        .maybeSingle();
+      const now = new Date().toISOString();
+      const useNome = nome || existing?.nome || "";
+      if (!existing) {
+        await supabase.from("estrutura4_discount_video_log").insert({
+          email, nome: useNome || null,
+          accessed_at: now, last_progress_at: now,
+          last_milestone: milestone, milestones_sent: { [milestone]: now },
+        });
+        if (VIDEO_EMAIL_TEMPLATES[milestone]) await sendVideoMilestoneEmail(milestone, email, useNome);
+      } else {
+        const sent = (existing.milestones_sent as any) || {};
+        await supabase.from("estrutura4_discount_video_log")
+          .update({
+            last_progress_at: now,
+            last_milestone: milestone,
+            abandoned_email_sent_at: null,
+            milestones_sent: { ...sent, [milestone]: sent[milestone] || now },
+          })
+          .eq("id", existing.id);
+        if (!sent[milestone] && VIDEO_EMAIL_TEMPLATES[milestone]) {
+          await sendVideoMilestoneEmail(milestone, email, useNome);
+        }
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "process_video_abandon_queue") {
+      const provided = String(body.cron_secret || "");
+      if (provided !== CRON_SECRET) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const { data: rows } = await supabase
+        .from("estrutura4_discount_video_log")
+        .select("id, email, nome, milestones_sent")
+        .lt("last_progress_at", cutoff)
+        .is("abandoned_email_sent_at", null)
+        .neq("last_milestone", "100")
+        .limit(50);
+      let sentCount = 0;
+      for (const r of rows || []) {
+        const ok = await sendVideoMilestoneEmail("abandon", r.email, r.nome || "");
+        await supabase.from("estrutura4_discount_video_log")
+          .update({ abandoned_email_sent_at: new Date().toISOString(), milestones_sent: { ...(r.milestones_sent as any || {}), abandon: new Date().toISOString() } })
+          .eq("id", r.id);
+        if (ok) sentCount++;
+        await new Promise((res) => setTimeout(res, 1200));
+      }
+      return new Response(JSON.stringify({ ok: true, processed: rows?.length || 0, sent: sentCount }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "admin_video_access_list") {
+      const email = String(body.email || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        return new Response(JSON.stringify({ success: false, error: "Não autorizado" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const { data } = await supabase
+        .from("estrutura4_discount_video_log")
+        .select("*")
+        .order("last_progress_at", { ascending: false })
+        .limit(500);
+      return new Response(JSON.stringify({ success: true, rows: data || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
