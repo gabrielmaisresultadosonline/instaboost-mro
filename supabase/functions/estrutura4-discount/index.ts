@@ -667,6 +667,29 @@ serve(async (req) => {
       return await sendEmail(email, tpl.subject, tpl.html(nome || "", link));
     };
 
+    // After the first video-trigger email is sent (inactivity OR 100%),
+    // start the 3 standard followups by enabling remarketing on the lead.
+    const startLeadFollowups = async (email: string) => {
+      const { data: lead } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("id, auto_remarketing_enabled, remarketing_stage")
+        .eq("email", email)
+        .maybeSingle();
+      if (!lead) return;
+      // Already in the followup flow → don't reset.
+      if (lead.auto_remarketing_enabled && (lead.remarketing_stage || 0) >= 1) return;
+      await supabase
+        .from("estrutura4_discount_leads")
+        .update({
+          auto_remarketing_enabled: true,
+          remarketing_stage: 1,
+          next_send_at: scheduleNext(1),
+          last_email_sent_at: new Date().toISOString(),
+        })
+        .eq("id", lead.id);
+    };
+
+
     if (action === "track_video_access") {
       const email = String(body.email || "").trim().toLowerCase();
       const nome = String(body.nome || "").trim();
@@ -725,7 +748,11 @@ serve(async (req) => {
           last_milestone: milestone, milestones_sent: milestonesSent,
           abandoned_email_sent_at: shouldSendNow ? now : null,
         });
-        if (shouldSendNow) await sendVideoMilestoneEmail("100", email, useNome);
+        if (shouldSendNow) {
+          await sendVideoMilestoneEmail("100", email, useNome);
+          await startLeadFollowups(email);
+        }
+
       } else {
         const sent = (existing.milestones_sent as any) || {};
         const newSent = { ...sent, [milestone]: sent[milestone] || now };
@@ -743,7 +770,9 @@ serve(async (req) => {
           .eq("id", existing.id);
         if (shouldSendNow && !alreadySent100) {
           await sendVideoMilestoneEmail("100", email, useNome);
+          await startLeadFollowups(email);
         }
+
       }
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -772,6 +801,8 @@ serve(async (req) => {
         else if (sent["25"] || r.last_milestone === "25") kind = "25";
         // If they only accessed (no milestone) → "abandon"
         const ok = await sendVideoMilestoneEmail(kind, r.email, r.nome || "");
+        if (ok) await startLeadFollowups(r.email);
+
         await supabase.from("estrutura4_discount_video_log")
           .update({
             abandoned_email_sent_at: new Date().toISOString(),
