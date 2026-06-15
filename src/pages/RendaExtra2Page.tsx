@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trackPageView } from '@/lib/facebookTracking';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +17,14 @@ const RendaExtraPage = () => {
   const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const [started, setStarted] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
@@ -36,7 +43,7 @@ const RendaExtraPage = () => {
     const isRel = (u: string) => u.startsWith('/');
     const fullVideo = video_url ? (isRel(video_url) ? `${VIDEO_SERVER}${video_url}` : video_url) : null;
     const fullHls = hls_url ? (isRel(hls_url) ? `${VIDEO_SERVER}${hls_url}` : hls_url) : null;
-    const loadDirect = () => { if (fullVideo) { video.src = fullVideo; video.play().catch(() => {}); } };
+    const loadDirect = () => { if (fullVideo) { video.src = fullVideo; } };
 
     if (fullHls && Hls.isSupported()) {
       (async () => {
@@ -46,18 +53,91 @@ const RendaExtraPage = () => {
           const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
           hls.loadSource(fullHls);
           hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}); });
           hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
           hlsRef.current = hls;
         } catch { loadDirect(); }
       })();
     } else if (fullHls && video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = fullHls; video.play().catch(() => {});
+      video.src = fullHls;
     } else {
       loadDirect();
     }
     return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
   }, [mode, videoCfg]);
+
+  // Block seeking: if user tries to seek (via keyboard, media keys, etc.), snap back.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    let lastTime = 0;
+    const onTime = () => {
+      const t = video.currentTime;
+      // allow forward progression up to ~1.5s per tick (normal playback)
+      if (t > lastTime + 1.5) {
+        video.currentTime = lastTime;
+      } else {
+        lastTime = t;
+      }
+      setCurrentTime(video.currentTime);
+    };
+    const onSeeking = () => {
+      if (Math.abs(video.currentTime - lastTime) > 1.5) {
+        video.currentTime = lastTime;
+      }
+    };
+    const onLoaded = () => setDuration(video.duration || 0);
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => { setPlaying(false); lastTime = 0; };
+    video.addEventListener('timeupdate', onTime);
+    video.addEventListener('seeking', onSeeking);
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('durationchange', onLoaded);
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+    video.addEventListener('ended', onEnded);
+    return () => {
+      video.removeEventListener('timeupdate', onTime);
+      video.removeEventListener('seeking', onSeeking);
+      video.removeEventListener('loadedmetadata', onLoaded);
+      video.removeEventListener('durationchange', onLoaded);
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+      video.removeEventListener('ended', onEnded);
+    };
+  }, [mode, started]);
+
+  const handleStart = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    setStarted(true);
+    v.play().catch(() => {});
+  };
+  const togglePlay = () => {
+    const v = videoRef.current; if (!v) return;
+    if (v.paused) v.play().catch(() => {}); else v.pause();
+  };
+  const toggleMute = () => {
+    const v = videoRef.current; if (!v) return;
+    v.muted = !v.muted; setMuted(v.muted);
+  };
+  const changeVolume = (val: number) => {
+    const v = videoRef.current; if (!v) return;
+    v.volume = val; setVolume(val);
+    if (val > 0 && v.muted) { v.muted = false; setMuted(false); }
+  };
+  const toggleFullscreen = () => {
+    const el = containerRef.current; if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else el.requestFullscreen?.();
+  };
+  const restart = () => {
+    const v = videoRef.current; if (!v) return;
+    v.currentTime = 0; v.play().catch(() => {});
+  };
+
+  const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
+
 
 
 
@@ -151,21 +231,84 @@ const RendaExtraPage = () => {
           </p>
         </div>
 
-        <div className="max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5">
+        <div ref={containerRef} className="relative max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5 group">
           {(videoCfg.video_url || videoCfg.hls_url) ? (
-            <video
-              ref={videoRef}
-              controls
-              playsInline
-              className="w-full h-full"
-              style={{ objectFit: 'contain' }}
-            />
+            <>
+              <video
+                ref={videoRef}
+                playsInline
+                onClick={() => { if (started) togglePlay(); }}
+                onContextMenu={(e) => e.preventDefault()}
+                className="w-full h-full cursor-pointer"
+                style={{ objectFit: 'contain' }}
+              />
+
+              {/* Initial play overlay */}
+              {!started && (
+                <button
+                  onClick={handleStart}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 hover:bg-black/50 transition-colors"
+                >
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:scale-110 transition-transform">
+                    <Play className="w-10 h-10 md:w-12 md:h-12 ml-1" fill="currentColor" />
+                  </div>
+                  <span className="text-white font-bold text-sm md:text-base uppercase tracking-[0.2em]">Clique para assistir</span>
+                </button>
+              )}
+
+              {/* Pause overlay icon (subtle) */}
+              {started && !playing && (
+                <button
+                  onClick={togglePlay}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30"
+                >
+                  <div className="w-16 h-16 rounded-full bg-white/90 text-black flex items-center justify-center">
+                    <Play className="w-8 h-8 ml-1" fill="currentColor" />
+                  </div>
+                </button>
+              )}
+
+              {/* Custom controls */}
+              {started && (
+                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  {/* Fake shrinking progress bar (non-interactive) */}
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden pointer-events-none select-none">
+                    <div className="h-full bg-emerald-500 rounded-full transition-[width] duration-300" style={{ width: `${progressPct}%` }} />
+                  </div>
+                  <div className="flex items-center gap-3 text-white">
+                    <button onClick={togglePlay} className="hover:text-emerald-400 transition-colors">
+                      {playing ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5" fill="currentColor" />}
+                    </button>
+                    <button onClick={restart} className="hover:text-emerald-400 transition-colors" title="Reiniciar">
+                      <RotateCcw className="w-5 h-5" />
+                    </button>
+                    <button onClick={toggleMute} className="hover:text-emerald-400 transition-colors">
+                      {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </button>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={muted ? 0 : volume}
+                      onChange={(e) => changeVolume(parseFloat(e.target.value))}
+                      className="w-20 accent-emerald-500"
+                    />
+                    <div className="flex-1" />
+                    <button onClick={toggleFullscreen} className="hover:text-emerald-400 transition-colors" title="Tela cheia">
+                      <Maximize className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
               Vídeo ainda não configurado.
             </div>
           )}
         </div>
+
 
         <div className="flex justify-center pt-4 pb-12">
           <Button
