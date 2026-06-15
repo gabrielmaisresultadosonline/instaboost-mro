@@ -216,33 +216,37 @@ server {
     listen 80;
     server_name $DOMAIN;
 
-    client_max_body_size 3G;
+    # Uploads grandes (até 5GB) e timeouts longos para 800MB+ em conexões lentas
+    client_max_body_size 5G;
+    client_body_buffer_size 1m;
     client_body_timeout 7200s;
+    client_header_timeout 7200s;
+    send_timeout 7200s;
+    keepalive_timeout 7200s;
+
+    proxy_connect_timeout 7200s;
     proxy_read_timeout 7200s;
     proxy_send_timeout 7200s;
+    proxy_request_buffering off;   # streaming upload (evita travar em 80%)
+    proxy_buffering off;
+    proxy_http_version 1.1;
 
     location / {
+        # NÃO adicionar CORS aqui — o Express (cors()) já envia.
+        # Duplicar gera "Access-Control-Allow-Origin: *, *" e quebra o browser.
         proxy_pass http://127.0.0.1:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-
-        add_header Access-Control-Allow-Origin * always;
-        add_header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS" always;
-        add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;
-        if (\$request_method = OPTIONS) { return 204; }
     }
 
     location /videos/ {
         alias /var/www/video-server/videos/;
         add_header Access-Control-Allow-Origin * always;
         add_header Cross-Origin-Resource-Policy cross-origin always;
-        autoindex on;
+        add_header Cache-Control "public, max-age=31536000" always;
+        autoindex off;
     }
 }
 EOF
