@@ -12,6 +12,7 @@ import MeuNegocioPage from "./pages/MeuNegocio";
 import RendaExtraPage from "./pages/RendaExtra";
 import RendaExtraAasPage from "./pages/RendaExtraAas";
 import RendaExtra2Page from "./pages/RendaExtra2Page";
+import RendaExtrassPage from "./pages/RendaExtrassPage";
 import ZapMRO from "./pages/ZapMRO";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
@@ -191,6 +192,7 @@ const App = () => (
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
           <Route path="/renda-extra2" element={<RendaExtra2Page />} />
+          <Route path="/renda-extrass" element={<RendaExtrassPage />} />
           <Route path="/zapmro" element={<ZapMRO />} />
           <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
           <Route path="/zapmro/vendas/prom" element={<ZapMROVendasProm />} />
