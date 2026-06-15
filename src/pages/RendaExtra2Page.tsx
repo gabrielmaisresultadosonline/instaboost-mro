@@ -35,8 +35,12 @@ const RendaExtraPage = () => {
             {/* Prestar serviço com a MRO */}
             <button
               onClick={() => setMode('prestar')}
-              className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-[0_20px_50px_rgba(16,185,129,0.1)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
+              className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-emerald-500/30 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/60 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
+              <div className="absolute top-5 right-5 bg-emerald-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
+                POPULAR
+              </div>
+
               <div className="w-20 h-20 rounded-[1.75rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-all duration-500">
                 <Briefcase className="w-10 h-10" />
               </div>
