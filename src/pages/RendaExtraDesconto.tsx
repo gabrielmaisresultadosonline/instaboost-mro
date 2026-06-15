@@ -57,6 +57,7 @@ import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
 const RendaExtraDesconto = () => {
+  const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
