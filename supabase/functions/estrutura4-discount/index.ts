@@ -259,7 +259,7 @@ serve(async (req) => {
       if (expired) return new Response(JSON.stringify({ valid: false, expired: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       await supabase.from("estrutura4_discount_leads").update({ accessed_discount_at: new Date().toISOString() }).eq("email", email);
       return new Response(JSON.stringify({ valid: true, token: data.token, nome: data.nome, expires_at: data.expires_at }), {
-        headers: { ...corsHeaders, "Content-Type": "active/json".replace("active","application") },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
