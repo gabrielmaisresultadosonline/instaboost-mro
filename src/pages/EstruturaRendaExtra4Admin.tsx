@@ -1162,6 +1162,147 @@ export default function EstruturaRendaExtra4Admin() {
               </div>
             </Card>
           </TabsContent>
+
+          <TabsContent value="instagrammnew" className="space-y-4">
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <Stat icon={Users} label="Leads cadastrados" value={ignLeads.length} accent="violet" />
+              <Stat icon={Eye} label="Acessaram vídeo" value={ignVideoLog.length} accent="cyan" />
+              <Stat icon={CheckCircle2} label="Assistiram 100%" value={ignVideoLog.filter((v) => (v.milestones_sent || {})["100"]).length} accent="emerald" />
+              <Stat icon={Send} label="Total emails enviados" value={ignLeads.reduce((s, l) => s + (l.emails_sent_count || 0), 0)} accent="amber" />
+              <Stat icon={DollarSign} label="Compraram MRO" value={ignPurchases.length} accent="lime" />
+            </div>
+
+            {/* Video config */}
+            <Card className="p-4 bg-zinc-950/60 border border-zinc-800 ring-1 ring-violet-500/20 space-y-3">
+              <SectionTitle icon={Video} accent="violet">Vídeo exibido em /instagrammnew</SectionTitle>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input placeholder="Título (opcional)" value={ignVideoTitle} onChange={(e) => setIgnVideoTitle(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white md:col-span-2" />
+                <Input placeholder="video_url (mp4)" value={ignVideoUrl} onChange={(e) => setIgnVideoUrl(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Input placeholder="hls_url (master.m3u8)" value={ignHlsUrl} onChange={(e) => setIgnHlsUrl(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <input ref={ignFileRef} type="file" accept="video/*" className="hidden" onChange={handleIgnUpload} />
+                <Button onClick={() => ignFileRef.current?.click()} disabled={ignUploading} className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white">
+                  <Upload className="w-4 h-4 mr-2" /> {ignUploading ? `Enviando ${ignUploadProgress}%` : "Enviar vídeo p/ servidor"}
+                </Button>
+                <Button onClick={saveIgnVideo} className="bg-gradient-to-r from-emerald-600 to-teal-600 ml-auto">
+                  <Save className="w-4 h-4 mr-2" /> Salvar (publicar em /instagrammnew)
+                </Button>
+              </div>
+              {ignUploading && (<div className="space-y-1"><div className="text-xs text-zinc-400 flex justify-between"><span>Enviando…</span><span>{ignUploadProgress}%</span></div><Progress value={ignUploadProgress} /></div>)}
+              {ignTranscoding && (
+                <div className="space-y-1 p-3 rounded-lg bg-zinc-900/80 border border-violet-500/30">
+                  <div className="text-xs text-zinc-300 flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      {ignTranscoding.status === "completed" ? (<><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Transcoding concluído</>) :
+                       ignTranscoding.status === "error" ? (<span className="text-red-400">Erro no transcoding</span>) :
+                       (<><Loader2 className="w-3 h-3 animate-spin text-violet-400" /> Transcodificando HLS…</>)}
+                    </span>
+                    <span className="font-mono text-violet-300">{ignTranscoding.progress}%</span>
+                  </div>
+                  <Progress value={ignTranscoding.progress} />
+                </div>
+              )}
+              <p className="text-xs text-zinc-500">Após upload, aguarde transcoding completar e clique em Salvar para publicar.</p>
+            </Card>
+
+            {/* Manual lead */}
+            <Card className="p-4 bg-gradient-to-br from-violet-950/40 to-fuchsia-950/40 border-violet-800/50">
+              <div className="flex items-center gap-2 text-violet-300 text-xs uppercase tracking-widest mb-3">
+                <Send className="w-3 h-3" /> Cadastrar lead manualmente (libera acesso + inicia sequência de emails)
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <Input placeholder="Nome" value={ignManualNome} onChange={(e) => setIgnManualNome(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Input placeholder="Email" type="email" value={ignManualEmail} onChange={(e) => setIgnManualEmail(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Input placeholder="WhatsApp" value={ignManualWhats} onChange={(e) => setIgnManualWhats(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Button className="bg-violet-600 hover:bg-violet-700" disabled={ignManualSending || !ignManualNome.trim() || !ignManualEmail.trim() || !ignManualWhats.trim()} onClick={createIgnManualLead}>
+                  {ignManualSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4 mr-1" />Cadastrar</>}
+                </Button>
+              </div>
+            </Card>
+
+            {/* Leads table */}
+            <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
+              <div className="p-3 text-xs text-zinc-400 border-b border-zinc-800">Leads cadastrados em /instagrammnew ({ignLeads.length})</div>
+              <div className="overflow-x-auto max-h-[500px]">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-800 text-zinc-300 sticky top-0">
+                    <tr>
+                      <th className="text-left p-2">Nome</th>
+                      <th className="text-left p-2">Email</th>
+                      <th className="text-left p-2">WhatsApp</th>
+                      <th className="text-left p-2">Cadastro</th>
+                      <th className="text-left p-2">Emails</th>
+                      <th className="text-left p-2">Estágio</th>
+                      <th className="text-left p-2">Próximo envio</th>
+                      <th className="text-left p-2">Acessou</th>
+                      <th className="text-left p-2">Comprou?</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ignLeads.length === 0 && (<tr><td colSpan={9} className="p-6 text-center text-zinc-500">Nenhum lead ainda.</td></tr>)}
+                    {ignLeads.map((l: any) => {
+                      const bought = ignPurchases.some((p: any) => String(p.email || "").toLowerCase() === String(l.email).toLowerCase());
+                      const waDigits = String(l.whatsapp || "").replace(/\D/g, "");
+                      const waLink = waDigits ? `https://wa.me/${waDigits.startsWith("55") ? waDigits : `55${waDigits}`}` : null;
+                      return (
+                        <tr key={l.id} className="border-t border-zinc-800">
+                          <td className="p-2">{l.nome}</td>
+                          <td className="p-2 text-zinc-300">{l.email}</td>
+                          <td className="p-2">{waLink ? <a href={waLink} target="_blank" rel="noreferrer" className="text-emerald-400 hover:text-emerald-300">{l.whatsapp}</a> : (l.whatsapp || "—")}</td>
+                          <td className="p-2 text-zinc-400 text-xs">{new Date(l.created_at).toLocaleString("pt-BR")}</td>
+                          <td className="p-2">{l.emails_sent_count}</td>
+                          <td className="p-2 text-xs">{l.remarketing_stage || 0}/6</td>
+                          <td className="p-2 text-zinc-400 text-xs">{l.next_send_at ? new Date(l.next_send_at).toLocaleString("pt-BR") : "—"}</td>
+                          <td className="p-2 text-zinc-400 text-xs">{l.accessed_page_at ? new Date(l.accessed_page_at).toLocaleString("pt-BR") : "—"}</td>
+                          <td className="p-2">{bought ? <span className="text-emerald-400 font-bold">✓</span> : <span className="text-zinc-600">—</span>}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Video access table */}
+            <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
+              <div className="p-3 text-xs text-zinc-400 border-b border-zinc-800">Acessos ao vídeo em /instagrammnew ({ignVideoLog.length})</div>
+              <div className="overflow-x-auto max-h-[500px]">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-800 text-zinc-300 sticky top-0">
+                    <tr>
+                      <th className="text-left p-2">Email</th>
+                      <th className="text-left p-2">Nome</th>
+                      <th className="text-left p-2">WhatsApp</th>
+                      <th className="text-left p-2">Acesso</th>
+                      <th className="text-left p-2">Últ. progresso</th>
+                      <th className="text-left p-2">Marco</th>
+                      <th className="text-left p-2">Abandono?</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ignVideoLog.length === 0 && (<tr><td colSpan={7} className="p-6 text-center text-zinc-500">Nenhum acesso ainda.</td></tr>)}
+                    {ignVideoLog.map((row: any) => {
+                      const waDigits = String(row.whatsapp || "").replace(/\D/g, "");
+                      const waLink = waDigits ? `https://wa.me/${waDigits.startsWith("55") ? waDigits : `55${waDigits}`}` : null;
+                      return (
+                        <tr key={row.id} className="border-t border-zinc-800">
+                          <td className="p-2 text-zinc-300">{row.email}</td>
+                          <td className="p-2">{row.nome || "—"}</td>
+                          <td className="p-2">{waLink ? <a href={waLink} target="_blank" rel="noreferrer" className="text-emerald-400">{row.whatsapp}</a> : "—"}</td>
+                          <td className="p-2 text-zinc-400 text-xs">{new Date(row.accessed_at).toLocaleString("pt-BR")}</td>
+                          <td className="p-2 text-zinc-400 text-xs">{new Date(row.last_progress_at).toLocaleString("pt-BR")}</td>
+                          <td className="p-2"><span className="text-xs">{row.last_milestone === "access" ? "acessou" : `${row.last_milestone}%`}</span></td>
+                          <td className="p-2">{row.abandoned_email_sent_at ? <span className="text-rose-400 text-xs">sim</span> : <span className="text-zinc-500 text-xs">não</span>}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
