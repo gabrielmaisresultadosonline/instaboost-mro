@@ -610,7 +610,7 @@ serve(async (req) => {
         }
 
         const hoursLeft = Math.max(1, Math.floor((new Date(lead.expires_at).getTime() - Date.now()) / 3600000));
-        const link = `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`;
+        const link = buildDiscountLink(lead.token, (lead as any).source);
         const html = tpl.build(lead.nome || "Aluno", link, hoursLeft);
         const sent = await sendEmail(emailLower, tpl.subject(hoursLeft), html);
 
