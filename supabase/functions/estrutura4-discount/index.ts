@@ -222,17 +222,44 @@ serve(async (req) => {
     if (action === "verify_email") {
       const email = String(body.email || "").trim().toLowerCase();
       if (!email) return new Response(JSON.stringify({ valid: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const { data } = await supabase
+      let { data } = await supabase
         .from("estrutura4_discount_leads")
         .select("token, nome, expires_at")
         .eq("email", email)
         .maybeSingle();
+
+      // Fallback: aceitar emails cadastrados em /rendaextra/admin (renda_extra_v2_leads)
+      if (!data) {
+        const { data: extLead } = await supabase
+          .from("renda_extra_v2_leads")
+          .select("nome, email")
+          .ilike("email", email)
+          .maybeSingle();
+        if (extLead) {
+          const token = crypto.randomUUID().replace(/-/g, "");
+          const expires_at = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+          const { data: created } = await supabase
+            .from("estrutura4_discount_leads")
+            .insert({
+              email,
+              nome: extLead.nome || "",
+              token,
+              expires_at,
+              source: "rendaextra_admin",
+              send_count: 1,
+            })
+            .select("token, nome, expires_at")
+            .maybeSingle();
+          data = created || { token, nome: extLead.nome || "", expires_at };
+        }
+      }
+
       if (!data) return new Response(JSON.stringify({ valid: false, notfound: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const expired = new Date(data.expires_at).getTime() < Date.now();
       if (expired) return new Response(JSON.stringify({ valid: false, expired: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       await supabase.from("estrutura4_discount_leads").update({ accessed_discount_at: new Date().toISOString() }).eq("email", email);
       return new Response(JSON.stringify({ valid: true, token: data.token, nome: data.nome, expires_at: data.expires_at }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "active/json".replace("active","application") },
       });
     }
 
