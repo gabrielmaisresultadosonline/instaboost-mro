@@ -11,6 +11,13 @@ const corsHeaders = {
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
 const DISCOUNT_PATH = "/descontoalunosrendaextrasss";
+const VIDEO_DISCOUNT_PATH = "/rendaextradesconto";
+const buildDiscountLink = (token: string, source?: string | null) => {
+  const path = String(source || "").toLowerCase().includes("rendaextradesconto")
+    ? VIDEO_DISCOUNT_PATH
+    : DISCOUNT_PATH;
+  return `${SITE_URL}${path}?token=${token}`;
+};
 const SITE_URL = "https://maisresultadosonline.com.br";
 const CRON_SECRET = "est4-cron-2026-secure";
 
