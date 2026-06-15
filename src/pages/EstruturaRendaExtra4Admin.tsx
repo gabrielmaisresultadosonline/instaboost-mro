@@ -138,8 +138,9 @@ export default function EstruturaRendaExtra4Admin() {
       return;
     }
     const baseName = video.name.replace(/\.[^.]+$/, '');
-    setVideoUrl(video.url || `/videos/hls/${baseName}/master.m3u8`);
-    setHlsUrl(video.hls_url || `/videos/hls/${baseName}/master.m3u8`);
+    const selectedHls = video.hls_url || video.url || `/videos/hls/${baseName}/master.m3u8`;
+    setVideoUrl("");
+    setHlsUrl(selectedHls);
     toast.success("Vídeo selecionado! Clique em Salvar.");
   };
 
