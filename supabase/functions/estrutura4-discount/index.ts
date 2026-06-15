@@ -12,6 +12,11 @@ const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
 const DISCOUNT_PATH = "/descontoalunosrendaextrasss";
 const SITE_URL = "https://maisresultadosonline.com.br";
+const CRON_SECRET = "est4-cron-2026-secure";
+
+// Follow-up schedule offsets in hours (from each prior send)
+// Stage 1 = initial. Stage 2 = +8h. Stage 3 = +10h after stage2. Stage 4 = +14h after stage3.
+const FOLLOWUP_OFFSETS_H = [8, 10, 14];
 
 const log = (msg: string, data?: unknown) =>
   console.log(`[ESTRUTURA4-DISCOUNT] ${msg}`, data ? JSON.stringify(data) : "");
