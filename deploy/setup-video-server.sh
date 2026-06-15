@@ -251,7 +251,8 @@ app.post('/api/video/upload', upload.single('video'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, error: 'No file' });
 
     const inputPath = req.file.path;
-    const fileName = path.parse(req.file.filename).name;
+    const parsed = path.parse(req.file.originalname || req.file.filename);
+    const fileName = Date.now() + '-' + sanitizeBaseName(parsed.name);
     const outputDir = path.join(HLS_ROOT, fileName);
     
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -262,8 +263,8 @@ app.post('/api/video/upload', upload.single('video'), (req, res) => {
     res.json({
         success: true,
         job_id: jobId,
-        video_url: '/videos/uploads/' + req.file.filename,
-        hls_url: '/videos/hls/' + fileName + '/master.m3u8'
+        video_url: '',
+        hls_url: publicHlsUrl(fileName)
     });
 
     setImmediate(() => startTranscoding(jobId, inputPath, outputDir));
