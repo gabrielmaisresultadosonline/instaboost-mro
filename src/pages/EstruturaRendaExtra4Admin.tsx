@@ -68,6 +68,8 @@ export default function EstruturaRendaExtra4Admin() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [transcoding, setTranscoding] = useState<{ jobId: string; progress: number; status: string; error?: string | null } | null>(null);
+  const [transcodeLogs, setTranscodeLogs] = useState<string[]>([]);
+  const [showLogs, setShowLogs] = useState(false);
   const [serverVideos, setServerVideos] = useState<ServerVideo[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
