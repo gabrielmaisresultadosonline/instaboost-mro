@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, Users, Eye, Clock, CheckCircle2, MousePointerClick, Briefcase, Crown, Rocket, DollarSign, TrendingUp, Upload, Video, Trash2, Save } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, LogOut, Users, Eye, Clock, CheckCircle2, MousePointerClick, Briefcase, Crown, Rocket, DollarSign, TrendingUp, Upload, Video, Trash2, Save, Send, Filter, Monitor, Smartphone, MailCheck, Ban } from "lucide-react";
 import { toast } from "sonner";
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
