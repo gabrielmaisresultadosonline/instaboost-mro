@@ -68,6 +68,7 @@ const RendaExtraPage = () => {
   }, [mode, videoCfg]);
 
   // Block seeking: if user tries to seek (via keyboard, media keys, etc.), snap back.
+  const progressMarksRef = useRef<{ p25: boolean; p50: boolean; p75: boolean; p100: boolean; startSent: boolean }>({ p25: false, p50: false, p75: false, p100: false, startSent: false });
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -81,6 +82,15 @@ const RendaExtraPage = () => {
         lastTime = t;
       }
       setCurrentTime(video.currentTime);
+      // milestone tracking
+      const d = video.duration || 0;
+      if (d > 0) {
+        const pct = (video.currentTime / d) * 100;
+        const m = progressMarksRef.current;
+        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:renda-extra2:25'); }
+        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:renda-extra2:50'); }
+        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:renda-extra2:75'); }
+      }
     };
     const onSeeking = () => {
       if (Math.abs(video.currentTime - lastTime) > 1.5) {
@@ -88,9 +98,21 @@ const RendaExtraPage = () => {
       }
     };
     const onLoaded = () => setDuration(video.duration || 0);
-    const onPlay = () => setPlaying(true);
+    const onPlay = () => {
+      setPlaying(true);
+      if (!progressMarksRef.current.startSent) {
+        progressMarksRef.current.startSent = true;
+        trackEvent('video:renda-extra2:start');
+      }
+    };
     const onPause = () => setPlaying(false);
-    const onEnded = () => { setPlaying(false); lastTime = 0; };
+    const onEnded = () => {
+      setPlaying(false); lastTime = 0;
+      if (!progressMarksRef.current.p100) {
+        progressMarksRef.current.p100 = true;
+        trackEvent('video:renda-extra2:100');
+      }
+    };
     video.addEventListener('timeupdate', onTime);
     video.addEventListener('seeking', onSeeking);
     video.addEventListener('loadedmetadata', onLoaded);
@@ -108,6 +130,7 @@ const RendaExtraPage = () => {
       video.removeEventListener('ended', onEnded);
     };
   }, [mode, started]);
+
 
   const handleStart = () => {
     const v = videoRef.current;
