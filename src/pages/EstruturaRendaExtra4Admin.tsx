@@ -430,171 +430,235 @@ export default function EstruturaRendaExtra4Admin() {
   const leadsConverted = leads.filter((l) => purchaseEmails.has(l.email.toLowerCase())).length;
   const convRate = leads.length > 0 ? ((leadsConverted / leads.length) * 100).toFixed(1) : "0.0";
 
-  const Stat = ({ icon: Icon, label, value, color = "text-white" }: any) => (
-    <Card className="p-4 bg-zinc-900 border-zinc-800">
-      <div className="flex items-center gap-2 text-zinc-400 text-xs"><Icon className="w-4 h-4" />{label}</div>
-      <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
-    </Card>
-  );
+  const ACCENTS: Record<string, { ring: string; text: string; bg: string; glow: string }> = {
+    emerald: { ring: "ring-emerald-500/30", text: "text-emerald-300", bg: "from-emerald-500/20 to-emerald-500/0", glow: "shadow-[0_0_25px_-10px_rgba(16,185,129,0.6)]" },
+    cyan: { ring: "ring-cyan-500/30", text: "text-cyan-300", bg: "from-cyan-500/20 to-cyan-500/0", glow: "shadow-[0_0_25px_-10px_rgba(34,211,238,0.6)]" },
+    violet: { ring: "ring-violet-500/30", text: "text-violet-300", bg: "from-violet-500/20 to-violet-500/0", glow: "shadow-[0_0_25px_-10px_rgba(139,92,246,0.6)]" },
+    amber: { ring: "ring-amber-500/30", text: "text-amber-300", bg: "from-amber-500/20 to-amber-500/0", glow: "shadow-[0_0_25px_-10px_rgba(245,158,11,0.6)]" },
+    rose: { ring: "ring-rose-500/30", text: "text-rose-300", bg: "from-rose-500/20 to-rose-500/0", glow: "shadow-[0_0_25px_-10px_rgba(244,63,94,0.6)]" },
+    sky: { ring: "ring-sky-500/30", text: "text-sky-300", bg: "from-sky-500/20 to-sky-500/0", glow: "shadow-[0_0_25px_-10px_rgba(14,165,233,0.6)]" },
+    fuchsia: { ring: "ring-fuchsia-500/30", text: "text-fuchsia-300", bg: "from-fuchsia-500/20 to-fuchsia-500/0", glow: "shadow-[0_0_25px_-10px_rgba(217,70,239,0.6)]" },
+    lime: { ring: "ring-lime-500/30", text: "text-lime-300", bg: "from-lime-500/20 to-lime-500/0", glow: "shadow-[0_0_25px_-10px_rgba(132,204,22,0.6)]" },
+  };
+
+  const Stat = ({ icon: Icon, label, value, accent = "cyan" }: { icon: any; label: string; value: any; accent?: keyof typeof ACCENTS }) => {
+    const a = ACCENTS[accent] || ACCENTS.cyan;
+    return (
+      <Card className={`relative overflow-hidden p-4 bg-zinc-950/80 border border-zinc-800 ring-1 ${a.ring} ${a.glow} hover:scale-[1.02] transition-transform`}>
+        <div className={`absolute inset-0 bg-gradient-to-br ${a.bg} pointer-events-none`} />
+        <div className="relative">
+          <div className="flex items-center gap-2 text-zinc-400 text-[11px] uppercase tracking-wider">
+            <Icon className={`w-4 h-4 ${a.text}`} />{label}
+          </div>
+          <p className={`text-2xl font-bold mt-1 ${a.text} drop-shadow-[0_0_8px_rgba(255,255,255,0.08)]`}>{value}</p>
+        </div>
+      </Card>
+    );
+  };
+
+  const SectionTitle = ({ icon: Icon, children, accent = "cyan" }: any) => {
+    const a = ACCENTS[accent] || ACCENTS.cyan;
+    return (
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`p-1.5 rounded-md bg-gradient-to-br ${a.bg} ring-1 ${a.ring}`}>
+          <Icon className={`w-4 h-4 ${a.text}`} />
+        </div>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-200">{children}</h2>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-[#0a0a14] text-white p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#06060e] via-[#0a0a18] to-[#0d0820] text-white p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Admin · Desconto Renda Extra 4</h1>
-          <Button variant="outline" onClick={logout}><LogOut className="w-4 h-4 mr-2" /> Sair</Button>
-        </div>
-
-        {/* Visitas das páginas */}
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Visitas das páginas</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <Stat icon={Eye} label="/renda-extra2" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} />
-          <Stat icon={Eye} label="/estruturarendaextra4" value={`${visitsEstrutura4} (${uniqueIps("/estruturarendaextra4")} únicos)`} />
-          <Stat icon={Eye} label="/descontoalunosrendaextrasss" value={`${visitsDiscount} (${uniqueIps("/descontoalunosrendaextrasss")} únicos)`} />
-          <Stat icon={MousePointerClick} label="Total de eventos" value={visits.length} color="text-zinc-300" />
-        </div>
-
-        {/* Cliques em /renda-extra2 */}
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Cliques em /renda-extra2</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <Stat icon={Briefcase} label="Prestar Serviço com MRO" value={clicksPrestar} color="text-emerald-400" />
-          <Stat icon={Crown} label="Seja um Licenciado MRO" value={clicksLicenciado} color="text-amber-400" />
-          <Stat icon={Rocket} label="Acessar Renda Extra Agora" value={clicksAcessar} color="text-emerald-300" />
-          <Stat icon={TrendingUp} label="Prestar → Acessar (IPs únicos)" value={prestarAndAcessar} color="text-cyan-400" />
-        </div>
-
-        {/* Engajamento do vídeo */}
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-2"><Video className="w-3 h-3" /> Engajamento do vídeo (/renda-extra2)</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
-          <Stat icon={Eye} label="Acessaram a página" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} />
-          <Stat icon={Rocket} label="Assistiram (deram play)" value={`${videoStart} (${videoStartUnique} únicos)`} color="text-emerald-300" />
-          <Stat icon={TrendingUp} label="Chegaram a 25%" value={video25} color="text-cyan-300" />
-          <Stat icon={TrendingUp} label="Chegaram a 50%" value={`${video50} (${video50Unique} únicos)`} color="text-amber-300" />
-          <Stat icon={CheckCircle2} label="Assistiram 100%" value={`${video100} (${video100Unique} únicos)`} color="text-emerald-400" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <Stat icon={Eye} label="📱 Acessos por celular" value={mobileVisits} color="text-cyan-400" />
-          <Stat icon={Eye} label="🖥️ Acessos por computador" value={desktopVisits} color="text-violet-400" />
-          <Stat icon={Rocket} label="📱 Assistiram por celular" value={mobileWatched} color="text-cyan-300" />
-          <Stat icon={Rocket} label="🖥️ Assistiram por computador" value={desktopWatched} color="text-violet-300" />
-        </div>
-
-
-
-        {/* Desconto / Funil de venda */}
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Funil de desconto e vendas</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <Stat icon={Users} label="Leads (cadastros)" value={leads.length} />
-          <Stat icon={Clock} label="Desconto ativo" value={activeLeads} color="text-yellow-400" />
-          <Stat icon={CheckCircle2} label="Acessaram desconto" value={accessed} color="text-green-400" />
-          <Stat icon={DollarSign} label="Compras aprovadas" value={totalPurchases} color="text-emerald-400" />
-          <Stat icon={TrendingUp} label="Conversão lead → compra" value={`${leadsConverted} (${convRate}%)`} color="text-cyan-400" />
-        </div>
-
-        {/* Vídeo do /renda-extra2 */}
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-2"><Video className="w-3 h-3" /> Vídeo exibido em /renda-extra2 (Prestar Serviço)</h2>
-        <Card className="p-4 bg-zinc-900 border-zinc-800 mb-6 space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Input placeholder="Título (opcional)" value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white md:col-span-2" />
-            <Input placeholder="video_url (ex: /videos/arquivo.mp4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
-            <Input placeholder="hls_url (ex: /videos/hls/arquivo/master.m3u8)" value={hlsUrl} onChange={(e) => setHlsUrl(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
-            <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} variant="outline">
-              <Upload className="w-4 h-4 mr-2" /> {uploading ? `Enviando ${uploadProgress}%` : "Enviar vídeo p/ servidor"}
-            </Button>
-            <Button onClick={loadServerVideos} variant="outline" disabled={loadingVideos}>
-              {loadingVideos ? <Loader2 className="w-4 h-4 animate-spin" /> : "Recarregar lista"}
-            </Button>
-            <Button onClick={saveVideo} className="bg-emerald-600 hover:bg-emerald-700 ml-auto">
-              <Save className="w-4 h-4 mr-2" /> Salvar (publicar em /renda-extra2)
-            </Button>
-          </div>
-
-          {uploading && (
-            <div className="space-y-1">
-              <div className="text-xs text-zinc-400 flex justify-between"><span>📤 Enviando vídeo ao servidor...</span><span>{uploadProgress}%</span></div>
-              <Progress value={uploadProgress} />
+        <div className="flex items-center justify-between mb-6 p-4 rounded-xl bg-gradient-to-r from-violet-600/20 via-fuchsia-600/10 to-cyan-600/20 border border-zinc-800 ring-1 ring-violet-500/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-600 shadow-lg shadow-fuchsia-500/30">
+              <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
-          )}
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-fuchsia-300 via-violet-200 to-cyan-300 bg-clip-text text-transparent">Admin · Desconto Renda Extra 4</h1>
+              <p className="text-[11px] text-zinc-400">Dashboard, vídeo, leads e remarketing</p>
+            </div>
+          </div>
+          <Button variant="outline" onClick={logout} className="border-zinc-700"><LogOut className="w-4 h-4 mr-2" /> Sair</Button>
+        </div>
 
-          {transcoding && (
-            <div className="space-y-1 p-3 rounded-lg bg-zinc-800/60 border border-zinc-700">
-              <div className="text-xs text-zinc-300 flex justify-between items-center">
-                <span className="flex items-center gap-2">
-                  {transcoding.status === "completed" ? (
-                    <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Transcoding concluído — vídeo pronto!</>
-                  ) : transcoding.status === "error" ? (
-                    <span className="text-red-400">❌ Erro no transcoding{transcoding.error ? `: ${transcoding.error}` : ""}</span>
-                  ) : transcoding.status === "queued" ? (
-                    <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Vídeo recebido — preparando transcoding...</>
-                  ) : (
-                    <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Transcodificando HLS (240p / 480p / 720p / 1080p)...</>
-                  )}
-                </span>
-                <span className="font-mono text-amber-300">{transcoding.progress}%</span>
+        <Tabs defaultValue="dashboard" className="space-y-4">
+          <TabsList className="bg-zinc-900/70 border border-zinc-800 p-1 flex flex-wrap h-auto">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-sky-600 data-[state=active]:text-white"><BarChart3 className="w-4 h-4 mr-1" />Dashboard</TabsTrigger>
+            <TabsTrigger value="video" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-600 data-[state=active]:to-orange-600 data-[state=active]:text-white"><Video className="w-4 h-4 mr-1" />Vídeo</TabsTrigger>
+            <TabsTrigger value="leads" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white"><ListChecks className="w-4 h-4 mr-1" />Leads ({leads.length})</TabsTrigger>
+            <TabsTrigger value="purchases" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-lime-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white"><ShoppingBag className="w-4 h-4 mr-1" />Compras ({totalPurchases})</TabsTrigger>
+            <TabsTrigger value="visits" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white"><Activity className="w-4 h-4 mr-1" />Eventos ({visits.length})</TabsTrigger>
+            <TabsTrigger value="remarketing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"><Megaphone className="w-4 h-4 mr-1" />Remarketing</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-4">
+            <Accordion type="multiple" defaultValue={["pages", "video-eng", "funnel"]} className="space-y-3">
+              <AccordionItem value="pages" className="border border-zinc-800 rounded-xl bg-zinc-950/40 px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <SectionTitle icon={Eye} accent="cyan">Visitas das páginas</SectionTitle>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pb-2">
+                    <Stat icon={Eye} label="/renda-extra2" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} accent="cyan" />
+                    <Stat icon={Eye} label="/estruturarendaextra4" value={`${visitsEstrutura4} (${uniqueIps("/estruturarendaextra4")} únicos)`} accent="sky" />
+                    <Stat icon={Eye} label="/descontoalunosrendaextrasss" value={`${visitsDiscount} (${uniqueIps("/descontoalunosrendaextrasss")} únicos)`} accent="violet" />
+                    <Stat icon={MousePointerClick} label="Total de eventos" value={visits.length} accent="fuchsia" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="clicks" className="border border-zinc-800 rounded-xl bg-zinc-950/40 px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <SectionTitle icon={MousePointerClick} accent="emerald">Cliques em /renda-extra2</SectionTitle>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pb-2">
+                    <Stat icon={Briefcase} label="Prestar Serviço com MRO" value={clicksPrestar} accent="emerald" />
+                    <Stat icon={Crown} label="Seja um Licenciado MRO" value={clicksLicenciado} accent="amber" />
+                    <Stat icon={Rocket} label="Acessar Renda Extra Agora" value={clicksAcessar} accent="lime" />
+                    <Stat icon={TrendingUp} label="Prestar → Acessar (IPs únicos)" value={prestarAndAcessar} accent="cyan" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="video-eng" className="border border-zinc-800 rounded-xl bg-zinc-950/40 px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <SectionTitle icon={Gauge} accent="amber">Engajamento do vídeo (/renda-extra2)</SectionTitle>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3 pb-2">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <Stat icon={Eye} label="Acessaram a página" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} accent="cyan" />
+                    <Stat icon={Rocket} label="Assistiram (deram play)" value={`${videoStart} (${videoStartUnique} únicos)`} accent="emerald" />
+                    <Stat icon={TrendingUp} label="Chegaram a 25%" value={video25} accent="sky" />
+                    <Stat icon={TrendingUp} label="Chegaram a 50%" value={`${video50} (${video50Unique} únicos)`} accent="amber" />
+                    <Stat icon={CheckCircle2} label="Assistiram 100%" value={`${video100} (${video100Unique} únicos)`} accent="lime" />
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Stat icon={Smartphone} label="📱 Acessos por celular" value={mobileVisits} accent="cyan" />
+                    <Stat icon={Monitor} label="🖥️ Acessos por computador" value={desktopVisits} accent="violet" />
+                    <Stat icon={Smartphone} label="📱 Assistiram por celular" value={mobileWatched} accent="sky" />
+                    <Stat icon={Monitor} label="🖥️ Assistiram por computador" value={desktopWatched} accent="fuchsia" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="funnel" className="border border-zinc-800 rounded-xl bg-zinc-950/40 px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <SectionTitle icon={DollarSign} accent="lime">Funil de desconto e vendas</SectionTitle>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pb-2">
+                    <Stat icon={Users} label="Leads (cadastros)" value={leads.length} accent="cyan" />
+                    <Stat icon={Clock} label="Desconto ativo" value={activeLeads} accent="amber" />
+                    <Stat icon={CheckCircle2} label="Acessaram desconto" value={accessed} accent="emerald" />
+                    <Stat icon={DollarSign} label="Compras aprovadas" value={totalPurchases} accent="lime" />
+                    <Stat icon={TrendingUp} label="Conversão lead → compra" value={`${leadsConverted} (${convRate}%)`} accent="fuchsia" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </TabsContent>
+
+          <TabsContent value="video">
+            <Card className="p-4 bg-zinc-950/60 border border-zinc-800 ring-1 ring-amber-500/20 space-y-3">
+              <SectionTitle icon={Settings2} accent="amber">Vídeo exibido em /renda-extra2 (Prestar Serviço)</SectionTitle>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input placeholder="Título (opcional)" value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white md:col-span-2" />
+                <Input placeholder="video_url (ex: /videos/arquivo.mp4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Input placeholder="hls_url (ex: /videos/hls/arquivo/master.m3u8)" value={hlsUrl} onChange={(e) => setHlsUrl(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
               </div>
-              <Progress value={transcoding.progress} />
-              <div className="flex justify-between items-center text-[10px] text-zinc-500">
-                <span>Job: {transcoding.jobId} — pode levar alguns minutos.</span>
-                <button type="button" onClick={() => { setShowLogs((s) => !s); fetchLogs(transcoding.jobId); }} className="underline hover:text-amber-300">
-                  {showLogs ? "Ocultar logs" : "Ver logs do servidor"}
-                </button>
+
+              <div className="flex flex-wrap gap-2">
+                <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
+                <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white">
+                  <Upload className="w-4 h-4 mr-2" /> {uploading ? `Enviando ${uploadProgress}%` : "Enviar vídeo p/ servidor"}
+                </Button>
+                <Button onClick={loadServerVideos} variant="outline" disabled={loadingVideos}>
+                  {loadingVideos ? <Loader2 className="w-4 h-4 animate-spin" /> : "Recarregar lista"}
+                </Button>
+                <Button onClick={saveVideo} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 ml-auto">
+                  <Save className="w-4 h-4 mr-2" /> Salvar (publicar em /renda-extra2)
+                </Button>
               </div>
-              {showLogs && (
-                <div className="mt-2 max-h-48 overflow-y-auto rounded bg-black/60 border border-zinc-700 p-2 font-mono text-[10px] text-zinc-300 whitespace-pre-wrap">
-                  {transcodeLogs.length === 0 ? (
-                    <div className="text-zinc-500">Nenhum log ainda. Aguardando ffmpeg iniciar…</div>
-                  ) : (
-                    transcodeLogs.map((l, i) => <div key={i}>{l}</div>)
+
+              {uploading && (
+                <div className="space-y-1">
+                  <div className="text-xs text-zinc-400 flex justify-between"><span>📤 Enviando vídeo ao servidor...</span><span>{uploadProgress}%</span></div>
+                  <Progress value={uploadProgress} />
+                </div>
+              )}
+
+              {transcoding && (
+                <div className="space-y-1 p-3 rounded-lg bg-zinc-900/80 border border-amber-500/30">
+                  <div className="text-xs text-zinc-300 flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      {transcoding.status === "completed" ? (
+                        <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Transcoding concluído — vídeo pronto!</>
+                      ) : transcoding.status === "error" ? (
+                        <span className="text-red-400">❌ Erro no transcoding{transcoding.error ? `: ${transcoding.error}` : ""}</span>
+                      ) : transcoding.status === "queued" ? (
+                        <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Vídeo recebido — preparando transcoding...</>
+                      ) : (
+                        <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Transcodificando HLS (240p / 480p / 720p / 1080p)...</>
+                      )}
+                    </span>
+                    <span className="font-mono text-amber-300">{transcoding.progress}%</span>
+                  </div>
+                  <Progress value={transcoding.progress} />
+                  <div className="flex justify-between items-center text-[10px] text-zinc-500">
+                    <span>Job: {transcoding.jobId} — pode levar alguns minutos.</span>
+                    <button type="button" onClick={() => { setShowLogs((s) => !s); fetchLogs(transcoding.jobId); }} className="underline hover:text-amber-300">
+                      {showLogs ? "Ocultar logs" : "Ver logs do servidor"}
+                    </button>
+                  </div>
+                  {showLogs && (
+                    <div className="mt-2 max-h-48 overflow-y-auto rounded bg-black/60 border border-zinc-700 p-2 font-mono text-[10px] text-zinc-300 whitespace-pre-wrap">
+                      {transcodeLogs.length === 0 ? (
+                        <div className="text-zinc-500">Nenhum log ainda. Aguardando ffmpeg iniciar…</div>
+                      ) : (
+                        transcodeLogs.map((l, i) => <div key={i}>{l}</div>)
+                      )}
+                    </div>
                   )}
                 </div>
               )}
-            </div>
-          )}
 
-          {serverVideos.length > 0 && (
-            <div className="border border-zinc-800 rounded-lg max-h-56 overflow-y-auto">
-              {serverVideos.map((v) => (
-                <div key={v.name} className="flex items-center gap-2 p-2 border-b border-zinc-800 last:border-0 text-sm">
-                  <Video className="w-4 h-4 text-zinc-500 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate text-zinc-300">{v.name}</div>
-                    {(v.ready === false || v.status === "queued" || v.status === "processing" || v.status === "error") && (
-                      <div className="mt-1 flex items-center gap-2 text-[11px] text-zinc-500">
-                        {v.status === "error" ? (
-                          <span className="text-red-400">Erro no transcoding</span>
-                        ) : (
-                          <>
-                            <Loader2 className="w-3 h-3 animate-spin text-amber-400" />
-                            <span>Transcoding em andamento</span>
-                            <span className="font-mono text-amber-300">{Math.round(v.progress || 0)}%</span>
-                            <Progress value={v.progress || 0} className="h-1 w-28" />
-                          </>
+              {serverVideos.length > 0 && (
+                <div className="border border-zinc-800 rounded-lg max-h-56 overflow-y-auto">
+                  {serverVideos.map((v) => (
+                    <div key={v.name} className="flex items-center gap-2 p-2 border-b border-zinc-800 last:border-0 text-sm">
+                      <Video className="w-4 h-4 text-zinc-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate text-zinc-300">{v.name}</div>
+                        {(v.ready === false || v.status === "queued" || v.status === "processing" || v.status === "error") && (
+                          <div className="mt-1 flex items-center gap-2 text-[11px] text-zinc-500">
+                            {v.status === "error" ? (
+                              <span className="text-red-400">Erro no transcoding</span>
+                            ) : (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin text-amber-400" />
+                                <span>Transcoding em andamento</span>
+                                <span className="font-mono text-amber-300">{Math.round(v.progress || 0)}%</span>
+                                <Progress value={v.progress || 0} className="h-1 w-28" />
+                              </>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                  <Button size="sm" variant="outline" disabled={v.ready === false || v.can_use === false || v.status === "queued" || v.status === "processing" || v.status === "error"} onClick={() => selectExistingVideo(v)}>
-                    {v.ready === false || v.status === "queued" || v.status === "processing" ? "Aguarde" : "Usar"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => deleteServerVideo(v.name)}><Trash2 className="w-3 h-3 text-red-400" /></Button>
+                      <Button size="sm" variant="outline" disabled={v.ready === false || v.can_use === false || v.status === "queued" || v.status === "processing" || v.status === "error"} onClick={() => selectExistingVideo(v)}>
+                        {v.ready === false || v.status === "queued" || v.status === "processing" ? "Aguarde" : "Usar"}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => deleteServerVideo(v.name)}><Trash2 className="w-3 h-3 text-red-400" /></Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </Card>
+              )}
+            </Card>
+          </TabsContent>
 
-
-        <Tabs defaultValue="leads">
-          <TabsList className="bg-zinc-900">
-            <TabsTrigger value="leads">Leads ({leads.length})</TabsTrigger>
-            <TabsTrigger value="purchases">Compras ({totalPurchases})</TabsTrigger>
-            <TabsTrigger value="visits">Eventos ({visits.length})</TabsTrigger>
-            <TabsTrigger value="remarketing">Remarketing</TabsTrigger>
-          </TabsList>
 
           <TabsContent value="leads">
             <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
