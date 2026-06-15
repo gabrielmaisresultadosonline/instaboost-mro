@@ -122,7 +122,7 @@ const RendaExtraPage = () => {
 
         <div className="flex justify-center pt-4 pb-12">
           <Button
-            onClick={() => navigate('/estruturarendaextra4')}
+            onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
             className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-8 rounded-2xl bg-emerald-500 text-black font-black text-xl transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group"
           >
             ACESSAR RENDA EXTRA AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
