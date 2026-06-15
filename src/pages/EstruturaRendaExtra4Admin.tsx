@@ -323,7 +323,31 @@ export default function EstruturaRendaExtra4Admin() {
             </Button>
           </div>
 
-          {uploading && <Progress value={uploadProgress} />}
+          {uploading && (
+            <div className="space-y-1">
+              <div className="text-xs text-zinc-400 flex justify-between"><span>📤 Enviando vídeo ao servidor...</span><span>{uploadProgress}%</span></div>
+              <Progress value={uploadProgress} />
+            </div>
+          )}
+
+          {transcoding && (
+            <div className="space-y-1 p-3 rounded-lg bg-zinc-800/60 border border-zinc-700">
+              <div className="text-xs text-zinc-300 flex justify-between items-center">
+                <span className="flex items-center gap-2">
+                  {transcoding.status === "completed" ? (
+                    <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Transcoding concluído — vídeo pronto!</>
+                  ) : transcoding.status === "error" ? (
+                    <span className="text-red-400">❌ Erro no transcoding</span>
+                  ) : (
+                    <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Transcodificando HLS (240p / 480p / 720p / 1080p)...</>
+                  )}
+                </span>
+                <span className="font-mono text-amber-300">{transcoding.progress}%</span>
+              </div>
+              <Progress value={transcoding.progress} />
+              <div className="text-[10px] text-zinc-500">Job: {transcoding.jobId} — pode levar alguns minutos dependendo do tamanho do vídeo.</div>
+            </div>
+          )}
 
           {serverVideos.length > 0 && (
             <div className="border border-zinc-800 rounded-lg max-h-56 overflow-y-auto">
