@@ -150,8 +150,10 @@ export default function EstruturaRendaExtra4Admin() {
       if (result.success) {
         setVideoUrl(result.video_url);
         setHlsUrl(result.hls_url);
-        toast.success("Upload concluído! Transcoding HLS iniciado.");
-        loadServerVideos();
+        toast.success("Upload concluído! Transcodificando HLS...");
+        // Inicia polling de status do transcoding
+        setTranscoding({ jobId: result.job_id, progress: 0, status: "processing" });
+        pollTranscodingStatus(result.job_id);
       } else {
         toast.error("Servidor recusou o upload: " + (result.error || "resposta sem success"));
       }
@@ -159,6 +161,32 @@ export default function EstruturaRendaExtra4Admin() {
       console.error("[upload] Erro VPS:", err);
       toast.error(err.message || "Erro no upload");
     } finally { setUploading(false); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
+  };
+
+  const pollTranscodingStatus = async (jobId: string) => {
+    const tick = async () => {
+      try {
+        const res = await fetch(`${VIDEO_SERVER}/api/video/status/${encodeURIComponent(jobId)}`);
+        if (!res.ok) throw new Error("status not found");
+        const data = await res.json();
+        setTranscoding({ jobId, progress: data.progress || 0, status: data.status });
+        if (data.status === "completed") {
+          toast.success("Transcoding concluído! Vídeo pronto.");
+          setTimeout(() => setTranscoding(null), 3000);
+          loadServerVideos();
+          return;
+        }
+        if (data.status === "error") {
+          toast.error("Erro no transcoding do vídeo.");
+          setTimeout(() => setTranscoding(null), 5000);
+          return;
+        }
+        setTimeout(tick, 2000);
+      } catch {
+        setTimeout(tick, 3000);
+      }
+    };
+    tick();
   };
 
   const saveVideo = async () => {
