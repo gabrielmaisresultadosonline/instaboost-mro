@@ -502,6 +502,108 @@ serve(async (req) => {
       });
     }
 
+    if (action === "process_remarketing_queue") {
+      if (String(body.cron_secret || "") !== CRON_SECRET) {
+        return new Response(JSON.stringify({ success: false, error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const nowIso = new Date().toISOString();
+      const { data: due } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at")
+        .eq("auto_remarketing_enabled", true)
+        .lte("next_send_at", nowIso)
+        .is("accessed_discount_at", null)
+        .gt("expires_at", nowIso)
+        .lt("remarketing_stage", 4)
+        .order("next_send_at", { ascending: true })
+        .limit(50);
+
+      const leads = due || [];
+      if (leads.length === 0) {
+        return new Response(JSON.stringify({ success: true, processed: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Filter out leads that already bought
+      const emails = leads.map((l: any) => String(l.email).toLowerCase());
+      const paidSet = new Set<string>();
+      const { data: paid } = await supabase
+        .from("paid_users")
+        .select("email, subscription_status, subscription_end")
+        .in("email", emails);
+      (paid || []).forEach((p: any) => {
+        const active = ["active","paid","approved","confirmed"].includes(String(p.subscription_status||"").toLowerCase())
+          || (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now());
+        if (active) paidSet.add(String(p.email).toLowerCase());
+      });
+      const { data: mroOrders } = await supabase.from("mro_orders").select("email").in("status", ["paid","completed"]).in("email", emails);
+      (mroOrders || []).forEach((o: any) => paidSet.add(String(o.email).toLowerCase()));
+      const { data: createdAcc } = await supabase.from("created_accesses").select("customer_email").in("customer_email", emails);
+      (createdAcc || []).forEach((a: any) => paidSet.add(String(a.customer_email).toLowerCase()));
+
+      let processed = 0;
+      let skipped = 0;
+      for (const lead of leads) {
+        const emailLower = String(lead.email).toLowerCase();
+        if (paidSet.has(emailLower)) {
+          // Lead already bought — stop auto remarketing
+          await supabase.from("estrutura4_discount_leads")
+            .update({ auto_remarketing_enabled: false, next_send_at: null })
+            .eq("id", lead.id);
+          skipped++;
+          continue;
+        }
+
+        const currentStage: number = lead.remarketing_stage || 1;
+        const nextStage = currentStage + 1; // 2, 3 or 4
+        const tplIdx = nextStage - 2; // 0,1,2
+        const tpl = FOLLOWUP_TEMPLATES[tplIdx];
+        if (!tpl) {
+          await supabase.from("estrutura4_discount_leads")
+            .update({ auto_remarketing_enabled: false, next_send_at: null })
+            .eq("id", lead.id);
+          continue;
+        }
+
+        const hoursLeft = Math.max(1, Math.floor((new Date(lead.expires_at).getTime() - Date.now()) / 3600000));
+        const link = `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`;
+        const html = tpl.build(lead.nome || "Aluno", link, hoursLeft);
+        const sent = await sendEmail(emailLower, tpl.subject(hoursLeft), html);
+
+        const newNext = scheduleNext(nextStage);
+        await supabase.from("estrutura4_discount_leads")
+          .update({
+            emails_sent_count: nextStage,
+            remarketing_stage: nextStage,
+            last_email_sent_at: new Date().toISOString(),
+            next_send_at: newNext,
+            auto_remarketing_enabled: newNext !== null,
+          })
+          .eq("id", lead.id);
+
+        await supabase.from("estrutura4_remarketing_logs").insert({
+          email: emailLower,
+          nome: lead.nome,
+          source_page: `auto-stage-${nextStage}`,
+          link,
+          success: sent,
+          notes: sent ? `Follow-up automático estágio ${nextStage}` : "SMTP falhou",
+        });
+
+        processed++;
+        // Small delay to avoid SMTP burst
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+
+      return new Response(JSON.stringify({ success: true, processed, skipped, total: leads.length }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
