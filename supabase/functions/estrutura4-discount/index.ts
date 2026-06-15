@@ -515,8 +515,6 @@ serve(async (req) => {
         .select("id, email, nome, token, expires_at, remarketing_stage, accessed_discount_at")
         .eq("auto_remarketing_enabled", true)
         .lte("next_send_at", nowIso)
-        .is("accessed_discount_at", null)
-        .gt("expires_at", nowIso)
         .lt("remarketing_stage", 4)
         .order("next_send_at", { ascending: true })
         .limit(50);
