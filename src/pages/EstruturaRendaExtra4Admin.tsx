@@ -68,6 +68,8 @@ export default function EstruturaRendaExtra4Admin() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [transcoding, setTranscoding] = useState<{ jobId: string; progress: number; status: string; error?: string | null } | null>(null);
+  const [transcodeLogs, setTranscodeLogs] = useState<string[]>([]);
+  const [showLogs, setShowLogs] = useState(false);
   const [serverVideos, setServerVideos] = useState<ServerVideo[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -207,6 +209,15 @@ export default function EstruturaRendaExtra4Admin() {
     } finally { setUploading(false); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
   };
 
+  const fetchLogs = async (jobId: string) => {
+    try {
+      const r = await fetch(`${VIDEO_SERVER}/api/video/logs/${encodeURIComponent(jobId)}`);
+      if (!r.ok) return;
+      const j = await r.json();
+      if (Array.isArray(j.logs)) setTranscodeLogs(j.logs);
+    } catch {}
+  };
+
   const pollTranscodingStatus = async (jobId: string) => {
     const tick = async () => {
       try {
@@ -215,6 +226,7 @@ export default function EstruturaRendaExtra4Admin() {
         const data = await res.json();
         setTranscoding({ jobId, progress: data.progress || 0, status: data.status, error: data.error || null });
         setServerVideos((prev) => prev.map((v) => v.name === jobId ? { ...v, status: data.status, progress: data.progress || 0, ready: data.status === "completed", can_use: data.status === "completed" } : v));
+        fetchLogs(jobId);
         if (data.status === "completed") {
           toast.success("Transcoding concluído! Vídeo pronto.");
           localStorage.removeItem(TRANSCODING_STORAGE_KEY);
@@ -225,7 +237,7 @@ export default function EstruturaRendaExtra4Admin() {
         if (data.status === "error") {
           toast.error("Erro no transcoding do vídeo." + (data.error ? ` ${data.error}` : ""));
           localStorage.removeItem(TRANSCODING_STORAGE_KEY);
-          transcodingTimeoutRef.current = window.setTimeout(() => setTranscoding(null), 8000);
+          transcodingTimeoutRef.current = window.setTimeout(() => setTranscoding(null), 30000);
           loadServerVideos();
           return;
         }
@@ -396,7 +408,21 @@ export default function EstruturaRendaExtra4Admin() {
                 <span className="font-mono text-amber-300">{transcoding.progress}%</span>
               </div>
               <Progress value={transcoding.progress} />
-              <div className="text-[10px] text-zinc-500">Job: {transcoding.jobId} — pode levar alguns minutos dependendo do tamanho do vídeo.</div>
+              <div className="flex justify-between items-center text-[10px] text-zinc-500">
+                <span>Job: {transcoding.jobId} — pode levar alguns minutos.</span>
+                <button type="button" onClick={() => { setShowLogs((s) => !s); fetchLogs(transcoding.jobId); }} className="underline hover:text-amber-300">
+                  {showLogs ? "Ocultar logs" : "Ver logs do servidor"}
+                </button>
+              </div>
+              {showLogs && (
+                <div className="mt-2 max-h-48 overflow-y-auto rounded bg-black/60 border border-zinc-700 p-2 font-mono text-[10px] text-zinc-300 whitespace-pre-wrap">
+                  {transcodeLogs.length === 0 ? (
+                    <div className="text-zinc-500">Nenhum log ainda. Aguardando ffmpeg iniciar…</div>
+                  ) : (
+                    transcodeLogs.map((l, i) => <div key={i}>{l}</div>)
+                  )}
+                </div>
+              )}
             </div>
           )}
 
