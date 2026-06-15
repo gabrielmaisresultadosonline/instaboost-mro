@@ -174,12 +174,17 @@ const startTranscoding = (jobId, inputPath, outputDir) => {
         const hasAudio = !probeErr && Array.isArray(metadata?.streams) && metadata.streams.some((s) => s.codec_type === 'audio');
         appendLog(jobId, `PROBE ok | duration=${duration.toFixed(1)}s | hasAudio=${hasAudio}`);
 
-        const renditions = [
+        const videoStream = !probeErr && Array.isArray(metadata?.streams) ? metadata.streams.find((s) => s.codec_type === 'video') : null;
+        const sourceHeight = Number(videoStream?.height || 1080);
+        const allRenditions = [
             { name: '240p',  w: 426,  h: 240,  vb: '400k',  maxrate: '450k',  bufsize: '600k',  ab: '64k'  },
             { name: '480p',  w: 854,  h: 480,  vb: '1000k', maxrate: '1100k', bufsize: '1500k', ab: '96k'  },
             { name: '720p',  w: 1280, h: 720,  vb: '2500k', maxrate: '2750k', bufsize: '3500k', ab: '128k' },
             { name: '1080p', w: 1920, h: 1080, vb: '5000k', maxrate: '5500k', bufsize: '7000k', ab: '192k' }
         ];
+        const renditions = allRenditions.filter((r) => r.h <= sourceHeight + 16);
+        if (!renditions.length) renditions.push(allRenditions[0]);
+        appendLog(jobId, `RENDITIONS: sourceHeight=${sourceHeight} | ${renditions.map((r) => r.name).join(', ')}`);
 
         const varStreamMap = renditions.map((_, i) => hasAudio ? `v:${i},a:${i}` : `v:${i}`).join(' ');
         const args = [];
@@ -189,7 +194,7 @@ const startTranscoding = (jobId, inputPath, outputDir) => {
             args.push(
                 `-c:v:${i}`, 'libx264', '-preset', 'veryfast', `-profile:v:${i}`, 'main',
                 `-b:v:${i}`, r.vb, `-maxrate:v:${i}`, r.maxrate, `-bufsize:v:${i}`, r.bufsize,
-                `-filter:v:${i}`, `scale=w=${r.w}:h=${r.h}:force_original_aspect_ratio=decrease`,
+                `-filter:v:${i}`, `scale=w=${r.w}:h=${r.h}:force_original_aspect_ratio=decrease:force_divisible_by=2`,
                 `-g:v:${i}`, '60', `-keyint_min:v:${i}`, '60', `-sc_threshold:v:${i}`, '0'
             );
             if (hasAudio) args.push(`-c:a:${i}`, 'aac', `-b:a:${i}`, r.ab, '-ac', '2');
