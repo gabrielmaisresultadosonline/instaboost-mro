@@ -667,6 +667,29 @@ serve(async (req) => {
       return await sendEmail(email, tpl.subject, tpl.html(nome || "", link));
     };
 
+    // After the first video-trigger email is sent (inactivity OR 100%),
+    // start the 3 standard followups by enabling remarketing on the lead.
+    const startLeadFollowups = async (email: string) => {
+      const { data: lead } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("id, auto_remarketing_enabled, remarketing_stage")
+        .eq("email", email)
+        .maybeSingle();
+      if (!lead) return;
+      // Already in the followup flow → don't reset.
+      if (lead.auto_remarketing_enabled && (lead.remarketing_stage || 0) >= 1) return;
+      await supabase
+        .from("estrutura4_discount_leads")
+        .update({
+          auto_remarketing_enabled: true,
+          remarketing_stage: 1,
+          next_send_at: scheduleNext(1),
+          last_email_sent_at: new Date().toISOString(),
+        })
+        .eq("id", lead.id);
+    };
+
+
     if (action === "track_video_access") {
       const email = String(body.email || "").trim().toLowerCase();
       const nome = String(body.nome || "").trim();
