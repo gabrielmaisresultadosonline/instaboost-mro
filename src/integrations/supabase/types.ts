@@ -1709,6 +1709,45 @@ export type Database = {
         }
         Relationships: []
       }
+      estrutura4_discount_video_log: {
+        Row: {
+          abandoned_email_sent_at: string | null
+          accessed_at: string
+          created_at: string
+          email: string
+          id: string
+          last_milestone: string
+          last_progress_at: string
+          milestones_sent: Json
+          nome: string | null
+          updated_at: string
+        }
+        Insert: {
+          abandoned_email_sent_at?: string | null
+          accessed_at?: string
+          created_at?: string
+          email: string
+          id?: string
+          last_milestone?: string
+          last_progress_at?: string
+          milestones_sent?: Json
+          nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          abandoned_email_sent_at?: string | null
+          accessed_at?: string
+          created_at?: string
+          email?: string
+          id?: string
+          last_milestone?: string
+          last_progress_at?: string
+          milestones_sent?: Json
+          nome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       estrutura4_discount_visits: {
         Row: {
           created_at: string
