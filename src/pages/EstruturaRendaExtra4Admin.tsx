@@ -159,7 +159,7 @@ export default function EstruturaRendaExtra4Admin() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024 * 1024) { toast.error("Máx 3GB"); return; }
+    if (file.size > 5 * 1024 * 1024 * 1024) { toast.error("Máx 5GB"); return; }
     setUploading(true); setUploadProgress(0);
     try {
       const formData = new FormData();
