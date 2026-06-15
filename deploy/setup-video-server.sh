@@ -94,13 +94,53 @@ app.post('/api/video/upload', upload.single('video'), (req, res) => {
     const jobId = fileName;
     jobs[jobId] = { status: 'processing', progress: 0 };
 
-    // Iniciar transcoding HLS em background
+    // Transcoding HLS ABR (Adaptive Bitrate) — 4 renditions: 240p / 480p / 720p / 1080p
+    // Player escolhe automaticamente conforme a conexão (3G fraco -> 240p, WiFi -> 1080p)
+    const renditions = [
+        { name: '240p',  w: 426,  h: 240,  vb: '400k',  maxrate: '450k',  bufsize: '600k',  ab: '64k'  },
+        { name: '480p',  w: 854,  h: 480,  vb: '1000k', maxrate: '1100k', bufsize: '1500k', ab: '96k'  },
+        { name: '720p',  w: 1280, h: 720,  vb: '2500k', maxrate: '2750k', bufsize: '3500k', ab: '128k' },
+        { name: '1080p', w: 1920, h: 1080, vb: '5000k', maxrate: '5500k', bufsize: '7000k', ab: '192k' }
+    ];
+
+    const cmd = ffmpeg(inputPath);
+    const varStreamMap = renditions.map((_, i) => `v:${i},a:${i}`).join(' ');
+
+    renditions.forEach((r) => {
+        cmd.output(path.join(outputDir, `${r.name}_%v.m3u8`)).noop;
+    });
+
+    // Build single ffmpeg run with multiple outputs via filter_complex split
+    const args = [];
+    renditions.forEach((r, i) => {
+        args.push(
+            '-map', '0:v:0', '-map', '0:a:0?',
+            `-c:v:${i}`, 'libx264', `-preset`, 'veryfast', `-profile:v:${i}`, 'main',
+            `-b:v:${i}`, r.vb, `-maxrate:v:${i}`, r.maxrate, `-bufsize:v:${i}`, r.bufsize,
+            `-filter:v:${i}`, `scale=w=${r.w}:h=${r.h}:force_original_aspect_ratio=decrease`,
+            `-c:a:${i}`, 'aac', `-b:a:${i}`, r.ab, '-ac', '2'
+        );
+    });
+
     ffmpeg(inputPath)
-        .output(path.join(outputDir, 'master.m3u8'))
-        .format('hls')
-        .addOption('-hls_time', 10)
-        .addOption('-hls_list_size', 0)
-        .addOption('-hls_segment_filename', path.join(outputDir, 'seg_%d.ts'))
+        .addOptions(args)
+        .addOptions([
+            '-f', 'hls',
+            '-hls_time', '6',
+            '-hls_playlist_type', 'vod',
+            '-hls_list_size', '0',
+            '-hls_segment_filename', path.join(outputDir, 'stream_%v/seg_%d.ts'),
+            '-master_pl_name', 'master.m3u8',
+            '-var_stream_map', varStreamMap
+        ])
+        .output(path.join(outputDir, 'stream_%v.m3u8'))
+        .on('start', () => {
+            // Garante subpastas para cada variante
+            renditions.forEach((_, i) => {
+                const sub = path.join(outputDir, `stream_${i}`);
+                if (!fs.existsSync(sub)) fs.mkdirSync(sub, { recursive: true });
+            });
+        })
         .on('progress', (progress) => {
             if (jobs[jobId]) jobs[jobId].progress = Math.round(progress.percent || 0);
         })
@@ -109,7 +149,7 @@ app.post('/api/video/upload', upload.single('video'), (req, res) => {
                 jobs[jobId].status = 'completed';
                 jobs[jobId].progress = 100;
             }
-            fs.unlinkSync(inputPath); // Remove original upload
+            try { fs.unlinkSync(inputPath); } catch (e) {}
         })
         .on('error', (err) => {
             console.error('FFmpeg error:', err);
