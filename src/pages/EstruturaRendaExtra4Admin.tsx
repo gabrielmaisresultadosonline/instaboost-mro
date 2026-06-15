@@ -373,6 +373,24 @@ export default function EstruturaRendaExtra4Admin() {
           <Stat icon={TrendingUp} label="Prestar → Acessar (IPs únicos)" value={prestarAndAcessar} color="text-cyan-400" />
         </div>
 
+        {/* Engajamento do vídeo */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-2"><Video className="w-3 h-3" /> Engajamento do vídeo (/renda-extra2)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+          <Stat icon={Eye} label="Acessaram a página" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} />
+          <Stat icon={Rocket} label="Assistiram (deram play)" value={`${videoStart} (${videoStartUnique} únicos)`} color="text-emerald-300" />
+          <Stat icon={TrendingUp} label="Chegaram a 25%" value={video25} color="text-cyan-300" />
+          <Stat icon={TrendingUp} label="Chegaram a 50%" value={`${video50} (${video50Unique} únicos)`} color="text-amber-300" />
+          <Stat icon={CheckCircle2} label="Assistiram 100%" value={`${video100} (${video100Unique} únicos)`} color="text-emerald-400" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Stat icon={Eye} label="📱 Acessos por celular" value={mobileVisits} color="text-cyan-400" />
+          <Stat icon={Eye} label="🖥️ Acessos por computador" value={desktopVisits} color="text-violet-400" />
+          <Stat icon={Rocket} label="📱 Assistiram por celular" value={mobileWatched} color="text-cyan-300" />
+          <Stat icon={Rocket} label="🖥️ Assistiram por computador" value={desktopWatched} color="text-violet-300" />
+        </div>
+
+
+
         {/* Desconto / Funil de venda */}
         <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Funil de desconto e vendas</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
