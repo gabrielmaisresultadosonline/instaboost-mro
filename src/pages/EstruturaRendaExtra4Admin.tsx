@@ -1007,7 +1007,14 @@ export default function EstruturaRendaExtra4Admin() {
                   <tbody>
                     {videoAccess.map((row) => {
                       const ms = row.milestones_sent || {};
-                      const sentLabels = ["access", "25", "50", "75", "100", "abandon"].filter((k) => ms[k]);
+                      // Only these keys represent emails actually sent.
+                      // 25/50/75 keys are milestone-reached markers, NOT emails.
+                      const sentLabels: string[] = [];
+                      if (ms["access"]) sentLabels.push("access");
+                      if (ms["inactivity_25"]) sentLabels.push("inatividade 25%");
+                      if (ms["inactivity_50"]) sentLabels.push("inatividade 50%");
+                      if (ms["inactivity_abandon"]) sentLabels.push("abandono");
+                      if (ms["100"]) sentLabels.push("100%");
                       return (
                         <tr key={row.id} className="border-b border-zinc-800/60 hover:bg-zinc-900/40">
                           <td className="py-2 px-2 text-white">{row.email}</td>
