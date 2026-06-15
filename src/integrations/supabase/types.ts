@@ -1727,6 +1727,45 @@ export type Database = {
         }
         Relationships: []
       }
+      estrutura4_remarketing_logs: {
+        Row: {
+          email: string
+          id: string
+          link: string | null
+          nome: string | null
+          notes: string | null
+          sent_at: string
+          source_page: string | null
+          success: boolean
+          tipo_computador: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          link?: string | null
+          nome?: string | null
+          notes?: string | null
+          sent_at?: string
+          source_page?: string | null
+          success?: boolean
+          tipo_computador?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          link?: string | null
+          nome?: string | null
+          notes?: string | null
+          sent_at?: string
+          source_page?: string | null
+          success?: boolean
+          tipo_computador?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
