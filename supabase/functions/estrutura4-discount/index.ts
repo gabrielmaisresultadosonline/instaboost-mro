@@ -766,7 +766,9 @@ serve(async (req) => {
           .eq("id", existing.id);
         if (shouldSendNow && !alreadySent100) {
           await sendVideoMilestoneEmail("100", email, useNome);
+          await startLeadFollowups(email);
         }
+
       }
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
