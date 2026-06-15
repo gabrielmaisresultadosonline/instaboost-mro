@@ -137,15 +137,30 @@ const secondsFromTimemark = (timemark) => {
     return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
 };
 
+const appendLog = (jobId, line) => {
+    try {
+        const outputDir = path.join(HLS_ROOT, jobId);
+        if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+        const logFile = path.join(outputDir, 'transcode.log');
+        const stamp = new Date().toISOString();
+        fs.appendFileSync(logFile, `[${stamp}] ${line}\n`);
+        console.log(`[${jobId}] ${line}`);
+    } catch (e) { console.error('log err', e); }
+};
+
 const startTranscoding = (jobId, inputPath, outputDir) => {
     writeJob(jobId, { status: 'processing', progress: 1 });
+    try {
+        const sz = fs.statSync(inputPath).size;
+        appendLog(jobId, `START transcoding | input=${inputPath} | size=${(sz/1024/1024).toFixed(2)}MB`);
+    } catch (e) { appendLog(jobId, `START transcoding | stat error: ${e.message}`); }
 
     ffmpeg.ffprobe(inputPath, (probeErr, metadata) => {
+        if (probeErr) appendLog(jobId, `FFPROBE error: ${probeErr.message}`);
         const duration = Number(metadata?.format?.duration || 0);
         const hasAudio = !probeErr && Array.isArray(metadata?.streams) && metadata.streams.some((s) => s.codec_type === 'audio');
+        appendLog(jobId, `PROBE ok | duration=${duration.toFixed(1)}s | hasAudio=${hasAudio}`);
 
-        // Transcoding HLS ABR (Adaptive Bitrate) — 4 renditions: 240p / 480p / 720p / 1080p
-        // Player escolhe automaticamente conforme a conexão (3G fraco -> 240p, WiFi -> 1080p)
         const renditions = [
             { name: '240p',  w: 426,  h: 240,  vb: '400k',  maxrate: '450k',  bufsize: '600k',  ab: '64k'  },
             { name: '480p',  w: 854,  h: 480,  vb: '1000k', maxrate: '1100k', bufsize: '1500k', ab: '96k'  },
@@ -156,9 +171,7 @@ const startTranscoding = (jobId, inputPath, outputDir) => {
         const varStreamMap = renditions.map((_, i) => hasAudio ? `v:${i},a:${i}` : `v:${i}`).join(' ');
         const args = [];
         renditions.forEach((r, i) => {
-            args.push(
-                '-map', '0:v:0'
-            );
+            args.push('-map', '0:v:0');
             if (hasAudio) args.push('-map', '0:a:0');
             args.push(
                 `-c:v:${i}`, 'libx264', '-preset', 'veryfast', `-profile:v:${i}`, 'main',
@@ -186,18 +199,30 @@ const startTranscoding = (jobId, inputPath, outputDir) => {
                 '-var_stream_map', varStreamMap
             ])
             .output(path.join(outputDir, 'stream_%v.m3u8'))
+            .on('start', (cmd) => {
+                appendLog(jobId, `FFMPEG SPAWN: ${String(cmd).substring(0, 800)}`);
+            })
+            .on('codecData', (data) => {
+                appendLog(jobId, `CODEC: video=${data.video} | audio=${data.audio} | duration=${data.duration}`);
+            })
+            .on('stderr', (line) => {
+                if (/error|failed|Invalid|Unable|No such|Permission/i.test(line)) appendLog(jobId, `STDERR: ${line}`);
+            })
             .on('progress', (progress) => {
                 const byPercent = Number(progress.percent || 0);
                 const byTime = duration > 0 ? (secondsFromTimemark(progress.timemark) / duration) * 100 : 0;
                 const computed = Math.max(byPercent, byTime, 1);
                 writeJob(jobId, { status: 'processing', progress: computed });
+                appendLog(jobId, `PROGRESS ${computed.toFixed(1)}% | timemark=${progress.timemark} | fps=${progress.currentFps || 0} | kbps=${progress.currentKbps || 0} | frames=${progress.frames || 0}`);
             })
             .on('end', () => {
+                appendLog(jobId, `END ok — transcoding completed`);
                 writeJob(jobId, { status: 'completed', progress: 100 });
                 try { fs.unlinkSync(inputPath); } catch (e) {}
             })
             .on('error', (err) => {
                 console.error('FFmpeg error:', err);
+                appendLog(jobId, `FATAL ERROR: ${err.message || String(err)}`);
                 writeJob(jobId, { status: 'error', progress: readJob(jobId)?.progress || 0, error: err.message || String(err) });
             })
             .run();
