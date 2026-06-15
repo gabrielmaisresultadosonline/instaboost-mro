@@ -63,6 +63,12 @@ export default function EstruturaRendaExtra4Admin() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
 
+  // Manual lead creation
+  const [manualNome, setManualNome] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
+  const [manualWhatsapp, setManualWhatsapp] = useState("");
+  const [manualSending, setManualSending] = useState(false);
+
   // Video config
   const [videoUrl, setVideoUrl] = useState("");
   const [hlsUrl, setHlsUrl] = useState("");
