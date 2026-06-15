@@ -997,6 +997,7 @@ export default function EstruturaRendaExtra4Admin() {
                     <tr className="text-zinc-400 text-left border-b border-zinc-800">
                       <th className="py-2 px-2">Email</th>
                       <th className="py-2 px-2">Nome</th>
+                      <th className="py-2 px-2">WhatsApp</th>
                       <th className="py-2 px-2">Acesso</th>
                       <th className="py-2 px-2">Últ. progresso</th>
                       <th className="py-2 px-2">Marco</th>
@@ -1015,10 +1016,20 @@ export default function EstruturaRendaExtra4Admin() {
                       if (ms["inactivity_50"]) sentLabels.push("inatividade 50%");
                       if (ms["inactivity_abandon"]) sentLabels.push("abandono");
                       if (ms["100"]) sentLabels.push("100%");
+                      const waDigits = String(row.whatsapp || "").replace(/\D/g, "");
+                      const waLink = waDigits ? `https://wa.me/${waDigits.startsWith("55") ? waDigits : `55${waDigits}`}` : null;
                       return (
                         <tr key={row.id} className="border-b border-zinc-800/60 hover:bg-zinc-900/40">
                           <td className="py-2 px-2 text-white">{row.email}</td>
                           <td className="py-2 px-2 text-zinc-300">{row.nome || "-"}</td>
+                          <td className="py-2 px-2">
+                            {waLink ? (
+                              <a href={waLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300">
+                                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M19.05 4.91A10 10 0 0 0 2.2 17.4L1 22l4.7-1.2A10 10 0 1 0 19.05 4.91Zm-7.05 16a8 8 0 0 1-4.07-1.11l-.29-.17-2.79.73.75-2.72-.19-.3a8 8 0 1 1 6.59 3.57Zm4.6-5.95c-.25-.12-1.49-.74-1.72-.82s-.4-.12-.57.12-.65.81-.79.98-.29.18-.54.06a6.55 6.55 0 0 1-1.93-1.19 7.27 7.27 0 0 1-1.34-1.66c-.14-.25 0-.38.11-.5s.25-.29.37-.43a1.7 1.7 0 0 0 .25-.41.45.45 0 0 0 0-.43c-.06-.12-.57-1.38-.78-1.88s-.41-.43-.57-.43h-.49a.94.94 0 0 0-.68.32 2.86 2.86 0 0 0-.89 2.13 5 5 0 0 0 1.05 2.65 11.43 11.43 0 0 0 4.38 3.86c.61.26 1.09.42 1.46.54a3.51 3.51 0 0 0 1.61.1 2.63 2.63 0 0 0 1.72-1.21 2.13 2.13 0 0 0 .15-1.21c-.06-.11-.23-.18-.48-.3Z"/></svg>
+                                <span className="text-xs">{row.whatsapp}</span>
+                              </a>
+                            ) : <span className="text-zinc-600 text-xs">—</span>}
+                          </td>
                           <td className="py-2 px-2 text-zinc-400">{new Date(row.accessed_at).toLocaleString("pt-BR")}</td>
                           <td className="py-2 px-2 text-zinc-400">{new Date(row.last_progress_at).toLocaleString("pt-BR")}</td>
                           <td className="py-2 px-2">
@@ -1036,7 +1047,7 @@ export default function EstruturaRendaExtra4Admin() {
                       );
                     })}
                     {videoAccess.length === 0 && (
-                      <tr><td colSpan={7} className="text-center text-zinc-500 py-8">Nenhum acesso registrado ainda.</td></tr>
+                      <tr><td colSpan={8} className="text-center text-zinc-500 py-8">Nenhum acesso registrado ainda.</td></tr>
                     )}
                   </tbody>
                 </table>
