@@ -342,7 +342,7 @@ const RendaExtraPage = () => {
 
               {/* Custom controls */}
               {started && (
-                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <div className={`absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                   {/* Fake shrinking progress bar (non-interactive) */}
                   <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden pointer-events-none select-none">
                     <div className="h-full bg-emerald-500 rounded-full transition-[width] duration-300" style={{ width: `${progressPct}%` }} />
