@@ -660,7 +660,49 @@ export default function EstruturaRendaExtra4Admin() {
           </TabsContent>
 
 
-          <TabsContent value="leads">
+          <TabsContent value="leads" className="space-y-4">
+            <Card className="p-4 bg-gradient-to-br from-emerald-950/40 to-teal-950/40 border-emerald-800/50">
+              <div className="flex items-center gap-2 text-emerald-300 text-xs uppercase tracking-widest mb-3">
+                <Send className="w-3 h-3" /> Cadastrar lead manualmente (libera desconto 48h + ativa remarketing automático)
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <Input placeholder="Nome" value={manualNome} onChange={(e) => setManualNome(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Input placeholder="Email" type="email" value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Input placeholder="WhatsApp" value={manualWhatsapp} onChange={(e) => setManualWhatsapp(e.target.value)} className="bg-zinc-900 border-zinc-700 text-white" />
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  disabled={manualSending || !manualNome.trim() || !manualEmail.trim() || !manualWhatsapp.trim()}
+                  onClick={async () => {
+                    setManualSending(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("estrutura4-discount", {
+                        body: {
+                          action: "create_lead",
+                          nome: manualNome.trim(),
+                          email: manualEmail.trim().toLowerCase(),
+                          whatsapp: manualWhatsapp.trim(),
+                          source: "admin_manual",
+                        },
+                      });
+                      if (error || !data?.success) {
+                        toast.error("Erro ao cadastrar lead");
+                      } else {
+                        toast.success("Lead cadastrado! Desconto 48h liberado e email enviado.");
+                        setManualNome(""); setManualEmail(""); setManualWhatsapp("");
+                        if (creds) fetchData(creds);
+                      }
+                    } catch (e: any) {
+                      toast.error(e?.message || "Falha");
+                    } finally {
+                      setManualSending(false);
+                    }
+                  }}
+                >
+                  {manualSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4 mr-1" />Cadastrar + Enviar</>}
+                </Button>
+              </div>
+              <p className="text-xs text-zinc-400 mt-2">Se o cliente comprar dentro de 48h, o remarketing para automaticamente. Se não comprar, sequência de followups é disparada (8h, 18h, 32h).</p>
+            </Card>
             <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
