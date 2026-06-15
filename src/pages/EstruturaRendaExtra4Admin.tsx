@@ -771,10 +771,11 @@ export default function EstruturaRendaExtra4Admin() {
             <div className="space-y-4">
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Stat icon={Users} label="Leads (rendaextra)" value={rmLeads.length} />
-                <Stat icon={Ban} label="Já compraram (excluídos)" value={rmLeads.filter(l => rmPaidEmails.includes(l.email.toLowerCase())).length} color="text-red-400" />
-                <Stat icon={Send} label="Remarketings enviados" value={rmLogs.length} color="text-emerald-400" />
-                <Stat icon={MailCheck} label="Acessaram desconto" value={rmDiscountLeads.filter(d => d.accessed_discount_at).length} color="text-cyan-400" />
+                <Stat icon={Users} label="Leads (rendaextra)" value={rmLeads.length} accent="cyan" />
+                <Stat icon={Ban} label="Já compraram (excluídos)" value={rmLeads.filter(l => rmPaidEmails.includes(l.email.toLowerCase())).length} accent="rose" />
+                <Stat icon={Send} label="Remarketings enviados" value={rmLogs.length} accent="emerald" />
+                <Stat icon={MailCheck} label="Acessaram desconto" value={rmDiscountLeads.filter(d => d.accessed_discount_at).length} accent="sky" />
+
               </div>
 
               {/* Filters + actions */}
