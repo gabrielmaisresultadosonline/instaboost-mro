@@ -186,64 +186,87 @@ const startTranscoding = (jobId, inputPath, outputDir) => {
         if (!renditions.length) renditions.push(allRenditions[0]);
         appendLog(jobId, `RENDITIONS: sourceHeight=${sourceHeight} | ${renditions.map((r) => r.name).join(', ')}`);
 
-        const varStreamMap = renditions.map((_, i) => hasAudio ? `v:${i},a:${i}` : `v:${i}`).join(' ');
-        const args = [];
-        renditions.forEach((r, i) => {
-            args.push('-map', '0:v:0');
-            if (hasAudio) args.push('-map', '0:a:0');
-            args.push(
-                `-c:v:${i}`, 'libx264', '-preset', 'veryfast', `-profile:v:${i}`, 'main',
-                `-b:v:${i}`, r.vb, `-maxrate:v:${i}`, r.maxrate, `-bufsize:v:${i}`, r.bufsize,
-                `-filter:v:${i}`, `scale=w=${r.w}:h=${r.h}:force_original_aspect_ratio=decrease:force_divisible_by=2`,
-                `-g:v:${i}`, '60', `-keyint_min:v:${i}`, '60', `-sc_threshold:v:${i}`, '0'
-            );
-            if (hasAudio) args.push(`-c:a:${i}`, 'aac', `-b:a:${i}`, r.ab, '-ac', '2');
-        });
+        const bandwidth = (value) => Number(String(value).replace('k', '')) * 1000;
+        const normalizePlaylist = (r) => {
+            const playlistFile = path.join(outputDir, `${r.name}.m3u8`);
+            if (!fs.existsSync(playlistFile)) return;
+            const fixed = fs.readFileSync(playlistFile, 'utf8').split('\n').map((line) => {
+                const clean = line.trim();
+                if (clean && !clean.startsWith('#') && clean.includes('.ts')) return `${r.name}/${path.basename(clean)}`;
+                return line;
+            }).join('\n');
+            fs.writeFileSync(playlistFile, fixed);
+        };
+        const writeMaster = () => {
+            const lines = ['#EXTM3U', '#EXT-X-VERSION:3', '#EXT-X-INDEPENDENT-SEGMENTS'];
+            renditions.forEach((r) => {
+                lines.push(`#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth(r.maxrate)},AVERAGE-BANDWIDTH=${bandwidth(r.vb)},RESOLUTION=${r.w}x${r.h}`);
+                lines.push(`${r.name}.m3u8`);
+            });
+            fs.writeFileSync(path.join(outputDir, 'master.m3u8'), lines.join('\n') + '\n');
+        };
 
-        renditions.forEach((_, i) => {
-            const sub = path.join(outputDir, `stream_${i}`);
+        renditions.forEach((r) => {
+            const sub = path.join(outputDir, r.name);
             if (!fs.existsSync(sub)) fs.mkdirSync(sub, { recursive: true });
         });
 
-        ffmpeg(inputPath)
-            .addOptions(args)
-            .addOptions([
-                '-f', 'hls',
-                '-hls_time', '6',
-                '-hls_playlist_type', 'vod',
-                '-hls_list_size', '0',
-                '-hls_segment_filename', path.join(outputDir, 'stream_%v/seg_%d.ts'),
-                '-master_pl_name', 'master.m3u8',
-                '-var_stream_map', varStreamMap
-            ])
-            .output(path.join(outputDir, 'stream_%v.m3u8'))
-            .on('start', (cmd) => {
-                appendLog(jobId, `FFMPEG SPAWN: ${String(cmd).substring(0, 800)}`);
-            })
-            .on('codecData', (data) => {
-                appendLog(jobId, `CODEC: video=${data.video} | audio=${data.audio} | duration=${data.duration}`);
-            })
-            .on('stderr', (line) => {
-                if (/error|failed|Invalid|Unable|No such|Permission/i.test(line)) appendLog(jobId, `STDERR: ${line}`);
-            })
-            .on('progress', (progress) => {
-                const byPercent = Number(progress.percent || 0);
-                const byTime = duration > 0 ? (secondsFromTimemark(progress.timemark) / duration) * 100 : 0;
-                const computed = Math.max(byPercent, byTime, 1);
-                writeJob(jobId, { status: 'processing', progress: computed });
-                appendLog(jobId, `PROGRESS ${computed.toFixed(1)}% | timemark=${progress.timemark} | fps=${progress.currentFps || 0} | kbps=${progress.currentKbps || 0} | frames=${progress.frames || 0}`);
-            })
-            .on('end', () => {
-                appendLog(jobId, `END ok — transcoding completed`);
+        const runRendition = (index = 0) => {
+            if (index >= renditions.length) {
+                writeMaster();
+                appendLog(jobId, `END ok — all renditions completed and master.m3u8 created`);
                 writeJob(jobId, { status: 'completed', progress: 100 });
                 try { fs.unlinkSync(inputPath); } catch (e) {}
-            })
-            .on('error', (err) => {
-                console.error('FFmpeg error:', err);
-                appendLog(jobId, `FATAL ERROR: ${err.message || String(err)}`);
-                writeJob(jobId, { status: 'error', progress: readJob(jobId)?.progress || 0, error: err.message || String(err) });
-            })
-            .run();
+                return;
+            }
+
+            const r = renditions[index];
+            const sub = path.join(outputDir, r.name);
+            const outputPlaylist = path.join(outputDir, `${r.name}.m3u8`);
+            const segmentPattern = path.join(sub, 'seg_%05d.ts');
+            appendLog(jobId, `RENDITION START ${r.name} (${index + 1}/${renditions.length})`);
+
+            const opts = [
+                '-map', '0:v:0',
+                '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main', '-pix_fmt', 'yuv420p', '-threads', '2',
+                '-b:v', r.vb, '-maxrate', r.maxrate, '-bufsize', r.bufsize,
+                '-vf', `scale=w=${r.w}:h=${r.h}:force_original_aspect_ratio=decrease:force_divisible_by=2,format=yuv420p`,
+                '-g', '60', '-keyint_min', '60', '-sc_threshold', '0',
+                '-f', 'hls', '-hls_time', '6', '-hls_playlist_type', 'vod', '-hls_list_size', '0',
+                '-hls_segment_filename', segmentPattern
+            ];
+            if (hasAudio) opts.splice(2, 0, '-map', '0:a:0');
+            if (hasAudio) opts.splice(opts.indexOf('-f'), 0, '-c:a', 'aac', '-b:a', r.ab, '-ac', '2');
+            else opts.splice(opts.indexOf('-f'), 0, '-an');
+
+            ffmpeg(inputPath)
+                .outputOptions(opts)
+                .output(outputPlaylist)
+                .on('start', (cmd) => appendLog(jobId, `FFMPEG SPAWN ${r.name}: ${String(cmd).substring(0, 900)}`))
+                .on('codecData', (data) => appendLog(jobId, `CODEC ${r.name}: video=${data.video} | audio=${data.audio} | duration=${data.duration}`))
+                .on('stderr', (line) => { if (/error|failed|Invalid|Unable|No such|Permission|Conversion failed/i.test(line)) appendLog(jobId, `STDERR ${r.name}: ${line}`); })
+                .on('progress', (progress) => {
+                    const byPercent = Number(progress.percent || 0);
+                    const byTime = duration > 0 ? (secondsFromTimemark(progress.timemark) / duration) * 100 : 0;
+                    const single = Math.max(byPercent, byTime, 0);
+                    const computed = Math.max(1, Math.min(99, ((index + (single / 100)) / renditions.length) * 100));
+                    writeJob(jobId, { status: 'processing', progress: computed });
+                    appendLog(jobId, `PROGRESS ${computed.toFixed(1)}% | ${r.name}=${single.toFixed(1)}% | timemark=${progress.timemark} | fps=${progress.currentFps || 0} | kbps=${progress.currentKbps || 0} | frames=${progress.frames || 0}`);
+                })
+                .on('end', () => {
+                    normalizePlaylist(r);
+                    appendLog(jobId, `RENDITION END ${r.name}`);
+                    runRendition(index + 1);
+                })
+                .on('error', (err) => {
+                    console.error('FFmpeg error:', err);
+                    appendLog(jobId, `FATAL ERROR ${r.name}: ${err.message || String(err)}`);
+                    writeJob(jobId, { status: 'error', progress: readJob(jobId)?.progress || 0, error: `${r.name}: ${err.message || String(err)}` });
+                })
+                .run();
+        };
+
+        runRendition(0);
     });
 };
 
