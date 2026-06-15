@@ -41,8 +41,10 @@ const RendaExtraPage = () => {
     if (!video_url && !hls_url) return;
 
     const isRel = (u: string) => u.startsWith('/');
-    const fullVideo = video_url ? (isRel(video_url) ? `${VIDEO_SERVER}${video_url}` : video_url) : null;
-    const fullHls = hls_url ? (isRel(hls_url) ? `${VIDEO_SERVER}${hls_url}` : hls_url) : null;
+    const hlsCandidate = hls_url || (video_url?.includes('.m3u8') ? video_url : null);
+    const directCandidate = video_url && !video_url.includes('.m3u8') ? video_url : null;
+    const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
+    const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
     const loadDirect = () => { if (fullVideo) { video.src = fullVideo; } };
 
     if (fullHls && Hls.isSupported()) {
