@@ -118,6 +118,8 @@ const RendaExtraDesconto = () => {
           });
           if (data?.valid) {
             localStorage.setItem("est4_discount_email", data.email);
+            setGrantedEmail(data.email);
+            setGrantedNome(data.nome || "");
             setAccessGranted(true);
             setGateChecking(false);
             return;
