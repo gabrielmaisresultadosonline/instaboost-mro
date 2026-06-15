@@ -312,6 +312,139 @@ serve(async (req) => {
       });
     }
 
+    if (action === "admin_remarketing_data") {
+      const emailIn = String(body.email || "").trim().toLowerCase();
+      const passIn = String(body.password || "");
+      if (emailIn !== ADMIN_EMAIL || passIn !== ADMIN_PASSWORD) {
+        return new Response(JSON.stringify({ success: false, error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: rendaLeads } = await supabase
+        .from("renda_extra_leads")
+        .select("id, nome_completo, email, whatsapp, tipo_computador, media_salarial, trabalha_atualmente, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+
+      const emails = (rendaLeads || []).map((l: any) => String(l.email || "").toLowerCase()).filter(Boolean);
+
+      let paidEmails: string[] = [];
+      if (emails.length > 0) {
+        const { data: paid } = await supabase
+          .from("paid_users")
+          .select("email, subscription_status, subscription_end")
+          .in("email", emails);
+        paidEmails = (paid || [])
+          .filter((p: any) =>
+            ["active", "paid", "approved", "confirmed"].includes(String(p.subscription_status || "").toLowerCase()) ||
+            (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now())
+          )
+          .map((p: any) => String(p.email).toLowerCase());
+      }
+
+      const { data: discountLeads } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("email, expires_at, emails_sent_count, last_email_sent_at, accessed_discount_at, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+
+      const { data: remarketingLogs } = await supabase
+        .from("estrutura4_remarketing_logs")
+        .select("*")
+        .order("sent_at", { ascending: false })
+        .limit(2000);
+
+      return new Response(JSON.stringify({
+        success: true,
+        renda_leads: rendaLeads || [],
+        paid_emails: paidEmails,
+        discount_leads: discountLeads || [],
+        remarketing_logs: remarketingLogs || [],
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "admin_send_remarketing") {
+      const emailIn = String(body.email || "").trim().toLowerCase();
+      const passIn = String(body.password || "");
+      if (emailIn !== ADMIN_EMAIL || passIn !== ADMIN_PASSWORD) {
+        return new Response(JSON.stringify({ success: false, error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const targetEmail = String(body.target_email || "").trim().toLowerCase();
+      const nome = String(body.nome || "Aluno").trim();
+      const whatsapp = String(body.whatsapp || "").trim();
+      const tipo = String(body.tipo_computador || "").trim();
+      if (!targetEmail) {
+        return new Response(JSON.stringify({ success: false, error: "Email obrigatório" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
+      const { data: existing } = await supabase
+        .from("estrutura4_discount_leads")
+        .select("id, token, expires_at, emails_sent_count")
+        .eq("email", targetEmail)
+        .maybeSingle();
+
+      let finalToken = token;
+      let finalExpires = expiresAt;
+
+      if (existing) {
+        const expired = new Date(existing.expires_at).getTime() < Date.now();
+        finalToken = expired ? token : existing.token;
+        finalExpires = expired ? expiresAt : existing.expires_at;
+        await supabase
+          .from("estrutura4_discount_leads")
+          .update({
+            nome,
+            whatsapp: whatsapp || undefined,
+            token: finalToken,
+            expires_at: finalExpires,
+            emails_sent_count: (existing.emails_sent_count || 0) + 1,
+            last_email_sent_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase
+          .from("estrutura4_discount_leads")
+          .insert({
+            nome,
+            email: targetEmail,
+            whatsapp: whatsapp || "—",
+            token: finalToken,
+            expires_at: finalExpires,
+            emails_sent_count: 1,
+            last_email_sent_at: new Date().toISOString(),
+            source: "remarketing-admin",
+          });
+      }
+
+      const hoursLeft = Math.max(1, Math.floor((new Date(finalExpires).getTime() - Date.now()) / 3600000));
+      const link = `${SITE_URL}${DISCOUNT_PATH}?token=${finalToken}`;
+      const html = buildEmailHtml(nome, link, hoursLeft);
+      const sent = await sendEmail(targetEmail, "🔥 Seu desconto MRO foi liberado — R$ 397 por R$ 300", html);
+
+      await supabase.from("estrutura4_remarketing_logs").insert({
+        email: targetEmail,
+        nome,
+        whatsapp,
+        tipo_computador: tipo,
+        source_page: "rendaextra-admin",
+        link,
+        success: sent,
+        notes: sent ? null : "SMTP falhou",
+      });
+
+      return new Response(JSON.stringify({ success: true, sent, link }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
