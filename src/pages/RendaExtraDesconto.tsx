@@ -553,17 +553,7 @@ const RendaExtraDesconto = () => {
                 Assista a <span className="text-green-400">AULA GRÁTIS</span> para entender tudo
               </h2>
             </div>
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
-              <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/-0CHlqHVe0g?rel=0&modestbranding=1" 
-                  title="Aula Grátis"
-                  className="w-full h-full" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen 
-                />
-              </div>
-            </div>
+            <DiscountVideoPlayer email={grantedEmail} nome={grantedNome} />
           </div>
 
           {/* CTA Button with arrows */}
