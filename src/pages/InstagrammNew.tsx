@@ -15,6 +15,9 @@ export default function InstagrammNew() {
   const [grantedEmail, setGrantedEmail] = useState("");
   const [grantedNome, setGrantedNome] = useState("");
 
+  // gate view mode: 'hero' | 'login' | 'register'
+  const [mode, setMode] = useState<"hero" | "login" | "register">("hero");
+
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -22,7 +25,6 @@ export default function InstagrammNew() {
   const [expired, setExpired] = useState(false);
 
   // Register form
-  const [showRegister, setShowRegister] = useState(false);
   const [regNome, setRegNome] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regWhats, setRegWhats] = useState("");
