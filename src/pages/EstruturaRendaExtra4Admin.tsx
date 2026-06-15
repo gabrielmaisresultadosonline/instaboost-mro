@@ -592,6 +592,7 @@ export default function EstruturaRendaExtra4Admin() {
             <TabsTrigger value="leads">Leads ({leads.length})</TabsTrigger>
             <TabsTrigger value="purchases">Compras ({totalPurchases})</TabsTrigger>
             <TabsTrigger value="visits">Eventos ({visits.length})</TabsTrigger>
+            <TabsTrigger value="remarketing">Remarketing</TabsTrigger>
           </TabsList>
 
           <TabsContent value="leads">
