@@ -53,6 +53,7 @@ import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
+import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
 const RendaExtraDesconto = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
