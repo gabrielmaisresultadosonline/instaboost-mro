@@ -163,17 +163,46 @@ const RendaExtraPage = () => {
     v.volume = val; setVolume(val);
     if (val > 0 && v.muted) { v.muted = false; setMuted(false); }
   };
-  const toggleFullscreen = () => {
-    const el = containerRef.current; if (!el) return;
-    if (document.fullscreenElement) document.exitFullscreen();
-    else el.requestFullscreen?.();
+  const toggleFullscreen = async () => {
+    const el = containerRef.current;
+    const v = videoRef.current as any;
+    try {
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        await (document.exitFullscreen?.() ?? (document as any).webkitExitFullscreen?.());
+        return;
+      }
+      if (el?.requestFullscreen) { await el.requestFullscreen(); return; }
+      if ((el as any)?.webkitRequestFullscreen) { (el as any).webkitRequestFullscreen(); return; }
+      // iOS Safari fallback: only video can go fullscreen
+      if (v?.webkitEnterFullscreen) { v.webkitEnterFullscreen(); return; }
+    } catch { /* ignore */ }
   };
   const restart = () => {
     const v = videoRef.current; if (!v) return;
     v.currentTime = 0; v.play().catch(() => {});
   };
 
+  // Count actual watched seconds (only while playing) for unlocking the CTA
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => {
+      setWatchedSeconds((s) => (s < BUTTON_UNLOCK_SECONDS ? s + 1 : s));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [playing]);
+
+  // Auto-hide controls after 3 minutes of inactivity
+  useEffect(() => {
+    if (!started) return;
+    revealControls();
+    return () => { if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current); };
+  }, [started]);
+
+  const buttonUnlocked = watchedSeconds >= BUTTON_UNLOCK_SECONDS;
+  const secondsLeft = Math.max(0, BUTTON_UNLOCK_SECONDS - watchedSeconds);
+
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
+
 
 
 
