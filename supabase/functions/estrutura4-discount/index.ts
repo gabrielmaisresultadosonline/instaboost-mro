@@ -842,7 +842,20 @@ serve(async (req) => {
         .select("*")
         .order("last_progress_at", { ascending: false })
         .limit(500);
-      return new Response(JSON.stringify({ success: true, rows: data || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const rows = data || [];
+      const emails = Array.from(new Set(rows.map((r: any) => String(r.email || "").toLowerCase()).filter(Boolean)));
+      let whatsappMap: Record<string, string> = {};
+      if (emails.length > 0) {
+        const { data: leads } = await supabase
+          .from("estrutura4_discount_leads")
+          .select("email, whatsapp")
+          .in("email", emails);
+        for (const l of (leads || []) as any[]) {
+          if (l?.email && l?.whatsapp) whatsappMap[String(l.email).toLowerCase()] = l.whatsapp;
+        }
+      }
+      const enriched = rows.map((r: any) => ({ ...r, whatsapp: whatsappMap[String(r.email || "").toLowerCase()] || null }));
+      return new Response(JSON.stringify({ success: true, rows: enriched }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {
