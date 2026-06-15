@@ -386,7 +386,9 @@ export default function EstruturaRendaExtra4Admin() {
                   {transcoding.status === "completed" ? (
                     <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Transcoding concluído — vídeo pronto!</>
                   ) : transcoding.status === "error" ? (
-                    <span className="text-red-400">❌ Erro no transcoding</span>
+                    <span className="text-red-400">❌ Erro no transcoding{transcoding.error ? `: ${transcoding.error}` : ""}</span>
+                  ) : transcoding.status === "queued" ? (
+                    <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Vídeo recebido — preparando transcoding...</>
                   ) : (
                     <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Transcodificando HLS (240p / 480p / 720p / 1080p)...</>
                   )}
@@ -403,8 +405,26 @@ export default function EstruturaRendaExtra4Admin() {
               {serverVideos.map((v) => (
                 <div key={v.name} className="flex items-center gap-2 p-2 border-b border-zinc-800 last:border-0 text-sm">
                   <Video className="w-4 h-4 text-zinc-500 shrink-0" />
-                  <span className="flex-1 truncate text-zinc-300">{v.name}</span>
-                  <Button size="sm" variant="outline" onClick={() => selectExistingVideo(v)}>Usar</Button>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate text-zinc-300">{v.name}</div>
+                    {(v.ready === false || v.status === "queued" || v.status === "processing" || v.status === "error") && (
+                      <div className="mt-1 flex items-center gap-2 text-[11px] text-zinc-500">
+                        {v.status === "error" ? (
+                          <span className="text-red-400">Erro no transcoding</span>
+                        ) : (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin text-amber-400" />
+                            <span>Transcoding em andamento</span>
+                            <span className="font-mono text-amber-300">{Math.round(v.progress || 0)}%</span>
+                            <Progress value={v.progress || 0} className="h-1 w-28" />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button size="sm" variant="outline" disabled={v.ready === false || v.can_use === false || v.status === "queued" || v.status === "processing" || v.status === "error"} onClick={() => selectExistingVideo(v)}>
+                    {v.ready === false || v.status === "queued" || v.status === "processing" ? "Aguarde" : "Usar"}
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => deleteServerVideo(v.name)}><Trash2 className="w-3 h-3 text-red-400" /></Button>
                 </div>
               ))}
