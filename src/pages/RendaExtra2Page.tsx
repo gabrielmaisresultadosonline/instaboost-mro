@@ -25,6 +25,18 @@ const RendaExtraPage = () => {
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimerRef = useRef<number | null>(null);
+
+  const BUTTON_UNLOCK_SECONDS = 20;
+  const CONTROLS_HIDE_MS = 3 * 60 * 1000;
+
+  const revealControls = () => {
+    setShowControls(true);
+    if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = window.setTimeout(() => setShowControls(false), CONTROLS_HIDE_MS);
+  };
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
@@ -151,17 +163,46 @@ const RendaExtraPage = () => {
     v.volume = val; setVolume(val);
     if (val > 0 && v.muted) { v.muted = false; setMuted(false); }
   };
-  const toggleFullscreen = () => {
-    const el = containerRef.current; if (!el) return;
-    if (document.fullscreenElement) document.exitFullscreen();
-    else el.requestFullscreen?.();
+  const toggleFullscreen = async () => {
+    const el = containerRef.current;
+    const v = videoRef.current as any;
+    try {
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        await (document.exitFullscreen?.() ?? (document as any).webkitExitFullscreen?.());
+        return;
+      }
+      if (el?.requestFullscreen) { await el.requestFullscreen(); return; }
+      if ((el as any)?.webkitRequestFullscreen) { (el as any).webkitRequestFullscreen(); return; }
+      // iOS Safari fallback: only video can go fullscreen
+      if (v?.webkitEnterFullscreen) { v.webkitEnterFullscreen(); return; }
+    } catch { /* ignore */ }
   };
   const restart = () => {
     const v = videoRef.current; if (!v) return;
     v.currentTime = 0; v.play().catch(() => {});
   };
 
+  // Count actual watched seconds (only while playing) for unlocking the CTA
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => {
+      setWatchedSeconds((s) => (s < BUTTON_UNLOCK_SECONDS ? s + 1 : s));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [playing]);
+
+  // Auto-hide controls after 3 minutes of inactivity
+  useEffect(() => {
+    if (!started) return;
+    revealControls();
+    return () => { if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current); };
+  }, [started]);
+
+  const buttonUnlocked = watchedSeconds >= BUTTON_UNLOCK_SECONDS;
+  const secondsLeft = Math.max(0, BUTTON_UNLOCK_SECONDS - watchedSeconds);
+
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
+
 
 
 
@@ -256,7 +297,13 @@ const RendaExtraPage = () => {
           </p>
         </div>
 
-        <div ref={containerRef} className="relative max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5 group">
+        <div
+          ref={containerRef}
+          onMouseMove={revealControls}
+          onTouchStart={revealControls}
+          onClick={revealControls}
+          className="relative max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5 group"
+        >
           {(videoCfg.video_url || videoCfg.hls_url) ? (
             <>
               <video
@@ -295,7 +342,7 @@ const RendaExtraPage = () => {
 
               {/* Custom controls */}
               {started && (
-                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <div className={`absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                   {/* Fake shrinking progress bar (non-interactive) */}
                   <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden pointer-events-none select-none">
                     <div className="h-full bg-emerald-500 rounded-full transition-[width] duration-300" style={{ width: `${progressPct}%` }} />
@@ -335,14 +382,28 @@ const RendaExtraPage = () => {
         </div>
 
 
-        <div className="flex justify-center pt-4 pb-12">
-          <Button
-            onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
-            className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-8 rounded-2xl bg-emerald-500 text-black font-black text-xl transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group"
-          >
-            ACESSAR RENDA EXTRA AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-          </Button>
+        <div className="flex flex-col items-center gap-3 pt-4 pb-12 px-2">
+          {!buttonUnlocked ? (
+            <div className="w-full max-w-md flex flex-col items-center gap-2">
+              <div className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest cursor-not-allowed select-none">
+                <span className="text-amber-400 font-mono text-lg sm:text-xl tabular-nums">{secondsLeft}s</span>
+                <span className="text-xs sm:text-sm">Aguarde para liberar</span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-white/40 text-center max-w-xs">
+                Assista o vídeo — o botão libera em {secondsLeft} segundo{secondsLeft === 1 ? '' : 's'}.
+              </p>
+            </div>
+          ) : (
+            <Button
+              onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
+              className="w-full max-w-md flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-5 sm:py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm sm:text-lg md:text-xl transition-all hover:scale-[1.03] active:scale-95 uppercase tracking-wider sm:tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group whitespace-normal text-center leading-tight h-auto"
+            >
+              <span>ACESSAR RENDA EXTRA AGORA</span>
+              <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 shrink-0 group-hover:translate-x-1 sm:group-hover:translate-x-2 transition-transform" />
+            </Button>
+          )}
         </div>
+
       </div>
     </div>
   );
