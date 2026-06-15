@@ -145,20 +145,26 @@ const RendaExtraPage = () => {
 
         <div className="space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Treinamento Exclusivo</div>
-          <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight uppercase italic">Você já conhece como isso funciona?</h3>
+          <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight uppercase italic">{videoCfg.video_title || 'Você já conhece como isso funciona?'}</h3>
           <p className="text-white/40 text-sm md:text-lg leading-relaxed font-medium max-w-2xl mx-auto">
             Ainda não? Veja então esta live por completo antes de acessar sua área de prestação de serviços.
           </p>
         </div>
 
         <div className="max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5">
-          <iframe
-            src="https://www.youtube.com/embed/-0CHlqHVe0g"
-            title="Live MRO Renda Extra"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-          />
+          {(videoCfg.video_url || videoCfg.hls_url) ? (
+            <video
+              ref={videoRef}
+              controls
+              playsInline
+              className="w-full h-full"
+              style={{ objectFit: 'contain' }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
+              Vídeo ainda não configurado.
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center pt-4 pb-12">
