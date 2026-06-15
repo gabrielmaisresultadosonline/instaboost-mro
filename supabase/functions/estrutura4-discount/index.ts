@@ -673,12 +673,12 @@ serve(async (req) => {
       if (!tpl) return false;
       const { data: lead } = await supabase
         .from("estrutura4_discount_leads")
-        .select("token")
+        .select("token, source")
         .eq("email", email)
         .maybeSingle();
       const link = lead?.token
-        ? `${SITE_URL}${DISCOUNT_PATH}?token=${lead.token}`
-        : `${SITE_URL}/rendaextradesconto`;
+        ? buildDiscountLink(lead.token, lead.source)
+        : `${SITE_URL}${VIDEO_DISCOUNT_PATH}`;
       return await sendEmail(email, tpl.subject, tpl.html(nome || "", link));
     };
 
