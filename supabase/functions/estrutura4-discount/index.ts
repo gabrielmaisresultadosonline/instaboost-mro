@@ -329,19 +329,38 @@ serve(async (req) => {
 
       const emails = (rendaLeads || []).map((l: any) => String(l.email || "").toLowerCase()).filter(Boolean);
 
-      let paidEmails: string[] = [];
+      const cleanEmail = (raw: string) => {
+        const s = String(raw || "").toLowerCase().trim();
+        return s.includes(":") ? s.split(":").pop()!.trim() : s;
+      };
+
+      const paidEmailsSet = new Set<string>();
       if (emails.length > 0) {
         const { data: paid } = await supabase
           .from("paid_users")
           .select("email, subscription_status, subscription_end")
           .in("email", emails);
-        paidEmails = (paid || [])
+        (paid || [])
           .filter((p: any) =>
             ["active", "paid", "approved", "confirmed"].includes(String(p.subscription_status || "").toLowerCase()) ||
             (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now())
           )
-          .map((p: any) => String(p.email).toLowerCase());
+          .forEach((p: any) => { const e = cleanEmail(p.email); if (e) paidEmailsSet.add(e); });
       }
+
+      // Instagram Nova clients: mro_orders (paid/completed) + created_accesses
+      const { data: mroOrders } = await supabase
+        .from("mro_orders")
+        .select("email")
+        .in("status", ["paid", "completed"]);
+      (mroOrders || []).forEach((o: any) => { const e = cleanEmail(o.email); if (e) paidEmailsSet.add(e); });
+
+      const { data: createdAccesses } = await supabase
+        .from("created_accesses")
+        .select("customer_email");
+      (createdAccesses || []).forEach((a: any) => { const e = cleanEmail(a.customer_email); if (e) paidEmailsSet.add(e); });
+
+      const paidEmails = Array.from(paidEmailsSet);
 
       const { data: discountLeads } = await supabase
         .from("estrutura4_discount_leads")
