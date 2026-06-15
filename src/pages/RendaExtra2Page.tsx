@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trackPageView } from '@/lib/facebookTracking';
+import { supabase } from '@/integrations/supabase/client';
+
+const trackEvent = (page: string) => {
+  supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page } }).catch(() => {});
+};
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
@@ -10,7 +15,9 @@ const RendaExtraPage = () => {
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
+    trackEvent('/renda-extra2');
   }, []);
+
 
 
   if (mode === 'choice') {
