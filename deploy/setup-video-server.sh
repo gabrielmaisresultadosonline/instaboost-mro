@@ -16,7 +16,7 @@ echo "--- Iniciando configuração do Servidor de Vídeo para $DOMAIN ---"
 
 # 1. Atualizar pacotes
 sudo apt-get update
-sudo apt-get install -y ffmpeg curl nodejs npm nginx
+sudo apt-get install -y ffmpeg curl nodejs npm nginx certbot python3-certbot-nginx
 
 # 2. Criar diretórios
 sudo mkdir -p /var/www/video-server/videos/hls
@@ -170,13 +170,16 @@ EOF
 cd /var/www/video-server
 npm install
 
-# 5. Configurar Nginx
-sudo cat <<EOF > /etc/nginx/sites-available/video-server
+# 5. Configurar Nginx + SSL para o domínio do servidor de vídeo
+sudo tee /etc/nginx/sites-available/video-server > /dev/null <<EOF
 server {
     listen 80;
     server_name $DOMAIN;
 
     client_max_body_size 3G;
+    client_body_timeout 7200s;
+    proxy_read_timeout 7200s;
+    proxy_send_timeout 7200s;
 
     location / {
         proxy_pass http://127.0.0.1:3001;
@@ -207,6 +210,12 @@ EOF
 sudo ln -sf /etc/nginx/sites-available/video-server /etc/nginx/sites-enabled/video-server
 sudo nginx -t && sudo systemctl restart nginx
 
+echo "🔐 Emitindo/renovando SSL correto para $DOMAIN..."
+sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email "admin@$DOMAIN" --redirect || {
+    echo "⚠️ Certbot não conseguiu emitir o SSL automaticamente. Verifique se o DNS de $DOMAIN aponta para este VPS e rode: sudo certbot --nginx -d $DOMAIN"
+}
+sudo nginx -t && sudo systemctl reload nginx
+
 # 6. Configurar PM2 para manter o servidor rodando
 sudo npm install -g pm2
 pm2 delete video-server >/dev/null 2>&1 || true
@@ -215,5 +224,5 @@ pm2 save
 pm2 startup
 
 echo "--- Configuração concluída! ---"
-echo "Acesse seu servidor em: http://$DOMAIN"
+echo "Acesse seu servidor em: https://$DOMAIN"
 echo "Certifique-se de apontar o DNS do seu domínio para o IP deste servidor."
