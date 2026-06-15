@@ -161,6 +161,9 @@ serve(async (req) => {
             expires_at: finalExpires,
             emails_sent_count: (existing.emails_sent_count || 0) + 1,
             last_email_sent_at: new Date().toISOString(),
+            auto_remarketing_enabled: true,
+            remarketing_stage: 1,
+            next_send_at: scheduleNext(1),
           })
           .eq("id", existing.id);
         if (upErr) throw upErr;
@@ -179,6 +182,9 @@ serve(async (req) => {
             emails_sent_count: 1,
             last_email_sent_at: new Date().toISOString(),
             source: body.source || "estruturarendaextra4",
+            auto_remarketing_enabled: true,
+            remarketing_stage: 1,
+            next_send_at: scheduleNext(1),
           })
           .select("id")
           .single();
