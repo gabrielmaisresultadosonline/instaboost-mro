@@ -617,6 +617,7 @@ export default function EstruturaRendaExtra4Admin() {
             <TabsTrigger value="visits" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white"><Activity className="w-4 h-4 mr-1" />Eventos ({visits.length})</TabsTrigger>
             <TabsTrigger value="remarketing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"><Megaphone className="w-4 h-4 mr-1" />Remarketing</TabsTrigger>
             <TabsTrigger value="video-access" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"><Eye className="w-4 h-4 mr-1" />Acessos Desconto ({videoAccess.length})</TabsTrigger>
+            <TabsTrigger value="instagrammnew" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white"><Rocket className="w-4 h-4 mr-1" />Instagram New ({ignLeads.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4">
