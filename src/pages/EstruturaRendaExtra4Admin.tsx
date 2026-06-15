@@ -193,6 +193,7 @@ export default function EstruturaRendaExtra4Admin() {
       fetchData(creds);
       loadVideoCfg();
       loadServerVideos();
+      loadRemarketing(creds);
       const savedJobId = localStorage.getItem(TRANSCODING_STORAGE_KEY);
       if (savedJobId) pollTranscodingStatus(savedJobId);
     }
