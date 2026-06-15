@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trackPageView } from '@/lib/facebookTracking';
 import { supabase } from '@/integrations/supabase/client';
