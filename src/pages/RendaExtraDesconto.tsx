@@ -1221,7 +1221,7 @@ const RendaExtraDesconto = () => {
         </div>
       </footer>
 
-      <FloatingWhatsAppHelp message="Olá estou dentro do renda extra gostaria de tirar umas dúvidas." />
+      <FloatingWhatsAppHelp message="Olá acessei o desconto, e a aula sobre a renda extra fiquei com algumas dúvidas." />
     </div>
   );
 };
