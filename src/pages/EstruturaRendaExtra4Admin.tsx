@@ -310,10 +310,30 @@ export default function EstruturaRendaExtra4Admin() {
   const clicksLicenciado = countPage("click:renda-extra2:licenciado");
   const clicksAcessar = countPage("click:renda-extra2:acessar-renda-extra-agora");
 
+  // Video engagement (events fired by RendaExtra2Page video player)
+  const videoStart = countPage("video:renda-extra2:start");
+  const video25 = countPage("video:renda-extra2:25");
+  const video50 = countPage("video:renda-extra2:50");
+  const video75 = countPage("video:renda-extra2:75");
+  const video100 = countPage("video:renda-extra2:100");
+  const videoStartUnique = uniqueIps("video:renda-extra2:start");
+  const video50Unique = uniqueIps("video:renda-extra2:50");
+  const video100Unique = uniqueIps("video:renda-extra2:100");
+
+  // Device split — based on /renda-extra2 visits user_agent
+  const isMobileUA = (ua: string | null) => !!ua && /Mobi|Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(ua);
+  const pageVisits = visits.filter((v) => v.page === "/renda-extra2");
+  const mobileVisits = pageVisits.filter((v) => isMobileUA(v.user_agent)).length;
+  const desktopVisits = pageVisits.length - mobileVisits;
+  const videoStartVisits = visits.filter((v) => v.page === "video:renda-extra2:start");
+  const mobileWatched = videoStartVisits.filter((v) => isMobileUA(v.user_agent)).length;
+  const desktopWatched = videoStartVisits.length - mobileWatched;
+
   // Funnel: prestar → acessar (by unique IP)
   const prestarIps = new Set(visits.filter((v) => v.page === "click:renda-extra2:prestar").map((v) => v.ip).filter(Boolean));
   const acessarIps = new Set(visits.filter((v) => v.page === "click:renda-extra2:acessar-renda-extra-agora").map((v) => v.ip).filter(Boolean));
   const prestarAndAcessar = [...prestarIps].filter((ip) => acessarIps.has(ip)).length;
+
 
   const totalPurchases = purchases.length;
   const purchaseEmails = new Set(purchases.map((p) => p.email.toLowerCase()));
