@@ -136,6 +136,7 @@ import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 import WhiteLabel from "./pages/WhiteLabel";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import InstagramNovaPlan from "./pages/InstagramNovaPlan";
+import InstagrammNew from "./pages/InstagrammNew";
 import InstagramNovaWS from "./pages/InstagramNovaWS";
 import InstagramPromo30Dias from "./pages/InstagramPromo30Dias";
 import ThorCreativeDashboard from "./pages/ThorCreative/Dashboard";
