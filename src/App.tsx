@@ -12,6 +12,7 @@ import MeuNegocioPage from "./pages/MeuNegocio";
 import RendaExtraPage from "./pages/RendaExtra";
 import RendaExtraAasPage from "./pages/RendaExtraAas";
 import RendaExtra2Page from "./pages/RendaExtra2Page";
+import RendaExtrassPage from "./pages/RendaExtrassPage";
 import ZapMRO from "./pages/ZapMRO";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
