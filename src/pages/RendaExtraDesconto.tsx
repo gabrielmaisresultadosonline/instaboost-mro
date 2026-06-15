@@ -90,6 +90,46 @@ const RendaExtraDesconto = () => {
   const [grantedEmail, setGrantedEmail] = useState("");
   const [grantedNome, setGrantedNome] = useState("");
 
+  // Cadastro popups (Faça o cadastro)
+  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [regNome, setRegNome] = useState("");
+  const [regWhats, setRegWhats] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const nome = regNome.trim();
+    const whatsapp = regWhats.trim();
+    const email = regEmail.trim().toLowerCase();
+    if (!nome || !whatsapp || !email || !email.includes("@")) {
+      toast.error("Preencha todos os campos corretamente");
+      return;
+    }
+    setRegLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("estrutura4-discount", {
+        body: { action: "create_lead", nome, email, whatsapp, source: "rendaextradesconto" },
+      });
+      if (error || !data?.success) {
+        toast.error("Erro ao cadastrar. Tente novamente.");
+        return;
+      }
+      localStorage.setItem("est4_discount_email", email);
+      setGrantedEmail(email);
+      setGrantedNome(nome);
+      setShowRegisterForm(false);
+      setAccessGranted(true);
+      toast.success("Cadastro realizado! Aula e desconto liberados.");
+    } catch {
+      toast.error("Erro ao cadastrar. Tente novamente.");
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+
 
   useEffect(() => {
     (async () => {
