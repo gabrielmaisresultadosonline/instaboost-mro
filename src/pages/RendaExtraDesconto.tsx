@@ -134,6 +134,8 @@ const RendaExtraDesconto = () => {
             body: { action: "verify_email", email: savedEmail },
           });
           if (data?.valid) {
+            setGrantedEmail(savedEmail);
+            setGrantedNome(data.nome || "");
             setAccessGranted(true);
             setGateChecking(false);
             return;
