@@ -25,6 +25,18 @@ const RendaExtraPage = () => {
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimerRef = useRef<number | null>(null);
+
+  const BUTTON_UNLOCK_SECONDS = 20;
+  const CONTROLS_HIDE_MS = 3 * 60 * 1000;
+
+  const revealControls = () => {
+    setShowControls(true);
+    if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = window.setTimeout(() => setShowControls(false), CONTROLS_HIDE_MS);
+  };
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
