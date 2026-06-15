@@ -9,6 +9,7 @@ import { Loader2, LogOut, Users, Eye, Clock, CheckCircle2, MousePointerClick, Br
 import { toast } from "sonner";
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
+const TRANSCODING_STORAGE_KEY = "est4_active_transcoding_job";
 
 interface Lead {
   id: string;
@@ -38,6 +39,17 @@ interface Purchase {
   created_at: string;
 }
 
+interface ServerVideo {
+  name: string;
+  url: string;
+  hls_url: string;
+  status?: string;
+  progress?: number;
+  ready?: boolean;
+  can_use?: boolean;
+  created?: string;
+}
+
 const STORAGE_KEY = "est4_admin_creds";
 
 export default function EstruturaRendaExtra4Admin() {
@@ -55,10 +67,11 @@ export default function EstruturaRendaExtra4Admin() {
   const [videoTitle, setVideoTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [transcoding, setTranscoding] = useState<{ jobId: string; progress: number; status: string } | null>(null);
-  const [serverVideos, setServerVideos] = useState<any[]>([]);
+  const [transcoding, setTranscoding] = useState<{ jobId: string; progress: number; status: string; error?: string | null } | null>(null);
+  const [serverVideos, setServerVideos] = useState<ServerVideo[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const transcodingTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const s = localStorage.getItem(STORAGE_KEY);
@@ -85,7 +98,18 @@ export default function EstruturaRendaExtra4Admin() {
     }
   };
 
-  useEffect(() => { if (creds) { fetchData(creds); loadVideoCfg(); loadServerVideos(); } }, [creds]);
+  useEffect(() => {
+    if (creds) {
+      fetchData(creds);
+      loadVideoCfg();
+      loadServerVideos();
+      const savedJobId = localStorage.getItem(TRANSCODING_STORAGE_KEY);
+      if (savedJobId) pollTranscodingStatus(savedJobId);
+    }
+    return () => {
+      if (transcodingTimeoutRef.current) window.clearTimeout(transcodingTimeoutRef.current);
+    };
+  }, [creds]);
 
   const loadVideoCfg = async () => {
     const { data } = await supabase.functions.invoke("estrutura4-discount", { body: { action: "get_video" } });
@@ -106,11 +130,20 @@ export default function EstruturaRendaExtra4Admin() {
     finally { setLoadingVideos(false); }
   };
 
-  const selectExistingVideo = (video: any) => {
+  const selectExistingVideo = (video: ServerVideo) => {
+    if (video.ready === false || video.can_use === false || video.status === "processing" || video.status === "queued") {
+      toast.info("Aguarde o transcoding concluir antes de usar este vídeo.");
+      return;
+    }
     const baseName = video.name.replace(/\.[^.]+$/, '');
-    setVideoUrl(video.url);
-    setHlsUrl(`/videos/hls/${baseName}/master.m3u8`);
+    setVideoUrl(video.url || `/videos/hls/${baseName}/master.m3u8`);
+    setHlsUrl(video.hls_url || `/videos/hls/${baseName}/master.m3u8`);
     toast.success("Vídeo selecionado! Clique em Salvar.");
+  };
+
+  const getJobIdFromHlsUrl = (url?: string) => {
+    const match = (url || "").match(/\/videos\/hls\/(.+?)\/master\.m3u8/);
+    return match?.[1] ? decodeURIComponent(match[1]) : "";
   };
 
   const deleteServerVideo = async (name: string) => {
@@ -126,7 +159,7 @@ export default function EstruturaRendaExtra4Admin() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024 * 1024) { toast.error("Máx 3GB"); return; }
+    if (file.size > 5 * 1024 * 1024 * 1024) { toast.error("Máx 5GB"); return; }
     setUploading(true); setUploadProgress(0);
     try {
       const formData = new FormData();
@@ -148,12 +181,23 @@ export default function EstruturaRendaExtra4Admin() {
         xhr.send(formData);
       });
       if (result.success) {
+        const jobId = result.job_id || getJobIdFromHlsUrl(result.hls_url);
         setVideoUrl(result.video_url);
         setHlsUrl(result.hls_url);
         toast.success("Upload concluído! Transcodificando HLS...");
-        // Inicia polling de status do transcoding
-        setTranscoding({ jobId: result.job_id, progress: 0, status: "processing" });
-        pollTranscodingStatus(result.job_id);
+        if (jobId) {
+          localStorage.setItem(TRANSCODING_STORAGE_KEY, jobId);
+          setTranscoding({ jobId, progress: 0, status: "queued" });
+          setServerVideos((prev) => [
+            { name: jobId, url: result.hls_url, hls_url: result.hls_url, status: "queued", progress: 0, ready: false, can_use: false },
+            ...prev.filter((v) => v.name !== jobId),
+          ]);
+          loadServerVideos();
+          pollTranscodingStatus(jobId);
+        } else {
+          toast.error("Upload recebido, mas o servidor não retornou o ID do transcoding. Rode novamente o setup do video-server no VPS.");
+          loadServerVideos();
+        }
       } else {
         toast.error("Servidor recusou o upload: " + (result.error || "resposta sem success"));
       }
@@ -169,21 +213,26 @@ export default function EstruturaRendaExtra4Admin() {
         const res = await fetch(`${VIDEO_SERVER}/api/video/status/${encodeURIComponent(jobId)}`);
         if (!res.ok) throw new Error("status not found");
         const data = await res.json();
-        setTranscoding({ jobId, progress: data.progress || 0, status: data.status });
+        setTranscoding({ jobId, progress: data.progress || 0, status: data.status, error: data.error || null });
+        setServerVideos((prev) => prev.map((v) => v.name === jobId ? { ...v, status: data.status, progress: data.progress || 0, ready: data.status === "completed", can_use: data.status === "completed" } : v));
         if (data.status === "completed") {
           toast.success("Transcoding concluído! Vídeo pronto.");
-          setTimeout(() => setTranscoding(null), 3000);
+          localStorage.removeItem(TRANSCODING_STORAGE_KEY);
+          transcodingTimeoutRef.current = window.setTimeout(() => setTranscoding(null), 3000);
           loadServerVideos();
           return;
         }
         if (data.status === "error") {
-          toast.error("Erro no transcoding do vídeo.");
-          setTimeout(() => setTranscoding(null), 5000);
+          toast.error("Erro no transcoding do vídeo." + (data.error ? ` ${data.error}` : ""));
+          localStorage.removeItem(TRANSCODING_STORAGE_KEY);
+          transcodingTimeoutRef.current = window.setTimeout(() => setTranscoding(null), 8000);
+          loadServerVideos();
           return;
         }
-        setTimeout(tick, 2000);
+        transcodingTimeoutRef.current = window.setTimeout(tick, 2000);
       } catch {
-        setTimeout(tick, 3000);
+        loadServerVideos();
+        transcodingTimeoutRef.current = window.setTimeout(tick, 3000);
       }
     };
     tick();
@@ -337,7 +386,9 @@ export default function EstruturaRendaExtra4Admin() {
                   {transcoding.status === "completed" ? (
                     <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Transcoding concluído — vídeo pronto!</>
                   ) : transcoding.status === "error" ? (
-                    <span className="text-red-400">❌ Erro no transcoding</span>
+                    <span className="text-red-400">❌ Erro no transcoding{transcoding.error ? `: ${transcoding.error}` : ""}</span>
+                  ) : transcoding.status === "queued" ? (
+                    <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Vídeo recebido — preparando transcoding...</>
                   ) : (
                     <><Loader2 className="w-3 h-3 animate-spin text-amber-400" /> Transcodificando HLS (240p / 480p / 720p / 1080p)...</>
                   )}
@@ -354,8 +405,26 @@ export default function EstruturaRendaExtra4Admin() {
               {serverVideos.map((v) => (
                 <div key={v.name} className="flex items-center gap-2 p-2 border-b border-zinc-800 last:border-0 text-sm">
                   <Video className="w-4 h-4 text-zinc-500 shrink-0" />
-                  <span className="flex-1 truncate text-zinc-300">{v.name}</span>
-                  <Button size="sm" variant="outline" onClick={() => selectExistingVideo(v)}>Usar</Button>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate text-zinc-300">{v.name}</div>
+                    {(v.ready === false || v.status === "queued" || v.status === "processing" || v.status === "error") && (
+                      <div className="mt-1 flex items-center gap-2 text-[11px] text-zinc-500">
+                        {v.status === "error" ? (
+                          <span className="text-red-400">Erro no transcoding</span>
+                        ) : (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin text-amber-400" />
+                            <span>Transcoding em andamento</span>
+                            <span className="font-mono text-amber-300">{Math.round(v.progress || 0)}%</span>
+                            <Progress value={v.progress || 0} className="h-1 w-28" />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button size="sm" variant="outline" disabled={v.ready === false || v.can_use === false || v.status === "queued" || v.status === "processing" || v.status === "error"} onClick={() => selectExistingVideo(v)}>
+                    {v.ready === false || v.status === "queued" || v.status === "processing" ? "Aguarde" : "Usar"}
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => deleteServerVideo(v.name)}><Trash2 className="w-3 h-3 text-red-400" /></Button>
                 </div>
               ))}
