@@ -701,6 +701,146 @@ export default function EstruturaRendaExtra4Admin() {
               </div>
             </Card>
           </TabsContent>
+
+          <TabsContent value="remarketing">
+            <div className="space-y-4">
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Stat icon={Users} label="Leads (rendaextra)" value={rmLeads.length} />
+                <Stat icon={Ban} label="Já compraram (excluídos)" value={rmLeads.filter(l => rmPaidEmails.includes(l.email.toLowerCase())).length} color="text-red-400" />
+                <Stat icon={Send} label="Remarketings enviados" value={rmLogs.length} color="text-emerald-400" />
+                <Stat icon={MailCheck} label="Acessaram desconto" value={rmDiscountLeads.filter(d => d.accessed_discount_at).length} color="text-cyan-400" />
+              </div>
+
+              {/* Filters + actions */}
+              <Card className="p-4 bg-zinc-900 border-zinc-800 space-y-3">
+                <div className="flex items-center gap-2 text-zinc-400 text-xs uppercase tracking-widest">
+                  <Filter className="w-3 h-3" /> Filtros e disparo
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <div className="flex gap-1">
+                    <Button size="sm" variant={rmFilterDevice === "all" ? "default" : "outline"} onClick={() => setRmFilterDevice("all")}>Todos</Button>
+                    <Button size="sm" variant={rmFilterDevice === "computer" ? "default" : "outline"} onClick={() => setRmFilterDevice("computer")}><Monitor className="w-3 h-3 mr-1" />Computador/Notebook/Mac</Button>
+                    <Button size="sm" variant={rmFilterDevice === "mobile" ? "default" : "outline"} onClick={() => setRmFilterDevice("mobile")}><Smartphone className="w-3 h-3 mr-1" />Sem computador</Button>
+                  </div>
+                  <label className="flex items-center gap-2 text-zinc-300 ml-2">
+                    <Checkbox checked={rmHideBought} onCheckedChange={(c) => setRmHideBought(!!c)} />
+                    Ocultar quem já comprou (Instagram Nova)
+                  </label>
+                  <label className="flex items-center gap-2 text-zinc-300">
+                    <Checkbox checked={rmHideAlreadySent} onCheckedChange={(c) => setRmHideAlreadySent(!!c)} />
+                    Ocultar quem já recebeu remarketing
+                  </label>
+                  <Button size="sm" variant="outline" onClick={() => loadRemarketing()} disabled={rmLoading}>
+                    {rmLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Recarregar"}
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-zinc-800">
+                  <label className="text-xs text-zinc-400">Delay entre envios (segundos):</label>
+                  <Input type="number" min={1} max={120} value={rmDelaySeconds} onChange={(e) => setRmDelaySeconds(Math.max(1, parseInt(e.target.value || "8")))} className="w-24 h-8 bg-zinc-800 border-zinc-700 text-white" />
+                  <Button size="sm" variant="outline" onClick={toggleSelectAll}>
+                    {rmSelected.size === filteredRmLeads.length && filteredRmLeads.length > 0 ? "Desmarcar todos" : `Selecionar todos (${filteredRmLeads.length})`}
+                  </Button>
+                  <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={rmSending || rmSelected.size === 0} onClick={sendRemarketingBatch}>
+                    {rmSending ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Enviando {rmProgress.done}/{rmProgress.total}</> : <><Send className="w-3 h-3 mr-1" />Disparar para {rmSelected.size} selecionado(s)</>}
+                  </Button>
+                  <span className="text-xs text-zinc-500">Cada envio cria/renova um link de desconto válido por 48h. Lead duplicado tem o contador de envios incrementado (até 4 ao todo).</span>
+                </div>
+                {rmSending && (
+                  <div className="space-y-1">
+                    <div className="text-xs text-zinc-400 flex justify-between"><span>Enviando: {rmProgress.lastEmail}</span><span>{rmProgress.done}/{rmProgress.total}</span></div>
+                    <Progress value={(rmProgress.done / Math.max(1, rmProgress.total)) * 100} />
+                  </div>
+                )}
+              </Card>
+
+              {/* Lead list */}
+              <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
+                <div className="p-3 text-xs text-zinc-400 border-b border-zinc-800">Leads de <span className="text-zinc-200 font-mono">/rendaextra/admin</span> ({filteredRmLeads.length} após filtros)</div>
+                <div className="overflow-x-auto max-h-[500px]">
+                  <table className="w-full text-sm">
+                    <thead className="bg-zinc-800 text-zinc-300 sticky top-0">
+                      <tr>
+                        <th className="p-2 w-8"></th>
+                        <th className="text-left p-2">Nome</th>
+                        <th className="text-left p-2">Email</th>
+                        <th className="text-left p-2">WhatsApp</th>
+                        <th className="text-left p-2">Dispositivo</th>
+                        <th className="text-left p-2">Cadastro</th>
+                        <th className="text-left p-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRmLeads.length === 0 && (
+                        <tr><td colSpan={7} className="p-6 text-center text-zinc-500">Nenhum lead após os filtros.</td></tr>
+                      )}
+                      {filteredRmLeads.map((l) => {
+                        const k = l.email.toLowerCase();
+                        const bought = rmPaidEmails.includes(k);
+                        const alreadySent = rmLogs.some((r) => r.email.toLowerCase() === k);
+                        const accessed = rmDiscountLeads.some((d) => d.email.toLowerCase() === k && d.accessed_discount_at);
+                        const isComp = isComputerType(l.tipo_computador);
+                        return (
+                          <tr key={l.id} className="border-t border-zinc-800">
+                            <td className="p-2"><Checkbox checked={rmSelected.has(k)} onCheckedChange={() => toggleOne(l.email)} disabled={bought} /></td>
+                            <td className="p-2">{l.nome_completo}</td>
+                            <td className="p-2 text-zinc-300">{l.email}</td>
+                            <td className="p-2">{l.whatsapp}</td>
+                            <td className="p-2">{isComp ? <span className="text-violet-300 flex items-center gap-1"><Monitor className="w-3 h-3" />{l.tipo_computador}</span> : <span className="text-cyan-300 flex items-center gap-1"><Smartphone className="w-3 h-3" />{l.tipo_computador || "—"}</span>}</td>
+                            <td className="p-2 text-zinc-400 text-xs">{new Date(l.created_at).toLocaleString("pt-BR")}</td>
+                            <td className="p-2 text-xs">
+                              {bought && <span className="text-red-400 font-bold">✓ JÁ COMPROU</span>}
+                              {!bought && accessed && <span className="text-emerald-400">acessou desconto</span>}
+                              {!bought && !accessed && alreadySent && <span className="text-amber-400">remarketing enviado</span>}
+                              {!bought && !accessed && !alreadySent && <span className="text-zinc-500">novo</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+
+              {/* Sent log */}
+              <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
+                <div className="p-3 text-xs text-zinc-400 border-b border-zinc-800">Histórico de remarketing enviado ({rmLogs.length})</div>
+                <div className="overflow-x-auto max-h-[400px]">
+                  <table className="w-full text-sm">
+                    <thead className="bg-zinc-800 text-zinc-300 sticky top-0">
+                      <tr>
+                        <th className="text-left p-2">Quando</th>
+                        <th className="text-left p-2">Email</th>
+                        <th className="text-left p-2">Nome</th>
+                        <th className="text-left p-2">Dispositivo</th>
+                        <th className="text-left p-2">Acessou desconto?</th>
+                        <th className="text-left p-2">Status envio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rmLogs.length === 0 && (
+                        <tr><td colSpan={6} className="p-6 text-center text-zinc-500">Nenhum remarketing disparado ainda.</td></tr>
+                      )}
+                      {rmLogs.map((r) => {
+                        const dl = rmDiscountLeads.find((d) => d.email.toLowerCase() === r.email.toLowerCase());
+                        return (
+                          <tr key={r.id} className="border-t border-zinc-800">
+                            <td className="p-2 text-zinc-400 text-xs">{new Date(r.sent_at).toLocaleString("pt-BR")}</td>
+                            <td className="p-2 text-zinc-300">{r.email}</td>
+                            <td className="p-2">{r.nome || "—"}</td>
+                            <td className="p-2 text-xs">{r.tipo_computador || "—"}</td>
+                            <td className="p-2 text-xs">{dl?.accessed_discount_at ? <span className="text-emerald-400">✓ {new Date(dl.accessed_discount_at).toLocaleString("pt-BR")}</span> : <span className="text-zinc-600">—</span>}</td>
+                            <td className="p-2 text-xs">{r.success ? <span className="text-emerald-400">enviado</span> : <span className="text-red-400">falhou</span>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
