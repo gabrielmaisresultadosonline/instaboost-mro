@@ -49,6 +49,16 @@ export default function EstruturaRendaExtra4Admin() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
 
+  // Video config
+  const [videoUrl, setVideoUrl] = useState("");
+  const [hlsUrl, setHlsUrl] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [serverVideos, setServerVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const s = localStorage.getItem(STORAGE_KEY);
     if (s) { try { setCreds(JSON.parse(s)); } catch {} }
