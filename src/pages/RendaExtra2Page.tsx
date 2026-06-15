@@ -382,14 +382,28 @@ const RendaExtraPage = () => {
         </div>
 
 
-        <div className="flex justify-center pt-4 pb-12">
-          <Button
-            onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
-            className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-8 rounded-2xl bg-emerald-500 text-black font-black text-xl transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group"
-          >
-            ACESSAR RENDA EXTRA AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-          </Button>
+        <div className="flex flex-col items-center gap-3 pt-4 pb-12 px-2">
+          {!buttonUnlocked ? (
+            <div className="w-full max-w-md flex flex-col items-center gap-2">
+              <div className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest cursor-not-allowed select-none">
+                <span className="text-amber-400 font-mono text-lg sm:text-xl tabular-nums">{secondsLeft}s</span>
+                <span className="text-xs sm:text-sm">Aguarde para liberar</span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-white/40 text-center max-w-xs">
+                Assista o vídeo — o botão libera em {secondsLeft} segundo{secondsLeft === 1 ? '' : 's'}.
+              </p>
+            </div>
+          ) : (
+            <Button
+              onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
+              className="w-full max-w-md flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-5 sm:py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm sm:text-lg md:text-xl transition-all hover:scale-[1.03] active:scale-95 uppercase tracking-wider sm:tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group whitespace-normal text-center leading-tight h-auto"
+            >
+              <span>ACESSAR RENDA EXTRA AGORA</span>
+              <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 shrink-0 group-hover:translate-x-1 sm:group-hover:translate-x-2 transition-transform" />
+            </Button>
+          )}
         </div>
+
       </div>
     </div>
   );
