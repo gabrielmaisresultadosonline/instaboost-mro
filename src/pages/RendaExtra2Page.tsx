@@ -30,7 +30,7 @@ const RendaExtraPage = () => {
   const controlsTimerRef = useRef<number | null>(null);
 
   const BUTTON_UNLOCK_SECONDS = 20;
-  const CONTROLS_HIDE_MS = 3 * 60 * 1000;
+  const CONTROLS_HIDE_MS = 3 * 1000;
 
   const revealControls = () => {
     setShowControls(true);
