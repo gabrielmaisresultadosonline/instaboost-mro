@@ -135,32 +135,28 @@ export default function EstruturaRendaExtra4Admin() {
         xhr.open("POST", `${VIDEO_SERVER}/api/video/upload`);
         xhr.timeout = 7200000;
         xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100)); };
-        xhr.onload = () => xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(`Upload failed: ${xhr.status}`));
-        xhr.ontimeout = () => reject(new Error("Timeout"));
-        xhr.onerror = () => reject(new Error("Upload falhou"));
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            try { resolve(JSON.parse(xhr.responseText)); } catch { reject(new Error("Resposta inválida do servidor")); }
+          } else {
+            reject(new Error(`Upload falhou (HTTP ${xhr.status}): ${xhr.responseText?.slice(0, 200) || xhr.statusText}`));
+          }
+        };
+        xhr.ontimeout = () => reject(new Error("Upload expirou por timeout. Tente novamente."));
+        xhr.onerror = () => reject(new Error("Falha de rede / CORS ao contatar o video server. Verifique se o VPS está online."));
         xhr.send(formData);
       });
       if (result.success) {
         setVideoUrl(result.video_url);
         setHlsUrl(result.hls_url);
-        toast.success("Upload concluído! Clique em Salvar.");
+        toast.success("Upload concluído! Transcoding HLS iniciado.");
         loadServerVideos();
+      } else {
+        toast.error("Servidor recusou o upload: " + (result.error || "resposta sem success"));
       }
     } catch (err: any) {
-      console.error("[upload] VPS falhou, tentando fallback Supabase Storage:", err);
-      // Fallback: Supabase Storage (sem transcoding HLS)
-      try {
-        toast.info("VPS indisponível. Enviando via armazenamento alternativo...");
-        const fileName = `renda-extra2/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-        const { error: upErr } = await supabase.storage.from("assets").upload(fileName, file, { contentType: file.type, upsert: true });
-        if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage.from("assets").getPublicUrl(fileName);
-        setVideoUrl(urlData.publicUrl);
-        setHlsUrl("");
-        toast.success("Vídeo enviado via fallback! Clique em Salvar.");
-      } catch (fallbackErr: any) {
-        toast.error(`Upload falhou: ${err.message || err}. Fallback também falhou: ${fallbackErr.message || fallbackErr}`);
-      }
+      console.error("[upload] Erro VPS:", err);
+      toast.error(err.message || "Erro no upload");
     } finally { setUploading(false); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
   };
 
