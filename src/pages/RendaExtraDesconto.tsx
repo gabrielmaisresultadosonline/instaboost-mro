@@ -85,6 +85,9 @@ const RendaExtraDesconto = () => {
   const [gateExpired, setGateExpired] = useState(false);
   const [gateNotFound, setGateNotFound] = useState(false);
   const [waNumber, setWaNumber] = useState("");
+  const [grantedEmail, setGrantedEmail] = useState("");
+  const [grantedNome, setGrantedNome] = useState("");
+
 
   useEffect(() => {
     (async () => {
