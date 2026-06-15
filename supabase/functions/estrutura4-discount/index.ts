@@ -245,11 +245,27 @@ serve(async (req) => {
         .from("estrutura4_discount_visits")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(1000);
-      return new Response(JSON.stringify({ success: true, leads: leads || [], visits: visits || [] }), {
+        .limit(2000);
+
+      // Cross-reference: which lead emails are now paid users (purchases via discount)
+      const leadEmails = (leads || []).map((l: any) => String(l.email).toLowerCase()).filter(Boolean);
+      let purchases: any[] = [];
+      if (leadEmails.length > 0) {
+        const { data: paid } = await supabase
+          .from("paid_users")
+          .select("email, username, subscription_status, subscription_end, created_at")
+          .in("email", leadEmails);
+        purchases = (paid || []).filter((p: any) =>
+          ["active", "paid", "approved", "confirmed"].includes(String(p.subscription_status || "").toLowerCase()) ||
+          (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now())
+        );
+      }
+
+      return new Response(JSON.stringify({ success: true, leads: leads || [], visits: visits || [], purchases }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,

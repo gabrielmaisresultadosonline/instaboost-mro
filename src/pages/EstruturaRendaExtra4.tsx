@@ -354,7 +354,9 @@ const EstruturaRendaExtra = () => {
       setMroPassword(pwd);
     }
     setCheckingAuth(false);
+    supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page: '/estruturarendaextra4' } }).catch(() => {});
   }, []);
+
 
   // Load person images and fonts
   useEffect(() => {

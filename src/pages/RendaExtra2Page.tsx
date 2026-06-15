@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trackPageView } from '@/lib/facebookTracking';
+import { supabase } from '@/integrations/supabase/client';
+
+const trackEvent = (page: string) => {
+  supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page } }).catch(() => {});
+};
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
@@ -10,7 +15,9 @@ const RendaExtraPage = () => {
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
+    trackEvent('/renda-extra2');
   }, []);
+
 
 
   if (mode === 'choice') {
@@ -34,7 +41,7 @@ const RendaExtraPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pt-4">
             {/* Prestar serviço com a MRO */}
             <button
-              onClick={() => setMode('prestar')}
+              onClick={() => { trackEvent('click:renda-extra2:prestar'); setMode('prestar'); }}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-emerald-500/30 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/60 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-5 right-5 bg-emerald-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
@@ -57,7 +64,7 @@ const RendaExtraPage = () => {
 
             {/* Licenciado MRO */}
             <button
-              onClick={() => navigate('/licenciado')}
+              onClick={() => { trackEvent('click:renda-extra2:licenciado'); navigate('/licenciado'); }}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-amber-500/20 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/50 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-5 right-5 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
@@ -115,7 +122,7 @@ const RendaExtraPage = () => {
 
         <div className="flex justify-center pt-4 pb-12">
           <Button
-            onClick={() => navigate('/estruturarendaextra4')}
+            onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
             className="w-full max-w-md flex items-center justify-center gap-3 px-8 py-8 rounded-2xl bg-emerald-500 text-black font-black text-xl transition-all hover:scale-[1.05] active:scale-95 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group"
           >
             ACESSAR RENDA EXTRA AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
