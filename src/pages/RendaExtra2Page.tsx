@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trackPageView } from '@/lib/facebookTracking';
 import { supabase } from '@/integrations/supabase/client';
+import Hls from 'hls.js';
+
+const VIDEO_SERVER = 'https://video.maisresultadosonline.com.br';
 
 const trackEvent = (page: string) => {
   supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page } }).catch(() => {});
@@ -12,11 +15,49 @@ const trackEvent = (page: string) => {
 const RendaExtraPage = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+  const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
 
   useEffect(() => {
     trackPageView('Renda Extra 2');
     trackEvent('/renda-extra2');
+    supabase.functions.invoke('estrutura4-discount', { body: { action: 'get_video' } })
+      .then(({ data }) => { if (data) setVideoCfg(data); }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (mode !== 'prestar') return;
+    const video = videoRef.current;
+    if (!video) return;
+    const { video_url, hls_url } = videoCfg;
+    if (!video_url && !hls_url) return;
+
+    const isRel = (u: string) => u.startsWith('/');
+    const fullVideo = video_url ? (isRel(video_url) ? `${VIDEO_SERVER}${video_url}` : video_url) : null;
+    const fullHls = hls_url ? (isRel(hls_url) ? `${VIDEO_SERVER}${hls_url}` : hls_url) : null;
+    const loadDirect = () => { if (fullVideo) { video.src = fullVideo; video.play().catch(() => {}); } };
+
+    if (fullHls && Hls.isSupported()) {
+      (async () => {
+        try {
+          const res = await fetch(fullHls, { method: 'HEAD' });
+          if (!res.ok) return loadDirect();
+          const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
+          hls.loadSource(fullHls);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}); });
+          hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
+          hlsRef.current = hls;
+        } catch { loadDirect(); }
+      })();
+    } else if (fullHls && video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = fullHls; video.play().catch(() => {});
+    } else {
+      loadDirect();
+    }
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+  }, [mode, videoCfg]);
 
 
 
