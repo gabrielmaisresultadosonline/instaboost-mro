@@ -222,6 +222,93 @@ export default function EstruturaRendaExtra4Admin() {
     } catch {}
   };
 
+  // ===== /instagrammnew loaders & handlers =====
+  const loadIgnData = async (c: { email: string; password: string }) => {
+    try {
+      const { data } = await supabase.functions.invoke("instagrammnew-discount", {
+        body: { action: "admin_list", email: c.email, password: c.password },
+      });
+      if (data?.success) {
+        setIgnLeads(data.leads || []);
+        setIgnVideoLog(data.video_log || []);
+        setIgnPurchases(data.purchases || []);
+      }
+    } catch {}
+  };
+  const loadIgnVideoCfg = async () => {
+    try {
+      const { data } = await supabase.functions.invoke("instagrammnew-discount", { body: { action: "get_video" } });
+      if (data) {
+        setIgnVideoUrl(data.video_url || "");
+        setIgnHlsUrl(data.hls_url || "");
+        setIgnVideoTitle(data.video_title || "");
+      }
+    } catch {}
+  };
+  const saveIgnVideo = async () => {
+    if (!creds) return;
+    const { data } = await supabase.functions.invoke("instagrammnew-discount", {
+      body: { action: "set_video", email: creds.email, password: creds.password,
+        video_url: ignVideoUrl, hls_url: ignHlsUrl, video_title: ignVideoTitle },
+    });
+    if (data?.success) toast.success("Vídeo salvo para /instagrammnew");
+    else toast.error("Erro ao salvar");
+  };
+  const pollIgnTranscoding = async (jobId: string) => {
+    const tick = async () => {
+      try {
+        const res = await fetch(`${VIDEO_SERVER}/api/video/status/${encodeURIComponent(jobId)}`);
+        const data = await res.json();
+        setIgnTranscoding({ jobId, progress: data.progress || 0, status: data.status });
+        if (data.status === "completed") { toast.success("Transcoding /instagrammnew concluído"); setTimeout(() => setIgnTranscoding(null), 3000); return; }
+        if (data.status === "error") { toast.error("Erro no transcoding"); setTimeout(() => setIgnTranscoding(null), 5000); return; }
+        ignTranscodeTimeout.current = window.setTimeout(tick, 2000);
+      } catch { ignTranscodeTimeout.current = window.setTimeout(tick, 3000); }
+    };
+    tick();
+  };
+  const handleIgnUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    if (file.size > 5 * 1024 * 1024 * 1024) { toast.error("Máx 5GB"); return; }
+    setIgnUploading(true); setIgnUploadProgress(0);
+    try {
+      const formData = new FormData(); formData.append("video", file);
+      const result = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${VIDEO_SERVER}/api/video/upload`); xhr.timeout = 7200000;
+        xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setIgnUploadProgress(Math.round((ev.loaded / ev.total) * 100)); };
+        xhr.onload = () => xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(`HTTP ${xhr.status}`));
+        xhr.ontimeout = () => reject(new Error("Timeout"));
+        xhr.onerror = () => reject(new Error("Falha de rede"));
+        xhr.send(formData);
+      });
+      if (result.success) {
+        setIgnVideoUrl(result.video_url); setIgnHlsUrl(result.hls_url);
+        toast.success("Upload concluído! Transcodificando…");
+        const jobId = result.job_id || (result.hls_url || "").match(/\/videos\/hls\/(.+?)\/master\.m3u8/)?.[1];
+        if (jobId) { setIgnTranscoding({ jobId, progress: 0, status: "queued" }); pollIgnTranscoding(jobId); }
+      } else toast.error("Servidor recusou: " + (result.error || ""));
+    } catch (err: any) { toast.error(err.message || "Erro no upload"); }
+    finally { setIgnUploading(false); setIgnUploadProgress(0); if (ignFileRef.current) ignFileRef.current.value = ""; }
+  };
+  const createIgnManualLead = async () => {
+    if (!creds) return;
+    setIgnManualSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("instagrammnew-discount", {
+        body: { action: "create_lead",
+          nome: ignManualNome.trim(), email: ignManualEmail.trim().toLowerCase(),
+          whatsapp: ignManualWhats.trim(), source: "admin_manual" },
+      });
+      if (error || !data?.success) toast.error("Erro ao cadastrar lead");
+      else {
+        toast.success("Lead cadastrado e email enviado");
+        setIgnManualNome(""); setIgnManualEmail(""); setIgnManualWhats("");
+        loadIgnData(creds);
+      }
+    } finally { setIgnManualSending(false); }
+  };
+
   useEffect(() => {
     if (creds) {
       fetchData(creds);
@@ -229,11 +316,14 @@ export default function EstruturaRendaExtra4Admin() {
       loadServerVideos();
       loadRemarketing(creds);
       loadVideoAccess(creds);
+      loadIgnData(creds);
+      loadIgnVideoCfg();
       const savedJobId = localStorage.getItem(TRANSCODING_STORAGE_KEY);
       if (savedJobId) pollTranscodingStatus(savedJobId);
     }
     return () => {
       if (transcodingTimeoutRef.current) window.clearTimeout(transcodingTimeoutRef.current);
+      if (ignTranscodeTimeout.current) window.clearTimeout(ignTranscodeTimeout.current);
     };
   }, [creds]);
 
