@@ -386,10 +386,18 @@ const RendaExtraPage = () => {
         <div className="flex flex-col items-center gap-3 pt-4 pb-12 px-2">
           {!buttonUnlocked ? (
             <div className="w-full max-w-md flex flex-col items-center gap-2">
-              <div className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest cursor-not-allowed select-none">
+              <button
+                type="button"
+                onClick={() => {
+                  toast.warning('Você já assistiu ao vídeo?', {
+                    description: `Você precisa assistir pelo menos 20 segundos do vídeo para liberar o botão. Faltam ${secondsLeft}s.`,
+                  });
+                }}
+                className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors"
+              >
                 <span className="text-amber-400 font-mono text-lg sm:text-xl tabular-nums">{secondsLeft}s</span>
                 <span className="text-xs sm:text-sm">Aguarde para liberar</span>
-              </div>
+              </button>
               <p className="text-[11px] sm:text-xs text-white/40 text-center max-w-xs">
                 Assista o vídeo — o botão libera em {secondsLeft} segundo{secondsLeft === 1 ? '' : 's'}.
               </p>
