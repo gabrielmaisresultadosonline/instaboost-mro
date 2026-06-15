@@ -147,7 +147,20 @@ export default function EstruturaRendaExtra4Admin() {
         loadServerVideos();
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro no upload");
+      console.error("[upload] VPS falhou, tentando fallback Supabase Storage:", err);
+      // Fallback: Supabase Storage (sem transcoding HLS)
+      try {
+        toast.info("VPS indisponível. Enviando via armazenamento alternativo...");
+        const fileName = `renda-extra2/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("assets").upload(fileName, file, { contentType: file.type, upsert: true });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("assets").getPublicUrl(fileName);
+        setVideoUrl(urlData.publicUrl);
+        setHlsUrl("");
+        toast.success("Vídeo enviado via fallback! Clique em Salvar.");
+      } catch (fallbackErr: any) {
+        toast.error(`Upload falhou: ${err.message || err}. Fallback também falhou: ${fallbackErr.message || fallbackErr}`);
+      }
     } finally { setUploading(false); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
   };
 
