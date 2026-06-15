@@ -801,6 +801,8 @@ serve(async (req) => {
         else if (sent["25"] || r.last_milestone === "25") kind = "25";
         // If they only accessed (no milestone) → "abandon"
         const ok = await sendVideoMilestoneEmail(kind, r.email, r.nome || "");
+        if (ok) await startLeadFollowups(r.email);
+
         await supabase.from("estrutura4_discount_video_log")
           .update({
             abandoned_email_sent_at: new Date().toISOString(),
