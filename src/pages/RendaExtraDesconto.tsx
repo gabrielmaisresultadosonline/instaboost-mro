@@ -485,11 +485,11 @@ const RendaExtraDesconto = () => {
                 </p>
                 <Button
                   type="button"
-                  onClick={() => navigate('/instagram')}
+                  onClick={() => setShowRegisterConfirm(true)}
                   variant="outline"
                   className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-800 font-bold py-5 text-sm rounded-xl"
                 >
-                  Faça o cadastro novamente
+                  Faça o cadastro
                 </Button>
                 <p className="text-zinc-500 text-[10px] text-center mt-2 leading-relaxed">
                   O mesmo cadastro libera a aula grátis e o desconto.
@@ -498,8 +498,95 @@ const RendaExtraDesconto = () => {
             </>
           )}
         </div>
+
+        {/* Popup: confirma se já tem cadastro */}
+        {showRegisterConfirm && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowRegisterConfirm(false)}>
+            <div className="bg-zinc-900 border border-yellow-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-white font-bold text-lg text-center mb-2">Você já tem cadastro?</h3>
+              <p className="text-zinc-400 text-sm text-center mb-5 leading-relaxed">
+                Se já tens cadastro, pode acessar com seu email no campo acima. Caso contrário, faça o cadastro agora e receba a aula grátis + desconto.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => { setShowRegisterConfirm(false); setShowRegisterForm(true); }}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:opacity-90 text-black font-bold py-5 rounded-xl"
+                >
+                  CADASTRAR E RECEBER A AULA
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRegisterConfirm(false)}
+                  className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-800 font-semibold py-4 rounded-xl"
+                >
+                  OK, FECHAR
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Popup: formulário de cadastro */}
+        {showRegisterForm && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => !regLoading && setShowRegisterForm(false)}>
+            <div className="bg-zinc-900 border border-yellow-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="text-center mb-5">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-yellow-500/20 mb-2">
+                  <Gift className="w-7 h-7 text-yellow-400" />
+                </div>
+                <h3 className="text-white font-bold text-lg">Cadastro Renda Extra</h3>
+                <p className="text-zinc-400 text-xs mt-1">Libera a aula grátis e o desconto.</p>
+              </div>
+              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+                <Input
+                  type="text"
+                  value={regNome}
+                  onChange={(e) => setRegNome(e.target.value)}
+                  placeholder="Nome completo"
+                  className="bg-zinc-800 border-zinc-700 text-white h-12"
+                  required
+                  maxLength={120}
+                />
+                <Input
+                  type="tel"
+                  value={regWhats}
+                  onChange={(e) => setRegWhats(e.target.value)}
+                  placeholder="WhatsApp (com DDD)"
+                  className="bg-zinc-800 border-zinc-700 text-white h-12"
+                  required
+                  maxLength={20}
+                />
+                <Input
+                  type="email"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="bg-zinc-800 border-zinc-700 text-white h-12"
+                  required
+                  maxLength={255}
+                />
+                <Button
+                  type="submit"
+                  disabled={regLoading}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:opacity-90 text-black font-bold py-5 rounded-xl"
+                >
+                  {regLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CADASTRAR E LIBERAR"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterForm(false)}
+                  className="w-full text-zinc-500 hover:text-zinc-300 text-xs mt-1"
+                  disabled={regLoading}
+                >
+                  Cancelar
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
+
   }
 
   return (
