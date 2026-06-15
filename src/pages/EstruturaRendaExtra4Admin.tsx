@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, Users, Eye, Clock, CheckCircle2, MousePointerClick, Briefcase, Crown, Rocket, DollarSign, TrendingUp } from "lucide-react";
+import { Loader2, LogOut, Users, Eye, Clock, CheckCircle2, MousePointerClick, Briefcase, Crown, Rocket, DollarSign, TrendingUp, Upload, Video, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
+
+const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 
 interface Lead {
   id: string;
@@ -46,6 +49,16 @@ export default function EstruturaRendaExtra4Admin() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
 
+  // Video config
+  const [videoUrl, setVideoUrl] = useState("");
+  const [hlsUrl, setHlsUrl] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [serverVideos, setServerVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const s = localStorage.getItem(STORAGE_KEY);
     if (s) { try { setCreds(JSON.parse(s)); } catch {} }
@@ -71,7 +84,82 @@ export default function EstruturaRendaExtra4Admin() {
     }
   };
 
-  useEffect(() => { if (creds) fetchData(creds); }, [creds]);
+  useEffect(() => { if (creds) { fetchData(creds); loadVideoCfg(); loadServerVideos(); } }, [creds]);
+
+  const loadVideoCfg = async () => {
+    const { data } = await supabase.functions.invoke("estrutura4-discount", { body: { action: "get_video" } });
+    if (data) {
+      setVideoUrl(data.video_url || "");
+      setHlsUrl(data.hls_url || "");
+      setVideoTitle(data.video_title || "");
+    }
+  };
+
+  const loadServerVideos = async () => {
+    setLoadingVideos(true);
+    try {
+      const res = await fetch(`${VIDEO_SERVER}/api/video/list`);
+      const data = await res.json();
+      if (data?.success) setServerVideos(data.files || []);
+    } catch { setServerVideos([]); }
+    finally { setLoadingVideos(false); }
+  };
+
+  const selectExistingVideo = (video: any) => {
+    const baseName = video.name.replace(/\.[^.]+$/, '');
+    setVideoUrl(video.url);
+    setHlsUrl(`/videos/hls/${baseName}/master.m3u8`);
+    toast.success("Vídeo selecionado! Clique em Salvar.");
+  };
+
+  const deleteServerVideo = async (name: string) => {
+    if (!confirm(`Excluir "${name}"?`)) return;
+    try {
+      const res = await fetch(`${VIDEO_SERVER}/api/video/${encodeURIComponent(name)}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data?.success) { toast.success("Excluído!"); setServerVideos((p) => p.filter((v) => v.name !== name)); }
+      else toast.error("Erro ao excluir");
+    } catch { toast.error("Erro ao conectar ao servidor"); }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024 * 1024) { toast.error("Máx 3GB"); return; }
+    setUploading(true); setUploadProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+      const result = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${VIDEO_SERVER}/api/video/upload`);
+        xhr.timeout = 7200000;
+        xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100)); };
+        xhr.onload = () => xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(`Upload failed: ${xhr.status}`));
+        xhr.ontimeout = () => reject(new Error("Timeout"));
+        xhr.onerror = () => reject(new Error("Upload falhou"));
+        xhr.send(formData);
+      });
+      if (result.success) {
+        setVideoUrl(result.video_url);
+        setHlsUrl(result.hls_url);
+        toast.success("Upload concluído! Clique em Salvar.");
+        loadServerVideos();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro no upload");
+    } finally { setUploading(false); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
+  };
+
+  const saveVideo = async () => {
+    if (!creds) return;
+    const { data } = await supabase.functions.invoke("estrutura4-discount", {
+      body: { action: "set_video", email: creds.email, password: creds.password, video_url: videoUrl, hls_url: hlsUrl, video_title: videoTitle },
+    });
+    if (data?.success) toast.success("Vídeo salvo! Já disponível em /renda-extra2");
+    else toast.error("Erro ao salvar");
+  };
+
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,6 +262,45 @@ export default function EstruturaRendaExtra4Admin() {
           <Stat icon={DollarSign} label="Compras aprovadas" value={totalPurchases} color="text-emerald-400" />
           <Stat icon={TrendingUp} label="Conversão lead → compra" value={`${leadsConverted} (${convRate}%)`} color="text-cyan-400" />
         </div>
+
+        {/* Vídeo do /renda-extra2 */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-2"><Video className="w-3 h-3" /> Vídeo exibido em /renda-extra2 (Prestar Serviço)</h2>
+        <Card className="p-4 bg-zinc-900 border-zinc-800 mb-6 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Input placeholder="Título (opcional)" value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white md:col-span-2" />
+            <Input placeholder="video_url (ex: /videos/arquivo.mp4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
+            <Input placeholder="hls_url (ex: /videos/hls/arquivo/master.m3u8)" value={hlsUrl} onChange={(e) => setHlsUrl(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
+            <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} variant="outline">
+              <Upload className="w-4 h-4 mr-2" /> {uploading ? `Enviando ${uploadProgress}%` : "Enviar vídeo p/ servidor"}
+            </Button>
+            <Button onClick={loadServerVideos} variant="outline" disabled={loadingVideos}>
+              {loadingVideos ? <Loader2 className="w-4 h-4 animate-spin" /> : "Recarregar lista"}
+            </Button>
+            <Button onClick={saveVideo} className="bg-emerald-600 hover:bg-emerald-700 ml-auto">
+              <Save className="w-4 h-4 mr-2" /> Salvar (publicar em /renda-extra2)
+            </Button>
+          </div>
+
+          {uploading && <Progress value={uploadProgress} />}
+
+          {serverVideos.length > 0 && (
+            <div className="border border-zinc-800 rounded-lg max-h-56 overflow-y-auto">
+              {serverVideos.map((v) => (
+                <div key={v.name} className="flex items-center gap-2 p-2 border-b border-zinc-800 last:border-0 text-sm">
+                  <Video className="w-4 h-4 text-zinc-500 shrink-0" />
+                  <span className="flex-1 truncate text-zinc-300">{v.name}</span>
+                  <Button size="sm" variant="outline" onClick={() => selectExistingVideo(v)}>Usar</Button>
+                  <Button size="sm" variant="ghost" onClick={() => deleteServerVideo(v.name)}><Trash2 className="w-3 h-3 text-red-400" /></Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
 
         <Tabs defaultValue="leads">
           <TabsList className="bg-zinc-900">
