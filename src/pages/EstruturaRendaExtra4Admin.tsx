@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, Users, Eye, Mail, Phone, Clock, CheckCircle2 } from "lucide-react";
+import { Loader2, LogOut, Users, Eye, Clock, CheckCircle2, MousePointerClick, Briefcase, Crown, Rocket, DollarSign, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 interface Lead {
@@ -27,6 +27,13 @@ interface Visit {
   user_agent: string | null;
   created_at: string;
 }
+interface Purchase {
+  email: string;
+  username: string;
+  subscription_status: string;
+  subscription_end: string | null;
+  created_at: string;
+}
 
 const STORAGE_KEY = "est4_admin_creds";
 
@@ -37,14 +44,11 @@ export default function EstruturaRendaExtra4Admin() {
   const [loading, setLoading] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
 
   useEffect(() => {
     const s = localStorage.getItem(STORAGE_KEY);
-    if (s) {
-      try {
-        setCreds(JSON.parse(s));
-      } catch {}
-    }
+    if (s) { try { setCreds(JSON.parse(s)); } catch {} }
   }, []);
 
   const fetchData = async (c: { email: string; password: string }) => {
@@ -61,14 +65,13 @@ export default function EstruturaRendaExtra4Admin() {
       }
       setLeads(data.leads || []);
       setVisits(data.visits || []);
+      setPurchases(data.purchases || []);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (creds) fetchData(creds);
-  }, [creds]);
+  useEffect(() => { if (creds) fetchData(creds); }, [creds]);
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,21 +84,13 @@ export default function EstruturaRendaExtra4Admin() {
         const c = { email: email.trim().toLowerCase(), password };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
         setCreds(c);
-      } else {
-        toast.error("Credenciais inválidas");
-      }
-    } finally {
-      setLoading(false);
-    }
+      } else toast.error("Credenciais inválidas");
+    } finally { setLoading(false); }
   };
 
   const logout = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setCreds(null);
-    setEmail("");
-    setPassword("");
-    setLeads([]);
-    setVisits([]);
+    setCreds(null); setEmail(""); setPassword(""); setLeads([]); setVisits([]); setPurchases([]);
   };
 
   if (!creds) {
@@ -116,39 +111,75 @@ export default function EstruturaRendaExtra4Admin() {
   const now = Date.now();
   const activeLeads = leads.filter((l) => new Date(l.expires_at).getTime() > now).length;
   const accessed = leads.filter((l) => l.accessed_discount_at).length;
-  const visitsToDiscount = visits.filter((v) => v.page === "/descontoalunosrendaextrasss").length;
+
+  const countPage = (p: string) => visits.filter((v) => v.page === p).length;
+  const uniqueIps = (p: string) => new Set(visits.filter((v) => v.page === p).map((v) => v.ip).filter(Boolean)).size;
+
+  const visitsRendaExtra2 = countPage("/renda-extra2");
+  const visitsEstrutura4 = countPage("/estruturarendaextra4");
+  const visitsDiscount = countPage("/descontoalunosrendaextrasss");
+  const clicksPrestar = countPage("click:renda-extra2:prestar");
+  const clicksLicenciado = countPage("click:renda-extra2:licenciado");
+  const clicksAcessar = countPage("click:renda-extra2:acessar-renda-extra-agora");
+
+  // Funnel: prestar → acessar (by unique IP)
+  const prestarIps = new Set(visits.filter((v) => v.page === "click:renda-extra2:prestar").map((v) => v.ip).filter(Boolean));
+  const acessarIps = new Set(visits.filter((v) => v.page === "click:renda-extra2:acessar-renda-extra-agora").map((v) => v.ip).filter(Boolean));
+  const prestarAndAcessar = [...prestarIps].filter((ip) => acessarIps.has(ip)).length;
+
+  const totalPurchases = purchases.length;
+  const purchaseEmails = new Set(purchases.map((p) => p.email.toLowerCase()));
+  const leadsConverted = leads.filter((l) => purchaseEmails.has(l.email.toLowerCase())).length;
+  const convRate = leads.length > 0 ? ((leadsConverted / leads.length) * 100).toFixed(1) : "0.0";
+
+  const Stat = ({ icon: Icon, label, value, color = "text-white" }: any) => (
+    <Card className="p-4 bg-zinc-900 border-zinc-800">
+      <div className="flex items-center gap-2 text-zinc-400 text-xs"><Icon className="w-4 h-4" />{label}</div>
+      <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white p-4 sm:p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Admin · Desconto Renda Extra 4</h1>
           <Button variant="outline" onClick={logout}><LogOut className="w-4 h-4 mr-2" /> Sair</Button>
         </div>
 
+        {/* Visitas das páginas */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Visitas das páginas</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs"><Users className="w-4 h-4" />Leads</div>
-            <p className="text-2xl font-bold mt-1">{leads.length}</p>
-          </Card>
-          <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs"><Clock className="w-4 h-4" />Desconto ativo</div>
-            <p className="text-2xl font-bold mt-1 text-yellow-400">{activeLeads}</p>
-          </Card>
-          <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs"><CheckCircle2 className="w-4 h-4" />Acessaram desconto</div>
-            <p className="text-2xl font-bold mt-1 text-green-400">{accessed}</p>
-          </Card>
-          <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs"><Eye className="w-4 h-4" />Visitas /descontoalunosrendaextrasss</div>
-            <p className="text-2xl font-bold mt-1">{visitsToDiscount}</p>
-          </Card>
+          <Stat icon={Eye} label="/renda-extra2" value={`${visitsRendaExtra2} (${uniqueIps("/renda-extra2")} únicos)`} />
+          <Stat icon={Eye} label="/estruturarendaextra4" value={`${visitsEstrutura4} (${uniqueIps("/estruturarendaextra4")} únicos)`} />
+          <Stat icon={Eye} label="/descontoalunosrendaextrasss" value={`${visitsDiscount} (${uniqueIps("/descontoalunosrendaextrasss")} únicos)`} />
+          <Stat icon={MousePointerClick} label="Total de eventos" value={visits.length} color="text-zinc-300" />
+        </div>
+
+        {/* Cliques em /renda-extra2 */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Cliques em /renda-extra2</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Stat icon={Briefcase} label="Prestar Serviço com MRO" value={clicksPrestar} color="text-emerald-400" />
+          <Stat icon={Crown} label="Seja um Licenciado MRO" value={clicksLicenciado} color="text-amber-400" />
+          <Stat icon={Rocket} label="Acessar Renda Extra Agora" value={clicksAcessar} color="text-emerald-300" />
+          <Stat icon={TrendingUp} label="Prestar → Acessar (IPs únicos)" value={prestarAndAcessar} color="text-cyan-400" />
+        </div>
+
+        {/* Desconto / Funil de venda */}
+        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Funil de desconto e vendas</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <Stat icon={Users} label="Leads (cadastros)" value={leads.length} />
+          <Stat icon={Clock} label="Desconto ativo" value={activeLeads} color="text-yellow-400" />
+          <Stat icon={CheckCircle2} label="Acessaram desconto" value={accessed} color="text-green-400" />
+          <Stat icon={DollarSign} label="Compras aprovadas" value={totalPurchases} color="text-emerald-400" />
+          <Stat icon={TrendingUp} label="Conversão lead → compra" value={`${leadsConverted} (${convRate}%)`} color="text-cyan-400" />
         </div>
 
         <Tabs defaultValue="leads">
           <TabsList className="bg-zinc-900">
             <TabsTrigger value="leads">Leads ({leads.length})</TabsTrigger>
-            <TabsTrigger value="visits">Visitas ({visits.length})</TabsTrigger>
+            <TabsTrigger value="purchases">Compras ({totalPurchases})</TabsTrigger>
+            <TabsTrigger value="visits">Eventos ({visits.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="leads">
@@ -164,15 +195,17 @@ export default function EstruturaRendaExtra4Admin() {
                       <th className="text-left p-3">Expira em</th>
                       <th className="text-left p-3">Emails</th>
                       <th className="text-left p-3">Acessou</th>
+                      <th className="text-left p-3">Comprou?</th>
                     </tr>
                   </thead>
                   <tbody>
                     {leads.length === 0 && (
-                      <tr><td colSpan={7} className="p-6 text-center text-zinc-500">Nenhum lead ainda.</td></tr>
+                      <tr><td colSpan={8} className="p-6 text-center text-zinc-500">Nenhum lead ainda.</td></tr>
                     )}
                     {leads.map((l) => {
                       const exp = new Date(l.expires_at).getTime();
                       const expired = exp < now;
+                      const bought = purchaseEmails.has(l.email.toLowerCase());
                       return (
                         <tr key={l.id} className="border-t border-zinc-800">
                           <td className="p-3">{l.nome}</td>
@@ -184,9 +217,42 @@ export default function EstruturaRendaExtra4Admin() {
                           </td>
                           <td className="p-3">{l.emails_sent_count}</td>
                           <td className="p-3">{l.accessed_discount_at ? new Date(l.accessed_discount_at).toLocaleString("pt-BR") : "—"}</td>
+                          <td className="p-3">{bought ? <span className="text-emerald-400 font-bold">✓ APROVADO</span> : <span className="text-zinc-600">—</span>}</td>
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="purchases">
+            <Card className="p-0 bg-zinc-900 border-zinc-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-800 text-zinc-300">
+                    <tr>
+                      <th className="text-left p-3">Email</th>
+                      <th className="text-left p-3">Username</th>
+                      <th className="text-left p-3">Status</th>
+                      <th className="text-left p-3">Expira</th>
+                      <th className="text-left p-3">Criado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {purchases.length === 0 && (
+                      <tr><td colSpan={5} className="p-6 text-center text-zinc-500">Nenhuma compra aprovada via desconto ainda.</td></tr>
+                    )}
+                    {purchases.map((p) => (
+                      <tr key={p.email} className="border-t border-zinc-800">
+                        <td className="p-3 text-zinc-300">{p.email}</td>
+                        <td className="p-3">{p.username}</td>
+                        <td className="p-3"><span className="text-emerald-400 font-bold uppercase text-xs">{p.subscription_status}</span></td>
+                        <td className="p-3 text-zinc-400">{p.subscription_end ? new Date(p.subscription_end).toLocaleString("pt-BR") : "—"}</td>
+                        <td className="p-3 text-zinc-400">{new Date(p.created_at).toLocaleString("pt-BR")}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -199,7 +265,7 @@ export default function EstruturaRendaExtra4Admin() {
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-800 text-zinc-300">
                     <tr>
-                      <th className="text-left p-3">Página</th>
+                      <th className="text-left p-3">Evento / Página</th>
                       <th className="text-left p-3">Email</th>
                       <th className="text-left p-3">IP</th>
                       <th className="text-left p-3">Quando</th>
@@ -211,7 +277,7 @@ export default function EstruturaRendaExtra4Admin() {
                     )}
                     {visits.map((v) => (
                       <tr key={v.id} className="border-t border-zinc-800">
-                        <td className="p-3 text-zinc-300">{v.page}</td>
+                        <td className="p-3 text-zinc-300 font-mono text-xs">{v.page}</td>
                         <td className="p-3">{v.email || "—"}</td>
                         <td className="p-3 text-zinc-500 text-xs">{v.ip || "—"}</td>
                         <td className="p-3 text-zinc-400">{new Date(v.created_at).toLocaleString("pt-BR")}</td>
