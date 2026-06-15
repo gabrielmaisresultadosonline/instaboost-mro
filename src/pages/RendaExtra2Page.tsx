@@ -231,21 +231,84 @@ const RendaExtraPage = () => {
           </p>
         </div>
 
-        <div className="max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5">
+        <div ref={containerRef} className="relative max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5 group">
           {(videoCfg.video_url || videoCfg.hls_url) ? (
-            <video
-              ref={videoRef}
-              controls
-              playsInline
-              className="w-full h-full"
-              style={{ objectFit: 'contain' }}
-            />
+            <>
+              <video
+                ref={videoRef}
+                playsInline
+                onClick={() => { if (started) togglePlay(); }}
+                onContextMenu={(e) => e.preventDefault()}
+                className="w-full h-full cursor-pointer"
+                style={{ objectFit: 'contain' }}
+              />
+
+              {/* Initial play overlay */}
+              {!started && (
+                <button
+                  onClick={handleStart}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 hover:bg-black/50 transition-colors"
+                >
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:scale-110 transition-transform">
+                    <Play className="w-10 h-10 md:w-12 md:h-12 ml-1" fill="currentColor" />
+                  </div>
+                  <span className="text-white font-bold text-sm md:text-base uppercase tracking-[0.2em]">Clique para assistir</span>
+                </button>
+              )}
+
+              {/* Pause overlay icon (subtle) */}
+              {started && !playing && (
+                <button
+                  onClick={togglePlay}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30"
+                >
+                  <div className="w-16 h-16 rounded-full bg-white/90 text-black flex items-center justify-center">
+                    <Play className="w-8 h-8 ml-1" fill="currentColor" />
+                  </div>
+                </button>
+              )}
+
+              {/* Custom controls */}
+              {started && (
+                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  {/* Fake shrinking progress bar (non-interactive) */}
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden pointer-events-none select-none">
+                    <div className="h-full bg-emerald-500 rounded-full transition-[width] duration-300" style={{ width: `${progressPct}%` }} />
+                  </div>
+                  <div className="flex items-center gap-3 text-white">
+                    <button onClick={togglePlay} className="hover:text-emerald-400 transition-colors">
+                      {playing ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5" fill="currentColor" />}
+                    </button>
+                    <button onClick={restart} className="hover:text-emerald-400 transition-colors" title="Reiniciar">
+                      <RotateCcw className="w-5 h-5" />
+                    </button>
+                    <button onClick={toggleMute} className="hover:text-emerald-400 transition-colors">
+                      {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </button>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={muted ? 0 : volume}
+                      onChange={(e) => changeVolume(parseFloat(e.target.value))}
+                      className="w-20 accent-emerald-500"
+                    />
+                    <div className="flex-1" />
+                    <button onClick={toggleFullscreen} className="hover:text-emerald-400 transition-colors" title="Tela cheia">
+                      <Maximize className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
               Vídeo ainda não configurado.
             </div>
           )}
         </div>
+
 
         <div className="flex justify-center pt-4 pb-12">
           <Button
