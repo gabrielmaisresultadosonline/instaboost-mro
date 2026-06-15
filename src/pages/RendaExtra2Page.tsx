@@ -41,7 +41,7 @@ const RendaExtraPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pt-4">
             {/* Prestar serviço com a MRO */}
             <button
-              onClick={() => setMode('prestar')}
+              onClick={() => { trackEvent('click:renda-extra2:prestar'); setMode('prestar'); }}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-emerald-500/30 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/60 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-5 right-5 bg-emerald-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
