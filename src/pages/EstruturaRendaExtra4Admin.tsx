@@ -76,6 +76,93 @@ export default function EstruturaRendaExtra4Admin() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const transcodingTimeoutRef = useRef<number | null>(null);
 
+  // Remarketing tab state
+  interface RendaLead { id: string; nome_completo: string; email: string; whatsapp: string; tipo_computador: string; created_at: string; }
+  interface RemarketingLog { id: string; email: string; nome: string | null; tipo_computador: string | null; sent_at: string; link: string | null; success: boolean; }
+  interface DiscountLead { email: string; expires_at: string; emails_sent_count: number; last_email_sent_at: string | null; accessed_discount_at: string | null; created_at: string; }
+  const [rmLoading, setRmLoading] = useState(false);
+  const [rmLeads, setRmLeads] = useState<RendaLead[]>([]);
+  const [rmPaidEmails, setRmPaidEmails] = useState<string[]>([]);
+  const [rmDiscountLeads, setRmDiscountLeads] = useState<DiscountLead[]>([]);
+  const [rmLogs, setRmLogs] = useState<RemarketingLog[]>([]);
+  const [rmFilterDevice, setRmFilterDevice] = useState<"all" | "computer" | "mobile">("all");
+  const [rmHideBought, setRmHideBought] = useState(true);
+  const [rmHideAlreadySent, setRmHideAlreadySent] = useState(false);
+  const [rmSelected, setRmSelected] = useState<Set<string>>(new Set());
+  const [rmDelaySeconds, setRmDelaySeconds] = useState(8);
+  const [rmSending, setRmSending] = useState(false);
+  const [rmProgress, setRmProgress] = useState({ done: 0, total: 0, lastEmail: "" });
+
+  const loadRemarketing = async (c?: { email: string; password: string }) => {
+    const cur = c || creds;
+    if (!cur) return;
+    setRmLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("estrutura4-discount", {
+        body: { action: "admin_remarketing_data", email: cur.email, password: cur.password },
+      });
+      if (error || !data?.success) { toast.error("Erro ao carregar remarketing"); return; }
+      setRmLeads(data.renda_leads || []);
+      setRmPaidEmails((data.paid_emails || []).map((e: string) => e.toLowerCase()));
+      setRmDiscountLeads(data.discount_leads || []);
+      setRmLogs(data.remarketing_logs || []);
+    } finally { setRmLoading(false); }
+  };
+
+  const isComputerType = (t: string) => /comput|notebook|mac|pc|desktop|laptop/i.test(t || "");
+  const filteredRmLeads = rmLeads.filter((l) => {
+    const emailLc = (l.email || "").toLowerCase();
+    if (rmHideBought && rmPaidEmails.includes(emailLc)) return false;
+    if (rmHideAlreadySent && rmLogs.some((r) => r.email.toLowerCase() === emailLc)) return false;
+    if (rmFilterDevice === "computer" && !isComputerType(l.tipo_computador)) return false;
+    if (rmFilterDevice === "mobile" && isComputerType(l.tipo_computador)) return false;
+    return true;
+  });
+
+  const toggleSelectAll = () => {
+    if (rmSelected.size === filteredRmLeads.length) setRmSelected(new Set());
+    else setRmSelected(new Set(filteredRmLeads.map((l) => l.email.toLowerCase())));
+  };
+  const toggleOne = (email: string) => {
+    const next = new Set(rmSelected);
+    const k = email.toLowerCase();
+    if (next.has(k)) next.delete(k); else next.add(k);
+    setRmSelected(next);
+  };
+
+  const sendRemarketingBatch = async () => {
+    if (!creds) return;
+    const targets = filteredRmLeads.filter((l) => rmSelected.has(l.email.toLowerCase()));
+    if (targets.length === 0) { toast.info("Selecione pelo menos um lead"); return; }
+    if (!confirm(`Enviar email de desconto para ${targets.length} lead(s) com ${rmDelaySeconds}s entre cada envio?`)) return;
+    setRmSending(true);
+    setRmProgress({ done: 0, total: targets.length, lastEmail: "" });
+    let ok = 0, fail = 0;
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
+      try {
+        const { data } = await supabase.functions.invoke("estrutura4-discount", {
+          body: {
+            action: "admin_send_remarketing",
+            email: creds.email,
+            password: creds.password,
+            target_email: t.email,
+            nome: t.nome_completo,
+            whatsapp: t.whatsapp,
+            tipo_computador: t.tipo_computador,
+          },
+        });
+        if (data?.success && data?.sent) ok++; else fail++;
+      } catch { fail++; }
+      setRmProgress({ done: i + 1, total: targets.length, lastEmail: t.email });
+      if (i < targets.length - 1) await new Promise((r) => setTimeout(r, Math.max(1, rmDelaySeconds) * 1000));
+    }
+    setRmSending(false);
+    toast.success(`Concluído. Enviados: ${ok}. Falhas: ${fail}.`);
+    setRmSelected(new Set());
+    loadRemarketing();
+  };
+
   useEffect(() => {
     const s = localStorage.getItem(STORAGE_KEY);
     if (s) { try { setCreds(JSON.parse(s)); } catch {} }
