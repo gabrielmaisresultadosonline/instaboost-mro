@@ -62,6 +62,7 @@ export default function EstruturaRendaExtra4Admin() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [videoAccess, setVideoAccess] = useState<any[]>([]);
 
   // Manual lead creation
   const [manualNome, setManualNome] = useState("");
