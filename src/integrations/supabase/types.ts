@@ -1511,19 +1511,28 @@ export type Database = {
       }
       desconto_alunos_settings: {
         Row: {
+          hls_url: string | null
           id: string
           is_active: boolean | null
           updated_at: string | null
+          video_title: string | null
+          video_url: string | null
         }
         Insert: {
+          hls_url?: string | null
           id?: string
           is_active?: boolean | null
           updated_at?: string | null
+          video_title?: string | null
+          video_url?: string | null
         }
         Update: {
+          hls_url?: string | null
           id?: string
           is_active?: boolean | null
           updated_at?: string | null
+          video_title?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }
