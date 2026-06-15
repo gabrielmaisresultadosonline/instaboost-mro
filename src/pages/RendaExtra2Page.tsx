@@ -297,7 +297,13 @@ const RendaExtraPage = () => {
           </p>
         </div>
 
-        <div ref={containerRef} className="relative max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5 group">
+        <div
+          ref={containerRef}
+          onMouseMove={revealControls}
+          onTouchStart={revealControls}
+          onClick={revealControls}
+          className="relative max-w-3xl mx-auto w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border border-white/5 group"
+        >
           {(videoCfg.video_url || videoCfg.hls_url) ? (
             <>
               <video
