@@ -237,22 +237,22 @@ serve(async (req) => {
       const token = String(body.token || "");
       if (!token) return json({ valid: false });
       const { data } = await supabase.from("instagrammnew_leads")
-        .select("email, nome, expires_at").eq("token", token).maybeSingle();
+        .select("email, nome, whatsapp, expires_at").eq("token", token).maybeSingle();
       if (!data) return json({ valid: false });
       if (new Date(data.expires_at).getTime() < Date.now()) return json({ valid: false, expired: true });
       await supabase.from("instagrammnew_leads").update({ accessed_page_at: new Date().toISOString() }).eq("token", token);
-      return json({ valid: true, email: data.email, nome: data.nome });
+      return json({ valid: true, email: data.email, nome: data.nome, whatsapp: data.whatsapp });
     }
 
     if (action === "verify_email") {
       const email = String(body.email || "").trim().toLowerCase();
       if (!email) return json({ valid: false });
       const { data } = await supabase.from("instagrammnew_leads")
-        .select("token, nome, expires_at").eq("email", email).maybeSingle();
+        .select("token, nome, whatsapp, expires_at").eq("email", email).maybeSingle();
       if (!data) return json({ valid: false, notfound: true });
       if (new Date(data.expires_at).getTime() < Date.now()) return json({ valid: false, expired: true });
       await supabase.from("instagrammnew_leads").update({ accessed_page_at: new Date().toISOString() }).eq("email", email);
-      return json({ valid: true, token: data.token, nome: data.nome });
+      return json({ valid: true, token: data.token, nome: data.nome, whatsapp: data.whatsapp });
     }
 
     if (action === "get_video") {
