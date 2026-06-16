@@ -26,6 +26,17 @@ const FOLLOWUP_OFFSETS_H = [4, 8, 8, 144, 192];
 const log = (m: string, d?: unknown) =>
   console.log(`[INSTAGRAMMNEW] ${m}`, d ? JSON.stringify(d) : "");
 
+// Encode UTF-8 subject as base64 encoded-word to avoid denomailer's broken QP wrapper
+const encodeSubject = (s: string) => {
+  // eslint-disable-next-line no-control-regex
+  if (/^[\x00-\x7F]*$/.test(s)) return s;
+  const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  return `=?UTF-8?B?${b64}?=`;
+};
+const htmlToText = (h: string) => h.replace(/<style[\s\S]*?<\/style>/gi, "")
+  .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+  .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
+
 const sendEmail = async (to: string, subject: string, html: string) => {
   const pwd = Deno.env.get("SMTP_PASSWORD");
   if (!pwd) { log("no SMTP_PASSWORD"); return false; }
@@ -40,7 +51,10 @@ const sendEmail = async (to: string, subject: string, html: string) => {
     });
     await client.send({
       from: "MRO Sistema <suporte@maisresultadosonline.com.br>",
-      to, subject, content: "auto", html,
+      to,
+      subject: encodeSubject(subject),
+      content: htmlToText(html),
+      html,
     });
     await client.close();
     return true;
