@@ -142,11 +142,11 @@ export default function InstagrammNew() {
             {mode === "hero" && (
               <div className="space-y-3">
                 <Button onClick={() => setMode("register")}
-                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-7 text-base rounded-xl shadow-lg shadow-yellow-400/20">
+                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-sm sm:text-base rounded-xl shadow-lg shadow-yellow-400/20">
                   FAZER CADASTRO E ASSISTIR
                 </Button>
                 <Button onClick={() => setMode("login")} variant="outline"
-                  className="w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 hover:text-white font-bold py-6 rounded-xl">
+                  className="w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 hover:text-white font-semibold py-5 text-sm rounded-xl">
                   Já fiz cadastro — quero assistir
                 </Button>
               </div>
