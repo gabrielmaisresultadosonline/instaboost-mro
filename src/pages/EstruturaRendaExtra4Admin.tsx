@@ -1309,6 +1309,63 @@ export default function EstruturaRendaExtra4Admin() {
                 </table>
               </div>
             </Card>
+              </TabsContent>
+
+              <TabsContent value="emails" className="space-y-4 mt-4">
+                <Card className="p-5 bg-zinc-950/60 border border-zinc-800 ring-1 ring-violet-500/20">
+                  <SectionTitle icon={Send} accent="violet">Lógica da sequência de emails (/instagrammnew)</SectionTitle>
+                  <p className="text-xs text-zinc-400 mt-1 mb-4">
+                    Disparada automaticamente via cron a cada minuto. Para se o lead virar cliente pago.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { t: "Estágio 1 — Boas-vindas", when: "Imediato (logo após o cadastro)", subj: "🚀 Acesso liberado — Sistema MRO", desc: "Confirma o acesso e leva direto pro vídeo." },
+                      { t: "Estágio 2 — Benefício", when: "+4h após o anterior", subj: "💡 Por que o MRO bate qualquer estratégia de anúncio", desc: "Reforça o valor da prospecção ativa vs. anúncios pagos." },
+                      { t: "Estágio 3 — Venda 1", when: "+8h após o anterior (~12h)", subj: "🔥 Vai aumentar suas vendas: pega o sistema agora", desc: "Primeira chamada de venda — quem usa colhe na primeira semana." },
+                      { t: "Estágio 4 — Venda 2", when: "+8h após o anterior (~20h, dentro de 24h)", subj: "⚡ Roubando o público do concorrente — você dentro?", desc: "Segundo empurrão de venda no mesmo dia." },
+                      { t: "Estágio 5 — Reforço (1 semana)", when: "+6 dias após o anterior (~1 semana)", subj: "📈 Investindo pouco, vendendo muito — case real", desc: "Mostra que com pouco investimento o sistema roda o ano inteiro." },
+                      { t: "Estágio 6 — Desconto (15 dias)", when: "+8 dias após o anterior (~15 dias)", subj: "🎁 Liberei um desconto exclusivo pra você", desc: "Email com botão que abre direto o WhatsApp configurado, com a mensagem \"Recebi um email sobre um desconto da ferramenta MRO.\"" },
+                    ].map((s, i) => (
+                      <div key={i} className={`p-3 rounded-lg border ${i === 5 ? "border-pink-500/40 bg-pink-500/5" : "border-zinc-800 bg-zinc-900/60"}`}>
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <div className="font-semibold text-white text-sm">{s.t}</div>
+                          <div className="text-[11px] text-zinc-400 font-mono">{s.when}</div>
+                        </div>
+                        <div className="text-xs text-violet-300 mt-1">Assunto: {s.subj}</div>
+                        <div className="text-xs text-zinc-400 mt-1">{s.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="p-5 bg-gradient-to-br from-pink-950/40 to-rose-950/30 border border-pink-500/30">
+                  <SectionTitle icon={MessageCircle as any} accent="amber">Email de desconto (15 dias) → WhatsApp</SectionTitle>
+                  <p className="text-xs text-zinc-300 mt-2 leading-relaxed">
+                    O botão do email de 15 dias aponta para{" "}
+                    <code className="text-pink-300 bg-black/40 px-1.5 py-0.5 rounded">{`${window.location.origin}/whatsappvxlinkdireto`}</code>.
+                    Essa página abre automaticamente o WhatsApp configurado em{" "}
+                    <code className="text-pink-300 bg-black/40 px-1.5 py-0.5 rounded">/whatsapp/admin</code>{" "}
+                    já com a mensagem:
+                  </p>
+                  <div className="mt-3 p-3 rounded-lg bg-black/60 border border-pink-500/30 text-sm text-emerald-300 font-mono">
+                    "Recebi um email sobre um desconto da ferramenta MRO."
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <a href="/whatsappvxlinkdireto" target="_blank" rel="noreferrer"
+                       className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-lg text-sm">
+                      <MessageCircle className="w-4 h-4" /> Testar link de desconto
+                    </a>
+                    <a href="/whatsapp/admin" target="_blank" rel="noreferrer"
+                       className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-4 py-2 rounded-lg text-sm border border-zinc-700">
+                      Configurar número do WhatsApp
+                    </a>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mt-3">
+                    Para mudar o número, ajuste em <strong>/whatsapp/admin</strong> — esta página usa o mesmo número da landing /whatsapp.
+                  </p>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
