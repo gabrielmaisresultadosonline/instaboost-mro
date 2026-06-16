@@ -59,6 +59,7 @@ const CATEGORIES: Category[] = [
       { title: 'IAVendeMais Admin', path: '/Iavendemais/admin', description: 'Gestão dos áudios das 4 etapas do funil de simulação de chamada do IAVendeMais.' },
       { title: 'Prompts MRO Admin', path: '/prompts/admin', description: 'Gestão de prompts, vendas e usuários do Prompts MRO (BR).' },
       { title: 'Prompts IN Admin', path: '/promptsin/admin', description: 'Versão internacional (EN) do Prompts MRO - gestão completa.' },
+      { title: 'Token IA', path: '/tokenia', description: 'Armazene tokens (DeepSeek, etc.) e gere link público para usar em outras ferramentas. Atualizou aqui, atualiza em todo lugar.' },
     ],
   },
   {

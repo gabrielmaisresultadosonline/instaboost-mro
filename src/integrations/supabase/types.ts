@@ -260,6 +260,30 @@ export type Database = {
         }
         Relationships: []
       }
+      api_tokens: {
+        Row: {
+          created_at: string
+          description: string | null
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       broadcast_email_logs: {
         Row: {
           body: string
