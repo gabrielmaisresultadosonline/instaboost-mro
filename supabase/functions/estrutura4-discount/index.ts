@@ -331,18 +331,37 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(2000);
 
-      // Cross-reference: which lead emails are now paid users (purchases via discount)
+      // Cross-reference: which lead emails are now paid users OR have a created access (Instagram Nova etc.)
       const leadEmails = (leads || []).map((l: any) => String(l.email).toLowerCase()).filter(Boolean);
       let purchases: any[] = [];
       if (leadEmails.length > 0) {
-        const { data: paid } = await supabase
-          .from("paid_users")
-          .select("email, username, subscription_status, subscription_end, created_at")
-          .in("email", leadEmails);
-        purchases = (paid || []).filter((p: any) =>
+        const [{ data: paid }, { data: accesses }] = await Promise.all([
+          supabase.from("paid_users")
+            .select("email, username, subscription_status, subscription_end, created_at")
+            .in("email", leadEmails),
+          supabase.from("created_accesses")
+            .select("customer_email, username, service_type, expiration_date, created_at")
+            .in("customer_email", leadEmails),
+        ]);
+        const fromPaid = (paid || []).filter((p: any) =>
           ["active", "paid", "approved", "confirmed"].includes(String(p.subscription_status || "").toLowerCase()) ||
           (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now())
         );
+        const fromAccesses = (accesses || []).map((a: any) => ({
+          email: a.customer_email,
+          username: a.username,
+          subscription_status: "active",
+          subscription_end: a.expiration_date,
+          created_at: a.created_at,
+          source: a.service_type || "instagram-nova",
+        }));
+        const seen = new Set<string>();
+        purchases = [...fromAccesses, ...fromPaid].filter((p: any) => {
+          const k = String(p.email || "").toLowerCase();
+          if (!k || seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
       }
 
       return new Response(JSON.stringify({ success: true, leads: leads || [], visits: visits || [], purchases }), {
