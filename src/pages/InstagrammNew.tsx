@@ -221,9 +221,10 @@ export default function InstagrammNew() {
   // Granted view — mesma página de /instagram-nova, com o vídeo do /instagrammnew
   return (
     <InstagramNovaPlan
-      videoSlot={
-        <InstagrammNewVideoPlayer email={grantedEmail} nome={grantedNome} />
-      }
+      videoSlot={<InstagrammNewVideoPlayer email={grantedEmail} nome={grantedNome} />}
+      prefillEmail={grantedEmail}
+      prefillPhone={grantedWhats}
+      hideContactFields
     />
   );
 }

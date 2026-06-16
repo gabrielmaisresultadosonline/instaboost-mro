@@ -63,8 +63,13 @@ const PLANS = {
   agencia: { name: "Agência", price: 997.00, days: 365, installment: "81", accounts: 10 },
 };
 
-interface InstagramNovaPlanProps { videoSlot?: React.ReactNode }
-const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
+interface InstagramNovaPlanProps {
+  videoSlot?: React.ReactNode;
+  prefillEmail?: string;
+  prefillPhone?: string;
+  hideContactFields?: boolean;
+}
+const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactFields }: InstagramNovaPlanProps = {}) => {
   const [searchParams] = useSearchParams();
   const { affiliateId } = useParams<{ affiliateId?: string }>();
   const partnerSlug = (affiliateId || searchParams.get('p') || '').toLowerCase() || null;
@@ -85,14 +90,19 @@ const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showSecondaryVideo, setShowSecondaryVideo] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefillEmail || "");
   const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(prefillPhone || "");
   const [usernameError, setUsernameError] = useState("");
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const usernameCheckTimeoutRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (prefillEmail) setEmail(prefillEmail);
+    if (prefillPhone) setPhone(prefillPhone);
+  }, [prefillEmail, prefillPhone]);
 
   const checkUsernameAvailability = async (usernameToCheck: string): Promise<boolean | null> => {
     if (usernameToCheck.length < 4) { setUsernameAvailable(null); return null; }
@@ -831,14 +841,18 @@ const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
               </p>
             </div>
             <form onSubmit={handleCheckout} className="space-y-4">
-              <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Mail className="w-4 h-4" />Seu Email</label>
-                <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
-              </div>
-              <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Phone className="w-4 h-4" />Celular com DDD</label>
-                <Input type="tel" placeholder="(51) 99999-9999" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
-              </div>
+              {!hideContactFields && (
+                <>
+                  <div>
+                    <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Mail className="w-4 h-4" />Seu Email</label>
+                    <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Phone className="w-4 h-4" />Celular com DDD</label>
+                    <Input type="tel" placeholder="(51) 99999-9999" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
+                  </div>
+                </>
+              )}
               <div>
                 <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><User className="w-4 h-4" />Nome de Usuário (será sua senha também)</label>
                 <Input type="text" placeholder="seuusuario" value={username} onChange={(e) => validateUsername(e.target.value)} className={`bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500 ${usernameError ? "border-red-500" : ""}`} required />
