@@ -1319,20 +1319,96 @@ export default function EstruturaRendaExtra4Admin() {
                   </p>
                   <div className="space-y-3">
                     {[
-                      { t: "Estágio 1 — Boas-vindas", when: "Imediato (logo após o cadastro)", subj: "🚀 Acesso liberado — Sistema MRO", desc: "Confirma o acesso e leva direto pro vídeo." },
-                      { t: "Estágio 2 — Benefício", when: "+4h após o anterior", subj: "💡 Por que o MRO bate qualquer estratégia de anúncio", desc: "Reforça o valor da prospecção ativa vs. anúncios pagos." },
-                      { t: "Estágio 3 — Venda 1", when: "+8h após o anterior (~12h)", subj: "🔥 Vai aumentar suas vendas: pega o sistema agora", desc: "Primeira chamada de venda — quem usa colhe na primeira semana." },
-                      { t: "Estágio 4 — Venda 2", when: "+8h após o anterior (~20h, dentro de 24h)", subj: "⚡ Roubando o público do concorrente — você dentro?", desc: "Segundo empurrão de venda no mesmo dia." },
-                      { t: "Estágio 5 — Reforço (1 semana)", when: "+6 dias após o anterior (~1 semana)", subj: "📈 Investindo pouco, vendendo muito — case real", desc: "Mostra que com pouco investimento o sistema roda o ano inteiro." },
-                      { t: "Estágio 6 — Desconto (15 dias)", when: "+8 dias após o anterior (~15 dias)", subj: "🎁 Liberei um desconto exclusivo pra você", desc: "Email com botão que abre direto o WhatsApp configurado, com a mensagem \"Recebi um email sobre um desconto da ferramenta MRO.\"" },
+                      {
+                        t: "Estágio 1 — Boas-vindas", when: "Imediato (logo após o cadastro)",
+                        subj: "🚀 Acesso liberado — Sistema MRO",
+                        title: "Acesso liberado 🚀",
+                        body: [
+                          "Olá [NOME],",
+                          "Seu acesso ao Sistema MRO foi liberado. Com ele você consegue mais vendas, clientes e engajamento usando prospecção ativa — sem precisar gastar nenhum real com anúncios.",
+                          "Assista a aula completa pelo botão abaixo e veja como nossos clientes estão escalando o Instagram puxando público diretamente do concorrente.",
+                        ],
+                        cta: "ACESSAR AGORA", ctaTo: "Link de acesso (/instagrammnew?token=...)",
+                      },
+                      {
+                        t: "Estágio 2 — Benefício", when: "+4h após o anterior",
+                        subj: "💡 Por que o MRO bate qualquer estratégia de anúncio",
+                        title: "Prospecção ativa > anúncios pagos",
+                        body: [
+                          "[NOME], lembra do sistema MRO que você liberou?",
+                          "Enquanto anúncios pagos sobem cada vez mais de preço, com o MRO você faz prospecção ativa 24h por dia — curte, segue e interage com a audiência certa do seu concorrente.",
+                          "Resultado: clientes chegam no seu Direct sem você pagar nada por isso.",
+                        ],
+                        cta: "VER AULA COMPLETA", ctaTo: "Link de acesso",
+                      },
+                      {
+                        t: "Estágio 3 — Venda 1", when: "+8h após o anterior (~12h)",
+                        subj: "🔥 Vai aumentar suas vendas: pega o sistema agora",
+                        title: "Quem usa colhe na primeira semana",
+                        body: [
+                          "[NOME], você já viu a proposta do MRO.",
+                          "Quem usa começa a colher clientes na primeira semana — porque a ferramenta puxa público qualificado direto do concorrente para o seu perfil.",
+                          "Garanta seu acesso e comece hoje:",
+                        ],
+                        cta: "QUERO O SISTEMA", ctaTo: "Link de acesso",
+                      },
+                      {
+                        t: "Estágio 4 — Venda 2", when: "+8h após o anterior (~20h, dentro de 24h)",
+                        subj: "⚡ Roubando o público do concorrente — você dentro?",
+                        title: "O MRO trabalha enquanto você dorme",
+                        body: [
+                          "[NOME], o MRO trabalha pra você enquanto dorme.",
+                          "Imagina acordar com perfis novos falando contigo no Direct todos os dias — alunos que já usam relatam isso.",
+                          "Aproveita e libera seu acesso agora mesmo:",
+                        ],
+                        cta: "LIBERAR ACESSO", ctaTo: "Link de acesso",
+                      },
+                      {
+                        t: "Estágio 5 — Reforço (1 semana)", when: "+6 dias após o anterior (~1 semana)",
+                        subj: "📈 Investindo pouco, vendendo muito — case real",
+                        title: "Investindo pouco, vendendo muito",
+                        body: [
+                          "[NOME], faz uma semana que liberamos pra você o acesso ao MRO.",
+                          "Com um investimento muito pequeno (menor que 1 anúncio patrocinado de R$ 200), você tem o sistema rodando o ano inteiro trazendo público qualificado.",
+                          "Se aumentar suas vendas é prioridade, esse é o caminho.",
+                        ],
+                        cta: "QUERO COMEÇAR", ctaTo: "Link de acesso",
+                      },
+                      {
+                        t: "Estágio 6 — Desconto (15 dias)", when: "+8 dias após o anterior (~15 dias)",
+                        subj: "🎁 Liberei um desconto exclusivo pra você",
+                        title: "Desconto especial liberado 🎁",
+                        body: [
+                          "[NOME], vi que você ainda não pegou o MRO.",
+                          "Como você está na nossa base, vou liberar um desconto especial hoje. É a oportunidade pra entrar e parar de depender de anúncios pagos pra vender.",
+                          "Clique no botão abaixo pra falar comigo no WhatsApp e pegar o cupom:",
+                        ],
+                        cta: "FALAR NO WHATSAPP", ctaTo: "/whatsappvxlinkdireto → abre WhatsApp com \"Recebi um email sobre um desconto da ferramenta MRO.\"",
+                      },
                     ].map((s, i) => (
-                      <div key={i} className={`p-3 rounded-lg border ${i === 5 ? "border-pink-500/40 bg-pink-500/5" : "border-zinc-800 bg-zinc-900/60"}`}>
+                      <div key={i} className={`p-4 rounded-lg border ${i === 5 ? "border-pink-500/40 bg-pink-500/5" : "border-zinc-800 bg-zinc-900/60"}`}>
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <div className="font-semibold text-white text-sm">{s.t}</div>
                           <div className="text-[11px] text-zinc-400 font-mono">{s.when}</div>
                         </div>
                         <div className="text-xs text-violet-300 mt-1">Assunto: {s.subj}</div>
-                        <div className="text-xs text-zinc-400 mt-1">{s.desc}</div>
+
+                        <div className="mt-3 rounded-md bg-white text-zinc-900 border border-zinc-300 overflow-hidden">
+                          <div className={`px-4 py-3 text-white font-bold text-sm ${i === 5 ? "bg-gradient-to-r from-pink-600 to-rose-700" : "bg-gradient-to-r from-violet-600 to-violet-900"}`}>
+                            {s.title}
+                          </div>
+                          <div className="p-4 space-y-2 text-[13px] leading-relaxed">
+                            {s.body.map((p, k) => (
+                              <p key={k} dangerouslySetInnerHTML={{ __html: p.replace(/\[NOME\]/g, "<strong>[NOME]</strong>") }} />
+                            ))}
+                            <div className="pt-2 text-center">
+                              <span className={`inline-block px-5 py-2.5 rounded-full text-white text-xs font-bold ${i === 5 ? "bg-gradient-to-r from-green-500 to-emerald-700" : "bg-gradient-to-r from-violet-600 to-zinc-900"}`}>
+                                {s.cta}
+                              </span>
+                              <div className="text-[10px] text-zinc-500 mt-1 font-mono">→ {s.ctaTo}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
