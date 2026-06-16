@@ -176,7 +176,7 @@ export default function InstagrammNew() {
 
               {mode === "login" && (
                 <>
-                  <h2 className="text-2xl font-black text-white mb-1 text-center">Acessar aula</h2>
+                  <h2 className="text-2xl font-black text-white mb-1 text-center">Acessar Ferramenta MRO</h2>
                   <p className="text-zinc-400 text-sm text-center mb-5">Digite o email do seu cadastro.</p>
                   <form onSubmit={handleLogin} className="space-y-3">
                     <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
