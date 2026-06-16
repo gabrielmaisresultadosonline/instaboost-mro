@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Rocket, Sparkles, TrendingUp, Users, Zap, Target, MessageCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Rocket, Sparkles, TrendingUp, Users, Zap, Target, MessageCircle, CheckCircle2, Crown, Building2, Shield } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import InstagrammNewVideoPlayer from "@/components/InstagrammNewVideoPlayer";
 import { trackLead } from "@/lib/facebookTracking";
