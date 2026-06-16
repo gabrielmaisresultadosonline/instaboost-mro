@@ -296,15 +296,19 @@ const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
           </div>
 
           <div className="mt-6 max-w-4xl mx-auto" id="hero-video">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
-              <iframe
-                src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
-                title="Video MRO"
-                className="w-full aspect-video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
+            {videoSlot ? (
+              videoSlot
+            ) : (
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+                <iframe
+                  src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
+                  title="Video MRO"
+                  className="w-full aspect-video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
           </div>
 
 
