@@ -31,6 +31,18 @@ export default function InstagrammNew() {
   const [regWhats, setRegWhats] = useState("");
   const [regLoading, setRegLoading] = useState(false);
 
+  // Granted: lead details (email + whatsapp) loaded from server
+  const [grantedWhats, setGrantedWhats] = useState("");
+
+  // Plan checkout modal
+  type Plan = { id: "pro" | "agencia"; name: string; itemName: string; priceCents: number; priceLabel: string };
+  const PLANS: Record<"pro" | "agencia", Plan> = {
+    pro: { id: "pro", name: "Plano Pro", itemName: "MRO+PRO", priceCents: 39700, priceLabel: "R$ 397" },
+    agencia: { id: "agencia", name: "Plano Agências", itemName: "MRO+AGENCIA", priceCents: 99700, priceLabel: "R$ 997" },
+  };
+  const [planModal, setPlanModal] = useState<Plan | null>(null);
+  const [planUsername, setPlanUsername] = useState("");
+
   // initial gate check (token in URL or saved email)
   useEffect(() => {
     (async () => {
