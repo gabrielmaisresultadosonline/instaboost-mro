@@ -841,14 +841,18 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
               </p>
             </div>
             <form onSubmit={handleCheckout} className="space-y-4">
-              <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Mail className="w-4 h-4" />Seu Email</label>
-                <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
-              </div>
-              <div>
-                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Phone className="w-4 h-4" />Celular com DDD</label>
-                <Input type="tel" placeholder="(51) 99999-9999" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
-              </div>
+              {!hideContactFields && (
+                <>
+                  <div>
+                    <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Mail className="w-4 h-4" />Seu Email</label>
+                    <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><Phone className="w-4 h-4" />Celular com DDD</label>
+                    <Input type="tel" placeholder="(51) 99999-9999" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500" required />
+                  </div>
+                </>
+              )}
               <div>
                 <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2"><User className="w-4 h-4" />Nome de Usuário (será sua senha também)</label>
                 <Input type="text" placeholder="seuusuario" value={username} onChange={(e) => validateUsername(e.target.value)} className={`bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500 ${usernameError ? "border-red-500" : ""}`} required />
