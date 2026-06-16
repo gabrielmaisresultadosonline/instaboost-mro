@@ -63,7 +63,8 @@ const PLANS = {
   agencia: { name: "Agência", price: 997.00, days: 365, installment: "81", accounts: 10 },
 };
 
-const InstagramNovaPlan = () => {
+interface InstagramNovaPlanProps { videoSlot?: React.ReactNode }
+const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
   const [searchParams] = useSearchParams();
   const { affiliateId } = useParams<{ affiliateId?: string }>();
   const partnerSlug = (affiliateId || searchParams.get('p') || '').toLowerCase() || null;
