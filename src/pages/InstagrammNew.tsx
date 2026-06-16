@@ -87,7 +87,7 @@ export default function InstagrammNew() {
       });
       if (data?.valid) {
         localStorage.setItem(STORAGE_KEY, email);
-        setGrantedEmail(email); setGrantedNome(data.nome || "");
+        setGrantedEmail(email); setGrantedNome(data.nome || ""); setGrantedWhats(data.whatsapp || "");
         setGranted(true);
       } else if (data?.expired) setExpired(true);
       else setNotFound(true);
