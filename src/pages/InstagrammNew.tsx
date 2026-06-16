@@ -98,6 +98,7 @@ export default function InstagrammNew() {
       localStorage.setItem(STORAGE_KEY, email);
       setGrantedEmail(email); setGrantedNome(nome);
       setGranted(true);
+      try { trackLead("instagrammnew_register"); } catch {}
       toast.success("Cadastro realizado! Acesso liberado.");
     } catch { toast.error("Erro ao cadastrar"); }
     finally { setRegLoading(false); }
