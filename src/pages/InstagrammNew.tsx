@@ -120,9 +120,8 @@ export default function InstagrammNew() {
             <Sparkles className="w-4 h-4 text-yellow-400" />
             <span className="text-yellow-300 font-bold text-xs uppercase tracking-wider">Sistema MRO</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight mb-4">
-            Prospecção Ativa usando a<br />
-            <span className="text-yellow-400">ferramenta MRO</span>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-4 text-zinc-200">
+            Prospecção Ativa usando a <span className="text-yellow-400">ferramenta MRO</span>
           </h1>
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight mb-4 text-white">
             Mais Vendas, Mais Clientes,<br />
