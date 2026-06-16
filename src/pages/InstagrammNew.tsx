@@ -114,26 +114,27 @@ export default function InstagrammNew() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-black text-white">
         {/* HERO */}
-        <section className="px-4 pt-10 pb-6 max-w-4xl mx-auto text-center">
-          <img src={logoMro} alt="MRO" className="h-14 sm:h-16 mx-auto mb-6 object-contain" />
-          <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/40 rounded-full px-4 py-1.5 mb-5">
-            <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-yellow-300 font-bold text-xs uppercase tracking-wider">Sistema MRO</span>
+        <section className="px-4 pt-8 pb-4 max-w-4xl mx-auto text-center">
+          <img src={logoMro} alt="MRO" className="h-10 sm:h-14 mx-auto mb-4 object-contain" />
+          <div className="inline-flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/40 rounded-full px-3 py-1 mb-4">
+            <Sparkles className="w-3 h-3 text-yellow-400" />
+            <span className="text-yellow-300 font-semibold text-[10px] uppercase tracking-wider">Sistema MRO</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-4 text-zinc-200">
-            Prospecção Ativa usando a <span className="text-yellow-400">ferramenta MRO</span>
-          </h1>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight mb-4 text-white">
-            Mais Vendas, Mais Clientes,<br />
-            <span className="text-yellow-400">Mais Engajamento</span>
-          </h2>
-          <p className="text-lg sm:text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed mb-3">
-            <span className="bg-yellow-400 text-black font-bold px-2 py-0.5 rounded">Sem gastar nenhum real com anúncios</span>
+          <p className="text-xs sm:text-sm font-medium leading-snug mb-3 text-zinc-400 uppercase tracking-wide">
+            Prospecção Ativa com a <span className="text-yellow-400">ferramenta MRO</span>
           </p>
-          <p className="text-xl sm:text-2xl font-bold text-white mt-6 mb-8">
-            👉 Cadastre-se para ver tudo por completo
+          <h1 className="text-[28px] sm:text-5xl md:text-6xl font-black leading-[1.05] mb-4 text-white">
+            Mais Vendas,<br />Mais Clientes,<br />
+            <span className="text-yellow-400">Mais Engajamento</span>
+          </h1>
+          <p className="text-sm sm:text-base text-zinc-300 max-w-2xl mx-auto leading-relaxed mb-6">
+            <span className="bg-yellow-400 text-black font-bold px-2 py-0.5 rounded">Sem gastar 1 real com anúncios</span>
+          </p>
+          <p className="text-base sm:text-lg font-semibold text-zinc-200 mt-4 mb-6">
+            👉 Cadastre-se para ver tudo
           </p>
         </section>
+
 
         {/* CTA CARD */}
         <section className="px-4 pb-16 max-w-md mx-auto">
