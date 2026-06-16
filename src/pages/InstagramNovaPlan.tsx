@@ -63,8 +63,13 @@ const PLANS = {
   agencia: { name: "Agência", price: 997.00, days: 365, installment: "81", accounts: 10 },
 };
 
-interface InstagramNovaPlanProps { videoSlot?: React.ReactNode }
-const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
+interface InstagramNovaPlanProps {
+  videoSlot?: React.ReactNode;
+  prefillEmail?: string;
+  prefillPhone?: string;
+  hideContactFields?: boolean;
+}
+const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactFields }: InstagramNovaPlanProps = {}) => {
   const [searchParams] = useSearchParams();
   const { affiliateId } = useParams<{ affiliateId?: string }>();
   const partnerSlug = (affiliateId || searchParams.get('p') || '').toLowerCase() || null;
@@ -85,14 +90,19 @@ const InstagramNovaPlan = ({ videoSlot }: InstagramNovaPlanProps = {}) => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showSecondaryVideo, setShowSecondaryVideo] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"pro" | "agencia">("pro");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefillEmail || "");
   const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(prefillPhone || "");
   const [usernameError, setUsernameError] = useState("");
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const usernameCheckTimeoutRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (prefillEmail) setEmail(prefillEmail);
+    if (prefillPhone) setPhone(prefillPhone);
+  }, [prefillEmail, prefillPhone]);
 
   const checkUsernameAvailability = async (usernameToCheck: string): Promise<boolean | null> => {
     if (usernameToCheck.length < 4) { setUsernameAvailable(null); return null; }
