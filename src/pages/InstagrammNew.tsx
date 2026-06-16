@@ -121,19 +121,19 @@ export default function InstagrammNew() {
             <span className="text-yellow-300 font-bold text-xs uppercase tracking-wider">Sistema MRO</span>
           </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight mb-4">
+            Prospecção Ativa usando a<br />
+            <span className="text-yellow-400">ferramenta MRO</span>
+          </h1>
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight mb-4 text-white">
             Mais Vendas, Mais Clientes,<br />
             <span className="text-yellow-400">Mais Engajamento</span>
-          </h1>
+          </h2>
           <p className="text-lg sm:text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed mb-3">
             <span className="bg-yellow-400 text-black font-bold px-2 py-0.5 rounded">Sem gastar nenhum real com anúncios</span>
           </p>
-          <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-2">
-            Com <strong className="text-white">Prospecção Ativa</strong> usando a ferramenta <strong className="text-yellow-400">MRO</strong>.
-          </p>
-          <p className="text-xl sm:text-2xl font-bold text-white mt-6 mb-2">
+          <p className="text-xl sm:text-2xl font-bold text-white mt-6 mb-8">
             👉 Cadastre-se para ver tudo por completo
           </p>
-          <p className="text-sm text-zinc-500 mb-8">Acesso 100% gratuito à aula completa</p>
         </section>
 
         {/* CTA CARD */}
