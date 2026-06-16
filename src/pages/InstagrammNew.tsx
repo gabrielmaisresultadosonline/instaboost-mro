@@ -176,7 +176,7 @@ export default function InstagrammNew() {
 
               {mode === "login" && (
                 <>
-                  <h2 className="text-2xl font-black text-white mb-1 text-center">Acessar aula</h2>
+                  <h2 className="text-2xl font-black text-white mb-1 text-center">Acessar Ferramenta MRO</h2>
                   <p className="text-zinc-400 text-sm text-center mb-5">Digite o email do seu cadastro.</p>
                   <form onSubmit={handleLogin} className="space-y-3">
                     <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
@@ -194,7 +194,7 @@ export default function InstagrammNew() {
               {mode === "register" && (
                 <>
                   <h2 className="text-2xl font-black text-white mb-1 text-center">Cadastro rápido</h2>
-                  <p className="text-zinc-400 text-sm text-center mb-5">Libere acesso imediato à aula completa.</p>
+                  <p className="text-zinc-400 text-sm text-center mb-5">Libere acesso imediato a ferramenta MRO!</p>
                   <form onSubmit={handleRegister} className="space-y-3">
                     <Input type="text" value={regNome} onChange={(e) => setRegNome(e.target.value)}
                       placeholder="Nome completo" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={120} />
