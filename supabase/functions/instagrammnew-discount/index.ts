@@ -300,11 +300,30 @@ serve(async (req) => {
       const emails = (leads || []).map((l: any) => String(l.email).toLowerCase()).filter(Boolean);
       let purchases: any[] = [];
       if (emails.length > 0) {
-        const { data: paid } = await supabase.from("paid_users")
-          .select("email, username, subscription_status, subscription_end, created_at").in("email", emails);
-        purchases = (paid || []).filter((p: any) =>
+        const [{ data: paid }, { data: accesses }] = await Promise.all([
+          supabase.from("paid_users")
+            .select("email, username, subscription_status, subscription_end, created_at").in("email", emails),
+          supabase.from("created_accesses")
+            .select("customer_email, username, service_type, expiration_date, created_at").in("customer_email", emails),
+        ]);
+        const fromPaid = (paid || []).filter((p: any) =>
           ["active", "paid", "approved", "confirmed"].includes(String(p.subscription_status || "").toLowerCase())
           || (p.subscription_end && new Date(p.subscription_end).getTime() > Date.now()));
+        const fromAccesses = (accesses || []).map((a: any) => ({
+          email: a.customer_email,
+          username: a.username,
+          subscription_status: "active",
+          subscription_end: a.expiration_date,
+          created_at: a.created_at,
+          source: a.service_type || "instagram-nova",
+        }));
+        const seen = new Set<string>();
+        purchases = [...fromAccesses, ...fromPaid].filter((p: any) => {
+          const k = String(p.email || "").toLowerCase();
+          if (!k || seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
       }
       // enrich video log with whatsapp
       const waMap: Record<string, string> = {};
