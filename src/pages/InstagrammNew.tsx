@@ -108,7 +108,7 @@ export default function InstagrammNew() {
       });
       if (error || !data?.success) { toast.error("Erro ao cadastrar"); return; }
       localStorage.setItem(STORAGE_KEY, email);
-      setGrantedEmail(email); setGrantedNome(nome);
+      setGrantedEmail(email); setGrantedNome(nome); setGrantedWhats(whatsapp);
       setGranted(true);
       try { trackLead("instagrammnew_register"); } catch {}
       toast.success("Cadastro realizado! Acesso liberado.");
