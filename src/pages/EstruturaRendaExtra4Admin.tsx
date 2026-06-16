@@ -1164,6 +1164,13 @@ export default function EstruturaRendaExtra4Admin() {
           </TabsContent>
 
           <TabsContent value="instagrammnew" className="space-y-4">
+            <Tabs defaultValue="config" className="w-full">
+              <TabsList className="bg-zinc-900 border border-zinc-800">
+                <TabsTrigger value="config" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">Configuração & Leads</TabsTrigger>
+                <TabsTrigger value="emails" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">Lógica de emails</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="config" className="space-y-4 mt-4">
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <Stat icon={Users} label="Leads cadastrados" value={ignLeads.length} accent="violet" />
