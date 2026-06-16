@@ -118,15 +118,15 @@ const FOLLOWUPS: Array<{ subject: string; build: (n: string, l: string) => strin
       "💸 ATIVAR MEU MRO", l, "#10b981",
     ),
   },
-  // stage 6 — discount (~15 days)
+  // stage 6 — discount (~15 days)  → CTA vai DIRETO pro WhatsApp configurado
   {
     subject: "🎁 Liberei um desconto exclusivo pra você",
-    build: (n, l) => baseHtml(
+    build: (n, _l) => baseHtml(
       "Última chamada — desconto pra fechar",
       `<p><strong>${n}</strong>, vi que você ainda não pegou o MRO.</p>
        <p>Como você está na nossa base, vou liberar um <strong>desconto especial</strong> hoje. É a oportunidade pra entrar e parar de depender de anúncios pagos pra vender.</p>
-       <p>Fala comigo pelo botão abaixo pra eu te passar o cupom:</p>`,
-      "🎟️ QUERO MEU DESCONTO", l, "#ec4899",
+       <p>Clique no botão abaixo pra falar comigo no WhatsApp e pegar o cupom:</p>`,
+      "💬 QUERO MEU DESCONTO NO WHATSAPP", `${SITE_URL}/whatsappvxlinkdireto`, "#ec4899",
     ),
   },
 ];
