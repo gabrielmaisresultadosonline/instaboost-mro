@@ -55,7 +55,7 @@ export default function InstagrammNew() {
           });
           if (data?.valid) {
             localStorage.setItem(STORAGE_KEY, data.email);
-            setGrantedEmail(data.email); setGrantedNome(data.nome || "");
+            setGrantedEmail(data.email); setGrantedNome(data.nome || ""); setGrantedWhats(data.whatsapp || "");
             setGranted(true); setChecking(false); return;
           }
           if (data?.expired) setExpired(true);
@@ -66,7 +66,7 @@ export default function InstagrammNew() {
             body: { action: "verify_email", email: saved },
           });
           if (data?.valid) {
-            setGrantedEmail(saved); setGrantedNome(data.nome || "");
+            setGrantedEmail(saved); setGrantedNome(data.nome || ""); setGrantedWhats(data.whatsapp || "");
             setGranted(true); setChecking(false); return;
           }
           if (data?.expired) { setExpired(true); localStorage.removeItem(STORAGE_KEY); }
