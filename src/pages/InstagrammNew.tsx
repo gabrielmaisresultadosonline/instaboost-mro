@@ -141,67 +141,69 @@ export default function InstagrammNew() {
         {/* CTA CARD */}
         <section className="px-4 pb-16 max-w-md mx-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
-            {mode === "hero" && (
-              <div className="space-y-3">
-                <Button onClick={() => setMode("register")}
-                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-sm sm:text-base rounded-xl shadow-lg shadow-yellow-400/20">
-                  FAZER CADASTRO E ASSISTIR
-                </Button>
-                <Button onClick={() => setMode("login")} variant="outline"
-                  className="w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 hover:text-white font-semibold py-5 text-sm rounded-xl">
-                  Já fiz cadastro — quero assistir
-                </Button>
-              </div>
-            )}
-
-            {mode === "login" && (
-              <>
-                <h2 className="text-xl font-bold text-white mb-1 text-center">Acessar com seu email</h2>
-                <p className="text-zinc-400 text-sm text-center mb-4">Digite o email que você usou no cadastro.</p>
-                <form onSubmit={handleLogin} className="space-y-3">
-                  <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12 text-base" required />
-                  {notFound && <p className="text-red-400 text-xs">Email não encontrado. Faça o cadastro.</p>}
-                  {expired && <p className="text-amber-400 text-xs">Seu acesso expirou. Faça um novo cadastro.</p>}
-                  <Button type="submit" disabled={loginLoading}
-                    className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-base rounded-xl">
-                    {loginLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "ACESSAR AULA"}
-                  </Button>
-                </form>
-                <button type="button" onClick={() => setMode("hero")}
-                  className="w-full text-zinc-500 hover:text-zinc-300 text-xs mt-4">
-                  ← Voltar
-                </button>
-              </>
-            )}
-
-            {mode === "register" && (
-              <>
-                <h2 className="text-xl font-bold text-white mb-1 text-center">Cadastro rápido</h2>
-                <p className="text-zinc-400 text-sm text-center mb-4">Libere acesso imediato à aula completa.</p>
-                <form onSubmit={handleRegister} className="space-y-3">
-                  <Input type="text" value={regNome} onChange={(e) => setRegNome(e.target.value)}
-                    placeholder="Nome completo" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={120} />
-                  <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={255} />
-                  <Input type="tel" value={regWhats} onChange={(e) => setRegWhats(e.target.value)}
-                    placeholder="WhatsApp (com DDD)" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={20} />
-                  <Button type="submit" disabled={regLoading}
-                    className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-base rounded-xl">
-                    {regLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CADASTRAR E LIBERAR ACESSO"}
-                  </Button>
-                </form>
-                <button type="button" onClick={() => setMode("hero")}
-                  className="w-full text-zinc-500 hover:text-zinc-300 text-xs mt-4" disabled={regLoading}>
-                  ← Voltar
-                </button>
-              </>
-            )}
+            <div className="space-y-3">
+              <Button onClick={() => setMode("register")}
+                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-sm sm:text-base rounded-xl shadow-lg shadow-yellow-400/20">
+                FAZER CADASTRO E ASSISTIR
+              </Button>
+              <Button onClick={() => setMode("login")} variant="outline"
+                className="w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 hover:text-white font-semibold py-5 text-sm rounded-xl">
+                Já fiz cadastro — quero assistir
+              </Button>
+            </div>
           </div>
         </section>
+
+        {/* MODAL OVERLAY */}
+        {(mode === "login" || mode === "register") && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="relative w-full max-w-md bg-zinc-900 border border-yellow-400/30 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-yellow-400/10 my-auto">
+              <button type="button" onClick={() => setMode("hero")}
+                className="absolute top-3 right-4 text-zinc-500 hover:text-white text-2xl leading-none"
+                disabled={regLoading || loginLoading} aria-label="Fechar">×</button>
+
+              {mode === "login" && (
+                <>
+                  <h2 className="text-2xl font-black text-white mb-1 text-center">Acessar aula</h2>
+                  <p className="text-zinc-400 text-sm text-center mb-5">Digite o email do seu cadastro.</p>
+                  <form onSubmit={handleLogin} className="space-y-3">
+                    <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12 text-base" required />
+                    {notFound && <p className="text-red-400 text-xs">Email não encontrado. Faça o cadastro.</p>}
+                    {expired && <p className="text-amber-400 text-xs">Seu acesso expirou. Faça um novo cadastro.</p>}
+                    <Button type="submit" disabled={loginLoading}
+                      className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-base rounded-xl">
+                      {loginLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "ACESSAR AULA"}
+                    </Button>
+                  </form>
+                </>
+              )}
+
+              {mode === "register" && (
+                <>
+                  <h2 className="text-2xl font-black text-white mb-1 text-center">Cadastro rápido</h2>
+                  <p className="text-zinc-400 text-sm text-center mb-5">Libere acesso imediato à aula completa.</p>
+                  <form onSubmit={handleRegister} className="space-y-3">
+                    <Input type="text" value={regNome} onChange={(e) => setRegNome(e.target.value)}
+                      placeholder="Nome completo" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={120} />
+                    <Input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+                      placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={255} />
+                    <Input type="tel" value={regWhats} onChange={(e) => setRegWhats(e.target.value)}
+                      placeholder="WhatsApp (com DDD)" className="bg-zinc-800 border-zinc-700 text-white h-12" required maxLength={20} />
+                    <Button type="submit" disabled={regLoading}
+                      className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-6 text-base rounded-xl">
+                      {regLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CADASTRAR E LIBERAR ACESSO"}
+                    </Button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
+
 
   // Granted view
   return (
