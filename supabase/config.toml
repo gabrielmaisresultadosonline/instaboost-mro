@@ -284,3 +284,6 @@ verify_jwt = false
 
 [functions.estrutura4-discount]
 verify_jwt = false
+
+[functions.api-token]
+verify_jwt = false
