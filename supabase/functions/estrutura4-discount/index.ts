@@ -28,6 +28,16 @@ const FOLLOWUP_OFFSETS_H = [8, 10, 14];
 const log = (msg: string, data?: unknown) =>
   console.log(`[ESTRUTURA4-DISCOUNT] ${msg}`, data ? JSON.stringify(data) : "");
 
+const encodeSubject = (s: string) => {
+  // eslint-disable-next-line no-control-regex
+  if (/^[\x00-\x7F]*$/.test(s)) return s;
+  const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  return `=?UTF-8?B?${b64}?=`;
+};
+const htmlToText = (h: string) => h.replace(/<style[\s\S]*?<\/style>/gi, "")
+  .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+  .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
+
 const sendEmail = async (to: string, subject: string, html: string) => {
   const pwd = Deno.env.get("SMTP_PASSWORD");
   if (!pwd) {
@@ -46,8 +56,8 @@ const sendEmail = async (to: string, subject: string, html: string) => {
     await client.send({
       from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
       to,
-      subject,
-      content: "auto",
+      subject: encodeSubject(subject),
+      content: htmlToText(html),
       html,
     });
     await client.close();
