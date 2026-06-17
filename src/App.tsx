@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { getAdminData } from "./lib/adminConfig";
 import { trackPageView } from "./lib/facebookTracking";
 import ToolSelector from "./pages/ToolSelector";
@@ -208,7 +208,7 @@ const App = () => (
           <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/mro-obrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
-          <Route path="/instagram-nova" element={<InstagramNovaPlan />} />
+          <Route path="/instagram-nova" element={<Navigate to="/instagrammnew" replace />} />
           <Route path="/instagram-nova-ws" element={<InstagramNovaWS />} />
           <Route path="/instagrampromo" element={<InstagramPromo30Dias />} />
           <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />
