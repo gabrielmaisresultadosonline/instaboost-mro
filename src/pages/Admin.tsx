@@ -29,13 +29,14 @@ import UsersListPanel from '@/components/admin/UsersListPanel';
 import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
+import ExtensionDocs from '@/components/admin/ExtensionDocs';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
   Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome
 } from 'lucide-react';
 import { 
   SidebarProvider, 
