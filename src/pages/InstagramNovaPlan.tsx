@@ -432,7 +432,88 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
         </div>
       </section>
 
+      {/* Detalhamento das duas novas funções */}
+      <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center mb-12">
+            <p className="text-2xl md:text-3xl font-black bg-gradient-to-r from-cyan-400 to-rose-400 bg-clip-text text-transparent">
+              🚀 Duas Funções que Vão Revolucionar seu Instagram
+            </p>
+          </div>
 
+          {/* Assistente IA */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-cyan-400" />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-black text-white">Assistente IA Automático</h3>
+            </div>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              O Assistente IA do MRO foi desenvolvido para automatizar e potencializar sua prospecção.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Basta adicionar perfis relacionados ao seu nicho, configurar sua mensagem e iniciar o processo.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              A inteligência do MRO <strong className="text-cyan-400">rastreia, filtra e aborda</strong> potenciais clientes de forma automática. O sistema identifica pessoas com maior probabilidade de interesse no seu produto ou serviço, realiza uma análise inteligente dos perfis e envia mensagens para os contatos mais qualificados.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {[
+                "Rastreia potenciais clientes no seu nicho",
+                "Filtra oportunidades usando inteligência artificial",
+                "Aborda automaticamente os contatos mais qualificados",
+                "Envia mensagens personalizadas em escala",
+                "Economiza tempo e aumenta sua produtividade",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300">{item}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-cyan-400 font-bold text-lg">
+              Enquanto você foca nas vendas, o Assistente MRO trabalha encontrando, qualificando e iniciando conversas com novos potenciais clientes todos os dias.
+            </p>
+          </div>
+
+          {/* STORIES+ */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-rose-400" />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-black text-white">STORIES+</h3>
+            </div>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Mantenha seu perfil ativo, visível e sempre à frente da concorrência.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Com o <strong className="text-rose-400">STORIES+</strong>, você pode programar diversas imagens para serem publicadas automaticamente ao longo do dia. Defina a quantidade de Stories, escolha os intervalos entre as postagens (1 hora, 2 horas ou conforme sua estratégia) e deixe o sistema trabalhar por você.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              A grande vantagem é manter sua marca constantemente presente para sua audiência, aumentando sua exposição, autoridade e engajamento diariamente.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {[
+                "Publicações automáticas durante todo o dia",
+                "Programação de dezenas de Stories de uma só vez",
+                "Intervalos personalizados entre as postagens",
+                "Perfil sempre ativo e em evidência",
+                "Mais alcance, presença e oportunidades de venda",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300">{item}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-rose-400 font-bold text-lg">
+              Enquanto outros perfis desaparecem ao longo do dia, o seu continua aparecendo para novos seguidores e potenciais clientes, fortalecendo sua presença e mantendo sua marca sempre em destaque.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <div className="py-20 bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none blur-3xl rounded-full translate-x-1/2" />
