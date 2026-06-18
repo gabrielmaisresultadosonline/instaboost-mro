@@ -221,6 +221,7 @@ const Admin = () => {
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
+    { id: 'extension', label: 'Extensão', icon: <Chrome className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
