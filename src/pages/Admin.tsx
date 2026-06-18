@@ -1123,6 +1123,10 @@ const Admin = () => {
         {activeTab === 'userlist' && (
           <UsersListPanel />
         )}
+        {/* Extension Docs Tab */}
+        {activeTab === 'extension' && (
+          <ExtensionDocs />
+        )}
           </main>
         </SidebarInset>
       </div>
