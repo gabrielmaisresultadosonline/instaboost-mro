@@ -402,6 +402,32 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
                 <li>• Relatórios e acompanhamento</li>
               </ul>
             </div>
+
+            <div>
+              <h3 className="text-xl font-black text-cyan-400 mb-4">NOVO: Assistente IA Automático</h3>
+              <p className="text-gray-400 mb-3">O Assistente IA do MRO foi desenvolvido para automatizar e potencializar sua prospecção:</p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Rastreia potenciais clientes no seu nicho</li>
+                <li>• Filtra oportunidades usando inteligência artificial</li>
+                <li>• Aborda automaticamente os contatos mais qualificados</li>
+                <li>• Envia mensagens personalizadas em escala</li>
+                <li>• Economiza tempo e aumenta sua produtividade</li>
+              </ul>
+              <p className="mt-4 text-cyan-400 font-bold">Enquanto você foca nas vendas, o Assistente MRO trabalha encontrando, qualificando e iniciando conversas com novos potenciais clientes todos os dias.</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-black text-rose-400 mb-4">NOVO: STORIES+</h3>
+              <p className="text-gray-400 mb-3">Mantenha seu perfil ativo, visível e sempre à frente da concorrência:</p>
+              <ul className="space-y-2 text-gray-300">
+                <li>• Publicações automáticas durante todo o dia</li>
+                <li>• Programação de dezenas de Stories de uma só vez</li>
+                <li>• Intervalos personalizados entre as postagens</li>
+                <li>• Perfil sempre ativo e em evidência</li>
+                <li>• Mais alcance, presença e oportunidades de venda</li>
+              </ul>
+              <p className="mt-4 text-rose-400 font-bold">Enquanto outros perfis desaparecem ao longo do dia, o seu continua aparecendo para novos seguidores e potenciais clientes.</p>
+            </div>
           </div>
         </div>
       </section>
