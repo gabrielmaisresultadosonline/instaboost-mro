@@ -345,7 +345,7 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-2xl md:text-3xl font-black mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-              🎁 O que você vai receber no Plano MRO!
+              Conheça tudo que entregamos
             </p>
           </div>
 
