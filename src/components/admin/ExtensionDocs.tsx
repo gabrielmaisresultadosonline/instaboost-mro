@@ -315,15 +315,88 @@ async function registerCurrent(type /* 'fixed' | 'test' */) {
         </CodeBlock>
       </Card>
 
+      {/* Integração com /mro-instagram */}
+      <Card className="p-5 space-y-4 border-primary/40 bg-primary/5">
+        <div className="flex items-center gap-2">
+          <ExternalLink className="w-4 h-4 text-primary" />
+          <h3 className="font-bold">Integração com a página <code>/mro-instagram</code></h3>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          Dois modos suportados — a extensão pode usar qualquer um (ou os dois). O servidor
+          identifica o usuário pelo <b>email da conta MRO logada</b> + um token da extensão
+          (devolvido em <code>getExtensionMenu</code>).
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-3">
+          <div className="rounded-lg border p-3 bg-background">
+            <h4 className="font-semibold text-sm mb-1">1. SSO — login automático em /mro-instagram</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              Usuário já logado na extensão abre <code>/mro-instagram</code> e a extensão injeta
+              a sessão para autenticar sem digitar nada.
+            </p>
+            <p className="text-xs"><b>Dados necessários:</b></p>
+            <ul className="text-xs list-disc pl-4 text-muted-foreground space-y-0.5">
+              <li><code>userEmail</code> — email MRO logado na extensão</li>
+              <li><code>extensionToken</code> — token de sessão da extensão</li>
+              <li><code>extensionVersion</code></li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border p-3 bg-background">
+            <h4 className="font-semibold text-sm mb-1">2. Cadastro direto pela /mro-instagram</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              Na própria página o usuário clica em "Cadastrar com extensão" e a extensão envia
+              os dados do perfil do Instagram da aba ativa.
+            </p>
+            <p className="text-xs"><b>Dados necessários:</b></p>
+            <ul className="text-xs list-disc pl-4 text-muted-foreground space-y-0.5">
+              <li><code>userEmail</code></li>
+              <li><code>type</code>: <code>"fixed"</code> ou <code>"test"</code></li>
+              <li><code>instagramUsername</code></li>
+              <li><code>profileData</code> (igual ao webhook acima) — só se <code>fixed</code></li>
+              <li><code>source</code>: <code>"mro-instagram-extension"</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <CodeBlock title="SSO — content-script da extensão → /mro-instagram">
+{`// content-script.js (injetado em https://maisresultadosonline.com.br/mro-instagram)
+const { userEmail, extensionToken } = await chrome.storage.local.get([
+  'userEmail', 'extensionToken'
+]);
+
+window.postMessage({
+  type: 'MRO_EXTENSION_LOGIN',
+  payload: {
+    userEmail,
+    extensionToken,
+    extensionVersion: chrome.runtime.getManifest().version
+  }
+}, 'https://maisresultadosonline.com.br');`}
+        </CodeBlock>
+
+        <CodeBlock title="Validação no servidor (action: ssoFromExtension)">
+{`POST ${config.webhookUrl}
+{
+  "action": "ssoFromExtension",
+  "userEmail": "cliente@email.com",
+  "extensionToken": "<token recebido em getExtensionMenu>"
+}
+
+// Resposta: { success, session: { ... }, menu: { ... } }`}
+        </CodeBlock>
+      </Card>
+
       {/* Próximos passos */}
       <Card className="p-5 space-y-2 border-amber-500/40 bg-amber-500/5">
         <h3 className="font-bold text-amber-700 dark:text-amber-400">⚠️ Próximos passos no servidor</h3>
         <p className="text-sm text-muted-foreground">
-          As ações <code>registerProfileFromExtension</code> e <code>getExtensionMenu</code> ainda
-          precisam ser adicionadas à edge function <code>instagram-admin</code>. Confirme aqui no
-          chat quando quiser que eu implemente — vou reaproveitar a mesma lógica de cadastro fixo /
-          teste que já existe na <code>/instagram</code> (Bright Data para fixo, registro direto
-          para teste) e expor o contador de dias / contas para o menu.
+          As ações <code>registerProfileFromExtension</code>, <code>getExtensionMenu</code> e
+          <code>ssoFromExtension</code> ainda precisam ser adicionadas à edge function
+          <code>instagram-admin</code>, junto com o listener <code>postMessage</code> em
+          <code>/mro-instagram</code> para receber o login automático. Confirme aqui no chat
+          quando quiser que eu implemente.
         </p>
       </Card>
     </div>
