@@ -436,8 +436,43 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
       <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center mb-12">
-            <p className="text-2xl md:text-3xl font-black bg-gradient-to-r from-cyan-400 to-rose-400 bg-clip-text text-transparent">
-              🚀 Duas Funções que Vão Revolucionar seu Instagram
+            <p className="text-2xl md:text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-400 to-rose-400 bg-clip-text text-transparent">
+              🚀 Funções que Vão Revolucionar seu Instagram
+            </p>
+          </div>
+
+          {/* Automação de Direct (DM) em Massa */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                <Send className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-black text-white">Automação de Direct (DM) em Massa</h3>
+            </div>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Automatize completamente o envio de mensagens no Direct do Instagram e alcance seus potenciais clientes sem esforço manual.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Com a <strong className="text-blue-400">Automação de DM em Massa</strong>, você pode enviar mensagens automáticas para diferentes públicos estratégicos: novos seguidores que acabaram de seguir você, seus seguidores atuais que já demonstram interesse, e até mesmo seguidores de qualquer outra página do seu nicho.
+            </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Todas as mensagens são otimizadas pelo <strong className="text-blue-400">Corretor de IA exclusivo MRO</strong>, garantindo que sua copy tenha alta conversão e soe natural para cada perfil abordado.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {[
+                "Envio automático para novos seguidores",
+                "Envio para seus seguidores atuais",
+                "Envio para seguidores de qualquer página",
+                "Copy otimizada com Corretor de IA exclusivo MRO",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300">{item}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-blue-400 font-bold text-lg">
+              Alcance mais pessoas, gere mais conversas e converta mais seguidores em clientes — tudo no piloto automático.
             </p>
           </div>
 
