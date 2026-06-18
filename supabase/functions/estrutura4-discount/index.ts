@@ -28,12 +28,14 @@ const FOLLOWUP_OFFSETS_H = [8, 10, 14];
 const log = (msg: string, data?: unknown) =>
   console.log(`[ESTRUTURA4-DISCOUNT] ${msg}`, data ? JSON.stringify(data) : "");
 
-const encodeSubject = (s: string) => {
-  // eslint-disable-next-line no-control-regex
-  if (/^[\x00-\x7F]*$/.test(s)) return s;
-  const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(s)));
-  return `=?UTF-8?B?${b64}?=`;
-};
+// Sanitize subject to pure ASCII so it never gets mangled by double MIME-encoding
+// (denomailer auto-encodes UTF-8; pre-encoding produced nested =?utf-8?Q?=3d?= that Hotmail/Outlook rendered as raw source)
+const encodeSubject = (s: string) => s
+  .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}]/gu, "")
+  .replace(/[áàâãä]/gi, "a").replace(/[éèêë]/gi, "e").replace(/[íìîï]/gi, "i")
+  .replace(/[óòôõö]/gi, "o").replace(/[úùûü]/gi, "u").replace(/[ç]/gi, "c")
+  .replace(/[^\x20-\x7E]/g, "")
+  .replace(/\s+/g, " ").trim();
 const htmlToText = (h: string) => h.replace(/<style[\s\S]*?<\/style>/gi, "")
   .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
   .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();

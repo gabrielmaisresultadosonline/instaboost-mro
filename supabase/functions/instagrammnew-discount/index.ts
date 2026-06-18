@@ -26,13 +26,14 @@ const FOLLOWUP_OFFSETS_H = [4, 8, 8, 144, 192];
 const log = (m: string, d?: unknown) =>
   console.log(`[INSTAGRAMMNEW] ${m}`, d ? JSON.stringify(d) : "");
 
-// Encode UTF-8 subject as base64 encoded-word to avoid denomailer's broken QP wrapper
-const encodeSubject = (s: string) => {
-  // eslint-disable-next-line no-control-regex
-  if (/^[\x00-\x7F]*$/.test(s)) return s;
-  const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(s)));
-  return `=?UTF-8?B?${b64}?=`;
-};
+// Sanitize subject to pure ASCII so it never gets mangled by double MIME-encoding
+// (denomailer auto-encodes UTF-8; pre-encoding produced nested =?utf-8?Q?=3d?= that Hotmail/Outlook rendered as raw source)
+const encodeSubject = (s: string) => s
+  .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}]/gu, "") // strip emojis
+  .replace(/[áàâãä]/gi, "a").replace(/[éèêë]/gi, "e").replace(/[íìîï]/gi, "i")
+  .replace(/[óòôõö]/gi, "o").replace(/[úùûü]/gi, "u").replace(/[ç]/gi, "c")
+  .replace(/[^\x20-\x7E]/g, "") // drop any remaining non-ASCII
+  .replace(/\s+/g, " ").trim();
 const htmlToText = (h: string) => h.replace(/<style[\s\S]*?<\/style>/gi, "")
   .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
   .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
