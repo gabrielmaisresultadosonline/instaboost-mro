@@ -338,6 +338,106 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
         </div>
       </section>
 
+      {/* Nova Seção Combinada: Assistente IA + STORIES+ */}
+      <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-block bg-cyan-500/10 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider border border-cyan-500/20">
+              Novidades MRO V7+
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+                Potencialize seu Instagram com IA
+              </span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Duas ferramentas poderosas trabalhando juntas para multiplicar seus resultados
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Assistente IA */}
+            <div className="group relative bg-gradient-to-br from-gray-900/80 to-black border border-cyan-500/20 rounded-3xl p-8 md:p-10 overflow-hidden transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-cyan-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Bot className="w-7 h-7 text-cyan-400" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white">Assistente IA Automático</h3>
+                </div>
+                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                  Automatize e potencialize sua prospecção com inteligência artificial.
+                </p>
+                <div className="space-y-3 mb-6">
+                  {[
+                    "Rastreia potenciais clientes no seu nicho",
+                    "Filtra oportunidades usando IA",
+                    "Aborda automaticamente os contatos mais qualificados",
+                    "Envia mensagens personalizadas em escala",
+                    "Economiza tempo e aumenta sua produtividade",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-cyan-400 font-bold text-lg">
+                  Enquanto você foca nas vendas, o Assistente MRO trabalha todos os dias.
+                </p>
+              </div>
+            </div>
+
+            {/* STORIES+ */}
+            <div className="group relative bg-gradient-to-br from-gray-900/80 to-black border border-rose-500/20 rounded-3xl p-8 md:p-10 overflow-hidden transition-all duration-500 hover:border-rose-500/40 hover:shadow-[0_0_40px_rgba(244,63,94,0.1)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-500/5 border border-rose-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="w-7 h-7 text-rose-400" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white">STORIES+</h3>
+                </div>
+                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                  Mantenha seu perfil ativo, visível e sempre à frente da concorrência.
+                </p>
+                <div className="space-y-3 mb-6">
+                  {[
+                    "Publicações automáticas durante todo o dia",
+                    "Programação de dezenas de Stories de uma só vez",
+                    "Intervalos personalizados entre as postagens",
+                    "Perfil sempre ativo e em evidência",
+                    "Mais alcance, presença e oportunidades de venda",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-rose-400 font-bold text-lg">
+                  Seu perfil continua aparecendo enquanto outros desaparecem.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-8 px-4 bg-black">
+        <div className="max-w-4xl mx-auto text-center">
+          <Button 
+            onClick={scrollToPricing}
+            className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
+          >
+            QUERO COMEÇAR AGORA
+            <ArrowRight className="w-6 h-6 ml-2" />
+          </Button>
+        </div>
+      </section>
+
       {/* Active Clients section removed as requested */}
 
 
