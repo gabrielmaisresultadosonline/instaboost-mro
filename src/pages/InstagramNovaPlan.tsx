@@ -338,6 +338,106 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
         </div>
       </section>
 
+      {/* Nova Seção Combinada: Assistente IA + STORIES+ */}
+      <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-block bg-cyan-500/10 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider border border-cyan-500/20">
+              Novidades MRO V7+
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+                Potencialize seu Instagram com IA
+              </span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Duas ferramentas poderosas trabalhando juntas para multiplicar seus resultados
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Assistente IA */}
+            <div className="group relative bg-gradient-to-br from-gray-900/80 to-black border border-cyan-500/20 rounded-3xl p-8 md:p-10 overflow-hidden transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-cyan-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Bot className="w-7 h-7 text-cyan-400" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white">Assistente IA Automático</h3>
+                </div>
+                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                  Automatize e potencialize sua prospecção com inteligência artificial.
+                </p>
+                <div className="space-y-3 mb-6">
+                  {[
+                    "Rastreia potenciais clientes no seu nicho",
+                    "Filtra oportunidades usando IA",
+                    "Aborda automaticamente os contatos mais qualificados",
+                    "Envia mensagens personalizadas em escala",
+                    "Economiza tempo e aumenta sua produtividade",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-cyan-400 font-bold text-lg">
+                  Enquanto você foca nas vendas, o Assistente MRO trabalha todos os dias.
+                </p>
+              </div>
+            </div>
+
+            {/* STORIES+ */}
+            <div className="group relative bg-gradient-to-br from-gray-900/80 to-black border border-rose-500/20 rounded-3xl p-8 md:p-10 overflow-hidden transition-all duration-500 hover:border-rose-500/40 hover:shadow-[0_0_40px_rgba(244,63,94,0.1)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-500/5 border border-rose-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="w-7 h-7 text-rose-400" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white">STORIES+</h3>
+                </div>
+                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                  Mantenha seu perfil ativo, visível e sempre à frente da concorrência.
+                </p>
+                <div className="space-y-3 mb-6">
+                  {[
+                    "Publicações automáticas durante todo o dia",
+                    "Programação de dezenas de Stories de uma só vez",
+                    "Intervalos personalizados entre as postagens",
+                    "Perfil sempre ativo e em evidência",
+                    "Mais alcance, presença e oportunidades de venda",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-rose-400 font-bold text-lg">
+                  Seu perfil continua aparecendo enquanto outros desaparecem.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-8 px-4 bg-black">
+        <div className="max-w-4xl mx-auto text-center">
+          <Button 
+            onClick={scrollToPricing}
+            className="bg-[#39FF14] hover:bg-[#32e612] text-black font-black px-12 py-7 rounded-full text-lg shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all hover:scale-105"
+          >
+            QUERO COMEÇAR AGORA
+            <ArrowRight className="w-6 h-6 ml-2" />
+          </Button>
+        </div>
+      </section>
+
       {/* Active Clients section removed as requested */}
 
 
@@ -345,7 +445,7 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-2xl md:text-3xl font-black mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-              🎁 O que você vai receber no Plano MRO!
+              Conheça tudo que entregamos
             </p>
           </div>
 
@@ -403,152 +503,10 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
               </ul>
             </div>
 
-            <div>
-              <h3 className="text-xl font-black text-cyan-400 mb-4">NOVO: Assistente IA Automático</h3>
-              <p className="text-gray-400 mb-3">O Assistente IA do MRO foi desenvolvido para automatizar e potencializar sua prospecção:</p>
-              <ul className="space-y-2 text-gray-300">
-                <li>• Rastreia potenciais clientes no seu nicho</li>
-                <li>• Filtra oportunidades usando inteligência artificial</li>
-                <li>• Aborda automaticamente os contatos mais qualificados</li>
-                <li>• Envia mensagens personalizadas em escala</li>
-                <li>• Economiza tempo e aumenta sua produtividade</li>
-              </ul>
-              <p className="mt-4 text-cyan-400 font-bold">Enquanto você foca nas vendas, o Assistente MRO trabalha encontrando, qualificando e iniciando conversas com novos potenciais clientes todos os dias.</p>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-black text-rose-400 mb-4">NOVO: STORIES+</h3>
-              <p className="text-gray-400 mb-3">Mantenha seu perfil ativo, visível e sempre à frente da concorrência:</p>
-              <ul className="space-y-2 text-gray-300">
-                <li>• Publicações automáticas durante todo o dia</li>
-                <li>• Programação de dezenas de Stories de uma só vez</li>
-                <li>• Intervalos personalizados entre as postagens</li>
-                <li>• Perfil sempre ativo e em evidência</li>
-                <li>• Mais alcance, presença e oportunidades de venda</li>
-              </ul>
-              <p className="mt-4 text-rose-400 font-bold">Enquanto outros perfis desaparecem ao longo do dia, o seu continua aparecendo para novos seguidores e potenciais clientes.</p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Detalhamento das duas novas funções */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <div className="text-center mb-12">
-            <p className="text-2xl md:text-3xl font-black bg-gradient-to-r from-blue-400 via-cyan-400 to-rose-400 bg-clip-text text-transparent">
-              🚀 Funções que Vão Revolucionar seu Instagram
-            </p>
-          </div>
-
-          {/* Automação de Direct (DM) em Massa */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-                <Send className="w-6 h-6 text-blue-400" />
-              </div>
-              <h3 className="text-2xl md:text-3xl font-black text-white">Automação de Direct (DM) em Massa</h3>
-            </div>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              Automatize completamente o envio de mensagens no Direct do Instagram e alcance seus potenciais clientes sem esforço manual.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              Com a <strong className="text-blue-400">Automação de DM em Massa</strong>, você pode enviar mensagens automáticas para diferentes públicos estratégicos: novos seguidores que acabaram de seguir você, seus seguidores atuais que já demonstram interesse, e até mesmo seguidores de qualquer outra página do seu nicho.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              Todas as mensagens são otimizadas pelo <strong className="text-blue-400">Corretor de IA exclusivo MRO</strong>, garantindo que sua copy tenha alta conversão e soe natural para cada perfil abordado.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              {[
-                "Envio automático para novos seguidores",
-                "Envio para seus seguidores atuais",
-                "Envio para seguidores de qualquer página",
-                "Copy otimizada com Corretor de IA exclusivo MRO",
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-300">{item}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-blue-400 font-bold text-lg">
-              Alcance mais pessoas, gere mais conversas e converta mais seguidores em clientes — tudo no piloto automático.
-            </p>
-          </div>
-
-          {/* Assistente IA */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
-                <Bot className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl md:text-3xl font-black text-white">Assistente IA Automático</h3>
-            </div>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              O Assistente IA do MRO foi desenvolvido para automatizar e potencializar sua prospecção.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              Basta adicionar perfis relacionados ao seu nicho, configurar sua mensagem e iniciar o processo.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              A inteligência do MRO <strong className="text-cyan-400">rastreia, filtra e aborda</strong> potenciais clientes de forma automática. O sistema identifica pessoas com maior probabilidade de interesse no seu produto ou serviço, realiza uma análise inteligente dos perfis e envia mensagens para os contatos mais qualificados.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              {[
-                "Rastreia potenciais clientes no seu nicho",
-                "Filtra oportunidades usando inteligência artificial",
-                "Aborda automaticamente os contatos mais qualificados",
-                "Envia mensagens personalizadas em escala",
-                "Economiza tempo e aumenta sua produtividade",
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-300">{item}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-cyan-400 font-bold text-lg">
-              Enquanto você foca nas vendas, o Assistente MRO trabalha encontrando, qualificando e iniciando conversas com novos potenciais clientes todos os dias.
-            </p>
-          </div>
-
-          {/* STORIES+ */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 md:p-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-rose-400" />
-              </div>
-              <h3 className="text-2xl md:text-3xl font-black text-white">STORIES+</h3>
-            </div>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              Mantenha seu perfil ativo, visível e sempre à frente da concorrência.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              Com o <strong className="text-rose-400">STORIES+</strong>, você pode programar diversas imagens para serem publicadas automaticamente ao longo do dia. Defina a quantidade de Stories, escolha os intervalos entre as postagens (1 hora, 2 horas ou conforme sua estratégia) e deixe o sistema trabalhar por você.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              A grande vantagem é manter sua marca constantemente presente para sua audiência, aumentando sua exposição, autoridade e engajamento diariamente.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              {[
-                "Publicações automáticas durante todo o dia",
-                "Programação de dezenas de Stories de uma só vez",
-                "Intervalos personalizados entre as postagens",
-                "Perfil sempre ativo e em evidência",
-                "Mais alcance, presença e oportunidades de venda",
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-300">{item}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-rose-400 font-bold text-lg">
-              Enquanto outros perfis desaparecem ao longo do dia, o seu continua aparecendo para novos seguidores e potenciais clientes, fortalecendo sua presença e mantendo sua marca sempre em destaque.
-            </p>
-          </div>
-        </div>
-      </section>
 
       <div className="py-20 bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none blur-3xl rounded-full translate-x-1/2" />
