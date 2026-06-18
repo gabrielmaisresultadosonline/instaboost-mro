@@ -29,13 +29,14 @@ import UsersListPanel from '@/components/admin/UsersListPanel';
 import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
+import ExtensionDocs from '@/components/admin/ExtensionDocs';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
   Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome
 } from 'lucide-react';
 import { 
   SidebarProvider, 
@@ -55,7 +56,7 @@ import {
 import { cn } from "@/lib/utils";
 
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -220,6 +221,7 @@ const Admin = () => {
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
+    { id: 'extension', label: 'Extensão', icon: <Chrome className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
@@ -1120,6 +1122,10 @@ const Admin = () => {
         {/* Users List Tab */}
         {activeTab === 'userlist' && (
           <UsersListPanel />
+        )}
+        {/* Extension Docs Tab */}
+        {activeTab === 'extension' && (
+          <ExtensionDocs />
         )}
           </main>
         </SidebarInset>
