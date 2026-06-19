@@ -15,7 +15,7 @@ const trackEvent = (page: string) => {
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,10 +27,13 @@ const RendaExtraPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
+    try { return localStorage.getItem('renda-extra2:video-unlocked') === '1'; } catch { return false; }
+  });
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
-  const BUTTON_UNLOCK_SECONDS = 20;
+  const UNLOCK_PERCENT = 0.5;
   const CONTROLS_HIDE_MS = 3 * 1000;
 
   const revealControls = () => {
@@ -187,7 +190,7 @@ const RendaExtraPage = () => {
   useEffect(() => {
     if (!playing) return;
     const id = window.setInterval(() => {
-      setWatchedSeconds((s) => (s < BUTTON_UNLOCK_SECONDS ? s + 1 : s));
+      setWatchedSeconds((s) => s + 1);
     }, 1000);
     return () => window.clearInterval(id);
   }, [playing]);
@@ -199,8 +202,17 @@ const RendaExtraPage = () => {
     return () => { if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current); };
   }, [started]);
 
-  const buttonUnlocked = watchedSeconds >= BUTTON_UNLOCK_SECONDS;
-  const secondsLeft = Math.max(0, BUTTON_UNLOCK_SECONDS - watchedSeconds);
+  const requiredSeconds = duration > 0 ? Math.floor(duration * UNLOCK_PERCENT) : 0;
+  const buttonUnlocked = unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
+  const secondsLeft = Math.max(0, requiredSeconds - watchedSeconds);
+
+  // Persist unlock state across visits
+  useEffect(() => {
+    if (buttonUnlocked && !unlockedPersisted) {
+      try { localStorage.setItem('renda-extra2:video-unlocked', '1'); } catch {}
+      setUnlockedPersisted(true);
+    }
+  }, [buttonUnlocked, unlockedPersisted]);
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
@@ -279,16 +291,7 @@ const RendaExtraPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-12 text-center relative">
-        <div className="flex justify-start">
-            <Button 
-                variant="ghost" 
-                onClick={() => setMode('choice')} 
-                className="text-white/60 hover:text-white hover:bg-white/5"
-            >
-                <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
-            </Button>
-        </div>
+      <div className="max-w-4xl mx-auto space-y-12 text-center relative pt-6">
 
         <div className="space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Treinamento Exclusivo</div>
@@ -297,6 +300,8 @@ const RendaExtraPage = () => {
             Ainda não? Veja então esta live por completo antes de acessar sua área de prestação de serviços.
           </p>
         </div>
+
+
 
         <div
           ref={containerRef}
@@ -390,7 +395,7 @@ const RendaExtraPage = () => {
                 type="button"
                 onClick={() => {
                   toast.warning('Você já assistiu ao vídeo?', {
-                    description: `Você precisa assistir pelo menos 20 segundos do vídeo para liberar o botão. Faltam ${secondsLeft}s.`,
+                    description: `Você precisa assistir pelo menos 50% do vídeo para liberar o botão. Faltam ${secondsLeft}s.`,
                   });
                 }}
                 className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors"
