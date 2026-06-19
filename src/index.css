@@ -227,6 +227,31 @@
   animation: shine 2s infinite;
 }
 
+/* Shimmer glass reflection sweep on buttons */
+.shimmer-reflection::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,255,255,0) 25%,
+    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0) 75%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  animation: shimmer-sweep 2.4s ease-in-out infinite;
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -60%; }
+  100% { left: 160%; }
+}
+
 /* Gold shimmer animation for text */
 @keyframes gold-shimmer {
   0% {
