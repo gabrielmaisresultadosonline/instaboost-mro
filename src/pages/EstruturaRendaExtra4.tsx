@@ -953,7 +953,7 @@ const EstruturaRendaExtra = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginWithDiscountCTA onLoginSuccess={handleLoginSuccess} />;
+    return <DiscountRegistrationPage />;
   }
 
 
