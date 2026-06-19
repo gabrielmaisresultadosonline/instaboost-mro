@@ -188,13 +188,14 @@ export const DiscountRegistrationPage = () => {
                     <Button
                       type="submit"
                       disabled={submitting}
-                      className="w-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 hover:opacity-95 text-black font-black h-14 text-base sm:text-lg shadow-lg shadow-orange-500/20 ring-1 ring-yellow-300/50"
+                      className="relative overflow-hidden w-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 hover:opacity-95 text-black font-black h-14 text-base sm:text-lg shadow-lg shadow-orange-500/20 ring-1 ring-yellow-300/50"
                     >
+                      <span className="absolute inset-0 pointer-events-none shimmer-reflection" />
                       {submitting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
-                          <Rocket className="w-5 h-5 mr-2" /> COMPRAR E APLICAR AGORA
+                          <Rocket className="w-5 h-5 mr-2" /> Cadastrar receber desconto !
                         </>
                       )}
                     </Button>
