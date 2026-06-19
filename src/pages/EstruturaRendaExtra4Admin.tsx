@@ -1250,7 +1250,12 @@ export default function EstruturaRendaExtra4Admin() {
                   <tbody>
                     {ignLeads.length === 0 && (<tr><td colSpan={9} className="p-6 text-center text-zinc-500">Nenhum lead ainda.</td></tr>)}
                     {ignLeads.map((l: any) => {
-                      const bought = ignPurchases.some((p: any) => String(p.email || "").toLowerCase() === String(l.email).toLowerCase());
+                      const purchase = ignPurchases.find((p: any) => String(p.email || "").toLowerCase() === String(l.email).toLowerCase());
+                      const leadAt = l.created_at ? new Date(l.created_at).getTime() : 0;
+                      const purchaseAt = purchase?.created_at ? new Date(purchase.created_at).getTime() : 0;
+                      // "Já cliente": e-mail já existia como pago ANTES do lead se cadastrar em /instagrammnew
+                      const alreadyClient = !!purchase && purchaseAt > 0 && leadAt > 0 && purchaseAt < leadAt;
+                      const boughtNew = !!purchase && !alreadyClient;
                       const waDigits = String(l.whatsapp || "").replace(/\D/g, "");
                       const waLink = waDigits ? `https://wa.me/${waDigits.startsWith("55") ? waDigits : `55${waDigits}`}` : null;
                       return (
@@ -1263,7 +1268,13 @@ export default function EstruturaRendaExtra4Admin() {
                           <td className="p-2 text-xs">{l.remarketing_stage || 0}/6</td>
                           <td className="p-2 text-zinc-400 text-xs">{l.next_send_at ? new Date(l.next_send_at).toLocaleString("pt-BR") : "—"}</td>
                           <td className="p-2 text-zinc-400 text-xs">{l.accessed_page_at ? new Date(l.accessed_page_at).toLocaleString("pt-BR") : "—"}</td>
-                          <td className="p-2">{bought ? <span className="text-emerald-400 font-bold">✓</span> : <span className="text-zinc-600">—</span>}</td>
+                          <td className="p-2">
+                            {alreadyClient
+                              ? <span className="text-amber-400 font-semibold text-xs">Já cliente</span>
+                              : boughtNew
+                                ? <span className="text-emerald-400 font-bold">✓</span>
+                                : <span className="text-zinc-600">—</span>}
+                          </td>
                         </tr>
                       );
                     })}
