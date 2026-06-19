@@ -10,7 +10,7 @@ import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
 import { EstruturaTrialDashboard } from '@/components/EstruturaTrialDashboard';
 import { ReportGenerator } from '@/components/ReportGenerator';
 import { LoginPage } from '@/components/LoginPage';
-import { LoginWithDiscountCTA } from '@/components/LoginWithDiscountCTA';
+import { DiscountRegistrationPage } from '@/components/DiscountRegistrationPage';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
@@ -953,7 +953,7 @@ const EstruturaRendaExtra = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginWithDiscountCTA onLoginSuccess={handleLoginSuccess} />;
+    return <DiscountRegistrationPage />;
   }
 
 
