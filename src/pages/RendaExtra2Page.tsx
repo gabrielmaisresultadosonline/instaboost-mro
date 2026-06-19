@@ -204,7 +204,6 @@ const RendaExtraPage = () => {
 
   const requiredSeconds = duration > 0 ? Math.floor(duration * UNLOCK_PERCENT) : 0;
   const buttonUnlocked = unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
-  const secondsLeft = Math.max(0, requiredSeconds - watchedSeconds);
 
   // Persist unlock state across visits
   useEffect(() => {
