@@ -301,13 +301,7 @@ const RendaExtraPage = () => {
           </p>
         </div>
 
-        <div className="space-y-6">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Treinamento Exclusivo</div>
-          <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight uppercase italic">{videoCfg.video_title || 'Você já conhece como isso funciona?'}</h3>
-          <p className="text-white/40 text-sm md:text-lg leading-relaxed font-medium max-w-2xl mx-auto">
-            Ainda não? Veja então esta live por completo antes de acessar sua área de prestação de serviços.
-          </p>
-        </div>
+
 
         <div
           ref={containerRef}
