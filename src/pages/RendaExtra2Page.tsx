@@ -190,7 +190,7 @@ const RendaExtraPage = () => {
   useEffect(() => {
     if (!playing) return;
     const id = window.setInterval(() => {
-      setWatchedSeconds((s) => (s < BUTTON_UNLOCK_SECONDS ? s + 1 : s));
+      setWatchedSeconds((s) => s + 1);
     }, 1000);
     return () => window.clearInterval(id);
   }, [playing]);
@@ -202,8 +202,17 @@ const RendaExtraPage = () => {
     return () => { if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current); };
   }, [started]);
 
-  const buttonUnlocked = watchedSeconds >= BUTTON_UNLOCK_SECONDS;
-  const secondsLeft = Math.max(0, BUTTON_UNLOCK_SECONDS - watchedSeconds);
+  const requiredSeconds = duration > 0 ? Math.floor(duration * UNLOCK_PERCENT) : 0;
+  const buttonUnlocked = unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
+  const secondsLeft = Math.max(0, requiredSeconds - watchedSeconds);
+
+  // Persist unlock state across visits
+  useEffect(() => {
+    if (buttonUnlocked && !unlockedPersisted) {
+      try { localStorage.setItem('renda-extra2:video-unlocked', '1'); } catch {}
+      setUnlockedPersisted(true);
+    }
+  }, [buttonUnlocked, unlockedPersisted]);
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
