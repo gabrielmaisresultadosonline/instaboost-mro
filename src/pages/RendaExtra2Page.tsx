@@ -15,7 +15,7 @@ const trackEvent = (page: string) => {
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,10 +27,13 @@ const RendaExtraPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
+    try { return localStorage.getItem('renda-extra2:video-unlocked') === '1'; } catch { return false; }
+  });
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
-  const BUTTON_UNLOCK_SECONDS = 20;
+  const UNLOCK_PERCENT = 0.5;
   const CONTROLS_HIDE_MS = 3 * 1000;
 
   const revealControls = () => {
