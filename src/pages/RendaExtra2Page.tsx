@@ -395,7 +395,7 @@ const RendaExtraPage = () => {
                 type="button"
                 onClick={() => {
                   toast.warning('Você já assistiu ao vídeo?', {
-                    description: `Você precisa assistir pelo menos 20 segundos do vídeo para liberar o botão. Faltam ${secondsLeft}s.`,
+                    description: `Você precisa assistir pelo menos 50% do vídeo para liberar o botão. Faltam ${secondsLeft}s.`,
                   });
                 }}
                 className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors"
