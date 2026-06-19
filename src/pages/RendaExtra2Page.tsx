@@ -204,7 +204,6 @@ const RendaExtraPage = () => {
 
   const requiredSeconds = duration > 0 ? Math.floor(duration * UNLOCK_PERCENT) : 0;
   const buttonUnlocked = unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
-  const secondsLeft = Math.max(0, requiredSeconds - watchedSeconds);
 
   // Persist unlock state across visits
   useEffect(() => {
@@ -394,18 +393,14 @@ const RendaExtraPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  toast.warning('Você já assistiu ao vídeo?', {
-                    description: `Você precisa assistir pelo menos 50% do vídeo para liberar o botão. Faltam ${secondsLeft}s.`,
+                  toast.warning('Assista o vídeo para liberar', {
+                    description: 'Você precisa assistir pelo menos 50% do vídeo para acessar.',
                   });
                 }}
-                className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-white/10 text-white/60 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors"
+                className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-amber-500/30 text-white/70 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.15)]"
               >
-                <span className="text-amber-400 font-mono text-lg sm:text-xl tabular-nums">{secondsLeft}s</span>
-                <span className="text-xs sm:text-sm">Aguarde para liberar</span>
+                <span>Assista para liberar o botão</span>
               </button>
-              <p className="text-[11px] sm:text-xs text-white/40 text-center max-w-xs">
-                Assista o vídeo — o botão libera em {secondsLeft} segundo{secondsLeft === 1 ? '' : 's'}.
-              </p>
             </div>
           ) : (
             <Button
