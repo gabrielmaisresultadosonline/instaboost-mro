@@ -2601,6 +2601,51 @@ export type Database = {
         }
         Relationships: []
       }
+      lovable_extension_users: {
+        Row: {
+          created_at: string
+          credits: number
+          current_session_id: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          is_banned: boolean
+          last_validated_at: string | null
+          license_key: string
+          notes: string | null
+          plan_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          current_session_id?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          is_banned?: boolean
+          last_validated_at?: string | null
+          license_key: string
+          notes?: string | null
+          plan_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          current_session_id?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          is_banned?: boolean
+          last_validated_at?: string | null
+          license_key?: string
+          notes?: string | null
+          plan_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metodo_seguidor_admins: {
         Row: {
           created_at: string

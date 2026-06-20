@@ -30,13 +30,14 @@ import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import ExtensionDocs from '@/components/admin/ExtensionDocs';
+import LovableExtensionPanel from '@/components/admin/LovableExtensionPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
   Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome, Key
 } from 'lucide-react';
 import { 
   SidebarProvider, 
@@ -56,7 +57,7 @@ import {
 import { cn } from "@/lib/utils";
 
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension' | 'lovable_extension';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -222,6 +223,7 @@ const Admin = () => {
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
     { id: 'extension', label: 'Extensão', icon: <Chrome className="w-4 h-4" /> },
+    { id: 'lovable_extension', label: 'Lovable Extensão', icon: <Key className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
@@ -1126,6 +1128,10 @@ const Admin = () => {
         {/* Extension Docs Tab */}
         {activeTab === 'extension' && (
           <ExtensionDocs />
+        )}
+        {/* Lovable Extensão (banco separado) */}
+        {activeTab === 'lovable_extension' && (
+          <LovableExtensionPanel />
         )}
           </main>
         </SidebarInset>
