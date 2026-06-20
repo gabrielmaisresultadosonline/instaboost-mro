@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Copy, Trash2, RefreshCw, Ban, ShieldCheck, Plus, Key, BookOpen, RotateCcw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const FN_URL = `${SUPABASE_URL}/functions/v1/lovable-extension-license`;
@@ -47,13 +48,11 @@ export default function LovableExtensionPanel() {
   const [newNotes, setNewNotes] = useState('');
 
   const call = async (action: string, payload: Record<string, unknown> = {}) => {
-    const res = await fetch(FN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
-      body: JSON.stringify({ action, ...payload }),
+    const { data, error } = await supabase.functions.invoke('lovable-extension-license', {
+      body: { action, admin_token: ADMIN_TOKEN, ...payload },
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erro');
+    if (error) throw new Error(error.message || 'Erro ao conectar com o backend');
+    if (data?.error) throw new Error(data.error);
     return data;
   };
 
