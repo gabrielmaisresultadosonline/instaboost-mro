@@ -37,7 +37,7 @@ import {
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
   Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome, Key
 } from 'lucide-react';
 import { 
   SidebarProvider, 
