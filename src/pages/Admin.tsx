@@ -30,6 +30,7 @@ import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import ExtensionDocs from '@/components/admin/ExtensionDocs';
+import LovableExtensionPanel from '@/components/admin/LovableExtensionPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
