@@ -1129,6 +1129,10 @@ const Admin = () => {
         {activeTab === 'extension' && (
           <ExtensionDocs />
         )}
+        {/* Lovable Extensão (banco separado) */}
+        {activeTab === 'lovable_extension' && (
+          <LovableExtensionPanel />
+        )}
           </main>
         </SidebarInset>
       </div>
