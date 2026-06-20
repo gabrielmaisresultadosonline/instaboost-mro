@@ -287,3 +287,6 @@ verify_jwt = false
 
 [functions.api-token]
 verify_jwt = false
+
+[functions.lovable-extension-license]
+verify_jwt = false
