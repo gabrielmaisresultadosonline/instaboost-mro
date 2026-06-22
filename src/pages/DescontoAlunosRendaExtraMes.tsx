@@ -828,9 +828,9 @@ const DescontoAlunosRendaExtraMes = () => {
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                12X DE R$30 mensal
+                R$97 / 30 dias
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">avista R$297 por 1 ano todo</p>
+              <p className="text-gray-400 text-xs sm:text-sm">teste a turma por 30 dias — depois pode migrar p/ o anual de R$300</p>
             </div>
             
             <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
