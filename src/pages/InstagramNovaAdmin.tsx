@@ -2876,6 +2876,13 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
           </div>
         </div>
 
+        {/* Avisos WhatsApp - Migração de número */}
+        {showAvisosWhatsapp && (
+          <div className="mb-6">
+            <WhatsAppMigrationBroadcast />
+          </div>
+        )}
+
         {/* Configuração de Afiliados Expandida */}
         {showAffiliateConfig && (
           <Card className="bg-purple-500/10 border-purple-500/30 mb-6">
