@@ -30,6 +30,7 @@ import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
 import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
 import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
+import DescontoAlunosRendaExtraMes from "./pages/DescontoAlunosRendaExtraMes";
 import DescontoAlunosRendaExtraAdmin from "./pages/DescontoAlunosRendaExtraAdmin";
 import DescontoAlunosRendaExtras from "./pages/DescontoAlunosRendaExtras";
 import DescontoAlunosRendaExtrasss from "./pages/DescontoAlunosRendaExtrasss";
