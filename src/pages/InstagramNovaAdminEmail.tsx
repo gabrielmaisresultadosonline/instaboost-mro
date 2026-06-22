@@ -1092,7 +1092,6 @@ export default function InstagramNovaAdminEmail() {
               </CardContent>
             </Card>
           </TabsContent>
-          </TabsContent>
 
           <TabsContent value="avisos_whatsapp">
             <WhatsAppMigrationBroadcast />
