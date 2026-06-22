@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { trackPageView } from '@/lib/facebookTracking';
 import { supabase } from '@/integrations/supabase/client';
 import Hls from 'hls.js';
+import RendaExtrassLeadForm, { getStoredLead, type RendaExtrassLead } from './RendaExtrassLeadForm';
 
 const VIDEO_SERVER = 'https://video.maisresultadosonline.com.br';
 
@@ -15,6 +16,7 @@ const trackEvent = (page: string) => {
 
 const RendaExtrassPage = () => {
   const navigate = useNavigate();
+  const [lead, setLead] = useState<RendaExtrassLead | null>(() => getStoredLead());
   const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
