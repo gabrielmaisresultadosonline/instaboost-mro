@@ -118,14 +118,14 @@ const DescontoAlunosRendaExtraMes = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$297
+      // Preço promocional: R$97 (30 dias)
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          planType: "annual",
-          amount: 297,
+          planType: "monthly",
+          amount: 97,
           checkUserExists: true
         }
       });
@@ -148,7 +148,7 @@ const DescontoAlunosRendaExtraMes = () => {
       }
 
       // Track InitiateCheckout when redirecting to payment
-      trackInitiateCheckout('MRO Renda Extra Desconto', 297);
+      trackInitiateCheckout('MRO Renda Extra Mensal', 97);
       
       // Redirecionar diretamente para o checkout (funciona melhor no mobile)
       window.location.href = checkData.payment_link;
@@ -646,30 +646,32 @@ const DescontoAlunosRendaExtraMes = () => {
             </div>
             
             <div className="text-center mt-6 sm:mt-6 mb-6 sm:mb-8">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Plano Anual Completo</h3>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Teste por 30 dias</h3>
               
               {/* Price */}
               <div className="mb-2">
-                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$ 397</span>
+                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$ 297</span>
               </div>
               
               <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
               
               <div className="text-green-400 mb-1">
-                <span className="text-5xl sm:text-6xl md:text-7xl font-black">12X DE R$30</span>
-                <span className="text-lg sm:text-xl md:text-2xl font-medium ml-2">mensal</span>
+                <span className="text-5xl sm:text-6xl md:text-7xl font-black">R$97</span>
+                <span className="text-lg sm:text-xl md:text-2xl font-medium ml-2">/ 30 dias</span>
               </div>
               
-              <p className="text-gray-300 text-lg sm:text-xl mb-3">
-                avista <span className="text-white font-bold">R$297 por 1 ano todo</span>
+              <p className="text-gray-300 text-base sm:text-lg mb-3">
+                Pague <span className="text-white font-bold">R$97</span>, teste e entre para a turma por 30 dias.
               </p>
               
-              {/* Animated discount highlight */}
+              {/* Anual upgrade hint */}
               <div className="relative inline-block mb-4">
-                <div className="absolute -inset-2 bg-gradient-to-r from-red-500/30 via-yellow-500/30 to-red-500/30 rounded-full blur-md animate-pulse" />
-                <div className="relative inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 border-2 border-yellow-400/60 rounded-full px-4 sm:px-6 py-2 sm:py-3 animate-bounce" style={{ animationDuration: '2s' }}>
+                <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/30 via-yellow-500/30 to-emerald-500/30 rounded-full blur-md animate-pulse" />
+                <div className="relative inline-flex items-center gap-2 bg-gradient-to-r from-emerald-700 to-emerald-600 border-2 border-yellow-400/60 rounded-2xl px-4 sm:px-6 py-2 sm:py-3">
                   <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-                  <span className="text-white font-black text-sm sm:text-lg tracking-wide">R$100 DE DESCONTO!</span>
+                  <span className="text-white font-black text-xs sm:text-sm tracking-wide text-center">
+                    Se quiser continuar, pegue o ANUAL de <span className="line-through opacity-70">R$397</span> por <span className="text-yellow-300">R$300</span> (ou 12x de R$30)
+                  </span>
                   <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-pulse" />
                 </div>
               </div>
@@ -779,7 +781,7 @@ const DescontoAlunosRendaExtraMes = () => {
             disabled={promoTimeLeft.expired}
             className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$297"}
+            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "ENTRAR NA TURMA POR R$97 / 30 DIAS"}
           </Button>
           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
             <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
@@ -826,9 +828,9 @@ const DescontoAlunosRendaExtraMes = () => {
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                12X DE R$30 mensal
+                R$97 / 30 dias
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">avista R$297 por 1 ano todo</p>
+              <p className="text-gray-400 text-xs sm:text-sm">teste a turma por 30 dias — depois pode migrar p/ o anual de R$300</p>
             </div>
             
             <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
