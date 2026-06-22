@@ -32,6 +32,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import WhatsAppMigrationBroadcast from "@/components/admin/WhatsAppMigrationBroadcast";
+import { MessageCircle } from "lucide-react";
 
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
