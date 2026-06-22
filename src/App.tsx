@@ -13,6 +13,7 @@ import RendaExtraPage from "./pages/RendaExtra";
 import RendaExtraAasPage from "./pages/RendaExtraAas";
 import RendaExtra2Page from "./pages/RendaExtra2Page";
 import RendaExtrassPage from "./pages/RendaExtrassPage";
+import RendaExtrassAdmin from "./pages/RendaExtrassAdmin";
 import ZapMRO from "./pages/ZapMRO";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
