@@ -118,14 +118,14 @@ const DescontoAlunosRendaExtraMes = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$297
+      // Preço promocional: R$97 (30 dias)
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          planType: "annual",
-          amount: 297,
+          planType: "monthly",
+          amount: 97,
           checkUserExists: true
         }
       });
