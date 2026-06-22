@@ -61,6 +61,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
+import WhatsAppMigrationBroadcast from "@/components/admin/WhatsAppMigrationBroadcast";
 import WppBotPanel from "@/components/admin/WppBotPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
