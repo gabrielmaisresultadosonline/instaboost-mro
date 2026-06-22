@@ -198,6 +198,7 @@ const App = () => (
           <Route path="/renda-extra" element={<RendaExtraPage />} />
           <Route path="/renda-extra2" element={<RendaExtra2Page />} />
           <Route path="/renda-extrass" element={<RendaExtrassPage />} />
+          <Route path="/renda-extrass/admin" element={<RendaExtrassAdmin />} />
           <Route path="/zapmro" element={<ZapMRO />} />
           <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
           <Route path="/zapmro/vendas/prom" element={<ZapMROVendasProm />} />
