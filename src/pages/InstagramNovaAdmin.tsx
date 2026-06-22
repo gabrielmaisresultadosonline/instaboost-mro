@@ -2838,6 +2838,15 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
               Lembretes
             </Button>
             <Button
+              onClick={() => setShowAvisosWhatsapp(!showAvisosWhatsapp)}
+              variant="outline"
+              size="sm"
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAvisosWhatsapp ? "text-green-400 border-green-500/50" : "text-zinc-400"}`}
+            >
+              <MessageCircle className="w-4 h-4 mr-1.5" />
+              Avisos WhatsApp
+            </Button>
+            <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
               size="sm"
