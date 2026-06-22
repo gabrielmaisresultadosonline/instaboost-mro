@@ -148,7 +148,7 @@ const DescontoAlunosRendaExtraMes = () => {
       }
 
       // Track InitiateCheckout when redirecting to payment
-      trackInitiateCheckout('MRO Renda Extra Desconto', 297);
+      trackInitiateCheckout('MRO Renda Extra Mensal', 97);
       
       // Redirecionar diretamente para o checkout (funciona melhor no mobile)
       window.location.href = checkData.payment_link;
