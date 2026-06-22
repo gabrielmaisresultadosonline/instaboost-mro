@@ -655,69 +655,60 @@ const RendaExtraLead = () => {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-10 sm:py-14">
           {/* GRÁTIS Badge */}
-          <div className="mb-4">
-            <span className="bg-red-500 text-white font-bold text-sm sm:text-base px-6 py-2 rounded-full shadow-lg shadow-red-500/30">
-              GRÁTIS
+          <div className="mb-6">
+            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg shadow-red-500/40 uppercase tracking-wider">
+              <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              100% Grátis
             </span>
           </div>
 
-          {/* Hero Image */}
-          <div className="w-full max-w-md mx-auto">
-            <img 
-              src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
-              alt="Resultados MRO" 
-              className="w-full drop-shadow-2xl"
-            />
-          </div>
-          
-          {/* Title Below Image - slightly overlapping */}
-          <div className="text-center -mt-12 sm:-mt-16 md:-mt-20 relative z-10">
-            <h1 className="flex flex-col items-center leading-tight uppercase font-black">
-              <span className="text-white text-xl sm:text-2xl md:text-3xl relative" style={{ filter: 'drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9))' }}>
-                <span className="absolute inset-0 bg-black/70 blur-xl scale-150 -z-10 rounded-full"></span>
+          {/* Title */}
+          <div className="text-center relative z-10 max-w-4xl mx-auto">
+            <h1 className="flex flex-col items-center leading-[0.95] uppercase font-black gap-2 sm:gap-3">
+              <span className="text-white text-2xl sm:text-3xl md:text-4xl tracking-wide">
                 Fature mais de
               </span>
-              <span className="text-5xl sm:text-7xl md:text-8xl text-gold-shimmer py-2 px-4 my-1 block scale-110 sm:scale-100" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9))' }}>
+              <span className="text-5xl sm:text-7xl md:text-8xl text-gold-shimmer block">
                 5 MIL MENSAL
               </span>
-              <span className="text-green-400 text-2xl sm:text-3xl md:text-5xl tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>
+              <span className="text-green-400 text-2xl sm:text-3xl md:text-5xl tracking-tight" style={{ textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)' }}>
                 Com a MRO!
               </span>
             </h1>
           </div>
 
           {/* Description */}
-          <div className="text-center mt-6 max-w-xs sm:max-w-lg mx-auto px-2">
-            <p className="text-xs sm:text-base md:text-lg text-gray-400 leading-relaxed">
-              Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
-              <br />
-              Extremamente uma <span className="text-yellow-400 font-medium">liberdade financeira</span>!
+          <div className="text-center mt-8 max-w-xl mx-auto px-2">
+            <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
+              Utilize no seu horário, em <span className="text-green-400 font-semibold">qualquer lugar do mundo</span>.
+              <br className="hidden sm:block" />
+              {' '}Conquiste sua <span className="text-yellow-400 font-semibold">liberdade financeira</span>!
             </p>
           </div>
 
           {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-6">
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-green-500/30 transition-colors">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-8">
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-green-500/40 transition-colors">
               <Clock className="w-4 h-4 text-green-400" />
-              <span className="text-gray-300 text-xs sm:text-sm font-medium">Seu Horário</span>
+              <span className="text-gray-200 text-xs sm:text-sm font-medium">Seu Horário</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-yellow-500/30 transition-colors">
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-yellow-500/40 transition-colors">
               <MapPin className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-300 text-xs sm:text-sm font-medium">Qualquer Lugar</span>
+              <span className="text-gray-200 text-xs sm:text-sm font-medium">Qualquer Lugar</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-emerald-500/30 transition-colors">
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-emerald-500/40 transition-colors">
               <DollarSign className="w-4 h-4 text-emerald-400" />
-              <span className="text-gray-300 text-xs sm:text-sm font-medium">Renda Extra</span>
+              <span className="text-gray-200 text-xs sm:text-sm font-medium">Renda Extra</span>
             </div>
           </div>
 
           {/* CTA Button in Hero */}
-          <div className="mt-6 sm:mt-8">
+          <div className="mt-10">
             <Button 
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg md:text-xl px-10 sm:px-12 py-6 sm:py-7 rounded-2xl shadow-2xl shadow-red-500/30 hover:scale-105 transition-all duration-300 group"
             >
               Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
