@@ -410,7 +410,7 @@ const DescontoAlunosRendaExtraMes = () => {
               onClick={scrollToPricing}
               className="btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
             >
-              GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+              APROVEITAR POR R$97 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <span className="arrow-bounce-left text-white text-2xl sm:text-3xl">◀</span>
           </div>
@@ -707,7 +707,7 @@ const DescontoAlunosRendaExtraMes = () => {
               disabled={promoTimeLeft.expired}
               className="w-full btn-pulse-color text-black font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-yellow-500/30 disabled:opacity-50"
             >
-              {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
+              {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "APROVEITAR POR R$97"}
             </Button>
             <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
               <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
@@ -781,7 +781,7 @@ const DescontoAlunosRendaExtraMes = () => {
             disabled={promoTimeLeft.expired}
             className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "ENTRAR NA TURMA POR R$97 / 30 DIAS"}
+            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "APROVEITAR POR R$97"}
           </Button>
           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
             <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
