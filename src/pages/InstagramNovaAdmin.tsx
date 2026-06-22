@@ -61,6 +61,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
+import WhatsAppMigrationBroadcast from "@/components/admin/WhatsAppMigrationBroadcast";
 import WppBotPanel from "@/components/admin/WppBotPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -187,6 +188,7 @@ Participe também do nosso GRUPO DE AVISOS
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
   const [showRemarketingDashboard, setShowRemarketingDashboard] = useState(false);
+  const [showAvisosWhatsapp, setShowAvisosWhatsapp] = useState(false);
   const [showAccessReminder, setShowAccessReminder] = useState(false);
   const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
@@ -2836,6 +2838,15 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
               Lembretes
             </Button>
             <Button
+              onClick={() => setShowAvisosWhatsapp(!showAvisosWhatsapp)}
+              variant="outline"
+              size="sm"
+              className={`h-9 px-2 md:px-3 border-zinc-600 text-xs md:text-sm ${showAvisosWhatsapp ? "text-green-400 border-green-500/50" : "text-zinc-400"}`}
+            >
+              <MessageCircle className="w-4 h-4 mr-1.5" />
+              Avisos WhatsApp
+            </Button>
+            <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
               size="sm"
@@ -2864,6 +2875,13 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
             </Button>
           </div>
         </div>
+
+        {/* Avisos WhatsApp - Migração de número */}
+        {showAvisosWhatsapp && (
+          <div className="mb-6">
+            <WhatsAppMigrationBroadcast />
+          </div>
+        )}
 
         {/* Configuração de Afiliados Expandida */}
         {showAffiliateConfig && (
