@@ -130,6 +130,12 @@ const RendaExtrassPage = () => {
         progressMarksRef.current.p100 = true;
         trackEvent('video:renda-extrass:100');
       }
+      try { localStorage.setItem('renda-extrass:video-unlocked', '1'); } catch {}
+      setUnlockedPersisted(true);
+      const l = lead;
+      if (l?.id) {
+        supabase.from('renda_extrass_leads').update({ video_completed: true }).eq('id', l.id).then(() => {});
+      }
     };
     video.addEventListener('timeupdate', onTime);
     video.addEventListener('seeking', onSeeking);
