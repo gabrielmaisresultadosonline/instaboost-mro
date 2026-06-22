@@ -660,7 +660,7 @@ export default function InstagramNovaAdminEmail() {
 
         {/* Main Tabs */}
         <Tabs value={mainTab} onValueChange={setMainTab} className="mb-6">
-          <TabsList className="grid grid-cols-2 bg-gray-700/50 w-full max-w-md">
+          <TabsList className="grid grid-cols-3 bg-gray-700/50 w-full max-w-2xl">
             <TabsTrigger value="broadcast" className="data-[state=active]:bg-purple-500 text-white">
               <Mail className="w-4 h-4 mr-2" />
               Broadcast
@@ -668,6 +668,10 @@ export default function InstagramNovaAdminEmail() {
             <TabsTrigger value="contatos" className="data-[state=active]:bg-purple-500 text-white">
               <Phone className="w-4 h-4 mr-2" />
               Contatos
+            </TabsTrigger>
+            <TabsTrigger value="avisos_whatsapp" className="data-[state=active]:bg-green-600 text-white">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Avisos WhatsApp
             </TabsTrigger>
           </TabsList>
 
