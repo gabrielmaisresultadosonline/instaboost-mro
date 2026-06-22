@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { trackPageView } from '@/lib/facebookTracking';
 import { supabase } from '@/integrations/supabase/client';
 import Hls from 'hls.js';
+import RendaExtrassLeadForm, { getStoredLead, type RendaExtrassLead } from './RendaExtrassLeadForm';
 
 const VIDEO_SERVER = 'https://video.maisresultadosonline.com.br';
 
@@ -15,6 +16,7 @@ const trackEvent = (page: string) => {
 
 const RendaExtrassPage = () => {
   const navigate = useNavigate();
+  const [lead, setLead] = useState<RendaExtrassLead | null>(() => getStoredLead());
   const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -128,6 +130,12 @@ const RendaExtrassPage = () => {
         progressMarksRef.current.p100 = true;
         trackEvent('video:renda-extrass:100');
       }
+      try { localStorage.setItem('renda-extrass:video-unlocked', '1'); } catch {}
+      setUnlockedPersisted(true);
+      const l = lead;
+      if (l?.id) {
+        supabase.from('renda_extrass_leads').update({ video_completed: true }).eq('id', l.id).then(() => {});
+      }
     };
     video.addEventListener('timeupdate', onTime);
     video.addEventListener('seeking', onSeeking);
@@ -215,9 +223,9 @@ const RendaExtrassPage = () => {
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
-
-
-
+  if (!lead) {
+    return <RendaExtrassLeadForm onComplete={(l) => setLead(l)} />;
+  }
 
   if (mode === 'choice') {
     return (
