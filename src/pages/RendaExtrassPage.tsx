@@ -223,9 +223,9 @@ const RendaExtrassPage = () => {
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
-
-
-
+  if (!lead) {
+    return <RendaExtrassLeadForm onComplete={(l) => setLead(l)} />;
+  }
 
   if (mode === 'choice') {
     return (
