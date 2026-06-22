@@ -308,6 +308,7 @@ const App = () => (
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
           <Route path="/descontoalunosrendaextra/admin" element={<DescontoAlunosRendaExtraAdmin />} />
+          <Route path="/descontoalunosrendaextrames" element={<DescontoAlunosRendaExtraMes />} />
           <Route path="/descontoalunosrendaextras" element={<DescontoAlunosRendaExtras />} />
           <Route path="/descontoalunosrendaextrasss" element={<DescontoAlunosRendaExtrasss />} />
           <Route path="/rendaextradesconto" element={<RendaExtraDesconto />} />
