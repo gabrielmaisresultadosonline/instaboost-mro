@@ -4681,6 +4681,42 @@ export type Database = {
         }
         Relationships: []
       }
+      renda_extrass_leads: {
+        Row: {
+          created_at: string
+          email: string
+          has_desktop: boolean
+          id: string
+          name: string
+          updated_at: string
+          user_agent: string | null
+          video_completed: boolean
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          has_desktop?: boolean
+          id?: string
+          name: string
+          updated_at?: string
+          user_agent?: string | null
+          video_completed?: boolean
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          has_desktop?: boolean
+          id?: string
+          name?: string
+          updated_at?: string
+          user_agent?: string | null
+          video_completed?: boolean
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       rendaext_analytics: {
         Row: {
           created_at: string
