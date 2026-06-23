@@ -59,6 +59,7 @@ const DescontoAlunosRendaExtraMes = () => {
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   const [isDiscountActive, setIsDiscountActive] = useState(true);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
+  const [accessStatus, setAccessStatus] = useState<'loading' | 'allowed' | 'blocked'>('loading');
   
   // Popup de desconto encerrado - agora controlado pelo banco de dados
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
@@ -193,6 +194,39 @@ const DescontoAlunosRendaExtraMes = () => {
     fetchSettings();
   }, []);
 
+  // Gate de acesso: somente leads liberados em /renda-extrass/admin
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        let email = params.get('email')?.toLowerCase().trim() || '';
+        if (!email) {
+          try {
+            const raw = localStorage.getItem('renda-extrass:lead');
+            if (raw) email = (JSON.parse(raw)?.email || '').toLowerCase().trim();
+          } catch {}
+        }
+        if (!email) {
+          setAccessStatus('blocked');
+          return;
+        }
+        const { data, error } = await supabase
+          .from('renda_extrass_leads')
+          .select('access_liberated')
+          .eq('email', email)
+          .maybeSingle();
+        if (error || !data || !data.access_liberated) {
+          setAccessStatus('blocked');
+        } else {
+          setAccessStatus('allowed');
+        }
+      } catch {
+        setAccessStatus('blocked');
+      }
+    };
+    checkAccess();
+  }, []);
+
   // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
   useEffect(() => {
     // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
@@ -269,6 +303,38 @@ const DescontoAlunosRendaExtraMes = () => {
     "Grupo VIP no WhatsApp",
     "Suporte prioritário"
   ];
+
+  if (accessStatus === 'loading') {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+      </div>
+    );
+  }
+
+  if (accessStatus === 'blocked') {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500/60 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(239,68,68,0.25)]">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl sm:text-3xl font-black mb-3">Acesso não liberado</h1>
+          <p className="text-gray-300 mb-2">
+            Este desconto especial já foi <strong className="text-red-400">encerrado</strong> ou seu acesso ainda não foi liberado.
+          </p>
+          <p className="text-gray-400 text-sm mb-6">
+            Entre em contato pelo nosso WhatsApp para verificar disponibilidade.
+          </p>
+          <Button
+            onClick={() => { window.location.href = '/whatsapp'; }}
+            className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-black font-black text-lg py-6 rounded-xl"
+          >
+            <MessageCircle className="w-5 h-5 mr-2" />
+            Falar no WhatsApp
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
@@ -388,20 +454,9 @@ const DescontoAlunosRendaExtraMes = () => {
           </div>
 
 
-          {/* Main Video */}
-          <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
-              <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/WQwnAHNvSMU?rel=0&modestbranding=1" 
-                  title="Video MRO"
-                  className="w-full h-full" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen 
-                />
-              </div>
-            </div>
-          </div>
+          {/* Video removido */}
+
+
 
           {/* CTA Button with arrows */}
           <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-2 sm:gap-4">

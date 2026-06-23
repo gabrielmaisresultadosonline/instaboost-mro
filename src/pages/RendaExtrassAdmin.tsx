@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, LogOut, RefreshCw, Search, Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Loader2, LogOut, RefreshCw, Search, Download, CheckCircle2, XCircle, Trash2, Lock, Unlock } from 'lucide-react';
 
 const ADMIN_EMAIL = 'mro@gmail.com';
 const ADMIN_PASS = 'Ga145523@';
@@ -26,6 +26,7 @@ type Lead = {
   reminder2_sent_at: string | null;
   offer_expires_at: string | null;
   offer_expired: boolean;
+  access_liberated: boolean;
   created_at: string;
 };
 
@@ -44,7 +45,7 @@ const RendaExtrassAdmin = () => {
     try {
       const { data, error } = await supabase
         .from('renda_extrass_leads')
-        .select('id,name,email,whatsapp,has_desktop,video_completed,video_25_at,video_50_at,video_100_at,offer_email_sent_at,reminder1_sent_at,reminder2_sent_at,offer_expires_at,offer_expired,created_at')
+        .select('id,name,email,whatsapp,has_desktop,video_completed,video_25_at,video_50_at,video_100_at,offer_email_sent_at,reminder1_sent_at,reminder2_sent_at,offer_expires_at,offer_expired,access_liberated,created_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       setLeads((data || []) as Lead[]);
@@ -81,6 +82,14 @@ const RendaExtrassAdmin = () => {
     if (error) return toast.error('Erro ao excluir');
     toast.success('Excluído');
     setLeads((l) => l.filter((x) => x.id !== id));
+  };
+
+  const toggleLiberated = async (id: string, current: boolean) => {
+    const next = !current;
+    const { error } = await supabase.from('renda_extrass_leads').update({ access_liberated: next }).eq('id', id);
+    if (error) return toast.error('Erro ao atualizar');
+    toast.success(next ? 'Acesso liberado' : 'Acesso bloqueado');
+    setLeads((l) => l.map((x) => (x.id === id ? { ...x, access_liberated: next } : x)));
   };
 
   const exportCsv = () => {
@@ -217,6 +226,7 @@ const RendaExtrassAdmin = () => {
                   <th className="text-left p-3">WhatsApp</th>
                   <th className="text-left p-3">Vídeo %</th>
                   <th className="text-left p-3">Oferta</th>
+                  <th className="text-left p-3">Acesso</th>
                   <th className="text-left p-3">Cadastro</th>
                   <th className="p-3"></th>
                 </tr>
@@ -251,6 +261,18 @@ const RendaExtrassAdmin = () => {
                         <span className="text-white/30">—</span>
                       )}
                     </td>
+                    <td className="p-3">
+                      <Button
+                        size="sm"
+                        onClick={() => toggleLiberated(l.id, l.access_liberated)}
+                        className={l.access_liberated
+                          ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 h-7 px-2 text-xs'
+                          : 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 h-7 px-2 text-xs'
+                        }
+                      >
+                        {l.access_liberated ? (<><Unlock className="w-3 h-3 mr-1" />Liberado</>) : (<><Lock className="w-3 h-3 mr-1" />Bloqueado</>)}
+                      </Button>
+                    </td>
                     <td className="p-3 text-white/50 text-xs">
                       {new Date(l.created_at).toLocaleString('pt-BR')}
                     </td>
@@ -264,7 +286,7 @@ const RendaExtrassAdmin = () => {
                 })}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-white/40">
+                    <td colSpan={8} className="p-8 text-center text-white/40">
                       {loading ? 'Carregando...' : 'Nenhum cadastro encontrado'}
                     </td>
                   </tr>
