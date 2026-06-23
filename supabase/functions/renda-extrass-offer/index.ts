@@ -144,11 +144,11 @@ Deno.serve(async (req) => {
           continue;
         }
         if (hours >= 16 && !l.reminder2_sent_at) {
-          await sendMail(l.email as string, "🚨 ÚLTIMAS HORAS - oferta R$97 encerrando", tplReminder2(l.name as string), "offer_reminder2");
+          await sendMail(l.email as string, "🚨 ÚLTIMAS HORAS - oferta R$97 encerrando", tplReminder2(l.name as string, l.email as string), "offer_reminder2");
           await supabase.from("renda_extrass_leads").update({ reminder2_sent_at: now.toISOString() }).eq("id", l.id);
           r2++;
         } else if (hours >= 8 && !l.reminder1_sent_at) {
-          await sendMail(l.email as string, "⏰ Faltam poucas horas - R$97 encerra hoje", tplReminder1(l.name as string), "offer_reminder1");
+          await sendMail(l.email as string, "⏰ Faltam poucas horas - R$97 encerra hoje", tplReminder1(l.name as string, l.email as string), "offer_reminder1");
           await supabase.from("renda_extrass_leads").update({ reminder1_sent_at: now.toISOString() }).eq("id", l.id);
           r1++;
         }
