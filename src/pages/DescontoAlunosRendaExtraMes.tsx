@@ -59,6 +59,7 @@ const DescontoAlunosRendaExtraMes = () => {
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   const [isDiscountActive, setIsDiscountActive] = useState(true);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
+  const [accessStatus, setAccessStatus] = useState<'loading' | 'allowed' | 'blocked'>('loading');
   
   // Popup de desconto encerrado - agora controlado pelo banco de dados
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
