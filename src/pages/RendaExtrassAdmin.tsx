@@ -142,7 +142,11 @@ const RendaExtrassAdmin = () => {
   }
 
   const total = leads.length;
-  const completed = leads.filter((l) => l.video_completed).length;
+  const v25 = leads.filter((l) => !!l.video_25_at).length;
+  const v50 = leads.filter((l) => !!l.video_50_at).length;
+  const v100 = leads.filter((l) => !!l.video_100_at).length;
+  const offerSent = leads.filter((l) => !!l.offer_email_sent_at).length;
+  const expired = leads.filter((l) => l.offer_expired).length;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
@@ -165,20 +169,33 @@ const RendaExtrassAdmin = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card className="bg-[#0d0d16] border-white/10 p-5">
-            <div className="text-white/50 text-xs uppercase tracking-wider">Total de cadastros</div>
-            <div className="text-3xl font-black mt-1">{total}</div>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Cadastros</div>
+            <div className="text-2xl font-black mt-1">{total}</div>
           </Card>
-          <Card className="bg-[#0d0d16] border-white/10 p-5">
-            <div className="text-white/50 text-xs uppercase tracking-wider">Vídeo concluído</div>
-            <div className="text-3xl font-black mt-1 text-emerald-400">{completed}</div>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Vídeo 25%</div>
+            <div className="text-2xl font-black mt-1 text-blue-300">{v25}</div>
           </Card>
-          <Card className="bg-[#0d0d16] border-white/10 p-5 col-span-2 md:col-span-1">
-            <div className="text-white/50 text-xs uppercase tracking-wider">Conversão</div>
-            <div className="text-3xl font-black mt-1">{total ? Math.round((completed / total) * 100) : 0}%</div>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Vídeo 50%</div>
+            <div className="text-2xl font-black mt-1 text-amber-300">{v50}</div>
+          </Card>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Vídeo 100%</div>
+            <div className="text-2xl font-black mt-1 text-emerald-400">{v100}</div>
+          </Card>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Oferta enviada</div>
+            <div className="text-2xl font-black mt-1 text-emerald-300">{offerSent}</div>
+          </Card>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Expirados 24h</div>
+            <div className="text-2xl font-black mt-1 text-red-400">{expired}</div>
           </Card>
         </div>
+
 
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
