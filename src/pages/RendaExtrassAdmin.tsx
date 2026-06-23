@@ -215,51 +215,62 @@ const RendaExtrassAdmin = () => {
                   <th className="text-left p-3">Nome</th>
                   <th className="text-left p-3">E-mail</th>
                   <th className="text-left p-3">WhatsApp</th>
-                  <th className="text-left p-3">Vídeo</th>
+                  <th className="text-left p-3">Vídeo %</th>
+                  <th className="text-left p-3">Oferta</th>
                   <th className="text-left p-3">Cadastro</th>
                   <th className="p-3"></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((l) => (
+                {filtered.map((l) => {
+                  const pct = l.video_100_at ? 100 : l.video_50_at ? 50 : l.video_25_at ? 25 : 0;
+                  return (
                   <tr key={l.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                     <td className="p-3 font-medium">{l.name}</td>
                     <td className="p-3 text-white/70">{l.email}</td>
                     <td className="p-3 text-white/70">{l.whatsapp}</td>
                     <td className="p-3">
-                      {l.video_completed ? (
-                        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                          <CheckCircle2 className="w-3 h-3 mr-1" /> Concluído
-                        </Badge>
+                      <Badge className={
+                        pct === 100 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                        pct >= 50 ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                        pct >= 25 ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
+                        'border-white/10 text-white/40 bg-transparent'
+                      }>{pct}%</Badge>
+                    </td>
+                    <td className="p-3 text-xs">
+                      {l.offer_expired ? (
+                        <Badge className="bg-red-500/20 text-red-300 border-red-500/30">Expirada</Badge>
+                      ) : l.offer_email_sent_at ? (
+                        <div className="space-y-0.5">
+                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">Enviada</Badge>
+                          <div className="text-white/40">
+                            {l.reminder1_sent_at ? '✓R1 ' : ''}{l.reminder2_sent_at ? '✓R2' : ''}
+                          </div>
+                        </div>
                       ) : (
-                        <Badge variant="outline" className="border-white/10 text-white/50">
-                          <XCircle className="w-3 h-3 mr-1" /> Pendente
-                        </Badge>
+                        <span className="text-white/30">—</span>
                       )}
                     </td>
                     <td className="p-3 text-white/50 text-xs">
                       {new Date(l.created_at).toLocaleString('pt-BR')}
                     </td>
                     <td className="p-3 text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => remove(l.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => remove(l.id)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-white/40">
+                    <td colSpan={7} className="p-8 text-center text-white/40">
                       {loading ? 'Carregando...' : 'Nenhum cadastro encontrado'}
                     </td>
                   </tr>
                 )}
               </tbody>
+
             </table>
           </div>
         </Card>
