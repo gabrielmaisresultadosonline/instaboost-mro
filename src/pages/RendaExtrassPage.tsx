@@ -511,10 +511,17 @@ const RendaExtrassPage = () => {
             </div>
           ) : (
             <Button
-              onClick={() => { trackEvent('click:renda-extrass:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
+              onClick={async () => {
+                trackEvent('click:renda-extrass:acessar-renda-extra-agora');
+                const email = (lead?.email || '').toLowerCase().trim();
+                if (lead?.id) {
+                  try { await supabase.from('renda_extrass_leads').update({ access_liberated: true }).eq('id', lead.id); } catch {}
+                }
+                window.location.href = `/descontoalunosrendaextrames${email ? `?email=${encodeURIComponent(email)}` : ''}`;
+              }}
               className="w-full max-w-md flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-5 sm:py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm sm:text-lg md:text-xl transition-all hover:scale-[1.03] active:scale-95 uppercase tracking-wider sm:tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group whitespace-normal text-center leading-tight h-auto"
             >
-              <span>ACESSAR RENDA EXTRA AGORA</span>
+              <span>ACESSAR DESCONTO AGORA</span>
               <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 shrink-0 group-hover:translate-x-1 sm:group-hover:translate-x-2 transition-transform" />
             </Button>
           )}
