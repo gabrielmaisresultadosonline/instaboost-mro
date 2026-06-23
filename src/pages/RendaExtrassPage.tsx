@@ -117,8 +117,8 @@ const RendaExtrassPage = () => {
       if (d > 0) {
         const pct = (video.currentTime / d) * 100;
         const m = progressMarksRef.current;
-        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:renda-extrass:25'); }
-        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:renda-extrass:50'); }
+        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:renda-extrass:25'); if (lead?.id) trackProgress(lead.id, 25); }
+        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:renda-extrass:50'); if (lead?.id) trackProgress(lead.id, 50); }
         if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:renda-extrass:75'); }
       }
     };
