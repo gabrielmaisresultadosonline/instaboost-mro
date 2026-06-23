@@ -661,7 +661,21 @@ export const syncSessionToPersistent = async (loggedInUsername: string): Promise
   
   session.profiles.forEach(profileSession => {
     const normalizedUsername = profileSession.profile.username.toLowerCase();
-    
+    const previous = userData!.profiles[normalizedUsername];
+
+    // CRITICAL: NEVER overwrite a previously saved screenshot with null/empty.
+    // Once a print is saved, it can only be removed by an admin action.
+    const preservedScreenshotUrl =
+      profileSession.screenshotUrl || previous?.screenshotUrl || undefined;
+    const preservedHistory =
+      (profileSession.screenshotHistory && profileSession.screenshotHistory.length > 0)
+        ? profileSession.screenshotHistory
+        : (previous?.screenshotHistory || []);
+    const preservedCount = Math.max(
+      profileSession.screenshotUploadCount || 0,
+      previous?.screenshotUploadCount || 0
+    );
+
     userData!.profiles[normalizedUsername] = {
       username: normalizedUsername,
       profile: profileSession.profile,
@@ -676,10 +690,10 @@ export const syncSessionToPersistent = async (loggedInUsername: string): Promise
       lastUpdated: profileSession.lastUpdated,
       lastStrategyGeneratedAt: profileSession.lastStrategyGeneratedAt,
       strategyGenerationDates: (profileSession.strategyGenerationDates as Record<string, string>) || {},
-      // CRITICAL: Save screenshot data to cloud
-      screenshotUrl: profileSession.screenshotUrl,
-      screenshotUploadCount: profileSession.screenshotUploadCount,
-      screenshotHistory: profileSession.screenshotHistory
+      // CRITICAL: Save screenshot data to cloud (never nulled implicitly)
+      screenshotUrl: preservedScreenshotUrl,
+      screenshotUploadCount: preservedCount,
+      screenshotHistory: preservedHistory
     };
   });
   
