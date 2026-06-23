@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, LogOut, RefreshCw, Search, Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Loader2, LogOut, RefreshCw, Search, Download, CheckCircle2, XCircle, Trash2, Lock, Unlock } from 'lucide-react';
 
 const ADMIN_EMAIL = 'mro@gmail.com';
 const ADMIN_PASS = 'Ga145523@';
