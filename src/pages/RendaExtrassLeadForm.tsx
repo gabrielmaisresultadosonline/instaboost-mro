@@ -104,6 +104,7 @@ const RendaExtrassLeadForm = ({ onComplete }: Props) => {
 
       const lead: RendaExtrassLead = { id, name: payload.name, email: payload.email, whatsapp: payload.whatsapp };
       localStorage.setItem(LS_KEY, JSON.stringify(lead));
+      try { (window as any).fbq?.('track', 'Lead', { content_name: 'renda-extrass', email: payload.email }); } catch {}
       toast.success('Cadastro concluído! Liberando o vídeo...');
       onComplete(lead);
     } catch (e: any) {

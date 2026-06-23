@@ -18,6 +18,14 @@ type Lead = {
   whatsapp: string;
   has_desktop: boolean;
   video_completed: boolean;
+  video_25_at: string | null;
+  video_50_at: string | null;
+  video_100_at: string | null;
+  offer_email_sent_at: string | null;
+  reminder1_sent_at: string | null;
+  reminder2_sent_at: string | null;
+  offer_expires_at: string | null;
+  offer_expired: boolean;
   created_at: string;
 };
 
@@ -36,7 +44,7 @@ const RendaExtrassAdmin = () => {
     try {
       const { data, error } = await supabase
         .from('renda_extrass_leads')
-        .select('id,name,email,whatsapp,has_desktop,video_completed,created_at')
+        .select('id,name,email,whatsapp,has_desktop,video_completed,video_25_at,video_50_at,video_100_at,offer_email_sent_at,reminder1_sent_at,reminder2_sent_at,offer_expires_at,offer_expired,created_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       setLeads((data || []) as Lead[]);
@@ -134,7 +142,11 @@ const RendaExtrassAdmin = () => {
   }
 
   const total = leads.length;
-  const completed = leads.filter((l) => l.video_completed).length;
+  const v25 = leads.filter((l) => !!l.video_25_at).length;
+  const v50 = leads.filter((l) => !!l.video_50_at).length;
+  const v100 = leads.filter((l) => !!l.video_100_at).length;
+  const offerSent = leads.filter((l) => !!l.offer_email_sent_at).length;
+  const expired = leads.filter((l) => l.offer_expired).length;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
@@ -157,20 +169,33 @@ const RendaExtrassAdmin = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card className="bg-[#0d0d16] border-white/10 p-5">
-            <div className="text-white/50 text-xs uppercase tracking-wider">Total de cadastros</div>
-            <div className="text-3xl font-black mt-1">{total}</div>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Cadastros</div>
+            <div className="text-2xl font-black mt-1">{total}</div>
           </Card>
-          <Card className="bg-[#0d0d16] border-white/10 p-5">
-            <div className="text-white/50 text-xs uppercase tracking-wider">Vídeo concluído</div>
-            <div className="text-3xl font-black mt-1 text-emerald-400">{completed}</div>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Vídeo 25%</div>
+            <div className="text-2xl font-black mt-1 text-blue-300">{v25}</div>
           </Card>
-          <Card className="bg-[#0d0d16] border-white/10 p-5 col-span-2 md:col-span-1">
-            <div className="text-white/50 text-xs uppercase tracking-wider">Conversão</div>
-            <div className="text-3xl font-black mt-1">{total ? Math.round((completed / total) * 100) : 0}%</div>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Vídeo 50%</div>
+            <div className="text-2xl font-black mt-1 text-amber-300">{v50}</div>
+          </Card>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Vídeo 100%</div>
+            <div className="text-2xl font-black mt-1 text-emerald-400">{v100}</div>
+          </Card>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Oferta enviada</div>
+            <div className="text-2xl font-black mt-1 text-emerald-300">{offerSent}</div>
+          </Card>
+          <Card className="bg-[#0d0d16] border-white/10 p-4">
+            <div className="text-white/50 text-[10px] uppercase tracking-wider">Expirados 24h</div>
+            <div className="text-2xl font-black mt-1 text-red-400">{expired}</div>
           </Card>
         </div>
+
 
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
@@ -190,51 +215,62 @@ const RendaExtrassAdmin = () => {
                   <th className="text-left p-3">Nome</th>
                   <th className="text-left p-3">E-mail</th>
                   <th className="text-left p-3">WhatsApp</th>
-                  <th className="text-left p-3">Vídeo</th>
+                  <th className="text-left p-3">Vídeo %</th>
+                  <th className="text-left p-3">Oferta</th>
                   <th className="text-left p-3">Cadastro</th>
                   <th className="p-3"></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((l) => (
+                {filtered.map((l) => {
+                  const pct = l.video_100_at ? 100 : l.video_50_at ? 50 : l.video_25_at ? 25 : 0;
+                  return (
                   <tr key={l.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                     <td className="p-3 font-medium">{l.name}</td>
                     <td className="p-3 text-white/70">{l.email}</td>
                     <td className="p-3 text-white/70">{l.whatsapp}</td>
                     <td className="p-3">
-                      {l.video_completed ? (
-                        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                          <CheckCircle2 className="w-3 h-3 mr-1" /> Concluído
-                        </Badge>
+                      <Badge className={
+                        pct === 100 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                        pct >= 50 ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                        pct >= 25 ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
+                        'border-white/10 text-white/40 bg-transparent'
+                      }>{pct}%</Badge>
+                    </td>
+                    <td className="p-3 text-xs">
+                      {l.offer_expired ? (
+                        <Badge className="bg-red-500/20 text-red-300 border-red-500/30">Expirada</Badge>
+                      ) : l.offer_email_sent_at ? (
+                        <div className="space-y-0.5">
+                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">Enviada</Badge>
+                          <div className="text-white/40">
+                            {l.reminder1_sent_at ? '✓R1 ' : ''}{l.reminder2_sent_at ? '✓R2' : ''}
+                          </div>
+                        </div>
                       ) : (
-                        <Badge variant="outline" className="border-white/10 text-white/50">
-                          <XCircle className="w-3 h-3 mr-1" /> Pendente
-                        </Badge>
+                        <span className="text-white/30">—</span>
                       )}
                     </td>
                     <td className="p-3 text-white/50 text-xs">
                       {new Date(l.created_at).toLocaleString('pt-BR')}
                     </td>
                     <td className="p-3 text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => remove(l.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => remove(l.id)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-white/40">
+                    <td colSpan={7} className="p-8 text-center text-white/40">
                       {loading ? 'Carregando...' : 'Nenhum cadastro encontrado'}
                     </td>
                   </tr>
                 )}
               </tbody>
+
             </table>
           </div>
         </Card>

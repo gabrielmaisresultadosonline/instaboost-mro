@@ -14,12 +14,21 @@ const trackEvent = (page: string) => {
   supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page } }).catch(() => {});
 };
 
+const trackProgress = (leadId: string, milestone: 25 | 50 | 100) => {
+  supabase.functions.invoke('renda-extrass-offer', { body: { action: 'track_progress', lead_id: leadId, milestone } }).catch(() => {});
+};
+
+const fireLeadPixel = () => {
+  try { (window as any).fbq?.('track', 'Lead'); } catch {}
+};
+
 const RendaExtrassPage = () => {
   const navigate = useNavigate();
   const [lead, setLead] = useState<RendaExtrassLead | null>(() => getStoredLead());
   const [showIntro, setShowIntro] = useState<boolean>(() => !getStoredLead());
   const [showForm, setShowForm] = useState(false);
   const [showLiveNotice, setShowLiveNotice] = useState(false);
+  const [accessExpired, setAccessExpired] = useState(false);
   const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -53,6 +62,14 @@ const RendaExtrassPage = () => {
     supabase.functions.invoke('estrutura4-discount', { body: { action: 'get_video' } })
       .then(({ data }) => { if (data) setVideoCfg(data); }).catch(() => {});
   }, []);
+
+  // Check if the 24h offer window already expired for this lead
+  useEffect(() => {
+    if (!lead?.email) return;
+    supabase.functions.invoke('renda-extrass-offer', { body: { action: 'check_access', email: lead.email } })
+      .then(({ data }) => { if (data?.expired) setAccessExpired(true); }).catch(() => {});
+  }, [lead?.email]);
+
 
   useEffect(() => {
     if (mode !== 'prestar') return;
@@ -108,8 +125,8 @@ const RendaExtrassPage = () => {
       if (d > 0) {
         const pct = (video.currentTime / d) * 100;
         const m = progressMarksRef.current;
-        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:renda-extrass:25'); }
-        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:renda-extrass:50'); }
+        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:renda-extrass:25'); if (lead?.id) trackProgress(lead.id, 25); }
+        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:renda-extrass:50'); if (lead?.id) trackProgress(lead.id, 50); }
         if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:renda-extrass:75'); }
       }
     };
@@ -132,6 +149,8 @@ const RendaExtrassPage = () => {
       if (!progressMarksRef.current.p100) {
         progressMarksRef.current.p100 = true;
         trackEvent('video:renda-extrass:100');
+        fireLeadPixel();
+        if (lead?.id) trackProgress(lead.id, 100);
       }
       try { localStorage.setItem('renda-extrass:video-unlocked', '1'); } catch {}
       setUnlockedPersisted(true);
@@ -225,6 +244,33 @@ const RendaExtrassPage = () => {
   }, [buttonUnlocked, unlockedPersisted]);
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
+
+  if (accessExpired) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex items-center justify-center p-6">
+        <div className="max-w-xl w-full text-center space-y-6 bg-[#0d0d16] border border-red-500/20 rounded-3xl p-8 md:p-10 shadow-2xl">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black uppercase tracking-[0.2em]">
+            Oferta encerrada
+          </div>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight italic uppercase leading-tight">
+            Seu <span className="text-red-400">desconto encerrou</span>
+          </h1>
+          <p className="text-white/70 text-base md:text-lg font-medium leading-relaxed">
+            O prazo de 24 horas para aproveitar a oferta de <span className="text-amber-400 font-black">R$97 / 30 dias</span> foi encerrado para o seu cadastro.
+          </p>
+          <p className="text-white/50 text-sm md:text-base">
+            Caso ainda tenha interesse em adquirir o <strong className="text-white">plano anual</strong>, fale com nosso time no WhatsApp:
+          </p>
+          <Button
+            onClick={() => navigate('/whatsapp')}
+            className="px-10 py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-base md:text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] h-auto"
+          >
+            FALAR NO WHATSAPP <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!lead) {
     if (showIntro && !showForm) {
