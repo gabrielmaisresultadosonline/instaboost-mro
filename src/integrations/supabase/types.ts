@@ -4688,8 +4688,16 @@ export type Database = {
           has_desktop: boolean
           id: string
           name: string
+          offer_email_sent_at: string | null
+          offer_expired: boolean
+          offer_expires_at: string | null
+          reminder1_sent_at: string | null
+          reminder2_sent_at: string | null
           updated_at: string
           user_agent: string | null
+          video_100_at: string | null
+          video_25_at: string | null
+          video_50_at: string | null
           video_completed: boolean
           whatsapp: string
         }
@@ -4699,8 +4707,16 @@ export type Database = {
           has_desktop?: boolean
           id?: string
           name: string
+          offer_email_sent_at?: string | null
+          offer_expired?: boolean
+          offer_expires_at?: string | null
+          reminder1_sent_at?: string | null
+          reminder2_sent_at?: string | null
           updated_at?: string
           user_agent?: string | null
+          video_100_at?: string | null
+          video_25_at?: string | null
+          video_50_at?: string | null
           video_completed?: boolean
           whatsapp: string
         }
@@ -4710,8 +4726,16 @@ export type Database = {
           has_desktop?: boolean
           id?: string
           name?: string
+          offer_email_sent_at?: string | null
+          offer_expired?: boolean
+          offer_expires_at?: string | null
+          reminder1_sent_at?: string | null
+          reminder2_sent_at?: string | null
           updated_at?: string
           user_agent?: string | null
+          video_100_at?: string | null
+          video_25_at?: string | null
+          video_50_at?: string | null
           video_completed?: boolean
           whatsapp?: string
         }
