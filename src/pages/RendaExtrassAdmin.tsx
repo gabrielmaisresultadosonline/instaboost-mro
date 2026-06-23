@@ -226,6 +226,7 @@ const RendaExtrassAdmin = () => {
                   <th className="text-left p-3">WhatsApp</th>
                   <th className="text-left p-3">Vídeo %</th>
                   <th className="text-left p-3">Oferta</th>
+                  <th className="text-left p-3">Acesso</th>
                   <th className="text-left p-3">Cadastro</th>
                   <th className="p-3"></th>
                 </tr>
