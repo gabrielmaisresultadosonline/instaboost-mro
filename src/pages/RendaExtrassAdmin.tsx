@@ -26,6 +26,7 @@ type Lead = {
   reminder2_sent_at: string | null;
   offer_expires_at: string | null;
   offer_expired: boolean;
+  access_liberated: boolean;
   created_at: string;
 };
 
