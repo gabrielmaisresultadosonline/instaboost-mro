@@ -12,47 +12,61 @@ const smtpPassword = Deno.env.get("SMTP_PASSWORD");
 
 const supabase = createClient(supabaseUrl, serviceKey);
 
-const ACCESS_URL = "https://maisresultadosonline.com.br/renda-extrass";
-const WPP_URL = "https://maisresultadosonline.com.br/whatsapp";
+const SITE = "https://maisresultadosonline.com.br";
+const WPP_URL = `${SITE}/whatsapp`;
+const accessUrl = (email: string) => `${SITE}/descontoalunosrendaextrames?email=${encodeURIComponent(email)}`;
 
-const emailShell = (title: string, body: string) => `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:30px;text-align:center;">
-<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;">MRO</div>
-<h1 style="color:#fff;margin:15px 0 0 0;font-size:22px;">${title}</h1></td></tr>
-<tr><td style="padding:30px;color:#333;font-size:15px;line-height:1.6;">${body}</td></tr>
-<tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
-</table></body></html>`;
+const escapeHtml = (s: string) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
 
-const tplOffer = (name: string) => emailShell(
+const ctaButton = (url: string, label: string, color = "#10b981") =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto;">
+     <tr><td align="center" bgcolor="${color}" style="border-radius:30px;">
+       <a href="${url}" target="_blank" style="display:inline-block;padding:14px 36px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:30px;">${label}</a>
+     </td></tr>
+   </table>`;
+
+const emailShell = (title: string, body: string) => `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;">
+<tr><td align="center" style="padding:20px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;">
+<tr><td align="center" style="background:#10b981;padding:30px;">
+<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;font-family:Arial,sans-serif;">MRO</div>
+<h1 style="color:#ffffff;margin:15px 0 0 0;font-size:22px;font-family:Arial,sans-serif;">${title}</h1>
+</td></tr>
+<tr><td style="padding:30px;color:#333333;font-size:15px;line-height:1.6;font-family:Arial,sans-serif;">${body}</td></tr>
+<tr><td style="background:#1a1a1a;padding:18px;text-align:center;color:#999999;font-size:12px;font-family:Arial,sans-serif;">© 2026 MRO - Mais Resultados Online</td></tr>
+</table></td></tr></table></body></html>`;
+
+const tplOffer = (name: string, email: string) => emailShell(
   "🎯 Você assistiu tudo - sua oferta especial",
-  `<p>Olá <strong>${name}</strong>!</p>
+  `<p>Olá <strong>${escapeHtml(name)}</strong>!</p>
    <p>Vejo que você assistiu o vídeo por <strong>completo</strong>. Deve ter entendido toda a proposta.</p>
    <p>Nossa ideia é fazer você montar uma <strong>EUGÊNCIA DE MARKETING</strong> e faturar em casa prestando serviço com a ferramenta MRO e nosso passo a passo completo.</p>
    <div style="background:#fff8e1;border-left:4px solid #f59e0b;padding:16px;margin:18px 0;border-radius:8px;">
-   <p style="margin:0;font-size:18px;"><strong>30 DIAS POR APENAS R$97</strong></p>
-   <p style="margin:6px 0 0 0;font-size:13px;color:#666;">Esse valor é válido APENAS HOJE - 24 horas para aproveitar.</p></div>
-   <p style="text-align:center;margin:24px 0;">
-   <a href="${ACCESS_URL}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:14px 36px;border-radius:30px;font-weight:bold;">✅ APROVEITAR POR R$97</a></p>
-   <p style="font-size:13px;color:#666;">Esse desconto é imperdível para você testar e ver se vai se adaptar.</p>`
+     <p style="margin:0;font-size:18px;"><strong>30 DIAS POR APENAS R$97</strong></p>
+     <p style="margin:6px 0 0 0;font-size:13px;color:#666666;">Esse valor é válido APENAS HOJE - 24 horas para aproveitar.</p>
+   </div>
+   ${ctaButton(accessUrl(email), "✅ APROVEITAR POR R$97")}
+   <p style="font-size:13px;color:#666666;">Esse desconto é imperdível para você testar e ver se vai se adaptar.</p>`
 );
 
-const tplReminder1 = (name: string) => emailShell(
+const tplReminder1 = (name: string, email: string) => emailShell(
   "⏰ Faltam poucas horas - R$97 encerra hoje",
-  `<p>Olá <strong>${name}</strong>!</p>
+  `<p>Olá <strong>${escapeHtml(name)}</strong>!</p>
    <p>Só passando para te lembrar: seu desconto especial de <strong>R$97 por 30 dias</strong> encerra <strong>HOJE</strong>.</p>
    <p>Depois disso o valor volta ao normal e você perde a chance de testar.</p>
-   <p style="text-align:center;margin:24px 0;">
-   <a href="${ACCESS_URL}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:14px 36px;border-radius:30px;font-weight:bold;">APROVEITAR POR R$97</a></p>`
+   ${ctaButton(accessUrl(email), "APROVEITAR POR R$97")}`
 );
 
-const tplReminder2 = (name: string) => emailShell(
+const tplReminder2 = (name: string, email: string) => emailShell(
   "🚨 ÚLTIMAS HORAS - oferta R$97 encerrando",
-  `<p>Olá <strong>${name}</strong>!</p>
+  `<p>Olá <strong>${escapeHtml(name)}</strong>!</p>
    <p>Esse é o <strong>último aviso</strong>. Em poucas horas seu acesso à oferta de <strong>R$97 por 30 dias</strong> será encerrado e o link não funcionará mais.</p>
    <p>Se você quer realmente testar a MRO e montar sua Eugência de Marketing em casa, esse é o momento.</p>
-   <p style="text-align:center;margin:24px 0;">
-   <a href="${ACCESS_URL}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:14px 36px;border-radius:30px;font-weight:bold;">GARANTIR R$97 AGORA</a></p>`
+   ${ctaButton(accessUrl(email), "GARANTIR R$97 AGORA", "#dc2626")}`
 );
 
 async function sendMail(to: string, subject: string, html: string, type: string) {
