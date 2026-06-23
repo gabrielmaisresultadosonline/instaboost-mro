@@ -304,6 +304,38 @@ const DescontoAlunosRendaExtraMes = () => {
     "Suporte prioritário"
   ];
 
+  if (accessStatus === 'loading') {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+      </div>
+    );
+  }
+
+  if (accessStatus === 'blocked') {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500/60 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(239,68,68,0.25)]">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl sm:text-3xl font-black mb-3">Acesso não liberado</h1>
+          <p className="text-gray-300 mb-2">
+            Este desconto especial já foi <strong className="text-red-400">encerrado</strong> ou seu acesso ainda não foi liberado.
+          </p>
+          <p className="text-gray-400 text-sm mb-6">
+            Entre em contato pelo nosso WhatsApp para verificar disponibilidade.
+          </p>
+          <Button
+            onClick={() => { window.location.href = '/whatsapp'; }}
+            className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-black font-black text-lg py-6 rounded-xl"
+          >
+            <MessageCircle className="w-5 h-5 mr-2" />
+            Falar no WhatsApp
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
