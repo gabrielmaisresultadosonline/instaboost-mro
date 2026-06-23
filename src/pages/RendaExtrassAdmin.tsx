@@ -18,6 +18,14 @@ type Lead = {
   whatsapp: string;
   has_desktop: boolean;
   video_completed: boolean;
+  video_25_at: string | null;
+  video_50_at: string | null;
+  video_100_at: string | null;
+  offer_email_sent_at: string | null;
+  reminder1_sent_at: string | null;
+  reminder2_sent_at: string | null;
+  offer_expires_at: string | null;
+  offer_expired: boolean;
   created_at: string;
 };
 
