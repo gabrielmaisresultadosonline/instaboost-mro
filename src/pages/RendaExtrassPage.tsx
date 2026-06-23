@@ -227,7 +227,57 @@ const RendaExtrassPage = () => {
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
   if (!lead) {
-    return <RendaExtrassLeadForm onComplete={(l) => setLead(l)} />;
+    if (showIntro && !showForm) {
+      return (
+        <div className="min-h-screen bg-[#0a0a14] text-white flex items-center justify-center p-6">
+          <div className="max-w-2xl w-full text-center space-y-8">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em]">
+              Renda Extra MRO
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight italic uppercase leading-tight">
+              Faça mais de <span className="text-emerald-400">5k mensal</span> com a MRO em casa utilizando apenas seu notebook, computador de mesa ou mac!
+            </h1>
+            <p className="text-white/60 text-lg md:text-xl font-medium">
+              Aprenda como agora mesmo.
+            </p>
+            <Button
+              onClick={() => { trackEvent('click:renda-extrass:aprenda-como'); setShowForm(true); }}
+              className="px-10 py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-base md:text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] h-auto"
+            >
+              APRENDA COMO <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    return <RendaExtrassLeadForm onComplete={(l) => { setLead(l); setShowLiveNotice(true); }} />;
+  }
+
+  if (showLiveNotice && !unlockedPersisted) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full text-center space-y-8">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-[0.2em]">
+            Acesso Liberado
+          </div>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase leading-tight">
+            Você vai receber em primeira mão nossa <span className="text-emerald-400">LIVE</span> para entender toda a proposta!
+          </h1>
+          <p className="text-white/70 text-base md:text-lg font-medium leading-relaxed">
+            Caso se interesse, no final da live você vai conseguir um <span className="text-amber-400 font-black">desconto especial</span> para aplicar por 30 dias.
+          </p>
+          <p className="text-white/50 text-sm md:text-base font-medium">
+            Esse desconto só aparece ao finalizar toda a live! Então assista para entender.
+          </p>
+          <Button
+            onClick={() => { trackEvent('click:renda-extrass:assistir-agora'); setShowLiveNotice(false); }}
+            className="px-10 py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-base md:text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] h-auto"
+          >
+            <Play className="w-5 h-5 mr-2" fill="currentColor" /> ASSISTIR AGORA
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (mode === 'choice') {
