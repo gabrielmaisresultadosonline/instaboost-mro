@@ -14,12 +14,21 @@ const trackEvent = (page: string) => {
   supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page } }).catch(() => {});
 };
 
+const trackProgress = (leadId: string, milestone: 25 | 50 | 100) => {
+  supabase.functions.invoke('renda-extrass-offer', { body: { action: 'track_progress', lead_id: leadId, milestone } }).catch(() => {});
+};
+
+const fireLeadPixel = () => {
+  try { (window as any).fbq?.('track', 'Lead'); } catch {}
+};
+
 const RendaExtrassPage = () => {
   const navigate = useNavigate();
   const [lead, setLead] = useState<RendaExtrassLead | null>(() => getStoredLead());
   const [showIntro, setShowIntro] = useState<boolean>(() => !getStoredLead());
   const [showForm, setShowForm] = useState(false);
   const [showLiveNotice, setShowLiveNotice] = useState(false);
+  const [accessExpired, setAccessExpired] = useState(false);
   const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
