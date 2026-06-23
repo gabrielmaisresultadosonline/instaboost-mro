@@ -194,6 +194,39 @@ const DescontoAlunosRendaExtraMes = () => {
     fetchSettings();
   }, []);
 
+  // Gate de acesso: somente leads liberados em /renda-extrass/admin
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        let email = params.get('email')?.toLowerCase().trim() || '';
+        if (!email) {
+          try {
+            const raw = localStorage.getItem('renda-extrass:lead');
+            if (raw) email = (JSON.parse(raw)?.email || '').toLowerCase().trim();
+          } catch {}
+        }
+        if (!email) {
+          setAccessStatus('blocked');
+          return;
+        }
+        const { data, error } = await supabase
+          .from('renda_extrass_leads')
+          .select('access_liberated')
+          .eq('email', email)
+          .maybeSingle();
+        if (error || !data || !data.access_liberated) {
+          setAccessStatus('blocked');
+        } else {
+          setAccessStatus('allowed');
+        }
+      } catch {
+        setAccessStatus('blocked');
+      }
+    };
+    checkAccess();
+  }, []);
+
   // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
   useEffect(() => {
     // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
