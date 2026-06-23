@@ -63,6 +63,14 @@ const RendaExtrassPage = () => {
       .then(({ data }) => { if (data) setVideoCfg(data); }).catch(() => {});
   }, []);
 
+  // Check if the 24h offer window already expired for this lead
+  useEffect(() => {
+    if (!lead?.email) return;
+    supabase.functions.invoke('renda-extrass-offer', { body: { action: 'check_access', email: lead.email } })
+      .then(({ data }) => { if (data?.expired) setAccessExpired(true); }).catch(() => {});
+  }, [lead?.email]);
+
+
   useEffect(() => {
     if (mode !== 'prestar') return;
     const video = videoRef.current;
