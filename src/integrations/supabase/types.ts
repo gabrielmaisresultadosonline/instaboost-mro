@@ -4683,6 +4683,7 @@ export type Database = {
       }
       renda_extrass_leads: {
         Row: {
+          access_liberated: boolean
           created_at: string
           email: string
           has_desktop: boolean
@@ -4702,6 +4703,7 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          access_liberated?: boolean
           created_at?: string
           email: string
           has_desktop?: boolean
@@ -4721,6 +4723,7 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          access_liberated?: boolean
           created_at?: string
           email?: string
           has_desktop?: boolean
