@@ -44,7 +44,7 @@ const RendaExtrassAdmin = () => {
     try {
       const { data, error } = await supabase
         .from('renda_extrass_leads')
-        .select('id,name,email,whatsapp,has_desktop,video_completed,created_at')
+        .select('id,name,email,whatsapp,has_desktop,video_completed,video_25_at,video_50_at,video_100_at,offer_email_sent_at,reminder1_sent_at,reminder2_sent_at,offer_expires_at,offer_expired,created_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       setLeads((data || []) as Lead[]);
