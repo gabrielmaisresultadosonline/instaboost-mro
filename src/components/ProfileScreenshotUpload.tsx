@@ -129,6 +129,8 @@ export const ProfileScreenshotUpload = ({
 
             if (analysisData?.success === false) {
               if (analysisData?.error === 'not_instagram_profile' || analysisData?.error === 'username_mismatch') {
+                // CRITICAL: Restore the previously saved screenshot in DB.
+                // Only an admin can permanently remove a saved print.
                 await restoreStoredScreenshot({
                   username,
                   squarecloudUsername,
@@ -140,10 +142,14 @@ export const ProfileScreenshotUpload = ({
                       ? `O print enviado não corresponde ao perfil @${username}. Troque o print e tente novamente.`
                       : 'Este print não parece ser de um perfil do Instagram. Envie um print real do perfil que está utilizando.')
                 );
-                setPreviewUrl(null);
+                // Keep the previously saved print visible; do NOT call onScreenshotRemoved.
+                setPreviewUrl(previousScreenshotUrl);
                 setSelectedFile(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
-                onScreenshotRemoved?.();
+                if (!previousScreenshotUrl) {
+                  // Only when there was no saved print before, tell parent there's nothing.
+                  onScreenshotRemoved?.();
+                }
                 return;
               }
             }

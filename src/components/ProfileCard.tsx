@@ -62,7 +62,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                 ? `O print enviado não corresponde ao perfil @${profile.username}. Envie um print real do perfil @${profile.username}.`
                 : 'Este print não parece ser de um perfil do Instagram.')
           );
-          onScreenshotRemoved?.();
+          // Do NOT auto-remove the saved print. Only an admin can remove it.
           return;
         }
       }
