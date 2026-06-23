@@ -41,6 +41,17 @@ const Atualizar = () => {
           </p>
         </div>
 
+        {/* Video */}
+        <div className="w-full max-w-3xl mb-12 aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+          <iframe
+            className="w-full h-full"
+            src="https://www.youtube.com/embed/eRO6cJM0Ntc?rel=0"
+            title="Como atualizar"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+
         {/* Tutorial Content */}
         <div className="w-full bg-[#111] border border-white/5 rounded-3xl p-8 sm:p-12 space-y-10 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500"></div>
