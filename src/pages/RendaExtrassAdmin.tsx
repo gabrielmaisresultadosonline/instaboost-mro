@@ -261,6 +261,18 @@ const RendaExtrassAdmin = () => {
                         <span className="text-white/30">—</span>
                       )}
                     </td>
+                    <td className="p-3">
+                      <Button
+                        size="sm"
+                        onClick={() => toggleLiberated(l.id, l.access_liberated)}
+                        className={l.access_liberated
+                          ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 h-7 px-2 text-xs'
+                          : 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 h-7 px-2 text-xs'
+                        }
+                      >
+                        {l.access_liberated ? (<><Unlock className="w-3 h-3 mr-1" />Liberado</>) : (<><Lock className="w-3 h-3 mr-1" />Bloqueado</>)}
+                      </Button>
+                    </td>
                     <td className="p-3 text-white/50 text-xs">
                       {new Date(l.created_at).toLocaleString('pt-BR')}
                     </td>
@@ -274,7 +286,7 @@ const RendaExtrassAdmin = () => {
                 })}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-white/40">
+                    <td colSpan={8} className="p-8 text-center text-white/40">
                       {loading ? 'Carregando...' : 'Nenhum cadastro encontrado'}
                     </td>
                   </tr>
