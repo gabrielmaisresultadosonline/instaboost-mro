@@ -84,6 +84,14 @@ const RendaExtrassAdmin = () => {
     setLeads((l) => l.filter((x) => x.id !== id));
   };
 
+  const toggleLiberated = async (id: string, current: boolean) => {
+    const next = !current;
+    const { error } = await supabase.from('renda_extrass_leads').update({ access_liberated: next }).eq('id', id);
+    if (error) return toast.error('Erro ao atualizar');
+    toast.success(next ? 'Acesso liberado' : 'Acesso bloqueado');
+    setLeads((l) => l.map((x) => (x.id === id ? { ...x, access_liberated: next } : x)));
+  };
+
   const exportCsv = () => {
     const rows = [
       ['Nome', 'Email', 'WhatsApp', 'Computador', 'Vídeo Concluído', 'Cadastrado em'],
