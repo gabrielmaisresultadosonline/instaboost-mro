@@ -141,6 +141,8 @@ const RendaExtrassPage = () => {
       if (!progressMarksRef.current.p100) {
         progressMarksRef.current.p100 = true;
         trackEvent('video:renda-extrass:100');
+        fireLeadPixel();
+        if (lead?.id) trackProgress(lead.id, 100);
       }
       try { localStorage.setItem('renda-extrass:video-unlocked', '1'); } catch {}
       setUnlockedPersisted(true);
