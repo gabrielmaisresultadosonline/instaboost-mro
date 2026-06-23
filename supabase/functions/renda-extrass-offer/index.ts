@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
         patch.offer_email_sent_at = new Date().toISOString();
         patch.offer_expires_at = expires;
         patch.video_completed = true;
-        await sendMail(lead.email, "🎯 Você assistiu tudo - oferta especial R$97 (24h)", tplOffer(lead.name), "offer_24h");
+        patch.access_liberated = true;
+        await sendMail(lead.email, "🎯 Você assistiu tudo - oferta especial R$97 (24h)", tplOffer(lead.name, lead.email), "offer_24h");
       }
       if (Object.keys(patch).length) await supabase.from("renda_extrass_leads").update(patch).eq("id", lead_id);
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
