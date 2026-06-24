@@ -93,6 +93,10 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
               const { syncSessionToPersistent } = await import('@/lib/persistentStorage');
               await syncSessionToPersistent(username.trim());
             }
+
+            // Reconcile registeredIGs (the "Suas Contas" list) + database
+            const { reconcileRegisteredIGsWithSquare } = await import('@/lib/userStorage');
+            await reconcileRegisteredIGsWithSquare(squareResult.instagrams);
           }
         } catch (reconcileError) {
           console.error('[LoginPage] Error reconciling with SquareCloud:', reconcileError);
