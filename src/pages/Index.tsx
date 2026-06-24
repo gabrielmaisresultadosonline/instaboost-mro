@@ -141,8 +141,33 @@ const Index = () => {
           console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
           const user = getCurrentUser();
           const squareResult = await verifyRegisteredIGs(user?.username || '');
-          if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
-            handleSyncComplete(squareResult.instagrams);
+          if (squareResult.success && squareResult.instagrams) {
+            // RECONCILE: remove local profiles that no longer exist in SquareCloud
+            const squareSet = new Set(squareResult.instagrams.map(ig => ig.toLowerCase()));
+            const currentSession = getSession();
+            const before = currentSession.profiles.length;
+            const filtered = currentSession.profiles.filter(p =>
+              squareSet.has(p.profile.username.toLowerCase())
+            );
+            if (filtered.length !== before) {
+              console.log(`🔄 [Index] Removendo ${before - filtered.length} perfil(is) não encontrado(s) no SquareCloud`);
+              currentSession.profiles = filtered;
+              if (currentSession.activeProfileId && !filtered.find(p => p.id === currentSession.activeProfileId)) {
+                currentSession.activeProfileId = filtered[0]?.id || null;
+              }
+              saveSession(currentSession);
+              setSession(currentSession);
+              setHasRegisteredProfiles(filtered.length > 0);
+              try {
+                await syncSessionToPersistent(user?.username || '');
+              } catch (e) {
+                console.error('[Index] Error syncing reconciled session:', e);
+              }
+            }
+
+            if (squareResult.instagrams.length > 0) {
+              handleSyncComplete(squareResult.instagrams);
+            }
           }
         }
 
