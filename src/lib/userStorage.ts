@@ -593,6 +593,44 @@ export const syncIGsFromSquare = async (instagrams: string[], email: string): Pr
   }
 };
 
+// Reconcile local registeredIGs against the authoritative SquareCloud list.
+// Removes any local IG that is no longer present in SquareCloud and deletes
+// the corresponding row in the squarecloud_user_profiles database.
+export const reconcileRegisteredIGsWithSquare = async (
+  squareInstagrams: string[]
+): Promise<number> => {
+  const session = getUserSession();
+  if (!session.user) return 0;
+
+  const squareSet = new Set(squareInstagrams.map(ig => ig.toLowerCase()));
+  const before = session.user.registeredIGs || [];
+  const kept = before.filter(ig => squareSet.has(ig.username.toLowerCase()));
+  const removed = before.filter(ig => !squareSet.has(ig.username.toLowerCase()));
+
+  if (removed.length === 0) return 0;
+
+  session.user.registeredIGs = kept;
+  saveUserSession(session);
+
+  // Best-effort delete from database so it doesn't reappear on next load
+  for (const ig of removed) {
+    try {
+      await supabase.functions.invoke('squarecloud-profile-storage', {
+        body: {
+          action: 'delete',
+          squarecloud_username: session.user.username,
+          instagram_username: ig.username,
+        },
+      });
+    } catch (e) {
+      console.error('[userStorage] Error deleting stale profile from DB:', ig.username, e);
+    }
+  }
+
+  console.log(`[userStorage] 🧹 Reconciled registeredIGs — removed ${removed.length} stale: ${removed.map(r => r.username).join(', ')}`);
+  return removed.length;
+};
+
 export const isAuthenticated = (): boolean => {
   const session = getUserSession();
   return session.isAuthenticated && session.user !== null;
