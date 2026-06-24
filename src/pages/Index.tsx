@@ -158,12 +158,17 @@ const Index = () => {
               }
               saveSession(currentSession);
               setSession(currentSession);
-              setHasRegisteredProfiles(filtered.length > 0);
               try {
                 await syncSessionToPersistent(user?.username || '');
               } catch (e) {
                 console.error('[Index] Error syncing reconciled session:', e);
               }
+            }
+
+            // Also reconcile registeredIGs (the "Suas Contas" list) + database
+            const removedCount = await reconcileRegisteredIGsWithSquare(squareResult.instagrams);
+            if (removedCount > 0) {
+              setHasRegisteredProfiles(getRegisteredIGs().length > 0);
             }
 
             if (squareResult.instagrams.length > 0) {
