@@ -32,7 +32,8 @@ import {
   addRegisteredIG,
   getCurrentUser,
   logoutUser,
-  saveUserToCloud
+  saveUserToCloud,
+  reconcileRegisteredIGsWithSquare
 } from '@/lib/userStorage';
 import { verifyRegisteredIGs } from '@/lib/squareApi';
 // API imports removed - profile data now comes from screenshot analysis
