@@ -52,6 +52,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
+import PromoToolVideoSection from "@/components/PromoToolVideoSection";
 
 const RendaExtraDescontoPromoPage = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
