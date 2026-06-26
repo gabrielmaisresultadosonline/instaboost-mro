@@ -632,114 +632,62 @@ const RendaExtraLead = () => {
       {/* Money Particles Background */}
       <MoneyParticles />
 
-      {/* Hero Section - Bold Editorial */}
+      {/* Hero Section - Clean Editorial */}
       <section className="relative min-h-[100vh] flex flex-col">
-        {/* Layered backgrounds: grid + radial + diagonal stripes */}
+        {/* Subtle background — single soft yellow glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* subtle grid */}
-          <div
-            className="absolute inset-0 opacity-[0.08]"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-              maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
-            }}
-          />
-          {/* radial glow yellow */}
-          <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[700px] bg-yellow-400/10 rounded-full blur-[120px]" />
-          {/* red glow bottom */}
-          <div className="absolute bottom-[-10%] left-1/3 w-[600px] h-[600px] bg-red-600/15 rounded-full blur-[120px]" />
-          {/* diagonal accent stripe */}
-          <div className="absolute top-0 right-0 w-[60%] h-full bg-gradient-to-bl from-yellow-400/[0.04] via-transparent to-transparent" />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-yellow-400/[0.06] rounded-full blur-[140px]" />
         </div>
 
-        {/* Top bar: logo + ticker */}
-        <div className="relative z-10 pt-6 px-4 flex flex-col items-center gap-3">
+        {/* Top — logo */}
+        <div className="relative z-10 pt-8 px-4 flex justify-center">
           <img src={logoMro} alt="MRO" className="w-20 md:w-24 opacity-90" />
-          <div className="flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.3em] text-gray-500">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            <span>Mais Resultados Online</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
-            <span className="hidden sm:inline">Renda Extra · 2026</span>
-          </div>
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12 sm:py-16">
-          {/* Status row */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-7">
-            <span className="inline-flex items-center gap-2 bg-red-600 text-white font-black text-[10px] sm:text-xs px-4 py-2 rounded-sm shadow-[0_0_30px_rgba(239,68,68,0.5)] uppercase tracking-[0.2em] border-l-4 border-yellow-400">
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-              100% Grátis
-            </span>
-            <span className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-yellow-400 font-bold text-[10px] sm:text-xs px-4 py-2 rounded-sm uppercase tracking-[0.2em]">
-              Vagas limitadas
-            </span>
-          </div>
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-16 sm:py-20">
+          {/* Single status badge */}
+          <span className="inline-flex items-center gap-2 bg-red-600 text-white font-bold text-[11px] sm:text-xs px-4 py-1.5 rounded-full uppercase tracking-[0.2em] mb-10">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            100% Grátis
+          </span>
 
-          {/* Title — brutalist editorial */}
-          <div className="text-center relative z-10 max-w-5xl mx-auto">
-            <h1 className="flex flex-col items-center leading-[0.88] uppercase font-black gap-1 sm:gap-2">
-              <span className="text-gray-400 text-xl sm:text-2xl md:text-3xl tracking-[0.25em] font-bold">
+          {/* Title — clean editorial */}
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="flex flex-col items-center leading-[0.9] font-black gap-3 sm:gap-4">
+              <span className="text-gray-500 text-sm sm:text-base md:text-lg tracking-[0.35em] uppercase font-semibold">
                 Fature mais de
               </span>
               <span
-                className="text-[3.5rem] sm:text-[6rem] md:text-[8.5rem] font-black tracking-tighter leading-none"
+                className="text-[4rem] sm:text-[6.5rem] md:text-[9rem] tracking-tighter leading-none"
                 style={{
                   background:
-                    "linear-gradient(180deg, #fde047 0%, #facc15 45%, #ca8a04 100%)",
+                    "linear-gradient(180deg, #fde047 0%, #facc15 50%, #b45309 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
-                  filter: "drop-shadow(0 6px 30px rgba(250,204,21,0.25))",
                 }}
               >
-                5 MIL<span className="text-white">/</span>MÊS
+                5 MIL
               </span>
-              <span className="flex items-center gap-3 mt-2">
-                <span className="h-[2px] w-8 sm:w-14 bg-red-500" />
-                <span className="text-white text-lg sm:text-2xl md:text-3xl tracking-[0.3em] font-bold">
-                  COM A MRO
-                </span>
-                <span className="h-[2px] w-8 sm:w-14 bg-red-500" />
+              <span className="text-white text-2xl sm:text-4xl md:text-5xl tracking-tight">
+                por mês com a <span className="italic text-yellow-400">MRO</span>
               </span>
             </h1>
           </div>
 
           {/* Description */}
-          <div className="text-center mt-8 max-w-xl mx-auto px-2">
-            <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
-              Trabalhe no <span className="text-yellow-400 font-semibold">seu horário</span>, em qualquer lugar.
-              <br className="hidden sm:block" />
-              {' '}Construa sua <span className="text-white font-semibold underline decoration-red-500 decoration-2 underline-offset-4">liberdade financeira</span>.
-            </p>
-          </div>
+          <p className="text-center mt-8 max-w-lg mx-auto text-sm sm:text-base text-gray-400 leading-relaxed px-2">
+            Trabalhe no seu horário, em qualquer lugar.
+            Construa sua liberdade financeira.
+          </p>
 
-          {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-8">
-            <div className="flex items-center gap-2 bg-[#141414] px-4 py-2.5 rounded-sm border border-white/10 hover:border-yellow-400/60 transition-colors">
-              <Clock className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-200 text-xs sm:text-sm font-medium uppercase tracking-wider">Seu Horário</span>
-            </div>
-            <div className="flex items-center gap-2 bg-[#141414] px-4 py-2.5 rounded-sm border border-white/10 hover:border-red-500/60 transition-colors">
-              <MapPin className="w-4 h-4 text-red-500" />
-              <span className="text-gray-200 text-xs sm:text-sm font-medium uppercase tracking-wider">Qualquer Lugar</span>
-            </div>
-            <div className="flex items-center gap-2 bg-[#141414] px-4 py-2.5 rounded-sm border border-white/10 hover:border-white/60 transition-colors">
-              <DollarSign className="w-4 h-4 text-white" />
-              <span className="text-gray-200 text-xs sm:text-sm font-medium uppercase tracking-wider">Renda Extra</span>
-            </div>
-          </div>
-
-          {/* CTA Button — Black/Yellow/Red brutalist */}
+          {/* CTA Button — minimal yellow/red */}
           <div className="mt-12 relative group">
-            {/* yellow shadow stack */}
-            <div className="absolute inset-0 bg-yellow-400 rounded-sm translate-x-1.5 translate-y-1.5 transition-transform group-hover:translate-x-2.5 group-hover:translate-y-2.5" />
-            <div className="absolute inset-0 bg-red-600 rounded-sm translate-x-3 translate-y-3 transition-transform group-hover:translate-x-5 group-hover:translate-y-5" />
+            <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
             <Button
               onClick={() => setShowForm(true)}
-              className="relative bg-white text-black hover:bg-white font-black text-base sm:text-lg md:text-xl px-10 sm:px-14 py-7 sm:py-8 rounded-sm border-2 border-black uppercase tracking-[0.15em] transition-transform duration-200 group-hover:-translate-x-1 group-hover:-translate-y-1"
+              className="relative bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 sm:px-14 py-6 sm:py-7 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
             >
               Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
@@ -747,34 +695,14 @@ const RendaExtraLead = () => {
           </div>
 
           {/* Microcopy under CTA */}
-          <div className="mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] text-gray-500">
+          <div className="mt-6 flex items-center gap-2 text-[10px] sm:text-xs uppercase tracking-[0.25em] text-gray-600">
             <CheckCircle2 className="w-3.5 h-3.5 text-yellow-400" />
             <span>Sem cartão · Sem compromisso</span>
           </div>
         </div>
-
-        {/* Bottom marquee strip */}
-        <div className="relative z-10 border-y border-white/10 bg-yellow-400 overflow-hidden">
-          <div className="flex animate-[slide_25s_linear_infinite] whitespace-nowrap py-2.5">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-6 px-6 text-black font-black text-xs sm:text-sm uppercase tracking-[0.25em]">
-                <span>★ Renda Extra MRO</span>
-                <span>·</span>
-                <span>Aulas Grátis</span>
-                <span>·</span>
-                <span>Resultados Reais</span>
-                <span>·</span>
-                <span>Trabalhe de Casa</span>
-                <span>·</span>
-                <span>★ 5 Mil/Mês</span>
-                <span>·</span>
-                <span>Vagas Limitadas</span>
-                <span>·</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
+
+
 
 
 
