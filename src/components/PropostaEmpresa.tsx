@@ -594,11 +594,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       drawGradientRect(0, 0, pageWidth, 90);
       drawPDFDecorativeElements(pageWidth, pageHeight);
-      if (showDecorativeLines) {
-        doc.setDrawColor(255, 255, 255);
-        doc.setLineWidth(0.1);
-        for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
-      }
+      // (sem linhas diagonais decorativas no header)
 
 
       let yPos = 110;
