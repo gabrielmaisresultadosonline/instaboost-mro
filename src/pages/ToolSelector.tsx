@@ -45,18 +45,6 @@ const ToolSelector = () => {
       salesPath: '/instagrammnew'
     },
     {
-      id: 'creatordev',
-      name: 'CreatorDev',
-      subtitle: 'DESENVOLVIMENTO SOB MEDIDA',
-      description: 'Desenvolvemos o sistema que sua empresa precisa.',
-      icon: Code2,
-      color: 'from-blue-500 to-indigo-600',
-      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
-      borderColor: 'border-blue-500/30',
-      badge: 'FULL STACK',
-      salesPath: '/creatordev'
-    },
-    {
       id: 'mktcompleto',
       name: 'Marketing Completo',
       subtitle: 'GESTÃO + ADS + IA',
@@ -67,6 +55,18 @@ const ToolSelector = () => {
       borderColor: 'border-yellow-500/30',
       badge: 'PREMIUM',
       salesPath: '/mktcompleto'
+    },
+    {
+      id: 'creatordev',
+      name: 'CreatorDev',
+      subtitle: 'DESENVOLVIMENTO SOB MEDIDA',
+      description: 'Desenvolvemos o sistema que sua empresa precisa.',
+      icon: Code2,
+      color: 'from-blue-500 to-indigo-600',
+      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
+      borderColor: 'border-blue-500/30',
+      badge: 'FULL STACK',
+      salesPath: '/creatordev'
     }
   ];
 
