@@ -656,13 +656,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const title1Lines = doc.splitTextToSize(title1Text, contentWidth - 20);
       doc.text(title1Lines, margin, yPos);
       
-      if (showDecorativeLines) {
-        // Icon for Page 2
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.5);
-        doc.rect(margin + 5, yPos + 2, 10, 10);
-        doc.line(margin + 5, yPos + 12, margin + 15, yPos + 2); // Trend up line in a box
-      }
+      // (sem ícone decorativo na página 2)
+
 
       yPos += textHeight(title1Lines, lineHeightMm(1.8, 1.15)) + 5;
       
