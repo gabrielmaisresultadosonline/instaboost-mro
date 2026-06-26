@@ -55,6 +55,18 @@ const ToolSelector = () => {
       borderColor: 'border-blue-500/30',
       badge: 'FULL STACK',
       salesPath: '/creatordev'
+    },
+    {
+      id: 'mktcompleto',
+      name: 'Marketing Completo',
+      subtitle: 'GESTÃO + ADS + IA',
+      description: 'Marketing digital completo com Meta Ads e Inteligência Artificial.',
+      icon: Megaphone,
+      color: 'from-yellow-400 to-amber-600',
+      hoverColor: 'hover:from-yellow-500 hover:to-amber-700',
+      borderColor: 'border-yellow-500/30',
+      badge: 'PREMIUM',
+      salesPath: '/mktcompleto'
     }
   ];
 
