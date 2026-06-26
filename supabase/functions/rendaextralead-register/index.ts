@@ -90,14 +90,15 @@ serve(async (req) => {
     // Get settings for WhatsApp direct link
     const { data: settings } = await supabase
       .from("renda_extra_lead_settings")
-      .select("whatsapp_number, whatsapp_message, launch_date, launch_date_enabled")
+      .select("whatsapp_number, whatsapp_message, whatsapp_group_link, launch_date, launch_date_enabled")
       .single();
 
     // Permanent short link — always redirects to the current WhatsApp number/message saved in /rendaextralead/admin.
-    // This way, if the number/message changes, emails already sent still take the lead to the most current number.
     const SHORT_WHATSAPP_LINK = "https://maisresultadosonline.com.br/r/rxl-wa";
+    const groupLink = (settings?.whatsapp_group_link || "").trim();
     const launchDateEnabled = !!settings?.launch_date_enabled;
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
+
 
     // Send confirmation email via SMTP
     const emailHtml = `<!DOCTYPE html>
