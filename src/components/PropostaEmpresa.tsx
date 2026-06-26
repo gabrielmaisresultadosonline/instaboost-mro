@@ -835,17 +835,34 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           yPos += bLines.length * 6 + 12;
         }
 
-        doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
-        doc.rect(margin, yPos, contentWidth, 30, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(data.fontSizeBase * 0.9);
-        doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.text("POR QUE ESSA ETAPA É CRUCIAL?", margin + 5, yPos + 12);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(data.fontSizeBase * 0.8);
-        doc.text("Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.", margin + 5, yPos + 20);
-        yPos += 45;
+        {
+          const tintR = mixWithWhite(rgb.r, 0.08);
+          const tintG = mixWithWhite(rgb.g, 0.08);
+          const tintB = mixWithWhite(rgb.b, 0.08);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 0.9);
+          const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.8);
+          const calloutBodyLines = doc.splitTextToSize(
+            "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.",
+            contentWidth - 10
+          );
+          const boxH = 14 + calloutBodyLines.length * 5 + 6;
+          doc.setFillColor(tintR, tintG, tintB);
+          doc.rect(margin, yPos, contentWidth, boxH, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 0.9);
+          doc.setTextColor(rgb.r, rgb.g, rgb.b);
+          doc.text(calloutTitle, margin + 5, yPos + 9);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.8);
+          doc.setTextColor(60, 60, 60);
+          doc.text(calloutBodyLines, margin + 5, yPos + 16);
+          yPos += boxH + 8;
+        }
       }
+
 
       doc.addPage();
       drawPDFDecorativeElements(pageWidth, pageHeight);
