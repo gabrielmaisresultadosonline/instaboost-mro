@@ -544,7 +544,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
         // Background Grid - subtle
         if (data.showGrid) {
-          doc.setDrawColor(r, g, b, data.gridOpacity * 3); // Scale for PDF
+          const gr = mixWithWhite(rgb.r, Math.min(0.15, data.gridOpacity));
+          const gg = mixWithWhite(rgb.g, Math.min(0.15, data.gridOpacity));
+          const gb = mixWithWhite(rgb.b, Math.min(0.15, data.gridOpacity));
+          doc.setDrawColor(gr, gg, gb);
           for (let i = 0; i < pageWidth; i += 20) {
             doc.line(i, 0, i, pageHeight);
           }
@@ -552,6 +555,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             doc.line(0, i, pageWidth, i);
           }
         }
+
 
         if (data.showGraphs) {
           // Top Right: Result Graph (Lines) - Fixed position to avoid headers
@@ -620,9 +624,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       drawGradientRect(0, 0, pageWidth, 90);
       drawPDFDecorativeElements(pageWidth, pageHeight);
-      doc.setDrawColor(255, 255, 255, 0.1);
+      if (data.showGrid) {
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.1);
+        for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
+      }
 
-      for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
 
       let yPos = 110;
       if (data.logoUrl) {
@@ -657,14 +664,17 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       
       // Floating Vector Icon (Result Chart) near title
-      const iconX = pageWidth - 35;
-      const iconY = yPos - 25; // Subi o ícone para não sobrepor o texto da empresa
-      doc.setDrawColor(rgb.r, rgb.g, rgb.b, 0.4);
-      doc.setLineWidth(0.6);
-      doc.line(iconX, iconY, iconX + 4, iconY - 4);
-      doc.line(iconX + 4, iconY - 4, iconX + 8, iconY - 1);
-      doc.line(iconX + 8, iconY - 1, iconX + 12, iconY - 8);
-      doc.circle(iconX + 12, iconY - 8, 0.8, 'F');
+      if (data.showGraphs) {
+        const iconX = pageWidth - 35;
+        const iconY = yPos - 25;
+        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
+        doc.setLineWidth(0.6);
+        doc.line(iconX, iconY, iconX + 4, iconY - 4);
+        doc.line(iconX + 4, iconY - 4, iconX + 8, iconY - 1);
+        doc.line(iconX + 8, iconY - 1, iconX + 12, iconY - 8);
+        doc.circle(iconX + 12, iconY - 8, 0.8, 'F');
+      }
+
 
       doc.setFontSize(data.fontSizeBase * 1.5);
       doc.setTextColor(30, 30, 30);
@@ -765,15 +775,30 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         yPos += dLines.length * 6 + 12;
       });
 
-      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
-      doc.rect(margin, yPos, contentWidth, 30, 'F');
-      doc.setFont('helvetica', 'bolditalic');
-      doc.setFontSize(data.fontSizeBase * 0.9);
-      doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text("ESTRUTURA FOCO EM PÚBLICO 3X MAIS ASSERTIVO E NICHADO.", margin + 5, yPos + 12);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(data.fontSizeBase * 0.8);
-      doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
+      {
+        const tintR = mixWithWhite(rgb.r, 0.08);
+        const tintG = mixWithWhite(rgb.g, 0.08);
+        const tintB = mixWithWhite(rgb.b, 0.08);
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        const t1 = doc.splitTextToSize("ESTRUTURA FOCO EM PÚBLICO 3X MAIS ASSERTIVO E NICHADO.", contentWidth - 10);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        const t2 = doc.splitTextToSize("Resultados consistentes respeitando as políticas do Instagram.", contentWidth - 10);
+        const boxH = 8 + t1.length * 5 + t2.length * 5 + 6;
+        doc.setFillColor(tintR, tintG, tintB);
+        doc.rect(margin, yPos, contentWidth, boxH, 'F');
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setTextColor(rgb.r, rgb.g, rgb.b);
+        doc.text(t1, margin + 5, yPos + 8);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        doc.setTextColor(60, 60, 60);
+        doc.text(t2, margin + 5, yPos + 8 + t1.length * 5 + 3);
+        yPos += boxH + 5;
+      }
+
 
       if (data.incluirConfiguracao || data.incluirCriativos) {
         doc.addPage();
@@ -825,17 +850,34 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           yPos += bLines.length * 6 + 12;
         }
 
-        doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
-        doc.rect(margin, yPos, contentWidth, 30, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(data.fontSizeBase * 0.9);
-        doc.setTextColor(rgb.r, rgb.g, rgb.b);
-        doc.text("POR QUE ESSA ETAPA É CRUCIAL?", margin + 5, yPos + 12);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(data.fontSizeBase * 0.8);
-        doc.text("Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.", margin + 5, yPos + 20);
-        yPos += 45;
+        {
+          const tintR = mixWithWhite(rgb.r, 0.08);
+          const tintG = mixWithWhite(rgb.g, 0.08);
+          const tintB = mixWithWhite(rgb.b, 0.08);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 0.9);
+          const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.8);
+          const calloutBodyLines = doc.splitTextToSize(
+            "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.",
+            contentWidth - 10
+          );
+          const boxH = 14 + calloutBodyLines.length * 5 + 6;
+          doc.setFillColor(tintR, tintG, tintB);
+          doc.rect(margin, yPos, contentWidth, boxH, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(data.fontSizeBase * 0.9);
+          doc.setTextColor(rgb.r, rgb.g, rgb.b);
+          doc.text(calloutTitle, margin + 5, yPos + 9);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(data.fontSizeBase * 0.8);
+          doc.setTextColor(60, 60, 60);
+          doc.text(calloutBodyLines, margin + 5, yPos + 16);
+          yPos += boxH + 8;
+        }
       }
+
 
       doc.addPage();
       drawPDFDecorativeElements(pageWidth, pageHeight);
