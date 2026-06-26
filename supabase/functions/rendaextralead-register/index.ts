@@ -133,21 +133,13 @@ ${launchDateEnabled ? `
 </div>` : ''}
 
 <div style="text-align:center;margin:30px 0;">
-<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#000;">Fale com a gente agora no WhatsApp para liberarmos sua aula:</p>
-<a href="${SHORT_WHATSAPP_LINK}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
-APRENDA GRATIS AGORA
-</a>
-<p style="margin:15px 0 0 0;font-size:14px;color:#666;">Entre em contato conosco e vamos liberar a aula agora para voce!</p>
-</div>
-
-${groupLink ? `
-<div style="text-align:center;margin:30px 0;padding:20px;background:#f0fdf4;border-radius:10px;border:1px solid #25D366;">
-<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#000;">Participe tambem do nosso grupo exclusivo no WhatsApp:</p>
-<a href="${groupLink}" style="display:inline-block;background:#128C7E;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:30px;font-size:16px;font-weight:bold;font-family:Arial,sans-serif;">
+<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#000;">Participe agora do nosso grupo exclusivo no WhatsApp e receba sua aula:</p>
+<a href="${groupLink || SHORT_WHATSAPP_LINK}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
 PARTICIPE DO GRUPO
 </a>
-<p style="margin:12px 0 0 0;font-size:13px;color:#666;">Receba conteudos, novidades e tire suas duvidas direto no grupo.</p>
-</div>` : ''}
+<p style="margin:15px 0 0 0;font-size:14px;color:#666;">Clique no botao acima para entrar no grupo e liberar sua aula.</p>
+</div>
+
 
 
 ${launchDateEnabled ? `

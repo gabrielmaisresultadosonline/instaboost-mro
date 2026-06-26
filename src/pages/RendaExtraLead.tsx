@@ -236,7 +236,7 @@ const RendaExtraLead = () => {
   };
 
   if (submitted) {
-    const whatsappDirectLink = groupLink || "https://maisresultadosonline.com.br/r/rxl-wa";
+    const groupHref = whatsappGroupInvite || groupLink || "https://maisresultadosonline.com.br/r/rxl-wa";
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
@@ -246,39 +246,26 @@ const RendaExtraLead = () => {
               Cadastro Realizado!
             </h1>
             <p className="text-gray-400 text-lg mb-8">
-              Entre em contato conosco no WhatsApp agora e vamos liberar a sua aula!
+              Participe agora do nosso grupo exclusivo no WhatsApp e receba sua aula!
             </p>
-            <div className="relative group inline-block">
+            <div className="relative group inline-block w-full">
               <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
               <a
-                href={whatsappDirectLink}
+                href={groupHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+                className="relative inline-flex items-center justify-center gap-3 w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
               >
-                Aprenda Grátis Agora
+                Participe do Grupo
                 <ArrowRight className="w-5 h-5" />
               </a>
             </div>
-            {whatsappGroupInvite && (
-              <div className="mt-6">
-                <p className="text-gray-300 text-sm mb-3">E participe também do nosso grupo exclusivo:</p>
-                <a
-                  href={whatsappGroupInvite}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 bg-[#128C7E] hover:bg-[#0e6f64] text-white font-bold text-base px-7 py-3 rounded-2xl transition-colors shadow-lg"
-                >
-                  Participe do Grupo do WhatsApp
-                  <ArrowRight className="w-5 h-5" />
-                </a>
-              </div>
-            )}
           </div>
         </div>
       </div>
     );
   }
+
 
   const renderQuizStep = () => {
     const actualStep = getActualStep(currentStep);
