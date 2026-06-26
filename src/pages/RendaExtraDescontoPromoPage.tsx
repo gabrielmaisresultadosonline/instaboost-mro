@@ -59,6 +59,46 @@ const RendaExtraDescontoPromoPage = () => {
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   const [isDiscountActive, setIsDiscountActive] = useState(true);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
+
+  // Access gate: requires registered email with >=50% video watched on /rendaextra/desconto
+  const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied'>('checking');
+  const [accessName, setAccessName] = useState<string>('');
+  const [accessDenyReason, setAccessDenyReason] = useState<string>('Voce precisa assistir pelo menos 50% do video em /rendaextra/desconto para liberar essa pagina.');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const emailFromUrl = (params.get('email') || '').trim().toLowerCase();
+    const emailFromStorage = (() => { try { return localStorage.getItem('rendaextra-desconto:email') || ''; } catch { return ''; } })();
+    const email = emailFromUrl || emailFromStorage;
+    if (!email) {
+      setAccessDenyReason('Acesso restrito. Verifique seu email em /rendaextra/desconto para liberar esta pagina.');
+      setAccessState('denied');
+      return;
+    }
+    supabase.functions.invoke('rendaextra-desconto-access', {
+      body: { action: 'check_access', email },
+    }).then(({ data, error }) => {
+      if (error || !data?.success) {
+        setAccessDenyReason('Email nao encontrado. Cadastre-se em /rendaextra primeiro.');
+        setAccessState('denied');
+        return;
+      }
+      if (!data.allowed) {
+        setAccessDenyReason('Voce ainda nao assistiu 50% do video. Acesse /rendaextra/desconto para liberar.');
+        setAccessState('denied');
+        return;
+      }
+      setAccessName(data.name || '');
+      try {
+        localStorage.setItem('rendaextra-desconto:email', data.email);
+        if (data.name) localStorage.setItem('rendaextra-desconto:name', data.name);
+      } catch {}
+      setAccessState('allowed');
+    }).catch(() => {
+      setAccessDenyReason('Erro ao verificar acesso. Tente novamente.');
+      setAccessState('denied');
+    });
+  }, []);
   
   // Popup de desconto encerrado - agora controlado pelo banco de dados
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
