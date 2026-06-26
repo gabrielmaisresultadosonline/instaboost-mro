@@ -564,72 +564,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         return y + textHeight(safeLines, lineHeight);
       };
 
-      const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
-        // Modo limpo absoluto: se o usuário desligar as linhas, o PDF não
-        // desenha grade, gráficos, barras, ícones, silhuetas ou formas de fundo.
-        if (!showDecorativeLines) return;
-
-        const opacity = 0.2; 
-        const r = mixWithWhite(rgb.r, opacity);
-        const g = mixWithWhite(rgb.g, opacity);
-        const b = mixWithWhite(rgb.b, opacity);
-        
-        doc.setDrawColor(r, g, b);
-        doc.setFillColor(r, g, b);
-        doc.setLineWidth(0.1);
-
-        // Background Grid - subtle
-        const gr = mixWithWhite(rgb.r, Math.min(0.15, data.gridOpacity));
-        const gg = mixWithWhite(rgb.g, Math.min(0.15, data.gridOpacity));
-        const gb = mixWithWhite(rgb.b, Math.min(0.15, data.gridOpacity));
-        doc.setDrawColor(gr, gg, gb);
-        for (let i = 0; i < pageWidth; i += 20) {
-          doc.line(i, 0, i, pageHeight);
-        }
-        for (let i = 0; i < pageHeight; i += 20) {
-          doc.line(0, i, pageWidth, i);
-        }
-
-
-        if (data.showGraphs) {
-          // Top Right: Result Graph (Lines) - Fixed position to avoid headers
-          doc.setLineWidth(0.4);
-          const gx = pageWidth - 50;
-          const gy = 55; // Lowered to avoid header gradient
-          doc.line(gx, gy, gx + 8, gy - 6);
-          doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
-          doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
-          
-          doc.circle(gx, gy, 0.8, 'F');
-          doc.circle(gx + 8, gy - 6, 0.8, 'F');
-          doc.circle(gx + 16, gy - 2, 0.8, 'F');
-          doc.circle(gx + 28, gy - 12, 0.8, 'F');
-
-          // Bottom Left: Growth Bar Chart - More side-aligned
-          const barX = 10;
-          const barY = pageHeight - 45;
-          const bars = [8, 12, 10, 20, 15, 25];
-          bars.forEach((h, i) => {
-            doc.rect(barX + (i * 6), barY, 4, -h, 'F');
-          });
-
-          // People Icons (Silhouettes) - Strategic placement
-          for (let i = 0; i < 3; i++) {
-            const px = pageWidth - 35 - (i * 12);
-            const py = pageHeight - 65;
-            // Head
-            doc.circle(px, py, 1.5, 'F');
-            // Body
-            doc.setLineWidth(0.8);
-            doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
-            doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
-            doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
-            doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
-          }
-
-          // Small Instagram Icon Decoration (Bottom Right corner area)
-          drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
-        }
+      const drawPDFDecorativeElements = (_pageWidth: number, _pageHeight: number) => {
+        // PDF limpo: nenhuma linha decorativa, grade, gráfico, silhueta ou ícone de fundo.
+        return;
       };
 
 
@@ -657,11 +594,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       drawGradientRect(0, 0, pageWidth, 90);
       drawPDFDecorativeElements(pageWidth, pageHeight);
-      if (showDecorativeLines) {
-        doc.setDrawColor(255, 255, 255);
-        doc.setLineWidth(0.1);
-        for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
-      }
+      // (sem linhas diagonais decorativas no header)
 
 
       let yPos = 110;
@@ -685,30 +618,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
 
-      if (showDecorativeLines) {
-        // Page 1 Decorative Graphics around Title
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.5);
-        doc.line(pageWidth / 2 - 30, yPos - 10, pageWidth / 2 + 30, yPos - 10);
-      }
-      
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, yPos, { align: 'center' });
       yPos += 15;
-      
-      // Floating Vector Icon (Result Chart) near title
-      if (showDecorativeLines && data.showGraphs) {
-        const iconX = pageWidth - 35;
-        const iconY = yPos - 25;
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.6);
-        doc.line(iconX, iconY, iconX + 4, iconY - 4);
-        doc.line(iconX + 4, iconY - 4, iconX + 8, iconY - 1);
-        doc.line(iconX + 8, iconY - 1, iconX + 12, iconY - 8);
-        doc.circle(iconX + 12, iconY - 8, 0.8, 'F');
-      }
+
 
 
       doc.setFontSize(data.fontSizeBase * 1.5);
@@ -741,13 +656,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const title1Lines = doc.splitTextToSize(title1Text, contentWidth - 20);
       doc.text(title1Lines, margin, yPos);
       
-      if (showDecorativeLines) {
-        // Icon for Page 2
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.5);
-        doc.rect(margin + 5, yPos + 2, 10, 10);
-        doc.line(margin + 5, yPos + 12, margin + 15, yPos + 2); // Trend up line in a box
-      }
+      // (sem ícone decorativo na página 2)
+
 
       yPos += textHeight(title1Lines, lineHeightMm(1.8, 1.15)) + 5;
       
@@ -893,17 +803,16 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const tintR = mixWithWhite(rgb.r, 0.08);
           const tintG = mixWithWhite(rgb.g, 0.08);
           const tintB = mixWithWhite(rgb.b, 0.08);
+          const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
+          const calloutBody = "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.";
+          // calcula a quebra com a fonte/tamanho corretos de cada bloco
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 0.9);
-          const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
+          const calloutTitleLines = splitToFit(calloutTitle, contentWidth - 14);
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.8);
-          const calloutTitleLines = splitToFit(calloutTitle, contentWidth - 20);
-          const calloutBodyLines = splitToFit(
-            "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.",
-            contentWidth - 20
-          );
-          const calloutTitleH = textHeight(calloutTitleLines, lineHeightMm(0.9, 1.12));
+          const calloutBodyLines = splitToFit(calloutBody, contentWidth - 14);
+          const calloutTitleH = textHeight(calloutTitleLines, lineHeightMm(0.9, 1.15));
           const calloutBodyH = textHeight(calloutBodyLines, lineHeightMm(0.8, 1.2));
           const boxH = 9 + calloutTitleH + 4 + calloutBodyH + 6;
           doc.setFillColor(tintR, tintG, tintB);
