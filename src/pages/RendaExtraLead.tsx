@@ -17,6 +17,7 @@ const RendaExtraLead = () => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [groupLink, setGroupLink] = useState("");
+  const [whatsappGroupInvite, setWhatsappGroupInvite] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nomeCompleto: "",
     email: "",
@@ -203,6 +204,7 @@ const RendaExtraLead = () => {
       if (response.error) throw response.error;
 
       setGroupLink(response.data.whatsappGroupLink);
+      setWhatsappGroupInvite(response.data.groupLink || null);
       setSubmitted(true);
 
       toast({
@@ -255,6 +257,20 @@ const RendaExtraLead = () => {
               Aprenda Grátis Agora
               <ArrowRight className="w-5 h-5" />
             </a>
+            {whatsappGroupInvite && (
+              <div className="mt-6">
+                <p className="text-gray-300 text-sm mb-3">E participe também do nosso grupo exclusivo:</p>
+                <a
+                  href={whatsappGroupInvite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 bg-[#128C7E] hover:bg-[#0e6f64] text-white font-bold text-base px-7 py-3 rounded-2xl transition-colors shadow-lg"
+                >
+                  Participe do Grupo do WhatsApp
+                  <ArrowRight className="w-5 h-5" />
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

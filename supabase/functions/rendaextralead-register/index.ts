@@ -90,14 +90,15 @@ serve(async (req) => {
     // Get settings for WhatsApp direct link
     const { data: settings } = await supabase
       .from("renda_extra_lead_settings")
-      .select("whatsapp_number, whatsapp_message, launch_date, launch_date_enabled")
+      .select("whatsapp_number, whatsapp_message, whatsapp_group_link, launch_date, launch_date_enabled")
       .single();
 
     // Permanent short link — always redirects to the current WhatsApp number/message saved in /rendaextralead/admin.
-    // This way, if the number/message changes, emails already sent still take the lead to the most current number.
     const SHORT_WHATSAPP_LINK = "https://maisresultadosonline.com.br/r/rxl-wa";
+    const groupLink = (settings?.whatsapp_group_link || "").trim();
     const launchDateEnabled = !!settings?.launch_date_enabled;
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
+
 
     // Send confirmation email via SMTP
     const emailHtml = `<!DOCTYPE html>
@@ -132,12 +133,22 @@ ${launchDateEnabled ? `
 </div>` : ''}
 
 <div style="text-align:center;margin:30px 0;">
-<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Fale com a gente agora no WhatsApp para liberarmos sua aula:</p>
-<a href="${SHORT_WHATSAPP_LINK}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
-📲 APRENDA GRÁTIS AGORA
+<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#000;">Fale com a gente agora no WhatsApp para liberarmos sua aula:</p>
+<a href="${SHORT_WHATSAPP_LINK}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
+APRENDA GRATIS AGORA
 </a>
-<p style="margin:15px 0 0 0;font-size:14px;color:#666;">Entre em contato conosco e vamos liberar a aula agora para você!</p>
+<p style="margin:15px 0 0 0;font-size:14px;color:#666;">Entre em contato conosco e vamos liberar a aula agora para voce!</p>
 </div>
+
+${groupLink ? `
+<div style="text-align:center;margin:30px 0;padding:20px;background:#f0fdf4;border-radius:10px;border:1px solid #25D366;">
+<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#000;">Participe tambem do nosso grupo exclusivo no WhatsApp:</p>
+<a href="${groupLink}" style="display:inline-block;background:#128C7E;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:30px;font-size:16px;font-weight:bold;font-family:Arial,sans-serif;">
+PARTICIPE DO GRUPO
+</a>
+<p style="margin:12px 0 0 0;font-size:13px;color:#666;">Receba conteudos, novidades e tire suas duvidas direto no grupo.</p>
+</div>` : ''}
+
 
 ${launchDateEnabled ? `
 <p style="margin:20px 0;font-size:14px;color:#666;text-align:center;">
@@ -190,10 +201,12 @@ Fique atento! Você receberá um email de lembrete no dia do lançamento.
         success: true,
         leadId: lead.id,
         whatsappGroupLink: SHORT_WHATSAPP_LINK,
+        groupLink: groupLink || null,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
 
   } catch (error: unknown) {
     const errMsg = error instanceof Error ? error.message : String(error);

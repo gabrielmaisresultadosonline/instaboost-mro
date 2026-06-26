@@ -599,6 +599,25 @@ const RendaExtraLeadAdmin = () => {
                     </p>
                   </div>
 
+                  <div>
+                    <Label htmlFor="waGroupLink" className="text-gray-300 flex items-center gap-2">
+                      <Link2 className="w-4 h-4 text-green-400" />
+                      Link do Grupo do WhatsApp
+                    </Label>
+                    <Input
+                      id="waGroupLink"
+                      value={settings.whatsapp_group_link}
+                      onChange={(e) => setSettings({ ...settings, whatsapp_group_link: e.target.value })}
+                      className="mt-2 bg-gray-700 border-gray-600 text-white"
+                      placeholder="https://chat.whatsapp.com/..."
+                    />
+                    <p className="text-gray-500 text-sm mt-1">
+                      Link de convite do grupo. Aparece como botão "Participe do grupo" na tela de sucesso e no email.
+                    </p>
+                  </div>
+
+
+
                   <div className="p-3 bg-gray-900/60 rounded-md border border-gray-700">
                     <Label className="text-gray-300 flex items-center gap-2 mb-2">
                       <Link2 className="w-4 h-4 text-yellow-400" />
