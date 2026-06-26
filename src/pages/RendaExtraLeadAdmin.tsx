@@ -457,6 +457,7 @@ const RendaExtraLeadAdmin = () => {
                   <Table className="min-w-[1100px]">
                     <TableHeader>
                       <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300 whitespace-nowrap">Origem</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Nome</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Email</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">WhatsApp</TableHead>
