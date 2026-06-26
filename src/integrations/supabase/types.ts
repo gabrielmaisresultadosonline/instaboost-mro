@@ -4340,6 +4340,10 @@ export type Database = {
       renda_extra_lead_leads: {
         Row: {
           created_at: string
+          desconto_email_sent_at: string | null
+          desconto_last_access_at: string | null
+          desconto_unlocked_at: string | null
+          desconto_video_percent: number
           email: string
           email_confirmacao_enviado: boolean | null
           email_confirmacao_enviado_at: string | null
@@ -4355,6 +4359,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          desconto_email_sent_at?: string | null
+          desconto_last_access_at?: string | null
+          desconto_unlocked_at?: string | null
+          desconto_video_percent?: number
           email: string
           email_confirmacao_enviado?: boolean | null
           email_confirmacao_enviado_at?: string | null
@@ -4370,6 +4378,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          desconto_email_sent_at?: string | null
+          desconto_last_access_at?: string | null
+          desconto_unlocked_at?: string | null
+          desconto_video_percent?: number
           email?: string
           email_confirmacao_enviado?: boolean | null
           email_confirmacao_enviado_at?: string | null

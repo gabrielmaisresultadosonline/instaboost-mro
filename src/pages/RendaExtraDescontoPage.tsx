@@ -15,7 +15,18 @@ const trackEvent = (page: string) => {
 
 const RendaExtraDescontoPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
+  const [mode, setMode] = useState<'gate' | 'choice' | 'prestar'>(() => {
+    try { return localStorage.getItem('rendaextra-desconto:email') ? 'prestar' : 'gate'; } catch { return 'gate'; }
+  });
+  const [gateEmail, setGateEmail] = useState('');
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateError, setGateError] = useState('');
+  const [leadEmail, setLeadEmail] = useState<string>(() => {
+    try { return localStorage.getItem('rendaextra-desconto:email') || ''; } catch { return ''; }
+  });
+  const [leadName, setLeadName] = useState<string>(() => {
+    try { return localStorage.getItem('rendaextra-desconto:name') || ''; } catch { return ''; }
+  });
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,6 +41,7 @@ const RendaExtraDescontoPage = () => {
   const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
     try { return localStorage.getItem('rendaextra-desconto:video-unlocked') === '1'; } catch { return false; }
   });
+  const [sendingUnlock, setSendingUnlock] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
@@ -40,6 +52,42 @@ const RendaExtraDescontoPage = () => {
     setShowControls(true);
     if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current);
     controlsTimerRef.current = window.setTimeout(() => setShowControls(false), CONTROLS_HIDE_MS);
+  };
+
+  const handleGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGateError('');
+    const email = gateEmail.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setGateError('Informe um email valido.');
+      return;
+    }
+    setGateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('rendaextra-desconto-access', {
+        body: { action: 'verify_email', email },
+      });
+      if (error || !data?.success) {
+        setGateError(data?.message || 'Email nao encontrado no cadastro do /rendaextra.');
+        setGateLoading(false);
+        return;
+      }
+      setLeadEmail(data.email);
+      setLeadName(data.name || '');
+      try {
+        localStorage.setItem('rendaextra-desconto:email', data.email);
+        localStorage.setItem('rendaextra-desconto:name', data.name || '');
+      } catch {}
+      if (data.unlocked || (data.percent_watched || 0) >= 50) {
+        try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
+        setUnlockedPersisted(true);
+      }
+      setMode('prestar');
+    } catch (err) {
+      setGateError('Erro ao verificar. Tente novamente.');
+    } finally {
+      setGateLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -103,9 +151,16 @@ const RendaExtraDescontoPage = () => {
       if (d > 0) {
         const pct = (video.currentTime / d) * 100;
         const m = progressMarksRef.current;
-        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:rendaextra-desconto:25'); }
-        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:rendaextra-desconto:50'); }
-        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:rendaextra-desconto:75'); }
+        const reportPct = (n: number) => {
+          if (leadEmail) {
+            supabase.functions.invoke('rendaextra-desconto-access', {
+              body: { action: 'track_progress', email: leadEmail, percent: n },
+            }).catch(() => {});
+          }
+        };
+        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:rendaextra-desconto:25'); reportPct(25); }
+        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:rendaextra-desconto:50'); reportPct(50); }
+        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:rendaextra-desconto:75'); reportPct(75); }
       }
     };
     const onSeeking = () => {
@@ -219,6 +274,42 @@ const RendaExtraDescontoPage = () => {
 
 
 
+  if (mode === 'gate') {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8 flex items-center justify-center">
+        <div className="w-full max-w-md bg-[#0d0d16] border border-white/10 rounded-3xl p-7 md:p-9 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.25em] mb-4">Area Exclusiva</div>
+            <h1 className="text-2xl md:text-3xl font-black uppercase italic leading-tight">Acesso ao Desconto MRO</h1>
+            <p className="text-white/50 text-sm mt-3 font-medium">Informe o mesmo email que voce cadastrou em <span className="text-amber-400">/rendaextra</span> para liberar seu acesso.</p>
+          </div>
+          <form onSubmit={handleGateSubmit} className="space-y-3">
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={gateEmail}
+              onChange={(e) => setGateEmail(e.target.value)}
+              placeholder="seu@email.com"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 focus:border-amber-500/60 focus:outline-none text-white placeholder:text-white/30"
+            />
+            {gateError && <p className="text-red-400 text-xs font-medium">{gateError}</p>}
+            <Button
+              type="submit"
+              disabled={gateLoading}
+              className="w-full py-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(16,185,129,0.3)] h-auto"
+            >
+              {gateLoading ? 'Verificando...' : 'Entrar'}
+            </Button>
+            <p className="text-center text-white/40 text-xs pt-2">
+              Ainda nao cadastrou? <a href="/rendaextra" className="text-amber-400 underline">Cadastre-se aqui</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (mode === 'choice') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
@@ -294,9 +385,12 @@ const RendaExtraDescontoPage = () => {
 
         <div className="space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Treinamento Exclusivo</div>
+          {leadName && (
+            <p className="text-emerald-400 text-sm md:text-base font-bold uppercase tracking-[0.2em]">Seja bem-vindo(a), {leadName.split(' ')[0]}!</p>
+          )}
           <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight uppercase italic">{videoCfg.video_title || 'Você já conhece como isso funciona?'}</h3>
           <p className="text-white/40 text-sm md:text-lg leading-relaxed font-medium max-w-2xl mx-auto">
-            Ainda não? Veja então esta live por completo antes de acessar sua área de prestação de serviços.
+            Assista a apresentacao por completo para liberar seu acesso ao desconto exclusivo.
           </p>
         </div>
 
@@ -404,10 +498,21 @@ const RendaExtraDescontoPage = () => {
             </div>
           ) : (
             <Button
-              onClick={() => { trackEvent('click:rendaextra-desconto:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
+              disabled={sendingUnlock}
+              onClick={async () => {
+                trackEvent('click:rendaextra-desconto:acessar-promo');
+                if (!leadEmail) { navigate('/rendaextra/desconto/promo'); return; }
+                setSendingUnlock(true);
+                try {
+                  await supabase.functions.invoke('rendaextra-desconto-access', {
+                    body: { action: 'unlock_and_send', email: leadEmail },
+                  });
+                } catch {}
+                navigate(`/rendaextra/desconto/promo?email=${encodeURIComponent(leadEmail)}`);
+              }}
               className="w-full max-w-md flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-5 sm:py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm sm:text-lg md:text-xl transition-all hover:scale-[1.03] active:scale-95 uppercase tracking-wider sm:tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group whitespace-normal text-center leading-tight h-auto"
             >
-              <span>ACESSAR RENDA EXTRA AGORA</span>
+              <span>{sendingUnlock ? 'LIBERANDO...' : 'ACESSAR DESCONTO AGORA'}</span>
               <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 shrink-0 group-hover:translate-x-1 sm:group-hover:translate-x-2 transition-transform" />
             </Button>
           )}
