@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, squarecloud_username, reports } = await req.json();
+    const { action, squarecloud_username, reports, logo_base64, logo_content_type } = await req.json();
     
     console.log(`[report-storage] Action: ${action}, User: ${squarecloud_username}`);
 
@@ -29,6 +29,36 @@ serve(async (req) => {
 
     const bucketName = 'user-data';
     const filePath = `reports/${squarecloud_username.toLowerCase()}/reports.json`;
+    const logoPath = `reports/${squarecloud_username.toLowerCase()}/logo.png`;
+
+    if (action === 'upload_logo') {
+      if (!logo_base64) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'logo_base64 is required' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      const base64Data = logo_base64.includes(',') ? logo_base64.split(',')[1] : logo_base64;
+      const binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const { error: upErr } = await supabase.storage
+        .from(bucketName)
+        .upload(logoPath, binary, {
+          contentType: logo_content_type || 'image/png',
+          upsert: true,
+        });
+      if (upErr) {
+        console.error('[report-storage] Logo upload error:', upErr);
+        return new Response(
+          JSON.stringify({ success: false, error: upErr.message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+      const { data: pub } = supabase.storage.from(bucketName).getPublicUrl(logoPath);
+      return new Response(
+        JSON.stringify({ success: true, url: pub.publicUrl }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (action === 'save') {
       if (!reports) {
