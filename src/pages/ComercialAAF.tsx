@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import {
   ArrowRight, Check, Target, TrendingUp, Megaphone, MessageSquare,
@@ -77,7 +78,9 @@ function StepForm({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-zinc-950 border-amber-500/30 p-0 overflow-hidden">
+      <DialogPortal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] bg-zinc-950 border border-amber-500/30 rounded-2xl p-0 overflow-hidden shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-amber-700/10 pointer-events-none" />
         <button onClick={onClose} className="absolute top-4 right-4 z-10 text-zinc-400 hover:text-white">
           <X className="w-5 h-5" />
@@ -151,7 +154,8 @@ function StepForm({ open, onClose }: { open: boolean; onClose: () => void }) {
             </div>
           </div>
         )}
-      </DialogContent>
+        </DialogPrimitive.Content>
+      </DialogPortal>
     </Dialog>
   );
 }
