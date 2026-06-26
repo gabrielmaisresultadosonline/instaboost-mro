@@ -618,30 +618,12 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
 
-      if (showDecorativeLines) {
-        // Page 1 Decorative Graphics around Title
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.5);
-        doc.line(pageWidth / 2 - 30, yPos - 10, pageWidth / 2 + 30, yPos - 10);
-      }
-      
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 2.2);
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       doc.text('PROPOSTA ESTRATÉGICA', pageWidth / 2, yPos, { align: 'center' });
       yPos += 15;
-      
-      // Floating Vector Icon (Result Chart) near title
-      if (showDecorativeLines && data.showGraphs) {
-        const iconX = pageWidth - 35;
-        const iconY = yPos - 25;
-        doc.setDrawColor(rgb.r, rgb.g, rgb.b);
-        doc.setLineWidth(0.6);
-        doc.line(iconX, iconY, iconX + 4, iconY - 4);
-        doc.line(iconX + 4, iconY - 4, iconX + 8, iconY - 1);
-        doc.line(iconX + 8, iconY - 1, iconX + 12, iconY - 8);
-        doc.circle(iconX + 12, iconY - 8, 0.8, 'F');
-      }
+
 
 
       doc.setFontSize(data.fontSizeBase * 1.5);
