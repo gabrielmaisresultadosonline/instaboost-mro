@@ -163,6 +163,21 @@ serve(async (req) => {
       });
     }
 
+    if (action === "track_promo_progress") {
+      const pct = Math.max(0, Math.min(100, Math.floor(Number(body.percent) || 0)));
+      const newPct = Math.max(pct, (lead as any).promo_video_percent || 0);
+      await supabase
+        .from("renda_extra_lead_leads")
+        .update({
+          promo_video_percent: newPct,
+          promo_video_last_watched_at: new Date().toISOString(),
+        })
+        .eq("id", lead.id);
+      return new Response(JSON.stringify({ success: true, percent_watched: newPct }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "check_access") {
       const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 50;
       return new Response(
