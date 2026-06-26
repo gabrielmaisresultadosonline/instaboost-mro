@@ -151,9 +151,16 @@ const RendaExtraDescontoPage = () => {
       if (d > 0) {
         const pct = (video.currentTime / d) * 100;
         const m = progressMarksRef.current;
-        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:rendaextra-desconto:25'); }
-        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:rendaextra-desconto:50'); }
-        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:rendaextra-desconto:75'); }
+        const reportPct = (n: number) => {
+          if (leadEmail) {
+            supabase.functions.invoke('rendaextra-desconto-access', {
+              body: { action: 'track_progress', email: leadEmail, percent: n },
+            }).catch(() => {});
+          }
+        };
+        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:rendaextra-desconto:25'); reportPct(25); }
+        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:rendaextra-desconto:50'); reportPct(50); }
+        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:rendaextra-desconto:75'); reportPct(75); }
       }
     };
     const onSeeking = () => {
