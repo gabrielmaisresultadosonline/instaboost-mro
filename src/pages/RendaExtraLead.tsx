@@ -628,53 +628,81 @@ const RendaExtraLead = () => {
         </div>
       )}
 
-    <div className="min-h-screen bg-[#0a0f1a] overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#0a0a0a] overflow-x-hidden relative">
       {/* Money Particles Background */}
       <MoneyParticles />
-      {/* Hero Section with Image Background */}
-      <section className="relative min-h-[90vh] flex flex-col">
-        {/* Background Gradients */}
+
+      {/* Hero Section - Bold Editorial */}
+      <section className="relative min-h-[100vh] flex flex-col">
+        {/* Layered backgrounds: grid + radial + diagonal stripes */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-yellow-500/5 via-transparent to-transparent blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-yellow-500/5 rounded-full blur-3xl" />
+          {/* subtle grid */}
+          <div
+            className="absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
+              backgroundSize: "60px 60px",
+              maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+            }}
+          />
+          {/* radial glow yellow */}
+          <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[700px] bg-yellow-400/10 rounded-full blur-[120px]" />
+          {/* red glow bottom */}
+          <div className="absolute bottom-[-10%] left-1/3 w-[600px] h-[600px] bg-red-600/15 rounded-full blur-[120px]" />
+          {/* diagonal accent stripe */}
+          <div className="absolute top-0 right-0 w-[60%] h-full bg-gradient-to-bl from-yellow-400/[0.04] via-transparent to-transparent" />
         </div>
 
-        {/* Small Logo */}
-        <div className="relative z-10 pt-6 px-4 flex justify-center">
+        {/* Top bar: logo + ticker */}
+        <div className="relative z-10 pt-6 px-4 flex flex-col items-center gap-3">
           <img src={logoMro} alt="MRO" className="w-20 md:w-24 opacity-90" />
-        </div>
-
-        {/* Badge */}
-        <div className="relative z-10 flex justify-center mt-4">
-          <div className="bg-yellow-500/10 border border-yellow-500/30 px-5 py-1.5 rounded-full">
-            <span className="text-yellow-400 font-bold text-xs tracking-[0.2em] uppercase">
-              OFERTA ESPECIAL - RENDA EXTRA
-            </span>
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.3em] text-gray-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            <span>Mais Resultados Online</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+            <span className="hidden sm:inline">Renda Extra · 2026</span>
           </div>
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-10 sm:py-14">
-          {/* GRÁTIS Badge */}
-          <div className="mb-6">
-            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg shadow-red-500/40 uppercase tracking-wider">
-              <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12 sm:py-16">
+          {/* Status row */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-7">
+            <span className="inline-flex items-center gap-2 bg-red-600 text-white font-black text-[10px] sm:text-xs px-4 py-2 rounded-sm shadow-[0_0_30px_rgba(239,68,68,0.5)] uppercase tracking-[0.2em] border-l-4 border-yellow-400">
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
               100% Grátis
+            </span>
+            <span className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-yellow-400 font-bold text-[10px] sm:text-xs px-4 py-2 rounded-sm uppercase tracking-[0.2em]">
+              Vagas limitadas
             </span>
           </div>
 
-          {/* Title */}
-          <div className="text-center relative z-10 max-w-4xl mx-auto">
-            <h1 className="flex flex-col items-center leading-[0.95] uppercase font-black gap-2 sm:gap-3">
-              <span className="text-white text-2xl sm:text-3xl md:text-4xl tracking-wide">
+          {/* Title — brutalist editorial */}
+          <div className="text-center relative z-10 max-w-5xl mx-auto">
+            <h1 className="flex flex-col items-center leading-[0.88] uppercase font-black gap-1 sm:gap-2">
+              <span className="text-gray-400 text-xl sm:text-2xl md:text-3xl tracking-[0.25em] font-bold">
                 Fature mais de
               </span>
-              <span className="text-5xl sm:text-7xl md:text-8xl text-gold-shimmer block">
-                5 MIL MENSAL
+              <span
+                className="text-[3.5rem] sm:text-[6rem] md:text-[8.5rem] font-black tracking-tighter leading-none"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #fde047 0%, #facc15 45%, #ca8a04 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  filter: "drop-shadow(0 6px 30px rgba(250,204,21,0.25))",
+                }}
+              >
+                5 MIL<span className="text-white">/</span>MÊS
               </span>
-              <span className="text-green-400 text-2xl sm:text-3xl md:text-5xl tracking-tight" style={{ textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)' }}>
-                Com a MRO!
+              <span className="flex items-center gap-3 mt-2">
+                <span className="h-[2px] w-8 sm:w-14 bg-red-500" />
+                <span className="text-white text-lg sm:text-2xl md:text-3xl tracking-[0.3em] font-bold">
+                  COM A MRO
+                </span>
+                <span className="h-[2px] w-8 sm:w-14 bg-red-500" />
               </span>
             </h1>
           </div>
@@ -682,40 +710,73 @@ const RendaExtraLead = () => {
           {/* Description */}
           <div className="text-center mt-8 max-w-xl mx-auto px-2">
             <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
-              Utilize no seu horário, em <span className="text-green-400 font-semibold">qualquer lugar do mundo</span>.
+              Trabalhe no <span className="text-yellow-400 font-semibold">seu horário</span>, em qualquer lugar.
               <br className="hidden sm:block" />
-              {' '}Conquiste sua <span className="text-yellow-400 font-semibold">liberdade financeira</span>!
+              {' '}Construa sua <span className="text-white font-semibold underline decoration-red-500 decoration-2 underline-offset-4">liberdade financeira</span>.
             </p>
           </div>
 
           {/* Feature Pills */}
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-8">
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-green-500/40 transition-colors">
-              <Clock className="w-4 h-4 text-green-400" />
-              <span className="text-gray-200 text-xs sm:text-sm font-medium">Seu Horário</span>
+            <div className="flex items-center gap-2 bg-[#141414] px-4 py-2.5 rounded-sm border border-white/10 hover:border-yellow-400/60 transition-colors">
+              <Clock className="w-4 h-4 text-yellow-400" />
+              <span className="text-gray-200 text-xs sm:text-sm font-medium uppercase tracking-wider">Seu Horário</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-yellow-500/40 transition-colors">
-              <MapPin className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-200 text-xs sm:text-sm font-medium">Qualquer Lugar</span>
+            <div className="flex items-center gap-2 bg-[#141414] px-4 py-2.5 rounded-sm border border-white/10 hover:border-red-500/60 transition-colors">
+              <MapPin className="w-4 h-4 text-red-500" />
+              <span className="text-gray-200 text-xs sm:text-sm font-medium uppercase tracking-wider">Qualquer Lugar</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-emerald-500/40 transition-colors">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-              <span className="text-gray-200 text-xs sm:text-sm font-medium">Renda Extra</span>
+            <div className="flex items-center gap-2 bg-[#141414] px-4 py-2.5 rounded-sm border border-white/10 hover:border-white/60 transition-colors">
+              <DollarSign className="w-4 h-4 text-white" />
+              <span className="text-gray-200 text-xs sm:text-sm font-medium uppercase tracking-wider">Renda Extra</span>
             </div>
           </div>
 
-          {/* CTA Button in Hero */}
-          <div className="mt-10">
-            <Button 
+          {/* CTA Button — Black/Yellow/Red brutalist */}
+          <div className="mt-12 relative group">
+            {/* yellow shadow stack */}
+            <div className="absolute inset-0 bg-yellow-400 rounded-sm translate-x-1.5 translate-y-1.5 transition-transform group-hover:translate-x-2.5 group-hover:translate-y-2.5" />
+            <div className="absolute inset-0 bg-red-600 rounded-sm translate-x-3 translate-y-3 transition-transform group-hover:translate-x-5 group-hover:translate-y-5" />
+            <Button
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg md:text-xl px-10 sm:px-12 py-6 sm:py-7 rounded-2xl shadow-2xl shadow-red-500/30 hover:scale-105 transition-all duration-300 group"
+              className="relative bg-white text-black hover:bg-white font-black text-base sm:text-lg md:text-xl px-10 sm:px-14 py-7 sm:py-8 rounded-sm border-2 border-black uppercase tracking-[0.15em] transition-transform duration-200 group-hover:-translate-x-1 group-hover:-translate-y-1"
             >
               Aprenda Grátis Agora
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
             </Button>
+          </div>
+
+          {/* Microcopy under CTA */}
+          <div className="mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] text-gray-500">
+            <CheckCircle2 className="w-3.5 h-3.5 text-yellow-400" />
+            <span>Sem cartão · Sem compromisso</span>
+          </div>
+        </div>
+
+        {/* Bottom marquee strip */}
+        <div className="relative z-10 border-y border-white/10 bg-yellow-400 overflow-hidden">
+          <div className="flex animate-[slide_25s_linear_infinite] whitespace-nowrap py-2.5">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-6 px-6 text-black font-black text-xs sm:text-sm uppercase tracking-[0.25em]">
+                <span>★ Renda Extra MRO</span>
+                <span>·</span>
+                <span>Aulas Grátis</span>
+                <span>·</span>
+                <span>Resultados Reais</span>
+                <span>·</span>
+                <span>Trabalhe de Casa</span>
+                <span>·</span>
+                <span>★ 5 Mil/Mês</span>
+                <span>·</span>
+                <span>Vagas Limitadas</span>
+                <span>·</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+
 
 
       {/* Text Section */}
