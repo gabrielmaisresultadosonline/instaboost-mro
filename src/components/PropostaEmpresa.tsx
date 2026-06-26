@@ -803,17 +803,16 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const tintR = mixWithWhite(rgb.r, 0.08);
           const tintG = mixWithWhite(rgb.g, 0.08);
           const tintB = mixWithWhite(rgb.b, 0.08);
+          const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
+          const calloutBody = "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.";
+          // calcula a quebra com a fonte/tamanho corretos de cada bloco
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 0.9);
-          const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
+          const calloutTitleLines = splitToFit(calloutTitle, contentWidth - 14);
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.8);
-          const calloutTitleLines = splitToFit(calloutTitle, contentWidth - 20);
-          const calloutBodyLines = splitToFit(
-            "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.",
-            contentWidth - 20
-          );
-          const calloutTitleH = textHeight(calloutTitleLines, lineHeightMm(0.9, 1.12));
+          const calloutBodyLines = splitToFit(calloutBody, contentWidth - 14);
+          const calloutTitleH = textHeight(calloutTitleLines, lineHeightMm(0.9, 1.15));
           const calloutBodyH = textHeight(calloutBodyLines, lineHeightMm(0.8, 1.2));
           const boxH = 9 + calloutTitleH + 4 + calloutBodyH + 6;
           doc.setFillColor(tintR, tintG, tintB);
