@@ -727,7 +727,7 @@ const RendaExtraLead = () => {
       <section className="py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-            Aprenda a nova onda do mercado <span className="text-green-400">grátis</span>!
+            Aprenda a nova onda do mercado <span className="text-yellow-400">grátis</span>!
           </h3>
           <p className="text-gray-400 text-base">
             Faça o cadastro e fale com a gente no WhatsApp para liberarmos sua aula grátis!
