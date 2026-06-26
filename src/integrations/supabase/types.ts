@@ -4351,6 +4351,7 @@ export type Database = {
           email_lembrete_enviado_at: string | null
           id: string
           instagram_username: string | null
+          lead_source: string
           media_salarial: string
           nome_completo: string
           promo_video_last_watched_at: string | null
@@ -4372,6 +4373,7 @@ export type Database = {
           email_lembrete_enviado_at?: string | null
           id?: string
           instagram_username?: string | null
+          lead_source?: string
           media_salarial: string
           nome_completo: string
           promo_video_last_watched_at?: string | null
@@ -4393,6 +4395,7 @@ export type Database = {
           email_lembrete_enviado_at?: string | null
           id?: string
           instagram_username?: string | null
+          lead_source?: string
           media_salarial?: string
           nome_completo?: string
           promo_video_last_watched_at?: string | null

@@ -11,7 +11,11 @@ import logoMro from "@/assets/logo-mro-white.png";
 import MoneyParticles from "@/components/MoneyParticles";
 import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
 
-const RendaExtraLead = () => {
+interface RendaExtraLeadProps {
+  source?: "renda_extra" | "social_midia";
+}
+
+const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
   const [showForm, setShowForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -156,6 +160,7 @@ const RendaExtraLead = () => {
             media_salarial: formData.mediaSalarial || null,
             tipo_computador: "nenhum",
             instagram_username: formData.instagramUsername || null,
+            lead_source: source,
           });
           setBlockedNoComputer(true);
         } catch (err) {
@@ -197,7 +202,8 @@ const RendaExtraLead = () => {
           trabalha_atualmente: formData.trabalhaAtualmente,
           media_salarial: formData.mediaSalarial,
           tipo_computador: formData.tipoComputador,
-          instagram_username: formData.instagramUsername
+          instagram_username: formData.instagramUsername,
+          lead_source: source,
         }
       });
 
