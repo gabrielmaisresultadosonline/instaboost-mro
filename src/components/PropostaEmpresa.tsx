@@ -775,15 +775,30 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         yPos += dLines.length * 6 + 12;
       });
 
-      doc.setFillColor(rgb.r, rgb.g, rgb.b, 0.05);
-      doc.rect(margin, yPos, contentWidth, 30, 'F');
-      doc.setFont('helvetica', 'bolditalic');
-      doc.setFontSize(data.fontSizeBase * 0.9);
-      doc.setTextColor(rgb.r, rgb.g, rgb.b);
-      doc.text("ESTRUTURA FOCO EM PÚBLICO 3X MAIS ASSERTIVO E NICHADO.", margin + 5, yPos + 12);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(data.fontSizeBase * 0.8);
-      doc.text("Resultados consistentes respeitando as políticas do Instagram.", margin + 5, yPos + 20);
+      {
+        const tintR = mixWithWhite(rgb.r, 0.08);
+        const tintG = mixWithWhite(rgb.g, 0.08);
+        const tintB = mixWithWhite(rgb.b, 0.08);
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        const t1 = doc.splitTextToSize("ESTRUTURA FOCO EM PÚBLICO 3X MAIS ASSERTIVO E NICHADO.", contentWidth - 10);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        const t2 = doc.splitTextToSize("Resultados consistentes respeitando as políticas do Instagram.", contentWidth - 10);
+        const boxH = 8 + t1.length * 5 + t2.length * 5 + 6;
+        doc.setFillColor(tintR, tintG, tintB);
+        doc.rect(margin, yPos, contentWidth, boxH, 'F');
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setFontSize(data.fontSizeBase * 0.9);
+        doc.setTextColor(rgb.r, rgb.g, rgb.b);
+        doc.text(t1, margin + 5, yPos + 8);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(data.fontSizeBase * 0.8);
+        doc.setTextColor(60, 60, 60);
+        doc.text(t2, margin + 5, yPos + 8 + t1.length * 5 + 3);
+        yPos += boxH + 5;
+      }
+
 
       if (data.incluirConfiguracao || data.incluirCriativos) {
         doc.addPage();
