@@ -201,10 +201,12 @@ Fique atento! Você receberá um email de lembrete no dia do lançamento.
         success: true,
         leadId: lead.id,
         whatsappGroupLink: SHORT_WHATSAPP_LINK,
+        groupLink: groupLink || null,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
 
   } catch (error: unknown) {
     const errMsg = error instanceof Error ? error.message : String(error);
