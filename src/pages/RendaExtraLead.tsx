@@ -669,27 +669,48 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="flex flex-col items-center leading-[0.9] font-black gap-3 sm:gap-4">
               <span className="text-gray-500 text-sm sm:text-base md:text-lg tracking-[0.35em] uppercase font-semibold">
-                {source === "social_midia" ? "Social Mídia · Fature mais de" : "Fature mais de"}
+                {source === "social_midia" ? "Social Mídia" : "Fature mais de"}
               </span>
-              <span
-                className="text-[4rem] sm:text-[6.5rem] md:text-[9rem] tracking-tighter leading-none"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #fde047 0%, #facc15 50%, #b45309 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                5K
-              </span>
-              <span className="text-white text-2xl sm:text-4xl md:text-5xl tracking-tight">
-                {source === "social_midia" ? (
-                  <>com Social Mídia usando a <span className="italic text-yellow-400">MRO</span></>
-                ) : (
-                  <>por mês com a <span className="italic text-yellow-400">MRO</span></>
-                )}
-              </span>
+              {source === "social_midia" ? (
+                <>
+                  <span className="text-white text-2xl sm:text-4xl md:text-5xl tracking-tight font-bold">
+                    Fature mais de
+                  </span>
+                  <span
+                    className="text-[5rem] sm:text-[8rem] md:text-[11rem] tracking-tighter leading-none"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #fde047 0%, #facc15 50%, #b45309 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    5 MIL
+                  </span>
+                  <span className="text-white text-2xl sm:text-4xl md:text-5xl tracking-tight">
+                    mensal com a <span className="italic text-yellow-400">MRO</span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span
+                    className="text-[4rem] sm:text-[6.5rem] md:text-[9rem] tracking-tighter leading-none"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #fde047 0%, #facc15 50%, #b45309 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    5K
+                  </span>
+                  <span className="text-white text-2xl sm:text-4xl md:text-5xl tracking-tight">
+                    por mês com a <span className="italic text-yellow-400">MRO</span>
+                  </span>
+                </>
+              )}
             </h1>
           </div>
 
