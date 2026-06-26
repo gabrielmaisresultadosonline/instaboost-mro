@@ -544,7 +544,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
         // Background Grid - subtle
         if (data.showGrid) {
-          doc.setDrawColor(r, g, b, data.gridOpacity * 3); // Scale for PDF
+          const gr = mixWithWhite(rgb.r, Math.min(0.15, data.gridOpacity));
+          const gg = mixWithWhite(rgb.g, Math.min(0.15, data.gridOpacity));
+          const gb = mixWithWhite(rgb.b, Math.min(0.15, data.gridOpacity));
+          doc.setDrawColor(gr, gg, gb);
           for (let i = 0; i < pageWidth; i += 20) {
             doc.line(i, 0, i, pageHeight);
           }
@@ -552,6 +555,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             doc.line(0, i, pageWidth, i);
           }
         }
+
 
         if (data.showGraphs) {
           // Top Right: Result Graph (Lines) - Fixed position to avoid headers
