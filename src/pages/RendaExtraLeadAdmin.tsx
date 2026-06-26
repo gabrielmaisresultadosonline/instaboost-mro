@@ -33,6 +33,7 @@ interface Lead {
   desconto_unlocked_at?: string | null;
   promo_video_percent?: number | null;
   promo_video_last_watched_at?: string | null;
+  lead_source?: string | null;
 }
 
 interface EmailLog {
