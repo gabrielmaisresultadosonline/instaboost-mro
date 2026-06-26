@@ -471,7 +471,7 @@ export default function MktCompleto() {
                     <p className="text-sm text-white/55">a partir de R$ 20,00 por dia</p>
                   </div>
 
-                  <a href="https://wa.me/" target="_blank" rel="noopener noreferrer"
+                  <a href={`https://wa.me/5551992835863?text=${encodeURIComponent("Quero contratar o marketing completo!")}`} target="_blank" rel="noopener noreferrer"
                      className="shimmer-y relative mt-10 inline-flex items-center gap-2 overflow-hidden rounded-full px-10 py-5 text-sm font-bold uppercase tracking-wider text-black"
                      style={{ background: ACCENT, boxShadow: `0 20px 60px ${ACCENT}66` }}>
                     Quero contratar agora <ArrowRight className="h-4 w-4" />
