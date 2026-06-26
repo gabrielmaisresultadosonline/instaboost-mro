@@ -240,23 +240,26 @@ const RendaExtraLead = () => {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
-          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-8 rounded-3xl border border-green-500/20 backdrop-blur-xl">
-            <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto mb-6" />
+          <div className="bg-gradient-to-br from-yellow-400/10 to-amber-500/5 p-8 rounded-3xl border border-yellow-400/20 backdrop-blur-xl">
+            <CheckCircle2 className="w-20 h-20 text-yellow-400 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Cadastro Realizado!
             </h1>
             <p className="text-gray-400 text-lg mb-8">
               Entre em contato conosco no WhatsApp agora e vamos liberar a sua aula!
             </p>
-            <a 
-              href={whatsappDirectLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-transform shadow-2xl shadow-green-500/20"
-            >
-              Aprenda Grátis Agora
-              <ArrowRight className="w-5 h-5" />
-            </a>
+            <div className="relative group inline-block">
+              <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+              <a
+                href={whatsappDirectLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative inline-flex items-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+              >
+                Aprenda Grátis Agora
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </div>
             {whatsappGroupInvite && (
               <div className="mt-6">
                 <p className="text-gray-300 text-sm mb-3">E participe também do nosso grupo exclusivo:</p>
@@ -727,7 +730,7 @@ const RendaExtraLead = () => {
       <section className="py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-            Aprenda a nova onda do mercado <span className="text-green-400">grátis</span>!
+            Aprenda a nova onda do mercado <span className="text-yellow-400">grátis</span>!
           </h3>
           <p className="text-gray-400 text-base">
             Faça o cadastro e fale com a gente no WhatsApp para liberarmos sua aula grátis!
@@ -738,15 +741,18 @@ const RendaExtraLead = () => {
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
-          >
-            Aprenda Grátis Agora
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
+          <div className="relative group inline-block mb-8">
+            <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+            <Button
+              onClick={() => setShowForm(true)}
+              className="relative bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base md:text-lg px-10 md:px-14 py-6 md:py-7 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+            >
+              Aprenda Grátis Agora
+              <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 mb-4">
             Aprenda Grátis!
           </h2>
           {launchDateEnabled && launchDateText && (
@@ -791,13 +797,16 @@ const RendaExtraLead = () => {
       {/* Final CTA Button */}
       <section className="py-12 px-4">
         <div className="max-w-xl mx-auto text-center">
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
-          >
-            Aprenda Grátis Agora
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <div className="relative group inline-block">
+            <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+            <Button
+              onClick={() => setShowForm(true)}
+              className="relative bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base md:text-lg px-10 md:px-14 py-6 md:py-7 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+            >
+              Aprenda Grátis Agora
+              <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </div>
       </section>
 
