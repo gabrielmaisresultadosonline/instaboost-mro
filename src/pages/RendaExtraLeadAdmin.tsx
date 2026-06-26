@@ -28,6 +28,11 @@ interface Lead {
   created_at: string;
   email_confirmacao_enviado: boolean;
   email_lembrete_enviado: boolean;
+  desconto_video_percent?: number | null;
+  desconto_last_access_at?: string | null;
+  desconto_unlocked_at?: string | null;
+  promo_video_percent?: number | null;
+  promo_video_last_watched_at?: string | null;
 }
 
 interface EmailLog {
