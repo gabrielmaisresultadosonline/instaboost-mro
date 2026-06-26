@@ -310,6 +310,40 @@ const RendaExtraDescontoPromoPage = () => {
     "Suporte prioritário"
   ];
 
+  if (accessState === 'checking') {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-green-400" />
+          <p className="text-white/60 text-sm">Verificando seu acesso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessState === 'denied') {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-zinc-900/80 border border-amber-500/30 rounded-3xl p-7 md:p-9 text-center shadow-2xl">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/15 text-amber-400 mb-4">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-2">Acesso restrito</h2>
+          <p className="text-white/60 text-sm md:text-base mb-6">{accessDenyReason}</p>
+          <a
+            href="/rendaextra/desconto"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm transition-all"
+          >
+            Liberar acesso <ArrowRight className="w-4 h-4" />
+          </a>
+          <p className="text-white/40 text-xs mt-5">
+            Ainda nao cadastrou? <a href="/rendaextra" className="text-amber-400 underline">Cadastre-se em /rendaextra</a>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
