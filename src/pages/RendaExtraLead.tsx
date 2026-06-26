@@ -240,23 +240,26 @@ const RendaExtraLead = () => {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
-          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-8 rounded-3xl border border-green-500/20 backdrop-blur-xl">
-            <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto mb-6" />
+          <div className="bg-gradient-to-br from-yellow-400/10 to-amber-500/5 p-8 rounded-3xl border border-yellow-400/20 backdrop-blur-xl">
+            <CheckCircle2 className="w-20 h-20 text-yellow-400 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Cadastro Realizado!
             </h1>
             <p className="text-gray-400 text-lg mb-8">
               Entre em contato conosco no WhatsApp agora e vamos liberar a sua aula!
             </p>
-            <a 
-              href={whatsappDirectLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-transform shadow-2xl shadow-green-500/20"
-            >
-              Aprenda Grátis Agora
-              <ArrowRight className="w-5 h-5" />
-            </a>
+            <div className="relative group inline-block">
+              <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+              <a
+                href={whatsappDirectLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative inline-flex items-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+              >
+                Aprenda Grátis Agora
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </div>
             {whatsappGroupInvite && (
               <div className="mt-6">
                 <p className="text-gray-300 text-sm mb-3">E participe também do nosso grupo exclusivo:</p>
