@@ -73,6 +73,7 @@ serve(async (req) => {
         media_salarial: data.media_salarial,
         tipo_computador: data.tipo_computador,
         instagram_username: data.instagram_username,
+        lead_source: data.lead_source === "social_midia" ? "social_midia" : "renda_extra",
       })
       .select()
       .single();
