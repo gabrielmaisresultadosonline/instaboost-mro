@@ -11,7 +11,11 @@ import logoMro from "@/assets/logo-mro-white.png";
 import MoneyParticles from "@/components/MoneyParticles";
 import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
 
-const RendaExtraLead = () => {
+interface RendaExtraLeadProps {
+  source?: "renda_extra" | "social_midia";
+}
+
+const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
   const [showForm, setShowForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
