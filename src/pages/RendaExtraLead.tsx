@@ -662,14 +662,14 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
           {/* Single status badge */}
           <span className="inline-flex items-center gap-2 bg-red-600 text-white font-bold text-[11px] sm:text-xs px-4 py-1.5 rounded-full uppercase tracking-[0.2em] mb-10">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            100% Grátis
+            {source === "social_midia" ? "Social Mídia · Oportunidade Única" : "100% Grátis"}
           </span>
 
           {/* Title — clean editorial */}
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="flex flex-col items-center leading-[0.9] font-black gap-3 sm:gap-4">
               <span className="text-gray-500 text-sm sm:text-base md:text-lg tracking-[0.35em] uppercase font-semibold">
-                Fature mais de
+                {source === "social_midia" ? "Social Mídia · Fature mais de" : "Fature mais de"}
               </span>
               <span
                 className="text-[4rem] sm:text-[6.5rem] md:text-[9rem] tracking-tighter leading-none"
@@ -681,19 +681,27 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
                   backgroundClip: "text",
                 }}
               >
-                5 MIL
+                5K
               </span>
               <span className="text-white text-2xl sm:text-4xl md:text-5xl tracking-tight">
-                por mês com a <span className="italic text-yellow-400">MRO</span>
+                {source === "social_midia" ? (
+                  <>com Social Mídia usando a <span className="italic text-yellow-400">MRO</span></>
+                ) : (
+                  <>por mês com a <span className="italic text-yellow-400">MRO</span></>
+                )}
               </span>
             </h1>
           </div>
 
           {/* Description */}
           <p className="text-center mt-8 max-w-lg mx-auto text-sm sm:text-base text-gray-400 leading-relaxed px-2">
-            Trabalhe no seu horário, em qualquer lugar.
-            Construa sua liberdade financeira.
+            {source === "social_midia" ? (
+              <>Hoje muitas empresas buscam <span className="text-yellow-400 font-semibold">resultados</span> — e a MRO vai ser a ferramenta na sua mão. <span className="text-white font-semibold">APRENDA GRÁTIS</span>, oportunidade única.</>
+            ) : (
+              <>Trabalhe no seu horário, em qualquer lugar. Construa sua liberdade financeira.</>
+            )}
           </p>
+
 
           {/* CTA Button — minimal yellow/red */}
           <div className="mt-12 relative group">
