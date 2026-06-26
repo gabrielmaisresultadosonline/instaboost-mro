@@ -846,31 +846,30 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         }
 
         {
-          const tintR = mixWithWhite(rgb.r, 0.08);
-          const tintG = mixWithWhite(rgb.g, 0.08);
-          const tintB = mixWithWhite(rgb.b, 0.08);
+          // Dark callout box (matches preview)
           const calloutTitle = "POR QUE ESSA ETAPA É CRUCIAL?";
-          const calloutBody = "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.";
-          // calcula a quebra com a fonte/tamanho corretos de cada bloco
+          const calloutBody = "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado, gerando autoridade e conversão imediata.";
+          const padX = 8;
+          const innerWidth = contentWidth - padX * 2;
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 0.9);
-          const calloutTitleLines = splitToFit(calloutTitle, contentWidth - 14);
+          const calloutTitleLines = splitToFit(calloutTitle, innerWidth);
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.8);
-          const calloutBodyLines = splitToFit(calloutBody, contentWidth - 14);
+          const calloutBodyLines = splitToFit(calloutBody, innerWidth);
           const calloutTitleH = textHeight(calloutTitleLines, lineHeightMm(0.9, 1.15));
-          const calloutBodyH = textHeight(calloutBodyLines, lineHeightMm(0.8, 1.2));
-          const boxH = 9 + calloutTitleH + 4 + calloutBodyH + 6;
-          doc.setFillColor(tintR, tintG, tintB);
+          const calloutBodyH = textHeight(calloutBodyLines, lineHeightMm(0.8, 1.25));
+          const boxH = 10 + calloutTitleH + 4 + calloutBodyH + 8;
+          doc.setFillColor(26, 26, 26);
           doc.rect(margin, yPos, contentWidth, boxH, 'F');
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(data.fontSizeBase * 0.9);
           doc.setTextColor(rgb.r, rgb.g, rgb.b);
-          doc.text(calloutTitleLines, margin + 5, yPos + 9, { lineHeightFactor: 1.15 });
+          doc.text(calloutTitleLines, margin + padX, yPos + 10, { lineHeightFactor: 1.15 });
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.8);
-          doc.setTextColor(60, 60, 60);
-          doc.text(calloutBodyLines, margin + 5, yPos + 13 + calloutTitleH, { lineHeightFactor: 1.2 });
+          doc.setTextColor(230, 230, 230);
+          doc.text(calloutBodyLines, margin + padX, yPos + 14 + calloutTitleH, { lineHeightFactor: 1.25 });
           yPos += boxH + 8;
         }
       }
