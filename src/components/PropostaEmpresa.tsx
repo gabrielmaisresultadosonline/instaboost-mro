@@ -301,7 +301,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
           y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende. Nossa prospecção humana agrega valor real à sua marca.", 50, y, 500);
           
-          drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
+          if (data.showGrid && data.showGraphs) {
+            drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
+          }
         }
 
         if (pageNum === 3) {
@@ -559,6 +561,10 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
+        // Modo limpo absoluto: se o usuário desligar as linhas, o PDF não
+        // desenha grade, gráficos, barras, ícones, silhuetas ou formas de fundo.
+        if (!data.showGrid) return;
+
         const opacity = 0.2; 
         const r = mixWithWhite(rgb.r, opacity);
         const g = mixWithWhite(rgb.g, opacity);
@@ -569,35 +575,31 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setLineWidth(0.1);
 
         // Background Grid - subtle
-        if (data.showGrid) {
-          const gr = mixWithWhite(rgb.r, Math.min(0.15, data.gridOpacity));
-          const gg = mixWithWhite(rgb.g, Math.min(0.15, data.gridOpacity));
-          const gb = mixWithWhite(rgb.b, Math.min(0.15, data.gridOpacity));
-          doc.setDrawColor(gr, gg, gb);
-          for (let i = 0; i < pageWidth; i += 20) {
-            doc.line(i, 0, i, pageHeight);
-          }
-          for (let i = 0; i < pageHeight; i += 20) {
-            doc.line(0, i, pageWidth, i);
-          }
+        const gr = mixWithWhite(rgb.r, Math.min(0.15, data.gridOpacity));
+        const gg = mixWithWhite(rgb.g, Math.min(0.15, data.gridOpacity));
+        const gb = mixWithWhite(rgb.b, Math.min(0.15, data.gridOpacity));
+        doc.setDrawColor(gr, gg, gb);
+        for (let i = 0; i < pageWidth; i += 20) {
+          doc.line(i, 0, i, pageHeight);
+        }
+        for (let i = 0; i < pageHeight; i += 20) {
+          doc.line(0, i, pageWidth, i);
         }
 
 
         if (data.showGraphs) {
           // Top Right: Result Graph (Lines) - Fixed position to avoid headers
-          if (data.showGrid) {
-            doc.setLineWidth(0.4);
-            const gx = pageWidth - 50;
-            const gy = 55; // Lowered to avoid header gradient
-            doc.line(gx, gy, gx + 8, gy - 6);
-            doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
-            doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
-            
-            doc.circle(gx, gy, 0.8, 'F');
-            doc.circle(gx + 8, gy - 6, 0.8, 'F');
-            doc.circle(gx + 16, gy - 2, 0.8, 'F');
-            doc.circle(gx + 28, gy - 12, 0.8, 'F');
-          }
+          doc.setLineWidth(0.4);
+          const gx = pageWidth - 50;
+          const gy = 55; // Lowered to avoid header gradient
+          doc.line(gx, gy, gx + 8, gy - 6);
+          doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
+          doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
+          
+          doc.circle(gx, gy, 0.8, 'F');
+          doc.circle(gx + 8, gy - 6, 0.8, 'F');
+          doc.circle(gx + 16, gy - 2, 0.8, 'F');
+          doc.circle(gx + 28, gy - 12, 0.8, 'F');
 
           // Bottom Left: Growth Bar Chart - More side-aligned
           const barX = 10;
@@ -607,24 +609,22 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             doc.rect(barX + (i * 6), barY, 4, -h, 'F');
           });
 
-          if (data.showGrid) {
-            // People Icons (Silhouettes) - Strategic placement
-            for (let i = 0; i < 3; i++) {
-              const px = pageWidth - 35 - (i * 12);
-              const py = pageHeight - 65;
-              // Head
-              doc.circle(px, py, 1.5, 'F');
-              // Body
-              doc.setLineWidth(0.8);
-              doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
-              doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
-              doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
-              doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
-            }
-
-            // Small Instagram Icon Decoration (Bottom Right corner area)
-            drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
+          // People Icons (Silhouettes) - Strategic placement
+          for (let i = 0; i < 3; i++) {
+            const px = pageWidth - 35 - (i * 12);
+            const py = pageHeight - 65;
+            // Head
+            doc.circle(px, py, 1.5, 'F');
+            // Body
+            doc.setLineWidth(0.8);
+            doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
+            doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
+            doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
+            doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
           }
+
+          // Small Instagram Icon Decoration (Bottom Right corner area)
+          drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
         }
       };
 
@@ -695,7 +695,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       
       // Floating Vector Icon (Result Chart) near title
-      if (data.showGraphs) {
+      if (data.showGrid && data.showGraphs) {
         const iconX = pageWidth - 35;
         const iconY = yPos - 25;
         doc.setDrawColor(rgb.r, rgb.g, rgb.b);
