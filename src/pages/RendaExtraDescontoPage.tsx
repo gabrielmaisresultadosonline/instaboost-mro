@@ -15,7 +15,18 @@ const trackEvent = (page: string) => {
 
 const RendaExtraDescontoPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
+  const [mode, setMode] = useState<'gate' | 'choice' | 'prestar'>(() => {
+    try { return localStorage.getItem('rendaextra-desconto:email') ? 'prestar' : 'gate'; } catch { return 'gate'; }
+  });
+  const [gateEmail, setGateEmail] = useState('');
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateError, setGateError] = useState('');
+  const [leadEmail, setLeadEmail] = useState<string>(() => {
+    try { return localStorage.getItem('rendaextra-desconto:email') || ''; } catch { return ''; }
+  });
+  const [leadName, setLeadName] = useState<string>(() => {
+    try { return localStorage.getItem('rendaextra-desconto:name') || ''; } catch { return ''; }
+  });
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,6 +41,7 @@ const RendaExtraDescontoPage = () => {
   const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
     try { return localStorage.getItem('rendaextra-desconto:video-unlocked') === '1'; } catch { return false; }
   });
+  const [sendingUnlock, setSendingUnlock] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
@@ -40,6 +52,42 @@ const RendaExtraDescontoPage = () => {
     setShowControls(true);
     if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current);
     controlsTimerRef.current = window.setTimeout(() => setShowControls(false), CONTROLS_HIDE_MS);
+  };
+
+  const handleGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGateError('');
+    const email = gateEmail.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setGateError('Informe um email valido.');
+      return;
+    }
+    setGateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('rendaextra-desconto-access', {
+        body: { action: 'verify_email', email },
+      });
+      if (error || !data?.success) {
+        setGateError(data?.message || 'Email nao encontrado no cadastro do /rendaextra.');
+        setGateLoading(false);
+        return;
+      }
+      setLeadEmail(data.email);
+      setLeadName(data.name || '');
+      try {
+        localStorage.setItem('rendaextra-desconto:email', data.email);
+        localStorage.setItem('rendaextra-desconto:name', data.name || '');
+      } catch {}
+      if (data.unlocked || (data.percent_watched || 0) >= 50) {
+        try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
+        setUnlockedPersisted(true);
+      }
+      setMode('prestar');
+    } catch (err) {
+      setGateError('Erro ao verificar. Tente novamente.');
+    } finally {
+      setGateLoading(false);
+    }
   };
 
   useEffect(() => {
