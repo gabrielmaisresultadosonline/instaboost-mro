@@ -274,6 +274,42 @@ const RendaExtraDescontoPage = () => {
 
 
 
+  if (mode === 'gate') {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8 flex items-center justify-center">
+        <div className="w-full max-w-md bg-[#0d0d16] border border-white/10 rounded-3xl p-7 md:p-9 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.25em] mb-4">Area Exclusiva</div>
+            <h1 className="text-2xl md:text-3xl font-black uppercase italic leading-tight">Acesso ao Desconto MRO</h1>
+            <p className="text-white/50 text-sm mt-3 font-medium">Informe o mesmo email que voce cadastrou em <span className="text-amber-400">/rendaextra</span> para liberar seu acesso.</p>
+          </div>
+          <form onSubmit={handleGateSubmit} className="space-y-3">
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={gateEmail}
+              onChange={(e) => setGateEmail(e.target.value)}
+              placeholder="seu@email.com"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 focus:border-amber-500/60 focus:outline-none text-white placeholder:text-white/30"
+            />
+            {gateError && <p className="text-red-400 text-xs font-medium">{gateError}</p>}
+            <Button
+              type="submit"
+              disabled={gateLoading}
+              className="w-full py-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(16,185,129,0.3)] h-auto"
+            >
+              {gateLoading ? 'Verificando...' : 'Entrar'}
+            </Button>
+            <p className="text-center text-white/40 text-xs pt-2">
+              Ainda nao cadastrou? <a href="/rendaextra" className="text-amber-400 underline">Cadastre-se aqui</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (mode === 'choice') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
