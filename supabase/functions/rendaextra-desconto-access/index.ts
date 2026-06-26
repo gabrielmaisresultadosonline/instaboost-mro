@@ -103,7 +103,7 @@ serve(async (req) => {
 
     const { data: lead } = await supabase
       .from("renda_extra_lead_leads")
-      .select("id, nome_completo, email, desconto_video_percent, desconto_unlocked_at")
+      .select("id, nome_completo, email, desconto_video_percent, desconto_unlocked_at, promo_video_percent")
       .ilike("email", emailRaw)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -159,6 +159,21 @@ serve(async (req) => {
       await supabase.from("renda_extra_lead_leads").update(patch).eq("id", lead.id);
       const sent = await sendDiscountEmail(lead.email, lead.nome_completo);
       return new Response(JSON.stringify({ success: true, email_sent: sent }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "track_promo_progress") {
+      const pct = Math.max(0, Math.min(100, Math.floor(Number(body.percent) || 0)));
+      const newPct = Math.max(pct, (lead as any).promo_video_percent || 0);
+      await supabase
+        .from("renda_extra_lead_leads")
+        .update({
+          promo_video_percent: newPct,
+          promo_video_last_watched_at: new Date().toISOString(),
+        })
+        .eq("id", lead.id);
+      return new Response(JSON.stringify({ success: true, percent_watched: newPct }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

@@ -4353,6 +4353,8 @@ export type Database = {
           instagram_username: string | null
           media_salarial: string
           nome_completo: string
+          promo_video_last_watched_at: string | null
+          promo_video_percent: number | null
           tipo_computador: string
           trabalha_atualmente: boolean | null
           whatsapp: string
@@ -4372,6 +4374,8 @@ export type Database = {
           instagram_username?: string | null
           media_salarial: string
           nome_completo: string
+          promo_video_last_watched_at?: string | null
+          promo_video_percent?: number | null
           tipo_computador: string
           trabalha_atualmente?: boolean | null
           whatsapp: string
@@ -4391,6 +4395,8 @@ export type Database = {
           instagram_username?: string | null
           media_salarial?: string
           nome_completo?: string
+          promo_video_last_watched_at?: string | null
+          promo_video_percent?: number | null
           tipo_computador?: string
           trabalha_atualmente?: boolean | null
           whatsapp?: string

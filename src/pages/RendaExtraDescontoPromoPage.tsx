@@ -52,6 +52,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
+import PromoToolVideoSection from "@/components/PromoToolVideoSection";
 
 const RendaExtraDescontoPromoPage = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -477,6 +478,9 @@ const RendaExtraDescontoPromoPage = () => {
           </div>
         </div>
       </section>
+
+      {/* === VIDEO: VEJA COMO A FERRAMENTA TRABALHA === */}
+      <PromoToolVideoSection />
 
       {/* === COMO FUNCIONA A RENDA EXTRA === */}
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
