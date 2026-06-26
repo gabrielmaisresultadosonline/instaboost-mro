@@ -157,6 +157,7 @@ import CreatorDevProject from "./pages/CreatorDevProject";
 import CreatorDevAdmin from "./pages/CreatorDevAdmin";
 import ComercialAAF from "./pages/ComercialAAF";
 import ComercialAAFAdmin from "./pages/ComercialAAFAdmin";
+import MktCompleto from "./pages/MktCompleto";
 
 
 
@@ -369,6 +370,7 @@ const App = () => (
           
           <Route path="/comercialaaf" element={<ComercialAAF />} />
           <Route path="/comercialaaf/admin" element={<ComercialAAFAdmin />} />
+          <Route path="/mktcompleto" element={<MktCompleto />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
