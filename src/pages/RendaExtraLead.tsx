@@ -204,6 +204,7 @@ const RendaExtraLead = () => {
       if (response.error) throw response.error;
 
       setGroupLink(response.data.whatsappGroupLink);
+      setWhatsappGroupInvite(response.data.groupLink || null);
       setSubmitted(true);
 
       toast({
