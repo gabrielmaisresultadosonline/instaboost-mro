@@ -155,6 +155,8 @@ import VenderObrigado from "./pages/VenderObrigado";
 import CreatorDev from "./pages/CreatorDev";
 import CreatorDevProject from "./pages/CreatorDevProject";
 import CreatorDevAdmin from "./pages/CreatorDevAdmin";
+import ComercialAAF from "./pages/ComercialAAF";
+import ComercialAAFAdmin from "./pages/ComercialAAFAdmin";
 
 
 
