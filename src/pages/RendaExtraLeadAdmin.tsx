@@ -465,6 +465,8 @@ const RendaExtraLeadAdmin = () => {
                         <TableHead className="text-gray-300 whitespace-nowrap">Instagram</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Data</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Email Enviado</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Video Desconto</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Video Promo</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -491,6 +493,38 @@ const RendaExtraLeadAdmin = () => {
                               <CheckCircle className="w-5 h-5 text-green-400" />
                             ) : (
                               <XCircle className="w-5 h-5 text-gray-500" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-gray-300 whitespace-nowrap">
+                            {lead.desconto_video_percent ? (
+                              <div className="flex flex-col">
+                                <span className={`font-bold ${(lead.desconto_video_percent || 0) >= 50 ? "text-green-400" : "text-yellow-400"}`}>
+                                  {lead.desconto_video_percent}%
+                                </span>
+                                {lead.desconto_last_access_at && (
+                                  <span className="text-[10px] text-gray-500">
+                                    {format(new Date(lead.desconto_last_access_at), "dd/MM HH:mm", { locale: ptBR })}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-600">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {lead.promo_video_percent ? (
+                              <div className="flex flex-col">
+                                <span className={`font-bold ${(lead.promo_video_percent || 0) >= 75 ? "text-green-400" : (lead.promo_video_percent || 0) >= 50 ? "text-yellow-400" : "text-orange-400"}`}>
+                                  {lead.promo_video_percent}%
+                                </span>
+                                {lead.promo_video_last_watched_at && (
+                                  <span className="text-[10px] text-gray-500">
+                                    {format(new Date(lead.promo_video_last_watched_at), "dd/MM HH:mm", { locale: ptBR })}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-600">-</span>
                             )}
                           </TableCell>
                         </TableRow>
