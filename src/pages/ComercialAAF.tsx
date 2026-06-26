@@ -120,7 +120,7 @@ function StepForm({ open, onClose }: { open: boolean; onClose: () => void }) {
                 ) : current.type === "choice" ? (
                   <div className="space-y-2">
                     {current.options!.map((o) => (
-                      <button key={o.v} onClick={() => { update(o.v); setTimeout(next, 200); }}
+                      <button key={o.v} onClick={() => { update(o.v); if (!isLast) setTimeout(next, 200); }}
                         className={`w-full text-left px-5 py-4 rounded-lg border-2 transition-all font-semibold ${
                           value === o.v ? "bg-amber-500 text-black border-amber-400" : "bg-zinc-900 text-white border-zinc-800 hover:border-amber-500/50"
                         }`}>
@@ -140,18 +140,27 @@ function StepForm({ open, onClose }: { open: boolean; onClose: () => void }) {
 
             <div className="flex items-center justify-between mt-8">
               <button onClick={() => step > 0 && setStep(step - 1)}
-                disabled={step === 0}
+                disabled={step === 0 || loading}
                 className="text-zinc-500 hover:text-white text-sm disabled:opacity-30">
                 ← Voltar
               </button>
-              {current.type !== "choice" && (
-                <Button onClick={next} disabled={loading}
+              {(current.type !== "choice" || isLast) && (
+                <Button onClick={next} disabled={loading || (isLast && !value)}
                   className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold px-8 h-12">
-                  {loading ? "Enviando..." : isLast ? "Finalizar" : "Avançar"}
+                  {isLast ? "Enviar" : "Avançar"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
             </div>
+
+            {loading && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 rounded-2xl">
+                <div className="w-16 h-16 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+                <p className="text-amber-300 font-semibold mt-6 text-lg">Enviando seu interesse...</p>
+                <p className="text-zinc-500 text-sm mt-1">Aguarde um instante</p>
+              </motion.div>
+            )}
           </div>
         )}
         </DialogPrimitive.Content>
