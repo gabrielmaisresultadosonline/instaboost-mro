@@ -53,7 +53,7 @@ import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 
-const DescontoAlunosRendaExtra = () => {
+const RendaExtraDescontoPromoPage = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -925,4 +925,4 @@ const DescontoAlunosRendaExtra = () => {
   );
 };
 
-export default DescontoAlunosRendaExtra;
+export default RendaExtraDescontoPromoPage;
