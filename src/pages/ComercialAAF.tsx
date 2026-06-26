@@ -154,7 +154,8 @@ function StepForm({ open, onClose }: { open: boolean; onClose: () => void }) {
             </div>
           </div>
         )}
-      </DialogContent>
+        </DialogPrimitive.Content>
+      </DialogPortal>
     </Dialog>
   );
 }
