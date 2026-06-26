@@ -367,6 +367,8 @@ const App = () => (
 
 
           
+          <Route path="/comercialaaf" element={<ComercialAAF />} />
+          <Route path="/comercialaaf/admin" element={<ComercialAAFAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
