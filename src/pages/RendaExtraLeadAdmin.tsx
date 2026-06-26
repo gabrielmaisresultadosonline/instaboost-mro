@@ -605,40 +605,6 @@ const RendaExtraLeadAdmin = () => {
               <CardContent className="space-y-6">
                 <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-lg space-y-4">
                   <div>
-                    <Label htmlFor="waNumber" className="text-gray-300 flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-green-400" />
-                      Número do WhatsApp
-                    </Label>
-                    <Input
-                      id="waNumber"
-                      value={settings.whatsapp_number}
-                      onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })}
-                      className="mt-2 bg-gray-700 border-gray-600 text-white"
-                      placeholder="555198488620 (com DDI 55 + DDD + número)"
-                    />
-                    <p className="text-gray-500 text-sm mt-1">
-                      Apenas números. Ex: <span className="text-green-400">555198488620</span> (55 = Brasil, 51 = DDD).
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="waMessage" className="text-gray-300 flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-green-400" />
-                      Mensagem automática do WhatsApp
-                    </Label>
-                    <Input
-                      id="waMessage"
-                      value={settings.whatsapp_message}
-                      onChange={(e) => setSettings({ ...settings, whatsapp_message: e.target.value })}
-                      className="mt-2 bg-gray-700 border-gray-600 text-white"
-                      placeholder="Olá gostaria de aprender sobre a renda extra"
-                    />
-                    <p className="text-gray-500 text-sm mt-1">
-                      Mensagem que aparece pré-preenchida quando o lead clica no botão.
-                    </p>
-                  </div>
-
-                  <div>
                     <Label htmlFor="waGroupLink" className="text-gray-300 flex items-center gap-2">
                       <Link2 className="w-4 h-4 text-green-400" />
                       Link do Grupo do WhatsApp
@@ -652,35 +618,7 @@ const RendaExtraLeadAdmin = () => {
                     />
                     <p className="text-gray-500 text-sm mt-1">
                       Link de convite do grupo. Aparece como botão "Participe do grupo" na tela de sucesso e no email.
-                    </p>
-                  </div>
-
-
-
-                  <div className="p-3 bg-gray-900/60 rounded-md border border-gray-700">
-                    <Label className="text-gray-300 flex items-center gap-2 mb-2">
-                      <Link2 className="w-4 h-4 text-yellow-400" />
-                      Link encurtado (fixo no email e no botão)
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-black/40 text-yellow-300 text-sm px-3 py-2 rounded break-all">
-                        https://maisresultadosonline.com.br/r/rxl-wa
-                      </code>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText("https://maisresultadosonline.com.br/r/rxl-wa");
-                          toast({ title: "Link copiado!" });
-                        }}
-                      >
-                        Copiar
-                      </Button>
-                    </div>
-                    <p className="text-gray-500 text-xs mt-2">
-                      Este link <strong>nunca muda</strong>. Ele sempre redireciona para o número e a mensagem configurados acima.
-                      Se você trocar o WhatsApp depois, todos os leads (incluindo emails antigos) cairão automaticamente no número novo.
+                      O contato direto sempre usa o número oficial em <code className="text-yellow-300">/whatsapp</code>.
                     </p>
                   </div>
                 </div>
