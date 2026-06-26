@@ -202,7 +202,8 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
           trabalha_atualmente: formData.trabalhaAtualmente,
           media_salarial: formData.mediaSalarial,
           tipo_computador: formData.tipoComputador,
-          instagram_username: formData.instagramUsername
+          instagram_username: formData.instagramUsername,
+          lead_source: source,
         }
       });
 
