@@ -59,10 +59,7 @@ export default function ComercialAAF() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Helmet>
-        <title>Projeto AAF - Anúncio, Abordagem e Fechamento | MRO</title>
-        <meta name="description" content="Ecossistema completo para empresas faturarem mais. Anúncios, abordagem comercial e fechamento de vendas com Meta API e plataforma MRO." />
-      </Helmet>
+      <SetTitle title="Projeto AAF - Anúncio, Abordagem e Fechamento | MRO" description="Ecossistema completo para empresas faturarem mais. Anúncios, abordagem comercial e fechamento de vendas com Meta API e plataforma MRO." />
 
       {/* HERO */}
       <header className="relative overflow-hidden border-b border-amber-500/20">
