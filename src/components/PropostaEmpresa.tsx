@@ -25,8 +25,10 @@ interface PropostaData {
   fontSizeBase: number;
   periodoGarantia: string;
   showGrid: boolean;
+  showTopGrid: boolean;
   showGraphs: boolean;
   gridOpacity: number;
+  topGridOpacity: number;
 }
 
 
@@ -44,8 +46,10 @@ const defaultData: PropostaData = {
   fontSizeBase: 16,
   periodoGarantia: '7',
   showGrid: true,
+  showTopGrid: false,
   showGraphs: true,
   gridOpacity: 0.03,
+  topGridOpacity: 0,
 };
 
 
@@ -65,7 +69,18 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
+  const updateGridVisibility = (enabled: boolean) => {
+    setData(prev => ({
+      ...prev,
+      showGrid: enabled,
+      showTopGrid: enabled ? prev.showTopGrid : false,
+      gridOpacity: enabled ? prev.gridOpacity : 0,
+      topGridOpacity: enabled ? prev.topGridOpacity : 0,
+    }));
+  };
+
   const showDecorativeLines = data.showGrid && data.gridOpacity > 0;
+  const showTopGridLines = data.showGrid && data.showTopGrid && data.topGridOpacity > 0;
 
   const hexToRgb = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -189,6 +204,24 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     ctx.restore();
   };
 
+  const drawTopGrid = (ctx: CanvasRenderingContext2D, W: number, headerHeight: number) => {
+    if (!showTopGridLines) return;
+
+    ctx.save();
+    ctx.globalAlpha = data.topGridOpacity;
+    ctx.strokeStyle = '#050508';
+    ctx.lineWidth = 1;
+
+    for (let x = -80; x < W + 120; x += 34) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 56, headerHeight);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  };
+
 
   const renderPreview = async () => {
     if (!canvasRef.current || !canvasPage2Ref.current || !canvasPage3Ref.current || !canvasPage4Ref.current) return;
@@ -240,6 +273,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       if (pageNum === 1) {
         ctx.fillStyle = headerGrad;
         ctx.fillRect(0, 0, W, 300);
+        drawTopGrid(ctx, W, 300);
 
         if (logoPreview) {
           try {
@@ -279,6 +313,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       } else {
         ctx.fillStyle = headerGrad;
         ctx.fillRect(0, 0, W, 80);
+        drawTopGrid(ctx, W, 80);
         ctx.textAlign = 'left';
 
         if (pageNum === 2) {
@@ -569,6 +604,21 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         return;
       };
 
+      const drawPDFTopGrid = (x: number, y: number, w: number, h: number) => {
+        if (!showTopGridLines) return;
+
+        const lineMix = Math.min(0.45, Math.max(0, data.topGridOpacity * 4));
+        const lineR = Math.floor(secondaryRgb.r * lineMix + 5 * (1 - lineMix));
+        const lineG = Math.floor(secondaryRgb.g * lineMix + 5 * (1 - lineMix));
+        const lineB = Math.floor(secondaryRgb.b * lineMix + 8 * (1 - lineMix));
+
+        doc.setDrawColor(lineR, lineG, lineB);
+        doc.setLineWidth(0.18);
+        for (let offset = -30; offset < w + 30; offset += 8) {
+          doc.line(x + offset, y, x + offset + 14, y + h);
+        }
+      };
+
 
 
       const drawGradientRect = (x: number, y: number, w: number, h: number) => {
@@ -593,6 +643,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       };
 
       drawGradientRect(0, 0, pageWidth, 90);
+      drawPDFTopGrid(0, 0, pageWidth, 90);
       drawPDFDecorativeElements(pageWidth, pageHeight);
       // (sem linhas diagonais decorativas no header)
 
@@ -647,6 +698,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.addPage();
       drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+      drawPDFTopGrid(0, 0, pageWidth, 25);
 
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
@@ -692,6 +744,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.addPage();
       drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+      drawPDFTopGrid(0, 0, pageWidth, 25);
 
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
@@ -753,6 +806,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.addPage();
         drawPDFDecorativeElements(pageWidth, pageHeight);
         drawGradientRect(0, 0, pageWidth, 25);
+        drawPDFTopGrid(0, 0, pageWidth, 25);
 
         yPos = 45;
         doc.setTextColor(rgb.r, rgb.g, rgb.b);
@@ -833,6 +887,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       doc.addPage();
       drawPDFDecorativeElements(pageWidth, pageHeight);
       drawGradientRect(0, 0, pageWidth, 25);
+      drawPDFTopGrid(0, 0, pageWidth, 25);
 
       yPos = 45;
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
@@ -1001,16 +1056,36 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
                     <Label>Exibir Linhas de Grade</Label>
                     <p className="text-[10px] text-gray-500 italic">Controla as linhas verticais/horizontais no fundo</p>
                   </div>
-                  <Switch checked={data.showGrid} onCheckedChange={v => update('showGrid', v)} />
+                    <Switch checked={data.showGrid} onCheckedChange={updateGridVisibility} />
                 </div>
 
                 {data.showGrid && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label>Opacidade da Grade</Label>
-                      <span className="text-xs font-mono text-emerald-400">{Math.round(data.gridOpacity * 100)}%</span>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label>Opacidade da Grade Geral</Label>
+                        <span className="text-xs font-mono text-emerald-400">{Math.round(data.gridOpacity * 100)}%</span>
+                      </div>
+                      <input type="range" min="0" max="0.1" step="0.01" value={data.gridOpacity} onChange={e => update('gridOpacity', parseFloat(e.target.value))} className="w-full accent-emerald-500" />
                     </div>
-                    <input type="range" min="0" max="0.1" step="0.01" value={data.gridOpacity} onChange={e => update('gridOpacity', parseFloat(e.target.value))} className="w-full accent-emerald-500" />
+
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                      <div className="space-y-0.5">
+                        <Label>Grade do Topo</Label>
+                        <p className="text-[10px] text-gray-500 italic">Remove ou controla as linhas no degradê superior</p>
+                      </div>
+                      <Switch checked={data.showTopGrid} onCheckedChange={v => update('showTopGrid', v)} />
+                    </div>
+
+                    {data.showTopGrid && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label>Opacidade da Grade do Topo</Label>
+                          <span className="text-xs font-mono text-emerald-400">{Math.round(data.topGridOpacity * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="0.15" step="0.01" value={data.topGridOpacity} onChange={e => update('topGridOpacity', parseFloat(e.target.value))} className="w-full accent-emerald-500" />
+                      </div>
+                    )}
                   </div>
                 )}
 
