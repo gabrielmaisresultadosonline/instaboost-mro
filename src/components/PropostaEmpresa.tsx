@@ -604,19 +604,11 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         return;
       };
 
-      const drawPDFTopGrid = (x: number, y: number, w: number, h: number) => {
-        if (!showTopGridLines) return;
-
-        const lineMix = Math.min(0.45, Math.max(0, data.topGridOpacity * 4));
-        const lineR = Math.floor(secondaryRgb.r * lineMix + 5 * (1 - lineMix));
-        const lineG = Math.floor(secondaryRgb.g * lineMix + 5 * (1 - lineMix));
-        const lineB = Math.floor(secondaryRgb.b * lineMix + 8 * (1 - lineMix));
-
-        doc.setDrawColor(lineR, lineG, lineB);
-        doc.setLineWidth(0.18);
-        for (let offset = -30; offset < w + 30; offset += 8) {
-          doc.line(x + offset, y, x + offset + 14, y + h);
-        }
+      const drawPDFTopGrid = (_x: number, _y: number, _w: number, _h: number) => {
+        // Correção definitiva: a prévia em canvas já respeita as opções de grade.
+        // No PDF exportado, não desenhamos nenhuma grade diagonal no topo para evitar
+        // divergência entre a prévia limpa e o arquivo gerado.
+        return;
       };
 
 
