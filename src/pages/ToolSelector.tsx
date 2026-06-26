@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera, Code2 } from 'lucide-react';
+import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera, Code2, Megaphone } from 'lucide-react';
 // Use Camera as fallback if Instagram is not available in some lucide versions
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
@@ -55,6 +55,18 @@ const ToolSelector = () => {
       borderColor: 'border-blue-500/30',
       badge: 'FULL STACK',
       salesPath: '/creatordev'
+    },
+    {
+      id: 'mktcompleto',
+      name: 'Marketing Completo',
+      subtitle: 'GESTÃO + ADS + IA',
+      description: 'Marketing digital completo com Meta Ads e Inteligência Artificial.',
+      icon: Megaphone,
+      color: 'from-yellow-400 to-amber-600',
+      hoverColor: 'hover:from-yellow-500 hover:to-amber-700',
+      borderColor: 'border-yellow-500/30',
+      badge: 'PREMIUM',
+      salesPath: '/mktcompleto'
     }
   ];
 
