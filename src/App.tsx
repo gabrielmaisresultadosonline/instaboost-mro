@@ -155,6 +155,8 @@ import VenderObrigado from "./pages/VenderObrigado";
 import CreatorDev from "./pages/CreatorDev";
 import CreatorDevProject from "./pages/CreatorDevProject";
 import CreatorDevAdmin from "./pages/CreatorDevAdmin";
+import ComercialAAF from "./pages/ComercialAAF";
+import ComercialAAFAdmin from "./pages/ComercialAAFAdmin";
 
 
 
@@ -365,6 +367,8 @@ const App = () => (
 
 
           
+          <Route path="/comercialaaf" element={<ComercialAAF />} />
+          <Route path="/comercialaaf/admin" element={<ComercialAAFAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

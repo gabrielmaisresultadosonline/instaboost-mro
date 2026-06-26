@@ -350,6 +350,42 @@ export type Database = {
         }
         Relationships: []
       }
+      comercialaaf_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_enviado: boolean
+          empresa: string
+          faturamento: string
+          id: string
+          nome: string
+          o_que_vende: string | null
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_enviado?: boolean
+          empresa: string
+          faturamento: string
+          id?: string
+          nome: string
+          o_que_vende?: string | null
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_enviado?: boolean
+          empresa?: string
+          faturamento?: string
+          id?: string
+          nome?: string
+          o_que_vende?: string | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       corretor_announcement_views: {
         Row: {
           announcement_id: string
