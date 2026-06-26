@@ -133,17 +133,27 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
     }
     setUploadingLogo(true);
     try {
-      const logoPath = `reports/${mroUsername.toLowerCase()}/logo.png`;
-      const { error } = await supabase.storage.from('user-data').upload(logoPath, file, {
-        contentType: file.type, upsert: true,
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke('report-storage', {
+        body: {
+          action: 'upload_logo',
+          squarecloud_username: mroUsername,
+          logo_base64: base64,
+          logo_content_type: file.type,
+        },
       });
       if (error) throw error;
-      const { data } = supabase.storage.from('user-data').getPublicUrl(logoPath);
-      setLogoUrl(data.publicUrl + '?t=' + Date.now());
+      if (!data?.success) throw new Error(data?.error || 'Falha no upload');
+      setLogoUrl(data.url + '?t=' + Date.now());
       toast.success('Logo salva com sucesso!');
     } catch (err: any) {
       console.error('Logo upload error:', err);
-      toast.error('Erro ao enviar logo');
+      toast.error('Erro ao enviar logo: ' + (err?.message || ''));
     } finally {
       setUploadingLogo(false);
     }
