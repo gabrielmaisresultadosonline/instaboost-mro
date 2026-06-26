@@ -13,7 +13,7 @@ const trackEvent = (page: string) => {
   supabase.functions.invoke('estrutura4-discount', { body: { action: 'track_visit', page } }).catch(() => {});
 };
 
-const RendaExtraPage = () => {
+const RendaExtraDescontoPage = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({ video_url: null, hls_url: null, video_title: null });
@@ -28,7 +28,7 @@ const RendaExtraPage = () => {
   const [duration, setDuration] = useState(0);
   const [watchedSeconds, setWatchedSeconds] = useState(0);
   const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
-    try { return localStorage.getItem('renda-extra2:video-unlocked') === '1'; } catch { return false; }
+    try { return localStorage.getItem('rendaextra-desconto:video-unlocked') === '1'; } catch { return false; }
   });
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
@@ -43,8 +43,8 @@ const RendaExtraPage = () => {
   };
 
   useEffect(() => {
-    trackPageView('Renda Extra 2');
-    trackEvent('/renda-extra2');
+    trackPageView('Renda Extra Desconto');
+    trackEvent('/rendaextra-desconto');
     supabase.functions.invoke('estrutura4-discount', { body: { action: 'get_video' } })
       .then(({ data }) => { if (data) setVideoCfg(data); }).catch(() => {});
   }, []);
@@ -103,9 +103,9 @@ const RendaExtraPage = () => {
       if (d > 0) {
         const pct = (video.currentTime / d) * 100;
         const m = progressMarksRef.current;
-        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:renda-extra2:25'); }
-        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:renda-extra2:50'); }
-        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:renda-extra2:75'); }
+        if (pct >= 25 && !m.p25) { m.p25 = true; trackEvent('video:rendaextra-desconto:25'); }
+        if (pct >= 50 && !m.p50) { m.p50 = true; trackEvent('video:rendaextra-desconto:50'); }
+        if (pct >= 75 && !m.p75) { m.p75 = true; trackEvent('video:rendaextra-desconto:75'); }
       }
     };
     const onSeeking = () => {
@@ -118,7 +118,7 @@ const RendaExtraPage = () => {
       setPlaying(true);
       if (!progressMarksRef.current.startSent) {
         progressMarksRef.current.startSent = true;
-        trackEvent('video:renda-extra2:start');
+        trackEvent('video:rendaextra-desconto:start');
       }
     };
     const onPause = () => setPlaying(false);
@@ -126,7 +126,7 @@ const RendaExtraPage = () => {
       setPlaying(false); lastTime = 0;
       if (!progressMarksRef.current.p100) {
         progressMarksRef.current.p100 = true;
-        trackEvent('video:renda-extra2:100');
+        trackEvent('video:rendaextra-desconto:100');
       }
     };
     video.addEventListener('timeupdate', onTime);
@@ -208,7 +208,7 @@ const RendaExtraPage = () => {
   // Persist unlock state across visits
   useEffect(() => {
     if (buttonUnlocked && !unlockedPersisted) {
-      try { localStorage.setItem('renda-extra2:video-unlocked', '1'); } catch {}
+      try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
       setUnlockedPersisted(true);
     }
   }, [buttonUnlocked, unlockedPersisted]);
@@ -240,7 +240,7 @@ const RendaExtraPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pt-4">
             {/* Prestar serviço com a MRO */}
             <button
-              onClick={() => { trackEvent('click:renda-extra2:prestar'); setMode('prestar'); }}
+              onClick={() => { trackEvent('click:rendaextra-desconto:prestar'); setMode('prestar'); }}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-emerald-500/30 transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/60 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-5 right-5 bg-emerald-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
@@ -263,7 +263,7 @@ const RendaExtraPage = () => {
 
             {/* Licenciado MRO */}
             <button
-              onClick={() => { trackEvent('click:renda-extra2:licenciado'); navigate('/licenciado'); }}
+              onClick={() => { trackEvent('click:rendaextra-desconto:licenciado'); navigate('/licenciado'); }}
               className="group relative p-8 md:p-10 rounded-[2.5rem] bg-[#0d0d16] border border-amber-500/20 transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/50 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] flex flex-col items-center text-center gap-6 overflow-hidden shadow-2xl"
             >
               <div className="absolute top-5 right-5 bg-amber-500 text-black text-[9px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
@@ -404,7 +404,7 @@ const RendaExtraPage = () => {
             </div>
           ) : (
             <Button
-              onClick={() => { trackEvent('click:renda-extra2:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
+              onClick={() => { trackEvent('click:rendaextra-desconto:acessar-renda-extra-agora'); navigate('/estruturarendaextra4'); }}
               className="w-full max-w-md flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-8 py-5 sm:py-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm sm:text-lg md:text-xl transition-all hover:scale-[1.03] active:scale-95 uppercase tracking-wider sm:tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)] group whitespace-normal text-center leading-tight h-auto"
             >
               <span>ACESSAR RENDA EXTRA AGORA</span>
@@ -418,4 +418,4 @@ const RendaExtraPage = () => {
   );
 };
 
-export default RendaExtraPage;
+export default RendaExtraDescontoPage;
