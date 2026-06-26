@@ -564,72 +564,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         return y + textHeight(safeLines, lineHeight);
       };
 
-      const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
-        // Modo limpo absoluto: se o usuário desligar as linhas, o PDF não
-        // desenha grade, gráficos, barras, ícones, silhuetas ou formas de fundo.
-        if (!showDecorativeLines) return;
-
-        const opacity = 0.2; 
-        const r = mixWithWhite(rgb.r, opacity);
-        const g = mixWithWhite(rgb.g, opacity);
-        const b = mixWithWhite(rgb.b, opacity);
-        
-        doc.setDrawColor(r, g, b);
-        doc.setFillColor(r, g, b);
-        doc.setLineWidth(0.1);
-
-        // Background Grid - subtle
-        const gr = mixWithWhite(rgb.r, Math.min(0.15, data.gridOpacity));
-        const gg = mixWithWhite(rgb.g, Math.min(0.15, data.gridOpacity));
-        const gb = mixWithWhite(rgb.b, Math.min(0.15, data.gridOpacity));
-        doc.setDrawColor(gr, gg, gb);
-        for (let i = 0; i < pageWidth; i += 20) {
-          doc.line(i, 0, i, pageHeight);
-        }
-        for (let i = 0; i < pageHeight; i += 20) {
-          doc.line(0, i, pageWidth, i);
-        }
-
-
-        if (data.showGraphs) {
-          // Top Right: Result Graph (Lines) - Fixed position to avoid headers
-          doc.setLineWidth(0.4);
-          const gx = pageWidth - 50;
-          const gy = 55; // Lowered to avoid header gradient
-          doc.line(gx, gy, gx + 8, gy - 6);
-          doc.line(gx + 8, gy - 6, gx + 16, gy - 2);
-          doc.line(gx + 16, gy - 2, gx + 28, gy - 12);
-          
-          doc.circle(gx, gy, 0.8, 'F');
-          doc.circle(gx + 8, gy - 6, 0.8, 'F');
-          doc.circle(gx + 16, gy - 2, 0.8, 'F');
-          doc.circle(gx + 28, gy - 12, 0.8, 'F');
-
-          // Bottom Left: Growth Bar Chart - More side-aligned
-          const barX = 10;
-          const barY = pageHeight - 45;
-          const bars = [8, 12, 10, 20, 15, 25];
-          bars.forEach((h, i) => {
-            doc.rect(barX + (i * 6), barY, 4, -h, 'F');
-          });
-
-          // People Icons (Silhouettes) - Strategic placement
-          for (let i = 0; i < 3; i++) {
-            const px = pageWidth - 35 - (i * 12);
-            const py = pageHeight - 65;
-            // Head
-            doc.circle(px, py, 1.5, 'F');
-            // Body
-            doc.setLineWidth(0.8);
-            doc.line(px - 2.5, py + 4, px + 2.5, py + 4);
-            doc.line(px - 2.5, py + 4, px - 2.5, py + 8);
-            doc.line(px + 2.5, py + 4, px + 2.5, py + 8);
-            doc.line(px - 2.5, py + 8, px + 2.5, py + 8);
-          }
-
-          // Small Instagram Icon Decoration (Bottom Right corner area)
-          drawPDFInstagramIcon(pageWidth - 20, pageHeight - 45, 10, r, g, b);
-        }
+      const drawPDFDecorativeElements = (_pageWidth: number, _pageHeight: number) => {
+        // PDF limpo: nenhuma linha decorativa, grade, gráfico, silhueta ou ícone de fundo.
+        return;
       };
 
 
