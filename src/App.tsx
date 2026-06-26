@@ -370,6 +370,7 @@ const App = () => (
           
           <Route path="/comercialaaf" element={<ComercialAAF />} />
           <Route path="/comercialaaf/admin" element={<ComercialAAFAdmin />} />
+          <Route path="/mktcompleto" element={<MktCompleto />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
