@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera, Code2 } from 'lucide-react';
+import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera, Code2, Megaphone } from 'lucide-react';
 // Use Camera as fallback if Instagram is not available in some lucide versions
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
