@@ -82,6 +82,7 @@ import GrupoRendaExtra from "./pages/GrupoRendaExtra";
 import RendaExtraLead from "./pages/RendaExtraLead";
 import RendaExtraLeadWaRedirect from "./pages/RendaExtraLeadWaRedirect";
 import RendaExtraLeadAdmin from "./pages/RendaExtraLeadAdmin";
+import RendaExtraDescontoPage from "./pages/RendaExtraDescontoPage";
 import Empresas from "./pages/Empresas";
 import EmpresasAdmin from "./pages/EmpresasAdmin";
 import PostsPrompts from "./pages/PostsPrompts";
