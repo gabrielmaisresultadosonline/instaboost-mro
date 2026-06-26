@@ -83,6 +83,7 @@ import RendaExtraLead from "./pages/RendaExtraLead";
 import RendaExtraLeadWaRedirect from "./pages/RendaExtraLeadWaRedirect";
 import RendaExtraLeadAdmin from "./pages/RendaExtraLeadAdmin";
 import RendaExtraDescontoPage from "./pages/RendaExtraDescontoPage";
+import RendaExtraDescontoPromoPage from "./pages/RendaExtraDescontoPromoPage";
 import Empresas from "./pages/Empresas";
 import EmpresasAdmin from "./pages/EmpresasAdmin";
 import PostsPrompts from "./pages/PostsPrompts";
@@ -269,6 +270,7 @@ const App = () => (
           <Route path="/rendaextraaas" element={<RendaExtraAasPage />} />
           <Route path="/rendaextra/admin" element={<RendaExtraLeadAdmin />} />
           <Route path="/rendaextra/desconto" element={<RendaExtraDescontoPage />} />
+          <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
           <Route path="/r/rxl-wa" element={<RendaExtraLeadWaRedirect />} />
