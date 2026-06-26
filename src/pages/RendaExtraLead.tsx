@@ -160,6 +160,7 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
             media_salarial: formData.mediaSalarial || null,
             tipo_computador: "nenhum",
             instagram_username: formData.instagramUsername || null,
+            lead_source: source,
           });
           setBlockedNoComputer(true);
         } catch (err) {
