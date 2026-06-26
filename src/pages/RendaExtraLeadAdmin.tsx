@@ -474,6 +474,17 @@ const RendaExtraLeadAdmin = () => {
                     <TableBody>
                       {(showAllLeads || searchQuery ? filteredLeads : filteredLeads.slice(0, 30)).map((lead) => (
                         <TableRow key={lead.id} className="border-gray-700">
+                          <TableCell className="whitespace-nowrap">
+                            {lead.lead_source === "social_midia" ? (
+                              <span className="inline-block px-2 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-pink-500/20 text-pink-300 border border-pink-500/40">
+                                Social Mídia
+                              </span>
+                            ) : (
+                              <span className="inline-block px-2 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">
+                                Renda Extra
+                              </span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-white font-medium whitespace-nowrap">{lead.nome_completo}</TableCell>
                           <TableCell className="text-gray-300 whitespace-nowrap">{lead.email}</TableCell>
                           <TableCell className="text-gray-300 whitespace-nowrap">{lead.whatsapp}</TableCell>
