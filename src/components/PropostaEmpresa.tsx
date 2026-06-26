@@ -65,6 +65,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
+  const showDecorativeLines = data.showGrid && data.gridOpacity > 0;
+
   const hexToRgb = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -107,7 +109,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
     // Modo limpo: quando o usuário remove as linhas, não desenha nenhum
     // elemento decorativo que possa aparecer como linha por cima do conteúdo.
-    if (!data.showGrid) {
+    if (!showDecorativeLines) {
       ctx.restore();
       return;
     }
@@ -301,7 +303,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           ctx.font = `${data.fontSizeBase * 1.1}px Arial`;
           y = wrapText("Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende. Nossa prospecção humana agrega valor real à sua marca.", 50, y, 500);
           
-          if (data.showGrid && data.showGraphs) {
+          if (showDecorativeLines && data.showGraphs) {
             drawInstagramIcon(ctx, 520, 720, 80, data.corPrincipal + '33');
           }
         }
@@ -563,7 +565,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const drawPDFDecorativeElements = (pageWidth: number, pageHeight: number) => {
         // Modo limpo absoluto: se o usuário desligar as linhas, o PDF não
         // desenha grade, gráficos, barras, ícones, silhuetas ou formas de fundo.
-        if (!data.showGrid) return;
+        if (!showDecorativeLines) return;
 
         const opacity = 0.2; 
         const r = mixWithWhite(rgb.r, opacity);
@@ -653,7 +655,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
 
       drawGradientRect(0, 0, pageWidth, 90);
       drawPDFDecorativeElements(pageWidth, pageHeight);
-      if (data.showGrid) {
+      if (showDecorativeLines) {
         doc.setDrawColor(255, 255, 255);
         doc.setLineWidth(0.1);
         for(let i=0; i<pageWidth; i+=10) doc.line(i, 0, i+20, 90);
@@ -681,7 +683,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       }
 
 
-      if (data.showGrid) {
+      if (showDecorativeLines) {
         // Page 1 Decorative Graphics around Title
         doc.setDrawColor(rgb.r, rgb.g, rgb.b);
         doc.setLineWidth(0.5);
@@ -695,7 +697,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       yPos += 15;
       
       // Floating Vector Icon (Result Chart) near title
-      if (data.showGrid && data.showGraphs) {
+      if (showDecorativeLines && data.showGraphs) {
         const iconX = pageWidth - 35;
         const iconY = yPos - 25;
         doc.setDrawColor(rgb.r, rgb.g, rgb.b);
@@ -737,7 +739,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const title1Lines = doc.splitTextToSize(title1Text, contentWidth - 20);
       doc.text(title1Lines, margin, yPos);
       
-      if (data.showGrid) {
+      if (showDecorativeLines) {
         // Icon for Page 2
         doc.setDrawColor(rgb.r, rgb.g, rgb.b);
         doc.setLineWidth(0.5);
