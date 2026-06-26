@@ -125,23 +125,25 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
     }
 
     if (data.showGraphs) {
-      // Top Right: Result Graph (Lines)
-      ctx.globalAlpha = 0.15;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(W - 180, 100);
-      ctx.lineTo(W - 140, 80);
-      ctx.lineTo(W - 110, 90);
-      ctx.lineTo(W - 60, 40);
-      ctx.stroke();
-      
-      // Points on graph
-      [ [W - 180, 100], [W - 140, 80], [W - 110, 90], [W - 60, 40] ].forEach(([x, y]) => {
+      if (data.showGrid) {
+        // Top Right: Result Graph (Lines)
+        ctx.globalAlpha = 0.15;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-      });
+        ctx.moveTo(W - 180, 100);
+        ctx.lineTo(W - 140, 80);
+        ctx.lineTo(W - 110, 90);
+        ctx.lineTo(W - 60, 40);
+        ctx.stroke();
+        
+        // Points on graph
+        [ [W - 180, 100], [W - 140, 80], [W - 110, 90], [W - 60, 40] ].forEach(([x, y]) => {
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        });
+      }
 
       // Bottom Left: Growth Bar Chart
       ctx.globalAlpha = 0.12;
@@ -151,32 +153,34 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         ctx.fillRect(40 + (i * 25), H - 150, 15, -h);
       });
 
-      // Middle/Floating: People Flow Icons (Simplified Silhouettes)
-      ctx.globalAlpha = 0.08;
-      for (let i = 0; i < 4; i++) {
-        const x = W - 100 - (i * 40);
-        const y = H - 200 + (i * 20);
-        // Head
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fill();
-        // Body
-        ctx.beginPath();
-        ctx.moveTo(x - 10, y + 15);
-        ctx.quadraticCurveTo(x, y + 5, x + 10, y + 15);
-        ctx.lineTo(x + 10, y + 25);
-        ctx.lineTo(x - 10, y + 25);
-        ctx.closePath();
-        ctx.fill();
-      }
+      if (data.showGrid) {
+        // Middle/Floating: People Flow Icons (Simplified Silhouettes)
+        ctx.globalAlpha = 0.08;
+        for (let i = 0; i < 4; i++) {
+          const x = W - 100 - (i * 40);
+          const y = H - 200 + (i * 20);
+          // Head
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, Math.PI * 2);
+          ctx.fill();
+          // Body
+          ctx.beginPath();
+          ctx.moveTo(x - 10, y + 15);
+          ctx.quadraticCurveTo(x, y + 5, x + 10, y + 15);
+          ctx.lineTo(x + 10, y + 25);
+          ctx.lineTo(x - 10, y + 25);
+          ctx.closePath();
+          ctx.fill();
+        }
 
-      // Modern Geometric Accents
-      ctx.globalAlpha = 0.05;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(50, 50, 100, 100);
-      ctx.beginPath();
-      ctx.arc(W - 50, H - 50, 80, 0, Math.PI * 2);
-      ctx.stroke();
+        // Modern Geometric Accents
+        ctx.globalAlpha = 0.05;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(50, 50, 100, 100);
+        ctx.beginPath();
+        ctx.arc(W - 50, H - 50, 80, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
     
     ctx.restore();
