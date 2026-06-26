@@ -243,11 +243,12 @@ const RendaExtraLead = () => {
           <div className="bg-gradient-to-br from-yellow-400/10 to-amber-500/5 p-8 rounded-3xl border border-yellow-400/20 backdrop-blur-xl">
             <CheckCircle2 className="w-20 h-20 text-yellow-400 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Cadastro Realizado!
+              Participe do Grupo
             </h1>
-            <p className="text-gray-400 text-lg mb-8">
-              Participe agora do nosso grupo exclusivo no WhatsApp e receba sua aula!
+            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+              Participe do grupo e aguarde a liberação da <span className="text-yellow-400 font-bold">aula grátis</span> de como fazer <span className="text-yellow-400 font-bold">5 mil mensal com a MRO</span> em casa utilizando seu notebook — inclusive enquanto você dorme, deixando tudo automático.
             </p>
+
             <div className="relative group inline-block w-full">
               <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
               <a

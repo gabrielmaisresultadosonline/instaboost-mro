@@ -112,40 +112,25 @@ serve(async (req) => {
 <tr>
 <td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Recebemos seu Interesse!</h1>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">Participe do Grupo</h1>
 </td>
 </tr>
 <tr>
 <td style="padding:30px;background:#ffffff;">
 
-<div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Parabéns por dar o primeiro passo!</p>
-</div>
-
 <p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${data.nome_completo}</strong>!</p>
 
-<p style="margin:0 0 20px 0;font-size:16px;">Ficamos muito felizes em receber seu cadastro para o lançamento do <strong>Método MRO de Renda Extra</strong>!</p>
+<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Participe do grupo e aguarde a liberação da <strong style="color:#000;">aula grátis</strong> de como fazer <strong style="color:#000;">5 mil mensal com a MRO</strong> em casa utilizando seu notebook — inclusive enquanto você dorme, deixando tudo automático.</p>
 
-${launchDateEnabled ? `
-<div style="background:#f8f9fa;padding:20px;border-radius:10px;margin:25px 0;border-left:4px solid #FFD700;">
-<p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;">📅 Data do Lançamento:</p>
-<p style="margin:0;font-size:20px;color:#000;font-weight:bold;">${launchDate}</p>
-</div>` : ''}
+<p style="margin:0 0 25px 0;font-size:16px;line-height:1.6;">Entre no grupo agora e veja a aula grátis assim que for liberada.</p>
 
 <div style="text-align:center;margin:30px 0;">
-<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#000;">Participe agora do nosso grupo exclusivo no WhatsApp e receba sua aula:</p>
 <a href="${groupLink || SHORT_WHATSAPP_LINK}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
 PARTICIPE DO GRUPO
 </a>
-<p style="margin:15px 0 0 0;font-size:14px;color:#666;">Clique no botao acima para entrar no grupo e liberar sua aula.</p>
 </div>
 
 
-
-${launchDateEnabled ? `
-<p style="margin:20px 0;font-size:14px;color:#666;text-align:center;">
-Fique atento! Você receberá um email de lembrete no dia do lançamento.
-</p>` : ''}
 
 </td>
 </tr>
