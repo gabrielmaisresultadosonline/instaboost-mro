@@ -741,14 +741,17 @@ const RendaExtraLead = () => {
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
-          >
-            Aprenda Grátis Agora
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          
+          <div className="relative group inline-block mb-8">
+            <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+            <Button
+              onClick={() => setShowForm(true)}
+              className="relative bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base md:text-lg px-10 md:px-14 py-6 md:py-7 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+            >
+              Aprenda Grátis Agora
+              <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 mb-4">
             Aprenda Grátis!
           </h2>
