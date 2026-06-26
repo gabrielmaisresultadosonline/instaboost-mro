@@ -546,6 +546,8 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         return doc.splitTextToSize(text, availableWidth);
       };
 
+      const lineHeightMm = (fontScale = 1, factor = 1.22) => data.fontSizeBase * fontScale * 0.3528 * factor;
+
       const textHeight = (lines: string[], lineHeight: number) => lines.length * lineHeight;
 
       const drawTextBlock = (
@@ -714,7 +716,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const destText = `EXCLUSIVA PARA: ${data.empresaDestino.toUpperCase()}`;
       const destLines = splitToFit(destText, contentWidth);
       doc.text(destLines, pageWidth / 2, yPos, { align: 'center', lineHeightFactor: 1.15 });
-      yPos += (destLines.length * 8);
+      yPos += textHeight(destLines, lineHeightMm(1.5, 1.15));
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 0.9);
       doc.setTextColor(100, 100, 100);
@@ -747,7 +749,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.line(margin + 5, yPos + 12, margin + 15, yPos + 2); // Trend up line in a box
       }
 
-      yPos += (title1Lines.length * 10) + 5;
+      yPos += textHeight(title1Lines, lineHeightMm(1.8, 1.15)) + 5;
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(data.fontSizeBase * 1.2);
@@ -755,7 +757,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const subTitle1Text = 'A Importância de uma Presença Digital Dominante';
       const subTitle1Lines = doc.splitTextToSize(subTitle1Text, contentWidth);
       doc.text(subTitle1Lines, margin, yPos);
-      yPos += (subTitle1Lines.length * 8) + 2;
+      yPos += textHeight(subTitle1Lines, lineHeightMm(1.2, 1.2)) + 2;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
@@ -763,14 +765,14 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const probText = "Hoje, estar no Instagram não é uma opção, é a vitrine principal do seu negócio. Não ter um perfil profissional, ativo e com alcance constante significa perder clientes para o concorrente a cada minuto. Nossa proposta é entregar o serviço de mais vendas, mais engajamento e autoridade, agregando valor real ao seu posicionamento digital.";
       const probLines = splitToFit(probText, contentWidth - 6);
       doc.text(probLines, margin, yPos, { lineHeightFactor: 1.2 });
-      yPos += probLines.length * 7 + 15;
+      yPos += textHeight(probLines, lineHeightMm(1, 1.22)) + 15;
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgb.r, rgb.g, rgb.b);
       const assertText = 'ESTRATÉGIA 10X MAIS ASSERTIVA';
       const assertLines = doc.splitTextToSize(assertText, contentWidth);
       doc.text(assertLines, margin, yPos);
-      yPos += (assertLines.length * 8) + 2;
+      yPos += textHeight(assertLines, lineHeightMm(1, 1.2)) + 2;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(60, 60, 60);
       const solText = "Diferente de anúncios que 'tentam' adivinhar quem é seu público, nós vamos direto na fonte: o público dos seus concorrentes. Através de nossa metodologia, buscamos um público extremamente nichado e qualificado que já consome o que você vende, capturando a atenção de forma ética e agregando valor à sua marca.";
@@ -801,13 +803,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setTextColor(30, 30, 30);
         const tLines = splitToFit(step.t, contentWidth - 25);
         doc.text(tLines, margin + 10, yPos, { lineHeightFactor: 1.15 });
-        yPos += (tLines.length * 6) + 2;
+        yPos += textHeight(tLines, lineHeightMm(1, 1.1)) + 2;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(data.fontSizeBase * 0.95);
         doc.setTextColor(70, 70, 70);
         const dLines = splitToFit(step.d, contentWidth - 25);
         doc.text(dLines, margin + 10, yPos, { lineHeightFactor: 1.2 });
-        yPos += dLines.length * 6 + 12;
+        yPos += textHeight(dLines, lineHeightMm(0.95, 1.2)) + 12;
       });
 
       {
@@ -820,7 +822,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(data.fontSizeBase * 0.8);
         const t2 = splitToFit("Resultados consistentes respeitando as políticas do Instagram.", contentWidth - 20);
-        const boxH = 8 + t1.length * 5 + t2.length * 5 + 6;
+        const t1H = textHeight(t1, lineHeightMm(0.9, 1.12));
+        const t2H = textHeight(t2, lineHeightMm(0.8, 1.2));
+        const boxH = 10 + t1H + 4 + t2H + 6;
         doc.setFillColor(tintR, tintG, tintB);
         doc.rect(margin, yPos, contentWidth, boxH, 'F');
         doc.setFont('helvetica', 'bolditalic');
@@ -830,7 +834,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(data.fontSizeBase * 0.8);
         doc.setTextColor(60, 60, 60);
-        doc.text(t2, margin + 5, yPos + 8 + t1.length * 5 + 3, { lineHeightFactor: 1.2 });
+        doc.text(t2, margin + 5, yPos + 8 + t1H + 3, { lineHeightFactor: 1.2 });
         yPos += boxH + 5;
       }
 
@@ -859,13 +863,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const tText = `Pack de ${data.quantidadeCriativos} Criativos de Alta Conversão`;
           const tLines = splitToFit(tText, contentWidth - 25);
           doc.text(tLines, margin + 10, yPos, { lineHeightFactor: 1.15 });
-          yPos += (tLines.length * 6) + 2;
+          yPos += textHeight(tLines, lineHeightMm(1, 1.1)) + 2;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.95);
           doc.setTextColor(70, 70, 70);
           const cLines = splitToFit("Desenvolvemos artes e vídeos focados em chamar a atenção do público frio e converter em seguidores/leads. Design moderno e profissional que gera confiança imediata.", contentWidth - 25);
           doc.text(cLines, margin + 10, yPos, { lineHeightFactor: 1.2 });
-          yPos += cLines.length * 6 + 12;
+          yPos += textHeight(cLines, lineHeightMm(0.95, 1.2)) + 12;
         }
 
         if (data.incluirConfiguracao) {
@@ -876,13 +880,13 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           const bTitle = 'Otimização de Bio e Perfil (SEO Instagram)';
           const btLines = splitToFit(bTitle, contentWidth - 25);
           doc.text(btLines, margin + 10, yPos, { lineHeightFactor: 1.15 });
-          yPos += (btLines.length * 6) + 2;
+          yPos += textHeight(btLines, lineHeightMm(1, 1.1)) + 2;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.95);
           doc.setTextColor(70, 70, 70);
           const bLines = splitToFit("Ajustamos sua bio, foto de perfil e destaques para que seu Instagram se torne uma máquina de vendas. Aplicamos técnicas de SEO para você ser encontrado mais facilmente.", contentWidth - 25);
           doc.text(bLines, margin + 10, yPos, { lineHeightFactor: 1.2 });
-          yPos += bLines.length * 6 + 12;
+          yPos += textHeight(bLines, lineHeightMm(0.95, 1.2)) + 12;
         }
 
         {
@@ -899,7 +903,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
             "Garantimos que a primeira impressão do seu cliente seja de uma empresa líder de mercado.",
             contentWidth - 20
           );
-          const boxH = 9 + calloutTitleLines.length * 5 + 4 + calloutBodyLines.length * 5 + 6;
+          const calloutTitleH = textHeight(calloutTitleLines, lineHeightMm(0.9, 1.12));
+          const calloutBodyH = textHeight(calloutBodyLines, lineHeightMm(0.8, 1.2));
+          const boxH = 9 + calloutTitleH + 4 + calloutBodyH + 6;
           doc.setFillColor(tintR, tintG, tintB);
           doc.rect(margin, yPos, contentWidth, boxH, 'F');
           doc.setFont('helvetica', 'bold');
@@ -909,7 +915,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(data.fontSizeBase * 0.8);
           doc.setTextColor(60, 60, 60);
-          doc.text(calloutBodyLines, margin + 5, yPos + 13 + calloutTitleLines.length * 5, { lineHeightFactor: 1.2 });
+          doc.text(calloutBodyLines, margin + 5, yPos + 13 + calloutTitleH, { lineHeightFactor: 1.2 });
           yPos += boxH + 8;
         }
       }
@@ -937,7 +943,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         let extrasTotalHeight = 15;
         const processedExtras = extras.map(e => {
           const lines = doc.splitTextToSize(e, contentWidth - 20);
-          extrasTotalHeight += (lines.length * 6);
+          extrasTotalHeight += textHeight(lines, lineHeightMm(0.9, 1.2));
           return lines;
         });
 
@@ -950,7 +956,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         let currentExtraY = yPos + 18;
         processedExtras.forEach(lines => {
           doc.text(lines, margin + 10, currentExtraY);
-          currentExtraY += (lines.length * 6);
+          currentExtraY += textHeight(lines, lineHeightMm(0.9, 1.2));
         });
         
         yPos += extrasTotalHeight + 20;
@@ -963,7 +969,9 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         const subText = "VALOR MENSAL PARA 30 DIAS DE RESULTADOS";
         const subLines = doc.splitTextToSize(subText, contentWidth - 20);
         
-        const boxHeight = (investLines.length * 8) + (subLines.length * 6) + 15;
+        const investH = textHeight(investLines, lineHeightMm(1.5, 1.15));
+        const investSubH = textHeight(subLines, lineHeightMm(1, 1.15));
+        const boxHeight = investH + investSubH + 18;
         doc.roundedRect(margin, yPos, contentWidth, boxHeight, 5, 5, 'F');
         doc.setTextColor(255, 255, 255);
         
@@ -971,7 +979,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         doc.setFont('helvetica', 'bold');
         doc.text(investLines, margin + 10, yPos + 12);
         
-        const subLineY = yPos + 12 + (investLines.length * 8);
+        const subLineY = yPos + 12 + investH;
         doc.setFontSize(data.fontSizeBase * 1);
         doc.text(subLines, margin + 10, subLineY);
         yPos += boxHeight + 20;
@@ -984,7 +992,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const garTitle = `GARANTIA INCONDICIONAL DE ${data.periodoGarantia} DIAS`;
       const garTitleLines = doc.splitTextToSize(garTitle, contentWidth);
       doc.text(garTitleLines, margin, yPos);
-      yPos += (garTitleLines.length * 8) + 4;
+      yPos += textHeight(garTitleLines, lineHeightMm(1.4, 1.15)) + 4;
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(data.fontSizeBase * 1);
@@ -992,7 +1000,7 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
       const garText = `Acreditamos tanto em nossa metodologia que oferecemos ${data.periodoGarantia} dias de garantia. Se não sentir o potencial de escala na primeira semana, devolvemos seu investimento integralmente.`;
       const garLines = doc.splitTextToSize(garText, contentWidth);
       doc.text(garLines, margin, yPos);
-      yPos += (garLines.length * 7) + 20;
+      yPos += textHeight(garLines, lineHeightMm(1, 1.22)) + 20;
 
 
       doc.setFont('helvetica', 'bold');
