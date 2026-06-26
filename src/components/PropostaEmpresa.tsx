@@ -609,17 +609,6 @@ export const PropostaEmpresa: React.FC<PropostaEmpresaProps> = ({ onBack }) => {
         // No PDF exportado, não desenhamos nenhuma grade diagonal no topo para evitar
         // divergência entre a prévia limpa e o arquivo gerado.
         return;
-
-        const lineMix = Math.min(0.45, Math.max(0, data.topGridOpacity * 4));
-        const lineR = Math.floor(secondaryRgb.r * lineMix + 5 * (1 - lineMix));
-        const lineG = Math.floor(secondaryRgb.g * lineMix + 5 * (1 - lineMix));
-        const lineB = Math.floor(secondaryRgb.b * lineMix + 8 * (1 - lineMix));
-
-        doc.setDrawColor(lineR, lineG, lineB);
-        doc.setLineWidth(0.18);
-        for (let offset = -30; offset < w + 30; offset += 8) {
-          doc.line(x + offset, y, x + offset + 14, y + h);
-        }
       };
 
 
