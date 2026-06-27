@@ -118,6 +118,25 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoringBackup, setIsRestoringBackup] = useState(false);
   const [isLoadingCloud, setIsLoadingCloud] = useState(true);
+  const [draggingContent, setDraggingContent] = useState<{ moduleId: string; contentId: string } | null>(null);
+
+  const handleReorderContent = (moduleId: string, fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const data = getLocalData();
+    const module = (data.modules || []).find(m => m.id === moduleId);
+    if (!module) return;
+    const sorted = [...module.contents].sort((a, b) => a.order - b.order);
+    const fromIdx = sorted.findIndex(c => c.id === fromId);
+    const toIdx = sorted.findIndex(c => c.id === toId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = sorted.splice(fromIdx, 1);
+    sorted.splice(toIdx, 0, moved);
+    sorted.forEach((c, i) => { c.order = i + 1; });
+    module.contents = sorted;
+    saveLocalData(data);
+    refreshData();
+    toast({ title: "Ordem atualizada!" });
+  };
 
   // New section content forms
   const [newSectionVideo, setNewSectionVideo] = useState({
