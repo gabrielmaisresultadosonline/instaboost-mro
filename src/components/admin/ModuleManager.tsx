@@ -118,6 +118,25 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoringBackup, setIsRestoringBackup] = useState(false);
   const [isLoadingCloud, setIsLoadingCloud] = useState(true);
+  const [draggingContent, setDraggingContent] = useState<{ moduleId: string; contentId: string } | null>(null);
+
+  const handleReorderContent = (moduleId: string, fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const data = getLocalData();
+    const module = (data.modules || []).find(m => m.id === moduleId);
+    if (!module) return;
+    const sorted = [...module.contents].sort((a, b) => a.order - b.order);
+    const fromIdx = sorted.findIndex(c => c.id === fromId);
+    const toIdx = sorted.findIndex(c => c.id === toId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = sorted.splice(fromIdx, 1);
+    sorted.splice(toIdx, 0, moved);
+    sorted.forEach((c, i) => { c.order = i + 1; });
+    module.contents = sorted;
+    saveLocalData(data);
+    refreshData();
+    toast({ title: "Ordem atualizada!" });
+  };
 
   // New section content forms
   const [newSectionVideo, setNewSectionVideo] = useState({
@@ -1734,8 +1753,30 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                     </p>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {module.contents.sort((a, b) => a.order - b.order).map((content, idx) => (
-                        <div key={content.id} className="relative group">
+                       {module.contents.sort((a, b) => a.order - b.order).map((content, idx) => (
+                         <div
+                           key={content.id}
+                           draggable
+                           onDragStart={(e) => {
+                             setDraggingContent({ moduleId: module.id, contentId: content.id });
+                             e.dataTransfer.effectAllowed = 'move';
+                           }}
+                           onDragOver={(e) => {
+                             if (draggingContent?.moduleId === module.id) {
+                               e.preventDefault();
+                               e.dataTransfer.dropEffect = 'move';
+                             }
+                           }}
+                           onDrop={(e) => {
+                             e.preventDefault();
+                             if (draggingContent?.moduleId === module.id) {
+                               handleReorderContent(module.id, draggingContent.contentId, content.id);
+                             }
+                             setDraggingContent(null);
+                           }}
+                           onDragEnd={() => setDraggingContent(null)}
+                           className={`relative group cursor-move ${draggingContent?.contentId === content.id ? 'opacity-50' : ''}`}
+                         >
                           {content.type === 'video' ? (
                             <div className="aspect-[4/5] rounded-lg overflow-hidden bg-secondary relative">
                               <img 
