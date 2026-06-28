@@ -281,7 +281,7 @@ const RendaExtraDescontoPage = () => {
           <div className="text-center mb-6">
             <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.25em] mb-4">Area Exclusiva</div>
             <h1 className="text-2xl md:text-3xl font-black uppercase italic leading-tight">Acesso ao Desconto MRO</h1>
-            <p className="text-white/50 text-sm mt-3 font-medium">Informe o mesmo email que voce cadastrou em <span className="text-amber-400">/rendaextra</span> para liberar seu acesso.</p>
+            <p className="text-white/50 text-sm mt-3 font-medium">Informe o mesmo email que voce cadastrou no renda extra !</p>
           </div>
           <form onSubmit={handleGateSubmit} className="space-y-3">
             <input
