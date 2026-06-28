@@ -151,7 +151,7 @@ serve(async (req) => {
 
     if (action === "unlock_and_send") {
       const patch: Record<string, unknown> = {
-        desconto_video_percent: Math.max(50, lead.desconto_video_percent || 0),
+        desconto_video_percent: Math.max(90, lead.desconto_video_percent || 0),
         desconto_last_access_at: new Date().toISOString(),
       };
       if (!lead.desconto_unlocked_at) patch.desconto_unlocked_at = new Date().toISOString();
