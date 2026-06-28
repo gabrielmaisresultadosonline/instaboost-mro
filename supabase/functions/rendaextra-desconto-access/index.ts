@@ -103,7 +103,7 @@ serve(async (req) => {
 
     const { data: lead } = await supabase
       .from("renda_extra_lead_leads")
-      .select("id, nome_completo, email, desconto_video_percent, desconto_unlocked_at, promo_video_percent")
+      .select("id, nome_completo, email, desconto_video_percent, desconto_unlocked_at, desconto_email_sent_at, promo_video_percent")
       .ilike("email", emailRaw)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -140,11 +140,19 @@ serve(async (req) => {
         desconto_video_percent: newPct,
         desconto_last_access_at: new Date().toISOString(),
       };
-      if (newPct >= 50 && !lead.desconto_unlocked_at) {
+      let emailJustSent = false;
+      if (newPct >= 90 && !lead.desconto_unlocked_at) {
         patch.desconto_unlocked_at = new Date().toISOString();
       }
+      if (newPct >= 90 && !(lead as any).desconto_email_sent_at) {
+        patch.desconto_email_sent_at = new Date().toISOString();
+        emailJustSent = true;
+      }
       await supabase.from("renda_extra_lead_leads").update(patch).eq("id", lead.id);
-      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 90 }), {
+      if (emailJustSent) {
+        try { await sendDiscountEmail(lead.email, lead.nome_completo); } catch (e) { log("auto email error", { e: e instanceof Error ? e.message : String(e) }); }
+      }
+      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 90, email_sent: emailJustSent }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
