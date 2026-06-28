@@ -144,14 +144,14 @@ serve(async (req) => {
         patch.desconto_unlocked_at = new Date().toISOString();
       }
       await supabase.from("renda_extra_lead_leads").update(patch).eq("id", lead.id);
-      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 50 }), {
+      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 90 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (action === "unlock_and_send") {
       const patch: Record<string, unknown> = {
-        desconto_video_percent: Math.max(50, lead.desconto_video_percent || 0),
+        desconto_video_percent: Math.max(90, lead.desconto_video_percent || 0),
         desconto_last_access_at: new Date().toISOString(),
       };
       if (!lead.desconto_unlocked_at) patch.desconto_unlocked_at = new Date().toISOString();
@@ -179,7 +179,7 @@ serve(async (req) => {
     }
 
     if (action === "check_access") {
-      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 50;
+      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 90;
       return new Response(
         JSON.stringify({ success: true, allowed, name: lead.nome_completo, email: lead.email }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
