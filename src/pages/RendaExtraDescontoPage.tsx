@@ -78,7 +78,7 @@ const RendaExtraDescontoPage = () => {
         localStorage.setItem('rendaextra-desconto:email', data.email);
         localStorage.setItem('rendaextra-desconto:name', data.name || '');
       } catch {}
-      if (data.unlocked || (data.percent_watched || 0) >= 50) {
+      if (data.unlocked || (data.percent_watched || 0) >= 90) {
         try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
         setUnlockedPersisted(true);
       }
