@@ -144,7 +144,7 @@ serve(async (req) => {
         patch.desconto_unlocked_at = new Date().toISOString();
       }
       await supabase.from("renda_extra_lead_leads").update(patch).eq("id", lead.id);
-      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 50 }), {
+      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 90 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
