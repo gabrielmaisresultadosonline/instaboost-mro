@@ -45,7 +45,7 @@ const RendaExtraDescontoPage = () => {
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
-  const UNLOCK_PERCENT = 0.5;
+  const UNLOCK_PERCENT = 0.9;
   const CONTROLS_HIDE_MS = 3 * 1000;
 
   const revealControls = () => {
@@ -78,7 +78,7 @@ const RendaExtraDescontoPage = () => {
         localStorage.setItem('rendaextra-desconto:email', data.email);
         localStorage.setItem('rendaextra-desconto:name', data.name || '');
       } catch {}
-      if (data.unlocked || (data.percent_watched || 0) >= 50) {
+      if (data.unlocked || (data.percent_watched || 0) >= 90) {
         try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
         setUnlockedPersisted(true);
       }
