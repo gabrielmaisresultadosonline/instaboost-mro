@@ -103,7 +103,7 @@ serve(async (req) => {
 
     const { data: lead } = await supabase
       .from("renda_extra_lead_leads")
-      .select("id, nome_completo, email, desconto_video_percent, desconto_unlocked_at, promo_video_percent")
+      .select("id, nome_completo, email, desconto_video_percent, desconto_unlocked_at, desconto_email_sent_at, promo_video_percent")
       .ilike("email", emailRaw)
       .order("created_at", { ascending: false })
       .limit(1)
