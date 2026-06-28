@@ -179,7 +179,7 @@ serve(async (req) => {
     }
 
     if (action === "check_access") {
-      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 50;
+      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 90;
       return new Response(
         JSON.stringify({ success: true, allowed, name: lead.nome_completo, email: lead.email }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
