@@ -301,9 +301,6 @@ const RendaExtraDescontoPage = () => {
             >
               {gateLoading ? 'Verificando...' : 'Entrar'}
             </Button>
-            <p className="text-center text-white/40 text-xs pt-2">
-              Ainda nao cadastrou? <a href="/rendaextra" className="text-amber-400 underline">Cadastre-se aqui</a>
-            </p>
           </form>
         </div>
       </div>
