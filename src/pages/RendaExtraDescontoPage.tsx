@@ -45,7 +45,7 @@ const RendaExtraDescontoPage = () => {
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
-  const UNLOCK_PERCENT = 0.5;
+  const UNLOCK_PERCENT = 0.9;
   const CONTROLS_HIDE_MS = 3 * 1000;
 
   const revealControls = () => {
