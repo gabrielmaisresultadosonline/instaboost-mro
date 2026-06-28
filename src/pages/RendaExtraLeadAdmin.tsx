@@ -387,11 +387,106 @@ const RendaExtraLeadAdmin = () => {
               <Mail className="w-4 h-4 mr-2" />
               Log de Emails
             </TabsTrigger>
+            <TabsTrigger value="acessos" className="data-[state=active]:bg-gray-700">
+              <Eye className="w-4 h-4 mr-2" />
+              Acessos Desconto
+            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
             </TabsTrigger>
           </TabsList>
+
+          {/* Acessos Desconto Tab */}
+          <TabsContent value="acessos">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">
+                  Últimos Acessos /rendaextra/desconto
+                </CardTitle>
+                <p className="text-sm text-gray-400">
+                  Ordenado pelo último acesso. Mostra % assistido e se liberou o desconto (90%+).
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700 hover:bg-gray-800/50">
+                        <TableHead className="text-gray-300">Nome</TableHead>
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">Último Acesso</TableHead>
+                        <TableHead className="text-gray-300">% Assistido</TableHead>
+                        <TableHead className="text-gray-300">Desconto Liberado</TableHead>
+                        <TableHead className="text-gray-300">% Promo</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...leads]
+                        .filter(l => l.desconto_last_access_at || (l.desconto_video_percent ?? 0) > 0)
+                        .sort((a, b) => {
+                          const da = a.desconto_last_access_at ? new Date(a.desconto_last_access_at).getTime() : 0;
+                          const db = b.desconto_last_access_at ? new Date(b.desconto_last_access_at).getTime() : 0;
+                          return db - da;
+                        })
+                        .map(lead => {
+                          const pct = lead.desconto_video_percent ?? 0;
+                          const unlocked = !!lead.desconto_unlocked_at || pct >= 90;
+                          const promoPct = lead.promo_video_percent ?? 0;
+                          return (
+                            <TableRow key={lead.id} className="border-gray-700 hover:bg-gray-800/50">
+                              <TableCell className="text-white">{lead.nome_completo}</TableCell>
+                              <TableCell className="text-gray-300">{lead.email}</TableCell>
+                              <TableCell className="text-gray-300">
+                                {lead.desconto_last_access_at
+                                  ? format(new Date(lead.desconto_last_access_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2 min-w-[140px]">
+                                  <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full ${pct >= 90 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500"}`}
+                                      style={{ width: `${Math.min(100, pct)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-white w-10 text-right">{pct}%</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {unlocked ? (
+                                  <span className="inline-flex items-center gap-1 text-green-400 text-sm">
+                                    <CheckCircle className="w-4 h-4" />
+                                    {lead.desconto_unlocked_at
+                                      ? format(new Date(lead.desconto_unlocked_at), "dd/MM HH:mm", { locale: ptBR })
+                                      : "Sim"}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-gray-500 text-sm">
+                                    <XCircle className="w-4 h-4" />
+                                    Bloqueado
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-gray-300 text-sm">
+                                {promoPct > 0 ? `${promoPct}%` : "-"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      {leads.filter(l => l.desconto_last_access_at || (l.desconto_video_percent ?? 0) > 0).length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                            Nenhum acesso registrado ainda.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Leads Tab */}
           <TabsContent value="leads">
