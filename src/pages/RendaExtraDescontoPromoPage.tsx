@@ -508,7 +508,7 @@ const RendaExtraDescontoPromoPage = () => {
               onClick={scrollToPricing}
               className="btn-pulse-color text-black font-extrabold text-sm sm:text-lg px-7 sm:px-12 py-6 sm:py-7 rounded-full shadow-2xl shadow-yellow-500/40 hover:scale-105 transition-transform"
             >
-              COMECE AGORA POR R$99 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+              COMECE AGORA POR 12X R$30 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <span className="arrow-bounce-left text-yellow-300 text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">◀</span>
           </div>
@@ -517,7 +517,7 @@ const RendaExtraDescontoPromoPage = () => {
           <div className="mt-5 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl px-4 py-2 backdrop-blur-sm">
             <span className="text-base">🔥</span>
             <p className="text-xs sm:text-sm text-yellow-200 font-semibold leading-snug">
-              Conheça o sistema por <span className="text-yellow-300 font-bold">30 dias por R$99</span> — depois escale para o plano anual!
+              Plano anual completo: <span className="text-yellow-300 font-bold">12x R$30 (R$297 à vista)</span> — 1 ano de acesso!
             </p>
           </div>
 
