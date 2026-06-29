@@ -478,7 +478,7 @@ const RendaExtraLeadAdmin = () => {
                         })}
                       {leads.filter(l => l.desconto_last_access_at || (l.desconto_video_percent ?? 0) > 0).length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                          <TableCell colSpan={7} className="text-center text-gray-500 py-8">
                             Nenhum acesso registrado ainda.
                           </TableCell>
                         </TableRow>
