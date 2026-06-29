@@ -199,7 +199,7 @@ async function sendAccessEmail(
 
     const memberAreaUrl = "https://maisresultadosonline.com.br";
     const whatsappGroupLink = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
-    const planLabel = planType === "lifetime" ? "Vitalício" : planType === "trial" ? "Teste 30 Dias" : planType === "solo" ? "Solo" : planType === "pro" ? "Pro" : planType === "agencia" ? "Agência" : "Anual";
+    const planLabel = planType === "lifetime" ? "Vitalício" : planType === "trial" ? "Teste 30 Dias" : planType === "monthly" ? "Mensal (30 dias)" : planType === "solo" ? "Solo" : planType === "pro" ? "Pro" : planType === "agencia" ? "Agência" : "Anual";
 
     const htmlContent = `<!DOCTYPE html>
 <html>
@@ -244,9 +244,9 @@ async function sendAccessEmail(
 
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;">
 <tr>
-        <td style="background:${planType === "lifetime" ? "#d4edda" : planType === "trial" ? "#d1ecf1" : "#fff3cd"};border:1px solid ${planType === "lifetime" ? "#28a745" : planType === "trial" ? "#17a2b8" : "#ffc107"};border-radius:8px;padding:15px;text-align:center;">
-          <span style="color:${planType === "lifetime" ? "#155724" : planType === "trial" ? "#0c5460" : "#856404"};font-weight:bold;">
-          ${planType === "lifetime" ? "♾️ Acesso Vitalício - Sem data de expiração!" : planType === "trial" ? "🚀 Plano Teste - 30 dias de acesso (sem recorrência)" : "🎁 Plano Anual - 365 dias de acesso"}
+        <td style="background:${planType === "lifetime" ? "#d4edda" : (planType === "trial" || planType === "monthly") ? "#d1ecf1" : "#fff3cd"};border:1px solid ${planType === "lifetime" ? "#28a745" : (planType === "trial" || planType === "monthly") ? "#17a2b8" : "#ffc107"};border-radius:8px;padding:15px;text-align:center;">
+          <span style="color:${planType === "lifetime" ? "#155724" : (planType === "trial" || planType === "monthly") ? "#0c5460" : "#856404"};font-weight:bold;">
+          ${planType === "lifetime" ? "♾️ Acesso Vitalício - Sem data de expiração!" : planType === "trial" ? "🚀 Plano Teste - 30 dias de acesso (sem recorrência)" : planType === "monthly" ? "📅 Plano Mensal - 30 dias de acesso" : "🎁 Plano Anual - 365 dias de acesso"}
           </span>
 </td>
 </tr>
@@ -475,7 +475,7 @@ serve(async (req) => {
       if (desc.startsWith("MROIG_")) {
         const parts = desc.split("_");
         if (parts.length >= 4) {
-          extractedPlan = parts[1] === "VITALICIO" ? "lifetime" : parts[1] === "TRIAL" ? "trial" : parts[1] === "SOLO" ? "solo" : parts[1] === "PRO" ? "pro" : parts[1] === "AGENCIA" ? "agencia" : "annual";
+          extractedPlan = parts[1] === "VITALICIO" ? "lifetime" : parts[1] === "TRIAL" ? "trial" : parts[1] === "MENSAL" ? "monthly" : parts[1] === "SOLO" ? "solo" : parts[1] === "PRO" ? "pro" : parts[1] === "AGENCIA" ? "agencia" : "annual";
           extractedUsername = parts[2];
           extractedEmail = parts.slice(3).join("_"); // Email pode ter underscores
         }
@@ -597,7 +597,7 @@ serve(async (req) => {
     }
 
     // Calcular dias de acesso baseado no plano
-    const daysAccess = order.plan_type === "trial" ? 30 : 365;
+    const daysAccess = order.plan_type === "trial" ? 30 : order.plan_type === "monthly" ? 30 : 365;
 
     // Verificar se usuário já existe antes de criar
     const userExists = await checkUserExists(order.username);
@@ -639,7 +639,7 @@ serve(async (req) => {
         username: order.username,
         password: order.username,
         service_type: "instagram",
-        access_type: order.plan_type === "lifetime" ? "lifetime" : order.plan_type === "trial" ? "trial" : "annual",
+        access_type: order.plan_type === "lifetime" ? "lifetime" : order.plan_type === "trial" ? "trial" : order.plan_type === "monthly" ? "monthly" : "annual",
         days_access: daysAccess,
         expiration_date: order.plan_type === "lifetime" ? null : expirationDate.toISOString(),
         api_created: apiResult.success,
@@ -683,10 +683,10 @@ serve(async (req) => {
     });
 
     // Fire Meta Conversions API Purchase event
-    const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
+    const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : order.plan_type === "monthly" ? "Mensal (30 dias)" : "Anual";
     await sendMetaPurchaseEvent(
       customerEmail,
-      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : order.plan_type === "trial" ? 97 : 397),
+      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : order.plan_type === "trial" ? 97 : order.plan_type === "monthly" ? 99 : 397),
       `MRO Instagram ${planLabel}`,
       order.nsu_order // Use NSU as event_id for deduplication
     );
