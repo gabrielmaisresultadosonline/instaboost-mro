@@ -141,9 +141,9 @@ serve(async (req) => {
 <p style="margin:8px 0 0 0;font-size:14px;color:#555;">Acesse, assista a aula <strong>por completo</strong> e ao final do vídeo o seu <strong>desconto</strong> será liberado automaticamente.</p>
 </div>
 
-<div style="text-align:center;margin:30px 0;">
+    <div style="text-align:center;margin:30px 0;">
 <a href="${freeClassLink}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
-▶️ ACESSAR AULA GRÁTIS AGORA
+ACESSAR AULA GRATIS AGORA
 </a>
 </div>
 
