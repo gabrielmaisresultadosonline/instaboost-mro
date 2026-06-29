@@ -110,11 +110,18 @@ const RendaExtraDescontoPromoPage = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const planConfig = {
+    monthly: { label: '30 dias por R$99', amount: 99, planType: 'monthly', priceDisplay: 'R$99', durationDisplay: '30 dias de acesso' },
+    annual: { label: '12x R$30 (R$297 à vista)', amount: 297, planType: 'annual', priceDisplay: 'R$297', durationDisplay: '1 ano completo' },
+  } as const;
+
 
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
@@ -159,17 +166,18 @@ const RendaExtraDescontoPromoPage = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$297
+      const plan = planConfig[selectedPlan];
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          planType: "annual",
-          amount: 297,
+          planType: plan.planType,
+          amount: plan.amount,
           checkUserExists: true
         }
       });
+
 
       if (checkError) {
         console.error("Error creating checkout:", checkError);
@@ -189,7 +197,7 @@ const RendaExtraDescontoPromoPage = () => {
       }
 
       // Track InitiateCheckout when redirecting to payment
-      trackInitiateCheckout('MRO Renda Extra Desconto', 297);
+      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig[selectedPlan].label}`, planConfig[selectedPlan].amount);
       
       // Redirecionar diretamente para o checkout (funciona melhor no mobile)
       window.location.href = checkData.payment_link;
