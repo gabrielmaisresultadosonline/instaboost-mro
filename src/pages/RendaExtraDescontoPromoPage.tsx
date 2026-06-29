@@ -166,17 +166,18 @@ const RendaExtraDescontoPromoPage = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$297
+      const plan = planConfig[selectedPlan];
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          planType: "annual",
-          amount: 297,
+          planType: plan.planType,
+          amount: plan.amount,
           checkUserExists: true
         }
       });
+
 
       if (checkError) {
         console.error("Error creating checkout:", checkError);
