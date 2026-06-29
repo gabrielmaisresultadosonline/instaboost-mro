@@ -438,6 +438,7 @@ const RendaExtraLeadAdmin = () => {
                             <TableRow key={lead.id} className="border-gray-700 hover:bg-gray-800/50">
                               <TableCell className="text-white whitespace-nowrap">{lead.nome_completo}</TableCell>
                               <TableCell className="text-gray-300 whitespace-nowrap">{lead.email}</TableCell>
+                              <TableCell className="text-gray-300 whitespace-nowrap">{lead.whatsapp}</TableCell>
                               <TableCell className="text-gray-300 whitespace-nowrap">
                                 {lead.desconto_last_access_at
                                   ? format(new Date(lead.desconto_last_access_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
