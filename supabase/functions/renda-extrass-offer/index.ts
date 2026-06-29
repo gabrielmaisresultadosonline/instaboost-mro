@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
+import { sanitizeEmailSubject, htmlToPlainText } from "../_shared/email-encode.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -69,7 +70,7 @@ const tplReminder2 = (name: string, email: string) => emailShell(
    ${ctaButton(accessUrl(email), "GARANTIR R$97 AGORA", "#dc2626")}`
 );
 
-async function sendMail(to: string, subject: string, html: string, type: string) {
+async function sendMail(to: string, subject: sanitizeEmailSubject(string), html: string, type: string) {
   if (!smtpPassword) {
     console.error("[renda-extrass-offer] SMTP_PASSWORD missing");
     return false;
@@ -79,7 +80,7 @@ async function sendMail(to: string, subject: string, html: string, type: string)
       connection: { hostname: "smtp.hostinger.com", port: 465, tls: true,
         auth: { username: "suporte@maisresultadosonline.com.br", password: smtpPassword } },
     });
-    await client.send({ from: "MRO <suporte@maisresultadosonline.com.br>", to, subject, content: "auto", html });
+    await client.send({ from: "MRO <suporte@maisresultadosonline.com.br>", to, subject, content: htmlToPlainText(html), html });
     await client.close();
     await supabase.from("rendaext_email_logs").insert({ email_to: to, email_type: type, subject, status: "sent" });
     return true;

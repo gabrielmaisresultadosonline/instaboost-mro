@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
+import { sanitizeEmailSubject, htmlToPlainText } from "../_shared/email-encode.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -15,7 +16,7 @@ function buildHtml(campaign: string, nome: string, groupLink: string) {
 
   if (campaign === "link_corrigido") {
     return {
-      subject: "✅ Link Corrigido - Acesse o GRUPO MRO",
+      subject: sanitizeEmailSubject("✅ Link Corrigido - Acesse o GRUPO MRO"),
       html: `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#333;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;">
@@ -40,7 +41,7 @@ function buildHtml(campaign: string, nome: string, groupLink: string) {
 
   // remarketing
   return {
-    subject: "🔥 Não deixe de participar do nosso Grupo!",
+    subject: sanitizeEmailSubject("🔥 Não deixe de participar do nosso Grupo!"),
     html: `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#333;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;">
@@ -141,7 +142,7 @@ serve(async (req) => {
           from: "MRO Empresas <suporte@maisresultadosonline.com.br>",
           to: lead.email,
           subject,
-          content: "auto",
+          content: htmlToPlainText(html),
           html,
         });
         sent++;
