@@ -413,12 +413,12 @@ const RendaExtraLeadAdmin = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-gray-700 hover:bg-gray-800/50">
-                        <TableHead className="text-gray-300">Nome</TableHead>
-                        <TableHead className="text-gray-300">Email</TableHead>
-                        <TableHead className="text-gray-300">Último Acesso</TableHead>
-                        <TableHead className="text-gray-300">% Assistido</TableHead>
-                        <TableHead className="text-gray-300">Desconto Liberado</TableHead>
-                        <TableHead className="text-gray-300">% Promo</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Nome</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Email</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Último Acesso</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">% Assistido</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Desconto</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">% Promo</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -435,9 +435,9 @@ const RendaExtraLeadAdmin = () => {
                           const promoPct = lead.promo_video_percent ?? 0;
                           return (
                             <TableRow key={lead.id} className="border-gray-700 hover:bg-gray-800/50">
-                              <TableCell className="text-white">{lead.nome_completo}</TableCell>
-                              <TableCell className="text-gray-300">{lead.email}</TableCell>
-                              <TableCell className="text-gray-300">
+                              <TableCell className="text-white whitespace-nowrap">{lead.nome_completo}</TableCell>
+                              <TableCell className="text-gray-300 whitespace-nowrap">{lead.email}</TableCell>
+                              <TableCell className="text-gray-300 whitespace-nowrap">
                                 {lead.desconto_last_access_at
                                   ? format(new Date(lead.desconto_last_access_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
                                   : "-"}
