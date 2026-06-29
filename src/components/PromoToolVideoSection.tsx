@@ -17,6 +17,9 @@ const PromoToolVideoSection = () => {
   });
   const [started, setStarted] = useState(false);
   const [percent, setPercent] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
 
   useEffect(() => {
     supabase.functions
