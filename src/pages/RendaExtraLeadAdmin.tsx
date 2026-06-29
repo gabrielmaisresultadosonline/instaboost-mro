@@ -413,12 +413,12 @@ const RendaExtraLeadAdmin = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-gray-700 hover:bg-gray-800/50">
-                        <TableHead className="text-gray-300">Nome</TableHead>
-                        <TableHead className="text-gray-300">Email</TableHead>
-                        <TableHead className="text-gray-300">Último Acesso</TableHead>
-                        <TableHead className="text-gray-300">% Assistido</TableHead>
-                        <TableHead className="text-gray-300">Desconto Liberado</TableHead>
-                        <TableHead className="text-gray-300">% Promo</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Nome</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Email</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Último Acesso</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">% Assistido</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">Desconto</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">% Promo</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
