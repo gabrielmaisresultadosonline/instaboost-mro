@@ -2,6 +2,7 @@ import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 
+import { sanitizeEmailSubject, htmlToPlainText } from "./email-encode.ts";
 export const buildRendaExtEmail = (name: string) => `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr><td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
@@ -52,7 +53,7 @@ export const sendRendaExtEmail = async (to: string, name: string): Promise<boole
       from: "MRO <suporte@maisresultadosonline.com.br>",
       to,
       subject,
-      content: "auto",
+      content: htmlToPlainText(html),
       html: buildRendaExtEmail(name),
     });
     
@@ -76,7 +77,7 @@ export const sendRendaExtEmail = async (to: string, name: string): Promise<boole
       await supabase.from("rendaext_email_logs").insert({
         email_to: to,
         email_type: "aula_liberada",
-        subject: "✅ Aula Liberada! Parabéns pelo interesse",
+        subject: sanitizeEmailSubject("✅ Aula Liberada! Parabéns pelo interesse"),
         status: "error",
         error_message: errorMsg
       });

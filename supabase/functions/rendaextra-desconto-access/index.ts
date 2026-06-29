@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
+import { sanitizeEmailSubject, htmlToPlainText } from "../_shared/email-encode.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -62,8 +63,8 @@ const sendDiscountEmail = async (to: string, nome: string) => {
     await client.send({
       from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
       to,
-      subject: "Seu desconto liberado - MRO Renda Extra",
-      content: "auto",
+      subject: sanitizeEmailSubject("Seu desconto liberado - MRO Renda Extra"),
+      content: htmlToPlainText(html),
       html,
     });
     await client.close();

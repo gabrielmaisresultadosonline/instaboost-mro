@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
+import { sanitizeEmailSubject, htmlToPlainText } from "../_shared/email-encode.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -34,8 +35,8 @@ const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
     await client.send({
       from: "Gabriel - MRO <suporte@maisresultadosonline.com.br>",
       to: to,
-      subject: subject,
-      content: "auto",
+      subject: sanitizeEmailSubject(subject),
+      content: htmlToPlainText(html),
       html: html,
     });
 
@@ -164,7 +165,7 @@ serve(async (req) => {
         lead_id: lead.id,
         email_to: data.email,
         email_type: "confirmacao",
-        subject: "Recebemos seu interesse! - MRO Renda Extra",
+        subject: sanitizeEmailSubject("Recebemos seu interesse! - MRO Renda Extra"),
         status: emailSent ? "sent" : "failed",
         error_message: emailSent ? null : "SMTP not configured or send failed",
       });

@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
+import { sanitizeEmailSubject, htmlToPlainText } from "../_shared/email-encode.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -35,8 +36,8 @@ const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
     await client.send({
       from: "Ads News <suporte@maisresultadosonline.com.br>",
       to: to,
-      subject: subject,
-      content: "auto",
+      subject: sanitizeEmailSubject(subject),
+      content: htmlToPlainText(html),
       html: html,
     });
 
