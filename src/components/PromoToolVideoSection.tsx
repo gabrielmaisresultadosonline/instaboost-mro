@@ -106,13 +106,17 @@ const PromoToolVideoSection = () => {
           </p>
         </div>
 
-        <div className="relative rounded-2xl overflow-hidden border border-yellow-500/20 shadow-[0_0_40px_rgba(234,179,8,0.15)] bg-black aspect-video">
+        <div className="relative rounded-2xl overflow-hidden border border-yellow-500/20 shadow-[0_0_40px_rgba(234,179,8,0.15)] bg-black aspect-video group">
           <video
             ref={videoRef}
             className="absolute inset-0 w-full h-full object-contain bg-black"
             playsInline
             preload="metadata"
-            controls={started}
+            disablePictureInPicture
+            controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+            onContextMenu={(e) => e.preventDefault()}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
           />
           {!started && (
             <button
@@ -126,25 +130,38 @@ const PromoToolVideoSection = () => {
               </div>
             </button>
           )}
-        </div>
 
-        {started && (
-          <div className="mt-4 max-w-md mx-auto">
-            <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-              <span>Progresso assistido</span>
-              <span className="text-yellow-400 font-bold">{percent}%</span>
+          {started && (
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={() => {
+                  const v = videoRef.current; if (!v) return;
+                  if (v.paused) v.play().catch(() => {}); else v.pause();
+                }}
+                className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition"
+                aria-label={isPlaying ? "Pausar" : "Reproduzir"}
+              >
+                {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const v = videoRef.current; if (!v) return;
+                  v.muted = !v.muted; setIsMuted(v.muted);
+                }}
+                className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition"
+                aria-label={isMuted ? "Ativar som" : "Silenciar"}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
             </div>
-            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 transition-all"
-                style={{ width: `${percent}%` }}
-              />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );
 };
+
 
 export default PromoToolVideoSection;
