@@ -530,7 +530,7 @@ const RendaExtraDescontoPage = () => {
                 type="button"
                 onClick={() => {
                   toast.warning('Assista o vídeo para liberar', {
-                    description: 'Você precisa assistir pelo menos 50% do vídeo para acessar.',
+                    description: 'Você precisa assistir pelo menos 90% do vídeo para acessar.',
                   });
                 }}
                 className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-amber-500/30 text-white/70 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.15)]"
