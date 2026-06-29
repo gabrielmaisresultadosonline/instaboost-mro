@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const log = (m: string, d?: unknown) => console.log(`[EMPRESAS-REGISTER] ${m}`, d ? JSON.stringify(d) : "");
 
-async function sendEmail(to: string, subject: sanitizeEmailSubject(string), html: string) {
+async function sendEmail(to: string, subject: string, html: string) {
   const pwd = Deno.env.get("SMTP_PASSWORD");
   if (!pwd) return false;
   try {

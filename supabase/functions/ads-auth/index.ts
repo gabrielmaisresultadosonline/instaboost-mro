@@ -13,7 +13,7 @@ const log = (step: string, details?: unknown) => {
   console.log(`[ADS-AUTH] ${step}:`, details ? JSON.stringify(details, null, 2) : '');
 };
 
-const sendEmailViaSMTP = async (to: string, subject: sanitizeEmailSubject(string), html: string) => {
+const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   if (!smtpPassword) {
     log("SMTP password not configured, skipping email");

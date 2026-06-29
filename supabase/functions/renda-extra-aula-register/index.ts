@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const sendEmailViaSMTP = async (to: string, subject: sanitizeEmailSubject(string), html: string) => {
+const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   if (!smtpPassword) return false;
   try {

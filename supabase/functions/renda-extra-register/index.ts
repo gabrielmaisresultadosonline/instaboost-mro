@@ -12,7 +12,7 @@ const log = (message: string, data?: any) => {
   console.log(`[RENDA-EXTRA-REGISTER] ${message}`, data ? JSON.stringify(data) : '');
 };
 
-const sendEmailViaSMTP = async (to: string, subject: sanitizeEmailSubject(string), html: string) => {
+const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   if (!smtpPassword) {
     log("SMTP password not configured, skipping email");

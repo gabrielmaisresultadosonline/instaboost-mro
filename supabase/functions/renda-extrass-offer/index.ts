@@ -70,7 +70,7 @@ const tplReminder2 = (name: string, email: string) => emailShell(
    ${ctaButton(accessUrl(email), "GARANTIR R$97 AGORA", "#dc2626")}`
 );
 
-async function sendMail(to: string, subject: sanitizeEmailSubject(string), html: string, type: string) {
+async function sendMail(to: string, subject: string, html: string, type: string) {
   if (!smtpPassword) {
     console.error("[renda-extrass-offer] SMTP_PASSWORD missing");
     return false;
