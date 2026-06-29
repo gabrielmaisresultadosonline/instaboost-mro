@@ -415,6 +415,7 @@ const RendaExtraLeadAdmin = () => {
                       <TableRow className="border-gray-700 hover:bg-gray-800/50">
                         <TableHead className="text-gray-300 whitespace-nowrap">Nome</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Email</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">WhatsApp</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Último Acesso</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">% Assistido</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Desconto</TableHead>
