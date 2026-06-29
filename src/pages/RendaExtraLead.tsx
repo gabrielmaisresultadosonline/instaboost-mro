@@ -244,31 +244,38 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
   };
 
   if (submitted) {
-    const groupHref = whatsappGroupInvite || groupLink || "https://maisresultadosonline.com.br/r/rxl-wa";
+    const accessHref = freeClassLink || `/rendaextra/desconto?email=${encodeURIComponent(formData.email)}`;
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
           <div className="bg-gradient-to-br from-yellow-400/10 to-amber-500/5 p-8 rounded-3xl border border-yellow-400/20 backdrop-blur-xl">
             <CheckCircle2 className="w-20 h-20 text-yellow-400 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Participe do Grupo
+              🎁 Aula Grátis Liberada!
             </h1>
-            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-              Participe do grupo e aguarde a liberação da <span className="text-yellow-400 font-bold">aula grátis</span> de como fazer <span className="text-yellow-400 font-bold">5 mil mensal com a MRO</span> em casa utilizando seu notebook — inclusive enquanto você dorme, deixando tudo automático.
+            <p className="text-gray-300 text-base md:text-lg mb-4 leading-relaxed">
+              Olá <span className="text-yellow-400 font-bold">{formData.nomeCompleto.split(" ")[0]}</span>! Enviamos o link da sua <span className="text-yellow-400 font-bold">aula grátis</span> para o seu email.
             </p>
+            <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-yellow-300 font-bold text-sm md:text-base mb-1">🔥 Liberamos algumas vagas com desconto especial!</p>
+              <p className="text-gray-300 text-sm md:text-base">
+                Acesse a aula agora, assista <span className="font-bold text-white">por completo</span> e ao final do vídeo o seu <span className="font-bold text-white">desconto da ferramenta MRO</span> será liberado.
+              </p>
+            </div>
 
             <div className="relative group inline-block w-full">
               <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
               <a
-                href={groupHref}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={accessHref}
                 className="relative inline-flex items-center justify-center gap-3 w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
               >
-                Participe do Grupo
+                Acessar Aula Grátis Agora
                 <ArrowRight className="w-5 h-5" />
               </a>
             </div>
+            <p className="text-gray-500 text-xs mt-4">
+              Também enviamos o link para o seu email: <span className="text-gray-300">{formData.email}</span>
+            </p>
           </div>
         </div>
       </div>
