@@ -415,6 +415,7 @@ const RendaExtraLeadAdmin = () => {
                       <TableRow className="border-gray-700 hover:bg-gray-800/50">
                         <TableHead className="text-gray-300 whitespace-nowrap">Nome</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Email</TableHead>
+                        <TableHead className="text-gray-300 whitespace-nowrap">WhatsApp</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Último Acesso</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">% Assistido</TableHead>
                         <TableHead className="text-gray-300 whitespace-nowrap">Desconto</TableHead>
@@ -437,6 +438,7 @@ const RendaExtraLeadAdmin = () => {
                             <TableRow key={lead.id} className="border-gray-700 hover:bg-gray-800/50">
                               <TableCell className="text-white whitespace-nowrap">{lead.nome_completo}</TableCell>
                               <TableCell className="text-gray-300 whitespace-nowrap">{lead.email}</TableCell>
+                              <TableCell className="text-gray-300 whitespace-nowrap">{lead.whatsapp}</TableCell>
                               <TableCell className="text-gray-300 whitespace-nowrap">
                                 {lead.desconto_last_access_at
                                   ? format(new Date(lead.desconto_last_access_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
@@ -476,7 +478,7 @@ const RendaExtraLeadAdmin = () => {
                         })}
                       {leads.filter(l => l.desconto_last_access_at || (l.desconto_video_percent ?? 0) > 0).length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                          <TableCell colSpan={7} className="text-center text-gray-500 py-8">
                             Nenhum acesso registrado ainda.
                           </TableCell>
                         </TableRow>
