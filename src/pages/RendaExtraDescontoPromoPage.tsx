@@ -513,35 +513,7 @@ const RendaExtraDescontoPromoPage = () => {
             ))}
           </div>
 
-          {/* What you offer to companies */}
-          <div className="bg-gradient-to-br from-amber-950/50 to-orange-950/50 border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10">
-            <div className="text-center mb-6">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-amber-300 mb-2">
-                💼 O que você oferece para empresas?
-              </h3>
-              <p className="text-gray-400 text-sm sm:text-base">Você traz resultados reais e elas pagam você por isso!</p>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {[
-                { icon: TrendingUp, text: "Mais vendas", color: "text-green-400" },
-                { icon: Users, text: "Mais clientes", color: "text-blue-400" },
-                { icon: UserPlus, text: "Mais seguidores", color: "text-purple-400" },
-                { icon: Brain, text: "Estratégias automáticas", color: "text-amber-400" },
-              ].map((item, i) => (
-                <div key={i} className="bg-black/40 border border-amber-500/20 rounded-xl p-4 sm:p-5 text-center">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
-                    <item.icon className={`w-6 h-6 ${item.color}`} />
-                  </div>
-                  <span className="text-white font-bold text-sm sm:text-base">{item.text}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 sm:mt-8 bg-green-500/15 border border-green-500/30 rounded-xl p-4 text-center">
-              <p className="text-green-300 font-bold text-sm sm:text-lg">
-                💰 Com 5 clientes pagando R$1.000/mês cada, você já fatura R$5.000 de casa!
-              </p>
-            </div>
-          </div>
+          {/* Bloco "O que você oferece para empresas" removido conforme solicitação */}
         </div>
       </section>
 
