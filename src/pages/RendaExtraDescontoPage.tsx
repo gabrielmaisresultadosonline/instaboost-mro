@@ -105,6 +105,24 @@ const RendaExtraDescontoPage = () => {
     trackEvent('/rendaextra-desconto');
     supabase.functions.invoke('estrutura4-discount', { body: { action: 'get_video' } })
       .then(({ data }) => { if (data) setVideoCfg(data); }).catch(() => {});
+    // Registra acesso no admin se ja tem email salvo (pulou o gate)
+    try {
+      const em = (localStorage.getItem('rendaextra-desconto:email') || '').trim().toLowerCase();
+      if (em) {
+        supabase.functions.invoke('rendaextra-desconto-access', {
+          body: { action: 'verify_email', email: em },
+        }).then(({ data }) => {
+          if (data?.success) {
+            if (data.name) setLeadName(data.name);
+            const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
+            try {
+              if (serverUnlocked) localStorage.setItem(unlockKeyFor(data.email), '1');
+            } catch {}
+            if (serverUnlocked) setUnlockedPersisted(true);
+          }
+        }).catch(() => {});
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
