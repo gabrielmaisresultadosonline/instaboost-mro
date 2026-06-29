@@ -428,54 +428,82 @@ const RendaExtraDescontoPromoPage = () => {
       {/* Header removido conforme solicitação */}
 
       {/* Hero Section */}
-      <section className="relative pt-6 sm:pt-10 pb-10 sm:pb-16 px-3 sm:px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          
-          <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
-          
+      <section className="relative pt-8 sm:pt-14 pb-12 sm:pb-20 px-3 sm:px-4 overflow-hidden">
+        {/* Decorative background orbs */}
+        <div className="pointer-events-none absolute inset-0 -z-0">
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-green-500/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 right-10 w-[300px] h-[300px] bg-emerald-400/10 blur-[100px] rounded-full" />
+          <div className="absolute top-20 left-10 w-[250px] h-[250px] bg-yellow-500/10 blur-[100px] rounded-full" />
+        </div>
+
+        <div className="relative max-w-5xl mx-auto text-center">
+
+          <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain drop-shadow-[0_0_30px_rgba(34,197,94,0.35)]" />
+
+          {/* Top pill */}
+          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-green-500/30 rounded-full px-4 py-1.5 mb-5 shadow-lg shadow-green-500/10">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-green-300 uppercase">Oferta liberada • Vagas limitadas</span>
+          </div>
+
           {/* Animated Title */}
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 px-2">
-              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">FATURE MAIS DE R$5.000</span>
+            <div className="absolute -inset-6 bg-gradient-to-r from-green-500/20 via-emerald-500/25 to-green-500/20 blur-3xl rounded-full" />
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 sm:mb-4 px-2 leading-tight tracking-tight">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">
+                FATURE MAIS DE <span className="bg-gradient-to-r from-yellow-300 to-amber-400 bg-clip-text text-transparent">R$5.000</span>
+              </span>
             </h1>
-            <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black mb-3">
-              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
+            <h2 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-5 leading-tight">
+              <span className="bg-gradient-to-r from-green-300 via-emerald-400 to-green-300 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(34,197,94,0.35)]">
                 TRABALHANDO DE CASA!
               </span>
             </h2>
-            <p className="relative mt-3 text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
-              Renda extra automática e real! Com apenas 1 computador ou notebook, instale a ferramenta MRO e comece a faturar de qualquer lugar do mundo.
+            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300/90 max-w-2xl mx-auto leading-relaxed">
+              Renda extra <span className="text-green-300 font-semibold">automática e real</span>. Com apenas 1 computador ou notebook, instale a ferramenta MRO e comece a faturar de qualquer lugar do mundo.
             </p>
           </div>
 
           {/* Renda Extra Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 border border-green-500/50 rounded-full px-4 sm:px-6 py-2 mt-6">
-            <Laptop className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-            <span className="text-white font-bold text-xs sm:text-sm">20 MINUTOS ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
-            <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+          <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-green-600/20 via-emerald-600/30 to-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 sm:px-6 py-2.5 mt-7 shadow-lg shadow-green-500/10">
+            <Laptop className="w-4 h-4 sm:w-5 sm:h-5 text-green-300 shrink-0" />
+            <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">20 MIN ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
+            <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-300 shrink-0" />
           </div>
 
-
-          {/* Main Video removed - access already gated by email verification */}
-
           {/* CTA Button with arrows */}
-          <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-2 sm:gap-4">
-            <span className="arrow-bounce-right text-white text-2xl sm:text-3xl">▶</span>
-            <Button 
+          <div className="relative mt-10 sm:mt-12 flex items-center justify-center gap-3 sm:gap-5">
+            <span className="arrow-bounce-right text-yellow-300 text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">▶</span>
+            <Button
               onClick={scrollToPricing}
-              className="btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
+              className="btn-pulse-color text-black font-extrabold text-sm sm:text-lg px-7 sm:px-12 py-6 sm:py-7 rounded-full shadow-2xl shadow-yellow-500/40 hover:scale-105 transition-transform"
             >
               COMECE AGORA POR R$99 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <span className="arrow-bounce-left text-white text-2xl sm:text-3xl">◀</span>
+            <span className="arrow-bounce-left text-yellow-300 text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">◀</span>
           </div>
-          <p className="mt-3 text-sm sm:text-base text-yellow-300 font-bold">
-            🔥 Conheça o sistema por 30 dias por apenas R$99 — depois escale para o plano anual!
-          </p>
+
+          {/* Subtitle pill */}
+          <div className="mt-5 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl px-4 py-2 backdrop-blur-sm">
+            <span className="text-base">🔥</span>
+            <p className="text-xs sm:text-sm text-yellow-200 font-semibold leading-snug">
+              Conheça o sistema por <span className="text-yellow-300 font-bold">30 dias por R$99</span> — depois escale para o plano anual!
+            </p>
+          </div>
+
+          {/* Trust signals */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] sm:text-xs text-gray-400">
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Pagamento 100% seguro</div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Acesso imediato</div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Suporte humano</div>
+          </div>
 
         </div>
       </section>
+
 
       {/* === VIDEO: VEJA COMO A FERRAMENTA TRABALHA === */}
       <PromoToolVideoSection />
