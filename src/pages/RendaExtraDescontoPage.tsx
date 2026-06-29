@@ -100,15 +100,23 @@ const RendaExtraDescontoPage = () => {
     trackEvent('/rendaextra-desconto');
     supabase.functions.invoke('estrutura4-discount', { body: { action: 'get_video' } })
       .then(({ data }) => { if (data) setVideoCfg(data); }).catch(() => {});
-    // Registra acesso no admin se ja tem email salvo (pulou o gate)
+    // Registra acesso no admin: prioriza ?email= da URL, senao usa localStorage
     try {
-      const em = (localStorage.getItem('rendaextra-desconto:email') || '').trim().toLowerCase();
+      const urlEmail = (new URLSearchParams(window.location.search).get('email') || '').trim().toLowerCase();
+      const stored = (localStorage.getItem('rendaextra-desconto:email') || '').trim().toLowerCase();
+      const em = urlEmail || stored;
       if (em) {
         supabase.functions.invoke('rendaextra-desconto-access', {
           body: { action: 'verify_email', email: em },
         }).then(({ data }) => {
           if (data?.success) {
             if (data.name) setLeadName(data.name);
+            try {
+              localStorage.setItem('rendaextra-desconto:email', data.email);
+              if (data.name) localStorage.setItem('rendaextra-desconto:name', data.name);
+            } catch {}
+            setLeadEmail(data.email);
+            setMode('prestar');
             const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
             try {
               if (serverUnlocked) localStorage.setItem(unlockKeyFor(data.email), '1');
