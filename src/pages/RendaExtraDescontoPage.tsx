@@ -39,13 +39,8 @@ const RendaExtraDescontoPage = () => {
   const [duration, setDuration] = useState(0);
   const [watchedSeconds, setWatchedSeconds] = useState(0);
   const unlockKeyFor = (email: string) => `rendaextra-desconto:video-unlocked:${email.trim().toLowerCase()}`;
-  const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
-    try {
-      const em = localStorage.getItem('rendaextra-desconto:email') || '';
-      if (!em) return false;
-      return localStorage.getItem(`rendaextra-desconto:video-unlocked:${em.toLowerCase()}`) === '1';
-    } catch { return false; }
-  });
+  // Server is the source of truth. Start locked; only unlock after server confirms >=90% for this email.
+  const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(false);
   const [sendingUnlock, setSendingUnlock] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
