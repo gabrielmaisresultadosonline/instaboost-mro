@@ -110,11 +110,18 @@ const RendaExtraDescontoPromoPage = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const planConfig = {
+    monthly: { label: '30 dias por R$99', amount: 99, planType: 'monthly', priceDisplay: 'R$99', durationDisplay: '30 dias de acesso' },
+    annual: { label: '12x R$30 (R$297 à vista)', amount: 297, planType: 'annual', priceDisplay: 'R$297', durationDisplay: '1 ano completo' },
+  } as const;
+
 
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
