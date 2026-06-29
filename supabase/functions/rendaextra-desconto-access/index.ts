@@ -62,10 +62,18 @@ const sendDiscountEmail = async (to: string, nome: string) => {
     });
     await client.send({
       from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
+      replyTo: "suporte@maisresultadosonline.com.br",
       to,
       subject: sanitizeEmailSubject("Seu desconto liberado - MRO Renda Extra"),
       content: htmlToPlainText(html),
       html,
+      headers: {
+        "List-Unsubscribe": "<mailto:suporte@maisresultadosonline.com.br?subject=unsubscribe>, <https://maisresultadosonline.com.br/unsubscribe>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "X-Entity-Ref-ID": crypto.randomUUID(),
+        "X-Mailer": "MRO-Mailer",
+        "Precedence": "bulk",
+      },
     });
     await client.close();
     return true;
