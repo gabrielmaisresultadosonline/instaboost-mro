@@ -21,6 +21,7 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [groupLink, setGroupLink] = useState("");
+  const [freeClassLink, setFreeClassLink] = useState("");
   const [whatsappGroupInvite, setWhatsappGroupInvite] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nomeCompleto: "",
