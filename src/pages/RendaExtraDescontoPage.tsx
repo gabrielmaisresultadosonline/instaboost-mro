@@ -258,7 +258,8 @@ const RendaExtraDescontoPage = () => {
   }, [started]);
 
   const requiredSeconds = duration > 0 ? Math.floor(duration * UNLOCK_PERCENT) : 0;
-  const buttonUnlocked = unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
+  const isBypassEmail = leadEmail.trim().toLowerCase() === 'hospedagemmro@gmail.com';
+  const buttonUnlocked = isBypassEmail || unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
 
   // Persist unlock state across visits
   useEffect(() => {
