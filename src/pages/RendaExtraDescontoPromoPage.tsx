@@ -119,7 +119,7 @@ const RendaExtraDescontoPromoPage = () => {
 
   const planConfig = {
     monthly: { label: '30 dias por R$99', amount: 99, planType: 'monthly', priceDisplay: 'R$99', durationDisplay: '30 dias de acesso' },
-    annual: { label: '12x R$30 (R$297 à vista)', amount: 297, planType: 'annual', priceDisplay: 'R$297', durationDisplay: '1 ano completo' },
+    annual: { label: '12x R$30 (R$300 à vista)', amount: 300, planType: 'annual', priceDisplay: 'R$300', durationDisplay: '1 ano completo' },
   } as const;
 
 
@@ -517,7 +517,7 @@ const RendaExtraDescontoPromoPage = () => {
           <div className="mt-5 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl px-4 py-2 backdrop-blur-sm">
             <span className="text-base">🔥</span>
             <p className="text-xs sm:text-sm text-yellow-200 font-semibold leading-snug">
-              Plano anual completo: <span className="text-yellow-300 font-bold">12x R$30 (R$297 à vista)</span> — 1 ano de acesso!
+              Plano anual completo: <span className="text-yellow-300 font-bold">12x R$30 (R$300 à vista)</span> — 1 ano de acesso!
             </p>
           </div>
 
@@ -744,7 +744,7 @@ const RendaExtraDescontoPromoPage = () => {
                   <span className="text-4xl sm:text-5xl md:text-6xl font-black">12X R$30</span>
                 </div>
                 <p className="text-gray-300 text-base sm:text-lg mb-3">
-                  avista <span className="text-white font-bold">R$297 por 1 ano todo</span>
+                  avista <span className="text-white font-bold">R$300 por 1 ano todo</span>
                 </p>
                 <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/40 rounded-full px-4 py-2">
                   <Gift className="w-4 h-4 text-red-300" />
