@@ -33,11 +33,19 @@ const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
     });
 
     await client.send({
-      from: "Gabriel - MRO <suporte@maisresultadosonline.com.br>",
+      from: "Gabriel MRO <suporte@maisresultadosonline.com.br>",
+      replyTo: "suporte@maisresultadosonline.com.br",
       to: to,
       subject: sanitizeEmailSubject(subject),
       content: htmlToPlainText(html),
       html: html,
+      headers: {
+        "List-Unsubscribe": "<mailto:suporte@maisresultadosonline.com.br?subject=unsubscribe>, <https://maisresultadosonline.com.br/unsubscribe>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "X-Entity-Ref-ID": crypto.randomUUID(),
+        "X-Mailer": "MRO-Mailer",
+        "Precedence": "bulk",
+      },
     });
 
     await client.close();
