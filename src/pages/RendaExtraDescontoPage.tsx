@@ -292,9 +292,14 @@ const RendaExtraDescontoPage = () => {
     }
   }, [buttonUnlocked, unlockedPersisted, leadEmail]);
 
-  // Clear legacy global unlock key so it never bleeds across accounts
+  // Clear legacy/global unlock keys so they never bleed across accounts or sessions
   useEffect(() => {
-    try { localStorage.removeItem('rendaextra-desconto:video-unlocked'); } catch {}
+    try {
+      localStorage.removeItem('rendaextra-desconto:video-unlocked');
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('rendaextra-desconto:video-unlocked:'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {}
   }, []);
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
