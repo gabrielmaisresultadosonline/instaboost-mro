@@ -32,7 +32,7 @@ const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
     });
 
     await client.send({
-      from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
+      from: "Gabriel - MRO <suporte@maisresultadosonline.com.br>",
       to: to,
       subject: subject,
       content: "auto",
