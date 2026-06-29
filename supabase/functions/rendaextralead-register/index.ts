@@ -33,11 +33,19 @@ const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
     });
 
     await client.send({
-      from: "Gabriel - MRO <suporte@maisresultadosonline.com.br>",
+      from: "Gabriel MRO <suporte@maisresultadosonline.com.br>",
+      replyTo: "suporte@maisresultadosonline.com.br",
       to: to,
       subject: sanitizeEmailSubject(subject),
       content: htmlToPlainText(html),
       html: html,
+      headers: {
+        "List-Unsubscribe": "<mailto:suporte@maisresultadosonline.com.br?subject=unsubscribe>, <https://maisresultadosonline.com.br/unsubscribe>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "X-Entity-Ref-ID": crypto.randomUUID(),
+        "X-Mailer": "MRO-Mailer",
+        "Precedence": "bulk",
+      },
     });
 
     await client.close();
@@ -111,11 +119,12 @@ serve(async (req) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;font-size:1px;line-height:1px;">Sua aula gratuita esta liberada. Acesse agora e descubra como gerar renda extra com a MRO.</div>
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr>
 <td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎁 Sua aula grátis está liberada!</h1>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">Sua aula gratis esta liberada</h1>
 </td>
 </tr>
 <tr>
@@ -132,9 +141,9 @@ serve(async (req) => {
 <p style="margin:8px 0 0 0;font-size:14px;color:#555;">Acesse, assista a aula <strong>por completo</strong> e ao final do vídeo o seu <strong>desconto</strong> será liberado automaticamente.</p>
 </div>
 
-<div style="text-align:center;margin:30px 0;">
+    <div style="text-align:center;margin:30px 0;">
 <a href="${freeClassLink}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
-▶️ ACESSAR AULA GRÁTIS AGORA
+ACESSAR AULA GRATIS AGORA
 </a>
 </div>
 
@@ -154,7 +163,7 @@ serve(async (req) => {
 
     const emailSent = await sendEmailViaSMTP(
       data.email,
-      "🎁 Sua aula grátis está liberada — Gabriel (MRO)",
+      "Sua aula gratis liberada - Gabriel MRO",
       emailHtml
     );
 

@@ -24,6 +24,7 @@ const sendDiscountEmail = async (to: string, nome: string) => {
   const firstName = (nome || "").split(" ")[0] || "amigo(a)";
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f4;color:#333;line-height:1.6;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;font-size:1px;line-height:1px;">Seu desconto da ferramenta MRO foi liberado. Acesse agora pelo link pessoal.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;padding:24px 0;">
 <tr><td align="center">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;">
@@ -62,10 +63,18 @@ const sendDiscountEmail = async (to: string, nome: string) => {
     });
     await client.send({
       from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
+      replyTo: "suporte@maisresultadosonline.com.br",
       to,
       subject: sanitizeEmailSubject("Seu desconto liberado - MRO Renda Extra"),
       content: htmlToPlainText(html),
       html,
+      headers: {
+        "List-Unsubscribe": "<mailto:suporte@maisresultadosonline.com.br?subject=unsubscribe>, <https://maisresultadosonline.com.br/unsubscribe>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "X-Entity-Ref-ID": crypto.randomUUID(),
+        "X-Mailer": "MRO-Mailer",
+        "Precedence": "bulk",
+      },
     });
     await client.close();
     return true;
