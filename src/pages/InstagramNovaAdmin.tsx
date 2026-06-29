@@ -1497,7 +1497,7 @@ Participe também do nosso GRUPO DE AVISOS
   const getDaysRemaining = (order: MROOrder) => {
     if (!order.paid_at) return null;
     const paidDate = new Date(order.paid_at);
-    const planDays = order.plan_type === 'trial' ? 30 : order.plan_type === 'lifetime' ? 9999 : 365;
+    const planDays = order.plan_type === 'trial' ? 30 : order.plan_type === 'monthly' ? 30 : order.plan_type === 'lifetime' ? 9999 : 365;
     const expirationDate = addDays(paidDate, planDays);
     const daysLeft = differenceInDays(expirationDate, new Date());
     return daysLeft > 0 ? daysLeft : 0;
