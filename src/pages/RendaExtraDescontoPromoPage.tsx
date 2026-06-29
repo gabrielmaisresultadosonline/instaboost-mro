@@ -920,8 +920,7 @@ const RendaExtraDescontoPromoPage = () => {
               <p className="text-gray-400 text-xs sm:text-sm">{planConfig[selectedPlan].durationDisplay}</p>
             </div>
 
-              <p className="text-gray-400 text-xs sm:text-sm">avista R$297 por 1 ano todo</p>
-            </div>
+
             
             <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
               <div>
