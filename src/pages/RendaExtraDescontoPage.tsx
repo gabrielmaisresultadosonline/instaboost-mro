@@ -38,8 +38,13 @@ const RendaExtraDescontoPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [watchedSeconds, setWatchedSeconds] = useState(0);
+  const unlockKeyFor = (email: string) => `rendaextra-desconto:video-unlocked:${email.trim().toLowerCase()}`;
   const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(() => {
-    try { return localStorage.getItem('rendaextra-desconto:video-unlocked') === '1'; } catch { return false; }
+    try {
+      const em = localStorage.getItem('rendaextra-desconto:email') || '';
+      if (!em) return false;
+      return localStorage.getItem(`rendaextra-desconto:video-unlocked:${em.toLowerCase()}`) === '1';
+    } catch { return false; }
   });
   const [sendingUnlock, setSendingUnlock] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -78,10 +83,15 @@ const RendaExtraDescontoPage = () => {
         localStorage.setItem('rendaextra-desconto:email', data.email);
         localStorage.setItem('rendaextra-desconto:name', data.name || '');
       } catch {}
-      if (data.unlocked || (data.percent_watched || 0) >= 90) {
-        try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
-        setUnlockedPersisted(true);
-      }
+      const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
+      try {
+        if (serverUnlocked) {
+          localStorage.setItem(unlockKeyFor(data.email), '1');
+        } else {
+          localStorage.removeItem(unlockKeyFor(data.email));
+        }
+      } catch {}
+      setUnlockedPersisted(serverUnlocked);
       setMode('prestar');
     } catch (err) {
       setGateError('Erro ao verificar. Tente novamente.');
@@ -261,13 +271,18 @@ const RendaExtraDescontoPage = () => {
   const isBypassEmail = leadEmail.trim().toLowerCase() === 'hospedagemmro@gmail.com';
   const buttonUnlocked = isBypassEmail || unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
 
-  // Persist unlock state across visits
+  // Persist unlock state across visits (per email)
   useEffect(() => {
-    if (buttonUnlocked && !unlockedPersisted) {
-      try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
+    if (buttonUnlocked && !unlockedPersisted && leadEmail) {
+      try { localStorage.setItem(unlockKeyFor(leadEmail), '1'); } catch {}
       setUnlockedPersisted(true);
     }
-  }, [buttonUnlocked, unlockedPersisted]);
+  }, [buttonUnlocked, unlockedPersisted, leadEmail]);
+
+  // Clear legacy global unlock key so it never bleeds across accounts
+  useEffect(() => {
+    try { localStorage.removeItem('rendaextra-desconto:video-unlocked'); } catch {}
+  }, []);
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
