@@ -753,7 +753,8 @@ const RendaExtraDescontoPromoPage = () => {
               </div>
 
               <div className="space-y-2.5 mb-6">
-                {planFeatures.slice(0, 5).map((feature, i) => (
+                {monthlyFeatures.map((feature, i) => (
+
                   <div key={i} className="flex items-start gap-2">
                     <CheckCircle2 className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-200 text-sm">{feature}</span>
