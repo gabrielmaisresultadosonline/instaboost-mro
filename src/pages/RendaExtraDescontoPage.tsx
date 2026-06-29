@@ -291,15 +291,16 @@ const RendaExtraDescontoPage = () => {
 
   const requiredSeconds = duration > 0 ? Math.floor(duration * UNLOCK_PERCENT) : 0;
   const isBypassEmail = leadEmail.trim().toLowerCase() === 'hospedagemmro@gmail.com';
-  const buttonUnlocked = isBypassEmail || unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
+  const watchedEnough = requiredSeconds > 0 && watchedSeconds >= requiredSeconds;
+  const buttonUnlocked = isBypassEmail || unlockedPersisted || watchedEnough;
 
-  // Persist unlock state across visits (per email)
+  // Persist unlock once user actually watches the required amount in this session
   useEffect(() => {
-    if (buttonUnlocked && !unlockedPersisted && leadEmail) {
+    if (watchedEnough && !unlockedPersisted && leadEmail) {
       try { localStorage.setItem(unlockKeyFor(leadEmail), '1'); } catch {}
       setUnlockedPersisted(true);
     }
-  }, [buttonUnlocked, unlockedPersisted, leadEmail]);
+  }, [watchedEnough, unlockedPersisted, leadEmail]);
 
   // Clear legacy/global unlock keys so they never bleed across accounts or sessions
   useEffect(() => {
