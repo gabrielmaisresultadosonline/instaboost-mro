@@ -319,6 +319,16 @@ const RendaExtraDescontoPromoPage = () => {
     "Suporte prioritário"
   ];
 
+  const monthlyFeatures = [
+    "Ferramenta completa para Instagram",
+    "Acesso a 4 contas simultâneas fixas",
+    "5 testes todo mês para testar em seus clientes/outras contas",
+    "Área de membros por 30 dias",
+    "Vídeos estratégicos passo a passo",
+    "Grupo VIP no WhatsApp",
+  ];
+
+
   if (accessState === 'checking') {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -743,7 +753,8 @@ const RendaExtraDescontoPromoPage = () => {
               </div>
 
               <div className="space-y-2.5 mb-6">
-                {planFeatures.slice(0, 5).map((feature, i) => (
+                {monthlyFeatures.map((feature, i) => (
+
                   <div key={i} className="flex items-start gap-2">
                     <CheckCircle2 className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-200 text-sm">{feature}</span>
