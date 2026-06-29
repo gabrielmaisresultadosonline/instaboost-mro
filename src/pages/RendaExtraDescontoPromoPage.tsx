@@ -110,7 +110,7 @@ const RendaExtraDescontoPromoPage = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -508,7 +508,7 @@ const RendaExtraDescontoPromoPage = () => {
               onClick={scrollToPricing}
               className="btn-pulse-color text-black font-extrabold text-sm sm:text-lg px-7 sm:px-12 py-6 sm:py-7 rounded-full shadow-2xl shadow-yellow-500/40 hover:scale-105 transition-transform"
             >
-              COMECE AGORA POR R$99 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+              COMECE AGORA POR 12X R$30 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <span className="arrow-bounce-left text-yellow-300 text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">◀</span>
           </div>
@@ -517,7 +517,7 @@ const RendaExtraDescontoPromoPage = () => {
           <div className="mt-5 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl px-4 py-2 backdrop-blur-sm">
             <span className="text-base">🔥</span>
             <p className="text-xs sm:text-sm text-yellow-200 font-semibold leading-snug">
-              Conheça o sistema por <span className="text-yellow-300 font-bold">30 dias por R$99</span> — depois escale para o plano anual!
+              Plano anual completo: <span className="text-yellow-300 font-bold">12x R$30 (R$297 à vista)</span> — 1 ano de acesso!
             </p>
           </div>
 
@@ -726,56 +726,7 @@ const RendaExtraDescontoPromoPage = () => {
           </h2>
           <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Escolha seu plano e comece agora</p>
 
-          <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
-            {/* === PLANO 30 DIAS - POPULAR === */}
-            <div className="bg-gradient-to-b from-yellow-950/40 to-gray-950 border-2 border-yellow-400 rounded-2xl sm:rounded-3xl p-5 sm:p-7 relative overflow-hidden shadow-2xl shadow-yellow-500/20 md:scale-105">
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2">
-                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-black px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap flex items-center gap-1">
-                  <Flame className="w-3.5 h-3.5" /> MAIS POPULAR
-                </div>
-              </div>
-
-              <div className="text-center mt-6 mb-5">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 text-yellow-300">CONHEÇA POR 30 DIAS</h3>
-                <p className="text-gray-400 text-xs sm:text-sm mb-4">Comece pequeno, valide e depois escale</p>
-
-                <div className="text-yellow-300 mb-1">
-                  <span className="text-5xl sm:text-6xl md:text-7xl font-black">R$99</span>
-                </div>
-                <p className="text-gray-300 text-base sm:text-lg mb-3">
-                  por <span className="text-white font-bold">30 dias de acesso completo</span>
-                </p>
-
-                <div className="inline-flex items-center gap-2 bg-yellow-500/15 border border-yellow-400/40 rounded-full px-4 py-2">
-                  <Sparkles className="w-4 h-4 text-yellow-300" />
-                  <span className="text-yellow-200 font-bold text-xs sm:text-sm">Conheça o sistema e depois evolua seu plano</span>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 mb-6">
-                {monthlyFeatures.map((feature, i) => (
-
-                  <div key={i} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-200 text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                onClick={() => {
-                  if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-                  setSelectedPlan('monthly');
-                  setShowCheckoutModal(true);
-                }}
-                disabled={promoTimeLeft.expired}
-                className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-yellow-500/40 disabled:opacity-50"
-              >
-                ADQUIRIR POR R$99 <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <p className="text-center text-yellow-300/80 text-xs mt-2 font-semibold">30 dias por R$99 — depois escale!</p>
-            </div>
-
+          <div className="max-w-xl mx-auto">
             {/* === PLANO ANUAL === */}
             <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-2xl sm:rounded-3xl p-5 sm:p-7 relative overflow-hidden">
               <div className="absolute -top-1 left-1/2 -translate-x-1/2">
@@ -875,13 +826,13 @@ const RendaExtraDescontoPromoPage = () => {
           <Button 
             onClick={() => {
               if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-              setSelectedPlan('monthly');
+              setSelectedPlan('annual');
               scrollToPricing();
             }}
             disabled={promoTimeLeft.expired}
             className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "COMECE AGORA POR R$99"}
+            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "COMECE AGORA POR 12X R$30"}
           </Button>
 
           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
