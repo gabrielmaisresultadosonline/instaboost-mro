@@ -301,7 +301,7 @@ const RendaExtraDescontoPage = () => {
               disabled={gateLoading}
               className="w-full py-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(16,185,129,0.3)] h-auto"
             >
-              {gateLoading ? 'Verificando...' : 'Entrar'}
+              {gateLoading ? 'Verificando...' : 'Acessar Aula Grátis'}
             </Button>
           </form>
         </div>
