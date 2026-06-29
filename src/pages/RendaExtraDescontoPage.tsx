@@ -271,13 +271,18 @@ const RendaExtraDescontoPage = () => {
   const isBypassEmail = leadEmail.trim().toLowerCase() === 'hospedagemmro@gmail.com';
   const buttonUnlocked = isBypassEmail || unlockedPersisted || (requiredSeconds > 0 && watchedSeconds >= requiredSeconds);
 
-  // Persist unlock state across visits
+  // Persist unlock state across visits (per email)
   useEffect(() => {
-    if (buttonUnlocked && !unlockedPersisted) {
-      try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
+    if (buttonUnlocked && !unlockedPersisted && leadEmail) {
+      try { localStorage.setItem(unlockKeyFor(leadEmail), '1'); } catch {}
       setUnlockedPersisted(true);
     }
-  }, [buttonUnlocked, unlockedPersisted]);
+  }, [buttonUnlocked, unlockedPersisted, leadEmail]);
+
+  // Clear legacy global unlock key so it never bleeds across accounts
+  useEffect(() => {
+    try { localStorage.removeItem('rendaextra-desconto:video-unlocked'); } catch {}
+  }, []);
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
