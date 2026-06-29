@@ -355,6 +355,23 @@ const RendaExtraDescontoPromoPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Floating WhatsApp Button */}
+      <a
+        href={`https://wa.me/5551992835863?text=${encodeURIComponent("Vim pelo site do renda extra com desconto, gostaria de tirar algumas dúvidas.")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Falar no WhatsApp"
+        className="fixed bottom-5 right-5 z-50 group"
+      >
+        <span className="absolute inset-0 rounded-full bg-green-500/60 animate-ping" />
+        <span className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#25D366] shadow-2xl shadow-green-500/40 group-hover:scale-110 transition-transform">
+          <svg viewBox="0 0 32 32" className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="currentColor" aria-hidden="true">
+            <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.434-1.318.144-.4.144-.74.087-.83-.06-.13-.215-.187-.43-.287zM16.405 27.05c-1.776 0-3.51-.473-5.03-1.36l-.358-.214-3.722.975 1.003-3.625-.244-.387a9.788 9.788 0 0 1-1.547-5.297c0-5.466 4.473-9.94 9.94-9.94 2.65 0 5.143 1.032 7.014 2.903a9.853 9.853 0 0 1 2.91 7.04c-.025 5.466-4.498 9.905-9.965 9.905zm8.45-18.388A11.66 11.66 0 0 0 16.45 5.21c-6.466 0-11.732 5.266-11.76 11.732 0 2.063.546 4.07 1.578 5.86L4.612 28.5l5.864-1.547a11.7 11.7 0 0 0 5.59 1.418h.014c6.466 0 11.732-5.265 11.76-11.732a11.79 11.79 0 0 0-3.452-8.34"/>
+          </svg>
+        </span>
+      </a>
+
+
       <style>{`
         .btn-pulse-color {
           background: linear-gradient(to right, #facc15, #eab308) !important;
