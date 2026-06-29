@@ -281,8 +281,9 @@ const RendaExtraDescontoPage = () => {
         <div className="w-full max-w-md bg-[#0d0d16] border border-white/10 rounded-3xl p-7 md:p-9 shadow-2xl">
           <div className="text-center mb-6">
             <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.25em] mb-4">Area Exclusiva</div>
-            <h1 className="text-2xl md:text-3xl font-black uppercase italic leading-tight">Acesso ao Desconto MRO</h1>
-            <p className="text-white/50 text-sm mt-3 font-medium">Informe o mesmo email que voce cadastrou no renda extra !</p>
+            <h1 className="text-2xl md:text-3xl font-black uppercase italic leading-tight">Acesse a Aula Grátis</h1>
+            <p className="text-white/50 text-sm mt-3 font-medium">Coloque seu email de cadastro para acessar a aula grátis agora.</p>
+
           </div>
           <form onSubmit={handleGateSubmit} className="space-y-3">
             <input
@@ -300,7 +301,7 @@ const RendaExtraDescontoPage = () => {
               disabled={gateLoading}
               className="w-full py-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(16,185,129,0.3)] h-auto"
             >
-              {gateLoading ? 'Verificando...' : 'Entrar'}
+              {gateLoading ? 'Verificando...' : 'Acessar Aula Grátis'}
             </Button>
           </form>
         </div>
