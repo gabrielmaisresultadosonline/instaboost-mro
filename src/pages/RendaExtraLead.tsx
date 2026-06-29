@@ -212,6 +212,7 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
 
       setGroupLink(response.data.whatsappGroupLink);
       setWhatsappGroupInvite(response.data.groupLink || null);
+      setFreeClassLink(response.data.freeClassLink || `/rendaextra/desconto?email=${encodeURIComponent(formData.email)}`);
       setSubmitted(true);
 
       toast({
