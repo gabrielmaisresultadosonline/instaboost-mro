@@ -184,6 +184,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         leadId: lead.id,
+        freeClassLink,
         whatsappGroupLink: SHORT_WHATSAPP_LINK,
         groupLink: groupLink || null,
         emailSent,
