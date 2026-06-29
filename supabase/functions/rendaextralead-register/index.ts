@@ -163,7 +163,7 @@ ACESSAR AULA GRATIS AGORA
 
     const emailSent = await sendEmailViaSMTP(
       data.email,
-      "🎁 Sua aula grátis está liberada — Gabriel (MRO)",
+      "Sua aula gratis liberada - Gabriel MRO",
       emailHtml
     );
 
