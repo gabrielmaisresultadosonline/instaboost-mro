@@ -151,10 +151,10 @@ serve(async (req) => {
         desconto_last_access_at: new Date().toISOString(),
       };
       let emailJustSent = false;
-      if (newPct >= 90 && !lead.desconto_unlocked_at) {
+      if (newPct >= 75 && !lead.desconto_unlocked_at) {
         patch.desconto_unlocked_at = new Date().toISOString();
       }
-      if (newPct >= 90 && !(lead as any).desconto_email_sent_at) {
+      if (newPct >= 75 && !(lead as any).desconto_email_sent_at) {
         patch.desconto_email_sent_at = new Date().toISOString();
         emailJustSent = true;
       }
@@ -162,14 +162,14 @@ serve(async (req) => {
       if (emailJustSent) {
         try { await sendDiscountEmail(lead.email, lead.nome_completo); } catch (e) { log("auto email error", { e: e instanceof Error ? e.message : String(e) }); }
       }
-      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 90, email_sent: emailJustSent }), {
+      return new Response(JSON.stringify({ success: true, percent_watched: newPct, unlocked: newPct >= 75, email_sent: emailJustSent }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (action === "unlock_and_send") {
       const patch: Record<string, unknown> = {
-        desconto_video_percent: Math.max(90, lead.desconto_video_percent || 0),
+        desconto_video_percent: Math.max(75, lead.desconto_video_percent || 0),
         desconto_last_access_at: new Date().toISOString(),
       };
       if (!lead.desconto_unlocked_at) patch.desconto_unlocked_at = new Date().toISOString();
@@ -197,7 +197,7 @@ serve(async (req) => {
     }
 
     if (action === "check_access") {
-      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 90;
+      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 75;
       return new Response(
         JSON.stringify({ success: true, allowed, name: lead.nome_completo, email: lead.email }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },

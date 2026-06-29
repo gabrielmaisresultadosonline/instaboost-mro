@@ -39,7 +39,7 @@ const RendaExtraDescontoPage = () => {
   const [duration, setDuration] = useState(0);
   const [watchedSeconds, setWatchedSeconds] = useState(0);
   const unlockKeyFor = (email: string) => `rendaextra-desconto:video-unlocked:${email.trim().toLowerCase()}`;
-  // Server is the source of truth. Start locked; only unlock after server confirms >=90% for this email.
+  // Server is the source of truth. Start locked; only unlock after server confirms >=75% for this email.
   const [unlockedPersisted, setUnlockedPersisted] = useState<boolean>(false);
   const [sendingUnlock, setSendingUnlock] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -78,7 +78,7 @@ const RendaExtraDescontoPage = () => {
         localStorage.setItem('rendaextra-desconto:email', data.email);
         localStorage.setItem('rendaextra-desconto:name', data.name || '');
       } catch {}
-      const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
+      const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 75;
       try {
         if (serverUnlocked) {
           localStorage.setItem(unlockKeyFor(data.email), '1');
@@ -117,7 +117,7 @@ const RendaExtraDescontoPage = () => {
             } catch {}
             setLeadEmail(data.email);
             setMode('prestar');
-            const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
+            const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 75;
             try {
               if (serverUnlocked) localStorage.setItem(unlockKeyFor(data.email), '1');
               else localStorage.removeItem(unlockKeyFor(data.email));
@@ -530,7 +530,7 @@ const RendaExtraDescontoPage = () => {
                 type="button"
                 onClick={() => {
                   toast.warning('Assista o vídeo para liberar', {
-                    description: 'Você precisa assistir pelo menos 90% do vídeo para acessar.',
+                    description: 'Você precisa assistir pelo menos 75% do vídeo para acessar.',
                   });
                 }}
                 className="w-full flex items-center justify-center gap-3 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl bg-zinc-800/70 border border-amber-500/30 text-white/70 font-black text-sm sm:text-base uppercase tracking-widest select-none hover:bg-zinc-800 transition-colors animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.15)]"
