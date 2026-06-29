@@ -2539,7 +2539,7 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
               <div className="flex items-center justify-between bg-zinc-900/30 p-2 rounded-lg border border-zinc-700/30">
                 <span className="text-white text-sm font-bold">R$ {Number(order.amount).toFixed(2)}</span>
                 <Badge variant="outline" className="text-[10px] h-5 bg-zinc-800 border-zinc-600">
-                  {order.plan_type === 'trial' ? 'Mensal' : order.plan_type === 'lifetime' ? 'Vitalício' : 'Anual'}
+                  {order.plan_type === 'trial' ? 'Teste' : order.plan_type === 'monthly' ? 'Mensal' : order.plan_type === 'lifetime' ? 'Vitalício' : 'Anual'}
                 </Badge>
               </div>
             </div>
