@@ -101,7 +101,8 @@ serve(async (req) => {
     const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
 
 
-    // Send confirmation email via SMTP
+    // Send confirmation email via SMTP — as Gabriel, with free class link + discount mention
+    const freeClassLink = `https://maisresultadosonline.com.br/rendaextra/desconto?email=${encodeURIComponent(data.email)}`;
     const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -113,25 +114,30 @@ serve(async (req) => {
 <tr>
 <td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">Participe do Grupo</h1>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎁 Sua aula grátis está liberada!</h1>
 </td>
 </tr>
 <tr>
 <td style="padding:30px;background:#ffffff;">
 
-<p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${data.nome_completo}</strong>!</p>
+<p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${data.nome_completo}</strong>,</p>
 
-<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Participe do grupo e aguarde a liberação da <strong style="color:#000;">aula grátis</strong> de como fazer <strong style="color:#000;">5 mil mensal com a MRO</strong> em casa utilizando seu notebook — inclusive enquanto você dorme, deixando tudo automático.</p>
+<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Aqui é o <strong>Gabriel</strong>! Acabei de liberar a minha <strong style="color:#000;">aula grátis</strong> para você acessar agora mesmo.</p>
 
-<p style="margin:0 0 25px 0;font-size:16px;line-height:1.6;">Entre no grupo agora e veja a aula grátis assim que for liberada.</p>
+<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Nessa aula você vai aprender <strong>como funciona a MRO</strong> e como fazer <strong style="color:#000;">5 mil mensal</strong> em casa utilizando seu notebook — inclusive enquanto você dorme, deixando tudo automático.</p>
+
+<div style="background:#fff8e1;border-left:4px solid #FFA500;padding:15px 20px;margin:20px 0;border-radius:8px;">
+<p style="margin:0;font-size:15px;color:#333;"><strong>🔥 Liberamos algumas vagas com desconto especial da minha ferramenta MRO!</strong></p>
+<p style="margin:8px 0 0 0;font-size:14px;color:#555;">Acesse, assista a aula <strong>por completo</strong> e ao final do vídeo o seu <strong>desconto</strong> será liberado automaticamente.</p>
+</div>
 
 <div style="text-align:center;margin:30px 0;">
-<a href="${groupLink || SHORT_WHATSAPP_LINK}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
-PARTICIPE DO GRUPO
+<a href="${freeClassLink}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
+▶️ ACESSAR AULA GRÁTIS AGORA
 </a>
 </div>
 
-
+<p style="margin:20px 0 0 0;font-size:14px;color:#666;line-height:1.6;">Um abraço,<br/><strong>Gabriel — MRO</strong></p>
 
 </td>
 </tr>
@@ -147,7 +153,7 @@ PARTICIPE DO GRUPO
 
     const emailSent = await sendEmailViaSMTP(
       data.email,
-      "🎉 Recebemos seu interesse! - MRO Renda Extra",
+      "🎁 Sua aula grátis está liberada — Gabriel (MRO)",
       emailHtml
     );
 
