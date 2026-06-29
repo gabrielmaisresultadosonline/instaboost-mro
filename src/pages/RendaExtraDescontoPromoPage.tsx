@@ -915,8 +915,11 @@ const RendaExtraDescontoPromoPage = () => {
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                12X DE R$30 mensal
+                {planConfig[selectedPlan].priceDisplay}
               </div>
+              <p className="text-gray-400 text-xs sm:text-sm">{planConfig[selectedPlan].durationDisplay}</p>
+            </div>
+
               <p className="text-gray-400 text-xs sm:text-sm">avista R$297 por 1 ano todo</p>
             </div>
             
