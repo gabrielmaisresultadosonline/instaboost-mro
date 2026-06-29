@@ -683,10 +683,10 @@ serve(async (req) => {
     });
 
     // Fire Meta Conversions API Purchase event
-    const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
+    const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : order.plan_type === "monthly" ? "Mensal (30 dias)" : "Anual";
     await sendMetaPurchaseEvent(
       customerEmail,
-      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : order.plan_type === "trial" ? 97 : 397),
+      Number(order.amount) || (order.plan_type === "lifetime" ? 797 : order.plan_type === "trial" ? 97 : order.plan_type === "monthly" ? 99 : 397),
       `MRO Instagram ${planLabel}`,
       order.nsu_order // Use NSU as event_id for deduplication
     );
