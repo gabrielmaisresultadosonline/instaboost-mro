@@ -480,10 +480,14 @@ const RendaExtraDescontoPromoPage = () => {
               onClick={scrollToPricing}
               className="btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
             >
-              GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+              COMECE AGORA POR R$99 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <span className="arrow-bounce-left text-white text-2xl sm:text-3xl">◀</span>
           </div>
+          <p className="mt-3 text-sm sm:text-base text-yellow-300 font-bold">
+            🔥 Conheça o sistema por 30 dias por apenas R$99 — depois escale para o plano anual!
+          </p>
+
         </div>
       </section>
 
