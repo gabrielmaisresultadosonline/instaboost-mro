@@ -428,7 +428,7 @@ const RendaExtraDescontoPromoPage = () => {
       {/* Header removido conforme solicitação */}
 
       {/* Hero Section */}
-      <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
+      <section className="relative pt-6 sm:pt-10 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
