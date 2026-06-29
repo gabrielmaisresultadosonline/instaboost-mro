@@ -319,6 +319,16 @@ const RendaExtraDescontoPromoPage = () => {
     "Suporte prioritário"
   ];
 
+  const monthlyFeatures = [
+    "Ferramenta completa para Instagram",
+    "Acesso a 4 contas simultâneas fixas",
+    "5 testes todo mês para testar em seus clientes/outras contas",
+    "Área de membros por 30 dias",
+    "Vídeos estratégicos passo a passo",
+    "Grupo VIP no WhatsApp",
+  ];
+
+
   if (accessState === 'checking') {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
