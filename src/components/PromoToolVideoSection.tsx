@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
-import { Play } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
