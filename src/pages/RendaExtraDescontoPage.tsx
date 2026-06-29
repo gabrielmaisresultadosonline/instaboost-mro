@@ -83,10 +83,15 @@ const RendaExtraDescontoPage = () => {
         localStorage.setItem('rendaextra-desconto:email', data.email);
         localStorage.setItem('rendaextra-desconto:name', data.name || '');
       } catch {}
-      if (data.unlocked || (data.percent_watched || 0) >= 90) {
-        try { localStorage.setItem('rendaextra-desconto:video-unlocked', '1'); } catch {}
-        setUnlockedPersisted(true);
-      }
+      const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
+      try {
+        if (serverUnlocked) {
+          localStorage.setItem(unlockKeyFor(data.email), '1');
+        } else {
+          localStorage.removeItem(unlockKeyFor(data.email));
+        }
+      } catch {}
+      setUnlockedPersisted(serverUnlocked);
       setMode('prestar');
     } catch (err) {
       setGateError('Erro ao verificar. Tente novamente.');
