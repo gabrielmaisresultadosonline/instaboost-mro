@@ -826,13 +826,13 @@ const RendaExtraDescontoPromoPage = () => {
           <Button 
             onClick={() => {
               if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-              setSelectedPlan('monthly');
+              setSelectedPlan('annual');
               scrollToPricing();
             }}
             disabled={promoTimeLeft.expired}
             className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "COMECE AGORA POR R$99"}
+            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "COMECE AGORA POR 12X R$30"}
           </Button>
 
           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
