@@ -711,99 +711,112 @@ const RendaExtraDescontoPromoPage = () => {
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-3 sm:mb-4">
             <span className="text-green-400">OFERTA ESPECIAL</span>
           </h2>
-          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Promoção válida apenas por 8 horas</p>
-          
-          {/* Pricing Card */}
-          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden">
-            {/* Badge */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
-                🔥 DESCONTO ESPECIAL
-              </div>
-            </div>
-            
-            <div className="text-center mt-6 sm:mt-6 mb-6 sm:mb-8">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Plano Anual Completo</h3>
-              
-              {/* Price */}
-              <div className="mb-2">
-                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$ 397</span>
-              </div>
-              
-              <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
-              
-              <div className="text-green-400 mb-1">
-                <span className="text-5xl sm:text-6xl md:text-7xl font-black">12X DE R$30</span>
-                <span className="text-lg sm:text-xl md:text-2xl font-medium ml-2">mensal</span>
-              </div>
-              
-              <p className="text-gray-300 text-lg sm:text-xl mb-3">
-                avista <span className="text-white font-bold">R$297 por 1 ano todo</span>
-              </p>
-              
-              {/* Animated discount highlight */}
-              <div className="relative inline-block mb-4">
-                <div className="absolute -inset-2 bg-gradient-to-r from-red-500/30 via-yellow-500/30 to-red-500/30 rounded-full blur-md animate-pulse" />
-                <div className="relative inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 border-2 border-yellow-400/60 rounded-full px-4 sm:px-6 py-2 sm:py-3 animate-bounce" style={{ animationDuration: '2s' }}>
-                  <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-                  <span className="text-white font-black text-sm sm:text-lg tracking-wide">R$100 DE DESCONTO!</span>
-                  <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-pulse" />
+          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Escolha seu plano e comece agora</p>
+
+          <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
+            {/* === PLANO 30 DIAS - POPULAR === */}
+            <div className="bg-gradient-to-b from-yellow-950/40 to-gray-950 border-2 border-yellow-400 rounded-2xl sm:rounded-3xl p-5 sm:p-7 relative overflow-hidden shadow-2xl shadow-yellow-500/20 md:scale-105">
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2">
+                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-black px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap flex items-center gap-1">
+                  <Flame className="w-3.5 h-3.5" /> MAIS POPULAR
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-400 animate-pulse" />
-                <p className="text-yellow-400 text-xs sm:text-sm font-bold">
-                  ⏰ Válido apenas nas próximas 8 horas
+              <div className="text-center mt-6 mb-5">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 text-yellow-300">CONHEÇA POR 30 DIAS</h3>
+                <p className="text-gray-400 text-xs sm:text-sm mb-4">Comece pequeno, valide e depois escale</p>
+
+                <div className="text-yellow-300 mb-1">
+                  <span className="text-5xl sm:text-6xl md:text-7xl font-black">R$99</span>
+                </div>
+                <p className="text-gray-300 text-base sm:text-lg mb-3">
+                  por <span className="text-white font-bold">30 dias de acesso completo</span>
                 </p>
-                <AlertTriangle className="w-4 h-4 text-yellow-400 animate-pulse" />
-              </div>
-            </div>
-            
-            {/* Features */}
-            <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-              {planFeatures.map((feature, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-200 text-sm sm:text-base">{feature}</span>
+
+                <div className="inline-flex items-center gap-2 bg-yellow-500/15 border border-yellow-400/40 rounded-full px-4 py-2">
+                  <Sparkles className="w-4 h-4 text-yellow-300" />
+                  <span className="text-yellow-200 font-bold text-xs sm:text-sm">Conheça o sistema e depois evolua seu plano</span>
                 </div>
-              ))}
+              </div>
+
+              <div className="space-y-2.5 mb-6">
+                {planFeatures.slice(0, 5).map((feature, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-200 text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={() => {
+                  if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
+                  setSelectedPlan('monthly');
+                  setShowCheckoutModal(true);
+                }}
+                disabled={promoTimeLeft.expired}
+                className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-yellow-500/40 disabled:opacity-50"
+              >
+                ADQUIRIR POR R$99 <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+              <p className="text-center text-yellow-300/80 text-xs mt-2 font-semibold">30 dias por R$99 — depois escale!</p>
             </div>
 
-            {/* CTA Button */}
-            <Button 
-              onClick={() => {
-                if (promoTimeLeft.expired) {
-                  toast.error("Promoção expirada! Esta oferta não está mais disponível.");
-                  return;
-                }
-                setShowCheckoutModal(true);
-              }}
-              disabled={promoTimeLeft.expired}
-              className="w-full btn-pulse-color text-black font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-yellow-500/30 disabled:opacity-50"
-            >
-              {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
-            </Button>
-            <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
-              <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
-              <span className="text-white text-xs sm:text-sm font-semibold">CLIQUE ACIMA</span>
-              <span className="arrow-bounce-left text-white text-xl sm:text-2xl">◀</span>
-            </div>
-            
-            {/* Secure badges */}
-            <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-gray-400 flex-wrap">
-              <div className="flex items-center gap-1">
-                <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Compra Segura</span>
+            {/* === PLANO ANUAL === */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-2xl sm:rounded-3xl p-5 sm:p-7 relative overflow-hidden">
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
+                  🔥 MELHOR CUSTO-BENEFÍCIO
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>PIX ou Cartão</span>
+
+              <div className="text-center mt-6 mb-5">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Plano Anual Completo</h3>
+                <div className="mb-1">
+                  <span className="text-gray-500 line-through text-base sm:text-lg">De R$ 397</span>
+                </div>
+                <div className="text-green-400 mb-1">
+                  <span className="text-4xl sm:text-5xl md:text-6xl font-black">12X R$30</span>
+                </div>
+                <p className="text-gray-300 text-base sm:text-lg mb-3">
+                  avista <span className="text-white font-bold">R$297 por 1 ano todo</span>
+                </p>
+                <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/40 rounded-full px-4 py-2">
+                  <Gift className="w-4 h-4 text-red-300" />
+                  <span className="text-red-200 font-bold text-xs sm:text-sm">R$100 DE DESCONTO</span>
+                </div>
               </div>
+
+              <div className="space-y-2.5 mb-6">
+                {planFeatures.map((feature, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-200 text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={() => {
+                  if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
+                  setSelectedPlan('annual');
+                  setShowCheckoutModal(true);
+                }}
+                disabled={promoTimeLeft.expired}
+                className="w-full btn-pulse-color text-black font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
+              >
+                QUERO O PLANO ANUAL
+              </Button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6 text-xs sm:text-sm text-gray-400 flex-wrap">
+            <div className="flex items-center gap-1"><Shield className="w-4 h-4" /><span>Compra Segura</span></div>
+            <div className="flex items-center gap-1"><CreditCard className="w-4 h-4" /><span>PIX ou Cartão</span></div>
           </div>
         </div>
       </section>
+
 
       {/* Garantia */}
       <section className="py-10 sm:py-16 px-3 sm:px-4 bg-black">
