@@ -120,8 +120,9 @@ const RendaExtraDescontoPage = () => {
             const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 90;
             try {
               if (serverUnlocked) localStorage.setItem(unlockKeyFor(data.email), '1');
+              else localStorage.removeItem(unlockKeyFor(data.email));
             } catch {}
-            if (serverUnlocked) setUnlockedPersisted(true);
+            setUnlockedPersisted(serverUnlocked);
           }
         }).catch(() => {});
       }
