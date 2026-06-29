@@ -119,11 +119,12 @@ serve(async (req) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;font-size:1px;line-height:1px;">Sua aula gratuita esta liberada. Acesse agora e descubra como gerar renda extra com a MRO.</div>
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr>
 <td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎁 Sua aula grátis está liberada!</h1>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">Sua aula gratis esta liberada</h1>
 </td>
 </tr>
 <tr>
