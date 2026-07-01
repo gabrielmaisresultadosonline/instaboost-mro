@@ -271,7 +271,7 @@ const App = () => (
           <Route path="/testegratis" element={<TesteGratis />} />
           <Route path="/testegratis/admin" element={<TesteGratisAdmin />} />
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
-          <Route path="/rendaextra" element={<RendaExtraLead source="renda_extra" />} />
+          <Route path="/rendaextra" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/rendaextrasoc" element={<RendaExtraLead source="social_midia" />} />
           <Route path="/rendaextraaas" element={<RendaExtraAasPage />} />
           <Route path="/rendaextra/admin" element={<RendaExtraLeadAdmin />} />
