@@ -40,7 +40,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, username, phone, planType, amount, checkUserExists, partner_id } = body;
+    const { email, username, phone, planType, amount, checkUserExists, partner_id, redirectTo } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -86,7 +86,9 @@ serve(async (req) => {
     }
 
     // Redirect URL para página de obrigado (InfiniPay adiciona parâmetros automaticamente)
-    const redirectUrl = `https://maisresultadosonline.com.br/mroobrigado`;
+    const redirectUrl = redirectTo && typeof redirectTo === "string" && redirectTo.startsWith("https://")
+      ? redirectTo
+      : `https://maisresultadosonline.com.br/mroobrigado`;
     
     // Webhook URL para receber notificação automática de pagamento
     // IMPORTANTE: A API pública da InfiniPay NÃO suporta webhook_url de forma confiável

@@ -161,6 +161,7 @@ import MktCompleto from "./pages/MktCompleto";
 import FerramentaMROPromo from "./pages/FerramentaMROPromo";
 import FerramentaMROPromoAdmin from "./pages/FerramentaMROPromoAdmin";
 import PagamentoMRO from "./pages/PagamentoMRO";
+import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
 
 
 
@@ -221,6 +222,7 @@ const App = () => (
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/instagram-nova" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/pagamentomro" element={<PagamentoMRO />} />
+          <Route path="/pagamentomro/obrigado" element={<PagamentoMROObrigado />} />
           <Route path="/instagram-nova-ws" element={<InstagramNovaWS />} />
           <Route path="/instagrampromo" element={<InstagramPromo30Dias />} />
           <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />

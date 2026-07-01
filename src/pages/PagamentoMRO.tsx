@@ -124,6 +124,7 @@ const PagamentoMRO = () => {
           planType: selectedPlan,
           amount: plan.price,
           checkUserExists: true,
+          redirectTo: "https://maisresultadosonline.com.br/pagamentomro/obrigado",
         },
       });
       if (error) { toast.error("Erro ao criar link de pagamento"); return; }
