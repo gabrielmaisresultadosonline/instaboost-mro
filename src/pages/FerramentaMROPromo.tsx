@@ -132,6 +132,45 @@ export default function FerramentaMROPromo() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+      {showNotice && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowNotice(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md rounded-2xl bg-gradient-to-br from-zinc-900 to-black ring-1 ring-amber-500/40 shadow-[0_0_60px_rgba(251,191,36,0.25)] p-6 md:p-8 text-center"
+          >
+            <button
+              type="button"
+              onClick={() => setShowNotice(false)}
+              aria-label="Fechar"
+              className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center justify-center"
+            >
+              ✕
+            </button>
+            <div className="mx-auto mb-4 inline-flex px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40">
+              Aviso importante
+            </div>
+            <h2 className="text-xl md:text-2xl font-black leading-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent">
+              Estamos passando por uma atualização de preços
+            </h2>
+            <p className="mt-3 text-sm md:text-base text-zinc-300">
+              Volte em <span className="font-bold text-amber-300">20 minutos</span> para conferir os novos valores.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowNotice(false)}
+              className="mt-6 w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 transition"
+            >
+              Fechar
+            </button>
+            <p className="mt-3 text-[11px] text-zinc-500">Este aviso fecha automaticamente em 5s.</p>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
         <div className="text-center">
           <span className="inline-block px-4 py-1.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-[0.2em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-5">
