@@ -150,6 +150,10 @@ export default function FerramentaMROPromo() {
     if (!v) return;
     setStarted(true);
     track("video_start");
+    try {
+      v.loop = false;
+      v.currentTime = 0;
+    } catch {}
     v.muted = false;
     setMuted(false);
     v.play().catch(() => {
@@ -181,6 +185,18 @@ export default function FerramentaMROPromo() {
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
+  };
+
+  const toggleFullscreen = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    const anyDoc = document as any;
+    const anyV = v as any;
+    if (anyDoc.fullscreenElement || anyDoc.webkitFullscreenElement) {
+      (anyDoc.exitFullscreen || anyDoc.webkitExitFullscreen)?.call(document);
+    } else {
+      (anyV.requestFullscreen || anyV.webkitEnterFullscreen || anyV.webkitRequestFullscreen)?.call(v);
+    }
   };
 
   return (
