@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2, Camera, Code2, Megaphone } from 'lucide-react';
-// Use Camera as fallback if Instagram is not available in some lucide versions
+import { MessageCircle, X, Users, Camera, Code2, Megaphone } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
-
 
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
@@ -15,18 +13,17 @@ interface ToolOption {
   subtitle: string;
   description: string;
   icon: React.ElementType;
-  color: string;
-  hoverColor: string;
-  borderColor: string;
   badge: string;
   salesPath: string;
+  index: string;
+  highlight?: boolean;
 }
 
 const ToolSelector = () => {
   const navigate = useNavigate();
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [mouse, setMouse] = useState({ x: 50, y: 50 });
 
-  // Track PageView on mount
   useEffect(() => {
     trackPageView('Tool Selector - Homepage');
   }, []);
@@ -35,242 +32,281 @@ const ToolSelector = () => {
     {
       id: 'instagram',
       name: 'Ferramenta para Instagram',
-      subtitle: 'NÃO GASTE COM ANÚNCIOS',
-      description: 'Envio em massa de mensagens, engajamento, clientes e vendas.',
+      subtitle: 'Não gaste com anúncios',
+      description: 'Envio em massa de mensagens, engajamento, clientes e vendas. Automatize sua presença e escale seus resultados.',
       icon: InstagramIcon,
-      color: 'from-pink-500 to-purple-600',
-      hoverColor: 'hover:from-pink-600 hover:to-purple-700',
-      borderColor: 'border-pink-500/30',
       badge: 'MRO I.A',
-      salesPath: '/ferramentamropromo'
+      salesPath: '/ferramentamropromo',
+      index: '01',
     },
     {
       id: 'mktcompleto',
       name: 'Marketing Completo',
-      subtitle: 'GESTÃO + ADS + IA',
-      description: 'Marketing digital completo com Meta Ads e Inteligência Artificial.',
+      subtitle: 'Gestão + Ads + IA',
+      description: 'Ecossistema digital completo. Do tráfego à conversão, todas as ferramentas integradas em um só lugar.',
       icon: Megaphone,
-      color: 'from-yellow-400 to-amber-600',
-      hoverColor: 'hover:from-yellow-500 hover:to-amber-700',
-      borderColor: 'border-yellow-500/30',
-      badge: 'PREMIUM',
-      salesPath: '/mktcompleto'
+      badge: 'HOT',
+      salesPath: '/mktcompleto',
+      index: '02',
+      highlight: true,
     },
     {
       id: 'creatordev',
       name: 'CreatorDev',
-      subtitle: 'DESENVOLVIMENTO SOB MEDIDA',
-      description: 'Desenvolvemos o sistema que sua empresa precisa.',
+      subtitle: 'Desenvolvimento sob medida',
+      description: 'Desenvolvemos o sistema que sua empresa precisa. Soluções técnicas exclusivas para criadores e empresas.',
       icon: Code2,
-      color: 'from-blue-500 to-indigo-600',
-      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
-      borderColor: 'border-blue-500/30',
-      badge: 'FULL STACK',
-      salesPath: '/creatordev'
-    }
+      badge: '03',
+      salesPath: '/creatordev',
+      index: '03',
+    },
   ];
-
 
   const handleSalesClick = (path: string, toolName: string) => {
     trackViewContent(`Sales Page: ${toolName}`, 'Navigation');
-    if (path.startsWith('http')) {
-      window.open(path, '_blank');
-    } else {
-      navigate(path);
-    }
+    if (path.startsWith('http')) window.open(path, '_blank');
+    else navigate(path);
   };
 
   const handleMembersSelect = (platform: 'instagram' | 'zapmro') => {
     trackViewContent(`Members Area: ${platform}`, 'Navigation');
     setShowMembersModal(false);
-    if (platform === 'instagram') {
-      navigate('/instagram');
-    } else {
-      navigate('/zapmro');
-    }
+    navigate(platform === 'instagram' ? '/instagram' : '/zapmro');
+  };
+
+  const handleMove = (e: React.MouseEvent) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    setMouse({ x, y });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-600/20 via-black to-blue-600/20 flex flex-col items-center py-8 px-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-amber-500/5 rounded-full blur-[100px] animate-bounce" style={{ animationDuration: '10s' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
-      </div>
+    <div
+      onMouseMove={handleMove}
+      className="relative min-h-screen w-full bg-[#0d0d0d] overflow-hidden selection:bg-[#c9a84c] selection:text-[#0d0d0d]"
+      style={{ fontFamily: "'Hind', system-ui, sans-serif" }}
+    >
+      {/* Cursor spotlight */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px circle at ${mouse.x}% ${mouse.y}%, rgba(201,168,76,0.08), transparent 40%)`,
+        }}
+      />
+      {/* Grid noise */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.035] z-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(201,168,76,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,.5) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+      {/* Glow orbs */}
+      <div className="pointer-events-none absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#c9a84c]/10 rounded-full blur-[140px] z-0" />
+      <div className="pointer-events-none absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-[#f0d78c]/5 rounded-full blur-[140px] z-0" />
 
-      {/* Logo */}
-      <div className="mb-6 md:mb-8 z-10">
-        <img 
-          src={logoMro} 
-          alt="MRO" 
-          className="h-16 sm:h-20 md:h-24 object-contain drop-shadow-2xl"
-        />
-      </div>
+      <div className="relative z-10 min-h-screen w-full flex items-center justify-center p-6 md:p-12">
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Left column */}
+          <div className="lg:col-span-5 flex flex-col space-y-10 lg:space-y-12 lg:sticky lg:top-16">
+            <div className="flex flex-col space-y-6 md:space-y-8 animate-fade-in">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-[#f0d78c] to-[#c9a84c] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(201,168,76,0.35)]">
+                  <img src={logoMro} alt="MRO" className="w-9 h-9 md:w-10 md:h-10 object-contain" />
+                </div>
+                <span
+                  className="text-[10px] uppercase tracking-[0.35em] text-[#c9a84c]/80"
+                  style={{ fontFamily: "'Archivo Black', sans-serif" }}
+                >
+                  MRO • Premium
+                </span>
+              </div>
 
-      {/* Title */}
-      <div className="text-center mb-8 md:mb-12 z-10 px-2 max-w-2xl mx-auto">
-        <div className="space-y-4">
-          <p className="text-xl sm:text-2xl md:text-4xl text-white font-bold tracking-tight leading-tight font-sans">
-            Soluções que <span className="text-amber-400 italic underline decoration-amber-500/30 underline-offset-4">cabem no seu bolso!</span>
-          </p>
-          <p className="text-gray-400 text-sm sm:text-base md:text-lg font-light tracking-wide max-w-xl mx-auto font-sans opacity-90">
-            Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
-          </p>
+              <h1
+                className="text-5xl md:text-6xl lg:text-7xl leading-[1.05] text-white uppercase tracking-tighter"
+                style={{ fontFamily: "'Archivo Black', sans-serif" }}
+              >
+                Soluções{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c9a84c] to-[#f0d78c]">
+                  que cabem
+                </span>{' '}
+                no seu bolso
+              </h1>
+
+              <p className="text-[#a0a0a0] text-base md:text-lg max-w-md leading-relaxed">
+                Tecnologia de ponta e inovação digital para elevar seu negócio ao próximo nível. Escolha a
+                ferramenta ideal para sua jornada.
+              </p>
+            </div>
+
+            <div className="flex flex-col space-y-4">
+              <button
+                onClick={() => setShowMembersModal(true)}
+                className="group relative overflow-hidden w-full md:w-max px-8 py-5 bg-gradient-to-r from-[#c9a84c] to-[#f0d78c] text-[#0d0d0d] text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-[0_10px_40px_-10px_rgba(201,168,76,0.6)]"
+                style={{ fontFamily: "'Archivo Black', sans-serif" }}
+              >
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                <span className="relative flex items-center gap-3">
+                  <Users className="w-4 h-4" />
+                  Você já é cliente?
+                </span>
+                <span className="relative block text-[10px] mt-1 opacity-70 font-normal tracking-wider">
+                  Acessar área de membros
+                </span>
+              </button>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#555]">
+                Mais Resultados Online • Gabriel Fernandes da Silva • CNPJ 54.840.738/0001-96
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#444]">
+                © 2024 • Todos os direitos reservados
+              </p>
+            </div>
+          </div>
+
+          {/* Right column — staggered tool cards */}
+          <div className="lg:col-span-7 grid grid-cols-1 gap-6 md:gap-8">
+            {tools.map((tool, i) => {
+              const Icon = tool.icon;
+              const isLeft = i % 2 === 0;
+              return (
+                <button
+                  key={tool.id}
+                  onClick={() => handleSalesClick(tool.salesPath, tool.name)}
+                  style={{ animationDelay: `${i * 120}ms`, fontFamily: "'Hind', sans-serif" }}
+                  className={`group relative text-left bg-[#1a1a1a] border p-8 lg:p-10 transition-all duration-500 animate-fade-in
+                    ${
+                      tool.highlight
+                        ? 'border-[#c9a84c]/40 hover:border-[#f0d78c] shadow-[20px_20px_60px_rgba(0,0,0,0.5)] lg:ml-auto lg:w-[95%]'
+                        : `border-white/5 hover:border-[#c9a84c]/50 ${
+                            isLeft ? 'lg:w-[92%] self-start' : 'lg:ml-auto lg:w-[88%]'
+                          }`
+                    }
+                    hover:-translate-y-1 hover:shadow-[0_25px_60px_-15px_rgba(201,168,76,0.25)]`}
+                >
+                  {/* Corner index badge */}
+                  <div
+                    className={`absolute -top-4 -right-4 w-20 h-20 flex items-center justify-center text-xs font-bold z-10
+                      ${
+                        tool.highlight
+                          ? 'bg-[#c9a84c] text-[#0d0d0d]'
+                          : 'bg-[#c9a84c]/10 border border-[#c9a84c]/20 text-[#c9a84c]'
+                      }`}
+                    style={{ fontFamily: "'Archivo Black', sans-serif" }}
+                  >
+                    {tool.badge}
+                  </div>
+
+                  {/* Icon */}
+                  <div className="mb-6 flex items-center gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 ${
+                        tool.highlight
+                          ? 'bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] text-[#0d0d0d]'
+                          : 'bg-[#0d0d0d] border border-[#c9a84c]/30 text-[#c9a84c]'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-[#c9a84c]">
+                      {tool.subtitle}
+                    </span>
+                  </div>
+
+                  <h3
+                    className="text-2xl md:text-3xl text-white mb-4 uppercase leading-tight"
+                    style={{ fontFamily: "'Archivo Black', sans-serif" }}
+                  >
+                    {tool.name}
+                  </h3>
+                  <p className="text-[#888] mb-8 leading-relaxed text-sm md:text-base max-w-lg">
+                    {tool.description}
+                  </p>
+
+                  <div className="flex items-center space-x-4">
+                    <div
+                      className={`h-[1px] w-12 transition-all group-hover:w-20 ${
+                        tool.highlight ? 'bg-white' : 'bg-[#c9a84c]'
+                      }`}
+                    />
+                    <span
+                      className={`text-xs font-bold uppercase tracking-widest ${
+                        tool.highlight ? 'text-white' : 'text-[#c9a84c]'
+                      }`}
+                    >
+                      {tool.highlight ? 'Explorar agora' : 'Saiba mais'} →
+                    </span>
+                  </div>
+
+                  {/* Shine sweep */}
+                  <span className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <span className="absolute -inset-y-4 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-[#c9a84c]/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[600%] transition-transform duration-1000" />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-
-      {/* Tool Cards - Sales Pages */}
-      <div className="flex flex-wrap justify-center gap-4 md:gap-6 max-w-6xl w-full z-10 px-2 md:px-4">
-        {tools.map((tool, index) => (
-          <button
-            key={tool.id}
-            onClick={() => handleSalesClick(tool.salesPath, tool.name)}
-            style={{ animationDelay: `${index * 100}ms` }}
-            className={`
-              relative group p-5 sm:p-6 md:p-8 rounded-2xl border-2 ${tool.borderColor}
-              bg-gray-800/50 backdrop-blur-sm 
-              w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-16px)] max-w-sm
-              transition-all duration-500 ease-out animate-fade-in
-              hover:scale-[1.02] md:hover:scale-105 hover:shadow-2xl hover:bg-gray-700/60
-              hover:-translate-y-1 md:hover:-translate-y-2
-            `}
-          >
-            {/* Gradient overlay on hover */}
-            <div className={`
-              absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-10
-              bg-gradient-to-r ${tool.color} transition-opacity duration-500
-            `} />
-
-            {/* Badge */}
-            <div className={`
-              absolute -top-3 right-4 px-3 md:px-4 py-1 rounded-full text-[10px] md:text-xs font-bold
-              bg-gradient-to-r ${tool.color} text-white shadow-lg
-            `}>
-              {tool.badge}
-            </div>
-
-            {/* Icon */}
-            <div className={`
-              w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-r ${tool.color}
-              flex items-center justify-center mb-3 md:mb-4
-              group-hover:scale-110 transition-transform duration-300
-              shadow-lg
-            `}>
-              <tool.icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
-            </div>
-
-            {/* Subtitle */}
-            <p className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wide mb-1 md:mb-2 text-left">
-              {tool.subtitle}
-            </p>
-
-            {/* Content */}
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 md:mb-2 text-left">
-              {tool.name}
-            </h2>
-            <p className="text-gray-400 text-left text-xs sm:text-sm md:text-base">
-              {tool.description}
-            </p>
-
-            {/* Arrow indicator */}
-            <div className="absolute bottom-4 md:bottom-6 right-4 md:right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-amber-400" />
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Área de Membros Cliente Section */}
-      <div className="mt-12 md:mt-16 flex flex-col items-center relative">
-        {/* Floating Bubble */}
-        <div className="absolute -top-12 animate-bounce bg-amber-500 text-black text-[10px] font-bold px-3 py-1 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-amber-500">
-          VOCÊ JÁ É CLIENTE?
-        </div>
-        
-        <button
-          onClick={() => setShowMembersModal(true)}
-          className="z-10 px-10 py-4 rounded-full border border-amber-500/30 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 backdrop-blur-md flex items-center gap-3 tracking-wide group relative overflow-hidden"
-        >
-          {/* Golden Reflection Effect */}
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-amber-400/40 to-transparent animate-shine-fast" />
-
-          
-          <Users className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-          ACESSE SUA ÁREA DE MEMBROS
-        </button>
-
-      </div>
-
-
-
-
-      {/* Footer with business info */}
-      <div className="mt-8 md:mt-12 text-center z-10 space-y-1 px-4">
-        <p className="text-gray-400 font-semibold text-sm md:text-base">Mais Resultados Online</p>
-        <p className="text-gray-500 text-xs md:text-sm">Gabriel Fernandes da Silva</p>
-        <p className="text-gray-500 text-xs md:text-sm">CNPJ: 54.840.738/0001-96</p>
-        <p className="text-gray-600 text-[10px] md:text-xs mt-2">© 2024. Todos os direitos reservados.</p>
-      </div>
-
-      {/* Modal for Members Area Selection */}
+      {/* Members modal */}
       {showMembersModal && (
-        <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setShowMembersModal(false)}
         >
-          <div 
-            className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+          <div
+            className="bg-[#1a1a1a] border border-[#c9a84c]/30 rounded-none p-6 max-w-md w-full shadow-2xl relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            <div className="absolute -top-4 -right-4 w-16 h-16 bg-[#c9a84c] flex items-center justify-center text-[#0d0d0d] text-[10px] uppercase tracking-widest font-bold" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+              VIP
+            </div>
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Área de Membros</h3>
-                  <p className="text-sm text-gray-400">Qual ferramenta deseja acessar?</p>
-                </div>
+              <div>
+                <h3 className="text-xl uppercase text-white" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                  Área de Membros
+                </h3>
+                <p className="text-sm text-[#888] mt-1">Qual ferramenta deseja acessar?</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowMembersModal(false)}
-                className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                className="p-2 hover:bg-[#0d0d0d] transition-colors text-[#c9a84c]"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Options */}
             <div className="space-y-3">
-              {/* MRO Instagram */}
               <button
                 onClick={() => handleMembersSelect('instagram')}
-                className="w-full p-4 rounded-xl border-2 border-gray-600 hover:border-pink-500/50 bg-gray-700/50 hover:bg-gray-700 transition-all duration-300 flex items-center gap-4 group"
+                className="w-full p-4 border border-white/5 hover:border-[#c9a84c]/50 bg-[#0d0d0d] hover:bg-[#0d0d0d]/60 transition-all duration-300 flex items-center gap-4 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <InstagramIcon className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <InstagramIcon className="w-6 h-6 text-[#0d0d0d]" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-white font-bold">MRO Instagram</h4>
-                  <p className="text-sm text-gray-400">Ferramenta para Instagram</p>
+                  <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                    MRO Instagram
+                  </h4>
+                  <p className="text-xs text-[#888]">Ferramenta para Instagram</p>
                 </div>
               </button>
 
-              {/* ZAPMRO WhatsApp */}
               <button
                 onClick={() => handleMembersSelect('zapmro')}
-                className="w-full p-4 rounded-xl border-2 border-gray-600 hover:border-green-500/50 bg-gray-700/50 hover:bg-gray-700 transition-all duration-300 flex items-center gap-4 group"
+                className="w-full p-4 border border-white/5 hover:border-[#c9a84c]/50 bg-[#0d0d0d] hover:bg-[#0d0d0d]/60 transition-all duration-300 flex items-center gap-4 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <MessageCircle className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-6 h-6 text-[#0d0d0d]" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-white font-bold">ZAPMRO</h4>
-                  <p className="text-sm text-gray-400">Ferramenta para WhatsApp</p>
+                  <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                    ZAPMRO
+                  </h4>
+                  <p className="text-xs text-[#888]">Ferramenta para WhatsApp</p>
                 </div>
               </button>
             </div>
