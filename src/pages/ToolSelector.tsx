@@ -31,8 +31,8 @@ const ToolSelector = () => {
   const tools: ToolOption[] = [
     {
       id: 'instagram',
-      name: 'Ferramenta para Instagram',
-      subtitle: 'Não gaste com anúncios',
+      name: 'Não gaste com anúncios',
+      subtitle: 'Ferramenta para Instagram',
       description: 'Envio em massa de mensagens, engajamento, clientes e vendas. Automatize sua presença e escale seus resultados.',
       icon: InstagramIcon,
       badge: 'MRO I.A',
