@@ -4,10 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Upload, Save, Trash2, Video, LogOut } from "lucide-react";
+import { Loader2, Save, Trash2, Video, LogOut, BarChart3, Users, MousePointerClick, PlayCircle, TrendingUp, Clock } from "lucide-react";
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
+const STORAGE_KEY = "fmp_admin_creds";
+
+interface Analytics {
+  summary: {
+    totalPageViews: number;
+    uniqueVisitors: number;
+    totalStarts: number;
+    uniqueStarters: number;
+    totalClicks: number;
+    uniqueClickers: number;
+    avgProgress: number;
+    milestone25: number;
+    milestone50: number;
+    milestone75: number;
+    milestone100: number;
+    conversionRate: number;
+    lastAccess: string | null;
+  };
+  daily: { day: string; visitors: number; clicks: number; starts: number; completes: number }[];
+  referrers: { host: string; count: number }[];
+  ranking: { visitor_id: string; first: string; last: string; max_progress: number; clicked: boolean }[];
+}
 const STORAGE_KEY = "fmp_admin_creds";
 
 interface ServerVideo {
