@@ -203,7 +203,7 @@ const ToolSelector = () => {
                     >
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] uppercase tracking-[0.3em] text-[#c9a84c]">
+                    <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-[#c9a84c] font-bold">
                       {tool.subtitle}
                     </span>
                   </div>
@@ -214,7 +214,7 @@ const ToolSelector = () => {
                   >
                     {tool.name}
                   </h3>
-                  <p className="text-[#888] mb-8 leading-relaxed text-sm md:text-base max-w-lg">
+                  <p className="text-[#b8b8b8] mb-8 leading-relaxed text-base md:text-lg max-w-lg font-medium">
                     {tool.description}
                   </p>
 
