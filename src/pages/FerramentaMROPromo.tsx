@@ -8,6 +8,35 @@ const WHATSAPP_URL =
   "https://wa.me/5551928358563?text=" +
   encodeURIComponent("Vim pelo site, Gostaria de saber sobre o desconto!");
 
+function getVisitorId(): string {
+  try {
+    let id = localStorage.getItem("fmp:visitor_id");
+    if (!id) {
+      id = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now()).toString();
+      localStorage.setItem("fmp:visitor_id", id);
+    }
+    return id;
+  } catch {
+    return "anon-" + Math.random().toString(36).slice(2);
+  }
+}
+
+function track(event_type: string, extra?: Record<string, unknown>) {
+  try {
+    supabase.functions.invoke("ferramentamropromo-video", {
+      body: {
+        action: "track",
+        visitor_id: getVisitorId(),
+        event_type,
+        user_agent: navigator.userAgent,
+        referrer: document.referrer,
+        path: window.location.pathname,
+        ...(extra || {}),
+      },
+    }).catch(() => {});
+  } catch {}
+}
+
 export default function FerramentaMROPromo() {
   const [cfg, setCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({
     video_url: null,
@@ -20,6 +49,7 @@ export default function FerramentaMROPromo() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [watched, setWatched] = useState(false);
+  const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
   useEffect(() => {
