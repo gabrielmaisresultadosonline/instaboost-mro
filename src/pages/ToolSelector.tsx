@@ -117,7 +117,7 @@ const ToolSelector = () => {
               <div className="flex items-center gap-4">
                 <img src={logoMro} alt="MRO" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
                 <span
-                  className="text-[10px] uppercase tracking-[0.35em] text-[#c9a84c]/80"
+                  className="text-sm md:text-base uppercase tracking-[0.35em] text-[#c9a84c] font-bold"
                   style={{ fontFamily: "'Archivo Black', sans-serif" }}
                 >
                   MRO • Premium
