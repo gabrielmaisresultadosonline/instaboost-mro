@@ -259,26 +259,29 @@ export default function FerramentaMROPromo() {
       )}
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
         <div className="text-center">
-          <span className="inline-block px-4 py-1.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-[0.2em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-5">
+          <span className="inline-block px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-6">
             Oferta exclusiva
           </span>
-          <h1 className="text-4xl md:text-7xl font-black leading-[1.05] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.35)]">
+          <h1
+            className="text-5xl md:text-8xl leading-[0.95] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.4)]"
+            style={{ fontWeight: 900 }}
+          >
             Não gaste com anúncios
           </h1>
-          <p className="mt-5 text-xl md:text-3xl font-extrabold text-white">
+          <p className="mt-4 text-base md:text-xl font-semibold text-white/90">
             Utilize a{" "}
-            <span className="relative inline-block text-amber-400">
+            <span className="relative inline-block text-amber-400 font-bold">
               Ferramenta MRO
-              <span className="absolute left-0 -bottom-1 h-[3px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+              <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
             </span>{" "}
-            e pague <span className="underline decoration-amber-500 decoration-4 underline-offset-4">apenas uma vez!</span>
+            e pague <span className="underline decoration-amber-500 decoration-2 underline-offset-4">apenas uma vez!</span>
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-amber-500/60" />
-            <p className="text-sm md:text-base font-semibold text-amber-200/90 uppercase tracking-wider">
-              Assista ao vídeo para entender tudo e receber o desconto!
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <span className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-amber-500/50" />
+            <p className="text-[11px] md:text-xs font-medium text-amber-200/80 uppercase tracking-[0.2em]">
+              Assista ao vídeo todo para entender e receber o desconto
             </p>
-            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-amber-500/60" />
+            <span className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-amber-500/50" />
           </div>
         </div>
 
@@ -287,18 +290,21 @@ export default function FerramentaMROPromo() {
           <div className="relative aspect-video">
             <video
               ref={videoRef}
-              className="w-full h-full bg-black"
+              className={`w-full h-full bg-black transition-opacity duration-500 ${started ? "opacity-100" : "opacity-10"}`}
               playsInline
               controls={false}
+              muted={!started}
+              autoPlay
+              loop={!started}
               preload="metadata"
             />
             {!started && (
               <button
                 onClick={handleStart}
-                className="absolute inset-0 flex items-center justify-center bg-black/60 hover:bg-black/50 transition"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition"
                 aria-label="Reproduzir"
               >
-                <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl">
+                <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl animate-pulse">
                   <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
                 </span>
               </button>
