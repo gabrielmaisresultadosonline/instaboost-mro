@@ -301,7 +301,6 @@ export default function FerramentaMROPromo() {
               onClick={handleCtaClick}
               className="relative inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-lg md:text-2xl shadow-[0_0_40px_rgba(34,197,94,0.5)] hover:scale-105 transition animate-pulse"
             >
-            >
               <MessageCircle className="w-7 h-7" />
               APROVEITAR O DESCONTO
             </a>
