@@ -112,12 +112,22 @@ export default function FerramentaMROPromo() {
       const d = video.duration || 0;
       if (d <= 0) return;
       const pct = (video.currentTime / d) * 100;
+      for (const m of [25, 50, 75, 100]) {
+        if (pct >= m && !milestonesRef.current.has(m)) {
+          milestonesRef.current.add(m);
+          track("video_progress", { progress_pct: m });
+        }
+      }
       if (pct >= 98 && !watched) {
         setWatched(true);
         localStorage.setItem("ferramentamropromo:unlocked", "1");
       }
     };
     const onEnded = () => {
+      if (!milestonesRef.current.has(100)) {
+        milestonesRef.current.add(100);
+        track("video_progress", { progress_pct: 100 });
+      }
       setWatched(true);
       localStorage.setItem("ferramentamropromo:unlocked", "1");
     };
