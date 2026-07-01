@@ -149,6 +149,7 @@ export default function FerramentaMROPromo() {
     const v = videoRef.current;
     if (!v) return;
     setStarted(true);
+    track("video_start");
     v.muted = false;
     setMuted(false);
     v.play().catch(() => {
@@ -156,6 +157,17 @@ export default function FerramentaMROPromo() {
       setMuted(true);
       v.play().catch(() => {});
     });
+  };
+
+  const handleCtaClick = () => {
+    track("cta_click");
+    try {
+      // Meta Pixel Lead
+      // @ts-ignore
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead", { source: "ferramentamropromo" });
+      }
+    } catch {}
   };
 
   const togglePlay = () => {
