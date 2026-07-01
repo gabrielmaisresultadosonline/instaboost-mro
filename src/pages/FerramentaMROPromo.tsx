@@ -325,6 +325,13 @@ export default function FerramentaMROPromo() {
                 >
                   {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 </button>
+                <button
+                  onClick={toggleFullscreen}
+                  className="ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
+                  aria-label="Tela cheia"
+                >
+                  <Maximize className="w-5 h-5" />
+                </button>
               </div>
             )}
           </div>
