@@ -31,7 +31,6 @@ interface Analytics {
   referrers: { host: string; count: number }[];
   ranking: { visitor_id: string; first: string; last: string; max_progress: number; clicked: boolean }[];
 }
-const STORAGE_KEY = "fmp_admin_creds";
 
 interface ServerVideo {
   name: string;
