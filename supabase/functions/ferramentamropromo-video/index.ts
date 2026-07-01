@@ -162,6 +162,7 @@ serve(async (req) => {
         referrers,
         ranking,
       });
+    }
 
     if (action === "set_video") {
       if (!requireAdmin()) return json({ success: false, error: "Não autorizado" }, 401);
