@@ -126,15 +126,29 @@ export default function FerramentaMROPromo() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
-        <h1 className="text-3xl md:text-5xl font-black text-center leading-tight bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-          Não gaste com anúncios
-        </h1>
-        <p className="mt-4 text-center text-lg md:text-2xl font-bold">
-          Utilize a <span className="text-amber-400">Ferramenta MRO</span> e pague apenas uma vez!
-        </p>
-        <p className="mt-3 text-center text-base md:text-lg text-zinc-300">
-          Assista ao vídeo para entender tudo e receber o desconto!
-        </p>
+        <div className="text-center">
+          <span className="inline-block px-4 py-1.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-[0.2em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-5">
+            Oferta exclusiva
+          </span>
+          <h1 className="text-4xl md:text-7xl font-black leading-[1.05] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.35)]">
+            Não gaste com anúncios
+          </h1>
+          <p className="mt-5 text-xl md:text-3xl font-extrabold text-white">
+            Utilize a{" "}
+            <span className="relative inline-block text-amber-400">
+              Ferramenta MRO
+              <span className="absolute left-0 -bottom-1 h-[3px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+            </span>{" "}
+            e pague <span className="underline decoration-amber-500 decoration-4 underline-offset-4">apenas uma vez!</span>
+          </p>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-amber-500/60" />
+            <p className="text-sm md:text-base font-semibold text-amber-200/90 uppercase tracking-wider">
+              Assista ao vídeo para entender tudo e receber o desconto!
+            </p>
+            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-amber-500/60" />
+          </div>
+        </div>
 
         {/* Video */}
         <div className="mt-8 relative rounded-2xl overflow-hidden bg-black ring-1 ring-amber-500/30 shadow-[0_0_60px_rgba(251,191,36,0.15)]">
