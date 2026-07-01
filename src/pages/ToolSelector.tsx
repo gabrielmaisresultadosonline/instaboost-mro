@@ -135,7 +135,7 @@ const ToolSelector = () => {
                 no seu bolso
               </h1>
 
-              <p className="text-[#a0a0a0] text-base md:text-lg max-w-md leading-relaxed">
+              <p className="text-[#c0c0c0] text-lg md:text-xl max-w-md leading-relaxed font-medium">
                 Tecnologia de ponta e inovação digital para elevar seu negócio ao próximo nível. Escolha a
                 ferramenta ideal para sua jornada.
               </p>
