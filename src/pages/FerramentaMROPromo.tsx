@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle, Maximize } from "lucide-react";
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 const WHATSAPP_URL =
