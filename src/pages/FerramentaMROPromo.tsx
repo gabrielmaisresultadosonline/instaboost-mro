@@ -1,0 +1,209 @@
+import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
+import { supabase } from "@/integrations/supabase/client";
+import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle } from "lucide-react";
+
+const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
+const WHATSAPP_URL =
+  "https://wa.me/5551928358563?text=" +
+  encodeURIComponent("Vim pelo site, Gostaria de saber sobre o desconto!");
+
+export default function FerramentaMROPromo() {
+  const [cfg, setCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({
+    video_url: null,
+    hls_url: null,
+    video_title: null,
+  });
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const [started, setStarted] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [watched, setWatched] = useState(false);
+
+  useEffect(() => {
+    document.title = "Ferramenta MRO — Desconto exclusivo";
+    supabase.functions
+      .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
+      .then(({ data }) => {
+        if (data) setCfg(data);
+      })
+      .catch(() => {});
+
+    // Restore unlock (persistent across visits)
+    if (localStorage.getItem("ferramentamropromo:unlocked") === "1") {
+      setWatched(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const { video_url, hls_url } = cfg;
+    if (!video_url && !hls_url) return;
+    const isRel = (u: string) => u.startsWith("/");
+    const hlsCandidate = hls_url || (video_url?.includes(".m3u8") ? video_url : null);
+    const directCandidate = video_url && !video_url.includes(".m3u8") ? video_url : null;
+    const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
+    const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
+    const loadDirect = () => { if (fullVideo) video.src = fullVideo; };
+    if (fullHls && Hls.isSupported()) {
+      (async () => {
+        try {
+          const res = await fetch(fullHls, { method: "HEAD" });
+          if (!res.ok) return loadDirect();
+          const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
+          hls.loadSource(fullHls);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
+          hlsRef.current = hls;
+        } catch { loadDirect(); }
+      })();
+    } else if (fullHls && video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = fullHls;
+    } else {
+      loadDirect();
+    }
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+  }, [cfg]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onTime = () => {
+      const d = video.duration || 0;
+      if (d <= 0) return;
+      const pct = (video.currentTime / d) * 100;
+      if (pct >= 98 && !watched) {
+        setWatched(true);
+        localStorage.setItem("ferramentamropromo:unlocked", "1");
+      }
+    };
+    const onEnded = () => {
+      setWatched(true);
+      localStorage.setItem("ferramentamropromo:unlocked", "1");
+    };
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    video.addEventListener("timeupdate", onTime);
+    video.addEventListener("ended", onEnded);
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+    return () => {
+      video.removeEventListener("timeupdate", onTime);
+      video.removeEventListener("ended", onEnded);
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
+    };
+  }, [watched, cfg]);
+
+  const handleStart = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    setStarted(true);
+    v.muted = false;
+    setMuted(false);
+    v.play().catch(() => {
+      v.muted = true;
+      setMuted(true);
+      v.play().catch(() => {});
+    });
+  };
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) v.play().catch(() => {}); else v.pause();
+  };
+
+  const toggleMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
+        <h1 className="text-3xl md:text-5xl font-black text-center leading-tight bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+          Não gaste com anúncios
+        </h1>
+        <p className="mt-4 text-center text-lg md:text-2xl font-bold">
+          Utilize a <span className="text-amber-400">Ferramenta MRO</span> e pague apenas uma vez!
+        </p>
+        <p className="mt-3 text-center text-base md:text-lg text-zinc-300">
+          Assista ao vídeo para entender tudo e receber o desconto!
+        </p>
+
+        {/* Video */}
+        <div className="mt-8 relative rounded-2xl overflow-hidden bg-black ring-1 ring-amber-500/30 shadow-[0_0_60px_rgba(251,191,36,0.15)]">
+          <div className="relative aspect-video">
+            <video
+              ref={videoRef}
+              className="w-full h-full bg-black"
+              playsInline
+              controls={false}
+              preload="metadata"
+            />
+            {!started && (
+              <button
+                onClick={handleStart}
+                className="absolute inset-0 flex items-center justify-center bg-black/60 hover:bg-black/50 transition"
+                aria-label="Reproduzir"
+              >
+                <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl">
+                  <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
+                </span>
+              </button>
+            )}
+            {started && (
+              <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
+                <button
+                  onClick={togglePlay}
+                  className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
+                  aria-label={playing ? "Pausar" : "Reproduzir"}
+                >
+                  {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={toggleMute}
+                  className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
+                  aria-label={muted ? "Ativar som" : "Silenciar"}
+                >
+                  {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-8 flex flex-col items-center">
+          {watched ? (
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-lg md:text-2xl shadow-[0_0_40px_rgba(34,197,94,0.5)] hover:scale-105 transition animate-pulse"
+            >
+              <MessageCircle className="w-7 h-7" />
+              APROVEITAR O DESCONTO
+            </a>
+          ) : (
+            <button
+              disabled
+              className="inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-zinc-800 text-zinc-400 font-bold text-lg md:text-xl cursor-not-allowed ring-1 ring-zinc-700"
+            >
+              <Lock className="w-6 h-6" />
+              Assista o vídeo todo para liberar o desconto
+            </button>
+          )}
+          <p className="mt-4 text-sm text-zinc-500 text-center max-w-md">
+            O botão será liberado automaticamente assim que você concluir o vídeo.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
