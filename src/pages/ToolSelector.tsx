@@ -157,12 +157,6 @@ const ToolSelector = () => {
                   Acessar área de membros
                 </span>
               </button>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#555]">
-                Mais Resultados Online • Gabriel Fernandes da Silva • CNPJ 54.840.738/0001-96
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#444]">
-                © 2024 • Todos os direitos reservados
-              </p>
             </div>
           </div>
 
@@ -250,6 +244,16 @@ const ToolSelector = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-[#c9a84c]/10 mt-16 py-8 px-6 lg:px-12 text-center space-y-2">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-[#555]">
+          Mais Resultados Online • Gabriel Fernandes da Silva • CNPJ 54.840.738/0001-96
+        </p>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-[#444]">
+          © 2024 • Todos os direitos reservados
+        </p>
+      </footer>
 
       {/* Members modal */}
       {showMembersModal && (
