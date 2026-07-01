@@ -1874,6 +1874,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ferramentamropromo_analytics: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          path: string | null
+          progress_pct: number | null
+          referrer: string | null
+          user_agent: string | null
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          path?: string | null
+          progress_pct?: number | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          path?: string | null
+          progress_pct?: number | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       ferramentamropromo_settings: {
         Row: {
           created_at: string
