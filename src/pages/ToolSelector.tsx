@@ -144,15 +144,15 @@ const ToolSelector = () => {
             <div className="flex flex-col space-y-4">
               <button
                 onClick={() => setShowMembersModal(true)}
-                className="group relative overflow-hidden w-full md:w-max px-8 py-5 bg-gradient-to-r from-[#c9a84c] to-[#f0d78c] text-[#0d0d0d] text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-[0_10px_40px_-10px_rgba(201,168,76,0.6)]"
+                className="group relative overflow-hidden w-full md:w-max px-8 py-5 bg-gradient-to-r from-[#c9a84c] to-[#f0d78c] text-[#0d0d0d] text-base uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-[0_10px_40px_-10px_rgba(201,168,76,0.6)]"
                 style={{ fontFamily: "'Archivo Black', sans-serif" }}
               >
                 <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                 <span className="relative flex items-center gap-3">
-                  <Users className="w-4 h-4" />
+                  <Users className="w-5 h-5" />
                   Você já é cliente?
                 </span>
-                <span className="relative block text-[10px] mt-1 opacity-70 font-normal tracking-wider">
+                <span className="relative block text-xs mt-1 opacity-80 font-semibold tracking-wider">
                   Acessar área de membros
                 </span>
               </button>
