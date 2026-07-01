@@ -316,6 +316,8 @@ const ToolSelector = () => {
           </div>
         </div>
       )}
+
+      <WhatsAppFloatingWidget />
     </div>
   );
 };
