@@ -14,7 +14,7 @@ const PagamentoMROObrigado = () => {
 
   useEffect(() => {
     trackPageView("Pagamento MRO - Obrigado");
-    try { trackPurchase("MRO Vitalicio", 397, "BRL"); } catch {}
+    try { trackPurchase(397, "MRO Vitalicio"); } catch {}
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
