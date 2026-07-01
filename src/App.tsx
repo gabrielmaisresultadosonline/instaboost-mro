@@ -158,6 +158,8 @@ import CreatorDevAdmin from "./pages/CreatorDevAdmin";
 import ComercialAAF from "./pages/ComercialAAF";
 import ComercialAAFAdmin from "./pages/ComercialAAFAdmin";
 import MktCompleto from "./pages/MktCompleto";
+import FerramentaMROPromo from "./pages/FerramentaMROPromo";
+import FerramentaMROPromoAdmin from "./pages/FerramentaMROPromoAdmin";
 
 
 
@@ -371,6 +373,8 @@ const App = () => (
           <Route path="/comercialaaf" element={<ComercialAAF />} />
           <Route path="/comercialaaf/admin" element={<ComercialAAFAdmin />} />
           <Route path="/mktcompleto" element={<MktCompleto />} />
+          <Route path="/ferramentamropromo" element={<FerramentaMROPromo />} />
+          <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

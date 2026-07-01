@@ -1874,6 +1874,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ferramentamropromo_settings: {
+        Row: {
+          created_at: string
+          hls_url: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+          video_title: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          hls_url?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          video_title?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          hls_url?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          video_title?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
