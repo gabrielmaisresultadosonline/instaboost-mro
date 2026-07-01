@@ -60,6 +60,7 @@ export default function FerramentaMROPromo() {
 
   useEffect(() => {
     document.title = "Ferramenta MRO — Desconto exclusivo";
+    track("page_view");
     supabase.functions
       .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
       .then(({ data }) => {
