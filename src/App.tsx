@@ -161,6 +161,7 @@ import MktCompleto from "./pages/MktCompleto";
 import FerramentaMROPromo from "./pages/FerramentaMROPromo";
 import FerramentaMROPromoAdmin from "./pages/FerramentaMROPromoAdmin";
 import PagamentoMRO from "./pages/PagamentoMRO";
+import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
 
 
 
