@@ -225,7 +225,7 @@ const ToolSelector = () => {
                       }`}
                     />
                     <span
-                      className={`text-xs font-bold uppercase tracking-widest ${
+                      className={`text-sm font-bold uppercase tracking-widest ${
                         tool.highlight ? 'text-white' : 'text-[#c9a84c]'
                       }`}
                     >
