@@ -35,9 +35,17 @@ const WhatsAppFloatingWidget = () => {
       {/* Panel */}
       {open && (
         <div
-          className="fixed bottom-24 right-4 md:right-6 z-[60] w-[calc(100vw-2rem)] max-w-sm bg-[#1a1a1a] border border-[#c9a84c]/30 shadow-2xl animate-fade-in"
-          style={{ fontFamily: "'Hind', sans-serif" }}
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in"
+          onClick={handleToggle}
         >
+          <div
+            className="relative w-full max-w-md bg-gradient-to-br from-[#1f1f1f] to-[#0d0d0d] border border-[#c9a84c]/30 shadow-[0_30px_80px_rgba(0,0,0,0.8),0_0_60px_rgba(37,211,102,0.15)] animate-scale-in"
+            style={{
+              fontFamily: "'Hind', sans-serif",
+              transform: 'perspective(1200px) rotateX(2deg)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Header */}
           <div className="flex items-center justify-between bg-[#25D366] px-4 py-3">
             <div className="flex items-center gap-2">
