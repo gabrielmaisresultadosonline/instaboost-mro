@@ -114,9 +114,7 @@ const ToolSelector = () => {
           <div className="lg:col-span-5 flex flex-col space-y-10 lg:space-y-12 lg:sticky lg:top-16">
             <div className="flex flex-col space-y-6 md:space-y-8 animate-fade-in">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-[#f0d78c] to-[#c9a84c] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(201,168,76,0.35)]">
-                  <img src={logoMro} alt="MRO" className="w-9 h-9 md:w-10 md:h-10 object-contain" />
-                </div>
+                <img src={logoMro} alt="MRO" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
                 <span
                   className="text-[10px] uppercase tracking-[0.35em] text-[#c9a84c]/80"
                   style={{ fontFamily: "'Archivo Black', sans-serif" }}
