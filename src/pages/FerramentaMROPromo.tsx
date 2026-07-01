@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle, Maximize } from "lucide-react";
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 const WHATSAPP_URL =
@@ -84,7 +84,22 @@ export default function FerramentaMROPromo() {
     const directCandidate = video_url && !video_url.includes(".m3u8") ? video_url : null;
     const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
     const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
-    const loadDirect = () => { if (fullVideo) video.src = fullVideo; };
+    const tryBgAutoplay = () => {
+      if (started) return;
+      try {
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        const p = video.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch {}
+    };
+    const loadDirect = () => {
+      if (fullVideo) {
+        video.src = fullVideo;
+        video.addEventListener("loadedmetadata", tryBgAutoplay, { once: true });
+      }
+    };
     if (fullHls && Hls.isSupported()) {
       (async () => {
         try {
@@ -93,12 +108,14 @@ export default function FerramentaMROPromo() {
           const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
           hls.loadSource(fullHls);
           hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, tryBgAutoplay);
           hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
           hlsRef.current = hls;
         } catch { loadDirect(); }
       })();
     } else if (fullHls && video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = fullHls;
+      video.addEventListener("loadedmetadata", tryBgAutoplay, { once: true });
     } else {
       loadDirect();
     }
@@ -150,6 +167,10 @@ export default function FerramentaMROPromo() {
     if (!v) return;
     setStarted(true);
     track("video_start");
+    try {
+      v.loop = false;
+      v.currentTime = 0;
+    } catch {}
     v.muted = false;
     setMuted(false);
     v.play().catch(() => {
@@ -181,6 +202,18 @@ export default function FerramentaMROPromo() {
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
+  };
+
+  const toggleFullscreen = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    const anyDoc = document as any;
+    const anyV = v as any;
+    if (anyDoc.fullscreenElement || anyDoc.webkitFullscreenElement) {
+      (anyDoc.exitFullscreen || anyDoc.webkitExitFullscreen)?.call(document);
+    } else {
+      (anyV.requestFullscreen || anyV.webkitEnterFullscreen || anyV.webkitRequestFullscreen)?.call(v);
+    }
   };
 
   return (
@@ -226,26 +259,29 @@ export default function FerramentaMROPromo() {
       )}
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
         <div className="text-center">
-          <span className="inline-block px-4 py-1.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-[0.2em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-5">
+          <span className="inline-block px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-6">
             Oferta exclusiva
           </span>
-          <h1 className="text-4xl md:text-7xl font-black leading-[1.05] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.35)]">
+          <h1
+            className="text-5xl md:text-8xl leading-[0.95] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.4)]"
+            style={{ fontWeight: 900 }}
+          >
             Não gaste com anúncios
           </h1>
-          <p className="mt-5 text-xl md:text-3xl font-extrabold text-white">
+          <p className="mt-4 text-base md:text-xl font-semibold text-white/90">
             Utilize a{" "}
-            <span className="relative inline-block text-amber-400">
+            <span className="relative inline-block text-amber-400 font-bold">
               Ferramenta MRO
-              <span className="absolute left-0 -bottom-1 h-[3px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+              <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
             </span>{" "}
-            e pague <span className="underline decoration-amber-500 decoration-4 underline-offset-4">apenas uma vez!</span>
+            e pague <span className="underline decoration-amber-500 decoration-2 underline-offset-4">apenas uma vez!</span>
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-amber-500/60" />
-            <p className="text-sm md:text-base font-semibold text-amber-200/90 uppercase tracking-wider">
-              Assista ao vídeo para entender tudo e receber o desconto!
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <span className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-amber-500/50" />
+            <p className="text-[11px] md:text-xs font-medium text-amber-200/80 uppercase tracking-[0.2em]">
+              Assista ao vídeo todo para entender e receber o desconto
             </p>
-            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-amber-500/60" />
+            <span className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-amber-500/50" />
           </div>
         </div>
 
@@ -254,18 +290,21 @@ export default function FerramentaMROPromo() {
           <div className="relative aspect-video">
             <video
               ref={videoRef}
-              className="w-full h-full bg-black"
+              className={`w-full h-full bg-black transition-opacity duration-500 ${started ? "opacity-100" : "opacity-10"}`}
               playsInline
               controls={false}
+              muted={!started}
+              autoPlay
+              loop={!started}
               preload="metadata"
             />
             {!started && (
               <button
                 onClick={handleStart}
-                className="absolute inset-0 flex items-center justify-center bg-black/60 hover:bg-black/50 transition"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition"
                 aria-label="Reproduzir"
               >
-                <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl">
+                <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl animate-pulse">
                   <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
                 </span>
               </button>
@@ -285,6 +324,13 @@ export default function FerramentaMROPromo() {
                   aria-label={muted ? "Ativar som" : "Silenciar"}
                 >
                   {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={toggleFullscreen}
+                  className="ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
+                  aria-label="Tela cheia"
+                >
+                  <Maximize className="w-5 h-5" />
                 </button>
               </div>
             )}
