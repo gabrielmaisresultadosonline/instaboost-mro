@@ -204,7 +204,7 @@ const App = () => (
           <Route path="/instagram" element={<Index />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
-          <Route path="/renda-extra2" element={<RendaExtra2Page />} />
+          <Route path="/renda-extra2" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/renda-extrass" element={<RendaExtrassPage />} />
           <Route path="/renda-extrass/admin" element={<RendaExtrassAdmin />} />
           <Route path="/zapmro" element={<ZapMRO />} />
@@ -218,7 +218,7 @@ const App = () => (
           <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/mro-obrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
-          <Route path="/instagram-nova" element={<Navigate to="/instagrammnew" replace />} />
+          <Route path="/instagram-nova" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/instagram-nova-ws" element={<InstagramNovaWS />} />
           <Route path="/instagrampromo" element={<InstagramPromo30Dias />} />
           <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />
@@ -226,7 +226,7 @@ const App = () => (
           <Route path="/instagram-nova-euro" element={<InstagramNovaEuro />} />
           <Route path="/instagram-nova-euro-admin" element={<InstagramNovaEuroAdmin />} />
           <Route path="/instagram-nova-promo" element={<InstagramNovaPromo />} />
-          <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
+          <Route path="/instagram-nova-promoo2" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagramm-nova" element={<InstagramNovaPlan />} />
           <Route path="/instagrammnew" element={<InstagrammNew />} />
@@ -271,11 +271,12 @@ const App = () => (
           <Route path="/testegratis" element={<TesteGratis />} />
           <Route path="/testegratis/admin" element={<TesteGratisAdmin />} />
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
-          <Route path="/rendaextra" element={<RendaExtraLead source="renda_extra" />} />
+          <Route path="/rendaextra" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/rendaextrasoc" element={<RendaExtraLead source="social_midia" />} />
           <Route path="/rendaextraaas" element={<RendaExtraAasPage />} />
           <Route path="/rendaextra/admin" element={<RendaExtraLeadAdmin />} />
-          <Route path="/rendaextra/desconto" element={<RendaExtraDescontoPage />} />
+          <Route path="/rendaextra/desconto" element={<Navigate to="/ferramentamropromo" replace />} />
+          <Route path="/rendaextra-desconto" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
@@ -324,7 +325,7 @@ const App = () => (
           <Route path="/rendaextradesconto" element={<RendaExtraDesconto />} />
           <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />
           <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
-          <Route path="/estruturarendaextra4" element={<EstruturaRendaExtra4 />} />
+          <Route path="/estruturarendaextra4" element={<Navigate to="/ferramentamropromo" replace />} />
           <Route path="/estruturarendaextra4/admin" element={<EstruturaRendaExtra4Admin />} />
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
           <Route path="/whatsappvxlinkdireto" element={<WhatsappVxLinkDireto />} />
