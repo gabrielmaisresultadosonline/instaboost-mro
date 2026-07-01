@@ -84,7 +84,22 @@ export default function FerramentaMROPromo() {
     const directCandidate = video_url && !video_url.includes(".m3u8") ? video_url : null;
     const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
     const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
-    const loadDirect = () => { if (fullVideo) video.src = fullVideo; };
+    const tryBgAutoplay = () => {
+      if (started) return;
+      try {
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        const p = video.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch {}
+    };
+    const loadDirect = () => {
+      if (fullVideo) {
+        video.src = fullVideo;
+        video.addEventListener("loadedmetadata", tryBgAutoplay, { once: true });
+      }
+    };
     if (fullHls && Hls.isSupported()) {
       (async () => {
         try {
@@ -93,12 +108,14 @@ export default function FerramentaMROPromo() {
           const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
           hls.loadSource(fullHls);
           hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, tryBgAutoplay);
           hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
           hlsRef.current = hls;
         } catch { loadDirect(); }
       })();
     } else if (fullHls && video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = fullHls;
+      video.addEventListener("loadedmetadata", tryBgAutoplay, { once: true });
     } else {
       loadDirect();
     }
