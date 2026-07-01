@@ -61,6 +61,10 @@ export default function FerramentaMROPromoAdmin() {
   const fileRef = useRef<HTMLInputElement>(null);
   const transcodeTimer = useRef<number | null>(null);
 
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -72,8 +76,22 @@ export default function FerramentaMROPromoAdmin() {
     if (!creds) return;
     loadCfg();
     loadServerVideos();
+    loadAnalytics();
     return () => { if (transcodeTimer.current) window.clearTimeout(transcodeTimer.current); };
   }, [creds]);
+
+  const loadAnalytics = async (days = analyticsDays) => {
+    if (!creds) return;
+    setLoadingAnalytics(true);
+    try {
+      const { data } = await supabase.functions.invoke("ferramentamropromo-video", {
+        body: { action: "get_analytics", email: creds.email, password: creds.password, days },
+      });
+      if (data?.success) setAnalytics(data as Analytics);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
 
   const doLogin = async () => {
     setLogging(true);
