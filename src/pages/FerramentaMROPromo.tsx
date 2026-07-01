@@ -20,6 +20,13 @@ export default function FerramentaMROPromo() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [watched, setWatched] = useState(false);
+  const [showNotice, setShowNotice] = useState(true);
+
+  useEffect(() => {
+    if (!showNotice) return;
+    const t = setTimeout(() => setShowNotice(false), 5000);
+    return () => clearTimeout(t);
+  }, [showNotice]);
 
   useEffect(() => {
     document.title = "Ferramenta MRO — Desconto exclusivo";
