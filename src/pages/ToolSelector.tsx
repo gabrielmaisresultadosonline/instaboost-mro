@@ -6,6 +6,7 @@ const InstagramIcon = (LucideIcons as any).Instagram || Camera;
 
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
+import WhatsAppFloatingWidget from '@/components/WhatsAppFloatingWidget';
 
 interface ToolOption {
   id: string;
@@ -315,6 +316,8 @@ const ToolSelector = () => {
           </div>
         </div>
       )}
+
+      <WhatsAppFloatingWidget />
     </div>
   );
 };
