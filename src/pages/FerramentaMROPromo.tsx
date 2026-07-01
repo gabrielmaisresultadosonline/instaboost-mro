@@ -8,6 +8,35 @@ const WHATSAPP_URL =
   "https://wa.me/5551928358563?text=" +
   encodeURIComponent("Vim pelo site, Gostaria de saber sobre o desconto!");
 
+function getVisitorId(): string {
+  try {
+    let id = localStorage.getItem("fmp:visitor_id");
+    if (!id) {
+      id = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now()).toString();
+      localStorage.setItem("fmp:visitor_id", id);
+    }
+    return id;
+  } catch {
+    return "anon-" + Math.random().toString(36).slice(2);
+  }
+}
+
+function track(event_type: string, extra?: Record<string, unknown>) {
+  try {
+    supabase.functions.invoke("ferramentamropromo-video", {
+      body: {
+        action: "track",
+        visitor_id: getVisitorId(),
+        event_type,
+        user_agent: navigator.userAgent,
+        referrer: document.referrer,
+        path: window.location.pathname,
+        ...(extra || {}),
+      },
+    }).catch(() => {});
+  } catch {}
+}
+
 export default function FerramentaMROPromo() {
   const [cfg, setCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({
     video_url: null,
@@ -20,6 +49,7 @@ export default function FerramentaMROPromo() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [watched, setWatched] = useState(false);
+  const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
   useEffect(() => {
@@ -30,6 +60,7 @@ export default function FerramentaMROPromo() {
 
   useEffect(() => {
     document.title = "Ferramenta MRO — Desconto exclusivo";
+    track("page_view");
     supabase.functions
       .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
       .then(({ data }) => {
@@ -81,12 +112,22 @@ export default function FerramentaMROPromo() {
       const d = video.duration || 0;
       if (d <= 0) return;
       const pct = (video.currentTime / d) * 100;
+      for (const m of [25, 50, 75, 100]) {
+        if (pct >= m && !milestonesRef.current.has(m)) {
+          milestonesRef.current.add(m);
+          track("video_progress", { progress_pct: m });
+        }
+      }
       if (pct >= 98 && !watched) {
         setWatched(true);
         localStorage.setItem("ferramentamropromo:unlocked", "1");
       }
     };
     const onEnded = () => {
+      if (!milestonesRef.current.has(100)) {
+        milestonesRef.current.add(100);
+        track("video_progress", { progress_pct: 100 });
+      }
       setWatched(true);
       localStorage.setItem("ferramentamropromo:unlocked", "1");
     };
@@ -108,6 +149,7 @@ export default function FerramentaMROPromo() {
     const v = videoRef.current;
     if (!v) return;
     setStarted(true);
+    track("video_start");
     v.muted = false;
     setMuted(false);
     v.play().catch(() => {
@@ -115,6 +157,17 @@ export default function FerramentaMROPromo() {
       setMuted(true);
       v.play().catch(() => {});
     });
+  };
+
+  const handleCtaClick = () => {
+    track("cta_click");
+    try {
+      // Meta Pixel Lead
+      // @ts-ignore
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead", { source: "ferramentamropromo" });
+      }
+    } catch {}
   };
 
   const togglePlay = () => {
@@ -245,6 +298,7 @@ export default function FerramentaMROPromo() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleCtaClick}
               className="relative inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-lg md:text-2xl shadow-[0_0_40px_rgba(34,197,94,0.5)] hover:scale-105 transition animate-pulse"
             >
               <MessageCircle className="w-7 h-7" />

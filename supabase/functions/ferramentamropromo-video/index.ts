@@ -44,6 +44,126 @@ serve(async (req) => {
       });
     }
 
+    if (action === "track") {
+      const visitor_id = String(body.visitor_id || "").slice(0, 80);
+      const event_type = String(body.event_type || "").slice(0, 40);
+      if (!visitor_id || !event_type) return json({ success: false }, 400);
+      const progress_pct = body.progress_pct != null ? Number(body.progress_pct) : null;
+      const ua = String(body.user_agent || "").slice(0, 300);
+      const ref = String(body.referrer || "").slice(0, 300);
+      const path = String(body.path || "").slice(0, 200);
+      await supabase.from("ferramentamropromo_analytics").insert({
+        visitor_id,
+        event_type,
+        progress_pct: Number.isFinite(progress_pct) ? progress_pct : null,
+        user_agent: ua,
+        referrer: ref,
+        path,
+      });
+      return json({ success: true });
+    }
+
+    if (action === "get_analytics") {
+      if (!requireAdmin()) return json({ success: false, error: "Não autorizado" }, 401);
+      const days = Math.min(90, Math.max(1, Number(body.days) || 30));
+      const since = new Date(Date.now() - days * 86400000).toISOString();
+      const { data: rows } = await supabase
+        .from("ferramentamropromo_analytics")
+        .select("visitor_id, event_type, progress_pct, referrer, path, created_at")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(50000);
+      const list = rows || [];
+
+      const visitors = new Map<string, { first: string; last: string; maxProgress: number; started: boolean; clicked: boolean }>();
+      const byDay = new Map<string, { visitors: Set<string>; clicks: number; starts: number; completes: number }>();
+      const refCount = new Map<string, number>();
+      let totalClicks = 0;
+      let totalStarts = 0;
+      let totalPageViews = 0;
+      let progressSum = 0;
+      let progressCount = 0;
+      const milestoneCounts: Record<string, Set<string>> = { "25": new Set(), "50": new Set(), "75": new Set(), "100": new Set() };
+
+      for (const r of list) {
+        const v = r.visitor_id as string;
+        const ts = r.created_at as string;
+        const day = ts.slice(0, 10);
+        if (!visitors.has(v)) visitors.set(v, { first: ts, last: ts, maxProgress: 0, started: false, clicked: false });
+        const vs = visitors.get(v)!;
+        if (ts < vs.first) vs.first = ts;
+        if (ts > vs.last) vs.last = ts;
+        if (!byDay.has(day)) byDay.set(day, { visitors: new Set(), clicks: 0, starts: 0, completes: 0 });
+        const d = byDay.get(day)!;
+
+        if (r.event_type === "page_view") {
+          totalPageViews++;
+          d.visitors.add(v);
+        } else if (r.event_type === "video_start") {
+          totalStarts++;
+          vs.started = true;
+          d.starts++;
+        } else if (r.event_type === "video_progress") {
+          const p = Number(r.progress_pct || 0);
+          if (p > vs.maxProgress) vs.maxProgress = p;
+          progressSum += p;
+          progressCount++;
+          for (const m of ["25", "50", "75", "100"]) {
+            if (p >= Number(m)) milestoneCounts[m].add(v);
+          }
+          if (p >= 100) d.completes++;
+        } else if (r.event_type === "cta_click") {
+          totalClicks++;
+          vs.clicked = true;
+          d.clicks++;
+        }
+
+        if (r.referrer) {
+          const key = (() => {
+            try { return new URL(r.referrer as string).hostname || "direto"; } catch { return "direto"; }
+          })();
+          refCount.set(key, (refCount.get(key) || 0) + 1);
+        }
+      }
+
+      const uniqueVisitors = visitors.size;
+      const started = [...visitors.values()].filter((v) => v.started).length;
+      const clicked = [...visitors.values()].filter((v) => v.clicked).length;
+
+      const daily = [...byDay.entries()]
+        .map(([day, d]) => ({ day, visitors: d.visitors.size, clicks: d.clicks, starts: d.starts, completes: d.completes }))
+        .sort((a, b) => a.day.localeCompare(b.day));
+
+      const referrers = [...refCount.entries()].map(([host, count]) => ({ host, count })).sort((a, b) => b.count - a.count).slice(0, 15);
+
+      const ranking = [...visitors.entries()]
+        .map(([id, v]) => ({ visitor_id: id, first: v.first, last: v.last, max_progress: v.maxProgress, clicked: v.clicked }))
+        .sort((a, b) => b.max_progress - a.max_progress || b.last.localeCompare(a.last))
+        .slice(0, 100);
+
+      return json({
+        success: true,
+        summary: {
+          totalPageViews,
+          uniqueVisitors,
+          totalStarts,
+          uniqueStarters: started,
+          totalClicks,
+          uniqueClickers: clicked,
+          avgProgress: progressCount ? Math.round(progressSum / progressCount) : 0,
+          milestone25: milestoneCounts["25"].size,
+          milestone50: milestoneCounts["50"].size,
+          milestone75: milestoneCounts["75"].size,
+          milestone100: milestoneCounts["100"].size,
+          conversionRate: uniqueVisitors ? Math.round((clicked / uniqueVisitors) * 1000) / 10 : 0,
+          lastAccess: list[0]?.created_at || null,
+        },
+        daily,
+        referrers,
+        ranking,
+      });
+    }
+
     if (action === "set_video") {
       if (!requireAdmin()) return json({ success: false, error: "Não autorizado" }, 401);
       const video_url = body.video_url ? String(body.video_url) : null;
