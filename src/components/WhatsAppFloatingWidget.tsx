@@ -138,6 +138,7 @@ const WhatsAppFloatingWidget = () => {
               </>
             )}
           </div>
+          </div>
         </div>
       )}
 
