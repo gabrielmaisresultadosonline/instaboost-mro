@@ -116,12 +116,6 @@ const ToolSelector = () => {
             <div className="flex flex-col space-y-6 md:space-y-8 animate-fade-in">
               <div className="flex items-center gap-4">
                 <img src={logoMro} alt="MRO" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
-                <span
-                  className="text-sm md:text-base uppercase tracking-[0.35em] text-[#c9a84c] font-bold"
-                  style={{ fontFamily: "'Archivo Black', sans-serif" }}
-                >
-                  MRO • Premium
-                </span>
               </div>
 
               <h1
