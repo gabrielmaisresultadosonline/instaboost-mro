@@ -42,7 +42,7 @@ const ToolSelector = () => {
       hoverColor: 'hover:from-pink-600 hover:to-purple-700',
       borderColor: 'border-pink-500/30',
       badge: 'MRO I.A',
-      salesPath: '/instagrammnew'
+      salesPath: '/ferramentamropromo'
     },
     {
       id: 'mktcompleto',
