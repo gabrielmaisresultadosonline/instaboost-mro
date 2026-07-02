@@ -955,9 +955,18 @@ export default function AdminUsuario() {
                             placeholder="Email"
                             className="bg-gray-700 border-gray-600 text-white"
                           />
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <Button onClick={() => handleSaveEdit(access.id)} className="bg-green-600 hover:bg-green-700">
                               <Check className="w-4 h-4 mr-2" /> Salvar
+                            </Button>
+                            <Button
+                              onClick={async () => {
+                                await handleSaveEdit(access.id);
+                                await handleResendEmail(access.id);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Mail className="w-4 h-4 mr-2" /> Salvar e Reenviar acesso
                             </Button>
                             <Button onClick={() => setEditingId(null)} variant="outline">
                               <X className="w-4 h-4 mr-2" /> Cancelar
