@@ -5,7 +5,7 @@ import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle, Maximize } from "lu
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 const WHATSAPP_URL =
-  "https://wa.me/5551928358563?text=" +
+  "https://wa.me/5551992835863?text=" +
   encodeURIComponent("Vim pelo site, Gostaria de saber sobre o desconto!");
 
 function getVisitorId(): string {
