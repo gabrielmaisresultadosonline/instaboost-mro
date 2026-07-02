@@ -135,7 +135,7 @@ export default function FerramentaMROPromo() {
           track("video_progress", { progress_pct: m });
         }
       }
-      if (pct >= 98 && !watched) {
+      if (pct >= 60 && !watched) {
         setWatched(true);
         localStorage.setItem("ferramentamropromo:unlocked", "1");
       }
@@ -306,18 +306,18 @@ export default function FerramentaMROPromo() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleCtaClick}
-              className="relative inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-lg md:text-2xl shadow-[0_0_40px_rgba(34,197,94,0.5)] hover:scale-105 transition animate-pulse"
+              className="relative inline-flex items-center gap-2 md:gap-3 px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-sm md:text-2xl shadow-[0_0_40px_rgba(34,197,94,0.5)] hover:scale-105 transition animate-pulse"
             >
-              <MessageCircle className="w-7 h-7" />
+              <MessageCircle className="w-5 h-5 md:w-7 md:h-7" />
               APROVEITAR O DESCONTO
             </a>
           ) : (
             <button
               disabled
-              className="inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-zinc-800 text-zinc-400 font-bold text-lg md:text-xl cursor-not-allowed ring-1 ring-zinc-700"
+              className="inline-flex items-center gap-2 md:gap-3 px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-2xl bg-zinc-800 text-zinc-400 font-bold text-sm md:text-xl cursor-not-allowed ring-1 ring-zinc-700 animate-pulse"
             >
-              <Lock className="w-6 h-6" />
-              Assista o vídeo todo para liberar o desconto
+              <Lock className="w-4 h-4 md:w-6 md:h-6" />
+              Assista o vídeo para liberar o desconto
             </button>
           )}
           <p className="mt-4 text-sm text-zinc-500 text-center max-w-md">
