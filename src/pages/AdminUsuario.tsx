@@ -37,8 +37,7 @@ import {
   Bell,
   AlertTriangle,
   Clock,
-  MailOpen,
-  Mail
+  MailOpen
 } from 'lucide-react';
 
 interface CreatedAccess {
