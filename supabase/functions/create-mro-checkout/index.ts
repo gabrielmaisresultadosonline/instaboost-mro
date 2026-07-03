@@ -40,7 +40,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, username, phone, planType, amount, checkUserExists, partner_id, redirectTo } = body;
+    const { email, username, phone, name, planType, amount, checkUserExists, partner_id, redirectTo } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -59,6 +59,7 @@ serve(async (req) => {
     const cleanEmail = email.toLowerCase().trim();
     const cleanUsername = username.toLowerCase().trim();
     const cleanPhone = phone ? phone.replace(/\D/g, "").trim() : "";
+    const cleanName = name ? String(name).trim() : "";
     const orderNsu = generateNSU();
     const priceInCents = Math.round((amount || 397) * 100);
     const planLabel = planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : planType === "monthly" ? "MENSAL" : planType === "solo" ? "SOLO" : planType === "pro" ? "PRO" : planType === "agencia" ? "AGENCIA" : "ANUAL";
@@ -122,7 +123,7 @@ serve(async (req) => {
       price: priceInCents,
     }];
 
-    const infinitepayPayload = {
+    const infinitepayPayload: Record<string, unknown> = {
       handle: INFINITEPAY_HANDLE,
       items: lineItems,
       itens: lineItems, // compatibilidade
@@ -131,6 +132,8 @@ serve(async (req) => {
       webhook_url: webhookUrl,
       customer: {
         email: customerEmailForPayment,
+        ...(cleanName ? { name: cleanName } : {}),
+        ...(cleanPhone ? { phone_number: cleanPhone, phone: cleanPhone } : {}),
       },
     };
 
