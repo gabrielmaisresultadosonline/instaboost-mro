@@ -70,7 +70,8 @@ const PLANS: Record<PlanKey, {
     installment: "8",
     accounts: 4,
     planType: "trial",
-    durationLabel: "1 dia de acesso",
+    durationLabel: "1 dia · liberação imediata",
+    badge: "COMECE AQUI",
     icon: Zap,
   },
 };
