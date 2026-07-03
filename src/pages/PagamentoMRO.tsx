@@ -258,36 +258,53 @@ const PagamentoMRO = () => {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
               {planKeys.map((key, idx) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
-                const isTrial = key === "trial";
-                const isHighlight = !!p.highlight;
+                // Paleta única por plano
+                const theme = {
+                  trial: {
+                    card: "border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-white shadow-[0_20px_50px_-15px_rgba(16,185,129,0.35)] hover:shadow-[0_30px_70px_-15px_rgba(16,185,129,0.5)] ring-4 ring-emerald-500/15",
+                    iconBox: "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/40",
+                    badge: "bg-emerald-500 text-white",
+                    button: "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/40 group-hover:shadow-xl group-hover:shadow-emerald-500/60 group-hover:from-emerald-600 group-hover:to-emerald-700",
+                  },
+                  solo: {
+                    card: "border-sky-400 bg-gradient-to-br from-sky-50 via-white to-white shadow-[0_20px_50px_-15px_rgba(14,165,233,0.3)] hover:shadow-[0_30px_70px_-15px_rgba(14,165,233,0.45)] ring-2 ring-sky-400/10",
+                    iconBox: "bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-lg shadow-sky-500/40",
+                    badge: "bg-sky-500 text-white",
+                    button: "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/40 group-hover:shadow-xl group-hover:shadow-sky-500/60 group-hover:from-sky-600 group-hover:to-blue-700",
+                  },
+                  pro: {
+                    card: "border-amber-500 bg-gradient-to-br from-amber-50 via-white to-yellow-50 shadow-[0_25px_60px_-15px_rgba(245,158,11,0.4)] hover:shadow-[0_35px_80px_-15px_rgba(245,158,11,0.55)] ring-4 ring-amber-500/20 scale-100 lg:scale-[1.03]",
+                    iconBox: "bg-gradient-to-br from-amber-400 via-orange-500 to-yellow-500 text-white shadow-lg shadow-amber-500/50",
+                    badge: "bg-gradient-to-r from-amber-500 to-orange-500 text-white",
+                    button: "bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-white shadow-lg shadow-amber-500/50 group-hover:shadow-xl group-hover:shadow-amber-500/70 group-hover:from-amber-600 group-hover:via-orange-600 group-hover:to-yellow-600",
+                  },
+                  lifetime: {
+                    card: "border-violet-500 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 shadow-[0_20px_50px_-15px_rgba(139,92,246,0.35)] hover:shadow-[0_30px_70px_-15px_rgba(139,92,246,0.5)] ring-2 ring-violet-500/15",
+                    iconBox: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-lg shadow-violet-500/40",
+                    badge: "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white",
+                    button: "bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white shadow-lg shadow-violet-500/40 group-hover:shadow-xl group-hover:shadow-violet-500/60 group-hover:from-violet-600 group-hover:to-fuchsia-700",
+                  },
+                }[key];
                 return (
                   <button
                     key={key}
                     type="button"
                     onClick={() => handleSelectPlan(key)}
                     style={{ animationDelay: `${idx * 60}ms` }}
-                    className={`group relative text-left p-6 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 animate-fade-in
-                      ${isTrial
-                        ? "border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-white shadow-xl shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/25 ring-4 ring-emerald-500/10"
-                        : isHighlight
-                        ? "border-amber-500 bg-gradient-to-br from-amber-50 via-white to-white shadow-lg shadow-amber-500/10 hover:shadow-2xl hover:shadow-amber-500/20"
-                        : "border-zinc-200 bg-white hover:border-amber-400 hover:shadow-xl"
-                      }`}
+                    className={`group relative text-left p-6 rounded-2xl border-2 bg-white transition-all duration-300 hover:-translate-y-2 animate-fade-in ${theme.card}`}
                   >
                     {p.badge && (
-                      <span className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-3 py-1 rounded-full shadow-md tracking-wider
-                        ${isTrial ? "bg-emerald-500 text-white" : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"}`}>
+                      <span className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-3 py-1 rounded-full shadow-md tracking-wider ${theme.badge}`}>
                         {p.badge}
                       </span>
                     )}
 
-                    <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4 transition-transform group-hover:scale-110
-                      ${isTrial ? "bg-emerald-500 text-white" : isHighlight ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white" : "bg-zinc-100 text-amber-600"}`}>
-                      <Icon className="w-5 h-5" />
+                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3 ${theme.iconBox}`}>
+                      <Icon className="w-6 h-6" />
                     </div>
 
                     <div className="font-bold text-lg text-zinc-900 mb-1">{p.name}</div>
@@ -298,7 +315,7 @@ const PagamentoMRO = () => {
                         {formatBRL(p.price).replace("R$ ", "R$")}
                       </span>
                     </div>
-                    <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mb-4 border border-emerald-100">
+                    <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mb-4 border border-emerald-200">
                       12x de R$ {p.installment} sem juros
                     </div>
 
@@ -317,13 +334,7 @@ const PagamentoMRO = () => {
                       </div>
                     </div>
 
-                    <div className={`mt-5 w-full text-center py-2.5 rounded-lg font-bold text-sm transition-all
-                      ${isTrial
-                        ? "bg-emerald-500 text-white shadow-md group-hover:bg-emerald-600 group-hover:shadow-lg"
-                        : isHighlight
-                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md group-hover:shadow-lg"
-                        : "bg-zinc-900 text-white group-hover:bg-zinc-800"
-                      }`}>
+                    <div className={`mt-5 w-full text-center py-3 rounded-xl font-black text-sm transition-all group-hover:scale-[1.02] ${theme.button}`}>
                       Selecionar plano →
                     </div>
                   </button>
