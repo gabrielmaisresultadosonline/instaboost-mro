@@ -94,15 +94,34 @@ async function checkUserExists(username: string): Promise<boolean> {
 // Criar usuário na API SquareCloud/Instagram
 async function createInstagramUser(username: string, password: string, daysAccess: number, plan: string): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
-    // Determinar payload e URL baseado no plano (igual ao manage-user-access)
-    const isSpecialPlan = ['solo', 'pro', 'agencia'].includes(plan);
-    const createUrl = isSpecialPlan 
+    // Mapear plano -> maxAccounts / dias / plano-label conforme /adminusuario docs
+    // solo=1 conta 365d | pro=4 contas 365d | agencia=12 contas 9999d | trial=4 contas 1d
+    const planMap: Record<string, { plano: string; maxAccounts: number; dias: number }> = {
+      solo:     { plano: "solo",  maxAccounts: 1,  dias: 365 },
+      pro:      { plano: "pro",   maxAccounts: 4,  dias: 365 },
+      agencia:  { plano: "pro",   maxAccounts: 12, dias: 9999 },
+      trial:    { plano: "pro",   maxAccounts: 4,  dias: 1 },
+      annual:   { plano: "pro",   maxAccounts: 4,  dias: 365 },
+      monthly:  { plano: "pro",   maxAccounts: 4,  dias: 30 },
+      lifetime: { plano: "pro",   maxAccounts: 4,  dias: 9999 },
+    };
+    const cfg = planMap[plan] || planMap.annual;
+    const isSpecialPlan = ['solo', 'pro', 'agencia', 'trial'].includes(plan);
+    const createUrl = isSpecialPlan
       ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
       : `${INSTAGRAM_API_URL}/adicionar-usuario`;
 
-    // No manage-user-access, 'annual' usa o payload genérico
-    const payload = isSpecialPlan
-      ? { username, password, plano: plan, dias: 365, igUsers: "" }
+    const payload: Record<string, unknown> = isSpecialPlan
+      ? {
+          username,
+          password,
+          plano: cfg.plano,
+          dias: cfg.dias,
+          blackList: false,
+          acessFull: false,
+          maxAccounts: cfg.maxAccounts,
+          igUsers: "",
+        }
       : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
 
     log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
