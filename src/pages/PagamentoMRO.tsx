@@ -70,7 +70,8 @@ const PLANS: Record<PlanKey, {
     installment: "8",
     accounts: 4,
     planType: "trial",
-    durationLabel: "1 dia de acesso",
+    durationLabel: "1 dia · liberação imediata",
+    badge: "COMECE AQUI",
     icon: Zap,
   },
 };
@@ -191,113 +192,170 @@ const PagamentoMRO = () => {
   };
 
   const plan = PLANS[selectedPlan];
-  const planKeys: PlanKey[] = ["solo", "pro", "lifetime", "trial"];
+  // Teste primeiro, depois Pro (mais vendido), Solo e Vitalício
+  const planKeys: PlanKey[] = ["trial", "pro", "solo", "lifetime"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-white text-zinc-900 selection:bg-amber-300/60">
+      {/* Ambient gradients (light) */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-amber-200/40 blur-3xl" />
+        <div className="absolute top-40 -right-32 w-[520px] h-[520px] rounded-full bg-emerald-200/40 blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[720px] h-[420px] rounded-full bg-yellow-100/60 blur-3xl" />
+      </div>
+
+      <header className="border-b border-zinc-200/70 bg-white/80 backdrop-blur-md sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-8" />
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
             <Lock className="w-3.5 h-3.5" />
-            Checkout seguro
+            Checkout 100% seguro
           </div>
         </div>
       </header>
 
-      {/* Sem juros badge */}
-      <div className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-black py-2 text-center font-black text-sm md:text-base animate-pulse">
-        ✨ PARCELAS SEM JUROS · Em até 12x no cartão ✨
+      {/* Faixa sem juros pulsante */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-white py-2.5 text-center font-black text-sm md:text-base shadow-lg shadow-emerald-500/20">
+        <span className="relative z-10 inline-flex items-center gap-2">
+          <Sparkles className="w-4 h-4 animate-pulse" />
+          PARCELAS SEM JUROS · Em até 12x no cartão
+          <Sparkles className="w-4 h-4 animate-pulse" />
+        </span>
+        <div className="absolute inset-0 bg-white/10 animate-pulse" />
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
+      <main className="max-w-6xl mx-auto px-4 py-8 md:py-14 animate-fade-in">
         {/* Stepper */}
-        <div className="flex items-center justify-center gap-2 mb-6 text-xs">
-          <span className={`px-3 py-1 rounded-full font-bold ${step === 1 ? "bg-amber-500 text-black" : "bg-emerald-500 text-black"}`}>
+        <div className="flex items-center justify-center gap-2 mb-8 text-xs">
+          <span className={`px-3 py-1.5 rounded-full font-bold transition-all ${step === 1 ? "bg-zinc-900 text-white shadow-md" : "bg-emerald-500 text-white"}`}>
             1 · Escolha o plano
           </span>
-          <span className="w-6 h-px bg-border" />
-          <span className={`px-3 py-1 rounded-full font-bold ${step === 2 ? "bg-amber-500 text-black" : "bg-muted text-muted-foreground"}`}>
+          <span className="w-8 h-px bg-zinc-300" />
+          <span className={`px-3 py-1.5 rounded-full font-bold transition-all ${step === 2 ? "bg-zinc-900 text-white shadow-md" : "bg-zinc-100 text-zinc-500"}`}>
             2 · Seus dados
           </span>
         </div>
 
         {step === 1 && (
           <>
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-3">
-                Escolha seu <span className="bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">plano MRO</span>
+            <div className="text-center mb-10 animate-fade-in">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-200">
+                <Sparkles className="w-3 h-3" /> Ferramenta MRO Instagram
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4 leading-[1.05]">
+                Escolha seu{" "}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                    plano MRO
+                  </span>
+                  <span className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full opacity-60" />
+                </span>
               </h1>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Todos os planos com <strong className="text-emerald-500">parcelamento sem juros</strong> em até 12x no cartão.
+              <p className="text-zinc-600 text-base md:text-lg max-w-2xl mx-auto">
+                Comece pelo <strong className="text-emerald-600">Teste 1 Dia</strong> ou vá direto para o plano que faz mais sentido pra você — tudo com{" "}
+                <strong className="text-emerald-600">parcelamento sem juros</strong>.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {planKeys.map((key) => {
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {planKeys.map((key, idx) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
+                const isTrial = key === "trial";
+                const isHighlight = !!p.highlight;
                 return (
                   <button
                     key={key}
                     type="button"
                     onClick={() => handleSelectPlan(key)}
-                    className={`relative text-left p-5 rounded-2xl border-2 transition-all hover:-translate-y-1 hover:shadow-xl ${
-                      p.highlight
-                        ? "border-amber-500 bg-gradient-to-b from-amber-500/10 to-transparent shadow-lg shadow-amber-500/10"
-                        : "border-border bg-card hover:border-amber-500/50"
-                    }`}
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                    className={`group relative text-left p-6 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 animate-fade-in
+                      ${isTrial
+                        ? "border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-white shadow-xl shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/25 ring-4 ring-emerald-500/10"
+                        : isHighlight
+                        ? "border-amber-500 bg-gradient-to-br from-amber-50 via-white to-white shadow-lg shadow-amber-500/10 hover:shadow-2xl hover:shadow-amber-500/20"
+                        : "border-zinc-200 bg-white hover:border-amber-400 hover:shadow-xl"
+                      }`}
                   >
                     {p.badge && (
-                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-black">
+                      <span className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-3 py-1 rounded-full shadow-md tracking-wider
+                        ${isTrial ? "bg-emerald-500 text-white" : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"}`}>
                         {p.badge}
                       </span>
                     )}
-                    <div className="flex items-center gap-2 mb-3">
-                      <Icon className="w-5 h-5 text-amber-500" />
-                      <span className="font-bold">{p.name}</span>
+
+                    <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4 transition-transform group-hover:scale-110
+                      ${isTrial ? "bg-emerald-500 text-white" : isHighlight ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white" : "bg-zinc-100 text-amber-600"}`}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <div className="text-3xl font-black mb-1">
-                      {formatBRL(p.price)}
+
+                    <div className="font-bold text-lg text-zinc-900 mb-1">{p.name}</div>
+                    <div className="text-[11px] text-zinc-500 mb-3">{p.durationLabel}</div>
+
+                    <div className="flex items-baseline gap-1 mb-1">
+                      <span className="text-4xl font-black text-zinc-900">
+                        {formatBRL(p.price).replace("R$ ", "R$")}
+                      </span>
                     </div>
-                    <div className="text-xs font-bold text-emerald-500 mb-3">
+                    <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mb-4 border border-emerald-100">
                       12x de R$ {p.installment} sem juros
                     </div>
-                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border pt-3">
+
+                    <div className="space-y-2 text-sm text-zinc-700 border-t border-zinc-100 pt-4">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        {p.accounts} {p.accounts === 1 ? "conta" : "contas"} Instagram
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span><strong>{p.accounts}</strong> {p.accounts === 1 ? "conta" : "contas"} Instagram</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        {p.durationLabel}
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                        Ferramenta MRO completa
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        Ferramenta MRO + Área VIP
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                        Área VIP + Suporte
                       </div>
                     </div>
-                    <div className={`mt-4 w-full text-center py-2 rounded-lg font-bold text-sm ${
-                      p.highlight ? "bg-amber-500 text-black" : "bg-muted text-foreground"
-                    }`}>
-                      Selecionar
+
+                    <div className={`mt-5 w-full text-center py-2.5 rounded-lg font-bold text-sm transition-all
+                      ${isTrial
+                        ? "bg-emerald-500 text-white shadow-md group-hover:bg-emerald-600 group-hover:shadow-lg"
+                        : isHighlight
+                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md group-hover:shadow-lg"
+                        : "bg-zinc-900 text-white group-hover:bg-zinc-800"
+                      }`}>
+                      Selecionar plano →
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Guarantee */}
-            <div className="mt-8 max-w-2xl mx-auto relative overflow-hidden rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 p-5">
+            {/* Benefícios rápidos */}
+            <div className="mt-10 grid grid-cols-2 md:grid-cols-3 gap-3">
+              {BENEFITS.map((b, i) => {
+                const Icon = b.icon;
+                return (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-zinc-200 hover:border-amber-300 hover:shadow-sm transition-all">
+                    <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs md:text-sm font-medium text-zinc-700">{b.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Garantia */}
+            <div className="mt-10 max-w-2xl mx-auto relative overflow-hidden rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 p-6 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center gap-4">
-                <div className="shrink-0 w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                  <Shield className="w-7 h-7" />
+                <div className="shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <Shield className="w-8 h-8" />
                 </div>
                 <div>
-                  <p className="font-black text-emerald-600 dark:text-emerald-400 text-lg">
+                  <p className="font-black text-emerald-700 text-xl">
                     Garantia incondicional de 30 dias
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-zinc-600">
                     Se não gostar, devolvemos 100% do seu dinheiro. Sem perguntas.
                   </p>
                 </div>
@@ -307,75 +365,80 @@ const PagamentoMRO = () => {
         )}
 
         {step === 2 && (
-          <>
+          <div className="animate-fade-in">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+              className="flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-900 mb-5 font-medium transition-colors"
             >
               <ArrowLeft className="w-4 h-4" /> Trocar plano
             </button>
 
             <div className="grid lg:grid-cols-5 gap-6">
-              <form onSubmit={handleCheckout} className="lg:col-span-3 space-y-6">
-                <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-                  <h2 className="font-bold text-lg">Seus dados</h2>
+              <form onSubmit={handleCheckout} className="lg:col-span-3 space-y-5">
+                <div className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-sm">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Nome completo</label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como devemos te chamar" />
+                    <h2 className="font-black text-xl text-zinc-900">Seus dados</h2>
+                    <p className="text-xs text-zinc-500 mt-1">Envelope enviado por email após o pagamento.</p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700">Nome completo</label>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como devemos te chamar" className="mt-1 bg-white border-zinc-300" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground">Email</label>
-                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
+                      <label className="text-xs font-semibold text-zinc-700">Email</label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="mt-1 bg-white border-zinc-300" />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground">WhatsApp (com DDD)</label>
-                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" />
+                      <label className="text-xs font-semibold text-zinc-700">WhatsApp (com DDD)</label>
+                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="mt-1 bg-white border-zinc-300" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Usuário de acesso</label>
+                    <label className="text-xs font-semibold text-zinc-700">Usuário de acesso</label>
                     <Input
                       value={username}
                       onChange={(e) => validateUsername(e.target.value)}
                       placeholder="apenas letras minúsculas"
+                      className="mt-1 bg-white border-zinc-300"
                     />
-                    {usernameError && <p className="text-xs text-destructive mt-1">{usernameError}</p>}
+                    {usernameError && <p className="text-xs text-red-500 mt-1 font-medium">{usernameError}</p>}
                     {usernameAvailable === true && !usernameError && (
-                      <p className="text-xs text-emerald-500 mt-1">Usuário disponível</p>
+                      <p className="text-xs text-emerald-600 mt-1 font-medium">✓ Usuário disponível</p>
                     )}
-                    {checkingUsername && <p className="text-xs text-muted-foreground mt-1">Verificando…</p>}
+                    {checkingUsername && <p className="text-xs text-zinc-500 mt-1">Verificando…</p>}
                   </div>
 
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-12 text-base font-bold bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black"
+                    className="w-full h-14 text-base font-black bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-600 hover:via-orange-600 hover:to-yellow-600 text-white shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 transition-all hover:scale-[1.02]"
                   >
                     {loading ? (
                       <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando link…</>
                     ) : (
-                      <>Pagar agora · {formatBRL(plan.price)}</>
+                      <>🚀 Pagar agora · {formatBRL(plan.price)}</>
                     )}
                   </Button>
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
                     <Lock className="w-3 h-3" /> Pagamento processado com segurança pela InfiniPay
                   </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 p-5">
+                <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 p-5">
                   <div className="flex items-center gap-4">
-                    <div className="shrink-0 w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                    <div className="shrink-0 w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
                       <Shield className="w-7 h-7" />
                     </div>
                     <div>
-                      <p className="font-black text-emerald-600 dark:text-emerald-400 text-lg">
-                        Garantia incondicional de 30 dias
+                      <p className="font-black text-emerald-700 text-lg">
+                        Garantia de 30 dias
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Se não gostar, devolvemos 100% do seu dinheiro.
+                      <p className="text-sm text-zinc-600">
+                        100% do seu dinheiro de volta.
                       </p>
                     </div>
                   </div>
@@ -383,42 +446,42 @@ const PagamentoMRO = () => {
               </form>
 
               <aside className="lg:col-span-2">
-                <div className="sticky top-24 bg-card border border-border rounded-xl p-5 space-y-4">
+                <div className="sticky top-24 bg-white border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-lg">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-amber-500" />
-                    <h2 className="font-bold">Resumo do pedido</h2>
+                    <h2 className="font-black text-zinc-900">Resumo do pedido</h2>
                   </div>
-                  <div className="rounded-lg bg-muted/50 p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Plano selecionado</div>
-                    <div className="font-bold text-lg">{plan.name}</div>
-                    <div className="text-3xl font-black text-amber-500 mt-1">
+                  <div className="rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 p-4">
+                    <div className="text-[11px] uppercase tracking-wider font-bold text-amber-700 mb-1">Plano selecionado</div>
+                    <div className="font-black text-xl text-zinc-900">{plan.name}</div>
+                    <div className="text-4xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mt-2">
                       {formatBRL(plan.price)}
                     </div>
-                    <div className="text-xs font-bold text-emerald-500 mt-1">
+                    <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md mt-2 border border-emerald-200">
                       12x de R$ {plan.installment} SEM JUROS
                     </div>
-                    <div className="text-xs text-muted-foreground mt-2">
+                    <div className="text-xs text-zinc-600 mt-3 font-medium">
                       {plan.accounts} {plan.accounts === 1 ? "conta" : "contas"} · {plan.durationLabel}
                     </div>
                   </div>
-                  <ul className="space-y-2">
+                  <ul className="space-y-2.5">
                     {BENEFITS.map((b, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="text-xs">{b.text}</span>
+                        <span className="text-sm text-zinc-700">{b.text}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </aside>
             </div>
-          </>
+          </div>
         )}
       </main>
 
-      <footer className="border-t border-border/50 py-6 mt-10">
-        <div className="max-w-6xl mx-auto px-4 text-center text-xs text-muted-foreground">
-          © MRO · Todos os direitos reservados
+      <footer className="border-t border-zinc-200 py-6 mt-10 bg-white">
+        <div className="max-w-6xl mx-auto px-4 text-center text-xs text-zinc-500">
+          © MRO · Todos os direitos reservados · Gabriel Fernandes da Silva · CNPJ 54.840.738/0001-96
         </div>
       </footer>
     </div>
