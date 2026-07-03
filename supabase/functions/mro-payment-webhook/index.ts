@@ -218,7 +218,25 @@ async function sendAccessEmail(
 
     const memberAreaUrl = "https://maisresultadosonline.com.br";
     const whatsappGroupLink = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
-    const planLabel = planType === "lifetime" ? "Vitalício" : planType === "trial" ? "Teste 30 Dias" : planType === "monthly" ? "Mensal (30 dias)" : planType === "solo" ? "Solo" : planType === "pro" ? "Pro" : planType === "agencia" ? "Agência" : "Anual";
+    const planLabel =
+      planType === "solo" ? "Anual Solo (1 conta)" :
+      planType === "pro" ? "Anual Pro (4 contas)" :
+      planType === "agencia" ? "Agência Vitalício (12 contas)" :
+      planType === "trial" ? "Teste 1 Dia (4 contas)" :
+      planType === "lifetime" ? "Vitalício" :
+      planType === "monthly" ? "Mensal (30 dias)" :
+      "Anual";
+    const planBanner =
+      planType === "trial" ? "⏱️ Plano Teste - 1 dia de acesso para 4 contas. Aproveite!" :
+      planType === "solo" ? "🎁 Plano Anual Solo - 365 dias · 1 conta de Instagram" :
+      planType === "pro" ? "🚀 Plano Anual Pro - 365 dias · até 4 contas de Instagram" :
+      planType === "agencia" ? "♾️ Agência Vitalício - Acesso vitalício · até 12 contas de Instagram" :
+      planType === "lifetime" ? "♾️ Acesso Vitalício - Sem data de expiração!" :
+      planType === "monthly" ? "📅 Plano Mensal - 30 dias de acesso" :
+      "🎁 Plano Anual - 365 dias de acesso";
+    const bannerBg = (planType === "agencia" || planType === "lifetime") ? "#d4edda" : (planType === "trial" || planType === "monthly") ? "#d1ecf1" : "#fff3cd";
+    const bannerBd = (planType === "agencia" || planType === "lifetime") ? "#28a745" : (planType === "trial" || planType === "monthly") ? "#17a2b8" : "#ffc107";
+    const bannerFg = (planType === "agencia" || planType === "lifetime") ? "#155724" : (planType === "trial" || planType === "monthly") ? "#0c5460" : "#856404";
 
     const htmlContent = `<!DOCTYPE html>
 <html>
