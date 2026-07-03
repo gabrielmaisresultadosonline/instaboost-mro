@@ -1497,7 +1497,7 @@ Participe também do nosso GRUPO DE AVISOS
   const getDaysRemaining = (order: MROOrder) => {
     if (!order.paid_at) return null;
     const paidDate = new Date(order.paid_at);
-    const planDays = order.plan_type === 'trial' ? 30 : order.plan_type === 'monthly' ? 30 : order.plan_type === 'lifetime' ? 9999 : 365;
+    const planDays = order.plan_type === 'trial' ? 1 : order.plan_type === 'monthly' ? 30 : (order.plan_type === 'lifetime' || order.plan_type === 'agencia') ? 9999 : 365;
     const expirationDate = addDays(paidDate, planDays);
     const daysLeft = differenceInDays(expirationDate, new Date());
     return daysLeft > 0 ? daysLeft : 0;
@@ -2539,7 +2539,7 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
               <div className="flex items-center justify-between bg-zinc-900/30 p-2 rounded-lg border border-zinc-700/30">
                 <span className="text-white text-sm font-bold">R$ {Number(order.amount).toFixed(2)}</span>
                 <Badge variant="outline" className="text-[10px] h-5 bg-zinc-800 border-zinc-600">
-                  {order.plan_type === 'trial' ? 'Teste' : order.plan_type === 'monthly' ? 'Mensal' : order.plan_type === 'lifetime' ? 'Vitalício' : 'Anual'}
+                  {order.plan_type === 'trial' ? 'Teste 1 Dia' : order.plan_type === 'monthly' ? 'Mensal' : order.plan_type === 'lifetime' ? 'Vitalício' : order.plan_type === 'solo' ? 'Anual Solo' : order.plan_type === 'pro' ? 'Anual Pro (4)' : order.plan_type === 'agencia' ? 'Agência Vitalício (12)' : 'Anual'}
                 </Badge>
               </div>
             </div>

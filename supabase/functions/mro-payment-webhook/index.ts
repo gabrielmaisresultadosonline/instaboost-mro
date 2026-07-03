@@ -94,15 +94,34 @@ async function checkUserExists(username: string): Promise<boolean> {
 // Criar usuário na API SquareCloud/Instagram
 async function createInstagramUser(username: string, password: string, daysAccess: number, plan: string): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
-    // Determinar payload e URL baseado no plano (igual ao manage-user-access)
-    const isSpecialPlan = ['solo', 'pro', 'agencia'].includes(plan);
-    const createUrl = isSpecialPlan 
+    // Mapear plano -> maxAccounts / dias / plano-label conforme /adminusuario docs
+    // solo=1 conta 365d | pro=4 contas 365d | agencia=12 contas 9999d | trial=4 contas 1d
+    const planMap: Record<string, { plano: string; maxAccounts: number; dias: number }> = {
+      solo:     { plano: "solo",  maxAccounts: 1,  dias: 365 },
+      pro:      { plano: "pro",   maxAccounts: 4,  dias: 365 },
+      agencia:  { plano: "pro",   maxAccounts: 12, dias: 9999 },
+      trial:    { plano: "pro",   maxAccounts: 4,  dias: 1 },
+      annual:   { plano: "pro",   maxAccounts: 4,  dias: 365 },
+      monthly:  { plano: "pro",   maxAccounts: 4,  dias: 30 },
+      lifetime: { plano: "pro",   maxAccounts: 4,  dias: 9999 },
+    };
+    const cfg = planMap[plan] || planMap.annual;
+    const isSpecialPlan = ['solo', 'pro', 'agencia', 'trial'].includes(plan);
+    const createUrl = isSpecialPlan
       ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
       : `${INSTAGRAM_API_URL}/adicionar-usuario`;
 
-    // No manage-user-access, 'annual' usa o payload genérico
-    const payload = isSpecialPlan
-      ? { username, password, plano: plan, dias: 365, igUsers: "" }
+    const payload: Record<string, unknown> = isSpecialPlan
+      ? {
+          username,
+          password,
+          plano: cfg.plano,
+          dias: cfg.dias,
+          blackList: false,
+          acessFull: false,
+          maxAccounts: cfg.maxAccounts,
+          igUsers: "",
+        }
       : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
 
     log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
@@ -199,7 +218,25 @@ async function sendAccessEmail(
 
     const memberAreaUrl = "https://maisresultadosonline.com.br";
     const whatsappGroupLink = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
-    const planLabel = planType === "lifetime" ? "Vitalício" : planType === "trial" ? "Teste 30 Dias" : planType === "monthly" ? "Mensal (30 dias)" : planType === "solo" ? "Solo" : planType === "pro" ? "Pro" : planType === "agencia" ? "Agência" : "Anual";
+    const planLabel =
+      planType === "solo" ? "Anual Solo (1 conta)" :
+      planType === "pro" ? "Anual Pro (4 contas)" :
+      planType === "agencia" ? "Agência Vitalício (12 contas)" :
+      planType === "trial" ? "Teste 1 Dia (4 contas)" :
+      planType === "lifetime" ? "Vitalício" :
+      planType === "monthly" ? "Mensal (30 dias)" :
+      "Anual";
+    const planBanner =
+      planType === "trial" ? "⏱️ Plano Teste - 1 dia de acesso para 4 contas. Aproveite!" :
+      planType === "solo" ? "🎁 Plano Anual Solo - 365 dias · 1 conta de Instagram" :
+      planType === "pro" ? "🚀 Plano Anual Pro - 365 dias · até 4 contas de Instagram" :
+      planType === "agencia" ? "♾️ Agência Vitalício - Acesso vitalício · até 12 contas de Instagram" :
+      planType === "lifetime" ? "♾️ Acesso Vitalício - Sem data de expiração!" :
+      planType === "monthly" ? "📅 Plano Mensal - 30 dias de acesso" :
+      "🎁 Plano Anual - 365 dias de acesso";
+    const bannerBg = (planType === "agencia" || planType === "lifetime") ? "#d4edda" : (planType === "trial" || planType === "monthly") ? "#d1ecf1" : "#fff3cd";
+    const bannerBd = (planType === "agencia" || planType === "lifetime") ? "#28a745" : (planType === "trial" || planType === "monthly") ? "#17a2b8" : "#ffc107";
+    const bannerFg = (planType === "agencia" || planType === "lifetime") ? "#155724" : (planType === "trial" || planType === "monthly") ? "#0c5460" : "#856404";
 
     const htmlContent = `<!DOCTYPE html>
 <html>
@@ -244,9 +281,9 @@ async function sendAccessEmail(
 
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;">
 <tr>
-        <td style="background:${planType === "lifetime" ? "#d4edda" : (planType === "trial" || planType === "monthly") ? "#d1ecf1" : "#fff3cd"};border:1px solid ${planType === "lifetime" ? "#28a745" : (planType === "trial" || planType === "monthly") ? "#17a2b8" : "#ffc107"};border-radius:8px;padding:15px;text-align:center;">
-          <span style="color:${planType === "lifetime" ? "#155724" : (planType === "trial" || planType === "monthly") ? "#0c5460" : "#856404"};font-weight:bold;">
-          ${planType === "lifetime" ? "♾️ Acesso Vitalício - Sem data de expiração!" : planType === "trial" ? "🚀 Plano Teste - 30 dias de acesso (sem recorrência)" : planType === "monthly" ? "📅 Plano Mensal - 30 dias de acesso" : "🎁 Plano Anual - 365 dias de acesso"}
+        <td style="background:${bannerBg};border:1px solid ${bannerBd};border-radius:8px;padding:15px;text-align:center;">
+          <span style="color:${bannerFg};font-weight:bold;">
+          ${planBanner}
           </span>
 </td>
 </tr>
@@ -597,7 +634,14 @@ serve(async (req) => {
     }
 
     // Calcular dias de acesso baseado no plano
-    const daysAccess = order.plan_type === "trial" ? 1 : order.plan_type === "monthly" ? 30 : 365;
+    const daysAccess =
+      order.plan_type === "trial" ? 1 :
+      order.plan_type === "monthly" ? 30 :
+      order.plan_type === "solo" ? 365 :
+      order.plan_type === "pro" ? 365 :
+      order.plan_type === "agencia" ? 9999 :
+      order.plan_type === "lifetime" ? 9999 :
+      365;
 
     // Verificar se usuário já existe antes de criar
     const userExists = await checkUserExists(order.username);
