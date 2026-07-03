@@ -281,9 +281,9 @@ async function sendAccessEmail(
 
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;">
 <tr>
-        <td style="background:${planType === "lifetime" ? "#d4edda" : (planType === "trial" || planType === "monthly") ? "#d1ecf1" : "#fff3cd"};border:1px solid ${planType === "lifetime" ? "#28a745" : (planType === "trial" || planType === "monthly") ? "#17a2b8" : "#ffc107"};border-radius:8px;padding:15px;text-align:center;">
-          <span style="color:${planType === "lifetime" ? "#155724" : (planType === "trial" || planType === "monthly") ? "#0c5460" : "#856404"};font-weight:bold;">
-          ${planType === "lifetime" ? "♾️ Acesso Vitalício - Sem data de expiração!" : planType === "trial" ? "🚀 Plano Teste - 30 dias de acesso (sem recorrência)" : planType === "monthly" ? "📅 Plano Mensal - 30 dias de acesso" : "🎁 Plano Anual - 365 dias de acesso"}
+        <td style="background:${bannerBg};border:1px solid ${bannerBd};border-radius:8px;padding:15px;text-align:center;">
+          <span style="color:${bannerFg};font-weight:bold;">
+          ${planBanner}
           </span>
 </td>
 </tr>
