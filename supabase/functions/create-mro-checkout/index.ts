@@ -123,7 +123,7 @@ serve(async (req) => {
       price: priceInCents,
     }];
 
-    const infinitepayPayload = {
+    const infinitepayPayload: Record<string, unknown> = {
       handle: INFINITEPAY_HANDLE,
       items: lineItems,
       itens: lineItems, // compatibilidade
@@ -132,6 +132,8 @@ serve(async (req) => {
       webhook_url: webhookUrl,
       customer: {
         email: customerEmailForPayment,
+        ...(cleanName ? { name: cleanName } : {}),
+        ...(cleanPhone ? { phone_number: cleanPhone, phone: cleanPhone } : {}),
       },
     };
 
