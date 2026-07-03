@@ -193,7 +193,8 @@ const PagamentoMRO = () => {
 
   const plan = PLANS[selectedPlan];
   // Teste primeiro, depois Pro (mais vendido), Solo e Vitalício
-  const planKeys: PlanKey[] = ["trial", "pro", "solo", "lifetime"];
+  // Ordem: Teste → Solo → Pro → Agência Vitalício
+  const planKeys: PlanKey[] = ["trial", "solo", "pro", "lifetime"];
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-amber-300/60">
