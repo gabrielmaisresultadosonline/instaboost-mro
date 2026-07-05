@@ -215,15 +215,6 @@ const PagamentoMRO = () => {
         </div>
       </header>
 
-      {/* Faixa sem juros pulsante */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-white py-2.5 text-center font-black text-sm md:text-base shadow-lg shadow-emerald-500/20">
-        <span className="relative z-10 inline-flex items-center gap-2">
-          <Sparkles className="w-4 h-4 animate-pulse" />
-          PARCELAS SEM JUROS · Em até 12x no cartão
-          <Sparkles className="w-4 h-4 animate-pulse" />
-        </span>
-        <div className="absolute inset-0 bg-white/10 animate-pulse" />
-      </div>
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-14 animate-fade-in">
         {/* Stepper */}
