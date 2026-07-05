@@ -37,7 +37,7 @@ const PLANS: Record<PlanKey, {
   solo: {
     name: "Anual Solo",
     price: 247.0,
-    installment: "20",
+    installment: "25",
     accounts: 1,
     planType: "solo",
     durationLabel: "1 ano de acesso",
@@ -46,7 +46,7 @@ const PLANS: Record<PlanKey, {
   pro: {
     name: "Anual Pro",
     price: 397.0,
-    installment: "33",
+    installment: "40",
     accounts: 4,
     planType: "pro",
     durationLabel: "1 ano de acesso",
@@ -57,7 +57,7 @@ const PLANS: Record<PlanKey, {
   lifetime: {
     name: "Agência Vitalício",
     price: 1197.0,
-    installment: "99",
+    installment: "122,83",
     accounts: 12,
     planType: "lifetime",
     durationLabel: "Pagamento único · Vitalício",
@@ -215,15 +215,6 @@ const PagamentoMRO = () => {
         </div>
       </header>
 
-      {/* Faixa sem juros pulsante */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-white py-2.5 text-center font-black text-sm md:text-base shadow-lg shadow-emerald-500/20">
-        <span className="relative z-10 inline-flex items-center gap-2">
-          <Sparkles className="w-4 h-4 animate-pulse" />
-          PARCELAS SEM JUROS · Em até 12x no cartão
-          <Sparkles className="w-4 h-4 animate-pulse" />
-        </span>
-        <div className="absolute inset-0 bg-white/10 animate-pulse" />
-      </div>
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-14 animate-fade-in">
         {/* Stepper */}
