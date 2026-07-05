@@ -244,8 +244,7 @@ const PagamentoMRO = () => {
                 </span>
               </h1>
               <p className="text-zinc-600 text-base md:text-lg max-w-2xl mx-auto">
-                Comece pelo <strong className="text-emerald-600">Teste 1 Dia</strong> ou vá direto para o plano que faz mais sentido pra você — tudo com{" "}
-                <strong className="text-emerald-600">parcelamento sem juros</strong>.
+                Comece pelo <strong className="text-emerald-600">Teste 1 Dia</strong> ou vá direto para o plano que faz mais sentido pra você.
               </p>
             </div>
 
@@ -307,7 +306,7 @@ const PagamentoMRO = () => {
                       </span>
                     </div>
                     <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mb-4 border border-emerald-200">
-                      12x de R$ {p.installment} sem juros
+                      12x de R$ {p.installment}
                     </div>
 
                     <div className="space-y-2 text-sm text-zinc-700 border-t border-zinc-100 pt-4">
@@ -461,7 +460,7 @@ const PagamentoMRO = () => {
                       {formatBRL(plan.price)}
                     </div>
                     <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md mt-2 border border-emerald-200">
-                      12x de R$ {plan.installment} SEM JUROS
+                      12x de R$ {plan.installment}
                     </div>
                     <div className="text-xs text-zinc-600 mt-3 font-medium">
                       {plan.accounts} {plan.accounts === 1 ? "conta" : "contas"} · {plan.durationLabel}
