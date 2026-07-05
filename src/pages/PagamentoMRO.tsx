@@ -244,8 +244,7 @@ const PagamentoMRO = () => {
                 </span>
               </h1>
               <p className="text-zinc-600 text-base md:text-lg max-w-2xl mx-auto">
-                Comece pelo <strong className="text-emerald-600">Teste 1 Dia</strong> ou vá direto para o plano que faz mais sentido pra você — tudo com{" "}
-                <strong className="text-emerald-600">parcelamento sem juros</strong>.
+                Comece pelo <strong className="text-emerald-600">Teste 1 Dia</strong> ou vá direto para o plano que faz mais sentido pra você.
               </p>
             </div>
 
