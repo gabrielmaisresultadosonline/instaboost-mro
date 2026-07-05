@@ -306,7 +306,7 @@ const PagamentoMRO = () => {
                       </span>
                     </div>
                     <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mb-4 border border-emerald-200">
-                      12x de R$ {p.installment} sem juros
+                      12x de R$ {p.installment}
                     </div>
 
                     <div className="space-y-2 text-sm text-zinc-700 border-t border-zinc-100 pt-4">
