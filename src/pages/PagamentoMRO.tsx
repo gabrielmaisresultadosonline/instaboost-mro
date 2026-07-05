@@ -37,7 +37,7 @@ const PLANS: Record<PlanKey, {
   solo: {
     name: "Anual Solo",
     price: 247.0,
-    installment: "20",
+    installment: "25",
     accounts: 1,
     planType: "solo",
     durationLabel: "1 ano de acesso",
@@ -46,7 +46,7 @@ const PLANS: Record<PlanKey, {
   pro: {
     name: "Anual Pro",
     price: 397.0,
-    installment: "33",
+    installment: "40",
     accounts: 4,
     planType: "pro",
     durationLabel: "1 ano de acesso",
@@ -57,7 +57,7 @@ const PLANS: Record<PlanKey, {
   lifetime: {
     name: "Agência Vitalício",
     price: 1197.0,
-    installment: "99",
+    installment: "122,83",
     accounts: 12,
     planType: "lifetime",
     durationLabel: "Pagamento único · Vitalício",
