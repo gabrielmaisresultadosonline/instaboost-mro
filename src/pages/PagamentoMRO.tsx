@@ -460,7 +460,7 @@ const PagamentoMRO = () => {
                       {formatBRL(plan.price)}
                     </div>
                     <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md mt-2 border border-emerald-200">
-                      12x de R$ {plan.installment} SEM JUROS
+                      12x de R$ {plan.installment}
                     </div>
                     <div className="text-xs text-zinc-600 mt-3 font-medium">
                       {plan.accounts} {plan.accounts === 1 ? "conta" : "contas"} · {plan.durationLabel}
