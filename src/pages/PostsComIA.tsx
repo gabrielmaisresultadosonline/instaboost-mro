@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import PostsComIAGallery from "@/components/PostsComIAGallery";
+import TrackedVideo from "@/components/TrackedVideo";
 
 const BASE_PRICE = 97;
 const BUMP_PRICE = 10;
@@ -67,9 +68,42 @@ export default function PostsComIA() {
   const [orderbump, setOrderbump] = useState(false);
   const [loading, setLoading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [paidState, setPaidState] = useState<null | { name?: string }>(null);
+  const [paidState, setPaidState] = useState<null | { name?: string; amount?: number }>(null);
+  const [settings, setSettings] = useState<{ hero_video_url?: string; hero_video_poster?: string; fb_pixel_id?: string }>({});
 
+  // load settings + track visit + inject FB pixel
   useEffect(() => {
+    let sid = sessionStorage.getItem("pcia_sid");
+    if (!sid) {
+      sid = crypto.randomUUID();
+      sessionStorage.setItem("pcia_sid", sid);
+    }
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("postscomia-admin", { body: { action: "get_settings" } });
+        const s = data?.settings || {};
+        setSettings(s);
+        if (s.fb_pixel_id && !(window as any).fbq) {
+          // Meta Pixel base code
+          (function (f: any, b: any, e: any, v: any) {
+            if (f.fbq) return;
+            const n: any = (f.fbq = function () {
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            });
+            if (!f._fbq) f._fbq = n;
+            n.push = n; n.loaded = true; n.version = "2.0"; n.queue = [];
+            const t = b.createElement(e); t.async = true; t.src = v;
+            const s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+          })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+          (window as any).fbq("init", s.fb_pixel_id);
+          (window as any).fbq("track", "PageView");
+        }
+        await supabase.functions.invoke("postscomia-admin", {
+          body: { action: "track", event_type: "page_visit", session_id: sid },
+        });
+      } catch {}
+    })();
+
     const params = new URLSearchParams(window.location.search);
     if (params.get("paid") === "1") {
       const nsu = params.get("nsu") || "";
@@ -79,11 +113,11 @@ export default function PostsComIA() {
             body: { action: "check_paid", nsu },
           });
           if (data?.paid) {
-            setPaidState({ name: data.order?.name });
-            // ensure credentials are generated + emailed
-            await supabase.functions.invoke("postscomia-admin", {
-              body: { action: "grant_access", nsu },
-            });
+            setPaidState({ name: data.order?.name, amount: data.order?.amount });
+            await supabase.functions.invoke("postscomia-admin", { body: { action: "grant_access", nsu } });
+            // Fire FB Pixel Purchase
+            const fbq = (window as any).fbq;
+            if (fbq) fbq("track", "Purchase", { value: Number(data.order?.amount || 97), currency: "BRL", content_name: "Posts com I.A" });
           } else setPaidState({});
         } catch {
           setPaidState({});
@@ -91,6 +125,7 @@ export default function PostsComIA() {
       })();
     }
   }, []);
+
 
 
   const total = BASE_PRICE + (orderbump ? BUMP_PRICE : 0);
@@ -199,13 +234,22 @@ export default function PostsComIA() {
           <div className="relative max-w-3xl mx-auto group">
             <div className="absolute -inset-1 bg-gradient-to-r from-[#eab308] via-transparent to-[#eab308]/40 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
             <div className="relative aspect-video rounded-xl bg-[#111] border border-white/10 overflow-hidden">
-              <iframe
-                className="absolute inset-0 w-full h-full"
-                src={`https://www.youtube.com/embed/${YT_ID}?rel=0`}
-                title="Posts com I.A"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {settings.hero_video_url ? (
+                <TrackedVideo
+                  src={settings.hero_video_url}
+                  poster={settings.hero_video_poster || undefined}
+                  videoId="hero"
+                  videoTitle="Vídeo Principal"
+                />
+              ) : (
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/${YT_ID}?rel=0`}
+                  title="Posts com I.A"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
             </div>
             <div className="mt-3 flex justify-between text-[10px] text-white/40 font-mono tracking-tighter px-1">
               <span>SYSTEM_ID: {YT_ID}</span>

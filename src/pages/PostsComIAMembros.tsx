@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import TrackedVideo from "@/components/TrackedVideo";
 
 const STORAGE_KEY = "postscomia_member";
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
@@ -244,7 +245,7 @@ export default function PostsComIAMembros() {
                     allowFullScreen
                   />
                 ) : (
-                  <video src={selected.video_url} controls autoPlay className="w-full h-full" />
+                  <TrackedVideo src={selected.video_url} videoId={selected.id} videoTitle={selected.title} className="w-full h-full bg-black object-contain" />
                 )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[#71717a]">

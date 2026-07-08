@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, RefreshCw, CheckCircle2, Trash2, DollarSign, Users, Clock, TrendingUp, Mail, Video, Plus, Pencil, X } from "lucide-react";
+import { Loader2, LogOut, RefreshCw, CheckCircle2, Trash2, DollarSign, Users, Clock, TrendingUp, Mail, Video, Plus, Pencil, X, UploadCloud, BarChart3, Settings, UserPlus, Eye } from "lucide-react";
 
 
 const STORAGE_KEY = "postscomia_admin_auth";
@@ -38,9 +38,13 @@ export default function PostsComIAAdmin() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"all" | "paid" | "pending">("all");
-  const [section, setSection] = useState<"orders" | "modules">("orders");
+  const [section, setSection] = useState<"orders" | "modules" | "settings" | "analytics">("orders");
   const [modules, setModules] = useState<any[]>([]);
   const [editingModule, setEditingModule] = useState<any | null>(null);
+  const [settings, setSettings] = useState<any>({});
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [showManual, setShowManual] = useState(false);
 
 
   useEffect(() => {
@@ -61,17 +65,50 @@ export default function PostsComIAAdmin() {
     if (!creds) return;
     setLoading(true);
     try {
-      const [ordersR, statsR, modR] = await Promise.all([
+      const [ordersR, statsR, modR, setR] = await Promise.all([
         supabase.functions.invoke("postscomia-admin", { body: { action: "list_orders", ...creds } }),
         supabase.functions.invoke("postscomia-admin", { body: { action: "stats", ...creds } }),
         supabase.functions.invoke("postscomia-admin", { body: { action: "list_modules", ...creds } }),
+        supabase.functions.invoke("postscomia-admin", { body: { action: "get_settings" } }),
       ]);
       setOrders(ordersR.data?.orders || []);
       setStats(statsR.data || null);
       setModules(modR.data?.modules || []);
+      setSettings(setR.data?.settings || {});
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadAnalytics(days = analyticsDays) {
+    if (!creds) return;
+    const { data } = await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "analytics", days, ...creds },
+    });
+    setAnalytics(data);
+  }
+
+  async function saveSettings(next: any) {
+    if (!creds) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "save_settings", ...next, ...creds },
+    });
+    setSettings(next);
+    alert("Configurações salvas!");
+  }
+
+  async function manualGrant(nm: string, em: string) {
+    if (!creds) return;
+    const { data, error } = await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "manual_grant", name: nm, email: em, ...creds },
+    });
+    if (error || !data?.success) {
+      alert(data?.error || "Erro ao liberar acesso");
+      return;
+    }
+    alert("Acesso liberado e e-mail enviado!");
+    setShowManual(false);
+    refresh();
   }
 
   async function resendCredentials(id: string) {
@@ -222,23 +259,26 @@ export default function PostsComIAAdmin() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Section switcher */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setSection("orders")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold ${
-              section === "orders" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
-            }`}
-          >
-            Pedidos
-          </button>
-          <button
-            onClick={() => setSection("modules")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
-              section === "modules" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
-            }`}
-          >
-            <Video className="w-4 h-4" /> Módulos ({modules.length})
-          </button>
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {([
+            { k: "orders", label: "Pedidos", icon: <Users className="w-4 h-4" /> },
+            { k: "modules", label: `Módulos (${modules.length})`, icon: <Video className="w-4 h-4" /> },
+            { k: "settings", label: "Vídeo Principal + Pixel", icon: <Settings className="w-4 h-4" /> },
+            { k: "analytics", label: "Analytics", icon: <BarChart3 className="w-4 h-4" /> },
+          ] as const).map((s) => (
+            <button
+              key={s.k}
+              onClick={() => {
+                setSection(s.k);
+                if (s.k === "analytics") loadAnalytics();
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
+                section === s.k ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+              }`}
+            >
+              {s.icon} {s.label}
+            </button>
+          ))}
         </div>
 
         {section === "modules" ? (
@@ -247,6 +287,16 @@ export default function PostsComIAAdmin() {
             onNew={() => setEditingModule({ title: "", description: "", cover_url: "", video_url: "", order_index: modules.length, is_active: true })}
             onEdit={(m) => setEditingModule(m)}
             onDelete={deleteModule}
+            creds={creds!}
+          />
+        ) : section === "settings" ? (
+          <SettingsPanel settings={settings} onSave={saveSettings} creds={creds!} />
+        ) : section === "analytics" ? (
+          <AnalyticsPanel
+            data={analytics}
+            days={analyticsDays}
+            onDays={(d) => { setAnalyticsDays(d); loadAnalytics(d); }}
+            onRefresh={() => loadAnalytics()}
           />
         ) : (
         <>
@@ -260,6 +310,15 @@ export default function PostsComIAAdmin() {
             value={`R$${(stats?.revenue ?? 0).toFixed(2)}`}
             color="text-yellow-400"
           />
+        </div>
+
+        <div className="mb-4">
+          <button
+            onClick={() => setShowManual(true)}
+            className="px-4 py-2 rounded-lg bg-yellow-400 text-black font-black text-sm flex items-center gap-2 hover:bg-yellow-300"
+          >
+            <UserPlus className="w-4 h-4" /> Liberar acesso manual
+          </button>
         </div>
 
         {stats?.bumpCount ? (
@@ -384,7 +443,11 @@ export default function PostsComIAAdmin() {
           module={editingModule}
           onClose={() => setEditingModule(null)}
           onSave={saveModule}
+          creds={creds!}
         />
+      )}
+      {showManual && (
+        <ManualGrantModal onClose={() => setShowManual(false)} onSave={manualGrant} />
       )}
     </div>
   );
@@ -436,11 +499,13 @@ function ModulesPanel({
   onNew,
   onEdit,
   onDelete,
+  creds,
 }: {
   modules: any[];
   onNew: () => void;
   onEdit: (m: any) => void;
   onDelete: (id: string) => void;
+  creds: { email: string; password: string };
 }) {
   return (
     <div>
@@ -506,15 +571,17 @@ function ModuleEditor({
   module: m,
   onClose,
   onSave,
+  creds,
 }: {
   module: any;
   onClose: () => void;
   onSave: (m: any) => void;
+  creds: { email: string; password: string };
 }) {
   const [form, setForm] = useState(m);
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-lg bg-neutral-950 border border-yellow-400/30 rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-lg bg-neutral-950 border border-yellow-400/30 rounded-2xl p-6 my-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-black">{m.id ? "Editar módulo" : "Novo módulo"}</h3>
           <button onClick={onClose} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
@@ -526,11 +593,24 @@ function ModuleEditor({
           <Field label="Descrição">
             <textarea value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm" />
           </Field>
-          <Field label="URL da capa (imagem)">
-            <input value={form.cover_url || ""} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm font-mono" placeholder="https://..." />
+          <Field label="Capa do vídeo (imagem)">
+            <UploadField
+              kind="cover"
+              accept="image/*"
+              value={form.cover_url || ""}
+              onChange={(url) => setForm({ ...form, cover_url: url })}
+              creds={creds}
+            />
           </Field>
-          <Field label="URL do vídeo (YouTube ou MP4)">
-            <input value={form.video_url || ""} onChange={(e) => setForm({ ...form, video_url: e.target.value })} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm font-mono" placeholder="https://youtube.com/watch?v=..." />
+          <Field label="Vídeo (MP4 recomendado - H.264)">
+            <UploadField
+              kind="video"
+              accept="video/mp4,video/webm,video/quicktime"
+              value={form.video_url || ""}
+              onChange={(url) => setForm({ ...form, video_url: url })}
+              creds={creds}
+            />
+            <p className="text-[10px] text-neutral-500 mt-1">Ou cole uma URL do YouTube. Recomendado MP4 H.264 (compatível com todos os aparelhos).</p>
           </Field>
           <div className="flex items-center gap-3">
             <Field label="Ordem">
@@ -550,6 +630,241 @@ function ModuleEditor({
     </div>
   );
 }
+
+function UploadField({
+  kind,
+  accept,
+  value,
+  onChange,
+  creds,
+}: {
+  kind: "video" | "cover";
+  accept: string;
+  value: string;
+  onChange: (url: string) => void;
+  creds: { email: string; password: string };
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    setProgress(0);
+    try {
+      const { data, error } = await supabase.functions.invoke("postscomia-admin", {
+        body: { action: "sign_upload", filename: file.name, kind, ...creds },
+      });
+      if (error || !data?.token) throw new Error(data?.error || "Erro ao autorizar upload");
+      const { error: upErr } = await supabase.storage
+        .from("assets")
+        .uploadToSignedUrl(data.path, data.token, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      setProgress(100);
+      onChange(data.public_url);
+    } catch (e: any) {
+      alert(e.message || "Falha no upload");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 bg-black border border-neutral-800 rounded-lg px-3 py-2 text-xs font-mono"
+          placeholder="URL (upload ou cole aqui)"
+        />
+        <label className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer ${uploading ? "bg-neutral-800 text-neutral-500" : "bg-yellow-400 text-black hover:bg-yellow-300"}`}>
+          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+          {uploading ? `${progress}%` : "Upload"}
+          <input
+            type="file"
+            accept={accept}
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </div>
+      {value && kind === "cover" && <img src={value} alt="preview" className="max-h-32 rounded border border-neutral-800" />}
+      {value && kind === "video" && !value.includes("youtube") && !value.includes("youtu.be") && (
+        <video src={value} controls className="max-h-40 w-full rounded border border-neutral-800 bg-black" />
+      )}
+    </div>
+  );
+}
+
+function SettingsPanel({
+  settings,
+  onSave,
+  creds,
+}: {
+  settings: any;
+  onSave: (s: any) => void;
+  creds: { email: string; password: string };
+}) {
+  const [form, setForm] = useState<any>(settings || {});
+  useEffect(() => { setForm(settings || {}); }, [settings]);
+  return (
+    <div className="max-w-3xl">
+      <div className="mb-6">
+        <h2 className="text-lg font-black mb-1">Vídeo Principal da Landing</h2>
+        <p className="text-xs text-neutral-500">O vídeo do topo da página /postscomia. Faça upload de um MP4 (H.264) para funcionar em todos os aparelhos.</p>
+      </div>
+
+      <div className="space-y-5 rounded-2xl border border-neutral-900 bg-neutral-950 p-5">
+        <Field label="Vídeo principal (MP4)">
+          <UploadField kind="video" accept="video/mp4,video/webm" value={form.hero_video_url || ""} onChange={(url) => setForm({ ...form, hero_video_url: url })} creds={creds} />
+        </Field>
+        <Field label="Capa (thumbnail) do vídeo principal">
+          <UploadField kind="cover" accept="image/*" value={form.hero_video_poster || ""} onChange={(url) => setForm({ ...form, hero_video_poster: url })} creds={creds} />
+        </Field>
+        <div className="pt-4 border-t border-neutral-900">
+          <Field label="Facebook Pixel ID (conversão de compra)">
+            <input
+              value={form.fb_pixel_id || ""}
+              onChange={(e) => setForm({ ...form, fb_pixel_id: e.target.value })}
+              className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm font-mono"
+              placeholder="123456789012345"
+            />
+            <p className="text-[10px] text-neutral-500 mt-1">Quando o pagamento for aprovado, o evento <b>Purchase</b> é disparado automaticamente.</p>
+          </Field>
+        </div>
+        <button
+          onClick={() => onSave(form)}
+          className="w-full px-4 py-3 rounded-lg bg-yellow-400 text-black font-black text-sm hover:bg-yellow-300"
+        >
+          Salvar configurações
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsPanel({
+  data,
+  days,
+  onDays,
+  onRefresh,
+}: {
+  data: any;
+  days: number;
+  onDays: (d: number) => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <h2 className="text-lg font-black">Analytics — últimos {days} dias</h2>
+        <div className="flex gap-2 items-center">
+          {[7, 30, 90].map((d) => (
+            <button key={d} onClick={() => onDays(d)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${days === d ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"}`}>{d}d</button>
+          ))}
+          <button onClick={onRefresh} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-900 text-neutral-300 border border-neutral-800 flex items-center gap-1"><RefreshCw className="w-3 h-3" /></button>
+        </div>
+      </div>
+
+      {!data ? (
+        <div className="p-10 text-center text-neutral-500 text-sm"><Loader2 className="w-6 h-6 animate-spin inline" /></div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            <StatCard icon={<Eye className="w-4 h-4" />} label="Visitas totais" value={data.page_visits ?? 0} color="text-yellow-400" />
+            <StatCard icon={<Users className="w-4 h-4" />} label="Visitantes únicos" value={data.unique_visitors ?? 0} />
+            <StatCard icon={<Video className="w-4 h-4" />} label="Vídeos rastreados" value={(data.videos || []).length} />
+          </div>
+
+          <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-3">Vídeos assistidos</h3>
+          {(data.videos || []).length === 0 ? (
+            <div className="p-8 rounded-xl border border-dashed border-neutral-800 text-center text-neutral-500 text-sm">
+              Nenhum vídeo foi assistido ainda no período.
+            </div>
+          ) : (
+            <div className="rounded-xl border border-neutral-900 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-neutral-950 text-[10px] uppercase tracking-widest text-neutral-500">
+                  <tr>
+                    <th className="text-left p-3">Vídeo</th>
+                    <th className="p-3">Play</th>
+                    <th className="p-3">25%</th>
+                    <th className="p-3">50%</th>
+                    <th className="p-3">75%</th>
+                    <th className="p-3">100%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.videos.map((v: any) => (
+                    <tr key={v.video_id} className="border-t border-neutral-900">
+                      <td className="p-3">
+                        <div className="font-bold text-sm">{v.video_title}</div>
+                        <div className="text-[10px] text-neutral-500 font-mono">{v.video_id}</div>
+                      </td>
+                      <td className="p-3 text-center font-bold text-yellow-400">{v.starts}</td>
+                      <td className="p-3 text-center">{v.p25}</td>
+                      <td className="p-3 text-center">{v.p50}</td>
+                      <td className="p-3 text-center">{v.p75}</td>
+                      <td className="p-3 text-center font-bold text-green-400">{v.p100}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ManualGrantModal({
+  onClose,
+  onSave,
+}: {
+  onClose: () => void;
+  onSave: (name: string, email: string) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-neutral-950 border border-yellow-400/30 rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-black flex items-center gap-2"><UserPlus className="w-5 h-5 text-yellow-400" /> Liberar acesso manual</h3>
+          <button onClick={onClose} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
+        </div>
+        <p className="text-xs text-neutral-500 mb-4">Cria o acesso, marca o pedido como pago e envia o e-mail com senha automaticamente.</p>
+        <div className="space-y-3">
+          <Field label="Nome">
+            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm" placeholder="Nome do cliente" />
+          </Field>
+          <Field label="E-mail">
+            <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm" placeholder="email@cliente.com" type="email" />
+          </Field>
+        </div>
+        <div className="flex gap-2 mt-6">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-neutral-900 text-sm">Cancelar</button>
+          <button
+            onClick={() => {
+              if (!email.includes("@")) { alert("E-mail inválido"); return; }
+              onSave(name || "Cliente", email.trim().toLowerCase());
+            }}
+            className="flex-1 px-4 py-2 rounded-lg bg-yellow-400 text-black font-black text-sm"
+          >
+            Liberar + Enviar e-mail
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

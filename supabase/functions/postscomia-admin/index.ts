@@ -187,6 +187,32 @@ Deno.serve(async (req) => {
       return json({ modules: data || [] });
     }
 
+    // Public: get settings (hero video + pixel)
+    if (action === "get_settings") {
+      const { data } = await supabase
+        .from("postscomia_settings")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return json({ settings: data || {} });
+    }
+
+    // Public: log analytics event
+    if (action === "track") {
+      const event_type = (body.event_type || "").toString();
+      const allowed = ["page_visit","video_start","video_25","video_50","video_75","video_100"];
+      if (!allowed.includes(event_type)) return json({ success: false });
+      await supabase.from("postscomia_analytics").insert({
+        event_type,
+        video_id: body.video_id || null,
+        video_title: body.video_title || null,
+        session_id: body.session_id || null,
+        user_agent: (req.headers.get("user-agent") || "").slice(0, 300),
+      });
+      return json({ success: true });
+    }
+
     // Admin login
     if (action === "login") {
       const ok =
@@ -302,6 +328,106 @@ Deno.serve(async (req) => {
       await supabase.from("postscomia_modules").delete().eq("id", id);
       return json({ success: true });
     }
+
+    // Admin: save settings (hero video + pixel)
+    if (action === "save_settings") {
+      const patch: any = {
+        hero_video_url: body.hero_video_url ?? null,
+        hero_video_poster: body.hero_video_poster ?? null,
+        fb_pixel_id: body.fb_pixel_id ?? null,
+        updated_at: new Date().toISOString(),
+      };
+      const { data: existing } = await supabase
+        .from("postscomia_settings")
+        .select("id")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (existing?.id) {
+        await supabase.from("postscomia_settings").update(patch).eq("id", existing.id);
+      } else {
+        await supabase.from("postscomia_settings").insert(patch);
+      }
+      return json({ success: true });
+    }
+
+    // Admin: signed upload URL for videos/covers
+    if (action === "sign_upload") {
+      const filename = (body.filename || "").toString().replace(/[^a-zA-Z0-9._-]/g, "_");
+      const kind = (body.kind || "video").toString();
+      if (!filename) return json({ error: "filename obrigatório" }, 400);
+      const path = `postscomia/${kind}s/${Date.now()}-${filename}`;
+      const { data, error } = await supabase.storage
+        .from("assets")
+        .createSignedUploadUrl(path);
+      if (error) return json({ error: error.message }, 500);
+      const { data: pub } = supabase.storage.from("assets").getPublicUrl(path);
+      return json({ token: data.token, path: data.path, public_url: pub.publicUrl });
+    }
+
+    // Admin: manual grant access
+    if (action === "manual_grant") {
+      const email = (body.email || "").toString().trim().toLowerCase();
+      const name = (body.name || "Cliente").toString().trim();
+      if (!email || !email.includes("@")) return json({ error: "email inválido" }, 400);
+      const { data: existing } = await supabase
+        .from("postscomia_orders").select("*").eq("email", email)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      let orderId = existing?.id;
+      if (!orderId) {
+        const { data: inserted } = await supabase.from("postscomia_orders").insert({
+          name, email, amount: 97, orderbump: false,
+          nsu_order: `MANUAL-${Date.now()}`,
+          status: "paid", paid_at: new Date().toISOString(),
+        }).select("id").maybeSingle();
+        orderId = inserted?.id;
+      } else {
+        await supabase.from("postscomia_orders").update({
+          status: "paid",
+          paid_at: existing.paid_at || new Date().toISOString(),
+        }).eq("id", orderId);
+      }
+      if (!orderId) return json({ error: "Não foi possível criar acesso" }, 500);
+      await ensureAccess(supabase, orderId);
+      return json({ success: true });
+    }
+
+    // Admin: analytics
+    if (action === "analytics") {
+      const days = Math.max(1, Math.min(90, Number(body.days) || 30));
+      const since = new Date(Date.now() - days * 86400000).toISOString();
+      const { data: visits } = await supabase
+        .from("postscomia_analytics")
+        .select("event_type,video_id,video_title,session_id,created_at")
+        .gte("created_at", since).limit(20000);
+      const rows = visits || [];
+      const pageVisits = rows.filter((r: any) => r.event_type === "page_visit").length;
+      const uniqueVisitors = new Set(
+        rows.filter((r: any) => r.event_type === "page_visit").map((r: any) => r.session_id || "-")
+      ).size;
+      const videoMap: Record<string, any> = {};
+      for (const r of rows) {
+        if (!r.event_type.startsWith("video_")) continue;
+        const key = r.video_id || "unknown";
+        videoMap[key] = videoMap[key] || {
+          video_id: key, video_title: r.video_title || key,
+          starts: 0, p25: 0, p50: 0, p75: 0, p100: 0,
+        };
+        if (r.event_type === "video_start") videoMap[key].starts++;
+        else if (r.event_type === "video_25") videoMap[key].p25++;
+        else if (r.event_type === "video_50") videoMap[key].p50++;
+        else if (r.event_type === "video_75") videoMap[key].p75++;
+        else if (r.event_type === "video_100") videoMap[key].p100++;
+        if (r.video_title) videoMap[key].video_title = r.video_title;
+      }
+      return json({
+        days,
+        page_visits: pageVisits,
+        unique_visitors: uniqueVisitors,
+        videos: Object.values(videoMap),
+      });
+    }
+
 
     return json({ error: "Invalid action" }, 400);
   } catch (e) {

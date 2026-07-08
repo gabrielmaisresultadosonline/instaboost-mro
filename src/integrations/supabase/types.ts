@@ -3734,6 +3734,36 @@ export type Database = {
         }
         Relationships: []
       }
+      postscomia_analytics: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          session_id: string | null
+          user_agent: string | null
+          video_id: string | null
+          video_title: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          session_id?: string | null
+          user_agent?: string | null
+          video_id?: string | null
+          video_title?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          session_id?: string | null
+          user_agent?: string | null
+          video_id?: string | null
+          video_title?: string | null
+        }
+        Relationships: []
+      }
       postscomia_modules: {
         Row: {
           cover_url: string | null
@@ -3821,6 +3851,33 @@ export type Database = {
           status?: string
           updated_at?: string
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      postscomia_settings: {
+        Row: {
+          created_at: string
+          fb_pixel_id: string | null
+          hero_video_poster: string | null
+          hero_video_url: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fb_pixel_id?: string | null
+          hero_video_poster?: string | null
+          hero_video_url?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fb_pixel_id?: string | null
+          hero_video_poster?: string | null
+          hero_video_url?: string | null
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }
