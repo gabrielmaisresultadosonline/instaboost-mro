@@ -147,6 +147,15 @@ ACESSAR AULA GRATIS AGORA
 </a>
 </div>
 
+${groupLink ? `<div style="background:#e8f5e9;border-left:4px solid #25D366;padding:18px 20px;margin:20px 0;border-radius:8px;">
+<p style="margin:0 0 10px 0;font-size:15px;color:#333;"><strong>💬 Entre no nosso grupo exclusivo do WhatsApp</strong></p>
+<p style="margin:0 0 14px 0;font-size:14px;color:#555;">Receba avisos, materiais e novidades direto no seu WhatsApp.</p>
+<div style="text-align:center;">
+<a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:30px;font-size:15px;font-weight:bold;font-family:Arial,sans-serif;">ENTRAR NO GRUPO</a>
+</div>
+</div>` : ""}
+
+
 <p style="margin:20px 0 0 0;font-size:14px;color:#666;line-height:1.6;">Um abraço,<br/><strong>Gabriel — MRO</strong></p>
 
 </td>
