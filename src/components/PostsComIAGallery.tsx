@@ -11,22 +11,23 @@ import g10 from "@/assets/postscomia-gallery/g10.asset.json";
 import g11 from "@/assets/postscomia-gallery/g11.asset.json";
 import g12 from "@/assets/postscomia-gallery/g12.asset.json";
 import { Sparkles, Wand2, Palette, Camera, ArrowRight } from "lucide-react";
+import { assetUrl } from "@/lib/assetUrl";
 
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
 
 const images = [
-  { src: g1.url, prompt: "criativo profissional para energia solar" },
-  { src: g11.url, prompt: "logomarca premium açaí com coroa" },
-  { src: g2.url, prompt: "logo urbano academia moderna" },
-  { src: g3.url, prompt: "post economia conta de luz 30%" },
-  { src: g12.url, prompt: "foto de estúdio profissional sem sair de casa" },
-  { src: g4.url, prompt: "flyer aula experimental academia" },
-  { src: g5.url, prompt: "post viral instagram tecnologia" },
-  { src: g6.url, prompt: "anúncio energia solar cidade" },
-  { src: g7.url, prompt: "post lançamento versão premium" },
-  { src: g8.url, prompt: "criativo economize até 95% na luz" },
-  { src: g9.url, prompt: "post minimalista economia verde" },
-  { src: g10.url, prompt: "estética feminina fitness rosé" },
+  { src: assetUrl(g1.url), prompt: "criativo profissional para energia solar" },
+  { src: assetUrl(g11.url), prompt: "logomarca premium açaí com coroa" },
+  { src: assetUrl(g2.url), prompt: "logo urbano academia moderna" },
+  { src: assetUrl(g3.url), prompt: "post economia conta de luz 30%" },
+  { src: assetUrl(g12.url), prompt: "foto de estúdio profissional sem sair de casa" },
+  { src: assetUrl(g4.url), prompt: "flyer aula experimental academia" },
+  { src: assetUrl(g5.url), prompt: "post viral instagram tecnologia" },
+  { src: assetUrl(g6.url), prompt: "anúncio energia solar cidade" },
+  { src: assetUrl(g7.url), prompt: "post lançamento versão premium" },
+  { src: assetUrl(g8.url), prompt: "criativo economize até 95% na luz" },
+  { src: assetUrl(g9.url), prompt: "post minimalista economia verde" },
+  { src: assetUrl(g10.url), prompt: "estética feminina fitness rosé" },
 ];
 
 const row1 = [...images, ...images];
