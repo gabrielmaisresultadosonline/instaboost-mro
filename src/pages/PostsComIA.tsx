@@ -310,8 +310,21 @@ export default function PostsComIA() {
               </div>
             ))}
           </div>
+
+          <div className="mt-12 flex justify-center">
+            <button
+              onClick={scrollToCheckout}
+              className="group px-8 py-4 rounded-full bg-[#eab308] hover:bg-[#facc15] text-black font-black text-sm md:text-base uppercase tracking-wider shadow-[0_15px_40px_-10px_rgba(234,179,8,0.6)] hover:scale-[1.03] transition-all inline-flex items-center gap-2"
+              style={heading}
+            >
+              <Sparkles className="w-4 h-4" />
+              Começar agora por R${BASE_PRICE}
+              <span className="transition-transform group-hover:translate-x-1">→</span>
+            </button>
+          </div>
         </div>
       </section>
+
 
       {/* BONUSES */}
       <section className="py-16 md:py-20 px-6 bg-[#0a0a0a]">
