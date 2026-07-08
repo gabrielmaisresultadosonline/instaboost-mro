@@ -140,6 +140,19 @@ export default function PostsComIALogin() {
                   placeholder="••••••••"
                 />
               </div>
+
+              <label className="flex items-center gap-2 mb-4 cursor-pointer select-none text-xs text-[#a1a1aa] hover:text-white transition">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => {
+                    setRemember(e.target.checked);
+                    if (!e.target.checked) localStorage.removeItem(REMEMBER_KEY);
+                  }}
+                  className="w-4 h-4 accent-[#eab308] cursor-pointer"
+                />
+                Lembrar meu login neste dispositivo
+              </label>
             </>
           )}
 
