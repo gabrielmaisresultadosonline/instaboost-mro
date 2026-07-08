@@ -481,6 +481,9 @@ export default function PostsComIA() {
               <span className="text-[10px] text-[#a1a1aa] mt-2 uppercase tracking-widest">
                 {orderbump ? "com atualizações vitalícias" : "à vista"}
               </span>
+              <span className="mt-2 text-xs text-[#eab308] font-mono">
+                ou {INSTALLMENT_LABEL} no cartão
+              </span>
             </div>
 
             <form onSubmit={handleBuy} className="space-y-3 text-left">
