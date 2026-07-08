@@ -91,6 +91,9 @@ import PostsPromptsAdmin from "./pages/PostsPromptsAdmin";
 import PostsPromptsVend from "./pages/PostsPromptsVend";
 import PostsComIA from "./pages/PostsComIA";
 import PostsComIAAdmin from "./pages/PostsComIAAdmin";
+import PostsComIALogin from "./pages/PostsComIALogin";
+import PostsComIAMembros from "./pages/PostsComIAMembros";
+
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
@@ -365,6 +368,9 @@ const App = () => (
           <Route path="/postspromptsvend" element={<PostsPromptsVend />} />
           <Route path="/postscomia" element={<PostsComIA />} />
           <Route path="/postscomia/admin" element={<PostsComIAAdmin />} />
+          <Route path="/postscomia/login" element={<PostsComIALogin />} />
+          <Route path="/postscomia/membros" element={<PostsComIAMembros />} />
+
 
 
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />

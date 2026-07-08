@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, RefreshCw, CheckCircle2, Trash2, DollarSign, Users, Clock, TrendingUp } from "lucide-react";
+import { Loader2, LogOut, RefreshCw, CheckCircle2, Trash2, DollarSign, Users, Clock, TrendingUp, Mail, Video, Plus, Pencil, X } from "lucide-react";
+
 
 const STORAGE_KEY = "postscomia_admin_auth";
 
@@ -37,6 +38,10 @@ export default function PostsComIAAdmin() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"all" | "paid" | "pending">("all");
+  const [section, setSection] = useState<"orders" | "modules">("orders");
+  const [modules, setModules] = useState<any[]>([]);
+  const [editingModule, setEditingModule] = useState<any | null>(null);
+
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -56,16 +61,46 @@ export default function PostsComIAAdmin() {
     if (!creds) return;
     setLoading(true);
     try {
-      const [ordersR, statsR] = await Promise.all([
+      const [ordersR, statsR, modR] = await Promise.all([
         supabase.functions.invoke("postscomia-admin", { body: { action: "list_orders", ...creds } }),
         supabase.functions.invoke("postscomia-admin", { body: { action: "stats", ...creds } }),
+        supabase.functions.invoke("postscomia-admin", { body: { action: "list_modules", ...creds } }),
       ]);
       setOrders(ordersR.data?.orders || []);
       setStats(statsR.data || null);
+      setModules(modR.data?.modules || []);
     } finally {
       setLoading(false);
     }
   }
+
+  async function resendCredentials(id: string) {
+    if (!creds) return;
+    if (!confirm("Reenviar credenciais de acesso (nova senha) por e-mail?")) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "resend_credentials", id, ...creds },
+    });
+    alert("Credenciais enviadas!");
+  }
+
+  async function saveModule(m: any) {
+    if (!creds) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "save_module", module: m, ...creds },
+    });
+    setEditingModule(null);
+    refresh();
+  }
+
+  async function deleteModule(id: string) {
+    if (!creds) return;
+    if (!confirm("Excluir esse módulo?")) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "delete_module", id, ...creds },
+    });
+    refresh();
+  }
+
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -186,7 +221,35 @@ export default function PostsComIAAdmin() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Stats */}
+        {/* Section switcher */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setSection("orders")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold ${
+              section === "orders" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+            }`}
+          >
+            Pedidos
+          </button>
+          <button
+            onClick={() => setSection("modules")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
+              section === "modules" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+            }`}
+          >
+            <Video className="w-4 h-4" /> Módulos ({modules.length})
+          </button>
+        </div>
+
+        {section === "modules" ? (
+          <ModulesPanel
+            modules={modules}
+            onNew={() => setEditingModule({ title: "", description: "", cover_url: "", video_url: "", order_index: modules.length, is_active: true })}
+            onEdit={(m) => setEditingModule(m)}
+            onDelete={deleteModule}
+          />
+        ) : (
+        <>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard icon={<Users className="w-4 h-4" />} label="Total pedidos" value={stats?.total ?? 0} />
           <StatCard icon={<CheckCircle2 className="w-4 h-4" />} label="Pagos" value={stats?.paid ?? 0} color="text-green-400" />
@@ -205,6 +268,7 @@ export default function PostsComIAAdmin() {
             {stats.bumpCount} clientes compraram o Orderbump (Atualizações Vitalícias)
           </div>
         ) : null}
+
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4">
@@ -288,12 +352,22 @@ export default function PostsComIAAdmin() {
                           </button>
                         </>
                       )}
+                      {o.status === "paid" && (
+                        <button
+                          onClick={() => resendCredentials(o.id)}
+                          className="inline-flex items-center px-2 py-1 rounded bg-yellow-400/15 text-yellow-300 hover:bg-yellow-400/25 text-xs gap-1"
+                          title="Reenviar credenciais"
+                        >
+                          <Mail className="w-3 h-3" /> Enviar acesso
+                        </button>
+                      )}
                       <button
                         onClick={() => deleteOrder(o.id)}
                         className="inline-flex items-center px-2 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
+
                     </td>
                   </tr>
                 ))}
@@ -301,10 +375,21 @@ export default function PostsComIAAdmin() {
             </table>
           </div>
         </div>
+        </>
+        )}
       </div>
+
+      {editingModule && (
+        <ModuleEditor
+          module={editingModule}
+          onClose={() => setEditingModule(null)}
+          onSave={saveModule}
+        />
+      )}
     </div>
   );
 }
+
 
 function StatCard({
   icon,
@@ -343,5 +428,134 @@ function StatusBadge({ status }: { status: string }) {
     >
       {status.toUpperCase()}
     </span>
+  );
+}
+
+function ModulesPanel({
+  modules,
+  onNew,
+  onEdit,
+  onDelete,
+}: {
+  modules: any[];
+  onNew: () => void;
+  onEdit: (m: any) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-black">Módulos da Área de Membros</h2>
+        <button
+          onClick={onNew}
+          className="px-4 py-2 rounded-lg bg-yellow-400 text-black font-black text-sm flex items-center gap-2 hover:bg-yellow-300"
+        >
+          <Plus className="w-4 h-4" /> Novo módulo
+        </button>
+      </div>
+      {modules.length === 0 ? (
+        <div className="p-10 rounded-xl border border-dashed border-neutral-800 text-center text-neutral-500 text-sm">
+          Nenhum módulo cadastrado ainda.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {modules.map((m) => (
+            <div key={m.id} className="rounded-xl border border-neutral-900 bg-neutral-950 overflow-hidden">
+              <div className="aspect-video bg-neutral-900 relative">
+                {m.cover_url ? (
+                  <img src={m.cover_url} alt={m.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-neutral-700">
+                    <Video className="w-8 h-8" />
+                  </div>
+                )}
+                {!m.is_active && (
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-red-500/70 text-white text-[10px] font-bold">
+                    INATIVO
+                  </span>
+                )}
+              </div>
+              <div className="p-3">
+                <div className="text-xs text-neutral-500 font-mono mb-1">#{m.order_index}</div>
+                <h3 className="font-bold mb-1 truncate">{m.title}</h3>
+                <p className="text-xs text-neutral-500 line-clamp-2 mb-3 h-8">{m.description || "—"}</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onEdit(m)}
+                    className="flex-1 px-2 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-xs flex items-center justify-center gap-1"
+                  >
+                    <Pencil className="w-3 h-3" /> Editar
+                  </button>
+                  <button
+                    onClick={() => onDelete(m.id)}
+                    className="px-2 py-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModuleEditor({
+  module: m,
+  onClose,
+  onSave,
+}: {
+  module: any;
+  onClose: () => void;
+  onSave: (m: any) => void;
+}) {
+  const [form, setForm] = useState(m);
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-lg bg-neutral-950 border border-yellow-400/30 rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-black">{m.id ? "Editar módulo" : "Novo módulo"}</h3>
+          <button onClick={onClose} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="space-y-3">
+          <Field label="Título">
+            <input value={form.title || ""} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm" />
+          </Field>
+          <Field label="Descrição">
+            <textarea value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm" />
+          </Field>
+          <Field label="URL da capa (imagem)">
+            <input value={form.cover_url || ""} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm font-mono" placeholder="https://..." />
+          </Field>
+          <Field label="URL do vídeo (YouTube ou MP4)">
+            <input value={form.video_url || ""} onChange={(e) => setForm({ ...form, video_url: e.target.value })} className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm font-mono" placeholder="https://youtube.com/watch?v=..." />
+          </Field>
+          <div className="flex items-center gap-3">
+            <Field label="Ordem">
+              <input type="number" value={form.order_index ?? 0} onChange={(e) => setForm({ ...form, order_index: Number(e.target.value) })} className="w-24 bg-black border border-neutral-800 rounded-lg px-3 py-2 text-sm" />
+            </Field>
+            <label className="flex items-center gap-2 text-sm mt-6">
+              <input type="checkbox" checked={form.is_active ?? true} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
+              Ativo
+            </label>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-6">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-neutral-900 text-sm">Cancelar</button>
+          <button onClick={() => onSave(form)} className="flex-1 px-4 py-2 rounded-lg bg-yellow-400 text-black font-black text-sm">Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-1">{label}</label>
+      {children}
+    </div>
   );
 }

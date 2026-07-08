@@ -77,14 +77,20 @@ export default function PostsComIA() {
           const { data } = await supabase.functions.invoke("postscomia-admin", {
             body: { action: "check_paid", nsu },
           });
-          if (data?.paid) setPaidState({ name: data.order?.name });
-          else setPaidState({});
+          if (data?.paid) {
+            setPaidState({ name: data.order?.name });
+            // ensure credentials are generated + emailed
+            await supabase.functions.invoke("postscomia-admin", {
+              body: { action: "grant_access", nsu },
+            });
+          } else setPaidState({});
         } catch {
           setPaidState({});
         }
       })();
     }
   }, []);
+
 
   const total = BASE_PRICE + (orderbump ? BUMP_PRICE : 0);
 
@@ -119,7 +125,13 @@ export default function PostsComIA() {
           <p className="text-[#a1a1aa] mb-6">
             Obrigado{paidState.name ? `, ${paidState.name}` : ""}! Os acessos foram enviados para o seu e-mail.
           </p>
-          <p className="text-xs text-[#a1a1aa]/60 uppercase tracking-widest">Confira também SPAM / Promoções</p>
+          <p className="text-xs text-[#a1a1aa]/60 uppercase tracking-widest mb-6">Confira também SPAM / Promoções</p>
+          <a
+            href="/postscomia/login"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#eab308] hover:bg-[#fde047] text-black font-black tracking-wide text-sm shadow-[0_0_40px_rgba(234,179,8,0.3)]"
+          >
+            <Lock className="w-4 h-4" /> ACESSAR ÁREA DE MEMBROS
+          </a>
         </div>
       </div>
     );
@@ -127,8 +139,30 @@ export default function PostsComIA() {
 
   return (
     <div className="w-full bg-black text-[#f5f5f5] selection:bg-[#eab308] selection:text-black" style={body}>
+      {/* TOP NAV — Entrar */}
+      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-black/70 border-b border-white/10">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#eab308] flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-black" />
+            </div>
+            <span className="text-[11px] font-black tracking-[0.2em] uppercase text-[#eab308]" style={heading}>
+              Posts com I.A
+            </span>
+          </div>
+          <a
+            href="/postscomia/login"
+            className="px-4 py-2 rounded-lg border border-[#eab308]/40 bg-[#eab308]/5 hover:bg-[#eab308] hover:text-black text-[#eab308] text-xs font-black tracking-wide transition flex items-center gap-1.5"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            ENTRAR
+          </a>
+        </div>
+      </nav>
+
       {/* HERO */}
       <section className="relative pt-16 md:pt-20 pb-16 px-6 overflow-hidden">
+
         {/* Grid background */}
         <div
           className="absolute inset-0 opacity-[0.08] pointer-events-none"
