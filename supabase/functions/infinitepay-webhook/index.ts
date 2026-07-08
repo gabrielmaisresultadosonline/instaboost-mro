@@ -404,6 +404,25 @@ serve(async (req) => {
       }
     }
 
+    // POSTSCOMIA orders
+    if (isPostsComIAOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("POSTSCOMIA"))) {
+      log("Processing as POSTSCOMIA order", { order_nsu, email });
+      let pcOrder = null;
+      if (order_nsu) {
+        const r = await supabase.from("postscomia_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        pcOrder = r.data;
+      }
+      if (!pcOrder && email) {
+        const r = await supabase.from("postscomia_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        pcOrder = r.data;
+      }
+      if (pcOrder) {
+        await supabase.from("postscomia_orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", pcOrder.id);
+        await sendMetaPurchaseEvent(pcOrder.email, Number(pcOrder.amount) || 97, "Posts com IA", pcOrder.nsu_order, "https://maisresultadosonline.com.br/postscomia");
+        return new Response(JSON.stringify({ success: true, message: "POSTSCOMIA confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
     // Default payment orders
     let order = null;
     if (order_nsu) {
