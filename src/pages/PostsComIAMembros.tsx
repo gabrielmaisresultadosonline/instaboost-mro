@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid } from "lucide-react";
+import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid, Gift, Maximize2, X, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TrackedVideo from "@/components/TrackedVideo";
 
@@ -61,10 +61,27 @@ export default function PostsComIAMembros() {
 
   function openPostsPrompts() {
     if (member?.email) {
-      // Grant direct access — postsprompts checks localStorage
       localStorage.setItem("postsprompts_buyer_email", member.email);
     }
     window.open("/postsprompts", "_blank", "noopener,noreferrer");
+  }
+
+  const [bonusLoading, setBonusLoading] = useState(false);
+  async function openPromptsMROBonus() {
+    if (!member?.email || bonusLoading) return;
+    setBonusLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("postscomia-admin", {
+        body: { action: "bonus_prompts_provision", email: member.email },
+      });
+      if (error || !data?.success) throw new Error(data?.error || "Erro ao liberar bônus");
+      sessionStorage.setItem("prompts_mro_user", JSON.stringify(data.user));
+      navigate("/prompts/dashboard");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao liberar bônus");
+    } finally {
+      setBonusLoading(false);
+    }
   }
 
   if (!member) return null;
@@ -120,52 +137,93 @@ export default function PostsComIAMembros() {
           </p>
         </div>
 
-        {/* Quick Tools */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-          <button
-            onClick={openChatGPT}
-            className="group relative overflow-hidden text-left p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
-          >
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.06] blur-3xl rounded-full group-hover:opacity-[0.12] transition" />
-            <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-[#10a37f] flex items-center justify-center flex-shrink-0">
-                <Cpu className="w-7 h-7 text-white" />
+        {/* CONTAINER 1 — Bônus & Ferramentas */}
+        <section className="mb-14 p-5 md:p-7 rounded-3xl border border-[#eab308]/20 bg-gradient-to-br from-[#0b0b0b] to-[#050505]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#eab308]/15 border border-[#eab308]/30 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-[#eab308]" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Ferramenta Principal</div>
-                <div className="text-lg font-black" style={heading}>ChatGPT</div>
-                <div className="text-xs text-[#a1a1aa]">Abrir o ChatGPT em nova aba</div>
+              <div>
+                <div className="text-[10px] tracking-[0.25em] uppercase text-[#eab308] font-bold">Container 01</div>
+                <h2 className="text-xl md:text-2xl font-black" style={heading}>Bônus & Ferramentas</h2>
               </div>
-              <ExternalLink className="w-5 h-5 text-[#71717a] group-hover:text-[#eab308] transition" />
             </div>
-          </button>
+            <span className="hidden md:inline text-[10px] text-[#71717a] font-mono">3 acessos liberados</span>
+          </div>
 
-          <button
-            onClick={openPostsPrompts}
-            className="group relative overflow-hidden text-left p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
-          >
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.08] blur-3xl rounded-full group-hover:opacity-[0.16] transition" />
-            <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-[#eab308] flex items-center justify-center flex-shrink-0">
-                <LayoutGrid className="w-7 h-7 text-black" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              onClick={openChatGPT}
+              className="group relative overflow-hidden text-left p-5 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.06] blur-3xl rounded-full group-hover:opacity-[0.12] transition" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#10a37f] flex items-center justify-center flex-shrink-0">
+                  <Cpu className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Ferramenta</div>
+                  <div className="text-base font-black" style={heading}>ChatGPT</div>
+                  <div className="text-xs text-[#a1a1aa]">Abrir em nova aba</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#71717a] group-hover:text-[#eab308] transition" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Bônus Liberado</div>
-                <div className="text-lg font-black" style={heading}>Posts Prompts</div>
-                <div className="text-xs text-[#a1a1aa]">Acesso direto — sem precisar de login</div>
+            </button>
+
+            <button
+              onClick={openPostsPrompts}
+              className="group relative overflow-hidden text-left p-5 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.08] blur-3xl rounded-full group-hover:opacity-[0.16] transition" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#eab308] flex items-center justify-center flex-shrink-0">
+                  <LayoutGrid className="w-6 h-6 text-black" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Bônus</div>
+                  <div className="text-base font-black" style={heading}>Posts Prompts</div>
+                  <div className="text-xs text-[#a1a1aa]">Acesso direto sem login</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#71717a] group-hover:text-[#eab308] transition" />
               </div>
-              <ExternalLink className="w-5 h-5 text-[#71717a] group-hover:text-[#eab308] transition" />
+            </button>
+
+            <button
+              onClick={openPromptsMROBonus}
+              disabled={bonusLoading}
+              className="group relative overflow-hidden text-left p-5 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition disabled:opacity-60 disabled:cursor-wait"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.08] blur-3xl rounded-full group-hover:opacity-[0.16] transition" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#eab308] to-[#facc15] flex items-center justify-center flex-shrink-0">
+                  {bonusLoading ? <Loader2 className="w-6 h-6 text-black animate-spin" /> : <BookOpen className="w-6 h-6 text-black" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Bônus Exclusivo</div>
+                  <div className="text-base font-black" style={heading}>Prompts MRO</div>
+                  <div className="text-xs text-[#a1a1aa]">Entrar direto — sem pedir e-mail</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#71717a] group-hover:text-[#eab308] transition" />
+              </div>
+            </button>
+          </div>
+        </section>
+
+        {/* CONTAINER 2 — Módulos do Curso */}
+        <section className="p-5 md:p-7 rounded-3xl border border-white/10 bg-gradient-to-br from-[#0b0b0b] to-[#050505]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <LayoutGrid className="w-5 h-5 text-[#eab308]" />
+              </div>
+              <div>
+                <div className="text-[10px] tracking-[0.25em] uppercase text-[#eab308] font-bold">Container 02</div>
+                <h2 className="text-xl md:text-2xl font-black" style={heading}>Módulos do Curso</h2>
+              </div>
             </div>
-          </button>
-        </div>
-
-        {/* Modules */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-black" style={heading}>
-            Módulos do Curso
-          </h2>
-          <span className="text-xs text-[#71717a] font-mono">{modules.length} módulos</span>
-        </div>
+            <span className="text-xs text-[#71717a] font-mono">{modules.length} módulos</span>
+          </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -215,53 +273,97 @@ export default function PostsComIAMembros() {
             ))}
           </div>
         )}
+        </section>
       </main>
 
-      {/* Video Modal */}
+      {/* Video Modal (popup) */}
       {selected && (
-        <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="w-full max-w-4xl bg-[#0a0a0a] border border-[#eab308]/30 rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(234,179,8,0.2)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <h3 className="font-black truncate" style={heading}>{selected.title}</h3>
-              <button
-                onClick={() => setSelected(null)}
-                className="text-[#a1a1aa] hover:text-white text-2xl leading-none"
-              >×</button>
-            </div>
-            <div className="aspect-video bg-black">
-              {selected.video_url ? (
-                selected.video_url.includes("youtube") || selected.video_url.includes("youtu.be") ? (
-                  <iframe
-                    className="w-full h-full"
-                    src={toEmbed(selected.video_url)}
-                    title={selected.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <TrackedVideo src={selected.video_url} videoId={selected.id} videoTitle={selected.title} className="w-full h-full bg-black object-contain" />
-                )
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[#71717a]">
-                  Vídeo em breve.
-                </div>
-              )}
-            </div>
-            {selected.description && (
-              <div className="p-4 text-sm text-[#a1a1aa]">{selected.description}</div>
-            )}
-          </div>
-        </div>
+        <VideoPopup module={selected} onClose={() => setSelected(null)} />
       )}
     </div>
   );
 }
+
+function VideoPopup({ module: m, onClose }: { module: Module; onClose: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFs, setIsFs] = useState(false);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.fullscreenElement) onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (containerRef.current) await containerRef.current.requestFullscreen();
+    } catch { /* ignore */ }
+  }
+
+  const isYoutube = m.video_url && (m.video_url.includes("youtube") || m.video_url.includes("youtu.be"));
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-2 md:p-4 animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
+        ref={containerRef}
+        className="w-full max-w-5xl bg-[#0a0a0a] border border-[#eab308]/30 rounded-2xl overflow-hidden shadow-[0_0_120px_rgba(234,179,8,0.25)] flex flex-col max-h-[95vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/60">
+          <h3 className="font-black truncate text-sm md:text-base" style={{ fontFamily: "'Sora', system-ui, sans-serif" }}>{m.title}</h3>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleFullscreen}
+              title={isFs ? "Sair da tela cheia" : "Preencher a tela"}
+              className="w-9 h-9 rounded-lg hover:bg-white/10 text-[#a1a1aa] hover:text-[#eab308] flex items-center justify-center transition"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onClose}
+              title="Fechar"
+              className="w-9 h-9 rounded-lg hover:bg-white/10 text-[#a1a1aa] hover:text-white flex items-center justify-center transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className={`bg-black flex-1 ${isFs ? "" : "aspect-video"}`}>
+          {m.video_url ? (
+            isYoutube ? (
+              <iframe
+                className="w-full h-full"
+                src={toEmbed(m.video_url)}
+                title={m.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <TrackedVideo src={m.video_url} videoId={m.id} videoTitle={m.title} className="w-full h-full bg-black object-contain" />
+            )
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[#71717a]">
+              Vídeo em breve.
+            </div>
+          )}
+        </div>
+        {m.description && !isFs && (
+          <div className="p-4 text-sm text-[#a1a1aa]">{m.description}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 function toEmbed(url: string) {
   try {
