@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid } from "lucide-react";
+import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid, Gift, Maximize2, X, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TrackedVideo from "@/components/TrackedVideo";
 
