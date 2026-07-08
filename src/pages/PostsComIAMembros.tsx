@@ -273,50 +273,99 @@ export default function PostsComIAMembros() {
             ))}
           </div>
         )}
+        </section>
       </main>
 
-      {/* Video Modal */}
+      {/* Video Modal (popup) */}
       {selected && (
-        <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="w-full max-w-4xl bg-[#0a0a0a] border border-[#eab308]/30 rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(234,179,8,0.2)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <h3 className="font-black truncate" style={heading}>{selected.title}</h3>
-              <button
-                onClick={() => setSelected(null)}
-                className="text-[#a1a1aa] hover:text-white text-2xl leading-none"
-              >×</button>
-            </div>
-            <div className="aspect-video bg-black">
-              {selected.video_url ? (
-                selected.video_url.includes("youtube") || selected.video_url.includes("youtu.be") ? (
-                  <iframe
-                    className="w-full h-full"
-                    src={toEmbed(selected.video_url)}
-                    title={selected.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <TrackedVideo src={selected.video_url} videoId={selected.id} videoTitle={selected.title} className="w-full h-full bg-black object-contain" />
-                )
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[#71717a]">
-                  Vídeo em breve.
-                </div>
-              )}
-            </div>
-            {selected.description && (
-              <div className="p-4 text-sm text-[#a1a1aa]">{selected.description}</div>
-            )}
+        <VideoPopup module={selected} onClose={() => setSelected(null)} />
+      )}
+    </div>
+  );
+}
+
+function VideoPopup({ module: m, onClose }: { module: Module; onClose: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFs, setIsFs] = useState(false);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.fullscreenElement) onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (containerRef.current) await containerRef.current.requestFullscreen();
+    } catch { /* ignore */ }
+  }
+
+  const isYoutube = m.video_url && (m.video_url.includes("youtube") || m.video_url.includes("youtu.be"));
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-2 md:p-4 animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
+        ref={containerRef}
+        className="w-full max-w-5xl bg-[#0a0a0a] border border-[#eab308]/30 rounded-2xl overflow-hidden shadow-[0_0_120px_rgba(234,179,8,0.25)] flex flex-col max-h-[95vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/60">
+          <h3 className="font-black truncate text-sm md:text-base" style={{ fontFamily: "'Sora', system-ui, sans-serif" }}>{m.title}</h3>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleFullscreen}
+              title={isFs ? "Sair da tela cheia" : "Preencher a tela"}
+              className="w-9 h-9 rounded-lg hover:bg-white/10 text-[#a1a1aa] hover:text-[#eab308] flex items-center justify-center transition"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onClose}
+              title="Fechar"
+              className="w-9 h-9 rounded-lg hover:bg-white/10 text-[#a1a1aa] hover:text-white flex items-center justify-center transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      )}
+        <div className={`bg-black flex-1 ${isFs ? "" : "aspect-video"}`}>
+          {m.video_url ? (
+            isYoutube ? (
+              <iframe
+                className="w-full h-full"
+                src={toEmbed(m.video_url)}
+                title={m.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <TrackedVideo src={m.video_url} videoId={m.id} videoTitle={m.title} className="w-full h-full bg-black object-contain" />
+            )
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[#71717a]">
+              Vídeo em breve.
+            </div>
+          )}
+        </div>
+        {m.description && !isFs && (
+          <div className="p-4 text-sm text-[#a1a1aa]">{m.description}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function unusedCloser() {
+  return null;
     </div>
   );
 }
