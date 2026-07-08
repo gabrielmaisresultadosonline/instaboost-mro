@@ -65,17 +65,50 @@ export default function PostsComIAAdmin() {
     if (!creds) return;
     setLoading(true);
     try {
-      const [ordersR, statsR, modR] = await Promise.all([
+      const [ordersR, statsR, modR, setR] = await Promise.all([
         supabase.functions.invoke("postscomia-admin", { body: { action: "list_orders", ...creds } }),
         supabase.functions.invoke("postscomia-admin", { body: { action: "stats", ...creds } }),
         supabase.functions.invoke("postscomia-admin", { body: { action: "list_modules", ...creds } }),
+        supabase.functions.invoke("postscomia-admin", { body: { action: "get_settings" } }),
       ]);
       setOrders(ordersR.data?.orders || []);
       setStats(statsR.data || null);
       setModules(modR.data?.modules || []);
+      setSettings(setR.data?.settings || {});
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadAnalytics(days = analyticsDays) {
+    if (!creds) return;
+    const { data } = await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "analytics", days, ...creds },
+    });
+    setAnalytics(data);
+  }
+
+  async function saveSettings(next: any) {
+    if (!creds) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "save_settings", ...next, ...creds },
+    });
+    setSettings(next);
+    alert("Configurações salvas!");
+  }
+
+  async function manualGrant(nm: string, em: string) {
+    if (!creds) return;
+    const { data, error } = await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "manual_grant", name: nm, email: em, ...creds },
+    });
+    if (error || !data?.success) {
+      alert(data?.error || "Erro ao liberar acesso");
+      return;
+    }
+    alert("Acesso liberado e e-mail enviado!");
+    setShowManual(false);
+    refresh();
   }
 
   async function resendCredentials(id: string) {
