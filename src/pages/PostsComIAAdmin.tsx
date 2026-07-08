@@ -352,12 +352,22 @@ export default function PostsComIAAdmin() {
                           </button>
                         </>
                       )}
+                      {o.status === "paid" && (
+                        <button
+                          onClick={() => resendCredentials(o.id)}
+                          className="inline-flex items-center px-2 py-1 rounded bg-yellow-400/15 text-yellow-300 hover:bg-yellow-400/25 text-xs gap-1"
+                          title="Reenviar credenciais"
+                        >
+                          <Mail className="w-3 h-3" /> Enviar acesso
+                        </button>
+                      )}
                       <button
                         onClick={() => deleteOrder(o.id)}
                         className="inline-flex items-center px-2 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
+
                     </td>
                   </tr>
                 ))}
