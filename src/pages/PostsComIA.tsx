@@ -17,6 +17,7 @@ import {
   Lock,
   Zap,
 } from "lucide-react";
+import PostsComIAGallery from "@/components/PostsComIAGallery";
 
 const BASE_PRICE = 97;
 const BUMP_PRICE = 10;
@@ -276,6 +277,9 @@ export default function PostsComIA() {
           </div>
         </div>
       </section>
+
+      {/* GALLERY */}
+      <PostsComIAGallery />
 
       {/* HOW IT WORKS */}
       <section className="py-20 px-6 border-y border-white/5 bg-[#050505]">
