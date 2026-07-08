@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Lock, Mail, KeyRound, ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "postscomia_member";
+const REMEMBER_KEY = "postscomia_remember";
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
 const body = { fontFamily: "'Manrope', system-ui, sans-serif" };
 
@@ -11,10 +12,24 @@ export default function PostsComIALogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mode, setMode] = useState<"login" | "recover">("login");
   const [recoverMsg, setRecoverMsg] = useState("");
+
+  // Prefill from remembered credentials
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(REMEMBER_KEY);
+      if (raw) {
+        const r = JSON.parse(raw);
+        if (r?.email) setEmail(r.email);
+        if (r?.password) setPassword(r.password);
+        setRemember(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
