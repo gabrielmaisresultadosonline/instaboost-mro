@@ -118,7 +118,7 @@ export default function PostsComIA() {
             await supabase.functions.invoke("postscomia-admin", { body: { action: "grant_access", nsu } });
             // Fire FB Pixel Purchase
             const fbq = (window as any).fbq;
-            if (fbq) fbq("track", "Purchase", { value: Number(data.order?.amount || 97), currency: "BRL", content_name: "Posts com I.A" });
+            if (fbq) fbq("track", "Purchase", { value: Number(data.order?.amount || 67), currency: "BRL", content_name: "Posts com I.A" });
           } else setPaidState({});
         } catch {
           setPaidState({});
