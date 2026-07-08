@@ -312,6 +312,32 @@ export default function PostsComIA() {
         </div>
       </section>
 
+      {/* TUTORIAL PREVIEW VIDEO */}
+      <section className="py-16 md:py-20 px-6 bg-[#050505] border-b border-white/5">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="text-[10px] font-bold text-[#eab308] uppercase tracking-[0.3em] mb-3">
+            Prévia do Treinamento
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={heading}>
+            Veja como você vai receber o <span className="text-[#eab308]">passo a passo</span> e todo tutorial
+          </h2>
+          <p className="text-sm md:text-base text-[#a1a1aa] mb-8 max-w-2xl mx-auto">
+            Uma amostra rápida da área de membros: aulas objetivas, direto ao ponto, para você aplicar hoje mesmo.
+          </p>
+          <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(234,179,8,0.12)] bg-black aspect-video">
+            <video
+              src={tutorialPreview.url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* FEATURES */}
       <section className="py-20 md:py-24 px-6 relative">
         <div className="max-w-6xl mx-auto">
