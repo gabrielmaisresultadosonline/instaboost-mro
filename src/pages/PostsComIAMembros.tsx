@@ -47,6 +47,9 @@ export default function PostsComIAMembros() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Module | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpMsg, setHelpMsg] = useState("");
+
 
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
