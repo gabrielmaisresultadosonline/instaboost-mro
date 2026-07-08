@@ -125,7 +125,13 @@ export default function PostsComIA() {
           <p className="text-[#a1a1aa] mb-6">
             Obrigado{paidState.name ? `, ${paidState.name}` : ""}! Os acessos foram enviados para o seu e-mail.
           </p>
-          <p className="text-xs text-[#a1a1aa]/60 uppercase tracking-widest">Confira também SPAM / Promoções</p>
+          <p className="text-xs text-[#a1a1aa]/60 uppercase tracking-widest mb-6">Confira também SPAM / Promoções</p>
+          <a
+            href="/postscomia/login"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#eab308] hover:bg-[#fde047] text-black font-black tracking-wide text-sm shadow-[0_0_40px_rgba(234,179,8,0.3)]"
+          >
+            <Lock className="w-4 h-4" /> ACESSAR ÁREA DE MEMBROS
+          </a>
         </div>
       </div>
     );
