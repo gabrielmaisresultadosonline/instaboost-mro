@@ -187,6 +187,32 @@ Deno.serve(async (req) => {
       return json({ modules: data || [] });
     }
 
+    // Public: get settings (hero video + pixel)
+    if (action === "get_settings") {
+      const { data } = await supabase
+        .from("postscomia_settings")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return json({ settings: data || {} });
+    }
+
+    // Public: log analytics event
+    if (action === "track") {
+      const event_type = (body.event_type || "").toString();
+      const allowed = ["page_visit","video_start","video_25","video_50","video_75","video_100"];
+      if (!allowed.includes(event_type)) return json({ success: false });
+      await supabase.from("postscomia_analytics").insert({
+        event_type,
+        video_id: body.video_id || null,
+        video_title: body.video_title || null,
+        session_id: body.session_id || null,
+        user_agent: (req.headers.get("user-agent") || "").slice(0, 300),
+      });
+      return json({ success: true });
+    }
+
     // Admin login
     if (action === "login") {
       const ok =
