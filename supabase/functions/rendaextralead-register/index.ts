@@ -119,12 +119,12 @@ serve(async (req) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;font-size:1px;line-height:1px;">Sua aula gratuita esta liberada. Acesse agora e descubra como gerar renda extra com a MRO.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;font-size:1px;line-height:1px;">Entre no grupo do WhatsApp para receber a aula da MRO.</div>
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr>
-<td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
+<td style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">Sua aula gratis esta liberada</h1>
+<h1 style="color:#fff;margin:15px 0 0 0;font-size:24px;">Entre no grupo do WhatsApp</h1>
 </td>
 </tr>
 <tr>
@@ -132,29 +132,18 @@ serve(async (req) => {
 
 <p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${data.nome_completo}</strong>,</p>
 
-<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Aqui é o <strong>Gabriel</strong>! Acabei de liberar a minha <strong style="color:#000;">aula grátis</strong> para você acessar agora mesmo.</p>
+<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Aqui é o <strong>Gabriel</strong>! Para você receber a <strong>aula gratuita</strong>, entre agora no nosso grupo exclusivo do WhatsApp.</p>
 
-<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Nessa aula você vai aprender <strong>como funciona a MRO</strong> e como fazer <strong style="color:#000;">5 mil mensal</strong> em casa utilizando seu notebook — inclusive enquanto você dorme, deixando tudo automático.</p>
-
-<div style="background:#fff8e1;border-left:4px solid #FFA500;padding:15px 20px;margin:20px 0;border-radius:8px;">
-<p style="margin:0;font-size:15px;color:#333;"><strong>🔥 Liberamos algumas vagas com desconto especial da minha ferramenta MRO!</strong></p>
-<p style="margin:8px 0 0 0;font-size:14px;color:#555;">Acesse, assista a aula <strong>por completo</strong> e ao final do vídeo o seu <strong>desconto</strong> será liberado automaticamente.</p>
+<div style="background:#e8f5e9;border-left:4px solid #25D366;padding:15px 20px;margin:20px 0;border-radius:8px;">
+<p style="margin:0;font-size:15px;color:#333;"><strong>💬 A aula será liberada em privado no grupo.</strong></p>
+<p style="margin:8px 0 0 0;font-size:14px;color:#555;">Entre agora para não perder o aviso e receber materiais exclusivos.</p>
 </div>
 
-    <div style="text-align:center;margin:30px 0;">
-<a href="${freeClassLink}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
-ACESSAR AULA GRATIS AGORA
+${groupLink ? `<div style="text-align:center;margin:30px 0;">
+<a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
+PARTICIPAR DO GRUPO NO WHATSAPP
 </a>
-</div>
-
-${groupLink ? `<div style="background:#e8f5e9;border-left:4px solid #25D366;padding:18px 20px;margin:20px 0;border-radius:8px;">
-<p style="margin:0 0 10px 0;font-size:15px;color:#333;"><strong>💬 Entre no nosso grupo exclusivo do WhatsApp</strong></p>
-<p style="margin:0 0 14px 0;font-size:14px;color:#555;">Receba avisos, materiais e novidades direto no seu WhatsApp.</p>
-<div style="text-align:center;">
-<a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:30px;font-size:15px;font-weight:bold;font-family:Arial,sans-serif;">ENTRAR NO GRUPO</a>
-</div>
-</div>` : ""}
-
+</div>` : `<p style="text-align:center;margin:20px 0;font-size:14px;color:#666;">Em instantes enviaremos o link do grupo por aqui.</p>`}
 
 <p style="margin:20px 0 0 0;font-size:14px;color:#666;line-height:1.6;">Um abraço,<br/><strong>Gabriel — MRO</strong></p>
 
@@ -172,7 +161,8 @@ ${groupLink ? `<div style="background:#e8f5e9;border-left:4px solid #25D366;padd
 
     const emailSent = await sendEmailViaSMTP(
       data.email,
-      "Sua aula gratis liberada - Gabriel MRO",
+      "Entre no grupo do WhatsApp - Gabriel MRO",
+
       emailHtml
     );
 
