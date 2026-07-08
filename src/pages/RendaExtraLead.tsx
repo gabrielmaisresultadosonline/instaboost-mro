@@ -273,9 +273,31 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
                 <ArrowRight className="w-5 h-5" />
               </a>
             </div>
+
+            {whatsappGroupInvite && (
+              <div className="mt-6 bg-green-500/10 border border-green-500/30 rounded-2xl p-5">
+                <p className="text-green-300 font-bold text-sm md:text-base mb-3">
+                  💬 Entre no nosso grupo exclusivo do WhatsApp
+                </p>
+                <p className="text-gray-300 text-xs md:text-sm mb-4">
+                  Receba avisos, materiais e tire suas dúvidas com a nossa comunidade.
+                </p>
+                <a
+                  href={whatsappGroupInvite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-400 text-white font-bold text-sm sm:text-base px-6 py-4 rounded-full transition-all hover:scale-[1.02]"
+                >
+                  Entrar no Grupo do WhatsApp
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
+            )}
+
             <p className="text-gray-500 text-xs mt-4">
               Também enviamos o link para o seu email: <span className="text-gray-300">{formData.email}</span>
             </p>
+
           </div>
         </div>
       </div>
