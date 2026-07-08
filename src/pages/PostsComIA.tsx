@@ -77,14 +77,20 @@ export default function PostsComIA() {
           const { data } = await supabase.functions.invoke("postscomia-admin", {
             body: { action: "check_paid", nsu },
           });
-          if (data?.paid) setPaidState({ name: data.order?.name });
-          else setPaidState({});
+          if (data?.paid) {
+            setPaidState({ name: data.order?.name });
+            // ensure credentials are generated + emailed
+            await supabase.functions.invoke("postscomia-admin", {
+              body: { action: "grant_access", nsu },
+            });
+          } else setPaidState({});
         } catch {
           setPaidState({});
         }
       })();
     }
   }, []);
+
 
   const total = BASE_PRICE + (orderbump ? BUMP_PRICE : 0);
 
