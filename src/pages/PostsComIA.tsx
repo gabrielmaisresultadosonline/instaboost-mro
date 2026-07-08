@@ -20,6 +20,7 @@ import {
 import PostsComIAGallery from "@/components/PostsComIAGallery";
 import TrackedVideo from "@/components/TrackedVideo";
 import HeroVideoPlayer from "@/components/HeroVideoPlayer";
+import tutorialPreview from "@/assets/tutorial-preview.mp4.asset.json";
 
 const BASE_PRICE = 67;
 const BUMP_PRICE = 10;
