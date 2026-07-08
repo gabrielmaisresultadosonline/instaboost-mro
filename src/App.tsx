@@ -368,6 +368,9 @@ const App = () => (
           <Route path="/postspromptsvend" element={<PostsPromptsVend />} />
           <Route path="/postscomia" element={<PostsComIA />} />
           <Route path="/postscomia/admin" element={<PostsComIAAdmin />} />
+          <Route path="/postscomia/login" element={<PostsComIALogin />} />
+          <Route path="/postscomia/membros" element={<PostsComIAMembros />} />
+
 
 
           <Route path="/thorcriative" element={<ThorCreativeDashboard />} />
