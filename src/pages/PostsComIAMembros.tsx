@@ -61,10 +61,27 @@ export default function PostsComIAMembros() {
 
   function openPostsPrompts() {
     if (member?.email) {
-      // Grant direct access — postsprompts checks localStorage
       localStorage.setItem("postsprompts_buyer_email", member.email);
     }
     window.open("/postsprompts", "_blank", "noopener,noreferrer");
+  }
+
+  const [bonusLoading, setBonusLoading] = useState(false);
+  async function openPromptsMROBonus() {
+    if (!member?.email || bonusLoading) return;
+    setBonusLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("postscomia-admin", {
+        body: { action: "bonus_prompts_provision", email: member.email },
+      });
+      if (error || !data?.success) throw new Error(data?.error || "Erro ao liberar bônus");
+      sessionStorage.setItem("prompts_mro_user", JSON.stringify(data.user));
+      navigate("/prompts/dashboard");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao liberar bônus");
+    } finally {
+      setBonusLoading(false);
+    }
   }
 
   if (!member) return null;
