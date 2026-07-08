@@ -1,25 +1,62 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Sparkles, Zap, Play, ShieldCheck, Award, ArrowRight, Gift } from "lucide-react";
+import {
+  CheckCircle2,
+  Sparkles,
+  Play,
+  ShieldCheck,
+  Cpu,
+  ImageIcon,
+  Wand2,
+  UserCircle2,
+  Palette,
+  Target,
+  Megaphone,
+  Users,
+  ChevronDown,
+  Lock,
+  Zap,
+} from "lucide-react";
 
 const BASE_PRICE = 97;
 const BUMP_PRICE = 10;
 const YT_ID = "1dSrjZPDasg";
 
-const features = [
-  "Domine a I.A ChatGPT do zero ao avançado",
-  "Crie criativos ilimitados de alta qualidade",
-  "Fotos de estúdio profissionais com I.A",
-  "Crie sua logomarca em minutos",
-  "Criativos com o seu próprio rosto",
-  "Melhore o seu perfil e o seu negócio com I.A",
-  "Campanhas no Meta Ads geradas por I.A",
-  "Encontre o seu público perfeito com I.A",
+const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
+const body = { fontFamily: "'Manrope', system-ui, sans-serif" };
+
+const capabilities = [
+  { icon: Cpu, title: "ChatGPT Mestre", desc: "Comandos avançados para textos, roteiros e legendas que vendem no automático." },
+  { icon: ImageIcon, title: "Fotos de Estúdio", desc: "Ensaios fotográficos profissionais gerados por I.A — sem fotógrafo, sem cenário." },
+  { icon: Wand2, title: "Criativos Ilimitados", desc: "Peças novas todos os dias para orgânico e anúncios, com qualidade profissional." },
+  { icon: UserCircle2, title: "Seu Rosto em I.A", desc: "Coloque a sua imagem em qualquer cenário com realismo impressionante." },
+  { icon: Palette, title: "Logomarca com I.A", desc: "Crie identidades visuais completas para o seu negócio em minutos." },
+  { icon: Target, title: "Público Certo", desc: "Descubra o público ideal do seu produto usando análise por I.A." },
+  { icon: Megaphone, title: "Meta Ads com I.A", desc: "Estruture campanhas no Facebook e Instagram Ads guiadas por I.A." },
+  { icon: Sparkles, title: "Melhore o Perfil", desc: "Reposicione seu perfil e seu negócio com estratégias potencializadas por I.A." },
 ];
 
-const bonuses = [
-  { title: "BÔNUS #1", desc: "Renda Extra com a MRO — curso completo" },
-  { title: "BÔNUS #2", desc: "Fature mais SEM investir em anúncios" },
+const faqs = [
+  {
+    q: "Preciso ter conhecimento técnico?",
+    a: "Não. O curso começa do absoluto zero. Se você sabe usar WhatsApp, consegue dominar as ferramentas de I.A que ensinamos.",
+  },
+  {
+    q: "O acesso é realmente vitalício?",
+    a: "Sim. Pagamento único de R$97, sem mensalidade. Você acessa quantas vezes quiser, no seu ritmo, para sempre.",
+  },
+  {
+    q: "Qual a diferença do bônus 'Atualizações Vitalícias'?",
+    a: "Ao ativar o orderbump por +R$10, você recebe automaticamente qualquer nova aula, ferramenta ou módulo que adicionarmos ao curso — para sempre.",
+  },
+  {
+    q: "Como recebo o acesso após o pagamento?",
+    a: "Assim que o pagamento é confirmado (na hora, via InfiniPay), o acesso é liberado automaticamente e enviado para o seu e-mail.",
+  },
+  {
+    q: "Serve para qualquer nicho de negócio?",
+    a: "Sim. As técnicas de I.A funcionam para infoproduto, e-commerce, serviços locais, criador de conteúdo e afiliado.",
+  },
 ];
 
 export default function PostsComIA() {
@@ -28,10 +65,9 @@ export default function PostsComIA() {
   const [whatsapp, setWhatsapp] = useState("");
   const [orderbump, setOrderbump] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [paidState, setPaidState] = useState<null | { name?: string }>(null);
 
-  // Detect ?paid=1
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("paid") === "1") {
@@ -68,142 +104,282 @@ export default function PostsComIA() {
     }
   }
 
+  function scrollToCheckout() {
+    document.getElementById("checkout")?.scrollIntoView({ behavior: "smooth" });
+  }
+
   if (paidState) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-        <div className="max-w-lg w-full text-center border border-yellow-400/30 bg-gradient-to-b from-neutral-900 to-black p-10 rounded-2xl shadow-[0_0_60px_rgba(250,204,21,0.15)]">
-          <CheckCircle2 className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-black mb-2">Compra Confirmada!</h1>
-          <p className="text-neutral-300 mb-6">
-            Obrigado{paidState.name ? `, ${paidState.name}` : ""}! Enviamos os acessos para o seu e-mail.
+      <div className="min-h-screen bg-black text-[#f5f5f5] flex items-center justify-center px-4" style={body}>
+        <div className="max-w-lg w-full text-center border border-[#eab308]/30 bg-[#0a0a0a] p-10 rounded-3xl shadow-[0_0_80px_rgba(234,179,8,0.15)]">
+          <CheckCircle2 className="w-16 h-16 text-[#eab308] mx-auto mb-4" />
+          <h1 className="text-3xl font-extrabold mb-2" style={heading}>
+            Compra Confirmada!
+          </h1>
+          <p className="text-[#a1a1aa] mb-6">
+            Obrigado{paidState.name ? `, ${paidState.name}` : ""}! Os acessos foram enviados para o seu e-mail.
           </p>
-          <p className="text-sm text-neutral-500">Confira também a caixa de SPAM/Promoções.</p>
+          <p className="text-xs text-[#a1a1aa]/60 uppercase tracking-widest">Confira também SPAM / Promoções</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* animated backdrop */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 -left-40 w-[500px] h-[500px] bg-yellow-500/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] bg-yellow-400/5 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02),transparent_60%)]" />
-      </div>
+    <div className="w-full bg-black text-[#f5f5f5] selection:bg-[#eab308] selection:text-black" style={body}>
+      {/* HERO */}
+      <section className="relative pt-16 md:pt-20 pb-16 px-6 overflow-hidden">
+        {/* Grid background */}
+        <div
+          className="absolute inset-0 opacity-[0.08] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(#f5f5f5 1px, transparent 1px), linear-gradient(90deg, #f5f5f5 1px, transparent 1px)",
+            backgroundSize: "50px 50px",
+          }}
+        />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[400px] bg-[#eab308] opacity-[0.08] blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-10">
-        {/* Top badge */}
-        <div className="flex justify-center mb-8">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-xs font-bold tracking-wider uppercase">
-            <Sparkles className="w-3.5 h-3.5" /> Curso Oficial MRO • Acesso Vitalício
-          </span>
-        </div>
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="flex justify-center mb-8">
+            <span className="px-4 py-1.5 rounded-full border border-[#eab308]/30 bg-[#eab308]/5 text-[#eab308] text-[11px] font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#eab308] animate-pulse" />
+              A Era da Inteligência Artificial
+            </span>
+          </div>
 
-        {/* Hero */}
-        <div className="text-center mb-10 space-y-4">
-          <h1 className="text-4xl md:text-6xl font-black leading-tight">
-            Crie seus posts de qualidade{" "}
-            <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
-              profissional GRÁTIS
-            </span>{" "}
-            com I.A
+          <h1
+            className="text-center text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6"
+            style={heading}
+          >
+            Crie <span className="text-[#eab308]">posts de qualidade profissional</span> GRÁTIS com I.A
           </h1>
-          <p className="text-neutral-400 text-lg md:text-xl max-w-3xl mx-auto">
-            Domine o <strong className="text-white">ChatGPT</strong> e crie criativos SEM LIMITES,
-            fotos de estúdio, logomarcas, campanhas no Meta Ads e muito mais.
-          </p>
-        </div>
 
-        {/* Video */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="relative rounded-2xl overflow-hidden border border-yellow-400/20 shadow-[0_0_80px_rgba(250,204,21,0.15)]">
-            <div className="aspect-video bg-black">
+          <p className="text-center text-[#a1a1aa] text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+            Domine o <strong className="text-white">ChatGPT</strong> e crie criativos sem limites, fotos de estúdio,
+            logomarcas, campanhas no Meta Ads e muito mais — tudo com I.A.
+          </p>
+
+          {/* Video */}
+          <div className="relative max-w-3xl mx-auto group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#eab308] via-transparent to-[#eab308]/40 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
+            <div className="relative aspect-video rounded-xl bg-[#111] border border-white/10 overflow-hidden">
               <iframe
-                className="w-full h-full"
+                className="absolute inset-0 w-full h-full"
                 src={`https://www.youtube.com/embed/${YT_ID}?rel=0`}
-                title="Posts com IA"
+                title="Posts com I.A"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
+            <div className="mt-3 flex justify-between text-[10px] text-white/40 font-mono tracking-tighter px-1">
+              <span>SYSTEM_ID: {YT_ID}</span>
+              <span className="animate-pulse">AI_STREAMING_ACTIVE...</span>
+            </div>
           </div>
-          <p className="text-center text-neutral-500 text-sm mt-3 flex items-center justify-center gap-2">
-            <Play className="w-4 h-4 text-yellow-400" /> Assista o vídeo antes de comprar
-          </p>
-        </div>
 
-        {/* CTA hero button */}
-        {!showForm && (
-          <div className="flex justify-center mb-16">
+          <div className="flex justify-center mt-10">
             <button
-              onClick={() => {
-                setShowForm(true);
-                setTimeout(() => document.getElementById("compra")?.scrollIntoView({ behavior: "smooth" }), 100);
-              }}
-              className="group relative px-10 py-5 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-black text-lg tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.4)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all hover:scale-105"
+              onClick={scrollToCheckout}
+              className="px-8 py-4 rounded-xl bg-[#eab308] text-black font-extrabold text-base uppercase tracking-wider shadow-[0_15px_30px_rgba(234,179,8,0.3)] hover:translate-y-[-2px] hover:shadow-[0_20px_40px_rgba(234,179,8,0.4)] transition-all"
+              style={heading}
             >
-              <span className="flex items-center gap-3">
-                QUERO ACESSO AGORA — R${BASE_PRICE}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </span>
+              Quero Acesso Vitalício — R${BASE_PRICE}
             </button>
           </div>
-        )}
+        </div>
+      </section>
 
-        {/* Features grid */}
-        <div className="grid md:grid-cols-2 gap-3 max-w-4xl mx-auto mb-16">
-          {features.map((f, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-3 p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 hover:border-yellow-400/40 transition-colors"
-            >
-              <CheckCircle2 className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-              <span className="text-neutral-200">{f}</span>
+      {/* METRICS STRIP */}
+      <section className="border-y border-white/5 py-6 px-6 bg-[#050505]">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {[
+            { k: "+3.500", v: "Alunos ativos" },
+            { k: "8h+", v: "de conteúdo prático" },
+            { k: "12", v: "módulos completos" },
+            { k: "Vitalício", v: "sem mensalidade" },
+          ].map((m, i) => (
+            <div key={i}>
+              <div className="text-2xl md:text-3xl font-extrabold text-[#eab308]" style={heading}>
+                {m.k}
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-[#a1a1aa] mt-1">{m.v}</div>
             </div>
           ))}
         </div>
+      </section>
 
-        {/* Bonuses */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <h2 className="text-center text-2xl md:text-3xl font-black mb-6 flex items-center justify-center gap-2">
-            <Gift className="w-7 h-7 text-yellow-400" /> BÔNUS EXCLUSIVOS
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {bonuses.map((b, i) => (
-              <div
-                key={i}
-                className="relative p-6 rounded-2xl bg-gradient-to-br from-yellow-400/10 to-transparent border border-yellow-400/30"
-              >
-                <div className="text-xs font-black text-yellow-400 tracking-widest mb-2">{b.title}</div>
-                <div className="text-white font-bold text-lg">{b.desc}</div>
+      {/* FEATURES */}
+      <section className="py-20 md:py-24 px-6 relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="text-[10px] font-bold text-[#eab308] uppercase tracking-[0.3em] mb-3">
+              Módulos do Curso
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold" style={heading}>
+              A tecnologia que você terá em <span className="text-[#eab308]">mãos</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {capabilities.map((c, i) => {
+              const Icon = c.icon;
+              return (
+                <div
+                  key={i}
+                  className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-[#eab308]/40 hover:bg-white/[0.05] transition-all duration-300 group"
+                >
+                  <div className="w-10 h-10 mb-4 rounded-lg bg-[#eab308]/10 flex items-center justify-center text-[#eab308] group-hover:bg-[#eab308]/20 transition-colors">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2" style={heading}>
+                    {c.title}
+                  </h3>
+                  <p className="text-sm text-[#a1a1aa] leading-relaxed">{c.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-20 px-6 border-y border-white/5 bg-[#050505]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="text-[10px] font-bold text-[#eab308] uppercase tracking-[0.3em] mb-3">
+              Como Funciona
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold" style={heading}>
+              De iniciante a criador de I.A em <span className="text-[#eab308]">3 passos</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { n: "01", t: "Acesso Imediato", d: "Após o pagamento, receba seu login por e-mail e acesse toda a plataforma." },
+              { n: "02", t: "Assista e Aplique", d: "Aulas curtas e práticas com prompts prontos para copiar, colar e usar." },
+              { n: "03", t: "Resultado Real", d: "Publique conteúdos profissionais, atraia clientes e monetize com I.A." },
+            ].map((s, i) => (
+              <div key={i} className="relative p-6 rounded-2xl border border-white/5 bg-black">
+                <div className="text-5xl font-extrabold text-[#eab308]/20 mb-2" style={heading}>
+                  {s.n}
+                </div>
+                <h3 className="font-bold text-lg mb-2" style={heading}>
+                  {s.t}
+                </h3>
+                <p className="text-sm text-[#a1a1aa] leading-relaxed">{s.d}</p>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Purchase form */}
-        <div id="compra" className="max-w-2xl mx-auto mb-16">
-          <div className="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border border-yellow-400/30 p-8 shadow-[0_0_60px_rgba(250,204,21,0.15)]">
-            <div className="text-center mb-6">
-              <div className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-300 text-xs font-bold tracking-wider mb-3">
-                OFERTA POR TEMPO LIMITADO
-              </div>
-              <div className="text-neutral-400 text-sm">De R$497 por apenas</div>
-              <div className="text-6xl font-black text-white mt-1">
-                R$<span className="text-yellow-400">{total}</span>
-              </div>
-              <div className="text-neutral-500 text-sm mt-1">Pagamento único • Acesso vitalício</div>
+      {/* BONUSES */}
+      <section className="py-16 md:py-20 px-6 bg-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold whitespace-nowrap" style={heading}>
+              Bônus <span className="text-[#eab308]">Especiais</span>
+            </h2>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                tag: "Desbloqueio Imediato",
+                t: "Renda Extra com MRO",
+                d: "Curso completo — aprenda como ter uma renda extra usando as ferramentas da MRO.",
+                v: "R$ 197,00",
+                icon: Users,
+              },
+              {
+                tag: "Estratégia Orgânica",
+                t: "Fature sem investir em anúncios",
+                d: "Método completo para vender todos os dias sem gastar R$1 em tráfego pago.",
+                v: "R$ 297,00",
+                icon: Zap,
+              },
+            ].map((b, i) => {
+              const Icon = b.icon;
+              return (
+                <div
+                  key={i}
+                  className="relative p-[1px] rounded-2xl bg-gradient-to-r from-white/10 via-[#eab308]/20 to-transparent"
+                >
+                  <div className="bg-black p-6 rounded-[15px] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="w-10 h-10 rounded-lg bg-[#eab308]/10 flex items-center justify-center text-[#eab308] flex-shrink-0">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-[#eab308] font-bold text-[10px] mb-1 uppercase tracking-widest">
+                          {b.tag}
+                        </div>
+                        <h4 className="text-lg md:text-xl font-bold" style={heading}>
+                          {b.t}
+                        </h4>
+                        <p className="text-[#a1a1aa] text-sm mt-1">{b.d}</p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="px-3 py-1.5 bg-white/5 rounded-lg text-white/30 line-through text-xs font-mono">
+                        {b.v}
+                      </div>
+                      <div className="text-[#eab308] text-xs font-bold mt-1 uppercase tracking-widest">INCLUSO</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CHECKOUT */}
+      <section id="checkout" className="py-20 md:py-24 px-6 relative">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(circle at 50% 30%, rgba(234,179,8,0.08), transparent 60%)" }}
+        />
+        <div className="max-w-xl mx-auto relative">
+          <div className="p-8 md:p-10 rounded-[2.5rem] bg-[#111] border border-white/10 shadow-2xl overflow-hidden text-center relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+              <Sparkles className="w-32 h-32 text-[#eab308]" />
             </div>
 
-            <form onSubmit={handleBuy} className="space-y-3">
+            <div className="text-[10px] font-bold text-[#eab308] uppercase tracking-[0.3em] mb-2">
+              Oferta por tempo limitado
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-2" style={heading}>
+              Acesso Vitalício
+            </h2>
+            <p className="text-[#a1a1aa] text-sm mb-8">Pagamento único. Sem mensalidade.</p>
+
+            <div className="mb-8 flex flex-col items-center">
+              <span className="text-xs text-[#a1a1aa] mb-1 line-through">De R$ 497</span>
+              <div className="flex items-start">
+                <span className="text-xl font-bold text-[#eab308] mt-3" style={heading}>
+                  R$
+                </span>
+                <span className="text-7xl md:text-8xl font-extrabold text-[#eab308] tracking-tighter leading-none" style={heading}>
+                  {total}
+                </span>
+              </div>
+              <span className="text-[10px] text-[#a1a1aa] mt-2 uppercase tracking-widest">
+                {orderbump ? "com atualizações vitalícias" : "à vista"}
+              </span>
+            </div>
+
+            <form onSubmit={handleBuy} className="space-y-3 text-left">
               <input
                 type="text"
                 placeholder="Seu nome completo"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full bg-black border border-neutral-800 focus:border-yellow-400/60 rounded-lg px-4 py-3 text-white outline-none transition-colors"
+                className="w-full bg-black border border-white/10 focus:border-[#eab308]/60 rounded-xl px-4 py-3 text-white outline-none transition-colors"
               />
               <input
                 type="email"
@@ -211,65 +387,119 @@ export default function PostsComIA() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-black border border-neutral-800 focus:border-yellow-400/60 rounded-lg px-4 py-3 text-white outline-none transition-colors"
+                className="w-full bg-black border border-white/10 focus:border-[#eab308]/60 rounded-xl px-4 py-3 text-white outline-none transition-colors"
               />
               <input
                 type="tel"
                 placeholder="WhatsApp (opcional)"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full bg-black border border-neutral-800 focus:border-yellow-400/60 rounded-lg px-4 py-3 text-white outline-none transition-colors"
+                className="w-full bg-black border border-white/10 focus:border-[#eab308]/60 rounded-xl px-4 py-3 text-white outline-none transition-colors"
               />
 
               {/* Orderbump */}
               <label
-                className={`flex items-start gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
+                className={`flex items-start gap-4 p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
                   orderbump
-                    ? "border-yellow-400 bg-yellow-400/10"
-                    : "border-neutral-800 bg-neutral-900/50 hover:border-yellow-400/40"
+                    ? "border-[#eab308] bg-[#eab308]/10"
+                    : "border-[#eab308]/40 bg-[#eab308]/5 hover:bg-[#eab308]/10"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={orderbump}
                   onChange={(e) => setOrderbump(e.target.checked)}
-                  className="mt-1 w-5 h-5 accent-yellow-400"
+                  className="mt-1 w-5 h-5 accent-[#eab308] flex-shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    <span className="font-black text-white">SIM! Quero atualizações vitalícias</span>
-                  </div>
-                  <div className="text-sm text-neutral-400">
-                    Adicione +R${BUMP_PRICE} e receba TODAS as atualizações futuras do curso para sempre.
-                  </div>
+                <div>
+                  <p className="text-sm font-bold leading-tight text-white">
+                    Sim! Adicionar Atualizações Vitalícias (+R${BUMP_PRICE})
+                  </p>
+                  <p className="text-[11px] text-[#a1a1aa] mt-1 leading-relaxed">
+                    Receba todas as novas ferramentas de I.A que lançarmos no curso — para sempre.
+                  </p>
                 </div>
               </label>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-black text-lg tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.4)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-5 rounded-2xl bg-[#eab308] text-black font-extrabold text-lg md:text-xl uppercase tracking-wider shadow-[0_15px_30px_rgba(234,179,8,0.3)] hover:translate-y-[-2px] hover:shadow-[0_20px_40px_rgba(234,179,8,0.4)] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
+                style={heading}
               >
-                {loading ? "Gerando pagamento..." : `PAGAR R$${total} E LIBERAR ACESSO`}
+                {loading ? "Gerando pagamento..." : `Garantir minha vaga — R$${total}`}
               </button>
 
-              <div className="flex items-center justify-center gap-4 pt-3 text-xs text-neutral-500">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-yellow-400" /> Pagamento Seguro
+              <div className="pt-4 flex flex-wrap items-center justify-center gap-4 text-[10px] text-[#a1a1aa] font-mono uppercase tracking-widest">
+                <span className="flex items-center gap-1.5">
+                  <Lock className="w-3 h-3 text-[#eab308]" /> Pagamento seguro
                 </span>
-                <span className="flex items-center gap-1">
-                  <Award className="w-4 h-4 text-yellow-400" /> Acesso Vitalício
+                <span className="w-px h-3 bg-white/10" />
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3 h-3 text-[#eab308]" /> InfiniPay
                 </span>
+                <span className="w-px h-3 bg-white/10" />
+                <span>Acesso imediato</span>
               </div>
             </form>
           </div>
         </div>
+      </section>
 
-        <footer className="text-center text-neutral-600 text-xs py-8 border-t border-neutral-900">
-          © MRO — Mais Resultados Online. Todos os direitos reservados.
-        </footer>
-      </div>
+      {/* FAQ */}
+      <section className="py-20 px-6 border-t border-white/5">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="text-[10px] font-bold text-[#eab308] uppercase tracking-[0.3em] mb-3">FAQ</div>
+            <h2 className="text-3xl md:text-4xl font-bold" style={heading}>
+              Perguntas <span className="text-[#eab308]">frequentes</span>
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((f, i) => {
+              const open = openFaq === i;
+              return (
+                <div
+                  key={i}
+                  className={`rounded-2xl border transition-colors ${
+                    open ? "border-[#eab308]/40 bg-[#eab308]/[0.03]" : "border-white/5 bg-white/[0.02]"
+                  }`}
+                >
+                  <button
+                    onClick={() => setOpenFaq(open ? null : i)}
+                    className="w-full flex items-center justify-between text-left px-5 py-4"
+                  >
+                    <span className="font-bold text-sm md:text-base" style={heading}>
+                      {f.q}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[#eab308] transition-transform ${open ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {open && <div className="px-5 pb-4 text-sm text-[#a1a1aa] leading-relaxed">{f.a}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="py-14 border-t border-white/5 bg-[#050505]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="font-bold text-[#eab308] text-xl mb-6 tracking-tight" style={heading}>
+            Posts com I.A
+          </div>
+          <p className="text-[10px] text-[#a1a1aa] leading-relaxed max-w-xl mx-auto uppercase tracking-widest opacity-60">
+            Este site não faz parte do site do Facebook ou do Facebook Inc. Além disso, este site NÃO é endossado
+            pelo Facebook de nenhuma maneira. FACEBOOK é uma marca comercial da FACEBOOK, Inc.
+          </p>
+          <div className="mt-6 text-[10px] text-white/30 uppercase tracking-widest">
+            © MRO — Mais Resultados Online. Todos os direitos reservados.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
