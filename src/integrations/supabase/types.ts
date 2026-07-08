@@ -3734,8 +3734,45 @@ export type Database = {
         }
         Relationships: []
       }
+      postscomia_modules: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          order_index: number
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       postscomia_orders: {
         Row: {
+          access_granted: boolean
           amount: number
           created_at: string
           email: string
@@ -3746,11 +3783,13 @@ export type Database = {
           nsu_order: string
           orderbump: boolean
           paid_at: string | null
+          password: string | null
           status: string
           updated_at: string
           whatsapp: string | null
         }
         Insert: {
+          access_granted?: boolean
           amount?: number
           created_at?: string
           email: string
@@ -3761,11 +3800,13 @@ export type Database = {
           nsu_order: string
           orderbump?: boolean
           paid_at?: string | null
+          password?: string | null
           status?: string
           updated_at?: string
           whatsapp?: string | null
         }
         Update: {
+          access_granted?: boolean
           amount?: number
           created_at?: string
           email?: string
@@ -3776,6 +3817,7 @@ export type Database = {
           nsu_order?: string
           orderbump?: boolean
           paid_at?: string | null
+          password?: string | null
           status?: string
           updated_at?: string
           whatsapp?: string | null
