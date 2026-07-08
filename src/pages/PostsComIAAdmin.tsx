@@ -499,11 +499,13 @@ function ModulesPanel({
   onNew,
   onEdit,
   onDelete,
+  creds,
 }: {
   modules: any[];
   onNew: () => void;
   onEdit: (m: any) => void;
   onDelete: (id: string) => void;
+  creds: { email: string; password: string };
 }) {
   return (
     <div>
