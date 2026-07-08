@@ -21,6 +21,7 @@ import PostsComIAGallery from "@/components/PostsComIAGallery";
 import TrackedVideo from "@/components/TrackedVideo";
 import HeroVideoPlayer from "@/components/HeroVideoPlayer";
 import tutorialPreview from "@/assets/tutorial-preview.mp4.asset.json";
+import { assetUrl } from "@/lib/assetUrl";
 
 const BASE_PRICE = 67;
 const BUMP_PRICE = 10;
@@ -326,7 +327,7 @@ export default function PostsComIA() {
           </p>
           <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(234,179,8,0.12)] bg-black aspect-video">
             <video
-              src={tutorialPreview.url}
+              src={assetUrl(tutorialPreview.url)}
               autoPlay
               muted
               loop
