@@ -365,10 +365,21 @@ export default function PostsComIAAdmin() {
             </table>
           </div>
         </div>
+        </>
+        )}
       </div>
+
+      {editingModule && (
+        <ModuleEditor
+          module={editingModule}
+          onClose={() => setEditingModule(null)}
+          onSave={saveModule}
+        />
+      )}
     </div>
   );
 }
+
 
 function StatCard({
   icon,
