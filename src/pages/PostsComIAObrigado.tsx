@@ -55,10 +55,10 @@ export default function PostsComIAObrigado() {
         <p className="text-[#a1a1aa] leading-relaxed mb-6">
           {state === "pending"
             ? "Assim que a confirmação do pagamento chegar (geralmente em segundos), enviaremos seu e-mail com o acesso."
-            : "Enviamos seu acesso para o seu e-mail agora mesmo. Verifique também sua caixa de spam/promoções."}
+            : "Enviamos seu acesso para o seu e-mail agora mesmo."}
         </p>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 flex items-start gap-3 text-left">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-4 flex items-start gap-3 text-left">
           <Mail className="w-5 h-5 text-[#eab308] flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-bold text-white">Seu login foi enviado por e-mail</p>
@@ -68,6 +68,13 @@ export default function PostsComIAObrigado() {
                 : "Use o e-mail informado na compra e a senha recebida."}
             </p>
           </div>
+        </div>
+
+        <div className="bg-[#eab308]/10 border border-[#eab308]/40 rounded-2xl p-4 mb-6 text-left">
+          <p className="text-sm font-bold text-[#eab308] mb-1">⚠️ Confere seu e-mail agora</p>
+          <p className="text-xs text-[#f5f5f5]/80 leading-relaxed">
+            Pode ser que o e-mail com seu acesso caia na <strong>caixa de SPAM</strong> ou na aba <strong>Promoções</strong>. Se não encontrar na Caixa de Entrada, verifique essas pastas antes de pedir reenvio.
+          </p>
         </div>
 
         <Link

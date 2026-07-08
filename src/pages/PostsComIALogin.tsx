@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Lock, Mail, KeyRound, ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "postscomia_member";
+const REMEMBER_KEY = "postscomia_remember";
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
 const body = { fontFamily: "'Manrope', system-ui, sans-serif" };
 
@@ -11,10 +12,24 @@ export default function PostsComIALogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mode, setMode] = useState<"login" | "recover">("login");
   const [recoverMsg, setRecoverMsg] = useState("");
+
+  // Prefill from remembered credentials
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(REMEMBER_KEY);
+      if (raw) {
+        const r = JSON.parse(raw);
+        if (r?.email) setEmail(r.email);
+        if (r?.password) setPassword(r.password);
+        setRemember(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -26,6 +41,11 @@ export default function PostsComIALogin() {
       });
       if (data?.success) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ email: data.user.email, name: data.user.name }));
+        if (remember) {
+          localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email: email.trim().toLowerCase(), password }));
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
         navigate("/postscomia/membros");
       } else {
         setError(data?.error || "Falha no acesso");
@@ -120,6 +140,19 @@ export default function PostsComIALogin() {
                   placeholder="••••••••"
                 />
               </div>
+
+              <label className="flex items-center gap-2 mb-4 cursor-pointer select-none text-xs text-[#a1a1aa] hover:text-white transition">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => {
+                    setRemember(e.target.checked);
+                    if (!e.target.checked) localStorage.removeItem(REMEMBER_KEY);
+                  }}
+                  className="w-4 h-4 accent-[#eab308] cursor-pointer"
+                />
+                Lembrar meu login neste dispositivo
+              </label>
             </>
           )}
 
