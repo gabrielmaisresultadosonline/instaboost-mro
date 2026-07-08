@@ -233,13 +233,22 @@ export default function PostsComIA() {
           <div className="relative max-w-3xl mx-auto group">
             <div className="absolute -inset-1 bg-gradient-to-r from-[#eab308] via-transparent to-[#eab308]/40 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
             <div className="relative aspect-video rounded-xl bg-[#111] border border-white/10 overflow-hidden">
-              <iframe
-                className="absolute inset-0 w-full h-full"
-                src={`https://www.youtube.com/embed/${YT_ID}?rel=0`}
-                title="Posts com I.A"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {settings.hero_video_url ? (
+                <TrackedVideo
+                  src={settings.hero_video_url}
+                  poster={settings.hero_video_poster || undefined}
+                  videoId="hero"
+                  videoTitle="Vídeo Principal"
+                />
+              ) : (
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/${YT_ID}?rel=0`}
+                  title="Posts com I.A"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
             </div>
             <div className="mt-3 flex justify-between text-[10px] text-white/40 font-mono tracking-tighter px-1">
               <span>SYSTEM_ID: {YT_ID}</span>
