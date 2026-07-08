@@ -592,7 +592,7 @@ export default function PostsComIA() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-5 rounded-2xl bg-[#eab308] text-black font-extrabold text-lg md:text-xl uppercase tracking-wider shadow-[0_15px_30px_rgba(234,179,8,0.3)] hover:translate-y-[-2px] hover:shadow-[0_20px_40px_rgba(234,179,8,0.4)] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
+                className="w-full py-5 rounded-2xl bg-[#15803d] hover:bg-[#166534] text-white font-extrabold text-lg md:text-xl uppercase tracking-wider shadow-[0_15px_30px_rgba(21,128,61,0.35)] hover:translate-y-[-2px] hover:shadow-[0_20px_40px_rgba(21,128,61,0.45)] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
                 style={heading}
               >
                 {loading ? "Gerando pagamento..." : `Garantir minha vaga — R$${total}`}
