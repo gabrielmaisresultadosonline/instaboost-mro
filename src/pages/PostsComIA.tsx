@@ -134,11 +134,24 @@ export default function PostsComIA() {
 
   async function handleBuy(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !email.includes("@")) return;
+    const trimmedName = name.trim();
+    if (!trimmedName || trimmedName.split(/\s+/).length < 2) {
+      alert("Digite seu nome completo (nome e sobrenome).");
+      return;
+    }
+    if (!email.trim() || !email.includes("@")) {
+      alert("Digite um e-mail válido.");
+      return;
+    }
+    const phoneDigits = whatsapp.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      alert("Digite o WhatsApp com DDD + número (10 ou 11 dígitos, sem o 55).");
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("postscomia-checkout", {
-        body: { name, email, whatsapp, orderbump },
+        body: { name: trimmedName, email: email.trim(), whatsapp: phoneDigits, orderbump },
       });
       if (error || !data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
       window.location.href = data.payment_link;
@@ -507,11 +520,16 @@ export default function PostsComIA() {
               />
               <input
                 type="tel"
-                placeholder="WhatsApp (opcional)"
+                inputMode="numeric"
+                placeholder="WhatsApp com DDD (ex: 11999998888)"
                 value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
+                onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                required
+                minLength={10}
+                maxLength={11}
                 className="w-full bg-black border border-white/10 focus:border-[#eab308]/60 rounded-xl px-4 py-3 text-white outline-none transition-colors"
               />
+              <p className="text-[10px] text-[#a1a1aa] -mt-1 pl-1">Apenas DDD + número, sem o 55.</p>
 
               {/* Orderbump */}
               <label

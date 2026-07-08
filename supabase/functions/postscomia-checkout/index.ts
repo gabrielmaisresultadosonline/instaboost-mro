@@ -29,16 +29,29 @@ serve(async (req) => {
     const body = await req.json();
     const { name, email, whatsapp, orderbump } = body;
 
-    if (!name || !email || !String(email).includes("@")) {
-      return new Response(JSON.stringify({ success: false, error: "Dados inválidos" }), {
+    const cleanEmail = String(email || "").toLowerCase().trim();
+    const cleanName = String(name || "").trim();
+    const cleanPhone = String(whatsapp || "").replace(/\D/g, "");
+
+    if (!cleanName || cleanName.split(/\s+/).length < 2) {
+      return new Response(JSON.stringify({ success: false, error: "Nome completo obrigatório" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!cleanEmail.includes("@")) {
+      return new Response(JSON.stringify({ success: false, error: "E-mail inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      return new Response(JSON.stringify({ success: false, error: "WhatsApp inválido (DDD + número, sem 55)" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const cleanEmail = String(email).toLowerCase().trim();
-    const cleanName = String(name).trim();
-    const cleanPhone = whatsapp ? String(whatsapp).replace(/\D/g, "") : null;
     const withBump = !!orderbump;
     const amount = withBump ? BASE_PRICE + ORDERBUMP_PRICE : BASE_PRICE;
     const priceCents = Math.round(amount * 100);
@@ -50,6 +63,17 @@ serve(async (req) => {
     const description = `POSTSCOMIA_${withBump ? "BUMP_" : ""}${cleanEmail}`;
     const items = [{ description, quantity: 1, price: priceCents }];
 
+    // Phone prefixed with Brazil country code for InfiniPay
+    const phoneWithCC = `55${cleanPhone}`;
+
+    const customer = {
+      name: cleanName,
+      email: cleanEmail,
+      phone: phoneWithCC,
+      phone_number: phoneWithCC,
+      mobile_phone: phoneWithCC,
+    };
+
     const payload = {
       handle: INFINITEPAY_HANDLE,
       items,
@@ -57,7 +81,10 @@ serve(async (req) => {
       order_nsu: nsu,
       redirect_url: redirectUrl,
       webhook_url: webhookUrl,
-      customer: { email: cleanEmail, name: cleanName },
+      customer,
+      customer_name: cleanName,
+      customer_email: cleanEmail,
+      customer_phone: phoneWithCC,
     };
 
     let paymentLink: string | null = null;
@@ -74,9 +101,21 @@ serve(async (req) => {
       log("InfiniPay error", { e: String(e) });
     }
 
+    // Append prefill query params so InfiniPay hosted checkout fills the form
+    const prefill = new URLSearchParams({
+      customer_name: cleanName,
+      customer_email: cleanEmail,
+      customer_phone: phoneWithCC,
+      name: cleanName,
+      email: cleanEmail,
+      phone: phoneWithCC,
+    }).toString();
+
     if (!paymentLink) {
       const enc = encodeURIComponent(JSON.stringify([{ name: description, price: priceCents, quantity: 1 }]));
-      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${enc}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}`;
+      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${enc}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}&${prefill}`;
+    } else {
+      paymentLink += (paymentLink.includes("?") ? "&" : "?") + prefill;
     }
 
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
