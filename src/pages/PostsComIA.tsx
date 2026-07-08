@@ -236,9 +236,10 @@ export default function PostsComIA() {
           <div className="relative max-w-3xl mx-auto group">
             <div className="absolute -inset-1 bg-gradient-to-r from-[#eab308] via-transparent to-[#eab308]/40 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
             <div className="relative aspect-video rounded-xl bg-[#111] border border-white/10 overflow-hidden">
-              {settings.hero_video_url ? (
-                <TrackedVideo
-                  src={settings.hero_video_url}
+              {settings.hero_video_url || settings.hero_hls_url ? (
+                <HeroVideoPlayer
+                  src={settings.hero_video_url || ""}
+                  hlsSrc={settings.hero_hls_url || undefined}
                   poster={settings.hero_video_poster || undefined}
                   videoId="hero"
                   videoTitle="Vídeo Principal"
