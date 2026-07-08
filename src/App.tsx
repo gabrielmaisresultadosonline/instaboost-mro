@@ -91,6 +91,9 @@ import PostsPromptsAdmin from "./pages/PostsPromptsAdmin";
 import PostsPromptsVend from "./pages/PostsPromptsVend";
 import PostsComIA from "./pages/PostsComIA";
 import PostsComIAAdmin from "./pages/PostsComIAAdmin";
+import PostsComIALogin from "./pages/PostsComIALogin";
+import PostsComIAMembros from "./pages/PostsComIAMembros";
+
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
