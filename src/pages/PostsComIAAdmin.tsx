@@ -38,6 +38,10 @@ export default function PostsComIAAdmin() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"all" | "paid" | "pending">("all");
+  const [section, setSection] = useState<"orders" | "modules">("orders");
+  const [modules, setModules] = useState<any[]>([]);
+  const [editingModule, setEditingModule] = useState<any | null>(null);
+
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
