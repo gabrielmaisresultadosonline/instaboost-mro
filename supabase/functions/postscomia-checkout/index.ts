@@ -7,14 +7,49 @@ const corsHeaders = {
 };
 
 const INFINITEPAY_HANDLE = "paguemro";
-const BASE_PRICE = 97.00;
+const BASE_PRICE = 67.00;
 const ORDERBUMP_PRICE = 10.00;
+const META_PIXEL_ID = "569414052132145";
+const META_API_VERSION = "v18.0";
 
 const log = (s: string, d?: unknown) =>
   console.log(`[POSTSCOMIA-CHECKOUT] ${s}`, d ? JSON.stringify(d) : "");
 
 const genNSU = () =>
   `POSTSCOMIA${Date.now().toString(36)}${Math.random().toString(36).substring(2, 8)}`.toUpperCase();
+
+async function sha256Hex(s: string) {
+  const buf = new TextEncoder().encode(s);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sendMetaLeadEvent(email: string, phoneDigits: string | null, value: number, eventId: string) {
+  try {
+    const accessToken = Deno.env.get("META_CONVERSIONS_API_TOKEN");
+    if (!accessToken) return;
+    const em = await sha256Hex(email.toLowerCase().trim());
+    const ph = phoneDigits ? await sha256Hex(phoneDigits) : undefined;
+    const event: Record<string, unknown> = {
+      event_name: "Lead",
+      event_id: eventId,
+      event_time: Math.floor(Date.now() / 1000),
+      action_source: "website",
+      event_source_url: "https://maisresultadosonline.com.br/postscomia",
+      user_data: ph ? { em, ph } : { em },
+      custom_data: { content_name: "Posts com IA", value, currency: "BRL" },
+    };
+    const url = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events`;
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: [event], access_token: accessToken }),
+    });
+    log("META Lead sent", { ok: resp.ok });
+  } catch (e) {
+    log("META Lead error (non-blocking)", { e: String(e) });
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -137,8 +172,11 @@ serve(async (req) => {
 
     if (error) throw error;
 
+    // Fire Meta Conversions API Lead (non-blocking)
+    sendMetaLeadEvent(cleanEmail, cleanPhone, amount, nsu).catch(() => {});
+
     return new Response(
-      JSON.stringify({ success: true, order_id: order.id, nsu_order: nsu, payment_link: paymentLink }),
+      JSON.stringify({ success: true, order_id: order.id, nsu_order: nsu, payment_link: paymentLink, lead_event_id: nsu }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {

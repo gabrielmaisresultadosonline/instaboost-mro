@@ -13,6 +13,7 @@ interface Props {
 export default function HeroVideoPlayer({ src, hlsSrc, poster, videoId, videoTitle }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const fired = useRef<Set<string>>(new Set());
+  const hasInteracted = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
 
@@ -36,7 +37,6 @@ export default function HeroVideoPlayer({ src, hlsSrc, poster, videoId, videoTit
 
     let hls: any = null;
     if (hlsSrc && !v.canPlayType("application/vnd.apple.mpegurl")) {
-      // Lazy-load hls.js only when needed
       import("hls.js")
         .then((mod) => {
           const Hls = mod.default;
@@ -64,13 +64,30 @@ export default function HeroVideoPlayer({ src, hlsSrc, poster, videoId, videoTit
     };
   }, [src, hlsSrc]);
 
+  // Restart from 0 + unmute on first user interaction
+  function firstInteractionRestart() {
+    if (hasInteracted.current) return false;
+    hasInteracted.current = true;
+    const v = ref.current;
+    if (!v) return true;
+    // Reset analytics milestones so they fire again from real start
+    fired.current.clear();
+    try { v.currentTime = 0; } catch { /* ignore */ }
+    v.muted = false;
+    setMuted(false);
+    v.play().catch(() => {});
+    return true;
+  }
+
   function togglePlay() {
+    if (firstInteractionRestart()) return;
     const v = ref.current;
     if (!v) return;
     if (v.paused) v.play();
     else v.pause();
   }
   function toggleMute() {
+    if (firstInteractionRestart()) return;
     const v = ref.current;
     if (!v) return;
     v.muted = !v.muted;

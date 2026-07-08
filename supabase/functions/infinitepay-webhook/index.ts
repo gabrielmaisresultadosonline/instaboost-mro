@@ -418,7 +418,7 @@ serve(async (req) => {
       }
       if (pcOrder) {
         await supabase.from("postscomia_orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", pcOrder.id);
-        await sendMetaPurchaseEvent(pcOrder.email, Number(pcOrder.amount) || 97, "Posts com IA", pcOrder.nsu_order, "https://maisresultadosonline.com.br/postscomia");
+        await sendMetaPurchaseEvent(pcOrder.email, Number(pcOrder.amount) || 67, "Posts com IA", pcOrder.nsu_order, "https://maisresultadosonline.com.br/postscomia");
         return new Response(JSON.stringify({ success: true, message: "POSTSCOMIA confirmed" }), { status: 200, headers: corsHeaders });
       }
     }

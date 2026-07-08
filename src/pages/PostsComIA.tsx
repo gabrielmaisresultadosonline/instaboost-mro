@@ -154,6 +154,13 @@ export default function PostsComIA() {
         body: { name: trimmedName, email: email.trim(), whatsapp: phoneDigits, orderbump },
       });
       if (error || !data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
+      // Meta Pixel: Lead event (dedup by event_id with CAPI)
+      const fbq = (window as any).fbq;
+      if (fbq) fbq("track", "Lead", {
+        value: total,
+        currency: "BRL",
+        content_name: "Posts com I.A",
+      }, { eventID: data.lead_event_id || data.nsu_order });
       window.location.href = data.payment_link;
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao processar");
