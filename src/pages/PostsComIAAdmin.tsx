@@ -61,16 +61,46 @@ export default function PostsComIAAdmin() {
     if (!creds) return;
     setLoading(true);
     try {
-      const [ordersR, statsR] = await Promise.all([
+      const [ordersR, statsR, modR] = await Promise.all([
         supabase.functions.invoke("postscomia-admin", { body: { action: "list_orders", ...creds } }),
         supabase.functions.invoke("postscomia-admin", { body: { action: "stats", ...creds } }),
+        supabase.functions.invoke("postscomia-admin", { body: { action: "list_modules", ...creds } }),
       ]);
       setOrders(ordersR.data?.orders || []);
       setStats(statsR.data || null);
+      setModules(modR.data?.modules || []);
     } finally {
       setLoading(false);
     }
   }
+
+  async function resendCredentials(id: string) {
+    if (!creds) return;
+    if (!confirm("Reenviar credenciais de acesso (nova senha) por e-mail?")) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "resend_credentials", id, ...creds },
+    });
+    alert("Credenciais enviadas!");
+  }
+
+  async function saveModule(m: any) {
+    if (!creds) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "save_module", module: m, ...creds },
+    });
+    setEditingModule(null);
+    refresh();
+  }
+
+  async function deleteModule(id: string) {
+    if (!creds) return;
+    if (!confirm("Excluir esse módulo?")) return;
+    await supabase.functions.invoke("postscomia-admin", {
+      body: { action: "delete_module", id, ...creds },
+    });
+    refresh();
+  }
+
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
