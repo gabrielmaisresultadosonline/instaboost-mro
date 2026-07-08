@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import TrackedVideo from "@/components/TrackedVideo";
 
 const STORAGE_KEY = "postscomia_member";
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
