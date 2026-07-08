@@ -82,26 +82,14 @@ export default function PostsComIA() {
       sid = crypto.randomUUID();
       sessionStorage.setItem("pcia_sid", sid);
     }
+    // Use global Meta Pixel already initialized in index.html (569414052132145)
+    const fbqGlobal = (window as any).fbq;
+    if (fbqGlobal) fbqGlobal("track", "PageView");
     (async () => {
       try {
         const { data } = await supabase.functions.invoke("postscomia-admin", { body: { action: "get_settings" } });
         const s = data?.settings || {};
         setSettings(s);
-        if (s.fb_pixel_id && !(window as any).fbq) {
-          // Meta Pixel base code
-          (function (f: any, b: any, e: any, v: any) {
-            if (f.fbq) return;
-            const n: any = (f.fbq = function () {
-              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-            });
-            if (!f._fbq) f._fbq = n;
-            n.push = n; n.loaded = true; n.version = "2.0"; n.queue = [];
-            const t = b.createElement(e); t.async = true; t.src = v;
-            const s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
-          })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-          (window as any).fbq("init", s.fb_pixel_id);
-          (window as any).fbq("track", "PageView");
-        }
         await supabase.functions.invoke("postscomia-admin", {
           body: { action: "track", event_type: "page_visit", session_id: sid },
         });
