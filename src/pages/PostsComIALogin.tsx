@@ -41,6 +41,11 @@ export default function PostsComIALogin() {
       });
       if (data?.success) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ email: data.user.email, name: data.user.name }));
+        if (remember) {
+          localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email: email.trim().toLowerCase(), password }));
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
         navigate("/postscomia/membros");
       } else {
         setError(data?.error || "Falha no acesso");
