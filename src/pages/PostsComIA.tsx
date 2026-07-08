@@ -134,11 +134,24 @@ export default function PostsComIA() {
 
   async function handleBuy(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !email.includes("@")) return;
+    const trimmedName = name.trim();
+    if (!trimmedName || trimmedName.split(/\s+/).length < 2) {
+      alert("Digite seu nome completo (nome e sobrenome).");
+      return;
+    }
+    if (!email.trim() || !email.includes("@")) {
+      alert("Digite um e-mail válido.");
+      return;
+    }
+    const phoneDigits = whatsapp.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      alert("Digite o WhatsApp com DDD + número (10 ou 11 dígitos, sem o 55).");
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("postscomia-checkout", {
-        body: { name, email, whatsapp, orderbump },
+        body: { name: trimmedName, email: email.trim(), whatsapp: phoneDigits, orderbump },
       });
       if (error || !data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
       window.location.href = data.payment_link;
