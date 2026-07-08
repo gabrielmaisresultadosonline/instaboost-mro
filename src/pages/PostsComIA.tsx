@@ -372,10 +372,25 @@ export default function PostsComIA() {
               );
             })}
           </div>
+
+          {/* CTA banner */}
+          <div className="mt-10 relative overflow-hidden rounded-2xl border border-[#eab308]/40 bg-gradient-to-r from-[#eab308]/10 via-[#eab308]/5 to-transparent p-6 md:p-7 flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            <div className="flex-1 text-center md:text-left">
+              <div className="text-[10px] font-black text-[#eab308] uppercase tracking-[0.25em] mb-1">Vaga garantida</div>
+              <div className="text-lg md:text-xl font-bold" style={heading}>
+                Destrave tudo isso por <span className="text-[#eab308]">R${BASE_PRICE} vitalício</span>
+              </div>
+            </div>
+            <button
+              onClick={scrollToCheckout}
+              className="px-6 py-3 rounded-xl bg-[#eab308] hover:bg-[#facc15] text-black font-black text-sm uppercase tracking-wider shadow-[0_10px_30px_-10px_rgba(234,179,8,0.7)] hover:scale-[1.02] transition-all"
+              style={heading}
+            >
+              Garantir meu acesso →
+            </button>
+          </div>
         </div>
       </section>
-
-      {/* CHECKOUT */}
       <section id="checkout" className="py-20 md:py-24 px-6 relative">
         <div
           className="absolute inset-0 pointer-events-none"
