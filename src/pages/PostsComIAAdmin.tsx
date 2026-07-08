@@ -38,9 +38,13 @@ export default function PostsComIAAdmin() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"all" | "paid" | "pending">("all");
-  const [section, setSection] = useState<"orders" | "modules">("orders");
+  const [section, setSection] = useState<"orders" | "modules" | "settings" | "analytics">("orders");
   const [modules, setModules] = useState<any[]>([]);
   const [editingModule, setEditingModule] = useState<any | null>(null);
+  const [settings, setSettings] = useState<any>({});
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [showManual, setShowManual] = useState(false);
 
 
   useEffect(() => {
