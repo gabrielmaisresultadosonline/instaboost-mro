@@ -259,23 +259,26 @@ export default function PostsComIAAdmin() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Section switcher */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setSection("orders")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold ${
-              section === "orders" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
-            }`}
-          >
-            Pedidos
-          </button>
-          <button
-            onClick={() => setSection("modules")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
-              section === "modules" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
-            }`}
-          >
-            <Video className="w-4 h-4" /> Módulos ({modules.length})
-          </button>
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {([
+            { k: "orders", label: "Pedidos", icon: <Users className="w-4 h-4" /> },
+            { k: "modules", label: `Módulos (${modules.length})`, icon: <Video className="w-4 h-4" /> },
+            { k: "settings", label: "Vídeo Principal + Pixel", icon: <Settings className="w-4 h-4" /> },
+            { k: "analytics", label: "Analytics", icon: <BarChart3 className="w-4 h-4" /> },
+          ] as const).map((s) => (
+            <button
+              key={s.k}
+              onClick={() => {
+                setSection(s.k);
+                if (s.k === "analytics") loadAnalytics();
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
+                section === s.k ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+              }`}
+            >
+              {s.icon} {s.label}
+            </button>
+          ))}
         </div>
 
         {section === "modules" ? (
@@ -284,6 +287,16 @@ export default function PostsComIAAdmin() {
             onNew={() => setEditingModule({ title: "", description: "", cover_url: "", video_url: "", order_index: modules.length, is_active: true })}
             onEdit={(m) => setEditingModule(m)}
             onDelete={deleteModule}
+            creds={creds!}
+          />
+        ) : section === "settings" ? (
+          <SettingsPanel settings={settings} onSave={saveSettings} creds={creds!} />
+        ) : section === "analytics" ? (
+          <AnalyticsPanel
+            data={analytics}
+            days={analyticsDays}
+            onDays={(d) => { setAnalyticsDays(d); loadAnalytics(d); }}
+            onRefresh={() => loadAnalytics()}
           />
         ) : (
         <>
