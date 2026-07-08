@@ -46,7 +46,7 @@ const faqs = [
   },
   {
     q: "O acesso é realmente vitalício?",
-    a: "Sim. Pagamento único de R$97, sem mensalidade. Você acessa quantas vezes quiser, no seu ritmo, para sempre.",
+    a: "Sim. Pagamento único de R$67 (ou 12x de R$ 6,88), sem mensalidade. Você acessa quantas vezes quiser, no seu ritmo, para sempre.",
   },
   {
     q: "Qual a diferença do bônus 'Atualizações Vitalícias'?",
