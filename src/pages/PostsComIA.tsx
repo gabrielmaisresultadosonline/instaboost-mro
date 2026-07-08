@@ -71,7 +71,7 @@ export default function PostsComIA() {
   const [loading, setLoading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [paidState, setPaidState] = useState<null | { name?: string; amount?: number }>(null);
-  const [settings, setSettings] = useState<{ hero_video_url?: string; hero_video_poster?: string; fb_pixel_id?: string }>({});
+  const [settings, setSettings] = useState<{ hero_video_url?: string; hero_hls_url?: string; hero_video_poster?: string; fb_pixel_id?: string }>({});
 
   // load settings + track visit + inject FB pixel
   useEffect(() => {
