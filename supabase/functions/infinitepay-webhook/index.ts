@@ -180,10 +180,18 @@ serve(async (req) => {
     let isRendaExtOrder = false;
     let isVenderOrder = false;
     
+    let isPostsComIAOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("POSTSCOMIA_")) {
+          isPostsComIAOrder = true;
+          email = itemName.replace("POSTSCOMIA_BUMP_", "").replace("POSTSCOMIA_", "").toLowerCase();
+          log("Parsed POSTSCOMIA order", { email });
+          break;
+        }
 
         if (itemName.startsWith("VENDER_")) {
           isVenderOrder = true;
