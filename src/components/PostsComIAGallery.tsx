@@ -8,14 +8,18 @@ import g7 from "@/assets/postscomia-gallery/g7.asset.json";
 import g8 from "@/assets/postscomia-gallery/g8.asset.json";
 import g9 from "@/assets/postscomia-gallery/g9.asset.json";
 import g10 from "@/assets/postscomia-gallery/g10.asset.json";
-import { Sparkles, Wand2 } from "lucide-react";
+import g11 from "@/assets/postscomia-gallery/g11.asset.json";
+import g12 from "@/assets/postscomia-gallery/g12.asset.json";
+import { Sparkles, Wand2, Palette, Camera, ArrowRight } from "lucide-react";
 
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
 
 const images = [
   { src: g1.url, prompt: "criativo profissional para energia solar" },
+  { src: g11.url, prompt: "logomarca premium açaí com coroa" },
   { src: g2.url, prompt: "logo urbano academia moderna" },
   { src: g3.url, prompt: "post economia conta de luz 30%" },
+  { src: g12.url, prompt: "foto de estúdio profissional sem sair de casa" },
   { src: g4.url, prompt: "flyer aula experimental academia" },
   { src: g5.url, prompt: "post viral instagram tecnologia" },
   { src: g6.url, prompt: "anúncio energia solar cidade" },
@@ -71,6 +75,75 @@ export default function PostsComIAGallery() {
           {row2.map((img, i) => (
             <GalleryCard key={`r2-${i}`} src={img.src} prompt={img.prompt} />
           ))}
+        </div>
+      </div>
+
+      {/* HIGHLIGHT: Logo + Studio */}
+      <div className="relative max-w-6xl mx-auto px-6 mt-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Logomarca */}
+          <div className="relative rounded-3xl overflow-hidden border border-[#eab308]/30 bg-gradient-to-br from-[#0a0a0a] to-[#050505] p-6 md:p-8 group">
+            <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#eab308]/20 blur-3xl rounded-full" />
+            <div className="grid grid-cols-[1fr,140px] md:grid-cols-[1fr,180px] gap-4 items-center relative">
+              <div>
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-[#eab308]/40 bg-[#eab308]/10 mb-3">
+                  <Palette className="w-3 h-3 text-[#eab308]" />
+                  <span className="text-[9px] font-bold text-[#eab308] uppercase tracking-[0.2em]">Módulo Bônus</span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold leading-tight mb-2" style={heading}>
+                  Crie sua <span className="text-[#eab308]">logomarca profissional</span> com I.A
+                </h3>
+                <p className="text-sm text-[#a1a1aa] leading-relaxed">
+                  Identidade visual completa em minutos. Sem designer, sem Photoshop, sem custo mensal.
+                </p>
+                <a href="#checkout" className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#eab308] hover:gap-3 transition-all">
+                  Quero criar minhas logos <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
+              <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.4)]">
+                <img src={g11.url} alt="Logomarca gerada com I.A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              </div>
+            </div>
+          </div>
+
+          {/* Estúdio */}
+          <div className="relative rounded-3xl overflow-hidden border border-[#eab308]/30 bg-gradient-to-br from-[#0a0a0a] to-[#050505] p-6 md:p-8 group">
+            <div className="absolute -top-16 -left-16 w-48 h-48 bg-[#eab308]/20 blur-3xl rounded-full" />
+            <div className="grid grid-cols-[1fr,140px] md:grid-cols-[1fr,180px] gap-4 items-center relative">
+              <div>
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-[#eab308]/40 bg-[#eab308]/10 mb-3">
+                  <Camera className="w-3 h-3 text-[#eab308]" />
+                  <span className="text-[9px] font-bold text-[#eab308] uppercase tracking-[0.2em]">Módulo Bônus</span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold leading-tight mb-2" style={heading}>
+                  Fotos de <span className="text-[#eab308]">estúdio profissional</span> sem sair de casa
+                </h3>
+                <p className="text-sm text-[#a1a1aa] leading-relaxed">
+                  Coloque seu rosto em cenários realistas com iluminação e qualidade de ensaio fotográfico.
+                </p>
+                <a href="#checkout" className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#eab308] hover:gap-3 transition-all">
+                  Quero minhas fotos de estúdio <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
+              <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.4)]">
+                <img src={g12.url} alt="Foto de estúdio gerada com I.A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Big CTA under highlight */}
+        <div className="mt-10 text-center">
+          <a
+            href="#checkout"
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#eab308] hover:bg-[#facc15] text-black font-black text-base md:text-lg shadow-[0_10px_40px_-10px_rgba(234,179,8,0.7)] hover:scale-[1.02] transition-all"
+            style={heading}
+          >
+            <Sparkles className="w-5 h-5" />
+            QUERO CRIAR TUDO ISSO — R$97 VITALÍCIO
+            <ArrowRight className="w-5 h-5" />
+          </a>
+          <p className="text-[11px] text-[#71717a] mt-3 uppercase tracking-widest">Pagamento único · Acesso imediato</p>
         </div>
       </div>
 
