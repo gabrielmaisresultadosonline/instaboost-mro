@@ -244,7 +244,7 @@ export default function PostsComIAMembros() {
                     allowFullScreen
                   />
                 ) : (
-                  <video src={selected.video_url} controls autoPlay className="w-full h-full" />
+                  <TrackedVideo src={selected.video_url} videoId={selected.id} videoTitle={selected.title} className="w-full h-full bg-black object-contain" />
                 )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[#71717a]">
