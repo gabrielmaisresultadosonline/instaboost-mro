@@ -24,14 +24,14 @@ async function sha256Hex(s: string) {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function sendMetaLeadEvent(email: string, phoneDigits: string | null, value: number, eventId: string) {
+async function sendMetaInitiateCheckoutEvent(email: string, phoneDigits: string | null, value: number, eventId: string) {
   try {
     const accessToken = Deno.env.get("META_CONVERSIONS_API_TOKEN");
     if (!accessToken) return;
     const em = await sha256Hex(email.toLowerCase().trim());
     const ph = phoneDigits ? await sha256Hex(phoneDigits) : undefined;
     const event: Record<string, unknown> = {
-      event_name: "Lead",
+      event_name: "InitiateCheckout",
       event_id: eventId,
       event_time: Math.floor(Date.now() / 1000),
       action_source: "website",
@@ -45,9 +45,9 @@ async function sendMetaLeadEvent(email: string, phoneDigits: string | null, valu
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: [event], access_token: accessToken }),
     });
-    log("META Lead sent", { ok: resp.ok });
+    log("META InitiateCheckout sent", { ok: resp.ok });
   } catch (e) {
-    log("META Lead error (non-blocking)", { e: String(e) });
+    log("META InitiateCheckout error (non-blocking)", { e: String(e) });
   }
 }
 
@@ -179,7 +179,7 @@ serve(async (req) => {
     if (error) throw error;
 
     // Fire Meta Conversions API Lead (non-blocking)
-    sendMetaLeadEvent(cleanEmail, cleanPhone, amount, nsu).catch(() => {});
+    sendMetaInitiateCheckoutEvent(cleanEmail, cleanPhone, amount, nsu).catch(() => {});
 
     return new Response(
       JSON.stringify({ success: true, order_id: order.id, nsu_order: nsu, payment_link: paymentLink, lead_event_id: nsu }),
