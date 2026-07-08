@@ -20,8 +20,9 @@ import {
 import PostsComIAGallery from "@/components/PostsComIAGallery";
 import TrackedVideo from "@/components/TrackedVideo";
 
-const BASE_PRICE = 97;
+const BASE_PRICE = 67;
 const BUMP_PRICE = 10;
+const INSTALLMENT_LABEL = "12x de R$ 6,88";
 const YT_ID = "1dSrjZPDasg";
 
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
