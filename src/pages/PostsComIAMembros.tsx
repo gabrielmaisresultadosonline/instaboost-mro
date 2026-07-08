@@ -137,52 +137,93 @@ export default function PostsComIAMembros() {
           </p>
         </div>
 
-        {/* Quick Tools */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-          <button
-            onClick={openChatGPT}
-            className="group relative overflow-hidden text-left p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
-          >
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.06] blur-3xl rounded-full group-hover:opacity-[0.12] transition" />
-            <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-[#10a37f] flex items-center justify-center flex-shrink-0">
-                <Cpu className="w-7 h-7 text-white" />
+        {/* CONTAINER 1 — Bônus & Ferramentas */}
+        <section className="mb-14 p-5 md:p-7 rounded-3xl border border-[#eab308]/20 bg-gradient-to-br from-[#0b0b0b] to-[#050505]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#eab308]/15 border border-[#eab308]/30 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-[#eab308]" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Ferramenta Principal</div>
-                <div className="text-lg font-black" style={heading}>ChatGPT</div>
-                <div className="text-xs text-[#a1a1aa]">Abrir o ChatGPT em nova aba</div>
+              <div>
+                <div className="text-[10px] tracking-[0.25em] uppercase text-[#eab308] font-bold">Container 01</div>
+                <h2 className="text-xl md:text-2xl font-black" style={heading}>Bônus & Ferramentas</h2>
               </div>
-              <ExternalLink className="w-5 h-5 text-[#71717a] group-hover:text-[#eab308] transition" />
             </div>
-          </button>
+            <span className="hidden md:inline text-[10px] text-[#71717a] font-mono">3 acessos liberados</span>
+          </div>
 
-          <button
-            onClick={openPostsPrompts}
-            className="group relative overflow-hidden text-left p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
-          >
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.08] blur-3xl rounded-full group-hover:opacity-[0.16] transition" />
-            <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-[#eab308] flex items-center justify-center flex-shrink-0">
-                <LayoutGrid className="w-7 h-7 text-black" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              onClick={openChatGPT}
+              className="group relative overflow-hidden text-left p-5 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.06] blur-3xl rounded-full group-hover:opacity-[0.12] transition" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#10a37f] flex items-center justify-center flex-shrink-0">
+                  <Cpu className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Ferramenta</div>
+                  <div className="text-base font-black" style={heading}>ChatGPT</div>
+                  <div className="text-xs text-[#a1a1aa]">Abrir em nova aba</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#71717a] group-hover:text-[#eab308] transition" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Bônus Liberado</div>
-                <div className="text-lg font-black" style={heading}>Posts Prompts</div>
-                <div className="text-xs text-[#a1a1aa]">Acesso direto — sem precisar de login</div>
+            </button>
+
+            <button
+              onClick={openPostsPrompts}
+              className="group relative overflow-hidden text-left p-5 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.08] blur-3xl rounded-full group-hover:opacity-[0.16] transition" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#eab308] flex items-center justify-center flex-shrink-0">
+                  <LayoutGrid className="w-6 h-6 text-black" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Bônus</div>
+                  <div className="text-base font-black" style={heading}>Posts Prompts</div>
+                  <div className="text-xs text-[#a1a1aa]">Acesso direto sem login</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#71717a] group-hover:text-[#eab308] transition" />
               </div>
-              <ExternalLink className="w-5 h-5 text-[#71717a] group-hover:text-[#eab308] transition" />
+            </button>
+
+            <button
+              onClick={openPromptsMROBonus}
+              disabled={bonusLoading}
+              className="group relative overflow-hidden text-left p-5 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#111] hover:border-[#eab308]/50 transition disabled:opacity-60 disabled:cursor-wait"
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#eab308] opacity-[0.08] blur-3xl rounded-full group-hover:opacity-[0.16] transition" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#eab308] to-[#facc15] flex items-center justify-center flex-shrink-0">
+                  {bonusLoading ? <Loader2 className="w-6 h-6 text-black animate-spin" /> : <BookOpen className="w-6 h-6 text-black" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] tracking-[0.2em] uppercase text-[#eab308] font-bold mb-1">Bônus Exclusivo</div>
+                  <div className="text-base font-black" style={heading}>Prompts MRO</div>
+                  <div className="text-xs text-[#a1a1aa]">Entrar direto — sem pedir e-mail</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#71717a] group-hover:text-[#eab308] transition" />
+              </div>
+            </button>
+          </div>
+        </section>
+
+        {/* CONTAINER 2 — Módulos do Curso */}
+        <section className="p-5 md:p-7 rounded-3xl border border-white/10 bg-gradient-to-br from-[#0b0b0b] to-[#050505]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <LayoutGrid className="w-5 h-5 text-[#eab308]" />
+              </div>
+              <div>
+                <div className="text-[10px] tracking-[0.25em] uppercase text-[#eab308] font-bold">Container 02</div>
+                <h2 className="text-xl md:text-2xl font-black" style={heading}>Módulos do Curso</h2>
+              </div>
             </div>
-          </button>
-        </div>
-
-        {/* Modules */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-black" style={heading}>
-            Módulos do Curso
-          </h2>
-          <span className="text-xs text-[#71717a] font-mono">{modules.length} módulos</span>
-        </div>
+            <span className="text-xs text-[#71717a] font-mono">{modules.length} módulos</span>
+          </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
