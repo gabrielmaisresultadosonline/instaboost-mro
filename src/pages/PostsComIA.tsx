@@ -20,8 +20,9 @@ import {
 import PostsComIAGallery from "@/components/PostsComIAGallery";
 import TrackedVideo from "@/components/TrackedVideo";
 
-const BASE_PRICE = 97;
+const BASE_PRICE = 67;
 const BUMP_PRICE = 10;
+const INSTALLMENT_LABEL = "12x de R$ 6,88";
 const YT_ID = "1dSrjZPDasg";
 
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
@@ -45,7 +46,7 @@ const faqs = [
   },
   {
     q: "O acesso é realmente vitalício?",
-    a: "Sim. Pagamento único de R$97, sem mensalidade. Você acessa quantas vezes quiser, no seu ritmo, para sempre.",
+    a: "Sim. Pagamento único de R$67 (ou 12x de R$ 6,88), sem mensalidade. Você acessa quantas vezes quiser, no seu ritmo, para sempre.",
   },
   {
     q: "Qual a diferença do bônus 'Atualizações Vitalícias'?",
@@ -117,7 +118,7 @@ export default function PostsComIA() {
             await supabase.functions.invoke("postscomia-admin", { body: { action: "grant_access", nsu } });
             // Fire FB Pixel Purchase
             const fbq = (window as any).fbq;
-            if (fbq) fbq("track", "Purchase", { value: Number(data.order?.amount || 97), currency: "BRL", content_name: "Posts com I.A" });
+            if (fbq) fbq("track", "Purchase", { value: Number(data.order?.amount || 67), currency: "BRL", content_name: "Posts com I.A" });
           } else setPaidState({});
         } catch {
           setPaidState({});
@@ -479,6 +480,9 @@ export default function PostsComIA() {
               </div>
               <span className="text-[10px] text-[#a1a1aa] mt-2 uppercase tracking-widest">
                 {orderbump ? "com atualizações vitalícias" : "à vista"}
+              </span>
+              <span className="mt-2 text-xs text-[#eab308] font-mono">
+                ou {INSTALLMENT_LABEL} no cartão
               </span>
             </div>
 

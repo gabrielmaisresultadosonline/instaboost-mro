@@ -293,3 +293,9 @@ verify_jwt = false
 
 [functions.rendaextra-desconto-access]
 verify_jwt = false
+
+[functions.postscomia-admin]
+verify_jwt = false
+
+[functions.postscomia-checkout]
+verify_jwt = false
