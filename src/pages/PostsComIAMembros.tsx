@@ -1,8 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid, Gift, Maximize2, X, BookOpen } from "lucide-react";
+import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid, Gift, Maximize2, X, BookOpen, Crown, HelpCircle, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TrackedVideo from "@/components/TrackedVideo";
+import { openWhatsAppChat } from "@/lib/whatsapp";
+
+const HELP_WHATSAPP = "5551992835863";
+
+const BONUS_VIDEOS: Module[] = [
+  {
+    id: "bonus-vender-sem-anuncios",
+    title: "Como Vender Sem Gastar Com Anúncios",
+    description: "Estratégias 100% orgânicas para vender todos os dias sem investir em tráfego pago.",
+    cover_url: "https://img.youtube.com/vi/5u3d1ZVb7tM/maxresdefault.jpg",
+    video_url: "https://www.youtube.com/watch?v=5u3d1ZVb7tM",
+    order_index: 0,
+  },
+  {
+    id: "bonus-renda-extra-mro",
+    title: "Renda Extra: +R$5.000 com a MRO",
+    description: "Passo a passo real de quem está faturando mais de 5 mil por mês com a MRO.",
+    cover_url: "https://img.youtube.com/vi/-0CHlqHVe0g/maxresdefault.jpg",
+    video_url: "https://www.youtube.com/watch?v=-0CHlqHVe0g",
+    order_index: 1,
+  },
+];
 
 const STORAGE_KEY = "postscomia_member";
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
