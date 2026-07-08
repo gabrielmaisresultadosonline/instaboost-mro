@@ -102,7 +102,7 @@ export default function PostsComIAGallery() {
                 </a>
               </div>
               <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.4)]">
-                <img src={g11.url} alt="Logomarca gerada com I.A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img src={assetUrl(g11.url)} alt="Logomarca gerada com I.A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               </div>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function PostsComIAGallery() {
                 </a>
               </div>
               <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-[0_10px_40px_-10px_rgba(234,179,8,0.4)]">
-                <img src={g12.url} alt="Foto de estúdio gerada com I.A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img src={assetUrl(g12.url)} alt="Foto de estúdio gerada com I.A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               </div>
             </div>
           </div>
