@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, X, Users, Camera, Code2, Megaphone } from 'lucide-react';
+import { MessageCircle, X, Users, Camera, Code2, Megaphone, Sparkles } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
 
