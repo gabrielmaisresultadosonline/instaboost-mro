@@ -8,14 +8,18 @@ import g7 from "@/assets/postscomia-gallery/g7.asset.json";
 import g8 from "@/assets/postscomia-gallery/g8.asset.json";
 import g9 from "@/assets/postscomia-gallery/g9.asset.json";
 import g10 from "@/assets/postscomia-gallery/g10.asset.json";
-import { Sparkles, Wand2 } from "lucide-react";
+import g11 from "@/assets/postscomia-gallery/g11.asset.json";
+import g12 from "@/assets/postscomia-gallery/g12.asset.json";
+import { Sparkles, Wand2, Palette, Camera, ArrowRight } from "lucide-react";
 
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
 
 const images = [
   { src: g1.url, prompt: "criativo profissional para energia solar" },
+  { src: g11.url, prompt: "logomarca premium açaí com coroa" },
   { src: g2.url, prompt: "logo urbano academia moderna" },
   { src: g3.url, prompt: "post economia conta de luz 30%" },
+  { src: g12.url, prompt: "foto de estúdio profissional sem sair de casa" },
   { src: g4.url, prompt: "flyer aula experimental academia" },
   { src: g5.url, prompt: "post viral instagram tecnologia" },
   { src: g6.url, prompt: "anúncio energia solar cidade" },
