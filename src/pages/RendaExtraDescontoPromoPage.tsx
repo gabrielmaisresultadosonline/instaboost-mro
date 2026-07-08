@@ -501,32 +501,6 @@ const RendaExtraDescontoPromoPage = () => {
             <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-300 shrink-0" />
           </div>
 
-          {/* CTA Button with arrows */}
-          <div className="relative mt-10 sm:mt-12 flex items-center justify-center gap-3 sm:gap-5">
-            <span className="arrow-bounce-right text-yellow-300 text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">▶</span>
-            <Button
-              onClick={scrollToPricing}
-              className="btn-pulse-color text-black font-extrabold text-sm sm:text-lg px-7 sm:px-12 py-6 sm:py-7 rounded-full shadow-2xl shadow-yellow-500/40 hover:scale-105 transition-transform"
-            >
-              COMECE AGORA POR 12X R$30 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-            <span className="arrow-bounce-left text-yellow-300 text-2xl sm:text-3xl drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">◀</span>
-          </div>
-
-          {/* Subtitle pill */}
-          <div className="mt-5 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl px-4 py-2 backdrop-blur-sm">
-            <span className="text-base">🔥</span>
-            <p className="text-xs sm:text-sm text-yellow-200 font-semibold leading-snug">
-              Plano anual completo: <span className="text-yellow-300 font-bold">12x R$30 (R$300 à vista)</span> — 1 ano de acesso!
-            </p>
-          </div>
-
-          {/* Trust signals */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] sm:text-xs text-gray-400">
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Pagamento 100% seguro</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Acesso imediato</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Suporte humano</div>
-          </div>
 
         </div>
       </section>
