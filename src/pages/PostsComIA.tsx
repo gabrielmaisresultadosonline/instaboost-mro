@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import PostsComIAGallery from "@/components/PostsComIAGallery";
 import TrackedVideo from "@/components/TrackedVideo";
+import HeroVideoPlayer from "@/components/HeroVideoPlayer";
 
 const BASE_PRICE = 67;
 const BUMP_PRICE = 10;
