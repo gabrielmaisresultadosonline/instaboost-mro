@@ -244,65 +244,51 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
   };
 
   if (submitted) {
-    const accessHref = freeClassLink || `/rendaextra/desconto?email=${encodeURIComponent(formData.email)}`;
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center p-4">
         <div className="max-w-lg w-full text-center space-y-8 animate-fade-in">
-          <div className="bg-gradient-to-br from-yellow-400/10 to-amber-500/5 p-8 rounded-3xl border border-yellow-400/20 backdrop-blur-xl">
-            <CheckCircle2 className="w-20 h-20 text-yellow-400 mx-auto mb-6" />
+          <div className="bg-gradient-to-br from-green-400/10 to-emerald-500/5 p-8 rounded-3xl border border-green-400/20 backdrop-blur-xl">
+            <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              🎁 Aula Grátis Liberada!
+              🎉 Cadastro Confirmado!
             </h1>
-            <p className="text-gray-300 text-base md:text-lg mb-4 leading-relaxed">
-              Olá <span className="text-yellow-400 font-bold">{formData.nomeCompleto.split(" ")[0]}</span>! Enviamos o link da sua <span className="text-yellow-400 font-bold">aula grátis</span> para o seu email.
+            <p className="text-gray-300 text-base md:text-lg mb-6 leading-relaxed">
+              Olá <span className="text-green-400 font-bold">{formData.nomeCompleto.split(" ")[0]}</span>! Para receber a aula, entre agora no nosso grupo exclusivo do WhatsApp.
             </p>
-            <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-2xl p-4 mb-6 text-left">
-              <p className="text-yellow-300 font-bold text-sm md:text-base mb-1">🔥 Liberamos algumas vagas com desconto especial!</p>
+
+            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 mb-6 text-left">
+              <p className="text-green-300 font-bold text-sm md:text-base mb-2">
+                💬 Entre no grupo do WhatsApp
+              </p>
               <p className="text-gray-300 text-sm md:text-base">
-                Acesse a aula agora, assista <span className="font-bold text-white">por completo</span> e ao final do vídeo o seu <span className="font-bold text-white">desconto da ferramenta MRO</span> será liberado.
+                A aula será liberada em <span className="font-bold text-white">privado no grupo</span>. Não perca o aviso!
               </p>
             </div>
 
-            <div className="relative group inline-block w-full">
-              <div className="absolute inset-0 bg-red-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
-              <a
-                href={accessHref}
-                className="relative inline-flex items-center justify-center gap-3 w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
-              >
-                Acessar Aula Grátis Agora
-                <ArrowRight className="w-5 h-5" />
-              </a>
-            </div>
-
-            {whatsappGroupInvite && (
-              <div className="mt-6 bg-green-500/10 border border-green-500/30 rounded-2xl p-5">
-                <p className="text-green-300 font-bold text-sm md:text-base mb-3">
-                  💬 Entre no nosso grupo exclusivo do WhatsApp
-                </p>
-                <p className="text-gray-300 text-xs md:text-sm mb-4">
-                  Receba avisos, materiais e tire suas dúvidas com a nossa comunidade.
-                </p>
+            {whatsappGroupInvite ? (
+              <div className="relative group inline-block w-full">
+                <div className="absolute inset-0 bg-green-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
                 <a
                   href={whatsappGroupInvite}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-400 text-white font-bold text-sm sm:text-base px-6 py-4 rounded-full transition-all hover:scale-[1.02]"
+                  className="relative inline-flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-400 text-white font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
                 >
-                  Entrar no Grupo do WhatsApp
-                  <ArrowRight className="w-4 h-4" />
+                  Participar do Grupo no WhatsApp
+                  <ArrowRight className="w-5 h-5" />
                 </a>
               </div>
+            ) : (
+              <p className="text-yellow-300 text-sm">
+                Em instantes você receberá o link do grupo no seu email: <span className="font-bold">{formData.email}</span>
+              </p>
             )}
-
-            <p className="text-gray-500 text-xs mt-4">
-              Também enviamos o link para o seu email: <span className="text-gray-300">{formData.email}</span>
-            </p>
-
           </div>
         </div>
       </div>
     );
   }
+
 
 
   const renderQuizStep = () => {
