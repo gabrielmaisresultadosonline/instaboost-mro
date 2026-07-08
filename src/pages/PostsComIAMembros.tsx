@@ -364,11 +364,6 @@ function VideoPopup({ module: m, onClose }: { module: Module; onClose: () => voi
   );
 }
 
-function unusedCloser() {
-  return null;
-    </div>
-  );
-}
 
 function toEmbed(url: string) {
   try {
