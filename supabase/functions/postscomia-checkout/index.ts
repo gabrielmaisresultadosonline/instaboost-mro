@@ -172,8 +172,11 @@ serve(async (req) => {
 
     if (error) throw error;
 
+    // Fire Meta Conversions API Lead (non-blocking)
+    sendMetaLeadEvent(cleanEmail, cleanPhone, amount, nsu).catch(() => {});
+
     return new Response(
-      JSON.stringify({ success: true, order_id: order.id, nsu_order: nsu, payment_link: paymentLink }),
+      JSON.stringify({ success: true, order_id: order.id, nsu_order: nsu, payment_link: paymentLink, lead_event_id: nsu }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
