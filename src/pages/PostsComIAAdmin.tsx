@@ -443,7 +443,11 @@ export default function PostsComIAAdmin() {
           module={editingModule}
           onClose={() => setEditingModule(null)}
           onSave={saveModule}
+          creds={creds!}
         />
+      )}
+      {showManual && (
+        <ManualGrantModal onClose={() => setShowManual(false)} onSave={manualGrant} />
       )}
     </div>
   );
