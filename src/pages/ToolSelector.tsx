@@ -41,6 +41,16 @@ const ToolSelector = () => {
       index: '01',
     },
     {
+      id: 'postscomia',
+      name: 'Curso Completo de I.A',
+      subtitle: 'Crie imagens e posts o mês todo',
+      description: 'Ilimitado. Aprenda a gerar imagens, posts e criativos profissionais usando I.A todos os dias, sem limites.',
+      icon: Sparkles,
+      badge: 'NOVO',
+      salesPath: '/postscomia',
+      index: '02',
+    },
+    {
       id: 'mktcompleto',
       name: 'Marketing Completo',
       subtitle: 'Gestão + Ads + IA',
@@ -48,7 +58,7 @@ const ToolSelector = () => {
       icon: Megaphone,
       badge: 'HOT',
       salesPath: '/mktcompleto',
-      index: '02',
+      index: '03',
       highlight: true,
     },
     {
@@ -57,9 +67,9 @@ const ToolSelector = () => {
       subtitle: 'Desenvolvimento sob medida',
       description: 'Desenvolvemos o sistema que sua empresa precisa. Soluções técnicas exclusivas para criadores e empresas.',
       icon: Code2,
-      badge: '03',
+      badge: '04',
       salesPath: '/creatordev',
-      index: '03',
+      index: '04',
     },
   ];
 
