@@ -93,6 +93,7 @@ import PostsComIA from "./pages/PostsComIA";
 import PostsComIAAdmin from "./pages/PostsComIAAdmin";
 import PostsComIALogin from "./pages/PostsComIALogin";
 import PostsComIAMembros from "./pages/PostsComIAMembros";
+import PostsComIAObrigado from "./pages/PostsComIAObrigado";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
