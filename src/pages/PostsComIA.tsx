@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import PostsComIAGallery from "@/components/PostsComIAGallery";
+import TrackedVideo from "@/components/TrackedVideo";
 
 const BASE_PRICE = 97;
 const BUMP_PRICE = 10;
