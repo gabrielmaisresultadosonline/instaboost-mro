@@ -141,7 +141,7 @@ export default function PostsComIAGallery() {
             style={heading}
           >
             <Sparkles className="w-5 h-5" />
-            QUERO CRIAR TUDO ISSO — R$97 VITALÍCIO
+            QUERO CRIAR TUDO ISSO — R$67 VITALÍCIO
             <ArrowRight className="w-5 h-5" />
           </a>
           <p className="text-[11px] text-[#71717a] mt-3 uppercase tracking-widest">Pagamento único · Acesso imediato</p>
