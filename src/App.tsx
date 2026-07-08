@@ -279,8 +279,8 @@ const App = () => (
           <Route path="/rendaextrasoc" element={<RendaExtraLead source="social_midia" />} />
           <Route path="/rendaextraaas" element={<RendaExtraAasPage />} />
           <Route path="/rendaextra/admin" element={<RendaExtraLeadAdmin />} />
-          <Route path="/rendaextra/desconto" element={<Navigate to="/ferramentamropromo" replace />} />
-          <Route path="/rendaextra-desconto" element={<Navigate to="/ferramentamropromo" replace />} />
+          <Route path="/rendaextra/desconto" element={<RendaExtraDescontoPage />} />
+          <Route path="/rendaextra-desconto" element={<RendaExtraDescontoPage />} />
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
