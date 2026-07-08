@@ -136,15 +136,21 @@ serve(async (req) => {
       log("InfiniPay error", { e: String(e) });
     }
 
-    // Append prefill query params so InfiniPay hosted checkout fills the form
-    const prefill = new URLSearchParams({
+    // Prefill querystring for InfiniPay hosted checkout — send both country-coded
+    // and raw formats plus common param aliases so the form always fills.
+    const prefillParams: Record<string, string> = {
       customer_name: cleanName,
       customer_email: cleanEmail,
-      customer_phone: phoneWithCC,
+      customer_cellphone: cleanPhone,       // InfiniPay expects DDD+numero, no country code
+      customer_phone: cleanPhone,
+      customer_mobile_phone: cleanPhone,
       name: cleanName,
       email: cleanEmail,
-      phone: phoneWithCC,
-    }).toString();
+      phone: cleanPhone,
+      cellphone: cleanPhone,
+      mobile_phone: cleanPhone,
+    };
+    const prefill = new URLSearchParams(prefillParams).toString();
 
     if (!paymentLink) {
       const enc = encodeURIComponent(JSON.stringify([{ name: description, price: priceCents, quantity: 1 }]));
