@@ -1,8 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid, Gift, Maximize2, X, BookOpen } from "lucide-react";
+import { LogOut, Play, ExternalLink, Sparkles, Cpu, Loader2, LayoutGrid, Gift, Maximize2, X, BookOpen, Crown, HelpCircle, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TrackedVideo from "@/components/TrackedVideo";
+import { openWhatsAppChat } from "@/lib/whatsapp";
+
+const HELP_WHATSAPP = "5551992835863";
+
+const BONUS_VIDEOS: Module[] = [
+  {
+    id: "bonus-vender-sem-anuncios",
+    title: "Como Vender Sem Gastar Com Anúncios",
+    description: "Estratégias 100% orgânicas para vender todos os dias sem investir em tráfego pago.",
+    cover_url: "https://img.youtube.com/vi/5u3d1ZVb7tM/maxresdefault.jpg",
+    video_url: "https://www.youtube.com/watch?v=5u3d1ZVb7tM",
+    order_index: 0,
+  },
+  {
+    id: "bonus-renda-extra-mro",
+    title: "Renda Extra: +R$5.000 com a MRO",
+    description: "Passo a passo real de quem está faturando mais de 5 mil por mês com a MRO.",
+    cover_url: "https://img.youtube.com/vi/-0CHlqHVe0g/maxresdefault.jpg",
+    video_url: "https://www.youtube.com/watch?v=-0CHlqHVe0g",
+    order_index: 1,
+  },
+];
 
 const STORAGE_KEY = "postscomia_member";
 const heading = { fontFamily: "'Sora', system-ui, sans-serif" };
@@ -25,6 +47,9 @@ export default function PostsComIAMembros() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Module | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpMsg, setHelpMsg] = useState("");
+
 
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -274,7 +299,103 @@ export default function PostsComIAMembros() {
           </div>
         )}
         </section>
+
+        {/* CONTAINER 3 — Conteúdo Premium Bônus */}
+        <section className="mt-14 p-5 md:p-7 rounded-3xl border border-[#eab308]/30 bg-gradient-to-br from-[#0b0b0b] to-[#050505]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#eab308]/15 border border-[#eab308]/30 flex items-center justify-center">
+                <Crown className="w-5 h-5 text-[#eab308]" />
+              </div>
+              <div>
+                <div className="text-[10px] tracking-[0.25em] uppercase text-[#eab308] font-bold">Container 03</div>
+                <h2 className="text-xl md:text-2xl font-black" style={heading}>Conteúdo Premium Bônus — Aprenda Grátis</h2>
+              </div>
+            </div>
+            <span className="hidden md:inline text-[10px] text-[#71717a] font-mono">{BONUS_VIDEOS.length} aulas liberadas</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {BONUS_VIDEOS.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => setSelected(b)}
+                className="group text-left rounded-2xl overflow-hidden border border-[#eab308]/20 bg-[#0a0a0a] hover:border-[#eab308]/60 transition"
+              >
+                <div className="relative aspect-video bg-[#111] overflow-hidden">
+                  <img src={b.cover_url!} alt={b.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                  <div className="absolute top-3 left-3 text-[10px] font-mono text-black bg-[#eab308] tracking-widest px-2 py-1 rounded font-bold">
+                    BÔNUS PREMIUM
+                  </div>
+                  <div className="absolute bottom-3 right-3 w-12 h-12 rounded-full bg-[#eab308] flex items-center justify-center group-hover:scale-110 transition">
+                    <Play className="w-6 h-6 text-black fill-black ml-0.5" />
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold mb-1" style={heading}>{b.title}</h3>
+                  {b.description && <p className="text-xs text-[#a1a1aa]">{b.description}</p>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
       </main>
+
+      {/* Floating Help button */}
+      <button
+        onClick={() => setHelpOpen(true)}
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#eab308] text-black font-black shadow-[0_10px_40px_rgba(234,179,8,0.4)] hover:scale-105 transition"
+      >
+        <HelpCircle className="w-5 h-5" /> Ajuda
+      </button>
+
+      {/* Help Modal */}
+      {helpOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setHelpOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-[#0a0a0a] border border-[#eab308]/30 rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-[#eab308]" />
+                <h3 className="font-black" style={heading}>Precisa de Ajuda?</h3>
+              </div>
+              <button onClick={() => setHelpOpen(false)} className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-[#a1a1aa]">
+                Descreva sua dúvida abaixo. Ao clicar em enviar, você será direcionado para nosso WhatsApp com sua mensagem pronta.
+              </p>
+              <textarea
+                value={helpMsg}
+                onChange={(e) => setHelpMsg(e.target.value)}
+                rows={5}
+                placeholder="Descreva sua dúvida aqui..."
+                className="w-full p-3 rounded-xl bg-black border border-white/10 focus:border-[#eab308]/60 outline-none text-sm text-white resize-none"
+              />
+              <button
+                onClick={() => {
+                  const name = member?.name || member?.email.split("@")[0] || "";
+                  const msg = `Olá! Meu nome é ${name} e sou aluno do Posts com I.A.\n\n${helpMsg.trim() || "Preciso de ajuda."}`;
+                  openWhatsAppChat(HELP_WHATSAPP, msg);
+                  setHelpOpen(false);
+                  setHelpMsg("");
+                }}
+                className="w-full py-3 rounded-xl bg-[#eab308] hover:bg-[#facc15] text-black font-black flex items-center justify-center gap-2 transition"
+              >
+                <Send className="w-4 h-4" /> Enviar no WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Video Modal (popup) */}
       {selected && (
