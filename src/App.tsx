@@ -371,6 +371,7 @@ const App = () => (
           <Route path="/postscomia/admin" element={<PostsComIAAdmin />} />
           <Route path="/postscomia/login" element={<PostsComIALogin />} />
           <Route path="/postscomia/membros" element={<PostsComIAMembros />} />
+          <Route path="/postscomia/obrigado" element={<PostsComIAObrigado />} />
 
 
 
