@@ -187,6 +187,86 @@ Deno.serve(async (req) => {
       return json({ modules: data || [] });
     }
 
+    // Public: provision Prompts MRO bonus access for a paid PostsComIA member
+    if (action === "bonus_prompts_provision") {
+      const email = (body.email || "").toString().trim().toLowerCase();
+      if (!email) return json({ success: false, error: "E-mail obrigatório" });
+      // Verify buyer
+      const { data: order } = await supabase
+        .from("postscomia_orders")
+        .select("*")
+        .eq("email", email)
+        .eq("status", "paid")
+        .order("paid_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!order) return json({ success: false, error: "Acesso não encontrado" });
+
+      // Hash helper (matches prompts-mro-auth)
+      async function hashPassword(p: string): Promise<string> {
+        const buf = new TextEncoder().encode(p + "_prompts_mro_salt_2025");
+        const digest = await crypto.subtle.digest("SHA-256", buf);
+        return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+      }
+
+      const nowISO = new Date().toISOString();
+      const subEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+      let { data: user } = await supabase
+        .from("prompts_mro_users")
+        .select("id, name, email, copies_count, copies_limit, is_paid, subscription_end")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (!user) {
+        const pwd = await hashPassword(genPassword());
+        const insertRes = await supabase
+          .from("prompts_mro_users")
+          .insert({
+            name: order.name || email.split("@")[0],
+            email,
+            password: pwd,
+            status: "active",
+            copies_count: 0,
+            copies_limit: 5,
+            is_paid: true,
+            paid_at: nowISO,
+            subscription_end: subEnd,
+            payment_nsu: `POSTSCOMIA_BONUS_${order.id}`,
+          })
+          .select("id, name, email, copies_count, copies_limit, is_paid, subscription_end")
+          .single();
+        user = insertRes.data;
+      } else if (!user.is_paid || !user.subscription_end || new Date(user.subscription_end) < new Date()) {
+        const upd = await supabase
+          .from("prompts_mro_users")
+          .update({ is_paid: true, paid_at: nowISO, subscription_end: subEnd })
+          .eq("id", user.id)
+          .select("id, name, email, copies_count, copies_limit, is_paid, subscription_end")
+          .single();
+        user = upd.data || user;
+      }
+
+      if (!user) return json({ success: false, error: "Falha ao provisionar bônus" });
+
+      const daysRemaining = user.subscription_end
+        ? Math.max(0, Math.ceil((new Date(user.subscription_end).getTime() - Date.now()) / 86400000))
+        : null;
+
+      return json({
+        success: true,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          copies_count: user.copies_count || 0,
+          copies_limit: user.copies_limit || 5,
+          is_paid: true,
+          days_remaining: daysRemaining,
+        },
+      });
+    }
+
     // Public: get settings (hero video + pixel)
     if (action === "get_settings") {
       const { data } = await supabase
