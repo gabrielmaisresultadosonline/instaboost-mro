@@ -44,7 +44,7 @@ serve(async (req) => {
     const priceCents = Math.round(amount * 100);
     const nsu = genNSU();
 
-    const redirectUrl = `https://maisresultadosonline.com.br/postscomia?paid=1&nsu=${nsu}`;
+    const redirectUrl = `https://maisresultadosonline.com.br/postscomia/obrigado?paid=1&nsu=${nsu}`;
     const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
 
     const description = `POSTSCOMIA_${withBump ? "BUMP_" : ""}${cleanEmail}`;
