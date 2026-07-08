@@ -3734,6 +3734,54 @@ export type Database = {
         }
         Relationships: []
       }
+      postscomia_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          name: string
+          nsu_order: string
+          orderbump: boolean
+          paid_at: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name: string
+          nsu_order: string
+          orderbump?: boolean
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name?: string
+          nsu_order?: string
+          orderbump?: boolean
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       postsprompts_buyers: {
         Row: {
           created_at: string

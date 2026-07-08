@@ -180,10 +180,18 @@ serve(async (req) => {
     let isRendaExtOrder = false;
     let isVenderOrder = false;
     
+    let isPostsComIAOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("POSTSCOMIA_")) {
+          isPostsComIAOrder = true;
+          email = itemName.replace("POSTSCOMIA_BUMP_", "").replace("POSTSCOMIA_", "").toLowerCase();
+          log("Parsed POSTSCOMIA order", { email });
+          break;
+        }
 
         if (itemName.startsWith("VENDER_")) {
           isVenderOrder = true;
@@ -393,6 +401,25 @@ serve(async (req) => {
           await supabase.functions.invoke("mro-payment-webhook", { body: { order_nsu: mroOrder.nsu_order, paid: true, status: "paid", items: [{ description: `MROIG_${mroOrder.plan_type === "lifetime" ? "VITALICIO" : mroOrder.plan_type === "trial" ? "TRIAL" : mroOrder.plan_type === "monthly" ? "MENSAL" : "ANUAL"}_${mroOrder.username}_${mroOrder.email}` }] } });
         } catch (e) { log("Error invoking MRO webhook", e); }
         return new Response(JSON.stringify({ success: true, message: "MRO Payment confirmed" }), { headers: corsHeaders, status: 200 });
+      }
+    }
+
+    // POSTSCOMIA orders
+    if (isPostsComIAOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("POSTSCOMIA"))) {
+      log("Processing as POSTSCOMIA order", { order_nsu, email });
+      let pcOrder = null;
+      if (order_nsu) {
+        const r = await supabase.from("postscomia_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        pcOrder = r.data;
+      }
+      if (!pcOrder && email) {
+        const r = await supabase.from("postscomia_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        pcOrder = r.data;
+      }
+      if (pcOrder) {
+        await supabase.from("postscomia_orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", pcOrder.id);
+        await sendMetaPurchaseEvent(pcOrder.email, Number(pcOrder.amount) || 97, "Posts com IA", pcOrder.nsu_order, "https://maisresultadosonline.com.br/postscomia");
+        return new Response(JSON.stringify({ success: true, message: "POSTSCOMIA confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
 
