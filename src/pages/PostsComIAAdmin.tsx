@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, LogOut, RefreshCw, CheckCircle2, Trash2, DollarSign, Users, Clock, TrendingUp, Mail, Video, Plus, Pencil, X, UploadCloud, BarChart3, Settings, UserPlus, Eye } from "lucide-react";
+import HeroVideoVPSUploader from "@/components/HeroVideoVPSUploader";
 
 
 const STORAGE_KEY = "postscomia_admin_auth";
@@ -716,16 +717,21 @@ function SettingsPanel({
     <div className="max-w-3xl">
       <div className="mb-6">
         <h2 className="text-lg font-black mb-1">Vídeo Principal da Landing</h2>
-        <p className="text-xs text-neutral-500">O vídeo do topo da página /postscomia. Faça upload de um MP4 (H.264) para funcionar em todos os aparelhos.</p>
+        <p className="text-xs text-neutral-500">
+          Faça upload direto no servidor de vídeo. O transcoding HLS gera múltiplas qualidades (480p/720p/1080p)
+          para tocar em todos os aparelhos e telas. Você também pode reiniciar o transcoding a qualquer momento.
+        </p>
       </div>
 
       <div className="space-y-5 rounded-2xl border border-neutral-900 bg-neutral-950 p-5">
-        <Field label="Vídeo principal (MP4)">
-          <UploadField kind="video" accept="video/mp4,video/webm" value={form.hero_video_url || ""} onChange={(url) => setForm({ ...form, hero_video_url: url })} creds={creds} />
-        </Field>
-        <Field label="Capa (thumbnail) do vídeo principal">
-          <UploadField kind="cover" accept="image/*" value={form.hero_video_poster || ""} onChange={(url) => setForm({ ...form, hero_video_poster: url })} creds={creds} />
-        </Field>
+        <HeroVideoVPSUploader form={form} setForm={setForm} onSave={onSave} />
+
+        <div className="pt-4 border-t border-neutral-900">
+          <Field label="Capa (thumbnail) do vídeo principal">
+            <UploadField kind="cover" accept="image/*" value={form.hero_video_poster || ""} onChange={(url) => setForm({ ...form, hero_video_poster: url })} creds={creds} />
+          </Field>
+        </div>
+
         <div className="pt-4 border-t border-neutral-900">
           <Field label="Facebook Pixel ID (conversão de compra)">
             <input
@@ -736,13 +742,13 @@ function SettingsPanel({
             />
             <p className="text-[10px] text-neutral-500 mt-1">Quando o pagamento for aprovado, o evento <b>Purchase</b> é disparado automaticamente.</p>
           </Field>
+          <button
+            onClick={() => onSave(form)}
+            className="mt-4 w-full px-4 py-3 rounded-lg bg-neutral-900 border border-neutral-800 text-white font-bold text-sm hover:bg-neutral-800"
+          >
+            Salvar capa + Pixel
+          </button>
         </div>
-        <button
-          onClick={() => onSave(form)}
-          className="w-full px-4 py-3 rounded-lg bg-yellow-400 text-black font-black text-sm hover:bg-yellow-300"
-        >
-          Salvar configurações
-        </button>
       </div>
     </div>
   );
