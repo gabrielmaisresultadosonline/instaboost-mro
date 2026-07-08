@@ -221,7 +221,35 @@ export default function PostsComIAAdmin() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Stats */}
+        {/* Section switcher */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setSection("orders")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold ${
+              section === "orders" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+            }`}
+          >
+            Pedidos
+          </button>
+          <button
+            onClick={() => setSection("modules")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
+              section === "modules" ? "bg-yellow-400 text-black" : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+            }`}
+          >
+            <Video className="w-4 h-4" /> Módulos ({modules.length})
+          </button>
+        </div>
+
+        {section === "modules" ? (
+          <ModulesPanel
+            modules={modules}
+            onNew={() => setEditingModule({ title: "", description: "", cover_url: "", video_url: "", order_index: modules.length, is_active: true })}
+            onEdit={(m) => setEditingModule(m)}
+            onDelete={deleteModule}
+          />
+        ) : (
+        <>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard icon={<Users className="w-4 h-4" />} label="Total pedidos" value={stats?.total ?? 0} />
           <StatCard icon={<CheckCircle2 className="w-4 h-4" />} label="Pagos" value={stats?.paid ?? 0} color="text-green-400" />
@@ -240,6 +268,7 @@ export default function PostsComIAAdmin() {
             {stats.bumpCount} clientes compraram o Orderbump (Atualizações Vitalícias)
           </div>
         ) : null}
+
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4">
