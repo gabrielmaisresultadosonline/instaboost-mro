@@ -312,6 +312,15 @@ export default function PostsComIAAdmin() {
           />
         </div>
 
+        <div className="mb-4">
+          <button
+            onClick={() => setShowManual(true)}
+            className="px-4 py-2 rounded-lg bg-yellow-400 text-black font-black text-sm flex items-center gap-2 hover:bg-yellow-300"
+          >
+            <UserPlus className="w-4 h-4" /> Liberar acesso manual
+          </button>
+        </div>
+
         {stats?.bumpCount ? (
           <div className="mb-4 p-3 rounded-lg bg-yellow-400/10 border border-yellow-400/30 text-sm text-yellow-200 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
