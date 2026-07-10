@@ -90,8 +90,11 @@ const RendaSaoVivoAdmin = () => {
       const { data, error } = await supabase.functions.invoke("upload-video", { body: fd });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "erro upload");
-      setSettings((s) => ({ ...s, hero_video_url: data.url }));
-      toast.success("Vídeo enviado! Clique em Salvar para publicar.");
+      const newSettings = { ...settings, hero_video_url: data.url };
+      setSettings(newSettings);
+      // Auto-save immediately so the video is live without manual click
+      await call("save_settings", newSettings);
+      toast.success("Vídeo enviado e publicado automaticamente!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro no upload");
     } finally { setUploading(false); }
