@@ -12,6 +12,7 @@ import {
   ShieldCheck, Rocket, Brain, LineChart, Cpu, Target,
 } from "lucide-react";
 import gabrielPhoneAsset from "@/assets/gabriel-phone.png.asset.json";
+import { assetUrl } from "@/lib/assetUrl";
 
 const RendaSaoVivo = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -205,7 +206,7 @@ const RendaSaoVivo = () => {
               ))}
 
               <img
-                src={gabrielPhoneAsset.url}
+                src={assetUrl(gabrielPhoneAsset.url)}
                 alt="Gabriel ao telefone"
                 className="relative z-10 h-[240px] md:h-[300px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
               />
