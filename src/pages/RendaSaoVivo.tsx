@@ -159,7 +159,9 @@ const RendaSaoVivo = () => {
               try {
                 v.muted = false;
                 v.volume = 1;
-                v.currentTime = 0;
+                // Do NOT reset currentTime here — reseeking to 0 discards
+                // the already-buffered range and causes audio stutter on
+                // slow connections. Just unmute the ongoing playback.
                 const p = v.play();
                 if (p && typeof p.catch === "function") p.catch(() => {});
               } catch { /* ignore */ }
