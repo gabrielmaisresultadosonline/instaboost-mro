@@ -34,7 +34,7 @@ const RendaSaoVivo = () => {
       try {
         const { data } = await supabase.functions.invoke("rendasaovivo-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
-          setPreco(Number(data.settings.preco) || 19);
+          setPreco(Number(data.settings.preco) || 10);
           setAulaData(data.settings.aula_data || "19/07");
         }
       } catch { /* ignore */ }
