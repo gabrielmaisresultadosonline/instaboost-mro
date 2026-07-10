@@ -47,6 +47,8 @@ const RendaSaoVivo = () => {
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 10);
           setAulaData(data.settings.aula_data || "19/07");
+          if (data.settings.hero_video_url) setHeroVideoUrl(data.settings.hero_video_url);
+          if (data.settings.hero_video_hls_url) setHeroVideoHls(data.settings.hero_video_hls_url);
         }
       } catch { /* ignore */ }
       const fbq = (window as any).fbq;
