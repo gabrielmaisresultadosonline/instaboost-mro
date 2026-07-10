@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Loader2, RefreshCw, Send, Save, Mail, Eye, DollarSign, Users, Upload } from "lucide-react";
+
+const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
+
 
 interface Order {
   id: string; nome_completo: string; email: string; whatsapp: string;
