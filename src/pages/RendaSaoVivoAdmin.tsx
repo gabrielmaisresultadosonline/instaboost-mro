@@ -80,19 +80,22 @@ const RendaSaoVivoAdmin = () => {
 
   const handleVideoUpload = async (file: File) => {
     if (!file) return;
-    if (file.size > 100 * 1024 * 1024) return toast.error("Máximo 100MB");
+    if (file.size > 500 * 1024 * 1024) return toast.error("Máximo 500MB");
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("folder", "rendasaovivo");
-      fd.append("filename", `hero_${Date.now()}.mp4`);
-      const { data, error } = await supabase.functions.invoke("upload-video", { body: fd });
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "erro upload");
-      const newSettings = { ...settings, hero_video_url: data.url };
+      const path = `rendasaovivo/hero_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      // Upload direto do browser para o Storage (evita limite de CPU do edge function)
+      const { error: upErr } = await supabase.storage
+        .from("assets")
+        .upload(path, file, {
+          contentType: file.type || "video/mp4",
+          upsert: true,
+          cacheControl: "3600",
+        });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("assets").getPublicUrl(path);
+      const newSettings = { ...settings, hero_video_url: pub.publicUrl };
       setSettings(newSettings);
-      // Auto-save immediately so the video is live without manual click
       await call("save_settings", newSettings);
       toast.success("Vídeo enviado e publicado automaticamente!");
     } catch (err) {
