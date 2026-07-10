@@ -235,8 +235,6 @@ const RendaSaoVivo = () => {
                     loop
                     playsInline
                     preload="auto"
-                    // @ts-ignore
-                    disableRemotePlayback
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
