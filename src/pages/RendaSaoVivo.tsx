@@ -12,7 +12,9 @@ import {
   ShieldCheck, Rocket, Brain, LineChart, Cpu, Target,
 } from "lucide-react";
 import gabrielPhoneAsset from "@/assets/gabriel-phone.png.asset.json";
+import heroVideoAsset from "@/assets/rendasaovivo-hero.mp4.asset.json";
 import { assetUrl } from "@/lib/assetUrl";
+import { X, Volume2, VolumeX } from "lucide-react";
 
 const RendaSaoVivo = () => {
   const [openForm, setOpenForm] = useState(false);
