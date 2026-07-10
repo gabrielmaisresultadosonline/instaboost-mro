@@ -30,10 +30,16 @@ const RendaSaoVivoAdmin = () => {
     hero_video_url: "", hero_video_hls_url: "",
   });
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [transcoding, setTranscoding] = useState<{ jobId: string; progress: number; status: string } | null>(null);
+  const transcodeTimer = useRef<number | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [visits, setVisits] = useState<any[]>([]);
   const [visitsTotal, setVisitsTotal] = useState(0);
   const [testEmail, setTestEmail] = useState("");
+
+  useEffect(() => () => { if (transcodeTimer.current) window.clearTimeout(transcodeTimer.current); }, []);
+
 
   useEffect(() => { document.title = "Admin - Renda Ao Vivo"; }, []);
 
