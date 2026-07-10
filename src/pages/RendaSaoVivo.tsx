@@ -332,7 +332,7 @@ const RendaSaoVivo = () => {
                   <div className="text-neutral-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Pagamento único</div>
                 </div>
 
-                <Button onClick={openCheckout} size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-lg md:text-xl h-16 rounded-2xl shadow-[0_0_60px_rgba(250,204,21,0.4)] hover:shadow-[0_0_80px_rgba(250,204,21,0.7)] tracking-wide transition-all">
+                <Button onClick={openCheckout} size="lg" className="w-full bg-green-500 hover:bg-green-400 text-white font-black text-lg md:text-xl h-16 rounded-2xl shadow-[0_0_60px_rgba(34,197,94,0.5)] hover:shadow-[0_0_80px_rgba(34,197,94,0.75)] tracking-wide transition-all">
                   PAGAR E GARANTIR VAGA
                 </Button>
 
