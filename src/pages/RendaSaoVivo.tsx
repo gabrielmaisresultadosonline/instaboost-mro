@@ -294,6 +294,10 @@ const RendaSaoVivo = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+
+
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
               Uma metodologia validada por mais de 1.800 empreendedores brasileiros — direta, prática e sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
