@@ -11,6 +11,7 @@ import {
   Sparkles, TrendingUp, Users, CheckCircle2, Zap, Calendar, Clock, ArrowRight,
   ShieldCheck, Rocket, Brain, LineChart, Cpu, Target,
 } from "lucide-react";
+import gabrielPhoneAsset from "@/assets/gabriel-phone.png.asset.json";
 
 const RendaSaoVivo = () => {
   const [openForm, setOpenForm] = useState(false);
