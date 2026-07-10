@@ -310,10 +310,21 @@ const RendaSaoVivoAdmin = () => {
                         onChange={(e) => e.target.files?.[0] && handleVideoUpload(e.target.files[0])}
                       />
                       <span className={`inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md text-sm font-medium cursor-pointer ${uploading ? "bg-slate-700 text-gray-400" : "bg-yellow-500 hover:bg-yellow-400 text-black"}`}>
-                        {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</> : <><Upload className="w-4 h-4" /> Enviar novo vídeo</>}
+                        {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando {uploadProgress}%…</> : <><Upload className="w-4 h-4" /> Enviar novo vídeo (transcodifica automático)</>}
                       </span>
                     </label>
                   </div>
+                  {uploading && <Progress value={uploadProgress} className="h-2" />}
+                  {transcoding && (
+                    <div className="p-3 rounded-md bg-blue-950/40 border border-blue-800 text-sm">
+                      <div className="flex justify-between mb-1">
+                        <span>🎬 Transcodificando HLS…</span>
+                        <span className="font-mono">{transcoding.status} · {transcoding.progress}%</span>
+                      </div>
+                      <Progress value={transcoding.progress} className="h-2" />
+                    </div>
+                  )}
+
                   <div>
                     <Label>URL do vídeo MP4</Label>
                     <Input value={settings.hero_video_url} onChange={(e) => setSettings({ ...settings, hero_video_url: e.target.value })} placeholder="https://... .mp4" className="bg-slate-800 border-slate-700 mt-1 font-mono text-xs" />
