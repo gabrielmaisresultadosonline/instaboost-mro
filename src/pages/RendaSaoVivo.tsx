@@ -27,6 +27,7 @@ const RendaSaoVivo = () => {
   const modalVideoRef = useRef<HTMLVideoElement>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
+  const [audioGate, setAudioGate] = useState(true);
 
   useEffect(() => {
     document.title = "Renda Ao Vivo | Método profissional para faturar em casa";
@@ -147,6 +148,46 @@ const RendaSaoVivo = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans selection:bg-yellow-400 selection:text-black">
+      {/* Audio Gate — user gesture to allow autoplay with sound */}
+      {audioGate && (
+        <button
+          type="button"
+          onClick={() => {
+            const v = heroVideoRef.current;
+            if (v) {
+              try {
+                v.muted = false;
+                v.volume = 1;
+                v.currentTime = 0;
+                const p = v.play();
+                if (p && typeof p.catch === "function") p.catch(() => {});
+              } catch { /* ignore */ }
+            }
+            setVideoMuted(false);
+            setAudioGate(false);
+          }}
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-black/95 backdrop-blur-md cursor-pointer group"
+          aria-label="Toque para ouvir"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(250,204,21,0.15),transparent_70%)]" />
+          <div className="relative flex flex-col items-center gap-6 px-6 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-yellow-400 flex items-center justify-center shadow-[0_0_80px_rgba(250,204,21,0.6)] group-hover:scale-105 transition-transform">
+              <span className="text-6xl md:text-7xl">🔊</span>
+              <span className="absolute w-28 h-28 md:w-36 md:h-36 rounded-full border-2 border-yellow-400/60 animate-ping" />
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white">
+              Toque para <span className="text-yellow-400">ouvir</span>
+            </h2>
+            <p className="text-neutral-400 text-sm md:text-base max-w-md">
+              Clique em qualquer lugar para entrar e ativar o áudio da aula
+            </p>
+            <div className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-yellow-400 text-black font-black text-sm uppercase tracking-widest shadow-[0_0_40px_rgba(250,204,21,0.5)]">
+              Entrar agora
+            </div>
+          </div>
+        </button>
+      )}
+
       {/* AI grid + neural background */}
       <div className="fixed inset-0 pointer-events-none">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-40" />
