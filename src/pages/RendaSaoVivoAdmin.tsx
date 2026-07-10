@@ -23,7 +23,9 @@ const RendaSaoVivoAdmin = () => {
   const [settings, setSettings] = useState({
     whatsapp_group_link: "", aula_data: "18/07",
     aula_titulo: "Aula Ao Vivo - Renda Ao Vivo", preco: 19,
+    hero_video_url: "", hero_video_hls_url: "",
   });
+  const [uploading, setUploading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [visits, setVisits] = useState<any[]>([]);
   const [visitsTotal, setVisitsTotal] = useState(0);
