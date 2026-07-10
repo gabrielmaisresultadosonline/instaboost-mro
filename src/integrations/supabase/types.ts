@@ -5344,6 +5344,8 @@ export type Database = {
           aula_data: string
           aula_titulo: string
           created_at: string
+          hero_video_hls_url: string
+          hero_video_url: string
           id: string
           preco: number
           updated_at: string
@@ -5353,6 +5355,8 @@ export type Database = {
           aula_data?: string
           aula_titulo?: string
           created_at?: string
+          hero_video_hls_url?: string
+          hero_video_url?: string
           id?: string
           preco?: number
           updated_at?: string
@@ -5362,6 +5366,8 @@ export type Database = {
           aula_data?: string
           aula_titulo?: string
           created_at?: string
+          hero_video_hls_url?: string
+          hero_video_url?: string
           id?: string
           preco?: number
           updated_at?: string
