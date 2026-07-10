@@ -150,21 +150,8 @@ const RendaSaoVivo = () => {
       </div>
 
       {/* NAV */}
-      <nav className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-yellow-400 text-black flex items-center justify-center font-black text-sm shadow-[0_0_20px_rgba(250,204,21,0.5)]">
-            MRO
-          </div>
-          <span className="font-black tracking-widest text-sm uppercase text-neutral-300">Renda<span className="text-yellow-400">.</span>AoVivo</span>
-        </div>
-        <div className="inline-flex items-center gap-2 border border-neutral-800 bg-neutral-900/60 backdrop-blur px-3 py-1.5 rounded-full">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 animate-ping opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-          </span>
-          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-300">AO VIVO · {aulaData}</span>
-        </div>
-      </nav>
+
+
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-6 md:pt-12">
         {/* HERO */}
