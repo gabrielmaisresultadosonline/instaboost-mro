@@ -17,7 +17,7 @@ const RendaSaoVivo = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preco, setPreco] = useState<number>(19);
-  const [aulaData, setAulaData] = useState<string>("18/07");
+  const [aulaData, setAulaData] = useState<string>("19/07");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -34,7 +34,7 @@ const RendaSaoVivo = () => {
         const { data } = await supabase.functions.invoke("rendasaovivo-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 19);
-          setAulaData(data.settings.aula_data || "18/07");
+          setAulaData(data.settings.aula_data || "19/07");
         }
       } catch { /* ignore */ }
       const fbq = (window as any).fbq;
