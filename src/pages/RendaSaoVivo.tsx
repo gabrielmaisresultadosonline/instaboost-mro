@@ -30,6 +30,8 @@ const RendaSaoVivo = () => {
   const [videoMuted, setVideoMuted] = useState(true);
   const [audioGate, setAudioGate] = useState(true);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [heroVideoUrl, setHeroVideoUrl] = useState<string>(assetUrl(heroVideoAsset.url));
+  const [heroVideoHls, setHeroVideoHls] = useState<string>("");
 
   useEffect(() => {
     document.title = "Renda Ao Vivo | Método profissional para faturar em casa";
