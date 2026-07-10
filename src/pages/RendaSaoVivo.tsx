@@ -291,7 +291,7 @@ const RendaSaoVivo = () => {
           {[
             { icon: Brain, title: "Método Inteligente", text: "Estratégia validada e replicável" },
             { icon: Target, title: "R$ 5 mil / mês", text: "Faturamento comprovado em casa" },
-            { icon: Cpu, title: "Só um notebook", text: "Sem estoque, sem aparecer" },
+            { icon: Cpu, title: "Só um notebook", text: "Método simples e replicável" },
           ].map((b, i) => (
             <div key={i} className="group relative bg-neutral-950/60 border border-neutral-800 hover:border-yellow-400/40 p-6 rounded-2xl backdrop-blur transition-all overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 blur-3xl rounded-full group-hover:bg-yellow-400/10 transition" />
