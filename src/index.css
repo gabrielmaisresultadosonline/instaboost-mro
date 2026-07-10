@@ -279,3 +279,15 @@
   -webkit-text-fill-color: transparent;
   animation: gold-shimmer 3s linear infinite;
 }
+
+@keyframes pix-notif-float {
+  0%   { opacity: 0; transform: translate(0, 20px) scale(0.85); filter: blur(4px); }
+  15%  { opacity: 1; transform: translate(0, 0) scale(1); filter: blur(0); }
+  70%  { opacity: 1; transform: translate(0, -30px) scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: translate(0, -60px) scale(0.9); filter: blur(6px); }
+}
+.pix-notif {
+  animation: pix-notif-float 9.6s ease-in-out infinite;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
