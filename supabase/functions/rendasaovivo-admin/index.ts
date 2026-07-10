@@ -38,8 +38,8 @@ serve(async (req) => {
     }
 
     if (action === "get_public_settings") {
-      const { data } = await supabase.from("rendasaovivo_settings").select("aula_data,aula_titulo,preco").limit(1).maybeSingle();
-      return json({ success: true, settings: data || { aula_data: "19/07", aula_titulo: "", preco: 19 } });
+      const { data } = await supabase.from("rendasaovivo_settings").select("aula_data,aula_titulo,preco,hero_video_url,hero_video_hls_url").limit(1).maybeSingle();
+      return json({ success: true, settings: data || { aula_data: "19/07", aula_titulo: "", preco: 19, hero_video_url: "", hero_video_hls_url: "" } });
     }
 
     if (action === "check_paid") {
