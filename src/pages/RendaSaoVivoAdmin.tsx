@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Send, Save, Mail, Eye, DollarSign, Users } from "lucide-react";
+import { Loader2, RefreshCw, Send, Save, Mail, Eye, DollarSign, Users, Upload } from "lucide-react";
 
 interface Order {
   id: string; nome_completo: string; email: string; whatsapp: string;
