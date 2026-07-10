@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
