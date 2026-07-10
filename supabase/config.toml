@@ -299,3 +299,9 @@ verify_jwt = false
 
 [functions.postscomia-checkout]
 verify_jwt = false
+
+[functions.rendasaovivo-checkout]
+verify_jwt = false
+
+[functions.rendasaovivo-admin]
+verify_jwt = false
