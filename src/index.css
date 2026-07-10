@@ -280,14 +280,23 @@
   animation: gold-shimmer 3s linear infinite;
 }
 
-@keyframes pix-notif-float {
-  0%   { opacity: 0; transform: translate(0, 20px) scale(0.85); filter: blur(4px); }
-  15%  { opacity: 1; transform: translate(0, 0) scale(1); filter: blur(0); }
-  70%  { opacity: 1; transform: translate(0, -30px) scale(1); filter: blur(0); }
-  100% { opacity: 0; transform: translate(0, -60px) scale(0.9); filter: blur(6px); }
+@keyframes pix-notif-left {
+  0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.7); filter: blur(6px); }
+  20%  { opacity: 1; transform: translate(-90%, -5px) scale(1); filter: blur(0); }
+  75%  { opacity: 1; transform: translate(-190%, -20px) scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: translate(-230%, -35px) scale(0.9); filter: blur(6px); }
+}
+@keyframes pix-notif-right {
+  0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.7); filter: blur(6px); }
+  20%  { opacity: 1; transform: translate(-10%, -5px) scale(1); filter: blur(0); }
+  75%  { opacity: 1; transform: translate(90%, -20px) scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: translate(130%, -35px) scale(0.9); filter: blur(6px); }
 }
 .pix-notif {
-  animation: pix-notif-float 9.6s ease-in-out infinite;
+  left: 50%;
   opacity: 0;
   will-change: transform, opacity, filter;
 }
+.pix-notif.pix-left  { animation: pix-notif-left  9s ease-in-out infinite; }
+.pix-notif.pix-right { animation: pix-notif-right 9s ease-in-out infinite; }
+

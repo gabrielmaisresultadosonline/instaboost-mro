@@ -177,23 +177,33 @@ const RendaSaoVivo = () => {
             </div>
 
             {/* HERO IMAGE with PIX notifications */}
-            <div className="relative w-full flex justify-center items-end min-h-[340px] md:min-h-[440px]">
-              {/* glow behind */}
-              <div className="absolute inset-x-0 bottom-0 h-[80%] bg-[radial-gradient(ellipse_at_center,rgba(250,204,21,0.25),transparent_60%)] blur-2xl" />
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
+              Aprenda como <span className="text-yellow-400">eu faturo</span> mais de{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">5K por mês</span>
+                <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
+              </span>{" "}
+              em casa <span className="text-neutral-400 font-light italic normal-case">com apenas um notebook.</span>
+            </h1>
 
-              {/* Pix notifications loop */}
+            {/* HERO IMAGE with PIX notifications emerging from behind */}
+            <div className="relative w-full flex justify-center items-end min-h-[240px] md:min-h-[300px] -mt-2">
+              {/* glow behind */}
+              <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[radial-gradient(ellipse_at_center,rgba(250,204,21,0.22),transparent_60%)] blur-2xl" />
+
+              {/* Pix notifications loop — spawn behind image, drift sideways */}
               {[
-                { delay: "0s", top: "8%", left: "8%", value: "R$ 197,00" },
-                { delay: "1.6s", top: "22%", left: "72%", value: "R$ 89,90" },
-                { delay: "3.2s", top: "48%", left: "4%", value: "R$ 350,00" },
-                { delay: "4.8s", top: "58%", left: "76%", value: "R$ 47,00" },
-                { delay: "6.4s", top: "14%", left: "82%", value: "R$ 1.290,00" },
-                { delay: "8s", top: "38%", left: "78%", value: "R$ 27,00" },
+                { delay: "0s",   side: "left",  top: "10%", value: "R$ 197,00" },
+                { delay: "1.5s", side: "right", top: "20%", value: "R$ 89,90" },
+                { delay: "3s",   side: "left",  top: "55%", value: "R$ 350,00" },
+                { delay: "4.5s", side: "right", top: "60%", value: "R$ 47,00" },
+                { delay: "6s",   side: "right", top: "35%", value: "R$ 1.290,00" },
+                { delay: "7.5s", side: "left",  top: "35%", value: "R$ 27,00" },
               ].map((n, i) => (
                 <div
                   key={i}
-                  className="absolute pix-notif z-0"
-                  style={{ top: n.top, left: n.left, animationDelay: n.delay }}
+                  className={`absolute pix-notif pix-${n.side} z-0`}
+                  style={{ top: n.top, animationDelay: n.delay }}
                 >
                   <div className="flex items-center gap-2 bg-neutral-900/90 backdrop-blur border border-yellow-400/40 rounded-xl px-3 py-2 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
                     <div className="w-7 h-7 rounded-md bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-black text-black text-[10px]">
@@ -210,18 +220,9 @@ const RendaSaoVivo = () => {
               <img
                 src={gabrielPhoneAsset.url}
                 alt="Gabriel ao telefone"
-                className="relative z-10 h-[340px] md:h-[440px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                className="relative z-10 h-[240px] md:h-[300px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
               />
             </div>
-
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
-              Aprenda como <span className="text-yellow-400">eu faturo</span> mais de{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">5K por mês</span>
-                <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
-              </span>{" "}
-              em casa <span className="text-neutral-400 font-light italic normal-case">com apenas um notebook.</span>
-            </h1>
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
               Uma metodologia validada por mais de 1.800 empreendedores brasileiros — direta, prática e sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
