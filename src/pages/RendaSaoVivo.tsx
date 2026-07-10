@@ -163,8 +163,9 @@ const RendaSaoVivo = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-6 md:pt-12">
         {/* HERO */}
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 space-y-7">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="space-y-7 flex flex-col items-center">
+
             <div className="inline-flex items-center gap-2 border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 rounded-full">
               <Brain className="w-3.5 h-3.5 text-yellow-400" />
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MÉTODO INTELIGENTE · 2026</span>
