@@ -27,6 +27,7 @@ const RendaSaoVivo = () => {
   const modalVideoRef = useRef<HTMLVideoElement>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
+  const [audioGate, setAudioGate] = useState(true);
 
   useEffect(() => {
     document.title = "Renda Ao Vivo | Método profissional para faturar em casa";
