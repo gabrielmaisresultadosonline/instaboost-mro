@@ -163,8 +163,9 @@ const RendaSaoVivo = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-6 md:pt-12">
         {/* HERO */}
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 space-y-7">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="space-y-7 flex flex-col items-center">
+
             <div className="inline-flex items-center gap-2 border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 rounded-full">
               <Brain className="w-3.5 h-3.5 text-yellow-400" />
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MÉTODO INTELIGENTE · 2026</span>
@@ -205,59 +206,6 @@ const RendaSaoVivo = () => {
             </div>
           </div>
 
-          {/* AI VISUAL PANEL */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative rounded-3xl border border-neutral-800 bg-gradient-to-br from-neutral-900/80 to-black/80 backdrop-blur-xl p-6 md:p-8 overflow-hidden shadow-[0_0_60px_rgba(250,204,21,0.08)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center">
-                      <Cpu className="w-4 h-4 text-yellow-400" />
-                    </div>
-                    <span className="font-black text-xs uppercase tracking-widest text-neutral-400">Painel · IA</span>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" /> ATIVO
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {[
-                    { label: "Empreendedores ativos", value: "1.847", trend: "+12%" },
-                    { label: "Faturamento médio/mês", value: "R$ 5.240", trend: "+8%" },
-                    { label: "Aplicação do método", value: "94%", trend: "+3%" },
-                  ].map((m, i) => (
-                    <div key={i} className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800 rounded-xl p-3.5">
-                      <span className="text-xs text-neutral-500 uppercase tracking-wider">{m.label}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-black text-lg text-white">{m.value}</span>
-                        <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/20">{m.trend}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* live signal */}
-                <div className="mt-6 pt-6 border-t border-neutral-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Curva de crescimento</span>
-                    <LineChart className="w-3.5 h-3.5 text-yellow-400" />
-                  </div>
-                  <svg viewBox="0 0 300 80" className="w-full h-16">
-                    <defs>
-                      <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="rgb(250,204,21)" stopOpacity="0.5" />
-                        <stop offset="100%" stopColor="rgb(250,204,21)" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M0,70 L30,60 L60,55 L90,45 L120,42 L150,30 L180,25 L210,18 L240,12 L270,8 L300,3 L300,80 L0,80 Z" fill="url(#grad)" />
-                    <path d="M0,70 L30,60 L60,55 L90,45 L120,42 L150,30 L180,25 L210,18 L240,12 L270,8 L300,3" fill="none" stroke="rgb(250,204,21)" strokeWidth="2" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* DIVIDER */}
