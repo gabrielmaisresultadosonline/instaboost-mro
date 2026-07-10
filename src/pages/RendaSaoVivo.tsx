@@ -304,7 +304,7 @@ const RendaSaoVivo = () => {
                 >
                   <video
                     ref={heroVideoRef}
-                    src={assetUrl(heroVideoAsset.url)}
+                    src={heroVideoHls ? undefined : heroVideoUrl}
                     autoPlay
                     muted
                     playsInline
