@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,8 @@ const RendaSaoVivo = () => {
   const [videoMuted, setVideoMuted] = useState(true);
   const [audioGate, setAudioGate] = useState(true);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [heroVideoUrl, setHeroVideoUrl] = useState<string>(assetUrl(heroVideoAsset.url));
+  const [heroVideoHls, setHeroVideoHls] = useState<string>("");
 
   useEffect(() => {
     document.title = "Renda Ao Vivo | Método profissional para faturar em casa";
@@ -44,12 +47,34 @@ const RendaSaoVivo = () => {
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 10);
           setAulaData(data.settings.aula_data || "19/07");
+          if (data.settings.hero_video_url) setHeroVideoUrl(data.settings.hero_video_url);
+          if (data.settings.hero_video_hls_url) setHeroVideoHls(data.settings.hero_video_hls_url);
         }
       } catch { /* ignore */ }
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "PageView");
     })();
   }, []);
+
+  // HLS adaptive streaming (evita travas: começa em bitrate baixo e sobe conforme a conexão)
+  useEffect(() => {
+    const v = heroVideoRef.current;
+    if (!v || !heroVideoHls) return;
+    if (v.canPlayType("application/vnd.apple.mpegurl")) {
+      v.src = heroVideoHls;
+      return;
+    }
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        capLevelToPlayerSize: true,
+        startLevel: 0,
+        maxBufferLength: 30,
+      });
+      hls.loadSource(heroVideoHls);
+      hls.attachMedia(v);
+      return () => hls.destroy();
+    }
+  }, [heroVideoHls]);
 
   // Neural network AI canvas animation
   useEffect(() => {
@@ -279,7 +304,7 @@ const RendaSaoVivo = () => {
                 >
                   <video
                     ref={heroVideoRef}
-                    src={assetUrl(heroVideoAsset.url)}
+                    src={heroVideoHls ? undefined : heroVideoUrl}
                     autoPlay
                     muted
                     playsInline

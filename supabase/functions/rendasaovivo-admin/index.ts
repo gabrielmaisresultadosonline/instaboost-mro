@@ -38,8 +38,8 @@ serve(async (req) => {
     }
 
     if (action === "get_public_settings") {
-      const { data } = await supabase.from("rendasaovivo_settings").select("aula_data,aula_titulo,preco").limit(1).maybeSingle();
-      return json({ success: true, settings: data || { aula_data: "19/07", aula_titulo: "", preco: 19 } });
+      const { data } = await supabase.from("rendasaovivo_settings").select("aula_data,aula_titulo,preco,hero_video_url,hero_video_hls_url").limit(1).maybeSingle();
+      return json({ success: true, settings: data || { aula_data: "19/07", aula_titulo: "", preco: 19, hero_video_url: "", hero_video_hls_url: "" } });
     }
 
     if (action === "check_paid") {
@@ -60,9 +60,11 @@ serve(async (req) => {
     }
 
     if (action === "save_settings") {
-      const { whatsapp_group_link, aula_data, aula_titulo, preco } = body;
+      const { whatsapp_group_link, aula_data, aula_titulo, preco, hero_video_url, hero_video_hls_url } = body;
       const { data: existing } = await supabase.from("rendasaovivo_settings").select("id").limit(1).maybeSingle();
-      const payload = { whatsapp_group_link, aula_data, aula_titulo, preco };
+      const payload: Record<string, unknown> = { whatsapp_group_link, aula_data, aula_titulo, preco };
+      if (typeof hero_video_url === "string") payload.hero_video_url = hero_video_url;
+      if (typeof hero_video_hls_url === "string") payload.hero_video_hls_url = hero_video_hls_url;
       if (existing) {
         await supabase.from("rendasaovivo_settings").update(payload).eq("id", existing.id);
       } else {
