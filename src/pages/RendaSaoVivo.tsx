@@ -108,9 +108,13 @@ const RendaSaoVivo = () => {
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, []);
 
-  const openCheckout = () => {
+  const scrollToPreco = () => {
     const fbq = (window as any).fbq;
     if (fbq) fbq("track", "ViewContent", { content_name: "Renda Ao Vivo" });
+    document.getElementById("preco")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const openCheckout = () => {
     setOpenForm(true);
   };
 
