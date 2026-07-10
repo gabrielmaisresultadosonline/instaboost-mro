@@ -78,6 +78,25 @@ const RendaSaoVivoAdmin = () => {
     } finally { setLoading(false); }
   };
 
+  const handleVideoUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 100 * 1024 * 1024) return toast.error("Máximo 100MB");
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "rendasaovivo");
+      fd.append("filename", `hero_${Date.now()}.mp4`);
+      const { data, error } = await supabase.functions.invoke("upload-video", { body: fd });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "erro upload");
+      setSettings((s) => ({ ...s, hero_video_url: data.url }));
+      toast.success("Vídeo enviado! Clique em Salvar para publicar.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
   const sendTest = async () => {
     if (!testEmail.includes("@")) return toast.error("E-mail inválido");
     setLoading(true);
