@@ -1,0 +1,1 @@
+UPDATE public.rendasaovivo_settings SET aula_data = 'Domingo 19/07';
