@@ -108,9 +108,13 @@ const RendaSaoVivo = () => {
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, []);
 
-  const openCheckout = () => {
+  const scrollToPreco = () => {
     const fbq = (window as any).fbq;
     if (fbq) fbq("track", "ViewContent", { content_name: "Renda Ao Vivo" });
+    document.getElementById("preco")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const openCheckout = () => {
     setOpenForm(true);
   };
 
@@ -224,11 +228,11 @@ const RendaSaoVivo = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button onClick={openCheckout} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all">
+              <Button onClick={scrollToPreco} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all">
                 EU QUERO APRENDER
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
               </Button>
-              <Button onClick={openCheckout} size="lg" variant="outline" className="h-14 px-8 rounded-xl border-neutral-700 bg-neutral-900/40 hover:bg-neutral-800 text-white font-bold text-base backdrop-blur">
+              <Button onClick={scrollToPreco} size="lg" variant="outline" className="h-14 px-8 rounded-xl border-neutral-700 bg-neutral-900/40 hover:bg-neutral-800 text-white font-bold text-base backdrop-blur">
                 <Zap className="mr-2 w-4 h-4 text-yellow-400" />
                 Quero entrar nessa onda
               </Button>
@@ -292,7 +296,7 @@ const RendaSaoVivo = () => {
 
         {/* CTA MID */}
         <div className="mt-16 text-center">
-          <Button onClick={openCheckout} size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-yellow-400 border border-yellow-400/40 hover:border-yellow-400 font-black h-14 px-10 rounded-xl tracking-widest text-sm">
+          <Button onClick={scrollToPreco} size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-yellow-400 border border-yellow-400/40 hover:border-yellow-400 font-black h-14 px-10 rounded-xl tracking-widest text-sm">
             <Rocket className="w-4 h-4 mr-2" /> QUERO PARTICIPAR AGORA
           </Button>
         </div>
