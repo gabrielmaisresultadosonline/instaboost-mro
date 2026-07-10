@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
+import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
 
 
 const corsHeaders = {
@@ -181,10 +182,18 @@ serve(async (req) => {
     let isVenderOrder = false;
     
     let isPostsComIAOrder = false;
+    let isRendaSaoVivoOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("RENDASAOVIVO_")) {
+          isRendaSaoVivoOrder = true;
+          email = itemName.replace("RENDASAOVIVO_", "").toLowerCase();
+          log("Parsed RENDASAOVIVO order", { email });
+          break;
+        }
 
         if (itemName.startsWith("POSTSCOMIA_")) {
           isPostsComIAOrder = true;
@@ -422,6 +431,44 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true, message: "POSTSCOMIA confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
+
+    // RENDASAOVIVO orders
+    if (isRendaSaoVivoOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("RENDASAOVIVO"))) {
+      log("Processing as RENDASAOVIVO order", { order_nsu, email });
+      let rsvOrder: any = null;
+      if (order_nsu) {
+        const r = await supabase.from("rendasaovivo_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        rsvOrder = r.data;
+      }
+      if (!rsvOrder && email) {
+        const r = await supabase.from("rendasaovivo_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        rsvOrder = r.data;
+      }
+      if (rsvOrder) {
+        const { data: settings } = await supabase.from("rendasaovivo_settings").select("*").limit(1).maybeSingle();
+        const emailSent = await sendRendaSaoVivoEmail(
+          rsvOrder.email,
+          rsvOrder.nome_completo,
+          settings?.whatsapp_group_link || "#",
+          settings?.aula_data || "18/07"
+        );
+        await supabase.from("rendasaovivo_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          email_sent: emailSent,
+          email_sent_at: emailSent ? new Date().toISOString() : null,
+        }).eq("id", rsvOrder.id);
+        await sendMetaPurchaseEvent(
+          rsvOrder.email,
+          Number(rsvOrder.amount) || 19,
+          "Renda Ao Vivo",
+          rsvOrder.nsu_order,
+          "https://maisresultadosonline.com.br/rendasaovivo"
+        );
+        return new Response(JSON.stringify({ success: true, message: "RENDASAOVIVO confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
 
     // Default payment orders
     let order = null;
