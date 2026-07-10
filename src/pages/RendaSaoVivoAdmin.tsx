@@ -88,30 +88,77 @@ const RendaSaoVivoAdmin = () => {
     } finally { setLoading(false); }
   };
 
+  const pollTranscoding = async (jobId: string, finalHlsUrl: string) => {
+    const tick = async () => {
+      try {
+        const res = await fetch(`${VIDEO_SERVER}/api/video/status/${encodeURIComponent(jobId)}`);
+        const data = await res.json();
+        setTranscoding({ jobId, progress: data.progress || 0, status: data.status });
+        if (data.status === "completed") {
+          const newSettings = { ...settings, hero_video_hls_url: finalHlsUrl };
+          setSettings(newSettings);
+          await call("save_settings", newSettings);
+          toast.success("Transcoding concluído! HLS salvo automaticamente.");
+          setTimeout(() => setTranscoding(null), 3000);
+          return;
+        }
+        if (data.status === "error") {
+          toast.error("Erro no transcoding");
+          setTimeout(() => setTranscoding(null), 5000);
+          return;
+        }
+        transcodeTimer.current = window.setTimeout(tick, 2000);
+      } catch {
+        transcodeTimer.current = window.setTimeout(tick, 3000);
+      }
+    };
+    tick();
+  };
+
   const handleVideoUpload = async (file: File) => {
     if (!file) return;
-    if (file.size > 500 * 1024 * 1024) return toast.error("Máximo 500MB");
+    if (file.size > 5 * 1024 * 1024 * 1024) return toast.error("Máximo 5GB");
     setUploading(true);
+    setUploadProgress(0);
     try {
-      const path = `rendasaovivo/hero_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-      // Upload direto do browser para o Storage (evita limite de CPU do edge function)
-      const { error: upErr } = await supabase.storage
-        .from("assets")
-        .upload(path, file, {
-          contentType: file.type || "video/mp4",
-          upsert: true,
-          cacheControl: "3600",
-        });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("assets").getPublicUrl(path);
-      const newSettings = { ...settings, hero_video_url: pub.publicUrl };
+      const formData = new FormData();
+      formData.append("video", file);
+      const result = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${VIDEO_SERVER}/api/video/upload`);
+        xhr.timeout = 7200000;
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+        };
+        xhr.onload = () => xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error(`HTTP ${xhr.status}`));
+        xhr.ontimeout = () => reject(new Error("Timeout"));
+        xhr.onerror = () => reject(new Error("Falha de rede"));
+        xhr.send(formData);
+      });
+      if (!result?.success) throw new Error(result?.error || "Servidor recusou o upload");
+
+      const mp4Url: string = result.video_url?.startsWith("http") ? result.video_url : `${VIDEO_SERVER}${result.video_url}`;
+      const hlsUrl: string = result.hls_url?.startsWith("http") ? result.hls_url : `${VIDEO_SERVER}${result.hls_url}`;
+
+      // Salva MP4 imediatamente (fallback enquanto o HLS não fica pronto)
+      const newSettings = { ...settings, hero_video_url: mp4Url, hero_video_hls_url: "" };
       setSettings(newSettings);
       await call("save_settings", newSettings);
-      toast.success("Vídeo enviado e publicado automaticamente!");
+      toast.success("Upload concluído! Transcodificando HLS…");
+
+      const jobId = result.job_id || (result.hls_url || "").match(/\/videos\/hls\/(.+?)\/master\.m3u8/)?.[1];
+      if (jobId) {
+        setTranscoding({ jobId, progress: 0, status: "queued" });
+        pollTranscoding(jobId, hlsUrl);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro no upload");
-    } finally { setUploading(false); }
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
+
 
   const sendTest = async () => {
     if (!testEmail.includes("@")) return toast.error("E-mail inválido");
