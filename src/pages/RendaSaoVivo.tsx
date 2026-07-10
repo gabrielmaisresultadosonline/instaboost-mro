@@ -17,7 +17,7 @@ import { assetUrl } from "@/lib/assetUrl";
 const RendaSaoVivo = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [preco, setPreco] = useState<number>(19);
+  const [preco, setPreco] = useState<number>(10);
   const [aulaData, setAulaData] = useState<string>("19/07");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,7 +34,7 @@ const RendaSaoVivo = () => {
       try {
         const { data } = await supabase.functions.invoke("rendasaovivo-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
-          setPreco(Number(data.settings.preco) || 19);
+          setPreco(Number(data.settings.preco) || 10);
           setAulaData(data.settings.aula_data || "19/07");
         }
       } catch { /* ignore */ }
@@ -281,6 +281,25 @@ const RendaSaoVivo = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* CALLOUT GRANDE */}
+        <div className="mt-20 md:mt-28 relative rounded-3xl border-2 border-yellow-400/40 bg-gradient-to-br from-yellow-400/10 via-black to-black p-8 md:p-16 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]" />
+          <div className="relative text-center max-w-4xl mx-auto">
+            <div className="inline-block text-[10px] md:text-xs font-black tracking-[0.3em] text-yellow-400 uppercase mb-5 border border-yellow-400/40 px-3 py-1.5 rounded-full">
+              Atenção · Leia com calma
+            </div>
+            <p className="text-3xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-white uppercase">
+              Isso <span className="text-yellow-400">NÃO é para qualquer um.</span>
+            </p>
+            <p className="mt-6 text-xl md:text-3xl font-bold leading-snug text-neutral-200">
+              Vai ter gente que não vai querer pagar <span className="text-yellow-400">nem R$ 10</span> para aprender a faturar <span className="text-yellow-400">mais de R$ 5.000 por mês</span>.
+            </p>
+            <p className="mt-8 text-2xl md:text-4xl font-black text-white uppercase tracking-tight">
+              Aproveite <span className="text-yellow-400">se isso é para você.</span>
+            </p>
+          </div>
         </div>
 
         {/* CTA MID */}
