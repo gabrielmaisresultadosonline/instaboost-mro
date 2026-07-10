@@ -211,12 +211,86 @@ const RendaSaoVivo = () => {
                 </div>
               ))}
 
-              <img
-                src={assetUrl(gabrielPhoneAsset.url)}
-                alt="Gabriel ao telefone"
-                className="relative z-10 h-[240px] md:h-[300px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-              />
+              <div className="relative z-10 flex items-end justify-center gap-3 md:gap-5">
+                <img
+                  src={assetUrl(gabrielPhoneAsset.url)}
+                  alt="Gabriel ao telefone"
+                  className="h-[220px] md:h-[300px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                />
+                {/* Autoplay hero video — click to expand */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVideoOpen(true);
+                    setVideoMuted(false);
+                  }}
+                  aria-label="Assistir vídeo em tela cheia"
+                  className="group relative rounded-2xl overflow-hidden border-2 border-yellow-400/60 shadow-[0_0_30px_rgba(250,204,21,0.4)] hover:shadow-[0_0_50px_rgba(250,204,21,0.7)] transition-all w-[130px] md:w-[190px] aspect-[9/16] bg-black cursor-pointer"
+                >
+                  <video
+                    ref={heroVideoRef}
+                    src={assetUrl(heroVideoAsset.url)}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    // @ts-ignore
+                    disableRemotePlayback
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute top-1.5 right-1.5 bg-black/70 rounded-full p-1 border border-yellow-400/50">
+                    <VolumeX className="w-3 h-3 md:w-3.5 md:h-3.5 text-yellow-400" />
+                  </div>
+                  <div className="absolute bottom-1.5 left-1.5 right-1.5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-yellow-400 text-center bg-black/60 rounded py-1 backdrop-blur">
+                    Toque para ouvir
+                  </div>
+                </button>
+              </div>
             </div>
+
+            {/* Fullscreen video modal */}
+            {videoOpen && (
+              <div
+                className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+                onClick={() => setVideoOpen(false)}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setVideoOpen(false); }}
+                  className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
+                  aria-label="Fechar"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const v = modalVideoRef.current;
+                    if (!v) return;
+                    v.muted = !v.muted;
+                    setVideoMuted(v.muted);
+                  }}
+                  className="absolute top-4 left-4 w-11 h-11 rounded-full bg-yellow-400 hover:bg-yellow-300 text-black flex items-center justify-center z-10"
+                  aria-label={videoMuted ? "Ativar som" : "Silenciar"}
+                >
+                  {videoMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+                <video
+                  ref={modalVideoRef}
+                  src={assetUrl(heroVideoAsset.url)}
+                  autoPlay
+                  controls
+                  playsInline
+                  preload="auto"
+                  className="max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl bg-black"
+                  onClick={(e) => e.stopPropagation()}
+                  onLoadedMetadata={(e) => { e.currentTarget.muted = false; }}
+                />
+              </div>
+            )}
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
               Uma metodologia validada por mais de 1.800 empreendedores brasileiros — direta, prática e sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
