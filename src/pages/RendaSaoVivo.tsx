@@ -283,6 +283,25 @@ const RendaSaoVivo = () => {
           ))}
         </div>
 
+        {/* CALLOUT GRANDE */}
+        <div className="mt-20 md:mt-28 relative rounded-3xl border-2 border-yellow-400/40 bg-gradient-to-br from-yellow-400/10 via-black to-black p-8 md:p-16 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]" />
+          <div className="relative text-center max-w-4xl mx-auto">
+            <div className="inline-block text-[10px] md:text-xs font-black tracking-[0.3em] text-yellow-400 uppercase mb-5 border border-yellow-400/40 px-3 py-1.5 rounded-full">
+              Atenção · Leia com calma
+            </div>
+            <p className="text-3xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-white uppercase">
+              Isso <span className="text-yellow-400">NÃO é para qualquer um.</span>
+            </p>
+            <p className="mt-6 text-xl md:text-3xl font-bold leading-snug text-neutral-200">
+              Vai ter gente que não vai querer pagar <span className="text-yellow-400">nem R$ 10</span> para aprender a faturar <span className="text-yellow-400">mais de R$ 5.000 por mês</span>.
+            </p>
+            <p className="mt-8 text-2xl md:text-4xl font-black text-white uppercase tracking-tight">
+              Aproveite <span className="text-yellow-400">se isso é para você.</span>
+            </p>
+          </div>
+        </div>
+
         {/* CTA MID */}
         <div className="mt-16 text-center">
           <Button onClick={scrollToPreco} size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-yellow-400 border border-yellow-400/40 hover:border-yellow-400 font-black h-14 px-10 rounded-xl tracking-widest text-sm">
