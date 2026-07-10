@@ -183,7 +183,7 @@ const RendaSaoVivo = () => {
             </h1>
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
-              Uma metodologia validada por mais de 1.800 empreendedores brasileiros — sem estoque, sem aparecer, sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
+              Uma metodologia validada por mais de 1.800 empreendedores brasileiros — direta, prática e sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -291,7 +291,7 @@ const RendaSaoVivo = () => {
           {[
             { icon: Brain, title: "Método Inteligente", text: "Estratégia validada e replicável" },
             { icon: Target, title: "R$ 5 mil / mês", text: "Faturamento comprovado em casa" },
-            { icon: Cpu, title: "Só um notebook", text: "Sem estoque, sem aparecer" },
+            { icon: Cpu, title: "Só um notebook", text: "Método simples e replicável" },
           ].map((b, i) => (
             <div key={i} className="group relative bg-neutral-950/60 border border-neutral-800 hover:border-yellow-400/40 p-6 rounded-2xl backdrop-blur transition-all overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 blur-3xl rounded-full group-hover:bg-yellow-400/10 transition" />
