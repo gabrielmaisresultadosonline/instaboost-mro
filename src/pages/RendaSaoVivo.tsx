@@ -241,13 +241,13 @@ const RendaSaoVivo = () => {
                   className={`absolute pix-notif pix-${n.side} z-0`}
                   style={{ top: n.top, animationDelay: n.delay }}
                 >
-                  <div className="flex items-center gap-2 bg-neutral-900/90 backdrop-blur border border-yellow-400/40 rounded-xl px-3 py-2 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
-                    <div className="w-7 h-7 rounded-md bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-black text-black text-[10px]">
+                  <div className="flex items-center gap-1.5 bg-neutral-900/90 backdrop-blur border border-yellow-400/40 rounded-lg px-2 py-1 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+                    <div className="w-4 h-4 rounded-sm bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-black text-black text-[7px]">
                       PIX
                     </div>
                     <div className="text-left">
-                      <div className="text-[9px] uppercase tracking-widest text-neutral-400 font-bold leading-none">Pix recebido</div>
-                      <div className="text-sm font-black text-yellow-400 leading-tight">{n.value}</div>
+                      <div className="text-[7px] uppercase tracking-wider text-neutral-400 font-bold leading-none">Pix recebido</div>
+                      <div className="text-[10px] font-black text-yellow-400 leading-tight">{n.value}</div>
                     </div>
                   </div>
                 </div>
