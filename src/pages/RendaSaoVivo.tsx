@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Sparkles, TrendingUp, Users, CheckCircle2, Zap, Laptop, DollarSign, Calendar, Clock, ArrowRight, ShieldCheck, Rocket,
+  Sparkles, TrendingUp, Users, CheckCircle2, Zap, Calendar, Clock, ArrowRight,
+  ShieldCheck, Rocket, Brain, LineChart, Cpu, Target,
 } from "lucide-react";
 
 const RendaSaoVivo = () => {
@@ -17,23 +18,19 @@ const RendaSaoVivo = () => {
   const [preco, setPreco] = useState<number>(19);
   const [aulaData, setAulaData] = useState<string>("18/07");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    document.title = "Renda Ao Vivo | Aprenda a faturar mais de 5 mil em casa";
+    document.title = "Renda Ao Vivo | Método profissional para faturar em casa";
     (async () => {
       const sid = crypto.randomUUID();
       try {
         await supabase.functions.invoke("rendasaovivo-admin", {
-          body: {
-            action: "track_visit", session_id: sid,
-            user_agent: navigator.userAgent, referrer: document.referrer,
-          },
+          body: { action: "track_visit", session_id: sid, user_agent: navigator.userAgent, referrer: document.referrer },
         });
       } catch { /* ignore */ }
       try {
-        const { data } = await supabase.functions.invoke("rendasaovivo-admin", {
-          body: { action: "get_public_settings" },
-        });
+        const { data } = await supabase.functions.invoke("rendasaovivo-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 19);
           setAulaData(data.settings.aula_data || "18/07");
@@ -42,6 +39,72 @@ const RendaSaoVivo = () => {
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "PageView");
     })();
+  }, []);
+
+  // Neural network AI canvas animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let raf = 0;
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const dpr = window.devicePixelRatio;
+    const NODES = 55;
+    const nodes = Array.from({ length: NODES }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.3 * dpr,
+      vy: (Math.random() - 0.5) * 0.3 * dpr,
+      r: (Math.random() * 1.5 + 0.5) * dpr,
+    }));
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const n of nodes) {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+      }
+      // connections
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.hypot(dx, dy);
+          const max = 140 * dpr;
+          if (dist < max) {
+            const alpha = (1 - dist / max) * 0.35;
+            ctx.strokeStyle = `rgba(250, 204, 21, ${alpha})`;
+            ctx.lineWidth = 0.6 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      // nodes
+      for (const n of nodes) {
+        ctx.fillStyle = "rgba(250, 204, 21, 0.9)";
+        ctx.shadowColor = "rgba(250, 204, 21, 0.8)";
+        ctx.shadowBlur = 8 * dpr;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      raf = requestAnimationFrame(render);
+    };
+    render();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, []);
 
   const openCheckout = () => {
@@ -67,163 +130,272 @@ const RendaSaoVivo = () => {
       window.location.href = data.payment_link;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao processar");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-[#04070d] text-white overflow-x-hidden">
-      {/* backdrop */}
+    <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans selection:bg-yellow-400 selection:text-black">
+      {/* AI grid + neural background */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] rounded-full bg-green-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-yellow-500/10 blur-[120px]" />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-40" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+        <div className="absolute top-[-20%] left-[10%] w-[500px] h-[500px] rounded-full bg-yellow-500/10 blur-[140px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-yellow-400/5 blur-[140px]" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-5 py-10 md:py-16">
+      {/* NAV */}
+      <nav className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-lg bg-yellow-400 text-black flex items-center justify-center font-black text-sm shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+            MRO
+          </div>
+          <span className="font-black tracking-widest text-sm uppercase text-neutral-300">Renda<span className="text-yellow-400">.</span>AoVivo</span>
+        </div>
+        <div className="inline-flex items-center gap-2 border border-neutral-800 bg-neutral-900/60 backdrop-blur px-3 py-1.5 rounded-full">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 animate-ping opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+          </span>
+          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-300">AO VIVO · {aulaData}</span>
+        </div>
+      </nav>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-6 md:pt-12">
         {/* HERO */}
-        <div className="text-center space-y-6">
-          <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-full animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
-            <span className="text-red-300 font-bold text-xs md:text-sm uppercase tracking-widest">AO VIVO dia {aulaData}</span>
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-7 space-y-7">
+            <div className="inline-flex items-center gap-2 border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 rounded-full">
+              <Brain className="w-3.5 h-3.5 text-yellow-400" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MÉTODO INTELIGENTE · 2026</span>
+            </div>
+
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight">
+              Aprenda como <span className="text-yellow-400">eu, Gabriel</span>,<br />
+              faturo mais de<br />
+              <span className="relative inline-block">
+                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">R$ 5 mil por mês</span>
+                <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
+              </span>{" "}
+              <span className="text-neutral-100">em casa,</span>
+              <br />
+              <span className="text-neutral-400 font-light italic">com apenas um notebook.</span>
+            </h1>
+
+            <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
+              Uma metodologia validada por mais de 1.800 empreendedores brasileiros — sem estoque, sem aparecer, sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button onClick={openCheckout} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all">
+                EU QUERO APRENDER
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
+              </Button>
+              <Button onClick={openCheckout} size="lg" variant="outline" className="h-14 px-8 rounded-xl border-neutral-700 bg-neutral-900/40 hover:bg-neutral-800 text-white font-bold text-base backdrop-blur">
+                <Zap className="mr-2 w-4 h-4 text-yellow-400" />
+                Quero entrar nessa onda
+              </Button>
+            </div>
+
+            {/* trust bar */}
+            <div className="flex flex-wrap items-center gap-6 pt-4 text-neutral-500 text-xs uppercase tracking-widest font-semibold">
+              <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-yellow-400" /> Pagamento InfiniPay</div>
+              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +1.800 alunos</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-400" /> Método validado</div>
+            </div>
           </div>
 
-          <h1 className="text-4xl md:text-7xl font-black leading-[1.05] tracking-tight">
-            Aprenda como <span className="text-yellow-400">eu, Gabriel</span>,<br className="hidden md:block" />
-            faturo <span className="text-green-400 underline decoration-yellow-400">mais de R$ 5 mil</span> em casa
-            <br className="hidden md:block" />
-            com apenas um <span className="inline-flex items-center gap-2">notebook <Laptop className="w-8 h-8 md:w-12 md:h-12 inline text-yellow-400" /></span>
-          </h1>
+          {/* AI VISUAL PANEL */}
+          <div className="lg:col-span-5 relative">
+            <div className="relative rounded-3xl border border-neutral-800 bg-gradient-to-br from-neutral-900/80 to-black/80 backdrop-blur-xl p-6 md:p-8 overflow-hidden shadow-[0_0_60px_rgba(250,204,21,0.08)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center">
+                      <Cpu className="w-4 h-4 text-yellow-400" />
+                    </div>
+                    <span className="font-black text-xs uppercase tracking-widest text-neutral-400">Painel · IA</span>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" /> ATIVO
+                  </span>
+                </div>
 
-          <p className="text-lg md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Participe agora por <span className="text-yellow-400 font-black">R$ {preco.toFixed(0)}</span> e aprenda você também.
-          </p>
+                <div className="space-y-3">
+                  {[
+                    { label: "Empreendedores ativos", value: "1.847", trend: "+12%" },
+                    { label: "Faturamento médio/mês", value: "R$ 5.240", trend: "+8%" },
+                    { label: "Aplicação do método", value: "94%", trend: "+3%" },
+                  ].map((m, i) => (
+                    <div key={i} className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800 rounded-xl p-3.5">
+                      <span className="text-xs text-neutral-500 uppercase tracking-wider">{m.label}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-black text-lg text-white">{m.value}</span>
+                        <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/20">{m.trend}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <Button onClick={openCheckout} size="lg" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-lg md:text-xl h-16 px-8 rounded-2xl shadow-[0_0_40px_rgba(34,197,94,0.4)] hover:scale-105 transition">
-              <Rocket className="w-6 h-6 mr-2" /> EU QUERO APRENDER
-            </Button>
-            <Button onClick={openCheckout} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black font-black text-lg md:text-xl h-16 px-8 rounded-2xl hover:scale-105 transition">
-              <Zap className="w-6 h-6 mr-2" /> QUERO ENTRAR NESSA ONDA
-            </Button>
+                {/* live signal */}
+                <div className="mt-6 pt-6 border-t border-neutral-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Curva de crescimento</span>
+                    <LineChart className="w-3.5 h-3.5 text-yellow-400" />
+                  </div>
+                  <svg viewBox="0 0 300 80" className="w-full h-16">
+                    <defs>
+                      <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgb(250,204,21)" stopOpacity="0.5" />
+                        <stop offset="100%" stopColor="rgb(250,204,21)" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,70 L30,60 L60,55 L90,45 L120,42 L150,30 L180,25 L210,18 L240,12 L270,8 L300,3 L300,80 L0,80 Z" fill="url(#grad)" />
+                    <path d="M0,70 L30,60 L60,55 L90,45 L120,42 L150,30 L180,25 L210,18 L240,12 L270,8 L300,3" fill="none" stroke="rgb(250,204,21)" strokeWidth="2" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* DIVIDER */}
+        <div className="my-20 md:my-32 flex items-center gap-4">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-600">A nova onda do digital</span>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
+        </div>
+
         {/* DESTAQUE */}
-        <div className="mt-14 md:mt-20 bg-gradient-to-br from-yellow-500/10 to-green-500/10 border border-yellow-500/30 p-6 md:p-10 rounded-3xl backdrop-blur-lg">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-20 h-20 md:w-28 md:h-28 flex-shrink-0 bg-yellow-500/20 rounded-2xl flex items-center justify-center">
+        <div className="relative rounded-3xl border border-yellow-400/20 bg-gradient-to-br from-neutral-950 to-black p-8 md:p-14 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(250,204,21,0.08),transparent_70%)]" />
+          <div className="relative grid md:grid-cols-[auto_1fr] gap-8 items-center">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border border-yellow-400/30 bg-yellow-400/5 flex items-center justify-center backdrop-blur">
               <TrendingUp className="w-12 h-12 md:w-16 md:h-16 text-yellow-400" />
             </div>
-            <div className="text-center md:text-left">
-              <div className="inline-block bg-yellow-500 text-black font-black text-xs px-3 py-1 rounded-full mb-2 uppercase tracking-widest">
-                🔥 A nova onda do digital
-              </div>
-              <h2 className="text-2xl md:text-4xl font-black leading-tight">
-                Mais de <span className="text-green-400">1.800 empreendedores</span> já estão lucrando <span className="text-yellow-400">R$ 5 mil por mês</span> em casa
+            <div>
+              <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Insight</div>
+              <h2 className="text-2xl md:text-4xl font-black leading-tight text-white">
+                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">1.800 empreendedores</span> aplicando esse método já ultrapassaram os <span className="text-yellow-400">R$ 5.000/mês</span> trabalhando de casa.
               </h2>
-              <p className="mt-2 text-gray-300 text-base md:text-lg">
-                Um método simples, replicável, sem precisar aparecer, e que qualquer pessoa consegue aplicar.
+              <p className="mt-4 text-neutral-400 text-base md:text-lg">
+                Sem fórmulas mágicas, sem promessas vazias. Um sistema replicável, direto ao ponto, e que qualquer pessoa com um notebook consegue aplicar.
               </p>
             </div>
           </div>
         </div>
 
         {/* BENEFÍCIOS */}
-        <div className="mt-14 grid md:grid-cols-3 gap-4">
+        <div className="mt-16 grid md:grid-cols-3 gap-4">
           {[
-            { icon: Users, title: "Comunidade Ativa", text: "1.800+ empreendedores aplicando" },
-            { icon: DollarSign, title: "R$ 5 mil / mês", text: "Faturamento comprovado em casa" },
-            { icon: Laptop, title: "Só um notebook", text: "Sem estoque, sem aparecer" },
+            { icon: Brain, title: "Método Inteligente", text: "Estratégia validada e replicável" },
+            { icon: Target, title: "R$ 5 mil / mês", text: "Faturamento comprovado em casa" },
+            { icon: Cpu, title: "Só um notebook", text: "Sem estoque, sem aparecer" },
           ].map((b, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur">
-              <b.icon className="w-10 h-10 text-yellow-400 mb-3" />
-              <h3 className="font-black text-lg">{b.title}</h3>
-              <p className="text-gray-400 text-sm mt-1">{b.text}</p>
+            <div key={i} className="group relative bg-neutral-950/60 border border-neutral-800 hover:border-yellow-400/40 p-6 rounded-2xl backdrop-blur transition-all overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 blur-3xl rounded-full group-hover:bg-yellow-400/10 transition" />
+              <div className="relative">
+                <div className="w-11 h-11 rounded-xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center mb-4">
+                  <b.icon className="w-5 h-5 text-yellow-400" />
+                </div>
+                <h3 className="font-black text-lg text-white">{b.title}</h3>
+                <p className="text-neutral-500 text-sm mt-1">{b.text}</p>
+              </div>
             </div>
           ))}
         </div>
 
         {/* CTA MID */}
-        <div className="mt-12 text-center">
-          <Button onClick={openCheckout} size="lg" className="bg-red-500 hover:bg-red-600 text-white font-black text-lg h-14 px-10 rounded-2xl animate-pulse">
-            <ArrowRight className="w-6 h-6 mr-2" /> QUERO PARTICIPAR AGORA
+        <div className="mt-16 text-center">
+          <Button onClick={openCheckout} size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-yellow-400 border border-yellow-400/40 hover:border-yellow-400 font-black h-14 px-10 rounded-xl tracking-widest text-sm">
+            <Rocket className="w-4 h-4 mr-2" /> QUERO PARTICIPAR AGORA
           </Button>
         </div>
 
-        {/* PREÇO CONTAINER */}
-        <div id="preco" className="mt-16 md:mt-24">
-          <div className="max-w-2xl mx-auto bg-gradient-to-br from-[#0f1a2e] to-[#0a0f1a] border-2 border-yellow-500/40 rounded-[2.5rem] p-8 md:p-12 shadow-[0_0_60px_rgba(234,179,8,0.15)]">
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 bg-red-500 text-white font-black text-xs px-4 py-1.5 rounded-full mb-4 uppercase tracking-widest">
-                🔴 LOTE INICIAL - VAGAS LIMITADAS
-              </div>
-              <h3 className="text-3xl md:text-5xl font-black">
-                Passaporte de Acesso
-              </h3>
-              <p className="text-gray-400 mt-2">Aula 100% ao vivo. Você tira TODAS as suas dúvidas em tempo real.</p>
-
-              <div className="my-8 space-y-3 text-left max-w-md mx-auto">
-                {[
-                  { icon: Calendar, text: `Aula ao vivo dia ${aulaData}` },
-                  { icon: Clock, text: "Tire todas as suas dúvidas em tempo real" },
-                  { icon: Sparkles, text: "Método inédito, fácil de aplicar" },
-                  { icon: ShieldCheck, text: "Acesso garantido no seu e-mail" },
-                ].map((f, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
-                    <f.icon className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <span className="text-sm md:text-base">{f.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="my-6">
-                <div className="text-gray-400 text-sm line-through">De R$ 97,00</div>
-                <div className="text-6xl md:text-8xl font-black bg-gradient-to-r from-yellow-400 to-green-400 bg-clip-text text-transparent">
-                  R$ {preco.toFixed(0)}
+        {/* PREÇO */}
+        <div id="preco" className="mt-20 md:mt-28">
+          <div className="max-w-2xl mx-auto relative">
+            <div className="absolute -inset-px rounded-[2rem] bg-gradient-to-br from-yellow-400/40 via-transparent to-yellow-400/10 blur-sm" />
+            <div className="relative bg-gradient-to-br from-neutral-950 to-black border border-yellow-400/30 rounded-[2rem] p-8 md:p-12 shadow-[0_0_80px_rgba(250,204,21,0.12)]">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-3 py-1.5 rounded-full mb-6">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">LOTE INICIAL · VAGAS LIMITADAS</span>
                 </div>
-                <div className="text-gray-400 text-sm font-bold uppercase tracking-widest">Pagamento único</div>
+
+                <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+                  Passaporte de Acesso
+                </h3>
+                <p className="text-neutral-500 mt-3 max-w-md mx-auto">
+                  Aula 100% ao vivo. Você tira TODAS as suas dúvidas em tempo real com o Gabriel.
+                </p>
+
+                <div className="my-8 space-y-2.5 text-left">
+                  {[
+                    { icon: Calendar, text: `Aula ao vivo · ${aulaData}` },
+                    { icon: Clock, text: "Tire todas suas dúvidas em tempo real" },
+                    { icon: Sparkles, text: "Método inédito · fácil de aplicar" },
+                    { icon: ShieldCheck, text: "Acesso enviado no seu e-mail em segundos" },
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-3.5 rounded-xl">
+                      <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                        <f.icon className="w-4 h-4 text-yellow-400" />
+                      </div>
+                      <span className="text-sm md:text-base text-neutral-200">{f.text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="my-8 flex flex-col items-center">
+                  <div className="text-neutral-600 text-sm line-through">De R$ 97,00</div>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-2xl font-bold text-yellow-400">R$</span>
+                    <span className="text-7xl md:text-8xl font-black text-white leading-none">{preco.toFixed(0)}</span>
+                  </div>
+                  <div className="text-neutral-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Pagamento único</div>
+                </div>
+
+                <Button onClick={openCheckout} size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-lg md:text-xl h-16 rounded-2xl shadow-[0_0_60px_rgba(250,204,21,0.4)] hover:shadow-[0_0_80px_rgba(250,204,21,0.7)] tracking-wide transition-all">
+                  PAGAR E GARANTIR VAGA
+                </Button>
+
+                <p className="mt-4 text-neutral-600 text-[10px] flex items-center justify-center gap-2 uppercase tracking-widest font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Pagamento 100% seguro · InfiniPay
+                </p>
               </div>
-
-              <Button onClick={openCheckout} size="lg" className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-xl md:text-2xl h-20 rounded-2xl shadow-[0_0_50px_rgba(34,197,94,0.5)] hover:scale-[1.02] transition">
-                <CheckCircle2 className="w-7 h-7 mr-3" /> PAGAR E GARANTIR VAGA
-              </Button>
-
-              <p className="mt-4 text-gray-500 text-xs flex items-center justify-center gap-2">
-                <ShieldCheck className="w-4 h-4" /> Pagamento 100% seguro via InfiniPay
-              </p>
             </div>
           </div>
         </div>
 
-        <footer className="mt-16 text-center text-gray-500 text-sm pb-8">
-          © 2026 MRO - Mais Resultados Online
+        <footer className="mt-20 pt-8 border-t border-neutral-900 text-center pb-8">
+          <p className="text-neutral-600 text-xs uppercase tracking-[0.3em] font-bold">© 2026 MRO · Mais Resultados Online</p>
         </footer>
       </div>
 
       {/* Form Dialog */}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
-        <DialogContent className="bg-[#0a0f1a] border-yellow-500/30 text-white max-w-md">
+        <DialogContent className="bg-neutral-950 border-yellow-400/30 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black">Garanta sua vaga</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Preencha seus dados e finalize o pagamento de R$ {preco.toFixed(0)}
+            <DialogTitle className="text-2xl font-black tracking-tight">Garanta sua vaga</DialogTitle>
+            <DialogDescription className="text-neutral-500">
+              Preencha seus dados para finalizar o pagamento de R$ {preco.toFixed(0)}.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div>
-              <Label htmlFor="name">Nome completo</Label>
-              <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-white/5 border-white/10 mt-1" placeholder="Seu nome completo" />
+              <Label htmlFor="name" className="text-neutral-400 text-xs uppercase tracking-widest font-bold">Nome completo</Label>
+              <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-neutral-900 border-neutral-800 mt-1 focus:border-yellow-400" placeholder="Seu nome completo" />
             </div>
             <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-white/5 border-white/10 mt-1" placeholder="seu@email.com" />
+              <Label htmlFor="email" className="text-neutral-400 text-xs uppercase tracking-widest font-bold">E-mail</Label>
+              <Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-neutral-900 border-neutral-800 mt-1 focus:border-yellow-400" placeholder="seu@email.com" />
             </div>
             <div>
-              <Label htmlFor="whatsapp">WhatsApp (DDD + número)</Label>
-              <Input id="whatsapp" required value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} className="bg-white/5 border-white/10 mt-1" placeholder="(11) 99999-9999" />
+              <Label htmlFor="whatsapp" className="text-neutral-400 text-xs uppercase tracking-widest font-bold">WhatsApp</Label>
+              <Input id="whatsapp" required value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} className="bg-neutral-900 border-neutral-800 mt-1 focus:border-yellow-400" placeholder="(11) 99999-9999" />
             </div>
-            <Button type="submit" disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-white font-black h-14 text-lg rounded-xl">
+            <Button type="submit" disabled={loading} className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 text-base rounded-xl tracking-wide shadow-[0_0_30px_rgba(250,204,21,0.35)]">
               {loading ? "Gerando pagamento..." : `PAGAR R$ ${preco.toFixed(0)}`}
             </Button>
           </form>
