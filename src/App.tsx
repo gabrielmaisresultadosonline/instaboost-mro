@@ -375,6 +375,9 @@ const App = () => (
           <Route path="/postscomia/login" element={<PostsComIALogin />} />
           <Route path="/postscomia/membros" element={<PostsComIAMembros />} />
           <Route path="/postscomia/obrigado" element={<PostsComIAObrigado />} />
+          <Route path="/rendasaovivo" element={<RendaSaoVivo />} />
+          <Route path="/rendasaovivo/obrigado" element={<RendaSaoVivoObrigado />} />
+          <Route path="/rendasaovivo/admin" element={<RendaSaoVivoAdmin />} />
 
 
 
