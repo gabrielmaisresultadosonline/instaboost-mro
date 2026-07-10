@@ -182,10 +182,18 @@ serve(async (req) => {
     let isVenderOrder = false;
     
     let isPostsComIAOrder = false;
+    let isRendaSaoVivoOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("RENDASAOVIVO_")) {
+          isRendaSaoVivoOrder = true;
+          email = itemName.replace("RENDASAOVIVO_", "").toLowerCase();
+          log("Parsed RENDASAOVIVO order", { email });
+          break;
+        }
 
         if (itemName.startsWith("POSTSCOMIA_")) {
           isPostsComIAOrder = true;
