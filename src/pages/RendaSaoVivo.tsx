@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Sparkles, TrendingUp, Users, CheckCircle2, Zap, Calendar, Clock, ArrowRight,
-  ShieldCheck, Rocket, Brain, LineChart, Cpu, Target,
+  ShieldCheck, Rocket, Brain, LineChart, Cpu, Target, RotateCcw,
 } from "lucide-react";
 import gabrielPhoneAsset from "@/assets/gabriel-phone.png.asset.json";
 import heroVideoAsset from "@/assets/rendasaovivo-hero.mp4.asset.json";
