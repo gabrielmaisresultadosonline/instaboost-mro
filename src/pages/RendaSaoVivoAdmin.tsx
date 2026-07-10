@@ -230,6 +230,40 @@ const RendaSaoVivoAdmin = () => {
                     <Input type="number" value={settings.preco} onChange={(e) => setSettings({ ...settings, preco: Number(e.target.value) })} className="bg-slate-800 border-slate-700 mt-1" />
                   </div>
                 </div>
+
+                <div className="border-t border-slate-800 pt-4 space-y-3">
+                  <div>
+                    <Label className="text-yellow-400">Vídeo do Hero (página /rendasaovivo)</Label>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Envie um MP4 (até 100MB). O vídeo será servido via CDN com <b>range requests</b> (streaming progressivo), começando em qualidade baixa e melhorando conforme a conexão — sem travar. Para transcoding adaptativo (HLS), cole a URL <code>.m3u8</code> no campo abaixo.
+                    </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <label className="inline-flex">
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime"
+                        className="hidden"
+                        onChange={(e) => e.target.files?.[0] && handleVideoUpload(e.target.files[0])}
+                      />
+                      <span className={`inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md text-sm font-medium cursor-pointer ${uploading ? "bg-slate-700 text-gray-400" : "bg-yellow-500 hover:bg-yellow-400 text-black"}`}>
+                        {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</> : <><Upload className="w-4 h-4" /> Enviar novo vídeo</>}
+                      </span>
+                    </label>
+                  </div>
+                  <div>
+                    <Label>URL do vídeo MP4</Label>
+                    <Input value={settings.hero_video_url} onChange={(e) => setSettings({ ...settings, hero_video_url: e.target.value })} placeholder="https://... .mp4" className="bg-slate-800 border-slate-700 mt-1 font-mono text-xs" />
+                  </div>
+                  <div>
+                    <Label>URL HLS (adaptativo, opcional) — evita travas em qualquer conexão</Label>
+                    <Input value={settings.hero_video_hls_url} onChange={(e) => setSettings({ ...settings, hero_video_hls_url: e.target.value })} placeholder="https://... .m3u8" className="bg-slate-800 border-slate-700 mt-1 font-mono text-xs" />
+                  </div>
+                  {settings.hero_video_url && (
+                    <video src={settings.hero_video_url} controls className="w-full max-w-md rounded-md border border-slate-800" />
+                  )}
+                </div>
+
                 <Button onClick={saveSettings} disabled={loading}>
                   <Save className="w-4 h-4 mr-2" /> Salvar
                 </Button>
