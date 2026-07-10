@@ -94,6 +94,9 @@ import PostsComIAAdmin from "./pages/PostsComIAAdmin";
 import PostsComIALogin from "./pages/PostsComIALogin";
 import PostsComIAMembros from "./pages/PostsComIAMembros";
 import PostsComIAObrigado from "./pages/PostsComIAObrigado";
+import RendaSaoVivo from "./pages/RendaSaoVivo";
+import RendaSaoVivoObrigado from "./pages/RendaSaoVivoObrigado";
+import RendaSaoVivoAdmin from "./pages/RendaSaoVivoAdmin";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
