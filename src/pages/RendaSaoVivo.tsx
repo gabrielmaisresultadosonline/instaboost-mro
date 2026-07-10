@@ -17,7 +17,7 @@ import { assetUrl } from "@/lib/assetUrl";
 const RendaSaoVivo = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [preco, setPreco] = useState<number>(19);
+  const [preco, setPreco] = useState<number>(10);
   const [aulaData, setAulaData] = useState<string>("19/07");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const canvasRef = useRef<HTMLCanvasElement>(null);
