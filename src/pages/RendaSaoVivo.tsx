@@ -56,6 +56,26 @@ const RendaSaoVivo = () => {
     })();
   }, []);
 
+  // HLS adaptive streaming (evita travas: começa em bitrate baixo e sobe conforme a conexão)
+  useEffect(() => {
+    const v = heroVideoRef.current;
+    if (!v || !heroVideoHls) return;
+    if (v.canPlayType("application/vnd.apple.mpegurl")) {
+      v.src = heroVideoHls;
+      return;
+    }
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        capLevelToPlayerSize: true,
+        startLevel: 0,
+        maxBufferLength: 30,
+      });
+      hls.loadSource(heroVideoHls);
+      hls.attachMedia(v);
+      return () => hls.destroy();
+    }
+  }, [heroVideoHls]);
+
   // Neural network AI canvas animation
   useEffect(() => {
     const canvas = canvasRef.current;
