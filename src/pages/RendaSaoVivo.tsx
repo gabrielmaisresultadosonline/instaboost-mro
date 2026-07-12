@@ -156,8 +156,19 @@ const RendaSaoVivo = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Capture Facebook cookies for CAPI attribution
+      const getCookie = (name: string) => {
+        const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : '';
+      };
+      let fbc = getCookie('_fbc');
+      const fbp = getCookie('_fbp');
+      if (!fbc) {
+        const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+        if (fbclid) fbc = `fb.1.${Date.now()}.${fbclid}`;
+      }
       const { data, error } = await supabase.functions.invoke("rendasaovivo-checkout", {
-        body: { name: form.name, email: form.email, whatsapp: form.whatsapp },
+        body: { name: form.name, email: form.email, whatsapp: form.whatsapp, fbc, fbp },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");

@@ -25,11 +25,12 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    const { name, email, whatsapp } = body;
+    const { name, email, whatsapp, fbc, fbp } = body;
 
     const cleanName = String(name || "").trim();
     const cleanEmail = String(email || "").toLowerCase().trim();
     const cleanPhone = String(whatsapp || "").replace(/\D/g, "");
+    const userAgent = req.headers.get("user-agent") || null;
 
     if (!cleanName || cleanName.split(/\s+/).length < 2) {
       return new Response(JSON.stringify({ success: false, error: "Nome completo obrigatório" }), {
@@ -107,6 +108,7 @@ serve(async (req) => {
         nome_completo: cleanName, email: cleanEmail, whatsapp: cleanPhone,
         amount, nsu_order: nsu, infinitepay_link: paymentLink,
         status: "pending", expired_at: expiresAt,
+        fbc: fbc || null, fbp: fbp || null, user_agent: userAgent,
       })
       .select().single();
     if (error) throw error;
