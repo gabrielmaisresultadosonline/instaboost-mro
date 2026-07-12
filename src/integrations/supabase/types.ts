@@ -5296,13 +5296,18 @@ export type Database = {
           email_sent: boolean | null
           email_sent_at: string | null
           expired_at: string | null
+          fbc: string | null
+          fbp: string | null
           id: string
           infinitepay_link: string | null
           nome_completo: string
           nsu_order: string
           paid_at: string | null
+          pixel_sent: boolean | null
+          pixel_sent_at: string | null
           status: string
           updated_at: string
+          user_agent: string | null
           whatsapp: string
         }
         Insert: {
@@ -5312,13 +5317,18 @@ export type Database = {
           email_sent?: boolean | null
           email_sent_at?: string | null
           expired_at?: string | null
+          fbc?: string | null
+          fbp?: string | null
           id?: string
           infinitepay_link?: string | null
           nome_completo: string
           nsu_order: string
           paid_at?: string | null
+          pixel_sent?: boolean | null
+          pixel_sent_at?: string | null
           status?: string
           updated_at?: string
+          user_agent?: string | null
           whatsapp: string
         }
         Update: {
@@ -5328,13 +5338,18 @@ export type Database = {
           email_sent?: boolean | null
           email_sent_at?: string | null
           expired_at?: string | null
+          fbc?: string | null
+          fbp?: string | null
           id?: string
           infinitepay_link?: string | null
           nome_completo?: string
           nsu_order?: string
           paid_at?: string | null
+          pixel_sent?: boolean | null
+          pixel_sent_at?: string | null
           status?: string
           updated_at?: string
+          user_agent?: string | null
           whatsapp?: string
         }
         Relationships: []
