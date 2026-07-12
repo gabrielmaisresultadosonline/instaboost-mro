@@ -108,6 +108,7 @@ serve(async (req) => {
         nome_completo: cleanName, email: cleanEmail, whatsapp: cleanPhone,
         amount, nsu_order: nsu, infinitepay_link: paymentLink,
         status: "pending", expired_at: expiresAt,
+        fbc: fbc || null, fbp: fbp || null, user_agent: userAgent,
       })
       .select().single();
     if (error) throw error;
