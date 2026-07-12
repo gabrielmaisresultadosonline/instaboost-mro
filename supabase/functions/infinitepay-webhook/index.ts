@@ -21,12 +21,19 @@ const log = (step: string, details?: unknown) => {
 };
 
 // Send Purchase event to Meta Conversions API
-async function sendMetaPurchaseEvent(email: string, value: number, contentName: string, eventId?: string, sourceUrl: string = 'https://maisresultadosonline.com.br/mroobrigado') {
+async function sendMetaPurchaseEvent(
+  email: string,
+  value: number,
+  contentName: string,
+  eventId?: string,
+  sourceUrl: string = 'https://maisresultadosonline.com.br/mroobrigado',
+  extra?: { fbc?: string | null; fbp?: string | null; user_agent?: string | null; client_ip?: string | null }
+) {
   try {
     const accessToken = Deno.env.get('META_CONVERSIONS_API_TOKEN');
     if (!accessToken) {
       log("META: No access token configured, skipping Purchase event");
-      return;
+      return { ok: false, error: 'no_token' };
     }
 
     const encoder = new TextEncoder();
@@ -35,13 +42,19 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashedEmail = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
+    const user_data: Record<string, unknown> = { em: hashedEmail };
+    if (extra?.fbc) user_data.fbc = extra.fbc;
+    if (extra?.fbp) user_data.fbp = extra.fbp;
+    if (extra?.user_agent) user_data.client_user_agent = extra.user_agent;
+    if (extra?.client_ip) user_data.client_ip_address = extra.client_ip;
+
     const event = {
       event_name: 'Purchase',
       event_id: eventId,
       event_time: Math.floor(Date.now() / 1000),
       action_source: 'website',
       event_source_url: sourceUrl,
-      user_data: { em: hashedEmail },
+      user_data,
       custom_data: {
         content_name: contentName,
         value: value,
@@ -58,8 +71,10 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
 
     const result = await resp.json();
     log("META Purchase event sent", { email, value, contentName, success: resp.ok, result });
+    return { ok: resp.ok, result };
   } catch (err) {
     log("META Purchase event error (non-blocking)", { error: String(err) });
+    return { ok: false, error: String(err) };
   }
 }
 
