@@ -467,19 +467,22 @@ serve(async (req) => {
           settings?.whatsapp_group_link || "#",
           settings?.aula_data || "18/07"
         );
+        const metaRes = await sendMetaPurchaseEvent(
+          rsvOrder.email,
+          Number(rsvOrder.amount) || 19,
+          "Renda Ao Vivo",
+          rsvOrder.nsu_order,
+          "https://maisresultadosonline.com.br/rendasaovivo",
+          { fbc: rsvOrder.fbc, fbp: rsvOrder.fbp, user_agent: rsvOrder.user_agent }
+        );
         await supabase.from("rendasaovivo_orders").update({
           status: "paid",
           paid_at: new Date().toISOString(),
           email_sent: emailSent,
           email_sent_at: emailSent ? new Date().toISOString() : null,
+          pixel_sent: !!metaRes?.ok,
+          pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
         }).eq("id", rsvOrder.id);
-        await sendMetaPurchaseEvent(
-          rsvOrder.email,
-          Number(rsvOrder.amount) || 19,
-          "Renda Ao Vivo",
-          rsvOrder.nsu_order,
-          "https://maisresultadosonline.com.br/rendasaovivo"
-        );
         return new Response(JSON.stringify({ success: true, message: "RENDASAOVIVO confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
