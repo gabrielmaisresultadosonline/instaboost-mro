@@ -166,6 +166,17 @@ const LocalVpp = () => {
                 </p>
               </div>
 
+              <div className="mt-8 max-w-2xl w-full text-center">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight">
+                  Precisa de <span className="text-yellow-400">público local?</span>
+                </p>
+                <p className="mt-2 text-lg sm:text-xl md:text-2xl text-neutral-200 font-bold">
+                  Não gaste com anúncios — utilize a{" "}
+                  <span className="text-yellow-400">ferramenta MRO</span>.
+                </p>
+              </div>
+
+
               {/* HERO CTA — Highlight block */}
               <div className="mt-14 w-full max-w-2xl">
                 <div className="relative rounded-[2rem] p-[2px] bg-gradient-to-br from-yellow-300 via-yellow-500 to-amber-600 shadow-[0_25px_80px_-20px_rgba(250,204,21,0.6)]">
