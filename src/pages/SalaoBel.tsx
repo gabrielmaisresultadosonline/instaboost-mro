@@ -255,7 +255,7 @@ const SalaoBel = () => {
             </h1>
             <p className="text-sm md:text-base text-neutral-400 font-light italic -mt-2">Aprenda como a MRO pode te ajudar!</p>
 
-            </h1>
+
 
             {/* HERO IMAGE with PIX notifications emerging from behind */}
             <div className="relative w-full flex justify-center items-end min-h-[240px] md:min-h-[300px] -mt-2">
