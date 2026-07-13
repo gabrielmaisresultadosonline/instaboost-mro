@@ -388,8 +388,8 @@ const LocalVpp = () => {
                   </div>
                 )}
 
-                {/* Step 5: review + submit */}
-                {step === 5 && (
+                {/* Step 7: review + submit */}
+                {step === 7 && (
                   <div className="space-y-4">
                     <p className="text-neutral-300 font-semibold">Confira seus dados antes de finalizar:</p>
                     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2 text-sm">
@@ -401,7 +401,7 @@ const LocalVpp = () => {
                       <Row label="Instagram" value={`@${instagram}`} />
                     </div>
                     <div className="flex justify-between pt-2">
-                      <Button variant="outline" onClick={() => setStep(4)} className="border-neutral-700 bg-neutral-900 text-white h-12">
+                      <Button variant="outline" onClick={() => setStep(6)} className="border-neutral-700 bg-neutral-900 text-white h-12">
                         <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
                       </Button>
                       <Button
