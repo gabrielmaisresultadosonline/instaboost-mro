@@ -245,20 +245,17 @@ const SalaoBel = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="space-y-7 flex flex-col items-center">
 
-            <div className="inline-flex items-center gap-2 border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 rounded-full">
-              <Brain className="w-3.5 h-3.5 text-yellow-400" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MRO PARA SALÕES DE BELEZA · 2026</span>
-            </div>
-
             {/* HERO IMAGE with PIX notifications */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
               <span className="text-yellow-400">Salão de beleza</span> aumente seus clientes{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">sem precisar investir em anúncios!</span>
                 <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
-              </span>{" "}
-              <span className="text-neutral-400 font-light italic normal-case">Aprenda como a MRO pode te ajudar!</span>
+              </span>
             </h1>
+            <p className="text-sm md:text-base text-neutral-400 font-light italic -mt-2">Aprenda como a MRO pode te ajudar!</p>
+
+
 
             {/* HERO IMAGE with PIX notifications emerging from behind */}
             <div className="relative w-full flex justify-center items-end min-h-[240px] md:min-h-[300px] -mt-2">
