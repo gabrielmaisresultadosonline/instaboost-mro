@@ -76,7 +76,7 @@ const LocalVpp = () => {
       if (error) throw error;
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "CompleteRegistration", { content_name: "LocalVPP Free Group" });
-      setStep(6);
+      setStep(8);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao enviar cadastro");
     } finally {
@@ -420,7 +420,7 @@ const LocalVpp = () => {
         )}
 
         {/* SUCCESS */}
-        {step === 6 && (
+        {step === 8 && (
           <div className="max-w-xl mx-auto text-center">
             <div className="rounded-[2rem] p-[1.5px] bg-gradient-to-br from-green-400/60 via-yellow-400/40 to-green-400/60">
               <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-8">
