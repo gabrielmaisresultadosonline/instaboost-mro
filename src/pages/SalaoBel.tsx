@@ -366,7 +366,7 @@ const SalaoBel = () => {
         {/* DIVIDER */}
         <div className="my-20 md:my-32 flex items-center gap-4">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-600">A nova onda do digital</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-600">Salões que já cresceram com a MRO</span>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
         </div>
 
