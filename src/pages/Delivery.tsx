@@ -268,25 +268,25 @@ const Delivery = () => {
 
               {/* Client scheduled notifications loop — spawn behind image, drift sideways */}
               {[
-                { delay: "0s",   side: "left",  top: "10%" },
-                { delay: "1.5s", side: "right", top: "20%" },
-                { delay: "3s",   side: "left",  top: "55%" },
-                { delay: "4.5s", side: "right", top: "60%" },
-                { delay: "6s",   side: "right", top: "35%" },
-                { delay: "7.5s", side: "left",  top: "35%" },
+                { delay: "0s",   side: "left",  top: "10%", label: "Novo pedido!" },
+                { delay: "1.5s", side: "right", top: "20%", label: "Pedido pago!" },
+                { delay: "3s",   side: "left",  top: "55%", label: "Novo pedido!" },
+                { delay: "4.5s", side: "right", top: "60%", label: "Pedido pago!" },
+                { delay: "6s",   side: "right", top: "35%", label: "Novo pedido!" },
+                { delay: "7.5s", side: "left",  top: "35%", label: "Pedido pago!" },
               ].map((n, i) => (
                 <div
                   key={i}
                   className={`absolute pix-notif pix-${n.side} z-0`}
                   style={{ top: n.top, animationDelay: n.delay }}
                 >
-                  <div className="flex items-center gap-2.5 bg-neutral-900/90 backdrop-blur border border-yellow-400/40 rounded-xl px-3.5 py-2.5 shadow-[0_0_20px_rgba(250,204,21,0.35)]">
-                    <div className="w-7 h-7 rounded-md bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center text-black">
+                  <div className="flex items-center gap-2.5 bg-red-600 border border-red-400/60 rounded-xl px-3.5 py-2.5 shadow-[0_0_20px_rgba(239,68,68,0.55)]">
+                    <div className="w-7 h-7 rounded-md bg-white/15 flex items-center justify-center text-white">
                       <Calendar className="w-4 h-4" strokeWidth={3} />
                     </div>
                     <div className="text-left">
-                      <div className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold leading-none">Novo</div>
-                      <div className="text-sm md:text-base font-black text-yellow-400 leading-tight whitespace-nowrap">Cliente agendado</div>
+                      <div className="text-[10px] uppercase tracking-wider text-white/80 font-bold leading-none">Delivery</div>
+                      <div className="text-sm md:text-base font-black text-white leading-tight whitespace-nowrap">{n.label}</div>
                     </div>
                   </div>
                 </div>
