@@ -59,7 +59,7 @@ const DeliveryObrigado = () => {
             <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto animate-pulse" />
             <h1 className="text-3xl md:text-5xl font-black mt-4">Pagamento Confirmado!</h1>
             <p className="text-gray-300 text-lg mt-3">
-              Sua vaga no grupo está garantida — vamos te mostrar como atrair mais clientes pro seu salão sem investir em anúncios.
+              Sua vaga no grupo está garantida — vamos te mostrar como atrair mais clientes pro seu delivery sem investir em anúncios.
             </p>
             <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-6 text-left">
               <div className="flex items-start gap-3">

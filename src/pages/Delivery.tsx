@@ -248,7 +248,7 @@ const Delivery = () => {
 
             {/* HERO IMAGE with PIX notifications */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
-              <span className="text-yellow-400">Salão de beleza</span> aumente seus clientes{" "}
+              <span className="text-yellow-400">Delivery</span> não gaste com anúncios para aumentar seus clientes{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">sem precisar investir em anúncios!</span>
                 <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
@@ -339,7 +339,7 @@ const Delivery = () => {
 
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
-              Já ajudamos <span className="text-yellow-400 font-bold">mais de 123 salões de beleza</span> a lotar a agenda e crescer o faturamento. Aprenda e entenda tudo por apenas <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
+              Já ajudamos <span className="text-yellow-400 font-bold">mais de 134 deliveries</span> a aumentar seus clientes e crescer o faturamento. Aprenda e entenda tudo por apenas <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -356,7 +356,7 @@ const Delivery = () => {
             {/* trust bar */}
             <div className="flex flex-wrap items-center gap-6 pt-4 text-neutral-500 text-xs uppercase tracking-widest font-semibold">
               <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-yellow-400" /> Pagamento InfiniPay</div>
-              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +123 salões atendidos</div>
+              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +134 deliveries atendidos</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-400" /> Método validado</div>
             </div>
           </div>
@@ -380,10 +380,10 @@ const Delivery = () => {
             <div>
               <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Prova real</div>
               <h2 className="text-2xl md:text-4xl font-black leading-tight text-white">
-                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">123 salões de beleza</span> aplicando o método da MRO já lotaram a <span className="text-yellow-400">agenda</span> e aumentaram o faturamento.
+                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">134 deliveries</span> aplicando o método da MRO já lotaram a <span className="text-yellow-400">agenda</span> e aumentaram o faturamento.
               </h2>
               <p className="mt-4 text-neutral-400 text-base md:text-lg">
-                Sem fórmulas mágicas, sem promessas vazias. Um passo a passo prático que qualquer dono(a) de salão consegue aplicar no dia seguinte.
+                Sem fórmulas mágicas, sem promessas vazias. Um passo a passo prático que qualquer dono(a) de delivery consegue aplicar no dia seguinte.
               </p>
             </div>
           </div>
@@ -392,7 +392,7 @@ const Delivery = () => {
         {/* BENEFÍCIOS */}
         <div className="mt-16 grid md:grid-cols-3 gap-4">
           {[
-            { icon: Brain, title: "Método da MRO", text: "Testado em salões reais" },
+            { icon: Brain, title: "Método da MRO", text: "Testado em deliveries reais" },
             { icon: Target, title: "Mais clientes", text: "Agenda cheia todo mês" },
             { icon: Cpu, title: "Fácil de aplicar", text: "Sem enrolação, direto ao ponto" },
           ].map((b, i) => (
@@ -420,7 +420,7 @@ const Delivery = () => {
               Isso <span className="text-yellow-400">NÃO é para qualquer um.</span>
             </p>
             <p className="mt-6 text-xl md:text-3xl font-bold leading-snug text-neutral-200">
-              Vai ter dono(a) de salão que não vai querer pagar <span className="text-yellow-400">nem R$ {preco.toFixed(0)}</span> para aprender a <span className="text-yellow-400">lotar a agenda</span> e crescer o próprio negócio.
+              Vai ter dono(a) de delivery que não vai querer pagar <span className="text-yellow-400">nem R$ {preco.toFixed(0)}</span> para aprender a <span className="text-yellow-400">aumentar seus clientes</span> e crescer o próprio negócio.
             </p>
             <p className="mt-8 text-2xl md:text-4xl font-black text-white uppercase tracking-tight">
               Aproveite <span className="text-yellow-400">se isso é para você.</span>
@@ -443,27 +443,27 @@ const Delivery = () => {
               <div className="text-center">
                 <img
                   src={assetUrl(salaobelHeroAsset.url)}
-                  alt="Salão de beleza utilize a MRO"
+                  alt="Delivery utilize a MRO"
                   className="w-full max-w-sm mx-auto mb-6 rounded-2xl"
                   loading="lazy"
                 />
                 <div className="inline-flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-3 py-1.5 rounded-full mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">OFERTA ESPECIAL · SALÕES DE BELEZA</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">OFERTA ESPECIAL · DELIVERIES</span>
                 </div>
 
                 <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight">
                   Participe do grupo
                 </h3>
                 <p className="text-neutral-500 mt-3 max-w-md mx-auto">
-                  Vamos apresentar tudo no dia {aulaData} — passo a passo pra atrair mais clientes pro seu salão <span className="text-yellow-400 font-semibold">sem precisar investir em anúncios!</span>
+                  Vamos apresentar tudo no dia {aulaData} — passo a passo pra atrair mais clientes pro seu delivery <span className="text-yellow-400 font-semibold">sem precisar investir em anúncios!</span>
                 </p>
 
                 <div className="my-8 space-y-2.5 text-left">
                   {[
                     { icon: Calendar, text: `Apresentação · ${aulaData}` },
-                    { icon: Users, text: "Como atrair mais clientes pro seu salão" },
-                    { icon: Sparkles, text: "Estratégias validadas em +123 salões" },
+                    { icon: Users, text: "Como atrair mais clientes pro seu delivery" },
+                    { icon: Sparkles, text: "Estratégias validadas em +134 deliveries" },
                     { icon: ShieldCheck, text: "Acesso enviado no seu e-mail em segundos" },
                   ].map((f, i) => (
                     <div key={i} className="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-3.5 rounded-xl">
