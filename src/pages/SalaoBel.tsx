@@ -334,6 +334,7 @@ const SalaoBel = () => {
                     </div>
                   )}
                 </div>
+                )}
               </div>
             </div>
 
