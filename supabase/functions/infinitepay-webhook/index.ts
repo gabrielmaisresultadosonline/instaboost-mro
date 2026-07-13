@@ -5,6 +5,7 @@ import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
 import { sendSalaoBelEmail } from "../_shared/salaobel-email.ts";
 import { sendDeliveryEmail } from "../_shared/delivery-email.ts";
+import { sendLocalVppEmail } from "../_shared/localvpp-email.ts";
 
 
 const corsHeaders = {
