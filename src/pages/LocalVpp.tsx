@@ -79,7 +79,12 @@ const LocalVpp = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
       const fbq = (window as any).fbq;
-      if (fbq) fbq("track", "CompleteRegistration", { content_name: "LocalVPP Free Group" });
+      if (fbq) {
+        fbq("track", "Lead", { content_name: "LocalVPP Free Group", content_category: "Lead" });
+        fbq("track", "CompleteRegistration", { content_name: "LocalVPP Free Group" });
+      }
+      // Server-side Lead (Meta Conversions API)
+      trackLead("LocalVPP Free Group");
       setStep(8);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao enviar cadastro");
