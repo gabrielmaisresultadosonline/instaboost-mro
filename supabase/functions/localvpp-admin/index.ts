@@ -37,8 +37,39 @@ serve(async (req) => {
     }
 
     if (action === "get_public_settings") {
-      const { data } = await supabase.from("localvpp_settings").select("aula_data,aula_titulo,preco,hero_video_url,hero_video_hls_url").limit(1).maybeSingle();
-      return json({ success: true, settings: data || { aula_data: "20/07", aula_titulo: "", preco: 19, hero_video_url: "", hero_video_hls_url: "" } });
+      const { data } = await supabase.from("localvpp_settings").select("aula_data,aula_titulo,preco,hero_video_url,hero_video_hls_url,whatsapp_group_link").limit(1).maybeSingle();
+      return json({ success: true, settings: data || { aula_data: "20/07", aula_titulo: "", preco: 19, hero_video_url: "", hero_video_hls_url: "", whatsapp_group_link: "" } });
+    }
+
+    if (action === "submit_lead") {
+      const nome = String(body.nome || "").trim();
+      const email = String(body.email || "").toLowerCase().trim();
+      const whatsapp = String(body.whatsapp || "").replace(/\D/g, "");
+      const business_type = String(body.business_type || "").trim();
+      const device_type = String(body.device_type || "").trim();
+      const instagram = String(body.instagram || "").trim();
+
+      if (!nome || nome.split(/\s+/).length < 2) return json({ success: false, error: "Nome completo obrigatório" }, 400);
+      if (!email.includes("@")) return json({ success: false, error: "E-mail inválido" }, 400);
+      if (whatsapp.length < 10) return json({ success: false, error: "WhatsApp inválido" }, 400);
+      if (!business_type) return json({ success: false, error: "Negócio obrigatório" }, 400);
+      if (!device_type) return json({ success: false, error: "Dispositivo obrigatório" }, 400);
+
+      const { error: insertErr } = await supabase.from("localvpp_leads").insert({
+        nome_completo: nome, email, whatsapp, business_type, device_type,
+        instagram: instagram || null,
+        user_agent: req.headers.get("user-agent") || null,
+        referrer: body.referrer || null,
+      });
+      if (insertErr) return json({ success: false, error: insertErr.message }, 500);
+
+      // Se não tem máquina: salva o lead mas não envia email do grupo
+      if (device_type === "nenhum") return json({ success: true, blocked: true });
+
+      const { data: s } = await supabase.from("localvpp_settings").select("whatsapp_group_link").limit(1).maybeSingle();
+      const link = s?.whatsapp_group_link || "#";
+      const emailOk = await sendLocalVppEmail(email, nome, link);
+      return json({ success: true, email_sent: emailOk });
     }
 
     if (action === "check_paid") {
@@ -81,6 +112,23 @@ serve(async (req) => {
       const { count } = await supabase.from("localvpp_visits").select("*", { count: "exact", head: true });
       return json({ success: true, visits: data || [], total: count || 0 });
     }
+
+    if (action === "list_leads") {
+      const { data } = await supabase.from("localvpp_leads").select("*").order("created_at", { ascending: false }).limit(1000);
+      return json({ success: true, leads: data || [] });
+    }
+
+    if (action === "resend_lead_email") {
+      const { lead_id } = body;
+      const { data: lead } = await supabase.from("localvpp_leads").select("*").eq("id", lead_id).maybeSingle();
+      if (!lead) return json({ success: false, error: "lead não encontrado" }, 404);
+      if (!lead.email) return json({ success: false, error: "sem email" }, 400);
+      const { data: s } = await supabase.from("localvpp_settings").select("whatsapp_group_link").limit(1).maybeSingle();
+      const ok = await sendLocalVppEmail(lead.email, lead.nome_completo, s?.whatsapp_group_link || "#");
+      return json({ success: ok });
+    }
+
+
 
     if (action === "send_test_email") {
       const testEmail = String(body.test_email || "").trim();
