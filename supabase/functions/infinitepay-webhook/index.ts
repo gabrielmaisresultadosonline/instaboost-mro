@@ -5,6 +5,7 @@ import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
 import { sendSalaoBelEmail } from "../_shared/salaobel-email.ts";
 import { sendDeliveryEmail } from "../_shared/delivery-email.ts";
+import { sendLocalVppEmail } from "../_shared/localvpp-email.ts";
 
 
 const corsHeaders = {
@@ -202,10 +203,18 @@ serve(async (req) => {
     let isRendaSaoVivoOrder = false;
     let isSalaoBelOrder = false;
     let isDeliveryOrder = false;
+    let isLocalVppOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("LOCALVPP_")) {
+          isLocalVppOrder = true;
+          email = itemName.replace("LOCALVPP_", "").toLowerCase();
+          log("Parsed LOCALVPP order", { email });
+          break;
+        }
 
         if (itemName.startsWith("DELIVERY_")) {
           isDeliveryOrder = true;
@@ -583,6 +592,46 @@ serve(async (req) => {
           pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
         }).eq("id", dOrder.id);
         return new Response(JSON.stringify({ success: true, message: "DELIVERY confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+    // LOCALVPP orders
+    if (isLocalVppOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("LOCALVPP"))) {
+      log("Processing as LOCALVPP order", { order_nsu, email });
+      let lOrder: any = null;
+      if (order_nsu) {
+        const r = await supabase.from("localvpp_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        lOrder = r.data;
+      }
+      if (!lOrder && email) {
+        const r = await supabase.from("localvpp_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        lOrder = r.data;
+      }
+      if (lOrder) {
+        const { data: settings } = await supabase.from("localvpp_settings").select("*").limit(1).maybeSingle();
+        const emailSent = await sendLocalVppEmail(
+          lOrder.email,
+          lOrder.nome_completo,
+          settings?.whatsapp_group_link || "#",
+          settings?.aula_data || "20/07"
+        );
+        const metaRes = await sendMetaPurchaseEvent(
+          lOrder.email,
+          Number(lOrder.amount) || Number(settings?.preco) || 10,
+          "LocalVPP MRO",
+          lOrder.nsu_order,
+          "https://maisresultadosonline.com.br/localvpp",
+          { fbc: lOrder.fbc, fbp: lOrder.fbp, user_agent: lOrder.user_agent }
+        );
+        await supabase.from("localvpp_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          email_sent: emailSent,
+          email_sent_at: emailSent ? new Date().toISOString() : null,
+          pixel_sent: !!metaRes?.ok,
+          pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
+        }).eq("id", lOrder.id);
+        return new Response(JSON.stringify({ success: true, message: "LOCALVPP confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
 

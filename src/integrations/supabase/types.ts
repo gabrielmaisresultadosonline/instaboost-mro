@@ -2856,6 +2856,162 @@ export type Database = {
         }
         Relationships: []
       }
+      localvpp_email_logs: {
+        Row: {
+          created_at: string
+          email_to: string
+          email_type: string
+          error_message: string | null
+          id: string
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          status: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      localvpp_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          email_sent_at: string | null
+          expired_at: string | null
+          fbc: string | null
+          fbp: string | null
+          id: string
+          infinitepay_link: string | null
+          nome_completo: string
+          nsu_order: string
+          paid_at: string | null
+          pixel_sent: boolean | null
+          pixel_sent_at: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          whatsapp: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          expired_at?: string | null
+          fbc?: string | null
+          fbp?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          nome_completo: string
+          nsu_order: string
+          paid_at?: string | null
+          pixel_sent?: boolean | null
+          pixel_sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          whatsapp: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          expired_at?: string | null
+          fbc?: string | null
+          fbp?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          nome_completo?: string
+          nsu_order?: string
+          paid_at?: string | null
+          pixel_sent?: boolean | null
+          pixel_sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      localvpp_settings: {
+        Row: {
+          aula_data: string
+          aula_titulo: string
+          created_at: string
+          hero_video_hls_url: string
+          hero_video_url: string
+          id: string
+          preco: number
+          updated_at: string
+          whatsapp_group_link: string
+        }
+        Insert: {
+          aula_data?: string
+          aula_titulo?: string
+          created_at?: string
+          hero_video_hls_url?: string
+          hero_video_url?: string
+          id?: string
+          preco?: number
+          updated_at?: string
+          whatsapp_group_link?: string
+        }
+        Update: {
+          aula_data?: string
+          aula_titulo?: string
+          created_at?: string
+          hero_video_hls_url?: string
+          hero_video_url?: string
+          id?: string
+          preco?: number
+          updated_at?: string
+          whatsapp_group_link?: string
+        }
+        Relationships: []
+      }
+      localvpp_visits: {
+        Row: {
+          created_at: string
+          id: string
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       lovable_extension_users: {
         Row: {
           created_at: string
