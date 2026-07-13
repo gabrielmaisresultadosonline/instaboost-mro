@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, MessageCircle, Maximize } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
+
+type PlanKey = "trial" | "solo" | "pro" | "lifetime";
+const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
+  trial: { name: "Teste 1 Dia", price: 97, installment: "8", accounts: 4, durationLabel: "1 dia · liberação imediata", badge: "COMECE AQUI", icon: Zap },
+  solo: { name: "Anual Solo", price: 247, installment: "25", accounts: 1, durationLabel: "1 ano de acesso", icon: Crown },
+  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "1 ano de acesso", badge: "MAIS VENDIDO", icon: Sparkles },
+  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Pagamento único · Vitalício", badge: "MELHOR CUSTO", icon: InfinityIcon },
+};
+const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 const WHATSAPP_URL =
