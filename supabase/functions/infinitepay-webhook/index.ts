@@ -199,10 +199,18 @@ serve(async (req) => {
     
     let isPostsComIAOrder = false;
     let isRendaSaoVivoOrder = false;
+    let isSalaoBelOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("SALAOBEL_")) {
+          isSalaoBelOrder = true;
+          email = itemName.replace("SALAOBEL_", "").toLowerCase();
+          log("Parsed SALAOBEL order", { email });
+          break;
+        }
 
         if (itemName.startsWith("RENDASAOVIVO_")) {
           isRendaSaoVivoOrder = true;
