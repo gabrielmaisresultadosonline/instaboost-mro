@@ -52,7 +52,7 @@ export const sendSalaoBelEmail = async (
     return false;
   }
 
-  const subject = sanitizeEmailSubject("🎉 Acesso confirmado! Entre no grupo da aula ao vivo");
+  const subject = sanitizeEmailSubject("🎉 Acesso confirmado — Entre no grupo e aprenda a atrair mais clientes pro seu salão");
   const html = buildSalaoBelEmail(name || "cliente", groupLink || "#", aulaData || "em breve");
 
   try {
