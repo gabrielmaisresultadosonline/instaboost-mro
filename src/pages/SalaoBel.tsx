@@ -185,8 +185,8 @@ const SalaoBel = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans selection:bg-yellow-400 selection:text-black">
-      {/* Audio Gate — user gesture to allow autoplay with sound */}
-      {audioGate && (
+      {/* Audio Gate — disabled on /salaobel; kept for future re-enable */}
+      {false && audioGate && (
         <button
           type="button"
           onClick={() => {
@@ -297,7 +297,8 @@ const SalaoBel = () => {
                   alt="Gabriel ao telefone"
                   className="h-[220px] md:h-[300px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
                 />
-                {/* Hero video — click toggles play/pause; restart button when ended */}
+                {/* Hero video — hidden on /salaobel; kept for future re-enable */}
+                {false && (
                 <div
                   className="group relative rounded-2xl overflow-hidden border-2 border-yellow-400/60 shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all w-[130px] md:w-[190px] aspect-[9/16] bg-black cursor-pointer"
                   onClick={() => {
@@ -333,6 +334,7 @@ const SalaoBel = () => {
                     </div>
                   )}
                 </div>
+                )}
               </div>
             </div>
 
