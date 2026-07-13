@@ -449,7 +449,7 @@ const SalaoBel = () => {
                   Participe do grupo
                 </h3>
                 <p className="text-neutral-500 mt-3 max-w-md mx-auto">
-                  Vamos apresentar tudo no dia {aulaData} — passo a passo pra atrair mais clientes pro seu salão.
+                  Vamos apresentar tudo no dia {aulaData} — passo a passo pra atrair mais clientes pro seu salão <span className="text-yellow-400 font-semibold">sem precisar investir em anúncios!</span>
                 </p>
 
                 <div className="my-8 space-y-2.5 text-left">
