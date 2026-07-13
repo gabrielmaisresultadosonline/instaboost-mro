@@ -97,6 +97,9 @@ import PostsComIAObrigado from "./pages/PostsComIAObrigado";
 import RendaSaoVivo from "./pages/RendaSaoVivo";
 import RendaSaoVivoObrigado from "./pages/RendaSaoVivoObrigado";
 import RendaSaoVivoAdmin from "./pages/RendaSaoVivoAdmin";
+import SalaoBel from "./pages/SalaoBel";
+import SalaoBelObrigado from "./pages/SalaoBelObrigado";
+import SalaoBelAdmin from "./pages/SalaoBelAdmin";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
