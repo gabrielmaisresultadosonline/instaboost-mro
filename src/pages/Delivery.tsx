@@ -22,7 +22,7 @@ const Delivery = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preco, setPreco] = useState<number>(10);
-  const [aulaData, setAulaData] = useState<string>("16/07");
+  const [aulaData, setAulaData] = useState<string>("17/07");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
@@ -47,7 +47,7 @@ const Delivery = () => {
         const { data } = await supabase.functions.invoke("delivery-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 10);
-          setAulaData(data.settings.aula_data || "16/07");
+          setAulaData(data.settings.aula_data || "17/07");
           if (data.settings.hero_video_url) setHeroVideoUrl(data.settings.hero_video_url);
           if (data.settings.hero_video_hls_url) setHeroVideoHls(data.settings.hero_video_hls_url);
         }
@@ -347,7 +347,7 @@ const Delivery = () => {
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button onClick={scrollToPreco} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all">
-                QUERO LOTAR MEU SALÃO
+                QUERO AUMENTAR MINHAS VENDAS
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
               </Button>
               <Button onClick={scrollToPreco} size="lg" variant="outline" className="h-14 px-8 rounded-xl border-neutral-700 bg-neutral-900/40 hover:bg-neutral-800 text-white font-bold text-base backdrop-blur">
