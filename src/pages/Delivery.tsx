@@ -248,13 +248,16 @@ const Delivery = () => {
 
             {/* HERO IMAGE with PIX notifications */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
-              <span className="text-yellow-400">Delivery</span> não gaste com anúncios para aumentar seus clientes{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">sem precisar investir em anúncios!</span>
-                <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
-              </span>
+              <span className="text-yellow-400">Delivery</span> não gaste com anúncios para aumentar seus clientes
             </h1>
-            <p className="text-sm md:text-base text-neutral-400 font-light italic -mt-2">Aprenda como a MRO pode te ajudar!</p>
+            <p className="text-base md:text-xl text-neutral-200 font-medium -mt-1">
+              Delivery, aumente seus clientes{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent font-bold">sem precisar investir em anúncios pagos!</span>
+                <span className="absolute inset-x-0 bottom-1 h-2 bg-yellow-400/20 blur-md -z-0" />
+              </span>{" "}
+              Aprenda como a MRO pode te ajudar.
+            </p>
 
 
 
