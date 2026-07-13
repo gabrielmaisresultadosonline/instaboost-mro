@@ -25,11 +25,12 @@ const SalaoBelObrigado = () => {
           setEmail(data.email || "");
           const fbq = (window as any).fbq;
           if (fbq) fbq("track", "Purchase",
-            { value: 19, currency: "BRL", content_name: "Salão Bel" },
+            { value: Number(data.amount) || 10, currency: "BRL", content_name: "Salão Bel" },
             { eventID: nsu }
           );
           return;
         }
+
       } catch { /* ignore */ }
       if (attempts < 20) setTimeout(poll, 3000);
       else setPaid(false);
