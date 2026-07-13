@@ -378,12 +378,12 @@ const SalaoBel = () => {
               <TrendingUp className="w-12 h-12 md:w-16 md:h-16 text-yellow-400" />
             </div>
             <div>
-              <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Insight</div>
+              <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Prova real</div>
               <h2 className="text-2xl md:text-4xl font-black leading-tight text-white">
-                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">1.800 empreendedores</span> aplicando esse método já ultrapassaram os <span className="text-yellow-400">R$ 5.000/mês</span> trabalhando de casa.
+                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">123 salões de beleza</span> aplicando o método da MRO já lotaram a <span className="text-yellow-400">agenda</span> e aumentaram o faturamento.
               </h2>
               <p className="mt-4 text-neutral-400 text-base md:text-lg">
-                Sem fórmulas mágicas, sem promessas vazias. Um sistema replicável, direto ao ponto, e que qualquer pessoa com um notebook consegue aplicar.
+                Sem fórmulas mágicas, sem promessas vazias. Um passo a passo prático que qualquer dono(a) de salão consegue aplicar no dia seguinte.
               </p>
             </div>
           </div>
@@ -392,9 +392,9 @@ const SalaoBel = () => {
         {/* BENEFÍCIOS */}
         <div className="mt-16 grid md:grid-cols-3 gap-4">
           {[
-            { icon: Brain, title: "Método Inteligente", text: "Estratégia validada e replicável" },
-            { icon: Target, title: "R$ 5 mil / mês", text: "Faturamento comprovado em casa" },
-            { icon: Cpu, title: "Só um notebook", text: "Método simples e replicável" },
+            { icon: Brain, title: "Método da MRO", text: "Testado em salões reais" },
+            { icon: Target, title: "Mais clientes", text: "Agenda cheia todo mês" },
+            { icon: Cpu, title: "Fácil de aplicar", text: "Sem enrolação, direto ao ponto" },
           ].map((b, i) => (
             <div key={i} className="group relative bg-neutral-950/60 border border-neutral-800 hover:border-yellow-400/40 p-6 rounded-2xl backdrop-blur transition-all overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 blur-3xl rounded-full group-hover:bg-yellow-400/10 transition" />
