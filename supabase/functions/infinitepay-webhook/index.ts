@@ -496,6 +496,48 @@ serve(async (req) => {
       }
     }
 
+    // SALAOBEL orders
+    if (isSalaoBelOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("SALAOBEL"))) {
+      log("Processing as SALAOBEL order", { order_nsu, email });
+      let sbOrder: any = null;
+      if (order_nsu) {
+        const r = await supabase.from("salaobel_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        sbOrder = r.data;
+      }
+      if (!sbOrder && email) {
+        const r = await supabase.from("salaobel_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        sbOrder = r.data;
+      }
+      if (sbOrder) {
+        const { data: settings } = await supabase.from("salaobel_settings").select("*").limit(1).maybeSingle();
+        const emailSent = await sendSalaoBelEmail(
+          sbOrder.email,
+          sbOrder.nome_completo,
+          settings?.whatsapp_group_link || "#",
+          settings?.aula_data || "18/07"
+        );
+        const metaRes = await sendMetaPurchaseEvent(
+          sbOrder.email,
+          Number(sbOrder.amount) || 19,
+          "Salão Bel",
+          sbOrder.nsu_order,
+          "https://maisresultadosonline.com.br/salaobel",
+          { fbc: sbOrder.fbc, fbp: sbOrder.fbp, user_agent: sbOrder.user_agent }
+        );
+        await supabase.from("salaobel_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          email_sent: emailSent,
+          email_sent_at: emailSent ? new Date().toISOString() : null,
+          pixel_sent: !!metaRes?.ok,
+          pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
+        }).eq("id", sbOrder.id);
+        return new Response(JSON.stringify({ success: true, message: "SALAOBEL confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+
+
 
     // Default payment orders
     let order = null;
