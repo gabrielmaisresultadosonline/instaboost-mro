@@ -34,7 +34,7 @@ const SalaoBel = () => {
   const [heroVideoHls, setHeroVideoHls] = useState<string>("");
 
   useEffect(() => {
-    document.title = "Salão Bel | Método profissional para faturar em casa";
+    document.title = "Salão Bel | Como a MRO ajuda salões de beleza a lotar a agenda";
     (async () => {
       const sid = crypto.randomUUID();
       try {
