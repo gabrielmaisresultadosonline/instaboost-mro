@@ -339,24 +339,24 @@ const SalaoBel = () => {
 
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
-              Uma metodologia validada por mais de 1.800 empreendedores brasileiros — direta, prática e sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
+              Já ajudamos <span className="text-yellow-400 font-bold">mais de 123 salões de beleza</span> a lotar a agenda e crescer o faturamento. Aprenda e entenda tudo por apenas <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button onClick={scrollToPreco} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all">
-                EU QUERO APRENDER
+                QUERO LOTAR MEU SALÃO
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
               </Button>
               <Button onClick={scrollToPreco} size="lg" variant="outline" className="h-14 px-8 rounded-xl border-neutral-700 bg-neutral-900/40 hover:bg-neutral-800 text-white font-bold text-base backdrop-blur">
                 <Zap className="mr-2 w-4 h-4 text-yellow-400" />
-                Quero entrar nessa onda
+                Aproveitar por R$ {preco.toFixed(0)}
               </Button>
             </div>
 
             {/* trust bar */}
             <div className="flex flex-wrap items-center gap-6 pt-4 text-neutral-500 text-xs uppercase tracking-widest font-semibold">
               <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-yellow-400" /> Pagamento InfiniPay</div>
-              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +1.800 alunos</div>
+              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +123 salões atendidos</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-400" /> Método validado</div>
             </div>
           </div>
