@@ -3,13 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Mail, Sparkles, ExternalLink } from "lucide-react";
 
-const SalaoBelObrigado = () => {
+const DeliveryObrigado = () => {
   const [params] = useSearchParams();
   const [paid, setPaid] = useState<boolean | null>(null);
   const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
-    document.title = "Pagamento confirmado - Salão Bel";
+    document.title = "Pagamento confirmado - Delivery";
     const nsu = params.get("nsu");
     if (!nsu) { setPaid(false); return; }
 
@@ -17,7 +17,7 @@ const SalaoBelObrigado = () => {
     const poll = async () => {
       attempts++;
       try {
-        const { data } = await supabase.functions.invoke("salaobel-admin", {
+        const { data } = await supabase.functions.invoke("delivery-admin", {
           body: { action: "check_paid", nsu },
         });
         if (data?.paid) {
@@ -25,7 +25,7 @@ const SalaoBelObrigado = () => {
           setEmail(data.email || "");
           const fbq = (window as any).fbq;
           if (fbq) fbq("track", "Purchase",
-            { value: Number(data.amount) || 10, currency: "BRL", content_name: "Salão Bel" },
+            { value: Number(data.amount) || 10, currency: "BRL", content_name: "Delivery MRO" },
             { eventID: nsu }
           );
           return;
@@ -101,4 +101,4 @@ const SalaoBelObrigado = () => {
   );
 };
 
-export default SalaoBelObrigado;
+export default DeliveryObrigado;

@@ -19,14 +19,14 @@ interface Order {
   created_at: string; paid_at: string | null; nsu_order: string;
 }
 
-const SalaoBelAdmin = () => {
+const DeliveryAdmin = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [creds, setCreds] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const [settings, setSettings] = useState({
     whatsapp_group_link: "", aula_data: "18/07",
-    aula_titulo: "Aula Ao Vivo - Salão Bel", preco: 19,
+    aula_titulo: "Aula Ao Vivo - Delivery", preco: 19,
     hero_video_url: "", hero_video_hls_url: "",
   });
   const [uploading, setUploading] = useState(false);
@@ -41,10 +41,10 @@ const SalaoBelAdmin = () => {
   useEffect(() => () => { if (transcodeTimer.current) window.clearTimeout(transcodeTimer.current); }, []);
 
 
-  useEffect(() => { document.title = "Admin - Salão Bel"; }, []);
+  useEffect(() => { document.title = "Admin - Delivery"; }, []);
 
   const call = async (action: string, extra: any = {}) => {
-    const { data, error } = await supabase.functions.invoke("salaobel-admin", {
+    const { data, error } = await supabase.functions.invoke("delivery-admin", {
       body: { action, email: creds.email, password: creds.password, ...extra },
     });
     if (error) throw error;
@@ -185,7 +185,7 @@ const SalaoBelAdmin = () => {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-slate-900 border-slate-800">
-          <CardHeader><CardTitle>Admin - Salão Bel</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Admin - Delivery</CardTitle></CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
@@ -214,7 +214,7 @@ const SalaoBelAdmin = () => {
     <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold">Salão Bel - Admin</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Delivery - Admin</h1>
           <Button onClick={refreshAll} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
           </Button>
@@ -296,7 +296,7 @@ const SalaoBelAdmin = () => {
 
                 <div className="border-t border-slate-800 pt-4 space-y-3">
                   <div>
-                    <Label className="text-yellow-400">Vídeo do Hero (página /salaobel)</Label>
+                    <Label className="text-yellow-400">Vídeo do Hero (página /delivery)</Label>
                     <p className="text-xs text-gray-400 mt-1">
                       Envie um MP4 (até 100MB). O vídeo será servido via CDN com <b>range requests</b> (streaming progressivo), começando em qualidade baixa e melhorando conforme a conexão — sem travar. Para transcoding adaptativo (HLS), cole a URL <code>.m3u8</code> no campo abaixo.
                     </p>
@@ -390,4 +390,4 @@ const SalaoBelAdmin = () => {
   );
 };
 
-export default SalaoBelAdmin;
+export default DeliveryAdmin;

@@ -18,7 +18,7 @@ import heroVideoAsset from "@/assets/rendasaovivo-hero.mp4.asset.json";
 import { assetUrl } from "@/lib/assetUrl";
 import { X, Volume2, VolumeX } from "lucide-react";
 
-const SalaoBel = () => {
+const Delivery = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preco, setPreco] = useState<number>(10);
@@ -35,16 +35,16 @@ const SalaoBel = () => {
   const [heroVideoHls, setHeroVideoHls] = useState<string>("");
 
   useEffect(() => {
-    document.title = "Salão Bel | Como a MRO ajuda salões de beleza a lotar a agenda";
+    document.title = "Delivery | Como a MRO ajuda deliveries a atrair mais clientes";
     (async () => {
       const sid = crypto.randomUUID();
       try {
-        await supabase.functions.invoke("salaobel-admin", {
+        await supabase.functions.invoke("delivery-admin", {
           body: { action: "track_visit", session_id: sid, user_agent: navigator.userAgent, referrer: document.referrer },
         });
       } catch { /* ignore */ }
       try {
-        const { data } = await supabase.functions.invoke("salaobel-admin", { body: { action: "get_public_settings" } });
+        const { data } = await supabase.functions.invoke("delivery-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 10);
           setAulaData(data.settings.aula_data || "16/07");
@@ -145,7 +145,7 @@ const SalaoBel = () => {
 
   const scrollToPreco = () => {
     const fbq = (window as any).fbq;
-    if (fbq) fbq("track", "ViewContent", { content_name: "Salão Bel" });
+    if (fbq) fbq("track", "ViewContent", { content_name: "Delivery MRO" });
     document.getElementById("preco")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -168,14 +168,14 @@ const SalaoBel = () => {
         const fbclid = new URLSearchParams(window.location.search).get('fbclid');
         if (fbclid) fbc = `fb.1.${Date.now()}.${fbclid}`;
       }
-      const { data, error } = await supabase.functions.invoke("salaobel-checkout", {
+      const { data, error } = await supabase.functions.invoke("delivery-checkout", {
         body: { name: form.name, email: form.email, whatsapp: form.whatsapp, fbc, fbp },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "InitiateCheckout",
-        { value: preco, currency: "BRL", content_name: "Salão Bel" },
+        { value: preco, currency: "BRL", content_name: "Delivery MRO" },
         { eventID: data.nsu_order }
       );
       window.location.href = data.payment_link;
@@ -535,4 +535,4 @@ const SalaoBel = () => {
   );
 };
 
-export default SalaoBel;
+export default Delivery;
