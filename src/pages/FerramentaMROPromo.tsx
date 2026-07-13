@@ -373,15 +373,11 @@ export default function FerramentaMROPromo() {
               })}
             </div>
 
-            <div className="mt-8 max-w-2xl mx-auto flex items-center gap-4 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-5">
-              <div className="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                <Shield className="w-7 h-7" />
-              </div>
-              <div>
-                <p className="font-black text-emerald-300 text-lg">Garantia incondicional de 30 dias</p>
-                <p className="text-sm text-white/70">Se não gostar, devolvemos 100% do seu dinheiro.</p>
-              </div>
+            <div className="mt-8 max-w-2xl mx-auto flex items-center justify-center gap-3 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4">
+              <Shield className="w-6 h-6 text-emerald-400 shrink-0" />
+              <p className="font-black text-emerald-300 text-base">Garantia de 30 dias</p>
             </div>
+
             <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/50">
               <ShieldCheck className="w-4 h-4" /> Checkout 100% seguro
             </div>
