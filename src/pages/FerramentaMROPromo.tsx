@@ -142,7 +142,7 @@ export default function FerramentaMROPromo() {
           track("video_progress", { progress_pct: m });
         }
       }
-      if (pct >= 60 && !watched) {
+      if (pct >= 50 && !watched) {
         setWatched(true);
         localStorage.setItem("ferramentamropromo:unlocked", "1");
       }
