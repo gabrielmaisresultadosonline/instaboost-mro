@@ -441,6 +441,12 @@ const SalaoBel = () => {
             <div className="absolute -inset-px rounded-[2rem] bg-gradient-to-br from-yellow-400/40 via-transparent to-yellow-400/10 blur-sm" />
             <div className="relative bg-gradient-to-br from-neutral-950 to-black border border-yellow-400/30 rounded-[2rem] p-8 md:p-12 shadow-[0_0_80px_rgba(250,204,21,0.12)]">
               <div className="text-center">
+                <img
+                  src={assetUrl(salaobelHeroAsset.url)}
+                  alt="Salão de beleza utilize a MRO"
+                  className="w-full max-w-sm mx-auto mb-6 rounded-2xl"
+                  loading="lazy"
+                />
                 <div className="inline-flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-3 py-1.5 rounded-full mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">OFERTA ESPECIAL · SALÕES DE BELEZA</span>
