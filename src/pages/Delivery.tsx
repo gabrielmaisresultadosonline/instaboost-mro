@@ -47,7 +47,7 @@ const Delivery = () => {
         const { data } = await supabase.functions.invoke("delivery-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 10);
-          setAulaData(data.settings.aula_data || "16/07");
+          setAulaData(data.settings.aula_data || "17/07");
           if (data.settings.hero_video_url) setHeroVideoUrl(data.settings.hero_video_url);
           if (data.settings.hero_video_hls_url) setHeroVideoHls(data.settings.hero_video_hls_url);
         }
