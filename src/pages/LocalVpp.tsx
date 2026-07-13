@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { trackLead } from "@/lib/facebookTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,12 @@ const LocalVpp = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
       const fbq = (window as any).fbq;
-      if (fbq) fbq("track", "CompleteRegistration", { content_name: "LocalVPP Free Group" });
+      if (fbq) {
+        fbq("track", "Lead", { content_name: "LocalVPP Free Group", content_category: "Lead" });
+        fbq("track", "CompleteRegistration", { content_name: "LocalVPP Free Group" });
+      }
+      // Server-side Lead (Meta Conversions API)
+      trackLead("LocalVPP Free Group");
       setStep(8);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao enviar cadastro");
@@ -119,9 +125,6 @@ const LocalVpp = () => {
         {step === 0 && (
           <>
             <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-[11px] font-black uppercase tracking-[0.25em]">
-                <Sparkles className="w-3.5 h-3.5" /> 100% Grátis · Sem cartão
-              </div>
 
               <h1 className="mt-7 text-[38px] leading-[0.95] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.03em] uppercase">
                 Mais Vendas{" "}
