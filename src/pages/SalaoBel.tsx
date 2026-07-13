@@ -456,8 +456,8 @@ const SalaoBel = () => {
                 <div className="my-8 space-y-2.5 text-left">
                   {[
                     { icon: Calendar, text: `Aula ao vivo · ${aulaData}` },
-                    { icon: Clock, text: "Tire todas suas dúvidas em tempo real" },
-                    { icon: Sparkles, text: "Método inédito · fácil de aplicar" },
+                    { icon: Users, text: "Como atrair mais clientes pro seu salão" },
+                    { icon: Sparkles, text: "Estratégias validadas em +123 salões" },
                     { icon: ShieldCheck, text: "Acesso enviado no seu e-mail em segundos" },
                   ].map((f, i) => (
                     <div key={i} className="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-3.5 rounded-xl">
