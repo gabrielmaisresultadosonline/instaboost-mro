@@ -247,17 +247,17 @@ const SalaoBel = () => {
 
             <div className="inline-flex items-center gap-2 border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 rounded-full">
               <Brain className="w-3.5 h-3.5 text-yellow-400" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MÉTODO INTELIGENTE · 2026</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MRO PARA SALÕES DE BELEZA · 2026</span>
             </div>
 
             {/* HERO IMAGE with PIX notifications */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
-              Aprenda como <span className="text-yellow-400">eu faturo</span> mais de{" "}
+              Tem um <span className="text-yellow-400">salão de beleza</span> e quer{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">5K por mês</span>
+                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">aumentar seus clientes?</span>
                 <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
               </span>{" "}
-              em casa <span className="text-neutral-400 font-light italic normal-case">com apenas um notebook.</span>
+              <span className="text-neutral-400 font-light italic normal-case">Aprenda como a MRO pode te ajudar.</span>
             </h1>
 
             {/* HERO IMAGE with PIX notifications emerging from behind */}
