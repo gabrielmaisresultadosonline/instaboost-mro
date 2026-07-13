@@ -514,12 +514,13 @@ serve(async (req) => {
           sbOrder.email,
           sbOrder.nome_completo,
           settings?.whatsapp_group_link || "#",
-          settings?.aula_data || "18/07"
+          settings?.aula_data || "16/07"
         );
         const metaRes = await sendMetaPurchaseEvent(
           sbOrder.email,
-          Number(sbOrder.amount) || 19,
+          Number(sbOrder.amount) || Number(settings?.preco) || 10,
           "Salão Bel",
+
           sbOrder.nsu_order,
           "https://maisresultadosonline.com.br/salaobel",
           { fbc: sbOrder.fbc, fbp: sbOrder.fbp, user_agent: sbOrder.user_agent }
