@@ -160,62 +160,39 @@ const LocalVpp = () => {
         )}
 
         {/* FORM */}
-        {step >= 1 && step <= 5 && (
+        {step >= 1 && step <= 7 && (
           <div id="form-top" className="max-w-xl mx-auto">
             <div className="relative rounded-[2rem] p-[1.5px] bg-gradient-to-br from-yellow-400/60 via-yellow-500/40 to-yellow-400/60 shadow-[0_20px_60px_-15px_rgba(245,158,11,0.35)]">
               <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-6 sm:p-8">
                 {/* Progress */}
                 <div className="flex items-center gap-2 mb-6">
-                  {[1, 2, 3, 4, 5].map((s) => (
+                  {[1, 2, 3, 4, 5, 6, 7].map((s) => (
                     <div
                       key={s}
                       className={`h-1.5 flex-1 rounded-full ${s <= step ? "bg-yellow-400" : "bg-neutral-800"}`}
                     />
                   ))}
                 </div>
-                <p className="text-[11px] uppercase tracking-widest text-yellow-300 font-black mb-2">Etapa {step} de 5</p>
+                <p className="text-[11px] uppercase tracking-widest text-yellow-300 font-black mb-2">Etapa {step} de 7</p>
                 <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-6">
                   Preencha o formulário para participar grátis.
                 </h2>
 
-                {/* Step 1: name + whatsapp + email */}
+                {/* Step 1: name */}
                 {step === 1 && (
                   <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-bold text-neutral-200">Nome completo</Label>
-                      <Input
-                        value={nome}
-                        onChange={(e) => setNome(e.target.value)}
-                        placeholder="Seu nome completo"
-                        className="mt-1.5 bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-bold text-neutral-200">Número de WhatsApp</Label>
-                      <Input
-                        value={whatsapp}
-                        onChange={(e) => setWhatsapp(e.target.value)}
-                        placeholder="(11) 99999-9999"
-                        inputMode="numeric"
-                        className="mt-1.5 bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-bold text-neutral-200">Seu melhor e-mail</Label>
-                      <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="voce@email.com"
-                        className="mt-1.5 bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12"
-                      />
-                    </div>
+                    <Label className="text-sm font-bold text-neutral-200">Nome completo</Label>
+                    <Input
+                      autoFocus
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      placeholder="Seu nome completo"
+                      className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                    />
                     <div className="flex justify-end pt-2">
                       <Button
                         onClick={() => {
                           if (!nome.trim() || nome.trim().split(/\s+/).length < 2) return toast.error("Informe seu nome completo");
-                          if (whatsapp.replace(/\D/g, "").length < 10) return toast.error("WhatsApp inválido");
-                          if (!email.includes("@")) return toast.error("E-mail inválido");
                           setStep(2);
                         }}
                         className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8"
@@ -226,8 +203,66 @@ const LocalVpp = () => {
                   </div>
                 )}
 
-                {/* Step 2: business type */}
+                {/* Step 2: whatsapp */}
                 {step === 2 && (
+                  <div className="space-y-4">
+                    <Label className="text-sm font-bold text-neutral-200">Número de WhatsApp</Label>
+                    <Input
+                      autoFocus
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                      inputMode="numeric"
+                      className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                    />
+                    <div className="flex justify-between pt-2">
+                      <Button variant="outline" onClick={() => setStep(1)} className="border-neutral-700 bg-neutral-900 text-white h-12">
+                        <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (whatsapp.replace(/\D/g, "").length < 10) return toast.error("WhatsApp inválido");
+                          setStep(3);
+                        }}
+                        className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8"
+                      >
+                        Avançar <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: email */}
+                {step === 3 && (
+                  <div className="space-y-4">
+                    <Label className="text-sm font-bold text-neutral-200">Seu melhor e-mail</Label>
+                    <Input
+                      autoFocus
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="voce@email.com"
+                      className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                    />
+                    <div className="flex justify-between pt-2">
+                      <Button variant="outline" onClick={() => setStep(2)} className="border-neutral-700 bg-neutral-900 text-white h-12">
+                        <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (!email.includes("@")) return toast.error("E-mail inválido");
+                          setStep(4);
+                        }}
+                        className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8"
+                      >
+                        Avançar <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: business type */}
+                {step === 4 && (
                   <div className="space-y-4">
                     <p className="text-neutral-300 font-semibold">Você tem hoje o quê?</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -248,13 +283,13 @@ const LocalVpp = () => {
                       ))}
                     </div>
                     <div className="flex justify-between pt-2">
-                      <Button variant="outline" onClick={() => setStep(1)} className="border-neutral-700 bg-neutral-900 text-white h-12">
+                      <Button variant="outline" onClick={() => setStep(3)} className="border-neutral-700 bg-neutral-900 text-white h-12">
                         <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
                       </Button>
                       <Button
                         onClick={() => {
                           if (!business) return toast.error("Selecione uma opção");
-                          setStep(3);
+                          setStep(5);
                         }}
                         className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8"
                       >
@@ -264,8 +299,8 @@ const LocalVpp = () => {
                   </div>
                 )}
 
-                {/* Step 3: device */}
-                {step === 3 && (
+                {/* Step 5: device */}
+                {step === 5 && (
                   <div className="space-y-4">
                     <p className="text-neutral-300 font-semibold">
                       Você tem notebook, computador de mesa ou MacBook?
@@ -304,14 +339,14 @@ const LocalVpp = () => {
                     )}
 
                     <div className="flex justify-between pt-2">
-                      <Button variant="outline" onClick={() => setStep(2)} className="border-neutral-700 bg-neutral-900 text-white h-12">
+                      <Button variant="outline" onClick={() => setStep(4)} className="border-neutral-700 bg-neutral-900 text-white h-12">
                         <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
                       </Button>
                       <Button
                         onClick={() => {
                           if (!device) return toast.error("Selecione uma opção");
                           if (device === "nenhum") return toast.error("Você precisa ter uma máquina para prosseguir");
-                          setStep(4);
+                          setStep(6);
                         }}
                         disabled={device === "nenhum"}
                         className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8 disabled:opacity-40"
@@ -322,13 +357,14 @@ const LocalVpp = () => {
                   </div>
                 )}
 
-                {/* Step 4: instagram */}
-                {step === 4 && (
+                {/* Step 6: instagram */}
+                {step === 6 && (
                   <div className="space-y-4">
                     <p className="text-neutral-300 font-semibold">Qual é o seu Instagram?</p>
                     <div className="relative">
                       <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
                       <Input
+                        autoFocus
                         value={instagram}
                         onChange={(e) => setInstagram(e.target.value.replace(/^@/, ""))}
                         placeholder="seu.instagram"
@@ -336,13 +372,13 @@ const LocalVpp = () => {
                       />
                     </div>
                     <div className="flex justify-between pt-2">
-                      <Button variant="outline" onClick={() => setStep(3)} className="border-neutral-700 bg-neutral-900 text-white h-12">
+                      <Button variant="outline" onClick={() => setStep(5)} className="border-neutral-700 bg-neutral-900 text-white h-12">
                         <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
                       </Button>
                       <Button
                         onClick={() => {
                           if (!instagram.trim()) return toast.error("Informe seu Instagram");
-                          setStep(5);
+                          setStep(7);
                         }}
                         className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8"
                       >
