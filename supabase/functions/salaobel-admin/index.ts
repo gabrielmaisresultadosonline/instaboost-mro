@@ -39,7 +39,7 @@ serve(async (req) => {
 
     if (action === "get_public_settings") {
       const { data } = await supabase.from("salaobel_settings").select("aula_data,aula_titulo,preco,hero_video_url,hero_video_hls_url").limit(1).maybeSingle();
-      return json({ success: true, settings: data || { aula_data: "19/07", aula_titulo: "", preco: 19, hero_video_url: "", hero_video_hls_url: "" } });
+      return json({ success: true, settings: data || { aula_data: "16/07", aula_titulo: "", preco: 19, hero_video_url: "", hero_video_hls_url: "" } });
     }
 
     if (action === "check_paid") {
@@ -88,7 +88,7 @@ serve(async (req) => {
       const testEmail = String(body.test_email || "").trim();
       if (!testEmail.includes("@")) return json({ success: false, error: "email inválido" }, 400);
       const { data: s } = await supabase.from("salaobel_settings").select("*").limit(1).maybeSingle();
-      const ok = await sendSalaoBelEmail(testEmail, "Teste", s?.whatsapp_group_link || "#", s?.aula_data || "19/07");
+      const ok = await sendSalaoBelEmail(testEmail, "Teste", s?.whatsapp_group_link || "#", s?.aula_data || "16/07");
       return json({ success: ok });
     }
 
@@ -97,7 +97,7 @@ serve(async (req) => {
       const { data: order } = await supabase.from("salaobel_orders").select("*").eq("id", order_id).maybeSingle();
       if (!order) return json({ success: false, error: "order não encontrada" }, 404);
       const { data: s } = await supabase.from("salaobel_settings").select("*").limit(1).maybeSingle();
-      const ok = await sendSalaoBelEmail(order.email, order.nome_completo, s?.whatsapp_group_link || "#", s?.aula_data || "19/07");
+      const ok = await sendSalaoBelEmail(order.email, order.nome_completo, s?.whatsapp_group_link || "#", s?.aula_data || "16/07");
       if (ok) {
         await supabase.from("salaobel_orders").update({
           email_sent: true, email_sent_at: new Date().toISOString(),
