@@ -185,9 +185,8 @@ const SalaoBel = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans selection:bg-yellow-400 selection:text-black">
-      {/* Audio Gate — user gesture to allow autoplay with sound (disabled on /salaobel; kept for future) */}
-      {false && (
-      {audioGate && (
+      {/* Audio Gate — disabled on /salaobel; kept for future re-enable */}
+      {false && audioGate && (
         <button
           type="button"
           onClick={() => {
