@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
+import { sendSalaoBelEmail } from "../_shared/salaobel-email.ts";
 
 
 const corsHeaders = {
@@ -198,10 +199,18 @@ serve(async (req) => {
     
     let isPostsComIAOrder = false;
     let isRendaSaoVivoOrder = false;
+    let isSalaoBelOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("SALAOBEL_")) {
+          isSalaoBelOrder = true;
+          email = itemName.replace("SALAOBEL_", "").toLowerCase();
+          log("Parsed SALAOBEL order", { email });
+          break;
+        }
 
         if (itemName.startsWith("RENDASAOVIVO_")) {
           isRendaSaoVivoOrder = true;
@@ -486,6 +495,48 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true, message: "RENDASAOVIVO confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
+
+    // SALAOBEL orders
+    if (isSalaoBelOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("SALAOBEL"))) {
+      log("Processing as SALAOBEL order", { order_nsu, email });
+      let sbOrder: any = null;
+      if (order_nsu) {
+        const r = await supabase.from("salaobel_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        sbOrder = r.data;
+      }
+      if (!sbOrder && email) {
+        const r = await supabase.from("salaobel_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        sbOrder = r.data;
+      }
+      if (sbOrder) {
+        const { data: settings } = await supabase.from("salaobel_settings").select("*").limit(1).maybeSingle();
+        const emailSent = await sendSalaoBelEmail(
+          sbOrder.email,
+          sbOrder.nome_completo,
+          settings?.whatsapp_group_link || "#",
+          settings?.aula_data || "18/07"
+        );
+        const metaRes = await sendMetaPurchaseEvent(
+          sbOrder.email,
+          Number(sbOrder.amount) || 19,
+          "Salão Bel",
+          sbOrder.nsu_order,
+          "https://maisresultadosonline.com.br/salaobel",
+          { fbc: sbOrder.fbc, fbp: sbOrder.fbp, user_agent: sbOrder.user_agent }
+        );
+        await supabase.from("salaobel_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          email_sent: emailSent,
+          email_sent_at: emailSent ? new Date().toISOString() : null,
+          pixel_sent: !!metaRes?.ok,
+          pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
+        }).eq("id", sbOrder.id);
+        return new Response(JSON.stringify({ success: true, message: "SALAOBEL confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+
 
 
     // Default payment orders
