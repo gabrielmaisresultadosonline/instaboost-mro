@@ -18,7 +18,7 @@ import heroVideoAsset from "@/assets/rendasaovivo-hero.mp4.asset.json";
 import { assetUrl } from "@/lib/assetUrl";
 import { X, Volume2, VolumeX } from "lucide-react";
 
-const LocalVPP = () => {
+const LocalVpp = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preco, setPreco] = useState<number>(10);
