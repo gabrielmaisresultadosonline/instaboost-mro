@@ -445,7 +445,7 @@ const Delivery = () => {
             <div className="relative bg-gradient-to-br from-neutral-950 to-black border border-yellow-400/30 rounded-[2rem] p-8 md:p-12 shadow-[0_0_80px_rgba(250,204,21,0.12)]">
               <div className="text-center">
                 <img
-                  src={assetUrl(salaobelHeroAsset.url)}
+                  src={assetUrl(deliveryHeroAsset.url)}
                   alt="Delivery utilize a MRO"
                   className="w-full max-w-sm mx-auto mb-6 rounded-2xl"
                   loading="lazy"
