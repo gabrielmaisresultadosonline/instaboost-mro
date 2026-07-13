@@ -449,15 +449,15 @@ const SalaoBel = () => {
                 </div>
 
                 <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-                  Acesso Completo MRO
+                  Participe do grupo
                 </h3>
                 <p className="text-neutral-500 mt-3 max-w-md mx-auto">
-                  Aula 100% ao vivo com o Gabriel — passo a passo pra atrair mais clientes pro seu salão.
+                  Vamos apresentar tudo no dia {aulaData} — passo a passo pra atrair mais clientes pro seu salão.
                 </p>
 
                 <div className="my-8 space-y-2.5 text-left">
                   {[
-                    { icon: Calendar, text: `Aula ao vivo · ${aulaData}` },
+                    { icon: Calendar, text: `Apresentação · ${aulaData}` },
                     { icon: Users, text: "Como atrair mais clientes pro seu salão" },
                     { icon: Sparkles, text: "Estratégias validadas em +123 salões" },
                     { icon: ShieldCheck, text: "Acesso enviado no seu e-mail em segundos" },
