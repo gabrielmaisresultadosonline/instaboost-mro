@@ -21,7 +21,7 @@ const SalaoBel = () => {
   const [openForm, setOpenForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preco, setPreco] = useState<number>(10);
-  const [aulaData, setAulaData] = useState<string>("19/07");
+  const [aulaData, setAulaData] = useState<string>("16/07");
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
@@ -46,7 +46,7 @@ const SalaoBel = () => {
         const { data } = await supabase.functions.invoke("salaobel-admin", { body: { action: "get_public_settings" } });
         if (data?.settings) {
           setPreco(Number(data.settings.preco) || 10);
-          setAulaData(data.settings.aula_data || "19/07");
+          setAulaData(data.settings.aula_data || "16/07");
           if (data.settings.hero_video_url) setHeroVideoUrl(data.settings.hero_video_url);
           if (data.settings.hero_video_hls_url) setHeroVideoHls(data.settings.hero_video_hls_url);
         }
