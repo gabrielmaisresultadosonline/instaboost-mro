@@ -420,7 +420,7 @@ const SalaoBel = () => {
               Isso <span className="text-yellow-400">NÃO é para qualquer um.</span>
             </p>
             <p className="mt-6 text-xl md:text-3xl font-bold leading-snug text-neutral-200">
-              Vai ter gente que não vai querer pagar <span className="text-yellow-400">nem R$ 10</span> para aprender a faturar <span className="text-yellow-400">mais de R$ 5.000 por mês</span>.
+              Vai ter dono(a) de salão que não vai querer pagar <span className="text-yellow-400">nem R$ {preco.toFixed(0)}</span> para aprender a <span className="text-yellow-400">lotar a agenda</span> e crescer o próprio negócio.
             </p>
             <p className="mt-8 text-2xl md:text-4xl font-black text-white uppercase tracking-tight">
               Aproveite <span className="text-yellow-400">se isso é para você.</span>
