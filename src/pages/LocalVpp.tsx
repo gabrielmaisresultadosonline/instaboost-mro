@@ -113,7 +113,7 @@ const LocalVpp = () => {
                 <span className="text-yellow-400">local?</span>
               </h1>
 
-              <p className="mt-6 text-lg sm:text-2xl md:text-3xl text-neutral-100 font-bold leading-tight max-w-3xl">
+              <p className="mt-6 text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-black leading-[1.05] tracking-tight max-w-3xl">
                 Não gaste com anúncios — utilize a{" "}
                 <span className="text-yellow-400">ferramenta MRO</span>.
               </p>
