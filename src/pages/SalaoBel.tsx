@@ -252,12 +252,12 @@ const SalaoBel = () => {
 
             {/* HERO IMAGE with PIX notifications */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
-              Tem um <span className="text-yellow-400">salão de beleza</span> e quer{" "}
+              <span className="text-yellow-400">Salão de beleza</span>, aumente seus clientes{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">aumentar seus clientes?</span>
+                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">sem precisar investir em anúncios!</span>
                 <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
               </span>{" "}
-              <span className="text-neutral-400 font-light italic normal-case">Aprenda como a MRO pode te ajudar.</span>
+              <span className="text-neutral-400 font-light italic normal-case">Aprenda como a MRO pode te ajudar!</span>
             </h1>
 
             {/* HERO IMAGE with PIX notifications emerging from behind */}
