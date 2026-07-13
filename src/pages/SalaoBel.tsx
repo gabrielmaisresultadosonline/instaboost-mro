@@ -496,7 +496,9 @@ const SalaoBel = () => {
 
       {/* Form Dialog */}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
-        <DialogContent className="bg-neutral-950 border-yellow-400/30 text-white max-w-md">
+        {openForm && <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-sm pointer-events-none" />}
+        <DialogContent className="bg-neutral-950 border-yellow-400/30 text-white max-w-md z-[310]">
+
           <DialogHeader>
             <DialogTitle className="text-2xl font-black tracking-tight">Garanta sua vaga</DialogTitle>
             <DialogDescription className="text-neutral-500">
