@@ -381,6 +381,9 @@ const App = () => (
           <Route path="/rendasaovivo" element={<RendaSaoVivo />} />
           <Route path="/rendasaovivo/obrigado" element={<RendaSaoVivoObrigado />} />
           <Route path="/rendasaovivo/admin" element={<RendaSaoVivoAdmin />} />
+          <Route path="/salaobel" element={<SalaoBel />} />
+          <Route path="/salaobel/obrigado" element={<SalaoBelObrigado />} />
+          <Route path="/salaobel/admin" element={<SalaoBelAdmin />} />
 
 
 
