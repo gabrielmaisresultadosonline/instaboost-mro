@@ -43,8 +43,8 @@ serve(async (req) => {
     }
 
     if (action === "check_paid") {
-      const { data } = await supabase.from("salaobel_orders").select("status,email").eq("nsu_order", body.nsu).maybeSingle();
-      return json({ success: true, paid: data?.status === "paid", email: data?.email });
+      const { data } = await supabase.from("salaobel_orders").select("status,email,amount").eq("nsu_order", body.nsu).maybeSingle();
+      return json({ success: true, paid: data?.status === "paid", email: data?.email, amount: data?.amount });
     }
 
     // Auth-required actions

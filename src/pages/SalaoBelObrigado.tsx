@@ -25,11 +25,12 @@ const SalaoBelObrigado = () => {
           setEmail(data.email || "");
           const fbq = (window as any).fbq;
           if (fbq) fbq("track", "Purchase",
-            { value: 19, currency: "BRL", content_name: "Salão Bel" },
+            { value: Number(data.amount) || 10, currency: "BRL", content_name: "Salão Bel" },
             { eventID: nsu }
           );
           return;
         }
+
       } catch { /* ignore */ }
       if (attempts < 20) setTimeout(poll, 3000);
       else setPaid(false);
@@ -58,13 +59,13 @@ const SalaoBelObrigado = () => {
             <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto animate-pulse" />
             <h1 className="text-3xl md:text-5xl font-black mt-4">Pagamento Confirmado!</h1>
             <p className="text-gray-300 text-lg mt-3">
-              Sua vaga na aula ao vivo está garantida.
+              Sua vaga no grupo está garantida — vamos te mostrar como atrair mais clientes pro seu salão sem investir em anúncios.
             </p>
             <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-6 text-left">
               <div className="flex items-start gap-3">
                 <Mail className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-1" />
                 <div>
-                  <p className="font-bold">Enviamos o link de acesso para seu e-mail:</p>
+                  <p className="font-bold">Enviamos o acesso para seu e-mail:</p>
                   <p className="text-yellow-400 font-mono text-sm mt-1 break-all">{email}</p>
                   <p className="text-gray-400 text-sm mt-3">
                     Dentro do e-mail você encontra o <strong className="text-green-400">link do grupo do WhatsApp</strong> — entre agora para não perder nada.
@@ -77,8 +78,9 @@ const SalaoBelObrigado = () => {
             </div>
             <div className="mt-6 inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 rounded-full">
               <Sparkles className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">Nos vemos na aula!</span>
+              <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest">Nos vemos no grupo!</span>
             </div>
+
           </div>
         )}
 
