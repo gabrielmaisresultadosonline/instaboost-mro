@@ -97,64 +97,90 @@ const LocalVpp = () => {
         {/* HERO */}
         {step === 0 && (
           <>
-            <div className="text-center space-y-6 max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-[11px] font-black uppercase tracking-[0.2em]">
-                <Sparkles className="w-3.5 h-3.5" /> 100% Grátis
+            <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-[11px] font-black uppercase tracking-[0.25em]">
+                <Sparkles className="w-3.5 h-3.5" /> 100% Grátis · Sem cartão
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-black leading-[1.02] tracking-tight uppercase">
-                Precisa de <span className="text-yellow-400">público local?</span>
+              <h1 className="mt-7 text-[42px] leading-[0.95] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.03em] uppercase">
+                Precisa de{" "}
+                <span className="relative inline-block">
+                  <span className="relative z-10 bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(250,204,21,0.35)]">
+                    público
+                  </span>
+                </span>
+                <br className="hidden sm:block" />{" "}
+                <span className="text-yellow-400">local?</span>
               </h1>
-              <p className="text-xl md:text-2xl text-neutral-200 font-bold">
-                Não gaste com anúncios — utilize a <span className="text-yellow-400">ferramenta MRO</span>!
+
+              <p className="mt-6 text-lg sm:text-2xl md:text-3xl text-neutral-100 font-bold leading-tight max-w-3xl">
+                Não gaste com anúncios — utilize a{" "}
+                <span className="text-yellow-400">ferramenta MRO</span>.
               </p>
 
-              <div className="pt-2 space-y-3 text-neutral-300 text-base md:text-lg">
-                <p className="font-semibold">Especial para você que tem um:</p>
-                <div className="flex flex-wrap justify-center gap-2">
+              <div className="mt-10 w-full max-w-2xl">
+                <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-neutral-500 font-black mb-4">
+                  Especial para você que tem
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
                   {["Salão de beleza", "Delivery", "Diskbebidas", "Restaurante", "Pizzaria", "Hamburgueria"].map((t) => (
-                    <span key={t} className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-sm font-bold">
+                    <span
+                      key={t}
+                      className="px-3.5 py-2 rounded-full bg-neutral-900/80 border border-neutral-800 text-sm font-bold text-neutral-200 backdrop-blur"
+                    >
                       {t}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <p className="text-base md:text-lg text-neutral-300 leading-relaxed max-w-2xl mx-auto pt-4">
-                Já ajudamos <span className="text-yellow-400 font-black">mais de 1.800 empresas</span>.
-                Participe do grupo e entenda tudo completo — <span className="text-yellow-400 font-black">GRÁTIS!</span>
+              <p className="mt-10 text-base sm:text-lg md:text-xl text-neutral-300 leading-relaxed max-w-2xl">
+                Já ajudamos <span className="text-yellow-400 font-black">mais de 1.800 empresas</span> a atrair mais clientes.
+                Agora é a sua vez — <span className="text-white font-black">de graça</span>.
               </p>
 
-              <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5 md:p-6 max-w-2xl mx-auto text-left">
-                <p className="text-neutral-200 text-sm md:text-base">
-                  💻 Precisa apenas ter um <span className="text-yellow-400 font-bold">notebook básico</span> para instalar,
+              <div className="mt-6 bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5 md:p-6 max-w-2xl w-full">
+                <p className="text-neutral-200 text-sm md:text-base leading-relaxed">
+                  💻 Basta ter um <span className="text-yellow-400 font-black">notebook básico</span> para instalar,
                   utilizar e deixar rodando no automático.
                 </p>
               </div>
 
-              <p className="text-2xl md:text-3xl font-black uppercase pt-2">
-                Participe do grupo grátis e entenda tudo!
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                <Button onClick={openForm} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all animate-pulse">
-                  <Rocket className="mr-2 w-5 h-5" /> PARTICIPE GRÁTIS
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
-                </Button>
+              {/* HERO CTA — Highlight block */}
+              <div className="mt-14 w-full max-w-2xl">
+                <div className="relative rounded-[2rem] p-[2px] bg-gradient-to-br from-yellow-300 via-yellow-500 to-amber-600 shadow-[0_25px_80px_-20px_rgba(250,204,21,0.6)]">
+                  <div className="absolute -inset-4 bg-yellow-400/20 blur-3xl rounded-[2rem] -z-10" />
+                  <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black px-6 sm:px-10 py-8 sm:py-10 flex flex-col items-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/15 border border-green-400/40 text-green-300 text-[10px] font-black uppercase tracking-[0.25em]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Grupo aberto agora
+                    </div>
+                    <h2 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-[1] text-center">
+                      Participe <span className="text-yellow-400">grátis</span> do grupo
+                      <br className="hidden sm:block" /> e entenda tudo!
+                    </h2>
+                    <p className="mt-3 text-neutral-400 text-sm sm:text-base max-w-md">
+                      Entre no grupo do WhatsApp e receba o passo a passo completo, sem custo.
+                    </p>
+                    <Button
+                      onClick={openForm}
+                      size="lg"
+                      className="group mt-6 w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black font-black h-16 px-10 rounded-2xl text-base sm:text-lg tracking-wide shadow-[0_0_50px_rgba(250,204,21,0.5)] hover:shadow-[0_0_70px_rgba(250,204,21,0.75)] transition-all animate-pulse"
+                    >
+                      <Rocket className="mr-2 w-5 h-5" /> QUERO PARTICIPAR GRÁTIS
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
+                    </Button>
+                    <p className="mt-3 text-[11px] uppercase tracking-widest text-neutral-500 font-bold">
+                      Leva menos de 1 minuto
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-6 pt-6 text-neutral-500 text-xs uppercase tracking-widest font-semibold">
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-neutral-500 text-xs uppercase tracking-widest font-semibold">
                 <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +1.800 empresas</div>
                 <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-400" /> Método validado</div>
                 <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-yellow-400" /> 100% Grátis</div>
               </div>
-            </div>
-
-            {/* Bottom CTA */}
-            <div className="mt-16 md:mt-20 text-center">
-              <Button onClick={openForm} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-10 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] animate-pulse">
-                <Rocket className="mr-2 w-5 h-5" /> PARTICIPE GRÁTIS
-              </Button>
             </div>
           </>
         )}
