@@ -443,14 +443,14 @@ const SalaoBel = () => {
               <div className="text-center">
                 <div className="inline-flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-3 py-1.5 rounded-full mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">LOTE INICIAL · VAGAS LIMITADAS</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">OFERTA ESPECIAL · SALÕES DE BELEZA</span>
                 </div>
 
                 <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-                  Passaporte de Acesso
+                  Acesso Completo MRO
                 </h3>
                 <p className="text-neutral-500 mt-3 max-w-md mx-auto">
-                  Aula 100% ao vivo. Você tira TODAS as suas dúvidas em tempo real com o Gabriel.
+                  Aula 100% ao vivo com o Gabriel — passo a passo pra atrair mais clientes pro seu salão.
                 </p>
 
                 <div className="my-8 space-y-2.5 text-left">
