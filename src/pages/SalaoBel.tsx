@@ -265,27 +265,27 @@ const SalaoBel = () => {
               {/* glow behind */}
               <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[radial-gradient(ellipse_at_center,rgba(250,204,21,0.22),transparent_60%)] blur-2xl" />
 
-              {/* Pix notifications loop — spawn behind image, drift sideways */}
+              {/* Client scheduled notifications loop — spawn behind image, drift sideways */}
               {[
-                { delay: "0s",   side: "left",  top: "10%", value: "R$ 197,00" },
-                { delay: "1.5s", side: "right", top: "20%", value: "R$ 89,90" },
-                { delay: "3s",   side: "left",  top: "55%", value: "R$ 350,00" },
-                { delay: "4.5s", side: "right", top: "60%", value: "R$ 47,00" },
-                { delay: "6s",   side: "right", top: "35%", value: "R$ 1.290,00" },
-                { delay: "7.5s", side: "left",  top: "35%", value: "R$ 27,00" },
+                { delay: "0s",   side: "left",  top: "10%" },
+                { delay: "1.5s", side: "right", top: "20%" },
+                { delay: "3s",   side: "left",  top: "55%" },
+                { delay: "4.5s", side: "right", top: "60%" },
+                { delay: "6s",   side: "right", top: "35%" },
+                { delay: "7.5s", side: "left",  top: "35%" },
               ].map((n, i) => (
                 <div
                   key={i}
                   className={`absolute pix-notif pix-${n.side} z-0`}
                   style={{ top: n.top, animationDelay: n.delay }}
                 >
-                  <div className="flex items-center gap-1.5 bg-neutral-900/90 backdrop-blur border border-yellow-400/40 rounded-lg px-2 py-1 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
-                    <div className="w-4 h-4 rounded-sm bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-black text-black text-[7px]">
-                      PIX
+                  <div className="flex items-center gap-2.5 bg-neutral-900/90 backdrop-blur border border-yellow-400/40 rounded-xl px-3.5 py-2.5 shadow-[0_0_20px_rgba(250,204,21,0.35)]">
+                    <div className="w-7 h-7 rounded-md bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center text-black">
+                      <Calendar className="w-4 h-4" strokeWidth={3} />
                     </div>
                     <div className="text-left">
-                      <div className="text-[7px] uppercase tracking-wider text-neutral-400 font-bold leading-none">Pix recebido</div>
-                      <div className="text-[10px] font-black text-yellow-400 leading-tight">{n.value}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold leading-none">Novo</div>
+                      <div className="text-sm md:text-base font-black text-yellow-400 leading-tight whitespace-nowrap">Cliente agendado</div>
                     </div>
                   </div>
                 </div>
