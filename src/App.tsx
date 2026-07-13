@@ -100,6 +100,9 @@ import RendaSaoVivoAdmin from "./pages/RendaSaoVivoAdmin";
 import SalaoBel from "./pages/SalaoBel";
 import SalaoBelObrigado from "./pages/SalaoBelObrigado";
 import SalaoBelAdmin from "./pages/SalaoBelAdmin";
+import Delivery from "./pages/Delivery";
+import DeliveryObrigado from "./pages/DeliveryObrigado";
+import DeliveryAdmin from "./pages/DeliveryAdmin";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
@@ -384,6 +387,9 @@ const App = () => (
           <Route path="/salaobel" element={<SalaoBel />} />
           <Route path="/salaobel/obrigado" element={<SalaoBelObrigado />} />
           <Route path="/salaobel/admin" element={<SalaoBelAdmin />} />
+          <Route path="/delivery" element={<Delivery />} />
+          <Route path="/delivery/obrigado" element={<DeliveryObrigado />} />
+          <Route path="/delivery/admin" element={<DeliveryAdmin />} />
 
 
 

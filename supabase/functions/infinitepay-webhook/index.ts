@@ -4,6 +4,7 @@ import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
 import { sendSalaoBelEmail } from "../_shared/salaobel-email.ts";
+import { sendDeliveryEmail } from "../_shared/delivery-email.ts";
 
 
 const corsHeaders = {
@@ -200,10 +201,18 @@ serve(async (req) => {
     let isPostsComIAOrder = false;
     let isRendaSaoVivoOrder = false;
     let isSalaoBelOrder = false;
+    let isDeliveryOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("DELIVERY_")) {
+          isDeliveryOrder = true;
+          email = itemName.replace("DELIVERY_", "").toLowerCase();
+          log("Parsed DELIVERY order", { email });
+          break;
+        }
 
         if (itemName.startsWith("SALAOBEL_")) {
           isSalaoBelOrder = true;
@@ -534,6 +543,46 @@ serve(async (req) => {
           pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
         }).eq("id", sbOrder.id);
         return new Response(JSON.stringify({ success: true, message: "SALAOBEL confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+    // DELIVERY orders
+    if (isDeliveryOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("DELIVERY"))) {
+      log("Processing as DELIVERY order", { order_nsu, email });
+      let dOrder: any = null;
+      if (order_nsu) {
+        const r = await supabase.from("delivery_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        dOrder = r.data;
+      }
+      if (!dOrder && email) {
+        const r = await supabase.from("delivery_orders").select("*").eq("email", email).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        dOrder = r.data;
+      }
+      if (dOrder) {
+        const { data: settings } = await supabase.from("delivery_settings").select("*").limit(1).maybeSingle();
+        const emailSent = await sendDeliveryEmail(
+          dOrder.email,
+          dOrder.nome_completo,
+          settings?.whatsapp_group_link || "#",
+          settings?.aula_data || "18/07"
+        );
+        const metaRes = await sendMetaPurchaseEvent(
+          dOrder.email,
+          Number(dOrder.amount) || Number(settings?.preco) || 19,
+          "Delivery MRO",
+          dOrder.nsu_order,
+          "https://maisresultadosonline.com.br/delivery",
+          { fbc: dOrder.fbc, fbp: dOrder.fbp, user_agent: dOrder.user_agent }
+        );
+        await supabase.from("delivery_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          email_sent: emailSent,
+          email_sent_at: emailSent ? new Date().toISOString() : null,
+          pixel_sent: !!metaRes?.ok,
+          pixel_sent_at: metaRes?.ok ? new Date().toISOString() : null,
+        }).eq("id", dOrder.id);
+        return new Response(JSON.stringify({ success: true, message: "DELIVERY confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
 
