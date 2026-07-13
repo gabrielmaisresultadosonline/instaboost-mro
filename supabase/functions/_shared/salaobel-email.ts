@@ -7,33 +7,34 @@ export const buildSalaoBelEmail = (name: string, groupLink: string, aulaData: st
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:24px 0;">
 <tr><td align="center">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#111827;border-radius:16px;overflow:hidden;border:1px solid #1f2937;">
-    <tr><td style="background:linear-gradient(135deg,#16a34a 0%,#059669 100%);padding:32px 24px;text-align:center;">
+    <tr><td style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);padding:32px 24px;text-align:center;">
       <div style="display:inline-block;background:#000;color:#fff;padding:10px 22px;border-radius:10px;font-size:22px;font-weight:900;letter-spacing:2px;">MRO</div>
-      <h1 style="color:#fff;font-size:26px;margin:18px 0 6px;font-weight:900;">🎉 Pagamento Confirmado!</h1>
-      <p style="color:#dcfce7;margin:0;font-size:15px;">Seu acesso à aula ao vivo está garantido</p>
+      <h1 style="color:#fff;font-size:26px;margin:18px 0 6px;font-weight:900;">🎉 Acesso Confirmado!</h1>
+      <p style="color:#fef3c7;margin:0;font-size:15px;">Salão de beleza — aumente seus clientes sem investir em anúncios</p>
     </td></tr>
     <tr><td style="padding:32px 28px;color:#e5e7eb;">
       <p style="font-size:16px;margin:0 0 16px;">Olá <strong style="color:#fff;">${name}</strong>,</p>
       <p style="font-size:15px;line-height:1.6;color:#d1d5db;margin:0 0 20px;">
-        Bem-vindo(a) à <strong style="color:#4ade80;">Salão Bel</strong>! Sua vaga na aula do dia <strong style="color:#fff;">${aulaData}</strong> está confirmada.
+        Sua vaga está confirmada! No dia <strong style="color:#fbbf24;">${aulaData}</strong> vamos te mostrar, passo a passo, como a <strong style="color:#fff;">MRO</strong> ajuda salões de beleza a atrair mais clientes <strong>sem precisar investir em anúncios</strong>.
       </p>
-      <div style="background:#0f172a;border-left:4px solid #4ade80;padding:18px 20px;border-radius:10px;margin:20px 0;">
+      <div style="background:#0f172a;border-left:4px solid #fbbf24;padding:18px 20px;border-radius:10px;margin:20px 0;">
         <p style="margin:0;font-size:15px;color:#f1f5f9;line-height:1.6;">
-          👉 <strong>Entre agora no grupo do WhatsApp</strong> para receber o link da transmissão e não perder nada.
+          👉 <strong>Entre agora no grupo do WhatsApp</strong> — é lá que vamos apresentar tudo e tirar suas dúvidas.
         </p>
       </div>
       <div style="text-align:center;margin:28px 0;">
         <a href="${groupLink}" style="display:inline-block;padding:18px 44px;background:linear-gradient(135deg,#25d366 0%,#128c7e 100%);color:#fff;font-weight:900;text-decoration:none;border-radius:14px;font-size:16px;letter-spacing:1px;">📱 ENTRAR NO GRUPO DO WHATSAPP</a>
       </div>
       <p style="font-size:14px;color:#9ca3af;line-height:1.6;margin:20px 0 0;">
-        Fique ligado, você vai conhecer uma <strong style="color:#fbbf24;">novidade nunca vista antes</strong> e muito fácil de aplicar em casa. Prepare-se para transformar seu resultado.
+        Prepare-se: você vai descobrir uma estratégia simples e prática para encher a agenda do seu salão com clientes de verdade.
       </p>
-      <p style="font-size:13px;color:#6b7280;margin:24px 0 0;text-align:center;">Nos vemos na aula ao vivo! 🚀</p>
+      <p style="font-size:13px;color:#6b7280;margin:24px 0 0;text-align:center;">Nos vemos no grupo! 🚀</p>
     </td></tr>
     <tr><td style="background:#000;padding:18px;text-align:center;color:#6b7280;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
   </table>
 </td></tr></table>
 </body></html>`;
+
 
 export const sendSalaoBelEmail = async (
   to: string,
