@@ -19,7 +19,7 @@ interface Order {
   created_at: string; paid_at: string | null; nsu_order: string;
 }
 
-const DeliveryAdmin = () => {
+const LocalVppAdmin = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [creds, setCreds] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -390,4 +390,4 @@ const DeliveryAdmin = () => {
   );
 };
 
-export default DeliveryAdmin;
+export default LocalVppAdmin;

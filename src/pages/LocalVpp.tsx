@@ -538,4 +538,4 @@ const LocalVPP = () => {
   );
 };
 
-export default Delivery;
+export default LocalVpp;

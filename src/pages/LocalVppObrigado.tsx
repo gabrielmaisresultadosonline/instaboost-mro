@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Mail, Sparkles, ExternalLink } from "lucide-react";
 
-const DeliveryObrigado = () => {
+const LocalVppObrigado = () => {
   const [params] = useSearchParams();
   const [paid, setPaid] = useState<boolean | null>(null);
   const [email, setEmail] = useState<string>("");
@@ -101,4 +101,4 @@ const DeliveryObrigado = () => {
   );
 };
 
-export default DeliveryObrigado;
+export default LocalVppObrigado;
