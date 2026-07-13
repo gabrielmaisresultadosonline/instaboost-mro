@@ -13,6 +13,7 @@ import {
   ShieldCheck, Rocket, Brain, LineChart, Cpu, Target, RotateCcw,
 } from "lucide-react";
 import gabrielPhoneAsset from "@/assets/gabriel-phone.png.asset.json";
+import salaobelHeroAsset from "@/assets/salaobel-hero.png.asset.json";
 import heroVideoAsset from "@/assets/rendasaovivo-hero.mp4.asset.json";
 import { assetUrl } from "@/lib/assetUrl";
 import { X, Volume2, VolumeX } from "lucide-react";
