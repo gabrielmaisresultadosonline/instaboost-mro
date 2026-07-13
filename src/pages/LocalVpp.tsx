@@ -123,21 +123,20 @@ const LocalVpp = () => {
                 <Sparkles className="w-3.5 h-3.5" /> 100% Grátis · Sem cartão
               </div>
 
-              <h1 className="mt-7 text-[42px] leading-[0.95] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.03em] uppercase">
-                Precisa de{" "}
+              <h1 className="mt-7 text-[38px] leading-[0.95] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.03em] uppercase">
+                Mais Vendas{" "}
                 <span className="relative inline-block">
                   <span className="relative z-10 bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(250,204,21,0.35)]">
-                    público
+                    Sem investir
                   </span>
                 </span>
-                <br className="hidden sm:block" />{" "}
-                <span className="text-yellow-400">local?</span>
+                <br className="hidden sm:block" /> em anúncios!
               </h1>
 
-              <p className="mt-6 text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-black leading-[1.05] tracking-tight max-w-3xl">
-                Não gaste com anúncios — utilize a{" "}
-                <span className="text-yellow-400">ferramenta MRO</span>.
+              <p className="mt-6 text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white">
+                UTILIZE A <span className="text-yellow-400">MRO!</span>
               </p>
+
 
               <div className="mt-10 w-full max-w-2xl">
                 <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-neutral-500 font-black mb-4">
@@ -166,6 +165,17 @@ const LocalVpp = () => {
                   utilizar e deixar rodando no automático.
                 </p>
               </div>
+
+              <div className="mt-8 max-w-2xl w-full text-center">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight">
+                  Precisa de <span className="text-yellow-400">público local?</span>
+                </p>
+                <p className="mt-2 text-lg sm:text-xl md:text-2xl text-neutral-200 font-bold">
+                  Não gaste com anúncios — utilize a{" "}
+                  <span className="text-yellow-400">ferramenta MRO</span>.
+                </p>
+              </div>
+
 
               {/* HERO CTA — Highlight block */}
               <div className="mt-14 w-full max-w-2xl">
