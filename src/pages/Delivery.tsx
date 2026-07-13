@@ -383,7 +383,7 @@ const Delivery = () => {
             <div>
               <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Prova real</div>
               <h2 className="text-2xl md:text-4xl font-black leading-tight text-white">
-                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">134 deliveries</span> aplicando o método da MRO já lotaram a <span className="text-yellow-400">agenda</span> e aumentaram o faturamento.
+                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">134 deliveries</span> aplicando o método da MRO já <span className="text-yellow-400">aumentaram suas vendas em menos de 1 mês</span>.
               </h2>
               <p className="mt-4 text-neutral-400 text-base md:text-lg">
                 Sem fórmulas mágicas, sem promessas vazias. Um passo a passo prático que qualquer dono(a) de delivery consegue aplicar no dia seguinte.
