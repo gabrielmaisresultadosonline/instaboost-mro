@@ -2886,6 +2886,48 @@ export type Database = {
         }
         Relationships: []
       }
+      localvpp_leads: {
+        Row: {
+          business_type: string
+          created_at: string
+          device_type: string
+          email: string | null
+          id: string
+          instagram: string | null
+          nome_completo: string
+          referrer: string | null
+          updated_at: string
+          user_agent: string | null
+          whatsapp: string
+        }
+        Insert: {
+          business_type: string
+          created_at?: string
+          device_type: string
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          nome_completo: string
+          referrer?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          whatsapp: string
+        }
+        Update: {
+          business_type?: string
+          created_at?: string
+          device_type?: string
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          nome_completo?: string
+          referrer?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       localvpp_orders: {
         Row: {
           amount: number
