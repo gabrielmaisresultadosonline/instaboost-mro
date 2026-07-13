@@ -113,6 +113,23 @@ serve(async (req) => {
       return json({ success: true, visits: data || [], total: count || 0 });
     }
 
+    if (action === "list_leads") {
+      const { data } = await supabase.from("localvpp_leads").select("*").order("created_at", { ascending: false }).limit(1000);
+      return json({ success: true, leads: data || [] });
+    }
+
+    if (action === "resend_lead_email") {
+      const { lead_id } = body;
+      const { data: lead } = await supabase.from("localvpp_leads").select("*").eq("id", lead_id).maybeSingle();
+      if (!lead) return json({ success: false, error: "lead não encontrado" }, 404);
+      if (!lead.email) return json({ success: false, error: "sem email" }, 400);
+      const { data: s } = await supabase.from("localvpp_settings").select("whatsapp_group_link").limit(1).maybeSingle();
+      const ok = await sendLocalVppEmail(lead.email, lead.nome_completo, s?.whatsapp_group_link || "#");
+      return json({ success: ok });
+    }
+
+
+
     if (action === "send_test_email") {
       const testEmail = String(body.test_email || "").trim();
       if (!testEmail.includes("@")) return json({ success: false, error: "email inválido" }, 400);
