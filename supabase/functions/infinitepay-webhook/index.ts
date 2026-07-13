@@ -203,10 +203,18 @@ serve(async (req) => {
     let isRendaSaoVivoOrder = false;
     let isSalaoBelOrder = false;
     let isDeliveryOrder = false;
+    let isLocalVppOrder = false;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+
+        if (itemName.startsWith("LOCALVPP_")) {
+          isLocalVppOrder = true;
+          email = itemName.replace("LOCALVPP_", "").toLowerCase();
+          log("Parsed LOCALVPP order", { email });
+          break;
+        }
 
         if (itemName.startsWith("DELIVERY_")) {
           isDeliveryOrder = true;
