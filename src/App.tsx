@@ -103,6 +103,9 @@ import SalaoBelAdmin from "./pages/SalaoBelAdmin";
 import Delivery from "./pages/Delivery";
 import DeliveryObrigado from "./pages/DeliveryObrigado";
 import DeliveryAdmin from "./pages/DeliveryAdmin";
+import LocalVpp from "./pages/LocalVpp";
+import LocalVppObrigado from "./pages/LocalVppObrigado";
+import LocalVppAdmin from "./pages/LocalVppAdmin";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
