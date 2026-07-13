@@ -14,9 +14,6 @@ const PLANS: Record<PlanKey, { name: string; price: number; installment: string;
 const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
-const WHATSAPP_URL =
-  "https://wa.me/5551992835863?text=" +
-  encodeURIComponent("Vim pelo site, Gostaria de saber sobre o desconto!");
 
 function getVisitorId(): string {
   try {
