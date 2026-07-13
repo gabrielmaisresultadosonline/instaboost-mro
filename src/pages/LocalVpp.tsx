@@ -119,9 +119,6 @@ const LocalVpp = () => {
         {step === 0 && (
           <>
             <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 text-[11px] font-black uppercase tracking-[0.25em]">
-                <Sparkles className="w-3.5 h-3.5" /> 100% Grátis · Sem cartão
-              </div>
 
               <h1 className="mt-7 text-[38px] leading-[0.95] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.03em] uppercase">
                 Mais Vendas{" "}
