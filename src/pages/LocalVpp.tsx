@@ -136,7 +136,7 @@ const LocalVpp = () => {
 
               <p className="mt-10 text-base sm:text-lg md:text-xl text-neutral-300 leading-relaxed max-w-2xl">
                 Já ajudamos <span className="text-yellow-400 font-black">mais de 1.800 empresas</span> a atrair mais clientes.
-                Agora é a sua vez — <span className="text-white font-black">de graça</span>.
+                Agora é a sua vez.
               </p>
 
               <div className="mt-6 bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5 md:p-6 max-w-2xl w-full">
