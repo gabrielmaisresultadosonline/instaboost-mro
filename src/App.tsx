@@ -393,6 +393,9 @@ const App = () => (
           <Route path="/delivery" element={<Delivery />} />
           <Route path="/delivery/obrigado" element={<DeliveryObrigado />} />
           <Route path="/delivery/admin" element={<DeliveryAdmin />} />
+          <Route path="/localvpp" element={<LocalVpp />} />
+          <Route path="/localvpp/obrigado" element={<LocalVppObrigado />} />
+          <Route path="/localvpp/admin" element={<LocalVppAdmin />} />
 
 
 
