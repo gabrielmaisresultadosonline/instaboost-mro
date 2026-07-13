@@ -63,17 +63,20 @@ const LocalVpp = () => {
   const submitLead = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.from("localvpp_leads").insert({
-        nome_completo: nome.trim(),
-        email: email.trim().toLowerCase() || null,
-        whatsapp: whatsapp.replace(/\D/g, ""),
-        business_type: business,
-        device_type: device,
-        instagram: instagram.trim() || null,
-        user_agent: navigator.userAgent,
-        referrer: document.referrer || null,
+      const { data, error } = await supabase.functions.invoke("localvpp-admin", {
+        body: {
+          action: "submit_lead",
+          nome: nome.trim(),
+          email: email.trim().toLowerCase(),
+          whatsapp: whatsapp.replace(/\D/g, ""),
+          business_type: business,
+          device_type: device,
+          instagram: instagram.trim(),
+          referrer: document.referrer || null,
+        },
       });
       if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "CompleteRegistration", { content_name: "LocalVPP Free Group" });
       setStep(8);
@@ -82,6 +85,24 @@ const LocalVpp = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Salva lead automaticamente ao selecionar "nenhum" (sem avançar)
+  const saveBlockedLead = async () => {
+    try {
+      await supabase.functions.invoke("localvpp-admin", {
+        body: {
+          action: "submit_lead",
+          nome: nome.trim() || "Sem nome",
+          email: email.trim().toLowerCase() || `sem-email-${Date.now()}@localvpp.local`,
+          whatsapp: whatsapp.replace(/\D/g, "") || "0000000000",
+          business_type: business || "outro",
+          device_type: "nenhum",
+          instagram: instagram.trim(),
+          referrer: document.referrer || null,
+        },
+      });
+    } catch { /* ignore */ }
   };
 
   return (
