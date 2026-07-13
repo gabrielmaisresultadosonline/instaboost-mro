@@ -357,7 +357,10 @@ const LocalVpp = () => {
                         <button
                           key={o.id}
                           type="button"
-                          onClick={() => setDevice(o.id)}
+                          onClick={() => {
+                            setDevice(o.id);
+                            if (o.id === "nenhum") saveBlockedLead();
+                          }}
                           className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left font-bold transition-all ${
                             device === o.id
                               ? o.id === "nenhum"
