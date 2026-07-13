@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
+import { sendSalaoBelEmail } from "../_shared/salaobel-email.ts";
 
 
 const corsHeaders = {
