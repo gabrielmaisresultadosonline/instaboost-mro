@@ -34,7 +34,7 @@ const SalaoBel = () => {
   const [heroVideoHls, setHeroVideoHls] = useState<string>("");
 
   useEffect(() => {
-    document.title = "Salão Bel | Método profissional para faturar em casa";
+    document.title = "Salão Bel | Como a MRO ajuda salões de beleza a lotar a agenda";
     (async () => {
       const sid = crypto.randomUUID();
       try {
@@ -247,17 +247,17 @@ const SalaoBel = () => {
 
             <div className="inline-flex items-center gap-2 border border-yellow-400/30 bg-yellow-400/5 px-3 py-1.5 rounded-full">
               <Brain className="w-3.5 h-3.5 text-yellow-400" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MÉTODO INTELIGENTE · 2026</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-yellow-400">MRO PARA SALÕES DE BELEZA · 2026</span>
             </div>
 
             {/* HERO IMAGE with PIX notifications */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight uppercase">
-              Aprenda como <span className="text-yellow-400">eu faturo</span> mais de{" "}
+              Tem um <span className="text-yellow-400">salão de beleza</span> e quer{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">5K por mês</span>
+                <span className="relative z-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">aumentar seus clientes?</span>
                 <span className="absolute inset-x-0 bottom-1 h-3 bg-yellow-400/20 blur-md -z-0" />
               </span>{" "}
-              em casa <span className="text-neutral-400 font-light italic normal-case">com apenas um notebook.</span>
+              <span className="text-neutral-400 font-light italic normal-case">Aprenda como a MRO pode te ajudar.</span>
             </h1>
 
             {/* HERO IMAGE with PIX notifications emerging from behind */}
@@ -339,24 +339,24 @@ const SalaoBel = () => {
 
 
             <p className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
-              Uma metodologia validada por mais de 1.800 empreendedores brasileiros — direta, prática e sem enrolação. Aula 100% ao vivo, pagamento único de <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
+              Já ajudamos <span className="text-yellow-400 font-bold">mais de 123 salões de beleza</span> a lotar a agenda e crescer o faturamento. Aprenda e entenda tudo por apenas <span className="text-yellow-400 font-bold">R$ {preco.toFixed(0)}</span>.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button onClick={scrollToPreco} size="lg" className="group bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 px-8 rounded-xl text-base tracking-wide shadow-[0_0_40px_rgba(250,204,21,0.35)] hover:shadow-[0_0_60px_rgba(250,204,21,0.6)] transition-all">
-                EU QUERO APRENDER
+                QUERO LOTAR MEU SALÃO
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
               </Button>
               <Button onClick={scrollToPreco} size="lg" variant="outline" className="h-14 px-8 rounded-xl border-neutral-700 bg-neutral-900/40 hover:bg-neutral-800 text-white font-bold text-base backdrop-blur">
                 <Zap className="mr-2 w-4 h-4 text-yellow-400" />
-                Quero entrar nessa onda
+                Aproveitar por R$ {preco.toFixed(0)}
               </Button>
             </div>
 
             {/* trust bar */}
             <div className="flex flex-wrap items-center gap-6 pt-4 text-neutral-500 text-xs uppercase tracking-widest font-semibold">
               <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-yellow-400" /> Pagamento InfiniPay</div>
-              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +1.800 alunos</div>
+              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-yellow-400" /> +123 salões atendidos</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-400" /> Método validado</div>
             </div>
           </div>
@@ -366,7 +366,7 @@ const SalaoBel = () => {
         {/* DIVIDER */}
         <div className="my-20 md:my-32 flex items-center gap-4">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-600">A nova onda do digital</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-600">Salões que já cresceram com a MRO</span>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
         </div>
 
@@ -378,12 +378,12 @@ const SalaoBel = () => {
               <TrendingUp className="w-12 h-12 md:w-16 md:h-16 text-yellow-400" />
             </div>
             <div>
-              <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Insight</div>
+              <div className="inline-block text-[10px] font-black tracking-[0.3em] text-yellow-400 uppercase mb-3">Prova real</div>
               <h2 className="text-2xl md:text-4xl font-black leading-tight text-white">
-                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">1.800 empreendedores</span> aplicando esse método já ultrapassaram os <span className="text-yellow-400">R$ 5.000/mês</span> trabalhando de casa.
+                Mais de <span className="text-yellow-400 border-b-2 border-yellow-400/40">123 salões de beleza</span> aplicando o método da MRO já lotaram a <span className="text-yellow-400">agenda</span> e aumentaram o faturamento.
               </h2>
               <p className="mt-4 text-neutral-400 text-base md:text-lg">
-                Sem fórmulas mágicas, sem promessas vazias. Um sistema replicável, direto ao ponto, e que qualquer pessoa com um notebook consegue aplicar.
+                Sem fórmulas mágicas, sem promessas vazias. Um passo a passo prático que qualquer dono(a) de salão consegue aplicar no dia seguinte.
               </p>
             </div>
           </div>
@@ -392,9 +392,9 @@ const SalaoBel = () => {
         {/* BENEFÍCIOS */}
         <div className="mt-16 grid md:grid-cols-3 gap-4">
           {[
-            { icon: Brain, title: "Método Inteligente", text: "Estratégia validada e replicável" },
-            { icon: Target, title: "R$ 5 mil / mês", text: "Faturamento comprovado em casa" },
-            { icon: Cpu, title: "Só um notebook", text: "Método simples e replicável" },
+            { icon: Brain, title: "Método da MRO", text: "Testado em salões reais" },
+            { icon: Target, title: "Mais clientes", text: "Agenda cheia todo mês" },
+            { icon: Cpu, title: "Fácil de aplicar", text: "Sem enrolação, direto ao ponto" },
           ].map((b, i) => (
             <div key={i} className="group relative bg-neutral-950/60 border border-neutral-800 hover:border-yellow-400/40 p-6 rounded-2xl backdrop-blur transition-all overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 blur-3xl rounded-full group-hover:bg-yellow-400/10 transition" />
@@ -420,7 +420,7 @@ const SalaoBel = () => {
               Isso <span className="text-yellow-400">NÃO é para qualquer um.</span>
             </p>
             <p className="mt-6 text-xl md:text-3xl font-bold leading-snug text-neutral-200">
-              Vai ter gente que não vai querer pagar <span className="text-yellow-400">nem R$ 10</span> para aprender a faturar <span className="text-yellow-400">mais de R$ 5.000 por mês</span>.
+              Vai ter dono(a) de salão que não vai querer pagar <span className="text-yellow-400">nem R$ {preco.toFixed(0)}</span> para aprender a <span className="text-yellow-400">lotar a agenda</span> e crescer o próprio negócio.
             </p>
             <p className="mt-8 text-2xl md:text-4xl font-black text-white uppercase tracking-tight">
               Aproveite <span className="text-yellow-400">se isso é para você.</span>
@@ -443,21 +443,21 @@ const SalaoBel = () => {
               <div className="text-center">
                 <div className="inline-flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-3 py-1.5 rounded-full mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">LOTE INICIAL · VAGAS LIMITADAS</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-400">OFERTA ESPECIAL · SALÕES DE BELEZA</span>
                 </div>
 
                 <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-                  Passaporte de Acesso
+                  Acesso Completo MRO
                 </h3>
                 <p className="text-neutral-500 mt-3 max-w-md mx-auto">
-                  Aula 100% ao vivo. Você tira TODAS as suas dúvidas em tempo real com o Gabriel.
+                  Aula 100% ao vivo com o Gabriel — passo a passo pra atrair mais clientes pro seu salão.
                 </p>
 
                 <div className="my-8 space-y-2.5 text-left">
                   {[
                     { icon: Calendar, text: `Aula ao vivo · ${aulaData}` },
-                    { icon: Clock, text: "Tire todas suas dúvidas em tempo real" },
-                    { icon: Sparkles, text: "Método inédito · fácil de aplicar" },
+                    { icon: Users, text: "Como atrair mais clientes pro seu salão" },
+                    { icon: Sparkles, text: "Estratégias validadas em +123 salões" },
                     { icon: ShieldCheck, text: "Acesso enviado no seu e-mail em segundos" },
                   ].map((f, i) => (
                     <div key={i} className="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-3.5 rounded-xl">
