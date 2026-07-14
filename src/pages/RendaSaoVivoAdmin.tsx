@@ -181,6 +181,15 @@ const RendaSaoVivoAdmin = () => {
     }
   };
 
+  const sendRemarketing = async (order_id: string) => {
+    try {
+      await call("send_remarketing", { order_id });
+      toast.success("Remarketing enviado!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro");
+    }
+  };
+
   if (!loggedIn) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
