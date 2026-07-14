@@ -269,6 +269,11 @@ const RendaSaoVivoAdmin = () => {
                                 <Send className="w-3 h-3 mr-1" /> Reenviar
                               </Button>
                             )}
+                            {o.status !== "paid" && (
+                              <Button size="sm" variant="outline" onClick={() => sendRemarketing(o.id)} className="border-red-700 text-red-400 hover:bg-red-950">
+                                <Mail className="w-3 h-3 mr-1" /> Remarketing
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))}
