@@ -106,6 +106,15 @@ serve(async (req) => {
       return json({ success: ok });
     }
 
+    if (action === "send_remarketing") {
+      const { order_id } = body;
+      const { data: order } = await supabase.from("rendasaovivo_orders").select("*").eq("id", order_id).maybeSingle();
+      if (!order) return json({ success: false, error: "order não encontrada" }, 404);
+      const checkoutLink = "https://maisresultadosonline.com.br/rendasaovivo";
+      const ok = await sendRemarketingEmail(order.email, order.nome_completo, checkoutLink);
+      return json({ success: ok });
+    }
+
     return json({ success: false, error: "action inválida" }, 400);
   } catch (e) {
     return json({ success: false, error: String(e) }, 500);
