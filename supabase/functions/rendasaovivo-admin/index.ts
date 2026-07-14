@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { sendRendaSaoVivoEmail } from "../_shared/rendasaovivo-email.ts";
+import { sendRendaSaoVivoEmail, sendRemarketingEmail } from "../_shared/rendasaovivo-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -103,6 +103,15 @@ serve(async (req) => {
           email_sent: true, email_sent_at: new Date().toISOString(),
         }).eq("id", order_id);
       }
+      return json({ success: ok });
+    }
+
+    if (action === "send_remarketing") {
+      const { order_id } = body;
+      const { data: order } = await supabase.from("rendasaovivo_orders").select("*").eq("id", order_id).maybeSingle();
+      if (!order) return json({ success: false, error: "order não encontrada" }, 404);
+      const checkoutLink = "https://maisresultadosonline.com.br/rendasaovivo";
+      const ok = await sendRemarketingEmail(order.email, order.nome_completo, checkoutLink);
       return json({ success: ok });
     }
 
