@@ -131,7 +131,7 @@ const LocalVpp = () => {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-5 sm:px-6 py-10 md:py-16">
+      <div className={`relative z-10 max-w-5xl mx-auto px-5 sm:px-6 ${step === 0 ? "py-10 md:py-16" : "min-h-screen flex items-center justify-center py-8"}`}>
         {/* HERO */}
         {step === 0 && (
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
