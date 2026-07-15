@@ -83,6 +83,7 @@ const LocalVpp = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
+      // Pixel de Lead APENAS quando o usuário será direcionado ao WhatsApp
       const fbq = (window as any).fbq;
       if (fbq) {
         fbq("track", "Lead", { content_name: "LocalVPP Contato", content_category: "Lead" });
@@ -90,7 +91,11 @@ const LocalVpp = () => {
       }
       trackLead("LocalVPP Contato");
       setFinalWaMsg(waMsg);
-      setStep(9); // sucesso
+      setStep(9); // sucesso — abre WhatsApp automático
+      // Abre o WhatsApp direto (nova aba); fallback é o botão na tela
+      setTimeout(() => {
+        try { window.open(waLink(waMsg), "_blank", "noopener"); } catch { /* ignore */ }
+      }, 300);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao enviar cadastro");
     } finally {
@@ -485,10 +490,10 @@ const LocalVpp = () => {
                 </div>
                 <h2 className="text-3xl md:text-4xl font-black mb-3">Tudo certo! 🎉</h2>
                 <p className="text-neutral-200 text-base md:text-lg leading-relaxed mb-4">
-                  Fale agora com nosso time no WhatsApp para saber mais sobre a MRO.
+                  Estamos abrindo o WhatsApp automaticamente...
                 </p>
                 <p className="text-neutral-400 text-sm mb-6">
-                  Também enviamos o contato no seu e-mail.
+                  Se não abrir sozinho, toque no botão abaixo. Também enviamos o contato no seu e-mail.
                 </p>
                 <a
                   href={waLink(finalWaMsg)}
