@@ -490,10 +490,10 @@ const LocalVpp = () => {
                 </div>
                 <h2 className="text-3xl md:text-4xl font-black mb-3">Tudo certo! 🎉</h2>
                 <p className="text-neutral-200 text-base md:text-lg leading-relaxed mb-4">
-                  Fale agora com nosso time no WhatsApp para saber mais sobre a MRO.
+                  Estamos abrindo o WhatsApp automaticamente...
                 </p>
                 <p className="text-neutral-400 text-sm mb-6">
-                  Também enviamos o contato no seu e-mail.
+                  Se não abrir sozinho, toque no botão abaixo. Também enviamos o contato no seu e-mail.
                 </p>
                 <a
                   href={waLink(finalWaMsg)}
