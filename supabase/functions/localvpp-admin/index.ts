@@ -48,6 +48,8 @@ serve(async (req) => {
       const business_type = String(body.business_type || "").trim();
       const device_type = String(body.device_type || "").trim();
       const instagram = String(body.instagram || "").trim();
+      const empresa = String(body.empresa || "").trim();
+      const objetivo = String(body.objetivo || "").trim();
 
       if (!nome || nome.split(/\s+/).length < 2) return json({ success: false, error: "Nome completo obrigatório" }, 400);
       if (!email.includes("@")) return json({ success: false, error: "E-mail inválido" }, 400);
@@ -58,17 +60,17 @@ serve(async (req) => {
       const { error: insertErr } = await supabase.from("localvpp_leads").insert({
         nome_completo: nome, email, whatsapp, business_type, device_type,
         instagram: instagram || null,
+        empresa: empresa || null,
+        objetivo: objetivo || null,
         user_agent: req.headers.get("user-agent") || null,
         referrer: body.referrer || null,
       });
       if (insertErr) return json({ success: false, error: insertErr.message }, 500);
 
-      // Se não tem máquina: salva o lead mas não envia email do grupo
+      // Sem máquina: guarda lead mas não envia email nem libera contato
       if (device_type === "nenhum") return json({ success: true, blocked: true });
 
-      const { data: s } = await supabase.from("localvpp_settings").select("whatsapp_group_link").limit(1).maybeSingle();
-      const link = s?.whatsapp_group_link || "#";
-      const emailOk = await sendLocalVppEmail(email, nome, link);
+      const emailOk = await sendLocalVppEmail(email, nome);
       return json({ success: true, email_sent: emailOk });
     }
 
