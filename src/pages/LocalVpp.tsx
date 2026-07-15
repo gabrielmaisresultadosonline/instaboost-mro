@@ -482,7 +482,7 @@ const LocalVpp = () => {
 
         {/* SUCCESS */}
         {step === 9 && (
-          <div className="max-w-xl mx-auto text-center">
+          <div className="w-full max-w-xl mx-auto text-center">
             <div className="rounded-[2rem] p-[1.5px] bg-gradient-to-br from-green-400/60 via-yellow-400/40 to-green-400/60">
               <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-8">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 ring-2 ring-green-400/40 mb-4">
