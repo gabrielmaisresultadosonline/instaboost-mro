@@ -83,6 +83,7 @@ const LocalVpp = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
+      // Pixel de Lead APENAS quando o usuário será direcionado ao WhatsApp
       const fbq = (window as any).fbq;
       if (fbq) {
         fbq("track", "Lead", { content_name: "LocalVPP Contato", content_category: "Lead" });
@@ -90,7 +91,11 @@ const LocalVpp = () => {
       }
       trackLead("LocalVPP Contato");
       setFinalWaMsg(waMsg);
-      setStep(9); // sucesso
+      setStep(9); // sucesso — abre WhatsApp automático
+      // Abre o WhatsApp direto (nova aba); fallback é o botão na tela
+      setTimeout(() => {
+        try { window.open(waLink(waMsg), "_blank", "noopener"); } catch { /* ignore */ }
+      }, 300);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao enviar cadastro");
     } finally {
