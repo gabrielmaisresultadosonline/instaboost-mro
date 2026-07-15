@@ -131,7 +131,7 @@ const LocalVpp = () => {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-5 sm:px-6 py-10 md:py-16">
+      <div className={`relative z-10 max-w-5xl mx-auto px-5 sm:px-6 ${step === 0 ? "py-10 md:py-16" : "min-h-screen flex items-center justify-center py-8"}`}>
         {/* HERO */}
         {step === 0 && (
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
@@ -223,7 +223,7 @@ const LocalVpp = () => {
 
         {/* FORM */}
         {step >= 1 && step <= 8 && (
-          <div id="form-top" className="max-w-xl mx-auto">
+          <div id="form-top" className="w-full max-w-xl mx-auto">
             <div className="relative rounded-[2rem] p-[1.5px] bg-gradient-to-br from-yellow-400/60 via-yellow-500/40 to-yellow-400/60 shadow-[0_20px_60px_-15px_rgba(245,158,11,0.35)]">
               <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-6 sm:p-8">
                 <div className="flex items-center gap-2 mb-6">
@@ -482,7 +482,7 @@ const LocalVpp = () => {
 
         {/* SUCCESS */}
         {step === 9 && (
-          <div className="max-w-xl mx-auto text-center">
+          <div className="w-full max-w-xl mx-auto text-center">
             <div className="rounded-[2rem] p-[1.5px] bg-gradient-to-br from-green-400/60 via-yellow-400/40 to-green-400/60">
               <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-8">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 ring-2 ring-green-400/40 mb-4">
