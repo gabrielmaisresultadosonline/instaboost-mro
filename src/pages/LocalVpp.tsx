@@ -223,7 +223,7 @@ const LocalVpp = () => {
 
         {/* FORM */}
         {step >= 1 && step <= 8 && (
-          <div id="form-top" className="max-w-xl mx-auto">
+          <div id="form-top" className="w-full max-w-xl mx-auto">
             <div className="relative rounded-[2rem] p-[1.5px] bg-gradient-to-br from-yellow-400/60 via-yellow-500/40 to-yellow-400/60 shadow-[0_20px_60px_-15px_rgba(245,158,11,0.35)]">
               <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-6 sm:p-8">
                 <div className="flex items-center gap-2 mb-6">
