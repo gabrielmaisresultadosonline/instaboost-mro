@@ -2892,9 +2892,11 @@ export type Database = {
           created_at: string
           device_type: string
           email: string | null
+          empresa: string | null
           id: string
           instagram: string | null
           nome_completo: string
+          objetivo: string | null
           referrer: string | null
           updated_at: string
           user_agent: string | null
@@ -2905,9 +2907,11 @@ export type Database = {
           created_at?: string
           device_type: string
           email?: string | null
+          empresa?: string | null
           id?: string
           instagram?: string | null
           nome_completo: string
+          objetivo?: string | null
           referrer?: string | null
           updated_at?: string
           user_agent?: string | null
@@ -2918,9 +2922,11 @@ export type Database = {
           created_at?: string
           device_type?: string
           email?: string | null
+          empresa?: string | null
           id?: string
           instagram?: string | null
           nome_completo?: string
+          objetivo?: string | null
           referrer?: string | null
           updated_at?: string
           user_agent?: string | null
