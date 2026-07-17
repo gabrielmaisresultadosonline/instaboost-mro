@@ -317,12 +317,47 @@ async function actionRegister(body: any) {
   });
 }
 
+async function actionLookup(body: any) {
+  const scUsername = String(body.squarecloud_username || "").trim().toLowerCase();
+  if (!scUsername) return json({ success: false, error: "Usuário obrigatório" }, 400);
+
+  let affiliates: Affiliate[] = [];
+  try {
+    affiliates = await loadAffiliates();
+  } catch (e) {
+    console.error("[afiliadosx] loadAffiliates", e);
+    return json({ success: false, error: "Erro ao carregar lista" }, 500);
+  }
+
+  const match = affiliates.find(
+    a => (a.squarecloudUsername || "").toLowerCase() === scUsername
+  );
+
+  if (!match) return json({ success: true, affiliate: null });
+
+  return json({
+    success: true,
+    affiliate: {
+      id: match.id,
+      name: match.name,
+      email: match.email,
+      photoUrl: match.photoUrl || "",
+      links: {
+        promo: `/promo/${match.id}`,
+        promoRendaExtra: `/promorendaextra/${match.id}`,
+        dashboard: `/resumo/${match.id}`,
+      },
+    },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json().catch(() => ({}));
     const action = String(body.action || "");
     if (action === "register") return await actionRegister(body);
+    if (action === "lookup") return await actionLookup(body);
     return json({ success: false, error: "Ação inválida" }, 400);
   } catch (e) {
     console.error("[afiliadosx] fatal", e);

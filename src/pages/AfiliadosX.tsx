@@ -48,11 +48,31 @@ export default function AfiliadosX() {
     photo_url: "" as string,
   });
 
+  const lookupExistingAffiliate = async (username: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("afiliadosx", {
+        body: { action: "lookup", squarecloud_username: username.toLowerCase() },
+      });
+      if (error) return null;
+      if (data?.success && data.affiliate) return data.affiliate as CreatedAffiliate;
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const u = await getCurrentUser();
       setUser(u);
       if (u) {
+        // Check if this MRO user is already an affiliate — if so, auto-open dashboard
+        const existing = await lookupExistingAffiliate(u.username);
+        if (existing) {
+          setCreated(existing);
+          setChecking(false);
+          return;
+        }
         setForm(f => ({
           ...f,
           first_name: f.first_name || (u.username || ""),
@@ -150,7 +170,16 @@ export default function AfiliadosX() {
   }
 
   if (!user) {
-    return <InlineLogin onSuccess={(u) => setUser(u)} />;
+    return (
+      <InlineLogin
+        onSuccess={async (u) => {
+          setUser(u);
+          // Immediately try to detect existing affiliate for this MRO user
+          const existing = await lookupExistingAffiliate(u.username);
+          if (existing) setCreated(existing);
+        }}
+      />
+    );
   }
 
   // -------- Success view --------
