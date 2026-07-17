@@ -275,12 +275,12 @@ async function actionStats(body: any) {
 
   const [visitsRes, ordersRes] = await Promise.all([
     supabase.from("partner_visits").select("id,created_at,referer,user_agent").eq("partner_id", partner.id).order("created_at", { ascending: false }).limit(100),
-    supabase.from("mro_orders").select("id,email,amount,status,created_at,payment_status").eq("partner_id", partner.id).order("created_at", { ascending: false }).limit(100),
+    supabase.from("mro_orders").select("id,email,amount,status,created_at,paid_at").eq("partner_id", partner.id).order("created_at", { ascending: false }).limit(100),
   ]);
 
   const orders = ordersRes.data || [];
-  const approved = orders.filter((o: any) => o.status === "paid" || o.payment_status === "paid");
-  const attempts = orders.filter((o: any) => !(o.status === "paid" || o.payment_status === "paid"));
+  const approved = orders.filter((o: any) => o.status === "paid");
+  const attempts = orders.filter((o: any) => o.status !== "paid");
   const totalCommission = approved.length * 97;
 
   return json({
