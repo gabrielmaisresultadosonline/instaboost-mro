@@ -29,6 +29,8 @@ import InstagramNovaEuro from "./pages/InstagramNovaEuro";
 import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
 import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
+import AfiliadosX from "./pages/AfiliadosX";
+import AfiliadosXResumo from "./pages/AfiliadosXResumo";
 import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
 import DescontoAlunosRendaExtraMes from "./pages/DescontoAlunosRendaExtraMes";
 import DescontoAlunosRendaExtraAdmin from "./pages/DescontoAlunosRendaExtraAdmin";
