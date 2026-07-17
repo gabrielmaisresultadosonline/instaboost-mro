@@ -456,11 +456,27 @@ const ToolSelector = () => {
                 </div>
                 <div className="text-left">
                   <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                    ZAPMRO
+                    ZAPMRO Não Oficial
                   </h4>
                   <p className="text-xs text-white/50">Ferramenta para WhatsApp</p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-yellow-400 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </button>
+
+              <button
+                onClick={() => handleMembersSelect('zapmro-oficial')}
+                className="w-full p-4 border border-white/5 hover:border-emerald-400/50 bg-black hover:bg-neutral-900 transition-all duration-300 flex items-center gap-4 group"
+              >
+                <div className="w-12 h-12 bg-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                  <MessageCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                    ZAPMRO OFICIAL
+                  </h4>
+                  <p className="text-xs text-white/50">API Oficial WhatsApp · zapmro.com.br</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-emerald-400 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
               </button>
             </div>
           </div>
