@@ -520,6 +520,23 @@ export const updateUserEmail = async (email: string): Promise<void> => {
   }
 };
 
+export const forceUpdateUserEmail = async (email: string): Promise<void> => {
+  const session = getUserSession();
+  if (session.user) {
+    session.user.email = email;
+    session.user.isEmailLocked = true;
+    saveUserSession(session);
+    await saveUserToCloud(
+      session.user.username,
+      email,
+      session.user.daysRemaining,
+      session.cloudData?.profileSessions || [],
+      session.cloudData?.archivedProfiles || []
+    );
+    console.log('[userStorage] ✏️ Email atualizado (forçado) para', email);
+  }
+};
+
 export const addRegisteredIG = async (
   instagram: string,
   email: string,
