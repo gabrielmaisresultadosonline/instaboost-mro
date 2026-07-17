@@ -62,9 +62,9 @@ const ToolSelector = () => {
     },
     {
       id: 'mktcompleto',
-      name: 'Marketing Completo',
-      subtitle: 'Precisa de marketing completo?',
-      description: 'Deixe que cuidamos de tudo para você. Gestão, tráfego, criação e automação em um só lugar.',
+      name: 'Precisa de marketing completo?',
+      subtitle: 'Deixe que cuidamos de tudo',
+      description: 'Gestão, tráfego, criação e automação em um só lugar. Solução pronta para escalar seu negócio.',
       icon: Megaphone,
       badge: 'HOT',
       salesPath: '/mktcompleto',
