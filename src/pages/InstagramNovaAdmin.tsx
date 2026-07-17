@@ -3005,6 +3005,26 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                       </p>
                     </div>
                   </div>
+
+                  {/* Dono do afiliado — vincula usuário MRO (SquareCloud) para auto-login em /afiliadosx */}
+                  <div className="mb-4 bg-yellow-500/5 border border-yellow-500/30 rounded-lg p-4">
+                    <label className="text-sm text-yellow-400 font-medium mb-1 block flex items-center gap-2">
+                      🔗 Dono do afiliado (usuário MRO)
+                    </label>
+                    <Input
+                      placeholder="ex: joaosilva (usuário do /instagram)"
+                      value={affiliateSquarecloudUsername}
+                      onChange={(e) => setAffiliateSquarecloudUsername(e.target.value.toLowerCase().replace(/\s+/g, ""))}
+                      className="bg-zinc-800/50 border-zinc-600 text-white"
+                    />
+                    <p className="text-xs text-zinc-500 mt-2">
+                      Quando esse usuário fizer login em <strong className="text-yellow-400">/afiliadosx</strong>, o painel dele abre automaticamente com este cadastro de afiliado e todo histórico de vendas.
+                    </p>
+                  </div>
+
+                  {/* Linha 2 legacy */}
+                  <div style={{ display: "none" }}>
+
                   
                   {/* Linha 2: Foto e Horários */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
