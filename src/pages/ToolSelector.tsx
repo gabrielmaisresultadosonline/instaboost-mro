@@ -89,10 +89,12 @@ const ToolSelector = () => {
     else navigate(path);
   };
 
-  const handleMembersSelect = (platform: 'instagram' | 'zapmro') => {
+  const handleMembersSelect = (platform: 'instagram' | 'zapmro' | 'zapmro-oficial') => {
     trackViewContent(`Members Area: ${platform}`, 'Navigation');
     setShowMembersModal(false);
-    navigate(platform === 'instagram' ? '/instagram' : '/zapmro');
+    if (platform === 'instagram') navigate('/instagram');
+    else if (platform === 'zapmro') navigate('/zapmro');
+    else if (platform === 'zapmro-oficial') window.open('https://zapmro.com.br', '_blank');
   };
 
   const handleMove = (e: React.MouseEvent) => {
