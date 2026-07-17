@@ -864,6 +864,10 @@ export default function AdminUsuario() {
               <Send className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Disparo</span>
             </TabsTrigger>
+            <TabsTrigger value="wa-migration" className="data-[state=active]:bg-green-500 data-[state=active]:text-black text-xs sm:text-sm">
+              <AlertTriangle className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Aviso WhatsApp</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs sm:text-sm">
               <Settings className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Config</span>
