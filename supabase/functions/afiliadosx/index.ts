@@ -276,6 +276,7 @@ async function actionRegister(body: any) {
     isLifetime: true,
     source: "afiliadosx",
     squarecloudUsername: scUsername,
+    showPromoBanner,
   };
 
   try {
