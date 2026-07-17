@@ -164,6 +164,14 @@ export default function AdminUsuario() {
     results: Array<{ email: string; success: boolean }>;
   } | null>(null);
 
+  // WhatsApp Migration
+  const [whatsappUsers, setWhatsappUsers] = useState<Array<{ email: string; source: string; name?: string }>>([]);
+  const [selectedWhatsappEmails, setSelectedWhatsappEmails] = useState<Set<string>>(new Set());
+  const [loadingWhatsappUsers, setLoadingWhatsappUsers] = useState(false);
+  const [waMigrationSending, setWaMigrationSending] = useState(false);
+  const [waMigrationSubject, setWaMigrationSubject] = useState('🚨 Importante: Sua ferramenta ZapMRO foi migrada para API Oficial do WhatsApp');
+  const [waMigrationResults, setWaMigrationResults] = useState<{ total: number; sent: number; failed: number } | null>(null);
+
   const [form, setForm] = useState({
     customerEmail: '',
     username: '',
