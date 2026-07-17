@@ -4179,11 +4179,15 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          last_name: string | null
           name: string
           password: string | null
+          photo_url: string | null
           pix_key: string | null
           show_promo_banner: boolean
           slug: string
+          source: string
+          squarecloud_username: string | null
           status: string
           updated_at: string
           user_id: string | null
@@ -4194,11 +4198,15 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          last_name?: string | null
           name: string
           password?: string | null
+          photo_url?: string | null
           pix_key?: string | null
           show_promo_banner?: boolean
           slug: string
+          source?: string
+          squarecloud_username?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -4209,11 +4217,15 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_name?: string | null
           name?: string
           password?: string | null
+          photo_url?: string | null
           pix_key?: string | null
           show_promo_banner?: boolean
           slug?: string
+          source?: string
+          squarecloud_username?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
