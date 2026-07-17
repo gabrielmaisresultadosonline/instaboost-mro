@@ -368,8 +368,14 @@ const LocalVpp = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {DEVICE_OPTIONS.map((o) => (
                         <button key={o.id} type="button"
-                          onClick={() => { setDevice(o.id); if (o.id === "nenhum") saveBlockedLead(); }}
-                          className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left font-bold transition-all ${
+                          onClick={() => {
+                            setDevice(o.id);
+                            if (o.id === "nenhum") {
+                              saveBlockedLead().then(() => setStep(10));
+                            }
+                          }}
+                          disabled={loading}
+                          className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left font-bold transition-all disabled:opacity-50 ${
                             device === o.id
                               ? o.id === "nenhum" ? "bg-red-500 text-white border-red-500" : "bg-yellow-400 text-black border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.4)]"
                               : "bg-zinc-900 border-zinc-700 text-white hover:border-yellow-400/60"
