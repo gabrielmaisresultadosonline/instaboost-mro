@@ -81,6 +81,7 @@ interface Affiliate {
   isLifetime?: boolean;
   source?: string; // "afiliadosx" for self-service
   squarecloudUsername?: string;
+  showPromoBanner?: boolean;
 }
 
 async function loadAffiliates(): Promise<Affiliate[]> {
