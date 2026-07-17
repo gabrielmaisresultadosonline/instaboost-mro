@@ -509,21 +509,93 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 {user?.isEmailLocked && (
                   <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">Vinculado</span>
                 )}
+                {user?.isEmailLocked && !isEditingEmail && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ok = window.confirm('Deseja alterar o e-mail vinculado à sua conta? Certifique-se de digitar o correto — ele ficará vinculado novamente.');
+                      if (!ok) return;
+                      setEditEmailValue(email);
+                      setIsEditingEmail(true);
+                    }}
+                    className="ml-auto inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20 transition-colors"
+                    title="Alterar e-mail"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                    Alterar
+                  </button>
+                )}
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => !user?.isEmailLocked && setEmail(e.target.value)}
-                disabled={user?.isEmailLocked}
-                className={`bg-background/50 ${user?.isEmailLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
-                data-tutorial="email-input"
-              />
+
+              {isEditingEmail ? (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={editEmailValue}
+                    onChange={(e) => setEditEmailValue(e.target.value)}
+                    className="bg-background/50 border-amber-500/40"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={savingEmail}
+                      onClick={async () => {
+                        const newEmail = editEmailValue.trim();
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(newEmail)) {
+                          toast({ title: 'E-mail inválido', description: 'Digite um e-mail válido', variant: 'destructive' });
+                          return;
+                        }
+                        setSavingEmail(true);
+                        try {
+                          await forceUpdateUserEmail(newEmail);
+                          setEmail(newEmail);
+                          setIsEditingEmail(false);
+                          toast({ title: 'E-mail atualizado', description: 'Seu e-mail foi alterado com sucesso' });
+                        } catch (err: any) {
+                          toast({ title: 'Erro', description: err?.message || 'Falha ao atualizar', variant: 'destructive' });
+                        } finally {
+                          setSavingEmail(false);
+                        }
+                      }}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      {savingEmail ? 'Salvando...' : 'Salvar'}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={savingEmail}
+                      onClick={() => { setIsEditingEmail(false); setEditEmailValue(''); }}
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => !user?.isEmailLocked && setEmail(e.target.value)}
+                  disabled={user?.isEmailLocked}
+                  className={`bg-background/50 ${user?.isEmailLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  data-tutorial="email-input"
+                />
+              )}
+
               <p className="text-xs text-muted-foreground">
-                {user?.isEmailLocked 
-                  ? 'Este e-mail está vinculado à sua conta e não pode ser alterado'
-                  : 'Este e-mail será salvo e vinculado permanentemente à sua conta'
+                {isEditingEmail
+                  ? 'Digite o novo e-mail e clique em Salvar. Ele ficará vinculado à sua conta.'
+                  : user?.isEmailLocked
+                    ? 'Este e-mail está vinculado à sua conta. Clique em "Alterar" para trocar.'
+                    : 'Este e-mail será salvo e vinculado permanentemente à sua conta'
                 }
               </p>
             </div>
