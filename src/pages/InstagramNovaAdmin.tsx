@@ -1598,6 +1598,7 @@ Participe também do nosso GRUPO DE AVISOS
     setPromoStartTime(affiliate.promoStartTime || "");
     setPromoEndTime(affiliate.promoEndTime || "");
     setIsLifetimeAffiliate(affiliate.isLifetime || false);
+    setAffiliateSquarecloudUsername(affiliate.squarecloudUsername || "");
     setIsEditingAffiliate(true);
     setEditingAffiliateOriginalId(affiliate.id);
     setActiveTab("config");
