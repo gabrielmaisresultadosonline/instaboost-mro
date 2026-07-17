@@ -236,8 +236,6 @@ const InstagramNovaPromo = () => {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Popup Desconto Encerrado - REMOVED TO PREVENT BLACK SCREEN ISSUES */}
-
-      {/* Popup Desconto Encerrado - REMOVED TO PREVENT BLACK SCREEN ISSUES */}
       {/* 
       {showDiscountEndedPopup && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)'}}>
