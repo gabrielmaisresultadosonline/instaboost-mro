@@ -1510,6 +1510,125 @@ export default function AdminUsuario() {
           </TabsContent>
 
           {/* Settings Tab */}
+          <TabsContent value="wa-migration">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Users className="w-5 h-5 text-green-500" />
+                    Usuários da ferramenta WhatsApp
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Emails do <code>/adminusuario</code> (WhatsApp) + cadastros diretos na área de membros ZapMRO
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Button onClick={loadWhatsappUsers} disabled={loadingWhatsappUsers} className="bg-green-600 hover:bg-green-700 text-white">
+                      {loadingWhatsappUsers ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                      Carregar / Atualizar
+                    </Button>
+                    {whatsappUsers.length > 0 && (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => setSelectedWhatsappEmails(new Set(whatsappUsers.map(u => u.email)))}>Todos</Button>
+                        <Button size="sm" variant="outline" onClick={() => setSelectedWhatsappEmails(new Set())}>Nenhum</Button>
+                      </>
+                    )}
+                  </div>
+
+                  {whatsappUsers.length === 0 ? (
+                    <p className="text-gray-500 text-sm text-center py-6">Clique em "Carregar" para buscar os usuários</p>
+                  ) : (
+                    <div className="max-h-[420px] overflow-y-auto bg-gray-900 rounded-lg p-2 space-y-1">
+                      {whatsappUsers.map((u) => (
+                        <div
+                          key={u.email}
+                          onClick={() => toggleWaEmail(u.email)}
+                          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                            selectedWhatsappEmails.has(u.email) ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-800 hover:bg-gray-700'
+                          }`}
+                        >
+                          {selectedWhatsappEmails.has(u.email) ? (
+                            <CheckSquare className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : (
+                            <Square className="w-4 h-4 text-gray-500 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-gray-200 truncate">{u.email}</div>
+                            {u.name && <div className="text-xs text-gray-500 truncate">{u.name}</div>}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] shrink-0">
+                            {u.source === 'zapmro_users' ? 'ZapMRO' : 'Cadastro'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="bg-gray-900 p-3 rounded-lg">
+                    <p className="text-sm text-gray-400">
+                      Selecionados: <span className="text-green-400 font-bold">{selectedWhatsappEmails.size}</span> de {whatsappUsers.length}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-green-500" />
+                    Aviso de Migração ZapMRO → API Oficial
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Email pronto e formatado com botão para zapmro.com.br
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Assunto</Label>
+                    <Input
+                      value={waMigrationSubject}
+                      onChange={(e) => setWaMigrationSubject(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Pré-visualização</Label>
+                    <div className="bg-white rounded-lg overflow-hidden border border-gray-600">
+                      <iframe
+                        title="preview"
+                        srcDoc={buildWhatsappMigrationEmail()}
+                        className="w-full h-[380px] bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={sendWhatsappMigrationEmails}
+                    disabled={waMigrationSending || selectedWhatsappEmails.size === 0}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6"
+                  >
+                    {waMigrationSending ? (
+                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5 mr-2" />
+                    )}
+                    Enviar para {selectedWhatsappEmails.size} usuário(s)
+                  </Button>
+
+                  {waMigrationResults && (
+                    <div className="bg-gray-900 p-4 rounded-lg space-y-2">
+                      <div className="flex justify-between"><span className="text-gray-400">Total:</span><span className="text-white font-bold">{waMigrationResults.total}</span></div>
+                      <div className="flex justify-between"><span className="text-green-400">Enviados:</span><span className="text-green-400 font-bold">{waMigrationResults.sent}</span></div>
+                      <div className="flex justify-between"><span className="text-red-400">Falhas:</span><span className="text-red-400 font-bold">{waMigrationResults.failed}</span></div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="settings">
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
