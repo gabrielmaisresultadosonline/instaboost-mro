@@ -7,11 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { getCurrentUser, logoutUser } from "@/lib/userStorage";
+import { getCurrentUser, logoutUser, loginUser } from "@/lib/userStorage";
+import { loginToSquare } from "@/lib/squareApi";
 import type { MROUser } from "@/types/user";
 import {
   ArrowRight, Camera, CheckCircle2, Copy, DollarSign, Eye, LayoutDashboard,
-  Loader2, LogOut, Lock, Sparkles, TrendingUp, User as UserIcon,
+  Loader2, LogOut, Lock, Sparkles, TrendingUp, User as UserIcon, KeyRound,
 } from "lucide-react";
 
 interface CreatedAffiliate {
@@ -149,20 +150,7 @@ export default function AfiliadosX() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-        <Card className="max-w-lg w-full bg-zinc-950 border-yellow-500/30 p-8 text-center">
-          <Lock className="w-14 h-14 mx-auto text-yellow-500 mb-4" />
-          <h1 className="text-2xl font-black mb-2">Programa de Afiliados MRO</h1>
-          <p className="text-zinc-400 mb-6 text-sm">
-            Este programa é exclusivo para clientes ativos MRO Instagram. Faça login primeiro em <strong className="text-yellow-500">/instagram</strong> e volte aqui.
-          </p>
-          <Button onClick={() => navigate("/instagram")} className="bg-yellow-500 hover:bg-yellow-400 text-black font-black w-full">
-            Ir para /instagram <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </Card>
-      </div>
-    );
+    return <InlineLogin onSuccess={(u) => setUser(u)} />;
   }
 
   // -------- Success view --------
@@ -392,6 +380,121 @@ export default function AfiliadosX() {
           </Button>
         </Card>
       </section>
+    </div>
+  );
+}
+
+function InlineLogin({ onSuccess }: { onSuccess: (u: MROUser) => void }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || !password.trim()) {
+      toast.error("Preencha usuário e senha");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await loginToSquare(username.trim(), password.trim());
+      if (!result.success) {
+        toast.error(result.error || "Credenciais inválidas");
+        return;
+      }
+      const session = await loginUser(
+        username.trim(),
+        result.daysRemaining || 365,
+        undefined,
+        password.trim()
+      );
+      if (session?.user) {
+        toast.success("Login realizado!");
+        onSuccess(session.user);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao autenticar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 mb-4">
+            <Sparkles className="w-4 h-4 text-yellow-400" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400">Programa de Afiliados MRO</span>
+          </div>
+          <h1 className="text-3xl font-black mb-2">
+            Faça seu <span className="text-yellow-400">login</span> ou cadastre-se como afiliado
+          </h1>
+          <p className="text-zinc-400 text-sm">
+            Entre com seu acesso da ferramenta MRO Instagram e cadastre-se como afiliado.
+            <span className="block mt-2 text-yellow-400/90 text-xs">
+              Só clientes ativos da ferramenta podem acessar essa área.
+            </span>
+          </p>
+        </div>
+
+        <Card className="bg-zinc-950 border-yellow-500/30 p-6 md:p-7">
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <Label className="text-xs uppercase tracking-widest text-zinc-500 font-black">Usuário MRO</Label>
+              <div className="relative mt-1">
+                <UserIcon className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="seu usuário"
+                  autoComplete="username"
+                  className="bg-black border-zinc-800 pl-9"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-widest text-zinc-500 font-black">Senha</Label>
+              <div className="relative mt-1">
+                <KeyRound className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="sua senha"
+                  autoComplete="current-password"
+                  className="bg-black border-zinc-800 pl-9"
+                />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black text-base py-6"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>Entrar e continuar <ArrowRight className="w-5 h-5 ml-2" /></>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-5 pt-5 border-t border-zinc-900 text-center">
+            <p className="text-[11px] text-zinc-500 mb-2">Ainda não é cliente MRO?</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/instagram")}
+              className="border-zinc-700 text-xs"
+            >
+              <Lock className="w-3 h-3 mr-2" />
+              Ver planos em /instagram
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
