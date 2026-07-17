@@ -381,6 +381,24 @@ const ToolSelector = () => {
         </p>
       </footer>
 
+      {/* Existing customer CTA — placed at bottom */}
+      <div className="relative z-10 flex justify-center px-6 lg:px-12 pb-10 pt-4">
+        <button
+          onClick={() => setShowMembersModal(true)}
+          className="group relative overflow-hidden px-8 py-5 bg-neutral-900 border border-yellow-400/30 text-yellow-400 text-base uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 hover:border-yellow-400 hover:shadow-[0_10px_40px_-10px_rgba(250,204,21,0.4)] font-black"
+          style={{ fontFamily: "'Archivo Black', sans-serif" }}
+        >
+          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <span className="relative flex items-center gap-3">
+            <Users className="w-5 h-5" />
+            Você já é cliente?
+          </span>
+          <span className="relative block text-xs mt-1 opacity-70 font-bold tracking-wider">
+            Acessar área de membros →
+          </span>
+        </button>
+      </div>
+
       {/* Members modal */}
       {showMembersModal && (
         <div
