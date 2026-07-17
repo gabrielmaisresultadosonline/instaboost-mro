@@ -740,6 +740,42 @@ serve(async (req) => {
         });
       }
 
+      case "list_whatsapp_users": {
+        const emailsSet = new Set<string>();
+        const details: Array<{ email: string; source: string; name?: string }> = [];
+
+        const { data: accesses } = await supabase
+          .from('created_accesses')
+          .select('customer_email, customer_name, username')
+          .eq('service_type', 'whatsapp');
+
+        (accesses || []).forEach((a: any) => {
+          const em = (a.customer_email || '').trim().toLowerCase();
+          if (em && em.includes('@') && !emailsSet.has(em)) {
+            emailsSet.add(em);
+            details.push({ email: em, source: 'created_accesses', name: a.customer_name || a.username });
+          }
+        });
+
+        const { data: zapUsers } = await supabase
+          .from('zapmro_users')
+          .select('email, username');
+
+        (zapUsers || []).forEach((u: any) => {
+          const em = (u.email || '').trim().toLowerCase();
+          if (em && em.includes('@') && !emailsSet.has(em)) {
+            emailsSet.add(em);
+            details.push({ email: em, source: 'zapmro_users', name: u.username });
+          }
+        });
+
+        return new Response(JSON.stringify({ success: true, users: details, total: details.length }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+
+
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }), {
           status: 400,
