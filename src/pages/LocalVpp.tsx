@@ -81,6 +81,11 @@ const LocalVpp = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
+      // Lead bloqueado (sem máquina): salva contato, mas não envia email/libera WhatsApp/pixel
+      if (data?.blocked) {
+        setStep(10); // tela de bloqueio
+        return;
+      }
       // Pixel de Lead APENAS quando o usuário tem máquina e será direcionado ao WhatsApp
       const hasDevice = device === "notebook" || device === "desktop" || device === "macbook";
       if (hasDevice) {
