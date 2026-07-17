@@ -37,6 +37,40 @@ const LocalVppAdmin = () => {
 
   useEffect(() => { document.title = "LocalVPP - Admin"; }, []);
 
+  // Auto-login from saved session
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("localvpp_admin_auth");
+      if (!saved) return;
+      const parsed = JSON.parse(saved) as { email: string; password: string };
+      if (parsed?.email && parsed?.password) {
+        setCreds(parsed);
+        (async () => {
+          try {
+            const { data, error } = await supabase.functions.invoke("localvpp-admin", {
+              body: { action: "login", email: parsed.email, password: parsed.password },
+            });
+            if (error || !data?.success) throw new Error("invalid");
+            setLoggedIn(true);
+            // load initial data
+            const s = await supabase.functions.invoke("localvpp-admin", {
+              body: { action: "get_settings", email: parsed.email, password: parsed.password },
+            });
+            if (s.data?.settings) setSettings((prev) => ({ ...prev, ...s.data.settings }));
+            const l = await supabase.functions.invoke("localvpp-admin", {
+              body: { action: "list_leads", email: parsed.email, password: parsed.password },
+            });
+            if (l.data?.leads) setLeads(l.data.leads);
+          } catch {
+            localStorage.removeItem("localvpp_admin_auth");
+          }
+        })();
+      }
+    } catch {
+      localStorage.removeItem("localvpp_admin_auth");
+    }
+  }, []);
+
   const call = async (action: string, extra: Record<string, unknown> = {}) => {
     const { data, error } = await supabase.functions.invoke("localvpp-admin", {
       body: { action, email: creds.email, password: creds.password, ...extra },
