@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { getCurrentUser } from "@/lib/userStorage";
+import { getCurrentUser, logoutUser } from "@/lib/userStorage";
 import type { MROUser } from "@/types/user";
 import {
-  ArrowRight, Camera, CheckCircle2, Copy, DollarSign, Eye, Loader2,
-  Lock, Sparkles, TrendingUp, User as UserIcon,
+  ArrowRight, Camera, CheckCircle2, Copy, DollarSign, Eye, LayoutDashboard,
+  Loader2, LogOut, Lock, Sparkles, TrendingUp, User as UserIcon,
 } from "lucide-react";
 
 interface CreatedAffiliate {
@@ -33,6 +34,7 @@ export default function AfiliadosX() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [created, setCreated] = useState<CreatedAffiliate | null>(null);
+  const [hasStoredPwd, setHasStoredPwd] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState({
@@ -41,6 +43,7 @@ export default function AfiliadosX() {
     desired_id: "",
     email: "",
     password: "",
+    show_promo_banner: true,
     photo_url: "" as string,
   });
 
@@ -54,10 +57,22 @@ export default function AfiliadosX() {
           first_name: f.first_name || (u.username || ""),
           desired_id: f.desired_id || (u.username || "").toLowerCase(),
         }));
+        // Auto-inject stored SquareCloud password from active session
+        const stored = sessionStorage.getItem("mro_temp_pwd") || "";
+        if (stored) {
+          setForm(f => ({ ...f, password: stored }));
+          setHasStoredPwd(true);
+        }
       }
       setChecking(false);
     })();
   }, []);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    toast.info("Sessão encerrada. Faça login novamente em /instagram.");
+    navigate("/instagram");
+  };
 
   const handlePhotoPick = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -91,7 +106,9 @@ export default function AfiliadosX() {
     if (!user) return;
     if (!form.first_name.trim()) return toast.error("Informe seu nome");
     if (!form.email.includes("@")) return toast.error("Email inválido");
-    if (!form.password || form.password.length < 3) return toast.error("Informe sua senha MRO");
+    if (!form.password || form.password.length < 3) {
+      return toast.error("Sessão sem senha — faça login novamente em /instagram");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("afiliadosx", {
@@ -104,6 +121,7 @@ export default function AfiliadosX() {
           squarecloud_username: user.username.toLowerCase(),
           password: form.password,
           photo_url: form.photo_url || null,
+          show_promo_banner: form.show_promo_banner,
         },
       });
       if (error) throw error;
@@ -153,7 +171,6 @@ export default function AfiliadosX() {
     const items = [
       { label: "Link principal (Instagram PRO)", href: base + created.links.promo },
       { label: "Link Renda Extra", href: base + created.links.promoRendaExtra },
-      { label: "Painel Dashboard", href: base + created.links.dashboard },
     ];
     return (
       <div className="min-h-screen bg-black text-white px-4 py-12">
@@ -166,10 +183,20 @@ export default function AfiliadosX() {
             </p>
           </Card>
 
+          <Button
+            onClick={() => navigate(created.links.dashboard)}
+            className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-black font-black text-lg py-8 shadow-xl shadow-yellow-500/20"
+          >
+            <LayoutDashboard className="w-6 h-6 mr-3" />
+            Dashboard do Afiliado
+            <ArrowRight className="w-6 h-6 ml-3" />
+          </Button>
+
           <Card className="bg-zinc-950 border-zinc-800 p-6 space-y-4">
+            <p className="text-[11px] uppercase tracking-widest text-zinc-500 font-black">Seus links de divulgação</p>
             {items.map(it => (
               <div key={it.href} className="space-y-1">
-                <p className="text-[11px] uppercase tracking-widest text-zinc-500 font-black">{it.label}</p>
+                <p className="text-xs text-zinc-400">{it.label}</p>
                 <div className="flex gap-2">
                   <Input readOnly value={it.href} className="bg-black border-zinc-800 text-yellow-400 text-xs" />
                   <Button size="sm" variant="outline" onClick={() => copy(it.href)} className="border-yellow-500/40">
@@ -180,14 +207,9 @@ export default function AfiliadosX() {
             ))}
           </Card>
 
-          <div className="flex gap-3">
-            <Button onClick={() => navigate(created.links.dashboard)} className="flex-1 bg-yellow-500 hover:bg-yellow-400 text-black font-black">
-              Ir para o Dashboard
-            </Button>
-            <Button variant="outline" asChild className="border-zinc-700">
-              <Link to="/instagram">Voltar</Link>
-            </Button>
-          </div>
+          <Button variant="outline" asChild className="w-full border-zinc-700">
+            <Link to="/instagram">Voltar para /instagram</Link>
+          </Button>
         </div>
       </div>
     );
@@ -196,10 +218,30 @@ export default function AfiliadosX() {
   // -------- Registration form --------
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Top bar with logged-in badge + logout */}
+      <div className="w-full border-b border-zinc-900 bg-zinc-950/60 backdrop-blur">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-zinc-400">Logado como</span>
+            <span className="text-yellow-400 font-black">{user.username}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
+      </div>
+
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-transparent to-red-500/10" />
-        <div className="relative max-w-5xl mx-auto px-4 py-16 text-center">
+        <div className="relative max-w-5xl mx-auto px-4 py-14 text-center">
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 mb-6">
             <Sparkles className="w-4 h-4 text-yellow-400" />
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400">Exclusivo para clientes MRO</span>
@@ -235,9 +277,6 @@ export default function AfiliadosX() {
             <UserIcon className="w-5 h-5 text-yellow-400" />
             <h2 className="text-xl font-black">Ativar meu cadastro</h2>
           </div>
-          <p className="text-xs text-zinc-500">
-            Você entrará como <strong className="text-yellow-400">{user.username}</strong>. Para validar, informe a mesma senha usada no <strong>/instagram</strong>.
-          </p>
 
           {/* Photo */}
           <div className="flex items-center gap-4">
@@ -312,18 +351,35 @@ export default function AfiliadosX() {
             />
           </div>
 
-          <div>
-            <Label className="text-xs uppercase tracking-widest text-zinc-500 font-black">Sua senha MRO (a mesma do /instagram)</Label>
-            <Input
-              type="password"
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              className="bg-black border-zinc-800 mt-1"
+          {/* Photo/name visibility toggle */}
+          <div className="flex items-start justify-between gap-4 p-4 bg-black rounded-lg border border-zinc-800">
+            <div className="flex-1">
+              <p className="text-sm font-black">Mostrar minha foto e nome nos meus links</p>
+              <p className="text-[11px] text-zinc-500 mt-1">
+                Quando ligado, quem abrir seu link verá seu nome e foto como indicação. Você pode alterar isso depois no dashboard.
+              </p>
+            </div>
+            <Switch
+              checked={form.show_promo_banner}
+              onCheckedChange={(v) => setForm(f => ({ ...f, show_promo_banner: v }))}
             />
-            <p className="text-[11px] text-zinc-500 mt-1">
-              Também será a senha do seu painel de resumo.
-            </p>
           </div>
+
+          {/* Password fallback — only if not already in session */}
+          {!hasStoredPwd && (
+            <div>
+              <Label className="text-xs uppercase tracking-widest text-zinc-500 font-black">Sua senha MRO (a mesma do /instagram)</Label>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                className="bg-black border-zinc-800 mt-1"
+              />
+              <p className="text-[11px] text-zinc-500 mt-1">
+                Não guardamos sua senha — usamos apenas para validar seu cadastro MRO agora.
+              </p>
+            </div>
+          )}
 
           <Button
             onClick={submit}
@@ -334,10 +390,6 @@ export default function AfiliadosX() {
               <>Ativar meu cadastro <ArrowRight className="w-5 h-5 ml-2" /></>
             )}
           </Button>
-
-          <p className="text-[11px] text-zinc-500 text-center">
-            Ao ativar, você concorda que enviaremos os links de venda e o acesso do painel para o email informado.
-          </p>
         </Card>
       </section>
     </div>

@@ -81,6 +81,7 @@ interface Affiliate {
   isLifetime?: boolean;
   source?: string; // "afiliadosx" for self-service
   squarecloudUsername?: string;
+  showPromoBanner?: boolean;
 }
 
 async function loadAffiliates(): Promise<Affiliate[]> {
@@ -223,6 +224,7 @@ async function actionRegister(body: any) {
   const scPassword = String(body.password || "");
   const photoUrl = body.photo_url ? String(body.photo_url) : "";
   const desiredId = String(body.desired_id || "").trim();
+  const showPromoBanner = body.show_promo_banner !== false;
 
   if (!first) return json({ success: false, error: "Informe seu nome" }, 400);
   if (!email.includes("@")) return json({ success: false, error: "Email inválido" }, 400);
@@ -274,6 +276,7 @@ async function actionRegister(body: any) {
     isLifetime: true,
     source: "afiliadosx",
     squarecloudUsername: scUsername,
+    showPromoBanner,
   };
 
   try {
