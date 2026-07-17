@@ -150,20 +150,7 @@ export default function AfiliadosX() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-        <Card className="max-w-lg w-full bg-zinc-950 border-yellow-500/30 p-8 text-center">
-          <Lock className="w-14 h-14 mx-auto text-yellow-500 mb-4" />
-          <h1 className="text-2xl font-black mb-2">Programa de Afiliados MRO</h1>
-          <p className="text-zinc-400 mb-6 text-sm">
-            Este programa é exclusivo para clientes ativos MRO Instagram. Faça login primeiro em <strong className="text-yellow-500">/instagram</strong> e volte aqui.
-          </p>
-          <Button onClick={() => navigate("/instagram")} className="bg-yellow-500 hover:bg-yellow-400 text-black font-black w-full">
-            Ir para /instagram <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </Card>
-      </div>
-    );
+    return <InlineLogin onSuccess={(u) => setUser(u)} />;
   }
 
   // -------- Success view --------
