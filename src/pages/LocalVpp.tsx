@@ -109,8 +109,9 @@ const LocalVpp = () => {
     }
   };
 
-  // Salva lead automaticamente ao selecionar "nenhum" (sem avançar)
+  // Salva lead automaticamente ao selecionar "nenhum" (sem emitir pixel nem enviar email)
   const saveBlockedLead = async () => {
+    setLoading(true);
     try {
       await supabase.functions.invoke("localvpp-admin", {
         body: {
@@ -127,6 +128,7 @@ const LocalVpp = () => {
         },
       });
     } catch { /* ignore */ }
+    setLoading(false);
   };
 
   return (
