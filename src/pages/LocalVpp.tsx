@@ -386,16 +386,6 @@ const LocalVpp = () => {
                       ))}
                     </div>
 
-                    {device === "nenhum" && (
-                      <div className="bg-red-500/10 border border-red-500/40 rounded-xl p-5 text-red-100">
-                        <p className="font-black mb-2">Poxa, infelizmente não vai conseguir continuar 😔</p>
-                        <p className="text-sm text-red-100/90 leading-relaxed">
-                          Você precisa ter pelo menos uma máquina (notebook, computador ou Mac) para conseguir instalar e utilizar nossa ferramenta.
-                          Guardamos seu contato — quando tiver, volte aqui novamente. Obrigado pelo interesse!
-                        </p>
-                      </div>
-                    )}
-
                     <div className="flex justify-between pt-2">
                       <Button variant="outline" onClick={() => setStep(5)} className="border-neutral-700 bg-neutral-900 text-white h-12">
                         <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
@@ -406,7 +396,7 @@ const LocalVpp = () => {
                           if (device === "nenhum") return toast.error("Você precisa ter uma máquina para prosseguir");
                           setStep(7);
                         }}
-                        disabled={device === "nenhum"}
+                        disabled={device === "nenhum" || loading}
                         className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8 disabled:opacity-40">
                         Avançar <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
