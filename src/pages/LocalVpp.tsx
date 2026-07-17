@@ -81,13 +81,16 @@ const LocalVpp = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
-      // Pixel de Lead APENAS quando o usuário será direcionado ao WhatsApp
-      const fbq = (window as any).fbq;
-      if (fbq) {
-        fbq("track", "Lead", { content_name: "LocalVPP Contato", content_category: "Lead" });
-        fbq("track", "CompleteRegistration", { content_name: "LocalVPP Contato" });
+      // Pixel de Lead APENAS quando o usuário tem máquina e será direcionado ao WhatsApp
+      const hasDevice = device === "notebook" || device === "desktop" || device === "macbook";
+      if (hasDevice) {
+        const fbq = (window as any).fbq;
+        if (fbq) {
+          fbq("track", "Lead", { content_name: "LocalVPP Contato", content_category: "Lead" });
+          fbq("track", "CompleteRegistration", { content_name: "LocalVPP Contato" });
+        }
+        trackLead("LocalVPP Contato");
       }
-      trackLead("LocalVPP Contato");
       setFinalWaMsg(waMsg);
       setStep(9); // sucesso — abre WhatsApp automático
       // Abre o WhatsApp direto (nova aba); fallback é o botão na tela
