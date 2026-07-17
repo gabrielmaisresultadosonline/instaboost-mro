@@ -105,6 +105,8 @@ interface Affiliate {
   promoEndTime?: string;   // HH:mm
   isLifetime?: boolean;    // true = afiliado vitalício, recebe comissão na hora
   showPromoBanner?: boolean; // true = exibir foto e nome na página de vendas
+  squarecloudUsername?: string; // usuário MRO (SquareCloud) dono desse afiliado — permite auto-login em /afiliadosx
+  source?: string; // "afiliadosx" quando criado pelo próprio afiliado
 }
 
 export default function InstagramNovaAdmin() {
