@@ -238,34 +238,126 @@ const ToolSelector = () => {
             {tools.map((tool, i) => {
               const Icon = tool.icon;
               const isLeft = i % 2 === 0;
+
+              const theme: Record<string, { bg: string; border: string; hoverBorder: string; shadow: string; title: string; body: string; subtitle: string; iconBg: string; iconText: string; iconBorder: string; badge: string; badgeText: string; line: string; cta: string; watermark: string; shine: string; topBar: string }> = {
+                instagram: {
+                  bg: 'bg-gradient-to-br from-yellow-400 via-yellow-300 to-yellow-500',
+                  border: 'border-yellow-500/60',
+                  hoverBorder: 'hover:border-yellow-600',
+                  shadow: 'shadow-[0_25px_60px_-15px_rgba(250,204,21,0.55)]',
+                  title: 'text-black',
+                  body: 'text-black/70',
+                  subtitle: 'text-black/80',
+                  iconBg: 'bg-black',
+                  iconText: 'text-yellow-400',
+                  iconBorder: 'border-black/20',
+                  badge: 'bg-black',
+                  badgeText: 'text-yellow-400',
+                  line: 'bg-black',
+                  cta: 'text-black',
+                  watermark: 'text-black/[0.06]',
+                  shine: 'via-white/40',
+                  topBar: 'from-transparent via-black/30 to-transparent',
+                },
+                'zapmro-promo': {
+                  bg: 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-green-700',
+                  border: 'border-emerald-400/50',
+                  hoverBorder: 'hover:border-emerald-300',
+                  shadow: 'shadow-[0_25px_60px_-15px_rgba(16,185,129,0.45)]',
+                  title: 'text-white',
+                  body: 'text-white/75',
+                  subtitle: 'text-emerald-100',
+                  iconBg: 'bg-[#1877F2]',
+                  iconText: 'text-white',
+                  iconBorder: 'border-white/20',
+                  badge: 'bg-white',
+                  badgeText: 'text-emerald-700',
+                  line: 'bg-white',
+                  cta: 'text-white',
+                  watermark: 'text-white/[0.08]',
+                  shine: 'via-white/30',
+                  topBar: 'from-transparent via-white/30 to-transparent',
+                },
+                postscomia: {
+                  bg: 'bg-gradient-to-br from-[#5D4037] via-[#795548] to-[#4E342E]',
+                  border: 'border-[#8D6E63]/50',
+                  hoverBorder: 'hover:border-yellow-400',
+                  shadow: 'shadow-[0_25px_60px_-15px_rgba(93,64,55,0.55)]',
+                  title: 'text-white',
+                  body: 'text-white/70',
+                  subtitle: 'text-yellow-300',
+                  iconBg: 'bg-yellow-400',
+                  iconText: 'text-[#4E342E]',
+                  iconBorder: 'border-yellow-500/50',
+                  badge: 'bg-yellow-400',
+                  badgeText: 'text-[#4E342E]',
+                  line: 'bg-yellow-400',
+                  cta: 'text-yellow-300',
+                  watermark: 'text-white/[0.06]',
+                  shine: 'via-yellow-400/30',
+                  topBar: 'from-transparent via-yellow-400/40 to-transparent',
+                },
+                mktcompleto: {
+                  bg: 'bg-gradient-to-br from-red-600 via-red-500 to-neutral-900',
+                  border: 'border-red-400/50',
+                  hoverBorder: 'hover:border-white',
+                  shadow: 'shadow-[0_25px_60px_-15px_rgba(239,68,68,0.55)]',
+                  title: 'text-white',
+                  body: 'text-white/75',
+                  subtitle: 'text-white/90',
+                  iconBg: 'bg-white',
+                  iconText: 'text-red-600',
+                  iconBorder: 'border-white/30',
+                  badge: 'bg-white',
+                  badgeText: 'text-red-600',
+                  line: 'bg-white',
+                  cta: 'text-white',
+                  watermark: 'text-white/[0.08]',
+                  shine: 'via-white/30',
+                  topBar: 'from-transparent via-white/40 to-transparent',
+                },
+                creatordev: {
+                  bg: 'bg-gradient-to-br from-[#0EA5E9] via-[#0284C7] to-black',
+                  border: 'border-sky-400/50',
+                  hoverBorder: 'hover:border-yellow-400',
+                  shadow: 'shadow-[0_25px_60px_-15px_rgba(14,165,233,0.55)]',
+                  title: 'text-white',
+                  body: 'text-white/75',
+                  subtitle: 'text-yellow-300',
+                  iconBg: 'bg-black',
+                  iconText: 'text-yellow-400',
+                  iconBorder: 'border-yellow-400/50',
+                  badge: 'bg-yellow-400',
+                  badgeText: 'text-black',
+                  line: 'bg-yellow-400',
+                  cta: 'text-yellow-300',
+                  watermark: 'text-white/[0.06]',
+                  shine: 'via-yellow-400/30',
+                  topBar: 'from-transparent via-yellow-400/40 to-transparent',
+                },
+              };
+
+              const t = theme[tool.id] || theme.creatordev;
+
               return (
                 <button
                   key={tool.id}
                   onClick={() => handleSalesClick(tool.salesPath, tool.name)}
                   style={{ animationDelay: `${i * 120}ms` }}
-                  className={`group relative text-left overflow-hidden bg-gradient-to-br from-neutral-900 to-neutral-950 border p-8 lg:p-10 transition-all duration-500 animate-fade-in
+                  className={`group relative text-left overflow-hidden ${t.bg} border ${t.border} ${t.hoverBorder} p-8 lg:p-10 transition-all duration-500 animate-fade-in
                     ${
                       tool.highlight
-                        ? 'border-yellow-400/50 hover:border-yellow-400 shadow-[20px_20px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(250,204,21,0.1)] lg:ml-auto lg:w-[95%]'
-                        : `border-white/5 hover:border-yellow-400/60 ${
-                            isLeft ? 'lg:w-[92%] self-start' : 'lg:ml-auto lg:w-[88%]'
-                          }`
+                        ? `${t.shadow} lg:ml-auto lg:w-[95%]`
+                        : `${t.shadow} ${isLeft ? 'lg:w-[92%] self-start' : 'lg:ml-auto lg:w-[88%]'}`
                     }
-                    hover:-translate-y-1 hover:shadow-[0_25px_60px_-15px_rgba(250,204,21,0.35)]`}
+                    hover:-translate-y-1`}
                 >
-                  {/* Highlight top bar for the featured card */}
-                  {tool.highlight && (
-                    <span aria-hidden className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
-                  )}
+                  {/* Top bar */}
+                  <span aria-hidden className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${t.topBar}`} />
 
                   {/* Corner index badge */}
                   <div
-                    className={`absolute -top-4 -right-4 w-20 h-20 flex items-center justify-center text-xs font-black z-10 transition-transform group-hover:rotate-6
-                      ${
-                        tool.highlight
-                          ? 'bg-yellow-400 text-black shadow-[0_10px_30px_-5px_rgba(250,204,21,0.6)]'
-                          : 'bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 backdrop-blur-sm'
-                      }`}
+                    className={`absolute -top-4 -right-4 w-20 h-20 flex items-center justify-center text-xs font-black z-10 transition-transform group-hover:rotate-6 ${t.badge} ${t.badgeText} shadow-[0_10px_30px_-5px_rgba(0,0,0,0.3)]`}
                     style={{ fontFamily: "'Archivo Black', sans-serif" }}
                   >
                     {tool.badge}
@@ -274,7 +366,7 @@ const ToolSelector = () => {
                   {/* Number watermark */}
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute -bottom-6 -left-2 text-[140px] leading-none font-black text-white/[0.03] select-none"
+                    className={`pointer-events-none absolute -bottom-6 -left-2 text-[140px] leading-none font-black ${t.watermark} select-none`}
                     style={{ fontFamily: "'Archivo Black', sans-serif" }}
                   >
                     {tool.index}
@@ -283,40 +375,28 @@ const ToolSelector = () => {
                   {/* Icon */}
                   <div className="relative mb-6 flex items-center gap-4">
                     <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-3 ${
-                        tool.highlight
-                          ? 'bg-yellow-400 text-black shadow-[0_0_25px_rgba(250,204,21,0.5)]'
-                          : 'bg-black border border-yellow-400/40 text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black'
-                      }`}
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-3 ${t.iconBg} ${t.iconText} border ${t.iconBorder} shadow-[0_0_25px_rgba(0,0,0,0.25)]`}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-yellow-400 font-bold">
+                    <span className={`text-xs md:text-sm uppercase tracking-[0.3em] font-bold ${t.subtitle}`}>
                       {tool.subtitle}
                     </span>
                   </div>
 
                   <h3
-                    className="relative text-2xl md:text-3xl text-white mb-4 uppercase leading-tight"
+                    className={`relative text-2xl md:text-3xl mb-4 uppercase leading-tight ${t.title}`}
                     style={{ fontFamily: "'Archivo Black', sans-serif" }}
                   >
                     {tool.name}
                   </h3>
-                  <p className="relative text-white/60 mb-8 leading-relaxed text-base md:text-lg max-w-lg">
+                  <p className={`relative mb-8 leading-relaxed text-base md:text-lg max-w-lg ${t.body}`}>
                     {tool.description}
                   </p>
 
                   <div className="relative flex items-center space-x-4">
-                    <div
-                      className={`h-[2px] w-12 transition-all group-hover:w-24 ${
-                        tool.highlight ? 'bg-white' : 'bg-yellow-400'
-                      }`}
-                    />
-                    <span
-                      className={`text-sm font-black uppercase tracking-widest flex items-center gap-2 ${
-                        tool.highlight ? 'text-white' : 'text-yellow-400'
-                      }`}
-                    >
+                    <div className={`h-[2px] w-12 transition-all group-hover:w-24 ${t.line}`} />
+                    <span className={`text-sm font-black uppercase tracking-widest flex items-center gap-2 ${t.cta}`}>
                       {tool.highlight ? 'Explorar agora' : 'Saiba mais'}
                       <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </span>
@@ -324,7 +404,7 @@ const ToolSelector = () => {
 
                   {/* Shine sweep */}
                   <span className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <span className="absolute -inset-y-4 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[600%] transition-transform duration-1000" />
+                    <span className={`absolute -inset-y-4 -left-1/2 w-1/3 bg-gradient-to-r from-transparent ${t.shine} to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[600%] transition-transform duration-1000`} />
                   </span>
                 </button>
               );
