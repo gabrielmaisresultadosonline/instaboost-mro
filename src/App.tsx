@@ -180,6 +180,9 @@ import FerramentaMROPromo from "./pages/FerramentaMROPromo";
 import FerramentaMROPromoAdmin from "./pages/FerramentaMROPromoAdmin";
 import PagamentoMRO from "./pages/PagamentoMRO";
 import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
+import AgenteMRO from "./pages/AgenteMRO";
+import AgenteMROPainel from "./pages/AgenteMROPainel";
+
 
 
 
@@ -417,6 +420,8 @@ const App = () => (
           <Route path="/ferramentamropromo" element={<FerramentaMROPromo />} />
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/agentemro" element={<AgenteMRO />} />
+          <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

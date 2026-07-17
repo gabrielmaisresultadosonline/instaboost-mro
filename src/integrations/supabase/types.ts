@@ -260,6 +260,175 @@ export type Database = {
         }
         Relationships: []
       }
+      agentemro_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          meta_access_token: string | null
+          meta_phone_number_id: string | null
+          meta_verify_token: string | null
+          meta_waba_id: string | null
+          name: string
+          owner_user_id: string
+          plan: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta_access_token?: string | null
+          meta_phone_number_id?: string | null
+          meta_verify_token?: string | null
+          meta_waba_id?: string | null
+          name: string
+          owner_user_id: string
+          plan?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta_access_token?: string | null
+          meta_phone_number_id?: string | null
+          meta_verify_token?: string | null
+          meta_waba_id?: string | null
+          name?: string
+          owner_user_id?: string
+          plan?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agentemro_agents: {
+        Row: {
+          account_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          model: string
+          name: string
+          system_prompt: string
+          temperature: number
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          model?: string
+          name: string
+          system_prompt?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          model?: string
+          name?: string
+          system_prompt?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agentemro_agents_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "agentemro_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agentemro_conversations: {
+        Row: {
+          account_id: string
+          agent_id: string | null
+          contact_name: string | null
+          contact_phone: string
+          created_at: string
+          id: string
+          last_message_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          agent_id?: string | null
+          contact_name?: string | null
+          contact_phone: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          agent_id?: string | null
+          contact_name?: string | null
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agentemro_conversations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "agentemro_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agentemro_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agentemro_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agentemro_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          meta_message_id: string | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          meta_message_id?: string | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          meta_message_id?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agentemro_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agentemro_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_tokens: {
         Row: {
           created_at: string
