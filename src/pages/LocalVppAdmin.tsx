@@ -23,6 +23,7 @@ interface Lead {
 const LocalVppAdmin = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [creds, setCreds] = useState({ email: "", password: "" });
+  const [keepConnected, setKeepConnected] = useState(true);
   const [loading, setLoading] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [settings, setSettings] = useState({
