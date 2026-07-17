@@ -3022,8 +3022,8 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                     </p>
                   </div>
 
-                  {/* Linha 2 legacy */}
-                  <div style={{ display: "none" }}>
+
+
 
                   
                   {/* Linha 2: Foto e Horários */}
