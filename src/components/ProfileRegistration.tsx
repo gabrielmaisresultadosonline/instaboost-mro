@@ -29,8 +29,7 @@ import {
   Briefcase,
   DollarSign,
   KeyRound,
-  Check,
-  X
+  X as XIcon
 } from 'lucide-react';
 import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { normalizeInstagramUsername } from '@/types/user';
