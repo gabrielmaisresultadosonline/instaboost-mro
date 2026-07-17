@@ -446,12 +446,6 @@ serve(async (req) => {
       }
       if (mroOrder) {
         await supabase.from("mro_orders").update({ status: "paid", paid_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", mroOrder.id);
-        // Notify affiliate about commission (R$97 per approved sale)
-        if (mroOrder.partner_id) {
-          try {
-            await supabase.functions.invoke("afiliadosx", { body: { action: "notify_commission", partner_id: mroOrder.partner_id, buyer_email: mroOrder.email, amount: 97 } });
-          } catch (e) { log("Error notifying affiliate", e); }
-        }
         // REMOVED: sendMetaPurchaseEvent is now sent ONLY when order is "completed" in mro-payment-webhook
         // to avoid duplicate tracking and ensure only truly complete sales are counted.
         try {
