@@ -142,22 +142,6 @@ const ToolSelector = () => {
       <div className="pointer-events-none absolute -top-40 -right-40 w-[560px] h-[560px] bg-yellow-400/20 rounded-full blur-[160px] z-0 animate-pulse-slow" />
       <div className="pointer-events-none absolute -bottom-40 -left-40 w-[520px] h-[520px] bg-yellow-300/10 rounded-full blur-[160px] z-0 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
 
-      {/* Top status bar */}
-      <div className="relative z-10 border-b border-white/5 bg-black/40 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-3 flex items-center justify-between text-[10px] uppercase tracking-[0.25em]">
-          <div className="flex items-center gap-2 text-yellow-400">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-            </span>
-            <span className="font-bold">SISTEMA ONLINE</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-6 text-white/40">
-            <span>MRO · INTELIGÊNCIA APLICADA</span>
-            <span className="text-yellow-400/70">v2026</span>
-          </div>
-        </div>
-      </div>
 
       <div className="relative z-10 min-h-[calc(100vh-40px)] w-full flex items-center justify-center p-6 md:p-12">
         <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
