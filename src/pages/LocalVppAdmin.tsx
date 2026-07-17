@@ -193,9 +193,14 @@ const LocalVppAdmin = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl md:text-3xl font-bold">LocalVPP - Admin</h1>
-          <Button onClick={refreshAll} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={refreshAll} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+            </Button>
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              Sair
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
