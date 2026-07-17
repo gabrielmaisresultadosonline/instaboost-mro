@@ -59,6 +59,33 @@ const InstagramNovaPromo = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Afiliado (via ?ref=slug)
+  const [affiliatePartner, setAffiliatePartner] = useState<{ id: string; name: string; last_name?: string; photo_url?: string; slug: string } | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (!ref) return;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("afiliadosx", {
+          body: {
+            action: "public_banner",
+            slug: ref.toLowerCase().trim(),
+            referer: document.referrer || null,
+            user_agent: navigator.userAgent,
+          },
+        });
+        if (data?.success && data.partner) setAffiliatePartner(data.partner);
+        // Persist ref for checkout
+        sessionStorage.setItem("mro_affiliate_ref", ref.toLowerCase().trim());
+        sessionStorage.setItem("mro_affiliate_id", data?.partner?.id || "");
+      } catch (e) {
+        console.error("[afiliadosx banner] error", e);
+      }
+    })();
+  }, []);
+
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
@@ -103,6 +130,7 @@ const InstagramNovaPromo = () => {
 
     try {
       // Preço promocional: R$300
+      const partnerId = sessionStorage.getItem("mro_affiliate_id") || null;
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
@@ -110,7 +138,8 @@ const InstagramNovaPromo = () => {
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
           amount: 300,
-          checkUserExists: true
+          checkUserExists: true,
+          partner_id: partnerId || undefined
         }
       });
 
@@ -232,6 +261,24 @@ const InstagramNovaPromo = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Banner Afiliado */}
+      {affiliatePartner && (
+        <div className="w-full bg-gradient-to-r from-yellow-500/10 via-yellow-500/5 to-transparent border-b border-yellow-500/20">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+            {affiliatePartner.photo_url ? (
+              <img src={affiliatePartner.photo_url} alt="" className="w-10 h-10 rounded-full object-cover border border-yellow-500/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-black">
+                {affiliatePartner.name?.[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="text-xs sm:text-sm">
+              <p className="text-zinc-500 uppercase tracking-widest text-[10px] font-black">Indicado por</p>
+              <p className="text-white font-black">{affiliatePartner.name} {affiliatePartner.last_name || ""}</p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Popup Desconto Encerrado - REMOVED TO PREVENT BLACK SCREEN ISSUES */}
       {/* 
       {showDiscountEndedPopup && (
