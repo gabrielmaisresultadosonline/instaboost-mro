@@ -170,7 +170,16 @@ export default function AfiliadosX() {
   }
 
   if (!user) {
-    return <InlineLogin onSuccess={(u) => setUser(u)} />;
+    return (
+      <InlineLogin
+        onSuccess={async (u) => {
+          setUser(u);
+          // Immediately try to detect existing affiliate for this MRO user
+          const existing = await lookupExistingAffiliate(u.username);
+          if (existing) setCreated(existing);
+        }}
+      />
+    );
   }
 
   // -------- Success view --------
