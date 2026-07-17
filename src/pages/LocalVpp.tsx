@@ -59,8 +59,6 @@ const LocalVpp = () => {
 
   const openForm = () => {
     setStep(1);
-    const fbq = (window as any).fbq;
-    if (fbq) fbq("track", "Lead", { content_name: "LocalVPP Contato" });
     setTimeout(() => document.getElementById("form-top")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
