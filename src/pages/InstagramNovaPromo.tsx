@@ -130,6 +130,7 @@ const InstagramNovaPromo = () => {
 
     try {
       // Preço promocional: R$300
+      const partnerId = sessionStorage.getItem("mro_affiliate_id") || null;
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
@@ -137,7 +138,8 @@ const InstagramNovaPromo = () => {
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
           amount: 300,
-          checkUserExists: true
+          checkUserExists: true,
+          partner_id: partnerId || undefined
         }
       });
 
