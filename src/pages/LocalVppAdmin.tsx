@@ -23,6 +23,7 @@ interface Lead {
 const LocalVppAdmin = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [creds, setCreds] = useState({ email: "", password: "" });
+  const [keepConnected, setKeepConnected] = useState(true);
   const [loading, setLoading] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [settings, setSettings] = useState({
@@ -35,6 +36,40 @@ const LocalVppAdmin = () => {
   const [filter, setFilter] = useState<"all" | "com_maquina" | "sem_maquina">("all");
 
   useEffect(() => { document.title = "LocalVPP - Admin"; }, []);
+
+  // Auto-login from saved session
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("localvpp_admin_auth");
+      if (!saved) return;
+      const parsed = JSON.parse(saved) as { email: string; password: string };
+      if (parsed?.email && parsed?.password) {
+        setCreds(parsed);
+        (async () => {
+          try {
+            const { data, error } = await supabase.functions.invoke("localvpp-admin", {
+              body: { action: "login", email: parsed.email, password: parsed.password },
+            });
+            if (error || !data?.success) throw new Error("invalid");
+            setLoggedIn(true);
+            // load initial data
+            const s = await supabase.functions.invoke("localvpp-admin", {
+              body: { action: "get_settings", email: parsed.email, password: parsed.password },
+            });
+            if (s.data?.settings) setSettings((prev) => ({ ...prev, ...s.data.settings }));
+            const l = await supabase.functions.invoke("localvpp-admin", {
+              body: { action: "list_leads", email: parsed.email, password: parsed.password },
+            });
+            if (l.data?.leads) setLeads(l.data.leads);
+          } catch {
+            localStorage.removeItem("localvpp_admin_auth");
+          }
+        })();
+      }
+    } catch {
+      localStorage.removeItem("localvpp_admin_auth");
+    }
+  }, []);
 
   const call = async (action: string, extra: Record<string, unknown> = {}) => {
     const { data, error } = await supabase.functions.invoke("localvpp-admin", {
@@ -62,10 +97,21 @@ const LocalVppAdmin = () => {
     try {
       await call("login");
       setLoggedIn(true);
+      if (keepConnected) {
+        localStorage.setItem("localvpp_admin_auth", JSON.stringify(creds));
+      } else {
+        localStorage.removeItem("localvpp_admin_auth");
+      }
       await refreshAll();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Credenciais inválidas");
     } finally { setLoading(false); }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("localvpp_admin_auth");
+    setLoggedIn(false);
+    setCreds({ email: "", password: "" });
   };
 
   const saveSettings = async () => {
@@ -113,6 +159,15 @@ const LocalVppAdmin = () => {
                 <Label>Senha</Label>
                 <Input type="password" required value={creds.password} onChange={(e) => setCreds({ ...creds, password: e.target.value })} className="bg-slate-800 border-slate-700" />
               </div>
+              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={keepConnected}
+                  onChange={(e) => setKeepConnected(e.target.checked)}
+                  className="w-4 h-4 rounded accent-yellow-500"
+                />
+                Manter conectado neste dispositivo
+              </label>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entrar"}
               </Button>
@@ -138,9 +193,14 @@ const LocalVppAdmin = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl md:text-3xl font-bold">LocalVPP - Admin</h1>
-          <Button onClick={refreshAll} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={refreshAll} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+            </Button>
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              Sair
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
