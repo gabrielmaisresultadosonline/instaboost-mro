@@ -7,11 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { getCurrentUser, logoutUser } from "@/lib/userStorage";
+import { getCurrentUser, logoutUser, loginUser } from "@/lib/userStorage";
+import { loginToSquare } from "@/lib/squareApi";
 import type { MROUser } from "@/types/user";
 import {
   ArrowRight, Camera, CheckCircle2, Copy, DollarSign, Eye, LayoutDashboard,
-  Loader2, LogOut, Lock, Sparkles, TrendingUp, User as UserIcon,
+  Loader2, LogOut, Lock, Sparkles, TrendingUp, User as UserIcon, KeyRound,
 } from "lucide-react";
 
 interface CreatedAffiliate {
