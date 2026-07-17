@@ -148,17 +148,6 @@ const ToolSelector = () => {
           {/* Left column */}
           <div className="lg:col-span-5 flex flex-col space-y-10 lg:space-y-12 lg:sticky lg:top-16">
             <div className="flex flex-col space-y-6 md:space-y-8 animate-fade-in">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-yellow-400/40 blur-2xl rounded-full" />
-                  <img src={logoMro} alt="MRO" className="relative w-14 h-14 md:w-16 md:h-16 object-contain" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-[0.35em] text-yellow-400 font-bold">MRO</span>
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-white/40">Mais Resultados Online</span>
-                </div>
-              </div>
-
               <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 border border-yellow-400/30 bg-yellow-400/5 backdrop-blur-sm">
                 <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                 <span className="text-[10px] uppercase tracking-[0.3em] text-yellow-400 font-bold">
