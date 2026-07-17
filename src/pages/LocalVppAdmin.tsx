@@ -97,10 +97,21 @@ const LocalVppAdmin = () => {
     try {
       await call("login");
       setLoggedIn(true);
+      if (keepConnected) {
+        localStorage.setItem("localvpp_admin_auth", JSON.stringify(creds));
+      } else {
+        localStorage.removeItem("localvpp_admin_auth");
+      }
       await refreshAll();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Credenciais inválidas");
     } finally { setLoading(false); }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("localvpp_admin_auth");
+    setLoggedIn(false);
+    setCreds({ email: "", password: "" });
   };
 
   const saveSettings = async () => {
