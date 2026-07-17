@@ -59,8 +59,6 @@ const LocalVpp = () => {
 
   const openForm = () => {
     setStep(1);
-    const fbq = (window as any).fbq;
-    if (fbq) fbq("track", "Lead", { content_name: "LocalVPP Contato" });
     setTimeout(() => document.getElementById("form-top")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
@@ -83,13 +81,21 @@ const LocalVpp = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao enviar");
-      // Pixel de Lead APENAS quando o usuário será direcionado ao WhatsApp
-      const fbq = (window as any).fbq;
-      if (fbq) {
-        fbq("track", "Lead", { content_name: "LocalVPP Contato", content_category: "Lead" });
-        fbq("track", "CompleteRegistration", { content_name: "LocalVPP Contato" });
+      // Lead bloqueado (sem máquina): salva contato, mas não envia email/libera WhatsApp/pixel
+      if (data?.blocked) {
+        setStep(10); // tela de bloqueio
+        return;
       }
-      trackLead("LocalVPP Contato");
+      // Pixel de Lead APENAS quando o usuário tem máquina e será direcionado ao WhatsApp
+      const hasDevice = device === "notebook" || device === "desktop" || device === "macbook";
+      if (hasDevice) {
+        const fbq = (window as any).fbq;
+        if (fbq) {
+          fbq("track", "Lead", { content_name: "LocalVPP Contato", content_category: "Lead" });
+          fbq("track", "CompleteRegistration", { content_name: "LocalVPP Contato" });
+        }
+        trackLead("LocalVPP Contato");
+      }
       setFinalWaMsg(waMsg);
       setStep(9); // sucesso — abre WhatsApp automático
       // Abre o WhatsApp direto (nova aba); fallback é o botão na tela
@@ -103,8 +109,9 @@ const LocalVpp = () => {
     }
   };
 
-  // Salva lead automaticamente ao selecionar "nenhum" (sem avançar)
+  // Salva lead automaticamente ao selecionar "nenhum" (sem emitir pixel nem enviar email)
   const saveBlockedLead = async () => {
+    setLoading(true);
     try {
       await supabase.functions.invoke("localvpp-admin", {
         body: {
@@ -121,6 +128,7 @@ const LocalVpp = () => {
         },
       });
     } catch { /* ignore */ }
+    setLoading(false);
   };
 
   return (
@@ -360,8 +368,14 @@ const LocalVpp = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {DEVICE_OPTIONS.map((o) => (
                         <button key={o.id} type="button"
-                          onClick={() => { setDevice(o.id); if (o.id === "nenhum") saveBlockedLead(); }}
-                          className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left font-bold transition-all ${
+                          onClick={() => {
+                            setDevice(o.id);
+                            if (o.id === "nenhum") {
+                              saveBlockedLead().then(() => setStep(10));
+                            }
+                          }}
+                          disabled={loading}
+                          className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left font-bold transition-all disabled:opacity-50 ${
                             device === o.id
                               ? o.id === "nenhum" ? "bg-red-500 text-white border-red-500" : "bg-yellow-400 text-black border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.4)]"
                               : "bg-zinc-900 border-zinc-700 text-white hover:border-yellow-400/60"
@@ -371,16 +385,6 @@ const LocalVpp = () => {
                         </button>
                       ))}
                     </div>
-
-                    {device === "nenhum" && (
-                      <div className="bg-red-500/10 border border-red-500/40 rounded-xl p-5 text-red-100">
-                        <p className="font-black mb-2">Poxa, infelizmente não vai conseguir continuar 😔</p>
-                        <p className="text-sm text-red-100/90 leading-relaxed">
-                          Você precisa ter pelo menos uma máquina (notebook, computador ou Mac) para conseguir instalar e utilizar nossa ferramenta.
-                          Guardamos seu contato — quando tiver, volte aqui novamente. Obrigado pelo interesse!
-                        </p>
-                      </div>
-                    )}
 
                     <div className="flex justify-between pt-2">
                       <Button variant="outline" onClick={() => setStep(5)} className="border-neutral-700 bg-neutral-900 text-white h-12">
@@ -392,7 +396,7 @@ const LocalVpp = () => {
                           if (device === "nenhum") return toast.error("Você precisa ter uma máquina para prosseguir");
                           setStep(7);
                         }}
-                        disabled={device === "nenhum"}
+                        disabled={device === "nenhum" || loading}
                         className="bg-yellow-400 hover:bg-yellow-300 text-black font-black h-12 px-8 disabled:opacity-40">
                         Avançar <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
@@ -503,6 +507,32 @@ const LocalVpp = () => {
                 >
                   📱 FALAR NO WHATSAPP AGORA <ArrowRight className="w-5 h-5" />
                 </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BLOCKED — sem máquina */}
+        {step === 10 && (
+          <div className="w-full max-w-xl mx-auto text-center">
+            <div className="rounded-[2rem] p-[1.5px] bg-gradient-to-br from-red-500/60 via-yellow-400/30 to-red-500/60">
+              <div className="rounded-[1.9rem] bg-gradient-to-b from-zinc-950 to-black p-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-500/20 ring-2 ring-red-400/40 mb-4">
+                  <XCircle className="w-12 h-12 text-red-400" />
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black mb-3 text-white">Poxa, infelizmente não vai conseguir continuar 😔</h2>
+                <p className="text-neutral-200 text-base md:text-lg leading-relaxed mb-4">
+                  Você precisa ter pelo menos uma máquina (notebook, computador ou Mac) para conseguir instalar e utilizar nossa ferramenta.
+                </p>
+                <p className="text-neutral-400 text-sm mb-6">
+                  Guardamos seu contato — quando tiver, volte aqui novamente. Obrigado pelo interesse!
+                </p>
+                <Button
+                  onClick={() => setStep(0)}
+                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black h-14 rounded-xl text-base"
+                >
+                  <ArrowLeft className="mr-2 w-5 h-5" /> VOLTAR PARA O INÍCIO
+                </Button>
               </div>
             </div>
           </div>
