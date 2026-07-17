@@ -35,6 +35,7 @@ import { addIGToSquare, saveEmailAndPrint, verifyRegisteredIGs, canRegisterIG } 
 import { 
   getCurrentUser, 
   updateUserEmail, 
+  forceUpdateUserEmail,
   addRegisteredIG, 
   isIGRegistered,
   syncIGsFromSquare,
