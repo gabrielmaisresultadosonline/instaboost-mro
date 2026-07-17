@@ -1657,7 +1657,11 @@ Participe também do nosso GRUPO DE AVISOS
         promoEndDate: isLifetime ? undefined : promoEndDate,
         promoStartTime: isLifetime ? undefined : promoStartTime,
         promoEndTime: isLifetime ? undefined : promoEndTime,
-        isLifetime: isLifetime
+        isLifetime: isLifetime,
+        squarecloudUsername: affiliateSquarecloudUsername.trim().toLowerCase() || undefined,
+        // preserve source/showPromoBanner when editing (came from /afiliadosx or admin)
+        source: existingIndex >= 0 ? affiliates[existingIndex].source : undefined,
+        showPromoBanner: existingIndex >= 0 ? affiliates[existingIndex].showPromoBanner : undefined,
       };
       
       let updatedAffiliates: Affiliate[];
