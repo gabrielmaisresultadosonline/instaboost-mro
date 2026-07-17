@@ -4,7 +4,7 @@ import { MessageCircle, X, Users, Camera, Code2, Megaphone, Sparkles, Zap, Arrow
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
 
-import logoMro from '@/assets/logo-mro.png';
+
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 import WhatsAppFloatingWidget from '@/components/WhatsAppFloatingWidget';
 
@@ -142,39 +142,12 @@ const ToolSelector = () => {
       <div className="pointer-events-none absolute -top-40 -right-40 w-[560px] h-[560px] bg-yellow-400/20 rounded-full blur-[160px] z-0 animate-pulse-slow" />
       <div className="pointer-events-none absolute -bottom-40 -left-40 w-[520px] h-[520px] bg-yellow-300/10 rounded-full blur-[160px] z-0 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
 
-      {/* Top status bar */}
-      <div className="relative z-10 border-b border-white/5 bg-black/40 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-3 flex items-center justify-between text-[10px] uppercase tracking-[0.25em]">
-          <div className="flex items-center gap-2 text-yellow-400">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-            </span>
-            <span className="font-bold">SISTEMA ONLINE</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-6 text-white/40">
-            <span>MRO · INTELIGÊNCIA APLICADA</span>
-            <span className="text-yellow-400/70">v2026</span>
-          </div>
-        </div>
-      </div>
 
       <div className="relative z-10 min-h-[calc(100vh-40px)] w-full flex items-center justify-center p-6 md:p-12">
         <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left column */}
           <div className="lg:col-span-5 flex flex-col space-y-10 lg:space-y-12 lg:sticky lg:top-16">
             <div className="flex flex-col space-y-6 md:space-y-8 animate-fade-in">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-yellow-400/40 blur-2xl rounded-full" />
-                  <img src={logoMro} alt="MRO" className="relative w-14 h-14 md:w-16 md:h-16 object-contain" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-[0.35em] text-yellow-400 font-bold">MRO</span>
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-white/40">Mais Resultados Online</span>
-                </div>
-              </div>
-
               <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 border border-yellow-400/30 bg-yellow-400/5 backdrop-blur-sm">
                 <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                 <span className="text-[10px] uppercase tracking-[0.3em] text-yellow-400 font-bold">
