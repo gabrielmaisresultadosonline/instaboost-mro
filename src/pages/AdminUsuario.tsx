@@ -564,6 +564,122 @@ export default function AdminUsuario() {
     }
   };
 
+  const buildWhatsappMigrationEmail = () => `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;color:#e5e7eb;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:24px 0;">
+<tr><td align="center">
+<table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#111827;border-radius:16px;overflow:hidden;border:1px solid #1f2937;">
+  <tr><td style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);padding:34px 24px;text-align:center;">
+    <div style="display:inline-block;background:#000;color:#25D366;padding:10px 22px;border-radius:10px;font-size:22px;font-weight:900;letter-spacing:2px;">ZAPMRO</div>
+    <h1 style="color:#ffffff;font-size:26px;margin:20px 0 6px;font-weight:900;line-height:1.25;">Sua ferramenta do WhatsApp foi atualizada!</h1>
+    <p style="color:#e6fffb;margin:0;font-size:15px;font-weight:600;">Agora com API Oficial do WhatsApp — sem banimentos, sem travas</p>
+  </td></tr>
+  <tr><td style="padding:32px 30px;color:#e5e7eb;">
+    <p style="font-size:16px;margin:0 0 16px;color:#ffffff;">Olá,</p>
+    <p style="font-size:15px;line-height:1.7;color:#d1d5db;margin:0 0 18px;">
+      Um recado <strong style="color:#25D366;">muito importante</strong> sobre a sua ferramenta de WhatsApp da <strong style="color:#ffffff;">MRO / ZapMRO</strong>.
+    </p>
+    <div style="background:#0f172a;border-left:4px solid #25D366;padding:18px 20px;border-radius:10px;margin:22px 0;">
+      <p style="margin:0 0 10px;font-size:15px;color:#ffffff;font-weight:700;">Migramos para a API Oficial do WhatsApp</p>
+      <p style="margin:0;font-size:14px;color:#cbd5e1;line-height:1.7;">
+        Nos últimos meses passamos por <strong style="color:#facc15;">muitas travas no WhatsApp Web</strong> e <strong style="color:#facc15;">banimentos de números</strong> — muitas vezes apenas por vários usuários rodarem no mesmo IP. Por diversos motivos que estavam prejudicando você e nossa operação, decidimos <strong style="color:#ffffff;">migrar toda a ferramenta para a API Oficial do WhatsApp</strong>.
+      </p>
+    </div>
+    <p style="font-size:15px;line-height:1.7;color:#d1d5db;margin:0 0 18px;">
+      Com a API Oficial <strong style="color:#ffffff;">você nunca mais terá problemas de número bloqueado</strong>, é o próprio WhatsApp entregando as mensagens. Basta usar de maneira correta e aproveitar.
+    </p>
+    <div style="background:#0f172a;border:1px solid #1f2937;padding:18px 20px;border-radius:10px;margin:22px 0;">
+      <p style="margin:0 0 10px;font-size:15px;color:#ffffff;font-weight:700;">Seu plano continua o mesmo</p>
+      <ul style="margin:0;padding-left:20px;color:#cbd5e1;font-size:14px;line-height:1.8;">
+        <li>Se você tinha <strong style="color:#ffffff;">plano anual</strong> — continua com o anual.</li>
+        <li>Se você tinha <strong style="color:#ffffff;">vitalício</strong> — continua vitalício.</li>
+        <li><strong style="color:#25D366;">Sem custo adicional</strong> para migrar para a API Oficial.</li>
+      </ul>
+    </div>
+    <div style="background:#1f2937;padding:20px;border-radius:12px;margin:24px 0;">
+      <p style="margin:0 0 12px;font-size:15px;color:#ffffff;font-weight:700;">Como ativar seu acesso:</p>
+      <ol style="margin:0;padding-left:22px;color:#d1d5db;font-size:14px;line-height:1.8;">
+        <li>Acesse <a href="https://zapmro.com.br" style="color:#25D366;text-decoration:underline;font-weight:700;">zapmro.com.br</a></li>
+        <li>Faça seu cadastro na nova ferramenta.</li>
+        <li>Avise nosso suporte para ativar seu acesso dentro do plano atual.</li>
+      </ol>
+    </div>
+    <div style="text-align:center;margin:30px 0;">
+      <a href="https://zapmro.com.br" style="display:inline-block;padding:18px 46px;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#ffffff;font-weight:900;text-decoration:none;border-radius:14px;font-size:16px;letter-spacing:1px;box-shadow:0 6px 20px rgba(37,211,102,0.35);">🚀 ACESSAR ZAPMRO.COM.BR</a>
+    </div>
+    <p style="font-size:13px;color:#9ca3af;text-align:center;margin:20px 0 0;line-height:1.7;">
+      Após o cadastro, chame nosso suporte no WhatsApp e informe seu e-mail cadastrado para liberarmos o acesso completo dentro do seu plano.
+    </p>
+    <p style="font-size:14px;color:#d1d5db;margin:26px 0 0;line-height:1.7;">
+      Obrigado por continuar com a gente. Essa mudança é para <strong style="color:#ffffff;">te dar estabilidade total</strong> e você poder focar no que importa: <strong style="color:#25D366;">vender e atender melhor</strong>.
+    </p>
+    <p style="font-size:14px;color:#d1d5db;margin:18px 0 0;">Abraços,<br><strong style="color:#ffffff;">Equipe MRO / ZapMRO</strong></p>
+  </td></tr>
+  <tr><td style="background:#000;padding:18px;text-align:center;color:#6b7280;font-size:12px;">
+    © ${new Date().getFullYear()} MRO - Mais Resultados Online · ZapMRO
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+
+  const loadWhatsappUsers = async () => {
+    try {
+      setLoadingWhatsappUsers(true);
+      const { data, error } = await supabase.functions.invoke('manage-user-access', {
+        body: { action: 'list_whatsapp_users' },
+      });
+      if (error) throw error;
+      const users = data?.users || [];
+      setWhatsappUsers(users);
+      setSelectedWhatsappEmails(new Set(users.map((u: any) => u.email)));
+      toast.success(`${users.length} usuários da ferramenta WhatsApp carregados`);
+    } catch (error: any) {
+      toast.error('Erro ao carregar usuários: ' + error.message);
+    } finally {
+      setLoadingWhatsappUsers(false);
+    }
+  };
+
+  const toggleWaEmail = (email: string) => {
+    setSelectedWhatsappEmails((prev) => {
+      const next = new Set(prev);
+      if (next.has(email)) next.delete(email); else next.add(email);
+      return next;
+    });
+  };
+
+  const sendWhatsappMigrationEmails = async () => {
+    const emails = Array.from(selectedWhatsappEmails);
+    if (emails.length === 0) {
+      toast.error('Selecione pelo menos um destinatário');
+      return;
+    }
+    if (!confirm(`Enviar aviso de migração ZapMRO para ${emails.length} usuário(s)?`)) return;
+
+    setWaMigrationSending(true);
+    setWaMigrationResults(null);
+    const html = buildWhatsappMigrationEmail();
+    let sent = 0;
+    let failed = 0;
+
+    for (const email of emails) {
+      try {
+        const { data, error } = await supabase.functions.invoke('broadcast-email', {
+          body: { to: email, subject: waMigrationSubject, body: html, rawHtml: true },
+        });
+        if (error || !data?.success) failed++; else sent++;
+      } catch {
+        failed++;
+      }
+      setWaMigrationResults({ total: emails.length, sent, failed });
+      await new Promise((r) => setTimeout(r, 500));
+    }
+
+    setWaMigrationSending(false);
+    toast.success(`Concluído: ${sent} enviados, ${failed} falhas`);
+  };
+
   const checkExpirations = async () => {
     try {
       setLoading(true);
