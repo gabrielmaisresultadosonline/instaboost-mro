@@ -4,7 +4,7 @@ import { MessageCircle, X, Users, Camera, Code2, Megaphone, Sparkles, Zap, Arrow
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
 
-import logoMro from '@/assets/logo-mro.png';
+
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 import WhatsAppFloatingWidget from '@/components/WhatsAppFloatingWidget';
 
