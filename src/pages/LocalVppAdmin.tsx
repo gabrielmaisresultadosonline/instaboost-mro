@@ -159,6 +159,15 @@ const LocalVppAdmin = () => {
                 <Label>Senha</Label>
                 <Input type="password" required value={creds.password} onChange={(e) => setCreds({ ...creds, password: e.target.value })} className="bg-slate-800 border-slate-700" />
               </div>
+              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={keepConnected}
+                  onChange={(e) => setKeepConnected(e.target.checked)}
+                  className="w-4 h-4 rounded accent-yellow-500"
+                />
+                Manter conectado neste dispositivo
+              </label>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entrar"}
               </Button>
