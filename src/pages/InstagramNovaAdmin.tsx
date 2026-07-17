@@ -206,6 +206,7 @@ Participe também do nosso GRUPO DE AVISOS
   const [promoStartTime, setPromoStartTime] = useState("");
   const [promoEndTime, setPromoEndTime] = useState("");
   const [isLifetimeAffiliate, setIsLifetimeAffiliate] = useState(false);
+  const [affiliateSquarecloudUsername, setAffiliateSquarecloudUsername] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [isEditingAffiliate, setIsEditingAffiliate] = useState(false);
