@@ -188,22 +188,7 @@ const ToolSelector = () => {
               </div>
             </div>
 
-            <div className="flex flex-col space-y-4">
-              <button
-                onClick={() => setShowMembersModal(true)}
-                className="group relative overflow-hidden w-full md:w-max px-8 py-5 bg-yellow-400 text-black text-base uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-[0_10px_40px_-10px_rgba(250,204,21,0.7)] hover:shadow-[0_15px_50px_-10px_rgba(250,204,21,0.9)] font-black"
-                style={{ fontFamily: "'Archivo Black', sans-serif" }}
-              >
-                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-                <span className="relative flex items-center gap-3">
-                  <Users className="w-5 h-5" />
-                  Você já é cliente?
-                </span>
-                <span className="relative block text-xs mt-1 opacity-70 font-bold tracking-wider">
-                  Acessar área de membros →
-                </span>
-              </button>
-            </div>
+            <div className="hidden lg:block h-px" />
           </div>
 
           {/* Right column — staggered tool cards */}
