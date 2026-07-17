@@ -400,7 +400,7 @@ function InlineLogin({ onSuccess }: { onSuccess: (u: MROUser) => void }) {
     try {
       const result = await loginToSquare(username.trim(), password.trim());
       if (!result.success) {
-        toast.error(result.message || "Credenciais inválidas");
+        toast.error(result.error || "Credenciais inválidas");
         return;
       }
       const session = await loginUser(
