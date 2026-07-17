@@ -27,7 +27,10 @@ import {
   Rocket,
   Wrench,
   Briefcase,
-  DollarSign
+  DollarSign,
+  KeyRound,
+  Check,
+  X
 } from 'lucide-react';
 import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { normalizeInstagramUsername } from '@/types/user';
