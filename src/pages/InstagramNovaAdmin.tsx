@@ -1581,6 +1581,7 @@ Participe também do nosso GRUPO DE AVISOS
     setPromoStartTime("");
     setPromoEndTime("");
     setIsLifetimeAffiliate(false);
+    setAffiliateSquarecloudUsername("");
     setIsEditingAffiliate(false);
     setEditingAffiliateOriginalId(null);
   };
