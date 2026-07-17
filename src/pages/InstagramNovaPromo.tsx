@@ -59,6 +59,33 @@ const InstagramNovaPromo = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Afiliado (via ?ref=slug)
+  const [affiliatePartner, setAffiliatePartner] = useState<{ id: string; name: string; last_name?: string; photo_url?: string; slug: string } | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (!ref) return;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("afiliadosx", {
+          body: {
+            action: "public_banner",
+            slug: ref.toLowerCase().trim(),
+            referer: document.referrer || null,
+            user_agent: navigator.userAgent,
+          },
+        });
+        if (data?.success && data.partner) setAffiliatePartner(data.partner);
+        // Persist ref for checkout
+        sessionStorage.setItem("mro_affiliate_ref", ref.toLowerCase().trim());
+        sessionStorage.setItem("mro_affiliate_id", data?.partner?.id || "");
+      } catch (e) {
+        console.error("[afiliadosx banner] error", e);
+      }
+    })();
+  }, []);
+
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
