@@ -15,6 +15,10 @@ import {
   Shield,
   Clock,
   Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
   Heart,
   Eye,
   UserPlus,
@@ -63,6 +67,42 @@ const Ferramentammmr = () => {
   const hlsRef = useRef<Hls | null>(null);
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null }>({ video_url: null, hls_url: null });
   const [videoStarted, setVideoStarted] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(false);
+
+  useEffect(() => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    const onPlay = () => setVideoPlaying(true);
+    const onPause = () => setVideoPlaying(false);
+    const onVol = () => setVideoMuted(v.muted);
+    v.addEventListener("play", onPlay);
+    v.addEventListener("pause", onPause);
+    v.addEventListener("volumechange", onVol);
+    return () => {
+      v.removeEventListener("play", onPlay);
+      v.removeEventListener("pause", onPause);
+      v.removeEventListener("volumechange", onVol);
+    };
+  }, []);
+
+  const toggleMainPlay = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    if (v.paused) v.play().catch(() => {}); else v.pause();
+  };
+  const toggleMainMute = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setVideoMuted(v.muted);
+  };
+  const toggleMainFullscreen = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else v.requestFullscreen?.();
+  };
 
   useEffect(() => {
     supabase.functions
@@ -427,8 +467,9 @@ const Ferramentammmr = () => {
                   ref={mainVideoRef}
                   className="w-full h-full bg-black"
                   playsInline
-                  controls={videoStarted}
+                  controls={false}
                   preload="metadata"
+                  onClick={videoStarted ? toggleMainPlay : undefined}
                 />
                 {!videoStarted && (
                   <button
@@ -441,6 +482,34 @@ const Ferramentammmr = () => {
                     </span>
                   </button>
                 )}
+                {videoStarted && (
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 pointer-events-none">
+                    <button
+                      onClick={toggleMainPlay}
+                      className="pointer-events-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      aria-label={videoPlaying ? "Pausar" : "Reproduzir"}
+                    >
+                      {videoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                    </button>
+                    <button
+                      onClick={toggleMainMute}
+                      className="pointer-events-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      aria-label={videoMuted ? "Ativar som" : "Silenciar"}
+                    >
+                      {videoMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </button>
+                    <button
+                      onClick={toggleMainFullscreen}
+                      className="pointer-events-auto ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      aria-label="Tela cheia"
+                    >
+                      <Maximize className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
               </div>
             </div>
           </div>
