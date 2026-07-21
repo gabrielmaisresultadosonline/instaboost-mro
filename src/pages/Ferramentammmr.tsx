@@ -57,6 +57,64 @@ const Ferramentammmr = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
+
+  // HLS video (mesmo da /ferramentamropromo)
+  const mainVideoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null }>({ video_url: null, hls_url: null });
+  const [videoStarted, setVideoStarted] = useState(false);
+
+  useEffect(() => {
+    supabase.functions
+      .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
+      .then(({ data }) => {
+        if (data?.settings) {
+          setVideoCfg({
+            video_url: data.settings.video_url ?? null,
+            hls_url: data.settings.hls_url ?? null,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const video = mainVideoRef.current;
+    if (!video) return;
+    const { video_url, hls_url } = videoCfg;
+    if (!video_url && !hls_url) return;
+
+    const hlsCandidate = hls_url || (video_url?.includes(".m3u8") ? video_url : null);
+    const directCandidate = video_url && !video_url.includes(".m3u8") ? video_url : null;
+    const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
+    const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
+
+    const loadDirect = () => {
+      if (fullVideo) video.src = fullVideo;
+    };
+
+    if (fullHls && Hls.isSupported()) {
+      const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
+      hls.loadSource(fullHls);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
+      hlsRef.current = hls;
+    } else if (fullHls && video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = fullHls;
+    } else {
+      loadDirect();
+    }
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+  }, [videoCfg]);
+
+  const handleMainVideoStart = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.currentTime = 0;
+    v.play().catch(() => {});
+    setVideoStarted(true);
+  };
   
   // Popup de desconto encerrado - desativado nesta página
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
