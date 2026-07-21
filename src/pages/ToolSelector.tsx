@@ -37,7 +37,7 @@ const ToolSelector = () => {
       description: 'Envio em massa de mensagens, engajamento, clientes e vendas. Automatize sua presença e escale seus resultados.',
       icon: InstagramIcon,
       badge: 'MRO I.A',
-      salesPath: '/ferramentamropromo',
+      salesPath: '/ferramentamropromo2',
       index: '01',
     },
     {
