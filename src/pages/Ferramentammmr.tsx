@@ -510,9 +510,6 @@ const Ferramentammmr = () => {
               </div>
             </div>
           </div>
-              </div>
-            </div>
-          </div>
 
           {/* CTA Button */}
           <Button 
