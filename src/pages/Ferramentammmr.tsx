@@ -103,10 +103,10 @@ const Ferramentammmr = () => {
     supabase.functions
       .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
       .then(({ data }) => {
-        if (data?.settings) {
+        if (data) {
           setVideoCfg({
-            video_url: data.settings.video_url ?? null,
-            hls_url: data.settings.hls_url ?? null,
+            video_url: data.settings?.video_url ?? data.video_url ?? null,
+            hls_url: data.settings?.hls_url ?? data.hls_url ?? null,
           });
         }
       })
