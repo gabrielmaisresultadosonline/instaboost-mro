@@ -496,46 +496,48 @@ const Ferramentammmr = () => {
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30 bg-black">
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-black ring-1 ring-amber-500/30 shadow-[0_0_60px_rgba(251,191,36,0.15)]">
               <div className="relative aspect-video">
                 <video
                   ref={mainVideoRef}
-                  className="w-full h-full bg-black"
+                  className={`w-full h-full bg-black transition-opacity duration-500 ${videoStarted ? "opacity-100" : "opacity-10"}`}
                   playsInline
                   controls={false}
+                  muted={!videoStarted}
+                  autoPlay
+                  loop={!videoStarted}
                   preload="metadata"
-                  onClick={videoStarted ? toggleMainPlay : undefined}
                 />
                 {!videoStarted && (
                   <button
                     onClick={handleMainVideoStart}
-                    className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/40 transition"
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition"
                     aria-label="Reproduzir"
                   >
-                    <span className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center shadow-2xl animate-pulse">
-                      <Play className="w-10 h-10 text-white ml-1" fill="currentColor" />
+                    <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl animate-pulse">
+                      <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
                     </span>
                   </button>
                 )}
                 {videoStarted && (
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 pointer-events-none">
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
                     <button
                       onClick={toggleMainPlay}
-                      className="pointer-events-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
                       aria-label={videoPlaying ? "Pausar" : "Reproduzir"}
                     >
                       {videoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                     </button>
                     <button
                       onClick={toggleMainMute}
-                      className="pointer-events-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
                       aria-label={videoMuted ? "Ativar som" : "Silenciar"}
                     >
                       {videoMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>
                     <button
                       onClick={toggleMainFullscreen}
-                      className="pointer-events-auto ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      className="ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
                       aria-label="Tela cheia"
                     >
                       <Maximize className="w-5 h-5" />
