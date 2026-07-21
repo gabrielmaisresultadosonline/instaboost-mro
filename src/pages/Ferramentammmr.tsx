@@ -482,15 +482,12 @@ const Ferramentammmr = () => {
             onClick={scrollToPricing}
             className="mt-8 sm:mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
           >
-            GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+            GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
       </section>
 
-      {/* Active Clients */}
-      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <ActiveClientsSection title="Clientes Ativos" maxClients={15} showRegistration={false} />
-      </section>
+
 
       {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
