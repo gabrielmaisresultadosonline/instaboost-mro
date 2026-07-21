@@ -1129,10 +1129,11 @@ const Ferramentammmr = () => {
             
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
+              <p className="text-green-400 font-bold text-sm sm:text-base mb-1">Plano {selectedPlan.label}</p>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                12x de R$30
+                {selectedPlan.installments}
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">ou R$300 à vista no PIX</p>
+              <p className="text-gray-400 text-xs sm:text-sm">ou {selectedPlan.oneTime}</p>
             </div>
             
             <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
