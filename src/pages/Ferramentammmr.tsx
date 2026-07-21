@@ -421,15 +421,26 @@ const Ferramentammmr = () => {
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
-              <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1" 
-                  title="Video MRO"
-                  className="w-full h-full" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen 
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30 bg-black">
+              <div className="relative aspect-video">
+                <video
+                  ref={mainVideoRef}
+                  className="w-full h-full bg-black"
+                  playsInline
+                  controls={videoStarted}
+                  preload="metadata"
                 />
+                {!videoStarted && (
+                  <button
+                    onClick={handleMainVideoStart}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/40 transition"
+                    aria-label="Reproduzir"
+                  >
+                    <span className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center shadow-2xl animate-pulse">
+                      <Play className="w-10 h-10 text-white ml-1" fill="currentColor" />
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
