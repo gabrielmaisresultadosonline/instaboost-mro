@@ -165,6 +165,13 @@ const Ferramentammmr = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{ type: 'annual' | 'lifetime'; amount: number; label: string; installments: string; oneTime: string }>({
+    type: 'annual',
+    amount: 397,
+    label: 'Anual Pro',
+    installments: '12x de R$ 40,00',
+    oneTime: 'R$ 397,00 à vista'
+  });
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -220,8 +227,8 @@ const Ferramentammmr = () => {
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          planType: "annual",
-          amount: 300,
+          planType: selectedPlan.type,
+          amount: selectedPlan.amount,
           checkUserExists: true
         }
       });
@@ -383,32 +390,12 @@ const Ferramentammmr = () => {
       )}
       */}
 
-      {/* Urgency Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-          <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
-            🎁 VOCÊ RECEBEU UM DESCONTO ESPECIAL! Aproveite em{" "}
-            <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
-              {promoTimeLeft.expired ? "EXPIRADO" : 
-                `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-              }
-            </span>
-          </span>
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-        </div>
-      </div>
-
       {/* Header removido conforme solicitação */}
 
       {/* Hero Section */}
-      <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
+      <section className="relative pt-8 sm:pt-12 md:pt-16 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
-            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
-          </div>
+
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
@@ -435,29 +422,8 @@ const Ferramentammmr = () => {
             <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
           </div>
 
-          {/* Countdown Timer Large */}
-          <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2 sm:gap-4">
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.hours).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">HORAS</div>
-            </div>
-            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.minutes).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">MINUTOS</div>
-            </div>
-            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.seconds).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">SEGUNDOS</div>
-            </div>
-          </div>
+
+
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
@@ -516,15 +482,12 @@ const Ferramentammmr = () => {
             onClick={scrollToPricing}
             className="mt-8 sm:mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
           >
-            GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+            GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
       </section>
 
-      {/* Active Clients */}
-      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <ActiveClientsSection title="Clientes Ativos" maxClients={15} showRegistration={false} />
-      </section>
+
 
       {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
@@ -856,89 +819,134 @@ const Ferramentammmr = () => {
 
       {/* O que está incluso */}
       <section ref={pricingRef} className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-3 sm:mb-4">
-            <span className="text-green-400">OFERTA ESPECIAL</span>
+            ESCOLHA SEU <span className="text-green-400">PLANO</span>
           </h2>
-          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Promoção válida apenas por 8 horas</p>
-          
-          {/* Pricing Card */}
-          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden">
-            {/* Badge */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
-                🔥 DESCONTO ESPECIAL
-              </div>
-            </div>
-            
-            <div className="text-center mt-6 sm:mt-6 mb-6 sm:mb-8">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Plano Anual Completo</h3>
-              
-              {/* Price */}
-              <div className="mb-2">
-                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$ 397</span>
-              </div>
-              
-              <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
-              
-              <div className="text-green-400 mb-1">
-                <span className="text-lg sm:text-xl md:text-2xl font-medium">12x de</span>
-                <span className="text-5xl sm:text-6xl md:text-7xl font-black ml-2">R$30</span>
-              </div>
-              
-              <p className="text-gray-300 text-lg sm:text-xl mb-3">
-                ou <span className="text-white font-bold">R$300 à vista</span>
-              </p>
-              
-              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4">
-                <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
-                <span className="text-red-400 font-bold text-sm sm:text-base">R$97 REAIS DE DESCONTO!</span>
-              </div>
-              
-              <p className="text-yellow-400 text-xs sm:text-sm font-medium">
-                ⏰ Válido apenas nas próximas 8 horas
-              </p>
-            </div>
-            
-            {/* Features */}
-            <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-              {planFeatures.map((feature, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-200 text-sm sm:text-base">{feature}</span>
+          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">
+            Selecione o plano ideal para você
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Plano Anual Pro */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500/60 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden flex flex-col">
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
+                  MAIS POPULAR
                 </div>
-              ))}
+              </div>
+
+              <div className="text-center mt-6 mb-6 sm:mb-8">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Anual Pro</h3>
+                <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
+                <div className="text-green-400 mb-1">
+                  <span className="text-lg sm:text-xl md:text-2xl font-medium">12x de</span>
+                  <span className="text-5xl sm:text-6xl md:text-7xl font-black ml-2">R$40</span>
+                </div>
+                <p className="text-gray-300 text-lg sm:text-xl mb-1">
+                  ou <span className="text-white font-bold">R$ 397,00 à vista</span>
+                </p>
+                <p className="text-gray-400 text-xs sm:text-sm">Acesso por 1 ano</p>
+              </div>
+
+              <div className="space-y-3 mb-6 sm:mb-8 flex-1">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">4 contas do Instagram</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">Ferramenta MRO completa</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">Suporte VIP</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => {
+                  setSelectedPlan({
+                    type: 'annual',
+                    amount: 397,
+                    label: 'Anual Pro',
+                    installments: '12x de R$ 40,00',
+                    oneTime: 'R$ 397,00 à vista'
+                  });
+                  setShowCheckoutModal(true);
+                }}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30"
+              >
+                QUERO O PLANO ANUAL
+              </Button>
+
+              <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 text-xs sm:text-sm text-gray-400 flex-wrap">
+                <div className="flex items-center gap-1"><Shield className="w-3 h-3 sm:w-4 sm:h-4" /><span>Compra Segura</span></div>
+                <div className="flex items-center gap-1"><CreditCard className="w-3 h-3 sm:w-4 sm:h-4" /><span>PIX ou Cartão</span></div>
+              </div>
             </div>
 
-            {/* CTA Button */}
-            <Button 
-              onClick={() => {
-                if (promoTimeLeft.expired) {
-                  toast.error("Promoção expirada! Esta oferta não está mais disponível.");
-                  return;
-                }
-                setShowCheckoutModal(true);
-              }}
-              disabled={promoTimeLeft.expired}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
-            >
-              {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
-            </Button>
-            
-            {/* Secure badges */}
-            <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-gray-400 flex-wrap">
-              <div className="flex items-center gap-1">
-                <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Compra Segura</span>
+            {/* Plano Agência Vitalício */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-yellow-500/70 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden flex flex-col">
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2">
+                <div className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
+                  ⭐ PREMIUM VITALÍCIO
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>PIX ou Cartão</span>
+
+              <div className="text-center mt-6 mb-6 sm:mb-8">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Agência Vitalício</h3>
+                <div className="text-base sm:text-lg text-gray-300 mb-2">pagamento único</div>
+                <div className="text-yellow-400 mb-1">
+                  <span className="text-lg sm:text-xl md:text-2xl font-medium">12x de</span>
+                  <span className="text-5xl sm:text-6xl md:text-7xl font-black ml-2">R$122,83</span>
+                </div>
+                <p className="text-gray-300 text-lg sm:text-xl mb-1">
+                  ou <span className="text-white font-bold">R$ 1.197,00 à vista</span>
+                </p>
+                <p className="text-yellow-400 text-xs sm:text-sm font-medium">Acesso vitalício — sem renovação</p>
+              </div>
+
+              <div className="space-y-3 mb-6 sm:mb-8 flex-1">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">12 contas do Instagram</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">Ferramenta MRO completa</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">Suporte VIP</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => {
+                  setSelectedPlan({
+                    type: 'lifetime',
+                    amount: 1197,
+                    label: 'Agência Vitalício',
+                    installments: '12x de R$ 122,83',
+                    oneTime: 'R$ 1.197,00 à vista'
+                  });
+                  setShowCheckoutModal(true);
+                }}
+                className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-yellow-500/30"
+              >
+                QUERO O VITALÍCIO
+              </Button>
+
+              <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 text-xs sm:text-sm text-gray-400 flex-wrap">
+                <div className="flex items-center gap-1"><Shield className="w-3 h-3 sm:w-4 sm:h-4" /><span>Compra Segura</span></div>
+                <div className="flex items-center gap-1"><CreditCard className="w-3 h-3 sm:w-4 sm:h-4" /><span>PIX ou Cartão</span></div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* Garantia */}
       <section className="py-10 sm:py-16 px-3 sm:px-4 bg-black">
@@ -1076,30 +1084,11 @@ const Ferramentammmr = () => {
             Não perca essa <span className="text-green-400">oportunidade única!</span>
           </h2>
           
-          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
-            <Timer className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 animate-pulse" />
-            <span className="text-base sm:text-xl font-bold">
-              Oferta expira em{" "}
-              <span className="text-red-500 font-mono">
-                {promoTimeLeft.expired ? "EXPIRADO" : 
-                  `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-                }
-              </span>
-            </span>
-          </div>
-          
-          <Button 
-            onClick={() => {
-              if (promoTimeLeft.expired) {
-                toast.error("Promoção expirada!");
-                return;
-              }
-              setShowCheckoutModal(true);
-            }}
-            disabled={promoTimeLeft.expired}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30 disabled:opacity-50"
+          <Button
+            onClick={scrollToPricing}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
+            VER OS PLANOS
           </Button>
         </div>
       </section>
@@ -1140,10 +1129,11 @@ const Ferramentammmr = () => {
             
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
+              <p className="text-green-400 font-bold text-sm sm:text-base mb-1">Plano {selectedPlan.label}</p>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                12x de R$30
+                {selectedPlan.installments}
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">ou R$300 à vista no PIX</p>
+              <p className="text-gray-400 text-xs sm:text-sm">ou {selectedPlan.oneTime}</p>
             </div>
             
             <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
@@ -1200,7 +1190,7 @@ const Ferramentammmr = () => {
               
               <Button
                 type="submit"
-                disabled={loading || promoTimeLeft.expired}
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 sm:py-6 rounded-xl text-sm sm:text-base"
               >
                 {loading ? (
