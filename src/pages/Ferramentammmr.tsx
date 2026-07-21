@@ -43,8 +43,6 @@ import {
   Phone,
   Timer,
   AlertTriangle,
-  Send,
-  Filter,
   TrendingUp,
   BarChart3,
   FileText,
