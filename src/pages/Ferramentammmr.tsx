@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import Hls from "hls.js";
+
+const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
+const isRel = (u: string) => u.startsWith("/");
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +57,64 @@ const Ferramentammmr = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
+
+  // HLS video (mesmo da /ferramentamropromo)
+  const mainVideoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null }>({ video_url: null, hls_url: null });
+  const [videoStarted, setVideoStarted] = useState(false);
+
+  useEffect(() => {
+    supabase.functions
+      .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
+      .then(({ data }) => {
+        if (data?.settings) {
+          setVideoCfg({
+            video_url: data.settings.video_url ?? null,
+            hls_url: data.settings.hls_url ?? null,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const video = mainVideoRef.current;
+    if (!video) return;
+    const { video_url, hls_url } = videoCfg;
+    if (!video_url && !hls_url) return;
+
+    const hlsCandidate = hls_url || (video_url?.includes(".m3u8") ? video_url : null);
+    const directCandidate = video_url && !video_url.includes(".m3u8") ? video_url : null;
+    const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
+    const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
+
+    const loadDirect = () => {
+      if (fullVideo) video.src = fullVideo;
+    };
+
+    if (fullHls && Hls.isSupported()) {
+      const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
+      hls.loadSource(fullHls);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
+      hlsRef.current = hls;
+    } else if (fullHls && video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = fullHls;
+    } else {
+      loadDirect();
+    }
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+  }, [videoCfg]);
+
+  const handleMainVideoStart = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.currentTime = 0;
+    v.play().catch(() => {});
+    setVideoStarted(true);
+  };
   
   // Popup de desconto encerrado - desativado nesta página
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
@@ -359,15 +421,26 @@ const Ferramentammmr = () => {
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
-              <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1" 
-                  title="Video MRO"
-                  className="w-full h-full" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen 
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30 bg-black">
+              <div className="relative aspect-video">
+                <video
+                  ref={mainVideoRef}
+                  className="w-full h-full bg-black"
+                  playsInline
+                  controls={videoStarted}
+                  preload="metadata"
                 />
+                {!videoStarted && (
+                  <button
+                    onClick={handleMainVideoStart}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/40 transition"
+                    aria-label="Reproduzir"
+                  >
+                    <span className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center shadow-2xl animate-pulse">
+                      <Play className="w-10 h-10 text-white ml-1" fill="currentColor" />
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
