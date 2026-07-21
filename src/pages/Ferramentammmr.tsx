@@ -31,7 +31,6 @@ import {
   ChevronDown,
   Star,
   Target,
-  Lightbulb,
   Brain,
   RefreshCw,
   Gift,
