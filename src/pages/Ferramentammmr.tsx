@@ -165,6 +165,13 @@ const Ferramentammmr = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{ type: 'annual' | 'lifetime'; amount: number; label: string; installments: string; oneTime: string }>({
+    type: 'annual',
+    amount: 397,
+    label: 'Anual Pro',
+    installments: '12x de R$ 40,00',
+    oneTime: 'R$ 397,00 à vista'
+  });
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
