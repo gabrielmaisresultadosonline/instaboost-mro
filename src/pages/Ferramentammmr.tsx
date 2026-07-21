@@ -385,10 +385,10 @@ const Ferramentammmr = () => {
             </p>
           </div>
 
-          {/* V7+ Badge */}
+          {/* V8.6 Badge */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 rounded-full px-4 sm:px-6 py-2 mt-6">
             <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
-            <span className="text-white font-bold text-xs sm:text-sm">NOVA VERSÃO V7+ PLUS — A MAIS COMPLETA</span>
+            <span className="text-white font-bold text-xs sm:text-sm">NOVA VERSÃO V8.6 — A MAIS COMPLETA</span>
             <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
           </div>
 
@@ -661,7 +661,7 @@ const Ferramentammmr = () => {
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">
               💰 MAIS RESULTADOS, <span className="text-red-400">ZERO ANÚNCIOS</span>
             </h2>
-            <p className="text-gray-400 text-sm sm:text-lg">Com a MRO Inteligente V7+ você:</p>
+            <p className="text-gray-400 text-sm sm:text-lg">Com a MRO Inteligente V8.6 você:</p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
