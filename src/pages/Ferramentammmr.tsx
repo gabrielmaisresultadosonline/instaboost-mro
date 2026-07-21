@@ -526,6 +526,8 @@ const Ferramentammmr = () => {
                     { icon: Eye, text: 'Reage aos Stories com "amei"', color: "text-purple-400" },
                     { icon: Shield, text: "Remove seguidores fakes/comprados", color: "text-red-400" },
                     { icon: Zap, text: "Interação com 200 pessoas por dia", color: "text-amber-400" },
+                    { icon: Video, text: "Posta Stories de 1 em 1 hora automaticamente", color: "text-orange-400" },
+                    { icon: Rocket, text: "Se mantém sempre na frente", color: "text-cyan-400" },
                   ].map((item, i) => (
                     <div key={i} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 sm:p-5 text-center hover:scale-105 transition-transform">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 flex items-center justify-center mx-auto mb-2 sm:mb-3">
