@@ -798,29 +798,6 @@ const Ferramentammmr = () => {
       </section>
 
 
-      {/* Garantia */}
-      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-black">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl sm:rounded-2xl p-5 sm:p-8">
-            <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-green-400" />
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-green-400 mb-2 sm:mb-3">
-                  30 Dias de Resultados Garantidos
-                </h3>
-                <p className="text-gray-300 text-sm sm:text-base">
-                  Nós garantimos engajamento, clientes, público e vendas utilizando nossa ferramenta de modo contínuo. 
-                  Se em 30 dias você não estiver completamente satisfeito, devolvemos <strong className="text-white">100% do seu investimento!</strong>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
       {/* Final CTA */}
       <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto text-center">
