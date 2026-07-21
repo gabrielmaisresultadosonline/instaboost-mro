@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import Hls from "hls.js";
+
+const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
+const isRel = (u: string) => u.startsWith("/");
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
