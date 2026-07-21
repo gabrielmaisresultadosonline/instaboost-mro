@@ -29,6 +29,7 @@ import InstagramNovaEuro from "./pages/InstagramNovaEuro";
 import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
 import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
+import Ferramentammmr from "./pages/Ferramentammmr";
 import AfiliadosX from "./pages/AfiliadosX";
 import AfiliadosXResumo from "./pages/AfiliadosXResumo";
 import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
@@ -256,6 +257,7 @@ const App = () => (
           <Route path="/afiliadosx" element={<AfiliadosX />} />
           <Route path="/afiliadosx/resumo" element={<AfiliadosXResumo />} />
           <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
+          <Route path="/ferramentammmr" element={<Ferramentammmr />} />
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagramm-nova" element={<InstagramNovaPlan />} />
           <Route path="/instagrammnew" element={<InstagrammNew />} />

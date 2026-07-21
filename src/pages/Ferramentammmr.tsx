@@ -49,7 +49,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 
-const InstagramNovaPromoo2 = () => {
+const Ferramentammmr = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -1096,4 +1096,4 @@ const InstagramNovaPromoo2 = () => {
   );
 };
 
-export default InstagramNovaPromoo2;
+export default Ferramentammmr;
