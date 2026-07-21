@@ -308,35 +308,6 @@ const Ferramentammmr = () => {
     setShowVideoModal(true);
   };
 
-  const iaFeatures = [
-    "Cria legendas prontas e otimizadas para seu conteúdo",
-    "Gera biografias profissionais para seu Instagram",
-    "Entrega os melhores horários para postar no seu nicho",
-    "Recomenda hashtags quentes e relevantes"
-  ];
-
-  const mroFeatures = [
-    { icon: Heart, title: "Curte fotos" },
-    { icon: UserPlus, title: "Segue perfis estratégicos" },
-    { icon: Users, title: "Segue e deixa de seguir também" },
-    { icon: Eye, title: "Reage aos Stories com \"amei\"" },
-    { icon: Target, title: "Remove seguidores fakes/comprados" },
-    { icon: Zap, title: "Interação com 200 pessoas por dia" }
-  ];
-
-  const areaMembroFeatures = [
-    "Vídeos estratégicos com passo a passo",
-    "Como deixar seu perfil mais atrativo e profissional",
-    "Como agendar suas postagens e deixar tudo no automático",
-    "Estratégias para bombar seu Instagram mesmo começando do zero"
-  ];
-
-  const grupoVipFeatures = [
-    "Acesse o grupo VIP",
-    "Tire dúvidas",
-    "Compartilhe resultados",
-    "Receba atualizações em primeira mão"
-  ];
 
   const planFeatures = [
     "Ferramenta completa para Instagram",
