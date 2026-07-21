@@ -540,6 +540,149 @@ const Ferramentammmr = () => {
         </div>
       </section>
 
+      {/* ====== O QUE VOCÊ VAI RECEBER ====== */}
+      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black via-gray-950 to-black">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-16">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full px-4 sm:px-6 py-2 mb-4">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+              <span className="text-amber-400 font-bold text-xs sm:text-sm">O QUE VOCÊ VAI RECEBER</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">
+              Tudo que você <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">precisa</span> para crescer no Instagram
+            </h2>
+          </div>
+
+          {/* Inteligência artificial automática */}
+          <div className="mb-8 sm:mb-10">
+            <div className="relative bg-gradient-to-br from-purple-950/60 to-purple-900/30 border-2 border-purple-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-purple-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">NOVO</div>
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-purple-300">Inteligência artificial automática</h3>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+                  {[
+                    "Cria legendas prontas e otimizadas para seu conteúdo",
+                    "Gera biografias profissionais para seu Instagram",
+                    "Entrega os melhores horários para postar no seu nicho",
+                    "Recomenda hashtags quentes e relevantes",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 sm:gap-4 bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 sm:p-4">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" />
+                      <span className="text-gray-200 font-medium text-sm sm:text-base">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-4 sm:mt-5 text-purple-300 font-bold text-sm sm:text-base text-center">Tudo isso personalizado para você, em segundos!</p>
+              </div>
+            </div>
+          </div>
+
+          {/* FERRAMENTA MRO */}
+          <div className="mb-8 sm:mb-10">
+            <div className="relative bg-gradient-to-br from-amber-950/60 to-amber-900/30 border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden">
+              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[50px] md:blur-[100px] pointer-events-none -translate-x-1/2" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                    <Target className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-amber-500 text-black text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">PRINCIPAL</div>
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-amber-300">FERRAMENTA MRO</h3>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {[
+                    { icon: Heart, text: "Curte fotos", color: "text-pink-400" },
+                    { icon: UserPlus, text: "Segue perfis estratégicos", color: "text-green-400" },
+                    { icon: RefreshCw, text: "Segue e deixa de seguir também", color: "text-blue-400" },
+                    { icon: Eye, text: 'Reage aos Stories com "amei"', color: "text-purple-400" },
+                    { icon: Shield, text: "Remove seguidores fakes/comprados", color: "text-red-400" },
+                    { icon: Zap, text: "Interação com 200 pessoas por dia", color: "text-amber-400" },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 sm:p-5 text-center hover:scale-105 transition-transform">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                        <item.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${item.color}`} />
+                      </div>
+                      <span className="text-gray-200 font-bold text-xs sm:text-sm">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-4 sm:mt-5 text-amber-300 font-bold text-sm sm:text-base text-center">Tudo isso em alta escala, todos os dias, atraindo um novo público real e interessado em você.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 sm:mt-6 bg-gradient-to-r from-green-500/15 to-emerald-500/15 border border-green-500/30 rounded-xl p-4 sm:p-5 text-center">
+            <p className="text-green-300 font-bold text-base sm:text-lg">Resultados comprovados em até 7 horas de uso!</p>
+          </div>
+
+          {/* ÁREA DE MEMBROS VITALÍCIA */}
+          <div className="mb-8 sm:mb-10 mt-8 sm:mt-10">
+            <div className="relative bg-gradient-to-br from-blue-950/60 to-blue-900/30 border-2 border-blue-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden">
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <Video className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-blue-300">ÁREA DE MEMBROS VITALÍCIA</h3>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+                  {[
+                    "Vídeos estratégicos com passo a passo",
+                    "Como deixar seu perfil mais atrativo e profissional",
+                    "Como agendar suas postagens e deixar tudo no automático",
+                    "Estratégias para bombar seu Instagram mesmo começando do zero",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 sm:gap-4 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 sm:p-4">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
+                      <span className="text-gray-200 font-medium text-sm sm:text-base">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* GRUPO VIP */}
+          <div className="mb-8 sm:mb-10">
+            <div className="relative bg-gradient-to-br from-green-950/60 to-green-900/30 border-2 border-green-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden">
+              <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                    <Users className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-green-300">GRUPO VIP DE SUPORTE E NETWORKING</h3>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {[
+                    "Acesse o grupo VIP",
+                    "Tire dúvidas",
+                    "Compartilhe resultados",
+                    "Receba atualizações em primeira mão",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl p-3 sm:p-4">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200 font-medium text-sm sm:text-base">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ====== MAIS RESULTADOS ZERO ANÚNCIOS ====== */}
       <section className="py-12 sm:py-16 px-3 sm:px-4 bg-black">
         <div className="max-w-5xl mx-auto">
