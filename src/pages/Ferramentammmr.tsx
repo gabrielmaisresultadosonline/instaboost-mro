@@ -227,8 +227,8 @@ const Ferramentammmr = () => {
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          planType: "annual",
-          amount: 300,
+          planType: selectedPlan.type,
+          amount: selectedPlan.amount,
           checkUserExists: true
         }
       });
