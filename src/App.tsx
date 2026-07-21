@@ -230,7 +230,7 @@ const App = () => (
           <Route path="/instagram" element={<Index />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
-          <Route path="/renda-extra2" element={<Navigate to="/ferramentamropromo" replace />} />
+          <Route path="/renda-extra2" element={<Navigate to="/ferramentamropromo2" replace />} />
           <Route path="/renda-extrass" element={<RendaExtrassPage />} />
           <Route path="/renda-extrass/admin" element={<RendaExtrassAdmin />} />
           <Route path="/zapmro" element={<ZapMRO />} />
@@ -244,7 +244,7 @@ const App = () => (
           <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/mro-obrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
-          <Route path="/instagram-nova" element={<Navigate to="/ferramentamropromo" replace />} />
+          <Route path="/instagram-nova" element={<Navigate to="/ferramentamropromo2" replace />} />
           <Route path="/pagamentomro" element={<PagamentoMRO />} />
           <Route path="/pagamentomro/obrigado" element={<PagamentoMROObrigado />} />
           <Route path="/instagram-nova-ws" element={<InstagramNovaWS />} />
@@ -356,7 +356,7 @@ const App = () => (
           <Route path="/rendaextradesconto" element={<RendaExtraDesconto />} />
           <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />
           <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
-          <Route path="/estruturarendaextra4" element={<Navigate to="/ferramentamropromo" replace />} />
+          <Route path="/estruturarendaextra4" element={<Navigate to="/ferramentamropromo2" replace />} />
           <Route path="/estruturarendaextra4/admin" element={<EstruturaRendaExtra4Admin />} />
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
           <Route path="/whatsappvxlinkdireto" element={<WhatsappVxLinkDireto />} />
@@ -423,7 +423,7 @@ const App = () => (
           <Route path="/comercialaaf" element={<ComercialAAF />} />
           <Route path="/comercialaaf/admin" element={<ComercialAAFAdmin />} />
           <Route path="/mktcompleto" element={<MktCompleto />} />
-          <Route path="/ferramentamropromo" element={<FerramentaMROPromo />} />
+          <Route path="/ferramentamropromo2" element={<FerramentaMROPromo />} />
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
