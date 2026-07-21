@@ -31,7 +31,7 @@ import {
   ChevronDown,
   Star,
   Target,
-  Brain,
+  
   RefreshCw,
   Gift,
   Monitor,
