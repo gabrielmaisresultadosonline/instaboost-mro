@@ -54,54 +54,52 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 
+function getVisitorId(): string {
+  try {
+    let id = localStorage.getItem("fmp:visitor_id");
+    if (!id) {
+      id = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now()).toString();
+      localStorage.setItem("fmp:visitor_id", id);
+    }
+    return id;
+  } catch {
+    return "anon-" + Math.random().toString(36).slice(2);
+  }
+}
+
+function track(event_type: string, extra?: Record<string, unknown>) {
+  try {
+    supabase.functions.invoke("ferramentamropromo-video", {
+      body: {
+        action: "track",
+        visitor_id: getVisitorId(),
+        event_type,
+        user_agent: navigator.userAgent,
+        referrer: document.referrer,
+        path: window.location.pathname,
+        ...(extra || {}),
+      },
+    }).catch(() => {});
+  } catch {}
+}
+
 const Ferramentammmr = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
 
-  // HLS video (mesmo da /ferramentamropromo)
+  // HLS video (mesmo da /ferramentamropromo2)
   const mainVideoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [videoCfg, setVideoCfg] = useState<{ video_url: string | null; hls_url: string | null }>({ video_url: null, hls_url: null });
   const [videoStarted, setVideoStarted] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoMuted, setVideoMuted] = useState(false);
+  const [videoWatched, setVideoWatched] = useState(false);
+  const milestonesRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
-    const v = mainVideoRef.current;
-    if (!v) return;
-    const onPlay = () => setVideoPlaying(true);
-    const onPause = () => setVideoPlaying(false);
-    const onVol = () => setVideoMuted(v.muted);
-    v.addEventListener("play", onPlay);
-    v.addEventListener("pause", onPause);
-    v.addEventListener("volumechange", onVol);
-    return () => {
-      v.removeEventListener("play", onPlay);
-      v.removeEventListener("pause", onPause);
-      v.removeEventListener("volumechange", onVol);
-    };
-  }, []);
-
-  const toggleMainPlay = () => {
-    const v = mainVideoRef.current;
-    if (!v) return;
-    if (v.paused) v.play().catch(() => {}); else v.pause();
-  };
-  const toggleMainMute = () => {
-    const v = mainVideoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setVideoMuted(v.muted);
-  };
-  const toggleMainFullscreen = () => {
-    const v = mainVideoRef.current;
-    if (!v) return;
-    if (document.fullscreenElement) document.exitFullscreen();
-    else v.requestFullscreen?.();
-  };
-
-  useEffect(() => {
+    track("page_view");
     supabase.functions
       .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
       .then(({ data }) => {
@@ -113,6 +111,10 @@ const Ferramentammmr = () => {
         }
       })
       .catch(() => {});
+
+    if (localStorage.getItem("ferramentamropromo:unlocked") === "1") {
+      setVideoWatched(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -126,31 +128,130 @@ const Ferramentammmr = () => {
     const fullVideo = directCandidate ? (isRel(directCandidate) ? `${VIDEO_SERVER}${directCandidate}` : directCandidate) : null;
     const fullHls = hlsCandidate ? (isRel(hlsCandidate) ? `${VIDEO_SERVER}${hlsCandidate}` : hlsCandidate) : null;
 
+    const tryBgAutoplay = () => {
+      if (videoStarted) return;
+      try {
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        const p = video.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch {}
+    };
+
     const loadDirect = () => {
-      if (fullVideo) video.src = fullVideo;
+      if (fullVideo) {
+        video.src = fullVideo;
+        video.addEventListener("loadedmetadata", tryBgAutoplay, { once: true });
+      }
     };
 
     if (fullHls && Hls.isSupported()) {
-      const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
-      hls.loadSource(fullHls);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
-      hlsRef.current = hls;
+      (async () => {
+        try {
+          const res = await fetch(fullHls, { method: "HEAD" });
+          if (!res.ok) return loadDirect();
+          const hls = new Hls({ startLevel: 0, capLevelToPlayerSize: true, enableWorker: true });
+          hls.loadSource(fullHls);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, tryBgAutoplay);
+          hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) { hls.destroy(); loadDirect(); } });
+          hlsRef.current = hls;
+        } catch { loadDirect(); }
+      })();
     } else if (fullHls && video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = fullHls;
+      video.addEventListener("loadedmetadata", tryBgAutoplay, { once: true });
     } else {
       loadDirect();
     }
     return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
   }, [videoCfg]);
 
+  useEffect(() => {
+    const video = mainVideoRef.current;
+    if (!video) return;
+    const onTime = () => {
+      const d = video.duration || 0;
+      if (d <= 0) return;
+      const pct = (video.currentTime / d) * 100;
+      for (const m of [25, 50, 75, 100]) {
+        if (pct >= m && !milestonesRef.current.has(m)) {
+          milestonesRef.current.add(m);
+          track("video_progress", { progress_pct: m });
+        }
+      }
+      if (pct >= 50 && !videoWatched) {
+        setVideoWatched(true);
+        localStorage.setItem("ferramentamropromo:unlocked", "1");
+      }
+    };
+    const onEnded = () => {
+      if (!milestonesRef.current.has(100)) {
+        milestonesRef.current.add(100);
+        track("video_progress", { progress_pct: 100 });
+      }
+      setVideoWatched(true);
+      localStorage.setItem("ferramentamropromo:unlocked", "1");
+    };
+    const onPlay = () => setVideoPlaying(true);
+    const onPause = () => setVideoPlaying(false);
+    const onVol = () => setVideoMuted(video.muted);
+    video.addEventListener("timeupdate", onTime);
+    video.addEventListener("ended", onEnded);
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+    video.addEventListener("volumechange", onVol);
+    return () => {
+      video.removeEventListener("timeupdate", onTime);
+      video.removeEventListener("ended", onEnded);
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
+      video.removeEventListener("volumechange", onVol);
+    };
+  }, [videoWatched]);
+
   const handleMainVideoStart = () => {
     const v = mainVideoRef.current;
     if (!v) return;
-    v.muted = false;
-    v.currentTime = 0;
-    v.play().catch(() => {});
     setVideoStarted(true);
+    track("video_start");
+    try {
+      v.loop = false;
+      v.currentTime = 0;
+    } catch {}
+    v.muted = false;
+    setVideoMuted(false);
+    v.play().catch(() => {
+      v.muted = true;
+      setVideoMuted(true);
+      v.play().catch(() => {});
+    });
+  };
+
+  const toggleMainPlay = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    if (v.paused) v.play().catch(() => {}); else v.pause();
+  };
+
+  const toggleMainMute = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setVideoMuted(v.muted);
+  };
+
+  const toggleMainFullscreen = () => {
+    const v = mainVideoRef.current;
+    if (!v) return;
+    const anyDoc = document as any;
+    const anyV = v as any;
+    if (anyDoc.fullscreenElement || anyDoc.webkitFullscreenElement) {
+      (anyDoc.exitFullscreen || anyDoc.webkitExitFullscreen)?.call(document);
+    } else {
+      (anyV.requestFullscreen || anyV.webkitEnterFullscreen || anyV.webkitRequestFullscreen)?.call(v);
+    }
   };
   
   // Popup de desconto encerrado - desativado nesta página
@@ -395,46 +496,48 @@ const Ferramentammmr = () => {
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30 bg-black">
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-black ring-1 ring-amber-500/30 shadow-[0_0_60px_rgba(251,191,36,0.15)]">
               <div className="relative aspect-video">
                 <video
                   ref={mainVideoRef}
-                  className="w-full h-full bg-black"
+                  className={`w-full h-full bg-black transition-opacity duration-500 ${videoStarted ? "opacity-100" : "opacity-10"}`}
                   playsInline
                   controls={false}
+                  muted={!videoStarted}
+                  autoPlay
+                  loop={!videoStarted}
                   preload="metadata"
-                  onClick={videoStarted ? toggleMainPlay : undefined}
                 />
                 {!videoStarted && (
                   <button
                     onClick={handleMainVideoStart}
-                    className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/40 transition"
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition"
                     aria-label="Reproduzir"
                   >
-                    <span className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center shadow-2xl animate-pulse">
-                      <Play className="w-10 h-10 text-white ml-1" fill="currentColor" />
+                    <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl animate-pulse">
+                      <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
                     </span>
                   </button>
                 )}
                 {videoStarted && (
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 pointer-events-none">
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
                     <button
                       onClick={toggleMainPlay}
-                      className="pointer-events-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
                       aria-label={videoPlaying ? "Pausar" : "Reproduzir"}
                     >
                       {videoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                     </button>
                     <button
                       onClick={toggleMainMute}
-                      className="pointer-events-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
                       aria-label={videoMuted ? "Ativar som" : "Silenciar"}
                     >
                       {videoMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>
                     <button
                       onClick={toggleMainFullscreen}
-                      className="pointer-events-auto ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center"
+                      className="ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
                       aria-label="Tela cheia"
                     >
                       <Maximize className="w-5 h-5" />
