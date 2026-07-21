@@ -1084,30 +1084,11 @@ const Ferramentammmr = () => {
             Não perca essa <span className="text-green-400">oportunidade única!</span>
           </h2>
           
-          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
-            <Timer className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 animate-pulse" />
-            <span className="text-base sm:text-xl font-bold">
-              Oferta expira em{" "}
-              <span className="text-red-500 font-mono">
-                {promoTimeLeft.expired ? "EXPIRADO" : 
-                  `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-                }
-              </span>
-            </span>
-          </div>
-          
-          <Button 
-            onClick={() => {
-              if (promoTimeLeft.expired) {
-                toast.error("Promoção expirada!");
-                return;
-              }
-              setShowCheckoutModal(true);
-            }}
-            disabled={promoTimeLeft.expired}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30 disabled:opacity-50"
+          <Button
+            onClick={scrollToPricing}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
+            VER OS PLANOS
           </Button>
         </div>
       </section>
