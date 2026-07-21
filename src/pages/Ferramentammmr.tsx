@@ -1190,7 +1190,7 @@ const Ferramentammmr = () => {
               
               <Button
                 type="submit"
-                disabled={loading || promoTimeLeft.expired}
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 sm:py-6 rounded-xl text-sm sm:text-base"
               >
                 {loading ? (
