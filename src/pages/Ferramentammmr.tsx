@@ -602,32 +602,6 @@ const Ferramentammmr = () => {
         </div>
       </section>
 
-      {/* ====== MAIS RESULTADOS ZERO ANÚNCIOS ====== */}
-      <section className="py-12 sm:py-16 px-3 sm:px-4 bg-black">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">
-              💰 MAIS RESULTADOS, <span className="text-red-400">ZERO ANÚNCIOS</span>
-            </h2>
-            <p className="text-gray-400 text-sm sm:text-lg">Com a MRO Inteligente V8.6 você:</p>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {[
-              { icon: Rocket, text: "Aumenta seu engajamento", gradient: "from-blue-600 to-cyan-600", glow: "shadow-blue-500/30" },
-              { icon: Users, text: "Ganha seguidores qualificados", gradient: "from-purple-600 to-pink-600", glow: "shadow-purple-500/30" },
-              { icon: CreditCard, text: "Converte mais clientes", gradient: "from-green-600 to-emerald-600", glow: "shadow-green-500/30" },
-              { icon: X, text: "Sem tráfego pago", gradient: "from-red-600 to-orange-600", glow: "shadow-red-500/30" },
-            ].map((item, i) => (
-              <div key={i} className="text-center group">
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-xl ${item.glow} group-hover:scale-110 transition-transform`}>
-                  <item.icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                </div>
-                <p className="text-white font-bold text-sm sm:text-lg">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Guarantee Section */}
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
