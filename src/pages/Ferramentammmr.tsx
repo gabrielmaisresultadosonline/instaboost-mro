@@ -390,32 +390,12 @@ const Ferramentammmr = () => {
       )}
       */}
 
-      {/* Urgency Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-          <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
-            🎁 VOCÊ RECEBEU UM DESCONTO ESPECIAL! Aproveite em{" "}
-            <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
-              {promoTimeLeft.expired ? "EXPIRADO" : 
-                `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-              }
-            </span>
-          </span>
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-        </div>
-      </div>
-
       {/* Header removido conforme solicitação */}
 
       {/* Hero Section */}
-      <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
+      <section className="relative pt-8 sm:pt-12 md:pt-16 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
-            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
-          </div>
+
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
