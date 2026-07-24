@@ -34,7 +34,7 @@ const sendDiscountEmail = async (to: string, nome: string) => {
 </td></tr>
 <tr><td style="padding:30px;">
 <p style="margin:0 0 16px 0;font-size:16px;">Ola <strong>${firstName}</strong>,</p>
-<p style="margin:0 0 16px 0;font-size:16px;">Voce assistiu mais de 50% da nossa apresentacao &mdash; e por isso liberamos seu acesso direto ao desconto exclusivo da ferramenta MRO.</p>
+<p style="margin:0 0 16px 0;font-size:16px;">Voce assistiu mais de 60% da nossa apresentacao &mdash; e por isso liberamos seu acesso direto ao desconto exclusivo da ferramenta MRO.</p>
 <p style="margin:0 0 16px 0;font-size:16px;">A MRO e uma ferramenta <strong>automatica</strong>: ensinamos voce todo o passo a passo para gerar renda extra prestando servico em casa, usando apenas seu notebook. Voce pode deixar a ferramenta trabalhando ate enquanto dorme.</p>
 <div style="text-align:center;margin:30px 0;">
 <a href="${link}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">ACESSAR MEU DESCONTO</a>
