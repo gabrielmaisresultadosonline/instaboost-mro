@@ -168,7 +168,7 @@ const RendaExtraDescontoPromoPage = () => {
     setLoading(true);
 
     try {
-      const plan = planConfig[selectedPlan];
+      const plan = planConfig;
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
@@ -199,7 +199,7 @@ const RendaExtraDescontoPromoPage = () => {
       }
 
       // Track InitiateCheckout when redirecting to payment
-      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig[selectedPlan].label}`, planConfig[selectedPlan].amount);
+      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig.label}`, planConfig.amount);
       
       // Redirecionar diretamente para o checkout (funciona melhor no mobile)
       window.location.href = checkData.payment_link;
@@ -740,7 +740,6 @@ const RendaExtraDescontoPromoPage = () => {
               <Button
                 onClick={() => {
                   if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-                  setSelectedPlan('annual');
                   setShowCheckoutModal(true);
                 }}
                 disabled={promoTimeLeft.expired}
@@ -802,7 +801,6 @@ const RendaExtraDescontoPromoPage = () => {
           <Button 
             onClick={() => {
               if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-              setSelectedPlan('annual');
               scrollToPricing();
             }}
             disabled={promoTimeLeft.expired}
@@ -856,9 +854,9 @@ const RendaExtraDescontoPromoPage = () => {
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                {planConfig[selectedPlan].priceDisplay}
+                {planConfig.priceDisplay}
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">{planConfig[selectedPlan].durationDisplay}</p>
+              <p className="text-gray-400 text-xs sm:text-sm">{planConfig.durationDisplay}</p>
             </div>
 
 
