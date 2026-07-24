@@ -34,7 +34,7 @@ const sendDiscountEmail = async (to: string, nome: string) => {
 </td></tr>
 <tr><td style="padding:30px;">
 <p style="margin:0 0 16px 0;font-size:16px;">Ola <strong>${firstName}</strong>,</p>
-<p style="margin:0 0 16px 0;font-size:16px;">Voce assistiu mais de 50% da nossa apresentacao &mdash; e por isso liberamos seu acesso direto ao desconto exclusivo da ferramenta MRO.</p>
+<p style="margin:0 0 16px 0;font-size:16px;">Voce assistiu mais de 60% da nossa apresentacao &mdash; e por isso liberamos seu acesso direto ao desconto exclusivo da ferramenta MRO.</p>
 <p style="margin:0 0 16px 0;font-size:16px;">A MRO e uma ferramenta <strong>automatica</strong>: ensinamos voce todo o passo a passo para gerar renda extra prestando servico em casa, usando apenas seu notebook. Voce pode deixar a ferramenta trabalhando ate enquanto dorme.</p>
 <div style="text-align:center;margin:30px 0;">
 <a href="${link}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:30px;font-size:17px;font-weight:bold;">ACESSAR MEU DESCONTO</a>
@@ -151,10 +151,10 @@ serve(async (req) => {
         desconto_last_access_at: new Date().toISOString(),
       };
       let emailJustSent = false;
-      if (newPct >= 75 && !lead.desconto_unlocked_at) {
+      if (newPct >= 60 && !lead.desconto_unlocked_at) {
         patch.desconto_unlocked_at = new Date().toISOString();
       }
-      if (newPct >= 75 && !(lead as any).desconto_email_sent_at) {
+      if (newPct >= 60 && !(lead as any).desconto_email_sent_at) {
         patch.desconto_email_sent_at = new Date().toISOString();
         emailJustSent = true;
       }
@@ -169,7 +169,7 @@ serve(async (req) => {
 
     if (action === "unlock_and_send") {
       const patch: Record<string, unknown> = {
-        desconto_video_percent: Math.max(75, lead.desconto_video_percent || 0),
+        desconto_video_percent: Math.max(60, lead.desconto_video_percent || 0),
         desconto_last_access_at: new Date().toISOString(),
       };
       if (!lead.desconto_unlocked_at) patch.desconto_unlocked_at = new Date().toISOString();
@@ -197,7 +197,7 @@ serve(async (req) => {
     }
 
     if (action === "check_access") {
-      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 75;
+      const allowed = !!lead.desconto_unlocked_at || (lead.desconto_video_percent || 0) >= 60;
       return new Response(
         JSON.stringify({ success: true, allowed, name: lead.nome_completo, email: lead.email }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
