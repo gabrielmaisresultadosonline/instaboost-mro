@@ -45,7 +45,7 @@ const RendaExtraDescontoPage = () => {
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<number | null>(null);
 
-  const UNLOCK_PERCENT = 0.9;
+  const UNLOCK_PERCENT = 0.6;
   const CONTROLS_HIDE_MS = 3 * 1000;
 
   const revealControls = () => {
@@ -78,7 +78,7 @@ const RendaExtraDescontoPage = () => {
         localStorage.setItem('rendaextra-desconto:email', data.email);
         localStorage.setItem('rendaextra-desconto:name', data.name || '');
       } catch {}
-      const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 75;
+      const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 60;
       try {
         if (serverUnlocked) {
           localStorage.setItem(unlockKeyFor(data.email), '1');
@@ -117,7 +117,7 @@ const RendaExtraDescontoPage = () => {
             } catch {}
             setLeadEmail(data.email);
             setMode('prestar');
-            const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 75;
+            const serverUnlocked = !!data.unlocked || (data.percent_watched || 0) >= 60;
             try {
               if (serverUnlocked) localStorage.setItem(unlockKeyFor(data.email), '1');
               else localStorage.removeItem(unlockKeyFor(data.email));

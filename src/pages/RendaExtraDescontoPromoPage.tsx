@@ -64,7 +64,7 @@ const RendaExtraDescontoPromoPage = () => {
   // Access gate: requires registered email with >=50% video watched on /rendaextra/desconto
   const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied'>('checking');
   const [accessName, setAccessName] = useState<string>('');
-  const [accessDenyReason, setAccessDenyReason] = useState<string>('Voce precisa assistir pelo menos 50% do video em /rendaextra/desconto para liberar essa pagina.');
+  const [accessDenyReason, setAccessDenyReason] = useState<string>('Voce precisa assistir pelo menos 60% do video em /rendaextra/desconto para liberar essa pagina.');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -85,7 +85,7 @@ const RendaExtraDescontoPromoPage = () => {
         return;
       }
       if (!data.allowed) {
-        setAccessDenyReason('Voce ainda nao assistiu 50% do video. Acesse /rendaextra/desconto para liberar.');
+        setAccessDenyReason('Voce ainda nao assistiu 60% do video. Acesse /rendaextra/desconto para liberar.');
         setAccessState('denied');
         return;
       }
