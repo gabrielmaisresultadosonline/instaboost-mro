@@ -244,29 +244,38 @@ const RendaExtraDescontoPromoPage = () => {
     fetchSettings();
   }, []);
 
-  // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
+  // Countdown de 7 horas - persiste no localStorage e expira de verdade
   useEffect(() => {
-    // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
     const PROMO_DURATION = 7 * 60 * 60 * 1000; // 7 horas em milissegundos
-    const promoEndTime = Date.now() + PROMO_DURATION;
-    
+    const STORAGE_KEY = 'rendaextra-desconto-promo:end-time';
+
+    let promoEndTime: number;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      promoEndTime = stored ? parseInt(stored, 10) : Date.now() + PROMO_DURATION;
+      if (!stored) {
+        localStorage.setItem(STORAGE_KEY, String(promoEndTime));
+      }
+    } catch {
+      promoEndTime = Date.now() + PROMO_DURATION;
+    }
+
     const updateCountdown = () => {
       const currentTime = Date.now();
       const diff = promoEndTime - currentTime;
-      
-      // Nunca expira - se chegar a 0, mostra 0:0:0 mas não marca como expirado
+
       if (diff <= 0) {
-        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
+        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
         return;
       }
-      
+
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
+
       setPromoTimeLeft({ hours, minutes, seconds, expired: false });
     };
-    
+
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
