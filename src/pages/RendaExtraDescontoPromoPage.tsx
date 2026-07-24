@@ -110,7 +110,6 @@ const RendaExtraDescontoPromoPage = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -118,9 +117,12 @@ const RendaExtraDescontoPromoPage = () => {
   const [loading, setLoading] = useState(false);
 
   const planConfig = {
-    monthly: { label: '30 dias por R$99', amount: 99, planType: 'monthly', priceDisplay: 'R$99', durationDisplay: '30 dias de acesso' },
-    annual: { label: '12x R$30 (R$300 à vista)', amount: 300, planType: 'annual', priceDisplay: 'R$300', durationDisplay: '1 ano completo' },
-  } as const;
+    label: '12x R$30 (R$300 à vista)',
+    amount: 300,
+    planType: 'annual',
+    priceDisplay: 'R$300',
+    durationDisplay: '1 ano completo',
+  };
 
 
   // Validar username: apenas letras minúsculas, sem espaços, sem números
@@ -166,7 +168,7 @@ const RendaExtraDescontoPromoPage = () => {
     setLoading(true);
 
     try {
-      const plan = planConfig[selectedPlan];
+      const plan = planConfig;
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
@@ -197,7 +199,7 @@ const RendaExtraDescontoPromoPage = () => {
       }
 
       // Track InitiateCheckout when redirecting to payment
-      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig[selectedPlan].label}`, planConfig[selectedPlan].amount);
+      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig.label}`, planConfig.amount);
       
       // Redirecionar diretamente para o checkout (funciona melhor no mobile)
       window.location.href = checkData.payment_link;
@@ -242,29 +244,38 @@ const RendaExtraDescontoPromoPage = () => {
     fetchSettings();
   }, []);
 
-  // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
+  // Countdown de 7 horas - persiste no localStorage e expira de verdade
   useEffect(() => {
-    // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
     const PROMO_DURATION = 7 * 60 * 60 * 1000; // 7 horas em milissegundos
-    const promoEndTime = Date.now() + PROMO_DURATION;
-    
+    const STORAGE_KEY = 'rendaextra-desconto-promo:end-time';
+
+    let promoEndTime: number;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      promoEndTime = stored ? parseInt(stored, 10) : Date.now() + PROMO_DURATION;
+      if (!stored) {
+        localStorage.setItem(STORAGE_KEY, String(promoEndTime));
+      }
+    } catch {
+      promoEndTime = Date.now() + PROMO_DURATION;
+    }
+
     const updateCountdown = () => {
       const currentTime = Date.now();
       const diff = promoEndTime - currentTime;
-      
-      // Nunca expira - se chegar a 0, mostra 0:0:0 mas não marca como expirado
+
       if (diff <= 0) {
-        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
+        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
         return;
       }
-      
+
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
+
       setPromoTimeLeft({ hours, minutes, seconds, expired: false });
     };
-    
+
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
@@ -317,15 +328,6 @@ const RendaExtraDescontoPromoPage = () => {
     "Vídeos estratégicos passo a passo",
     "Grupo VIP no WhatsApp",
     "Suporte prioritário"
-  ];
-
-  const monthlyFeatures = [
-    "Ferramenta completa para Instagram",
-    "Acesso a 4 contas simultâneas fixas",
-    "5 testes todo mês para testar em seus clientes/outras contas",
-    "Área de membros por 30 dias",
-    "Vídeos estratégicos passo a passo",
-    "Grupo VIP no WhatsApp",
   ];
 
 
@@ -738,7 +740,6 @@ const RendaExtraDescontoPromoPage = () => {
               <Button
                 onClick={() => {
                   if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-                  setSelectedPlan('annual');
                   setShowCheckoutModal(true);
                 }}
                 disabled={promoTimeLeft.expired}
@@ -800,7 +801,6 @@ const RendaExtraDescontoPromoPage = () => {
           <Button 
             onClick={() => {
               if (promoTimeLeft.expired) { toast.error("Promoção expirada!"); return; }
-              setSelectedPlan('annual');
               scrollToPricing();
             }}
             disabled={promoTimeLeft.expired}
@@ -854,9 +854,9 @@ const RendaExtraDescontoPromoPage = () => {
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                {planConfig[selectedPlan].priceDisplay}
+                {planConfig.priceDisplay}
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">{planConfig[selectedPlan].durationDisplay}</p>
+              <p className="text-gray-400 text-xs sm:text-sm">{planConfig.durationDisplay}</p>
             </div>
 
 
