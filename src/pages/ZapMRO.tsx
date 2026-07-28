@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download, ShieldAlert, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import logoMro from '@/assets/logo-mro.png';
