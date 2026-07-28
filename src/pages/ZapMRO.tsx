@@ -115,6 +115,93 @@ const ZapMRO = () => {
     loadZapmroModules();
   }, [isAuthenticated]);
 
+  // Verifica se a taxa de atualização (R$97) já foi paga
+  const checkFeeStatus = async (user: string, silent = true) => {
+    if (!user) return false;
+    if (!silent) setIsCheckingFee(true);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-upgrade-fee', {
+        body: { action: 'status', username: user }
+      });
+      const paid = data?.success && data?.paid === true;
+      setFeePaid(paid);
+      return paid;
+    } catch (error) {
+      console.error('[ZapMRO] Error checking fee:', error);
+      return false;
+    } finally {
+      setIsCheckingFee(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && username) {
+      checkFeeStatus(username);
+    }
+  }, [isAuthenticated, username]);
+
+  // Polling em tempo real enquanto o pagamento está em aberto
+  useEffect(() => {
+    if (!isWaitingPayment || feePaid || !username) return;
+
+    const interval = setInterval(async () => {
+      const paid = await checkFeeStatus(username);
+      if (paid) {
+        setIsWaitingPayment(false);
+        setShowFeeModal(false);
+        toast({
+          title: 'Pagamento confirmado! ✅',
+          description: 'Sua versão atualizada foi liberada. Faça o download!'
+        });
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isWaitingPayment, feePaid, username]);
+
+  const handlePayFee = async () => {
+    if (!email || !isEmailLocked) {
+      toast({
+        title: 'Cadastre seu e-mail primeiro',
+        description: 'Você precisa cadastrar seu e-mail acima antes de pagar a taxa',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsCreatingFee(true);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-upgrade-fee', {
+        body: { action: 'create_checkout', username, email }
+      });
+
+      if (data?.paid) {
+        setFeePaid(true);
+        setShowFeeModal(false);
+        toast({ title: 'Sua taxa já está paga! ✅' });
+        return;
+      }
+
+      if (data?.success && data?.payment_link) {
+        setFeeLink(data.payment_link);
+        setIsWaitingPayment(true);
+        window.open(data.payment_link, '_blank');
+        toast({
+          title: 'Pagamento aberto em nova aba',
+          description: 'Assim que o pagamento for confirmado o download libera automaticamente'
+        });
+      } else {
+        toast({ title: 'Erro ao gerar pagamento', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('[ZapMRO] Error creating fee checkout:', error);
+      toast({ title: 'Erro ao gerar pagamento', variant: 'destructive' });
+    } finally {
+      setIsCreatingFee(false);
+    }
+  };
+
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
