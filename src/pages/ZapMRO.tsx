@@ -658,18 +658,116 @@ const ZapMRO = () => {
             </p>
           </div>
 
-          {/* Download Link */}
+          {/* Download Link (com trava de taxa de atualização) */}
           {settings?.downloadLink && (
-            <div className="flex justify-center mb-8">
-              <Button 
-                onClick={() => window.open(settings.downloadLink, '_blank')}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2"
-              >
-                <Download className="w-5 h-5" />
-                Download ZAPMRO
-              </Button>
+            <div className="flex flex-col items-center gap-3 mb-8">
+              {feePaid && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-400/40">
+                  <Sparkles className="w-4 h-4 text-emerald-300" />
+                  <span className="text-emerald-200 text-sm font-semibold">
+                    Você está com a versão atualizada liberada! Faça download.
+                  </span>
+                </div>
+              )}
+
+              {isCheckingFee ? (
+                <Button disabled className="bg-green-800/60 text-green-200 gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Verificando liberação...
+                </Button>
+              ) : feePaid ? (
+                <Button
+                  onClick={() => window.open(settings.downloadLink, '_blank')}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2"
+                >
+                  <Download className="w-5 h-5" />
+                  Download ZAPMRO
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => setShowFeeModal(true)}
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white gap-2"
+                  >
+                    <Lock className="w-5 h-5" />
+                    Download bloqueado — Liberar por R$97
+                  </Button>
+                  <p className="text-amber-300/70 text-xs text-center max-w-md">
+                    Clique para entender a atualização obrigatória da extensão ZAPMRO.
+                  </p>
+                </>
+              )}
             </div>
           )}
+
+          {/* Modal da taxa de atualização */}
+          <Dialog open={showFeeModal} onOpenChange={setShowFeeModal}>
+            <DialogContent className="bg-green-950 border-green-700/50 text-white max-w-lg">
+              <DialogHeader>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center mb-2">
+                  <ShieldAlert className="w-6 h-6 text-white" />
+                </div>
+                <DialogTitle className="text-white text-xl">
+                  Atualização obrigatória da extensão ZAPMRO
+                </DialogTitle>
+                <DialogDescription className="text-green-200/80 leading-relaxed">
+                  Estamos com novidades da ferramenta do WhatsApp extensão ZAPMRO. Devido às últimas
+                  atualizações do WhatsApp precisamos atualizar muito nosso servidor internamente,
+                  então todos precisamos fazer um reajuste e cobrar uma taxa única de <strong className="text-amber-300">R$97</strong> para
+                  continuar usando sua versão vitalícia.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3">
+                {!isEmailLocked ? (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-amber-200 text-sm">
+                    Cadastre seu e-mail no topo da página antes de realizar o pagamento. A liberação
+                    é vinculada ao seu e-mail e usuário.
+                  </div>
+                ) : (
+                  <div className="bg-green-800/40 border border-green-600/30 rounded-lg p-3 text-sm">
+                    <span className="text-green-300">Pagamento vinculado a: </span>
+                    <span className="text-white font-medium">{email}</span>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handlePayFee}
+                  disabled={isCreatingFee || !isEmailLocked}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white gap-2"
+                >
+                  {isCreatingFee ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Gerando pagamento...
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="w-4 h-4" />
+                      Pagar R$97 e liberar download
+                    </>
+                  )}
+                </Button>
+
+                {isWaitingPayment && (
+                  <div className="flex items-center gap-2 justify-center text-green-300 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Aguardando confirmação do pagamento em tempo real...
+                  </div>
+                )}
+
+                {feeLink && (
+                  <button
+                    onClick={() => window.open(feeLink, '_blank')}
+                    className="w-full text-green-300/70 text-xs underline"
+                  >
+                    Reabrir link de pagamento
+                  </button>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
 
           {/* Loading State */}
           {isLoadingModules && (
