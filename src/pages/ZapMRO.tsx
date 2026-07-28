@@ -710,11 +710,24 @@ const ZapMRO = () => {
                 <DialogTitle className="text-white text-xl">
                   Atualização obrigatória da extensão ZAPMRO
                 </DialogTitle>
-                <DialogDescription className="text-green-200/80 leading-relaxed">
-                  Estamos com novidades da ferramenta do WhatsApp extensão ZAPMRO. Devido às últimas
-                  atualizações do WhatsApp precisamos atualizar muito nosso servidor internamente,
-                  então todos precisamos fazer um reajuste e cobrar uma taxa única de <strong className="text-amber-300">R$97</strong> para
-                  continuar usando sua versão vitalícia.
+                <DialogDescription asChild className="text-green-200/80 leading-relaxed">
+                  <div className="space-y-3">
+                    <p>
+                      Nos últimos meses, o WhatsApp realizou diversas alterações em sua plataforma, exigindo mudanças significativas na infraestrutura da extensão ZAPMRO para manter seu funcionamento com segurança, estabilidade e compatibilidade.
+                    </p>
+                    <p>
+                      Para acompanhar essas mudanças, foi necessário realizar uma atualização completa em nossos servidores, desenvolver novos recursos internos e adaptar toda a comunicação da extensão com o WhatsApp. Essa atualização envolve custos contínuos de desenvolvimento, infraestrutura e manutenção.
+                    </p>
+                    <p>
+                      Por esse motivo, todos os clientes com <strong className="text-amber-300">licença vitalícia</strong> precisarão realizar um <strong className="text-amber-300">reajuste único de R$ 97,00</strong>. Esse valor não é uma mensalidade, mas sim uma taxa destinada a cobrir a atualização da infraestrutura e garantir que sua licença vitalícia continue ativa e recebendo suporte e futuras melhorias.
+                    </p>
+                    <p>
+                      Após o pagamento da taxa única de <strong className="text-amber-300">R$ 97,00</strong>, sua licença vitalícia permanecerá ativa normalmente, permitindo que você continue utilizando a extensão ZAPMRO com todas as atualizações necessárias para acompanhar as mudanças do WhatsApp.
+                    </p>
+                    <p>
+                      Agradecemos pela compreensão e confiança. Essa medida é fundamental para garantir a continuidade e a qualidade do serviço que oferecemos.
+                    </p>
+                  </div>
                 </DialogDescription>
               </DialogHeader>
 
