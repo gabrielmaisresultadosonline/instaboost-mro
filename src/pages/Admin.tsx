@@ -216,6 +216,7 @@ const Admin = () => {
     { id: 'scraper', label: 'Scraper Manual', icon: <Globe className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'zapmro', label: 'ZAPMRO Ferramenta', icon: <MessageCircle className="w-4 h-4" /> },
+    { id: 'zapmro_taxas', label: 'ZAPMRO Taxas Pagas', icon: <CheckCircle className="w-4 h-4" /> },
     { id: 'estrutura', label: 'Estrutura Tutoriais', icon: <Video className="w-4 h-4" /> },
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
