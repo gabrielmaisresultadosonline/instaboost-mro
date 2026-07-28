@@ -952,13 +952,12 @@ const Admin = () => {
 
         {/* ZAPMRO Ferramenta Tab */}
         {activeTab === 'zapmro' && (
-          <ModuleManager 
+          <ZapmroToolPanel
             downloadLink={zapmroDownloadLink}
             onDownloadLinkChange={(link) => setZapmroDownloadLink(link)}
             onSaveSettings={() => {
               toast({ title: "Link salvo!", description: "Link de download ZAPMRO salvo." });
             }}
-            platform="zapmro"
           />
         )}
 
