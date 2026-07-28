@@ -41,6 +41,14 @@ const ZapMRO = () => {
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [showAnnouncements, setShowAnnouncements] = useState(true);
+
+  // Taxa de atualização (R$97) para liberar o download
+  const [feePaid, setFeePaid] = useState(false);
+  const [isCheckingFee, setIsCheckingFee] = useState(true);
+  const [showFeeModal, setShowFeeModal] = useState(false);
+  const [feeLink, setFeeLink] = useState<string | null>(null);
+  const [isCreatingFee, setIsCreatingFee] = useState(false);
+  const [isWaitingPayment, setIsWaitingPayment] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
