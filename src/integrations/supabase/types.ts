@@ -7079,6 +7079,45 @@ export type Database = {
         }
         Relationships: []
       }
+      zapmro_upgrade_fees: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          id: string
+          infinitepay_link: string | null
+          nsu_order: string
+          paid_at: string | null
+          status: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       zapmro_users: {
         Row: {
           created_at: string
