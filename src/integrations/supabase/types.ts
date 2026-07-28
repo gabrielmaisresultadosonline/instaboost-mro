@@ -7022,6 +7022,51 @@ export type Database = {
         }
         Relationships: []
       }
+      zapmro_announcements: {
+        Row: {
+          content: string | null
+          created_at: string
+          display_duration: number
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_blocking: boolean
+          start_date: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          display_duration?: number
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_blocking?: boolean
+          start_date?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          display_duration?: number
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_blocking?: boolean
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       zapmro_orders: {
         Row: {
           amount: number
@@ -7124,8 +7169,12 @@ export type Database = {
           days_remaining: number | null
           email: string | null
           email_locked: boolean | null
+          expires_at: string | null
           id: string
+          is_active: boolean
           last_access: string | null
+          name: string | null
+          password_hash: string | null
           updated_at: string
           username: string
         }
@@ -7134,8 +7183,12 @@ export type Database = {
           days_remaining?: number | null
           email?: string | null
           email_locked?: boolean | null
+          expires_at?: string | null
           id?: string
+          is_active?: boolean
           last_access?: string | null
+          name?: string | null
+          password_hash?: string | null
           updated_at?: string
           username: string
         }
@@ -7144,8 +7197,12 @@ export type Database = {
           days_remaining?: number | null
           email?: string | null
           email_locked?: boolean | null
+          expires_at?: string | null
           id?: string
+          is_active?: boolean
           last_access?: string | null
+          name?: string | null
+          password_hash?: string | null
           updated_at?: string
           username?: string
         }
