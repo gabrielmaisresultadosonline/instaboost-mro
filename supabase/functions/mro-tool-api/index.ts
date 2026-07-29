@@ -404,7 +404,7 @@ serve(async (req) => {
         });
         await supabase.from("mro_tool_users").update({ trials_used: user.trials_used + 1 }).eq("id", user.id);
         user = { ...user, trials_used: user.trials_used + 1 };
-        return json({ success: true, trial: true, trial_expires_at: expires, ...(await fullPayload(user)) });
+        return json({ success: true, trial: true, trial_hours: trialHours, trial_expires_at: expires, ...(await fullPayload(user)) });
       }
 
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
