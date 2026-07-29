@@ -8,7 +8,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const INSTAGRAM_API_URL = "https://dashboardmroinstagramvini-online.squareweb.app";
 
 const log = (step: string, details?: unknown) => {
   const timestamp = new Date().toISOString();
