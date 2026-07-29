@@ -308,6 +308,9 @@ export default function HubProductsPanel() {
           );
         })}
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+
