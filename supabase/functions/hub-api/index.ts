@@ -643,12 +643,13 @@ serve(async (req) => {
 
       // Bloqueios
       for (const b of blocked) {
-        const key = keyOf(b.email as string, b.username as string);
-        const u = users.get(key);
+        const e = norm(b.email as string);
+        const un = norm(b.username as string);
+        const u = (e ? aliasIndex.get(`e:${e}`) : undefined) || (un ? aliasIndex.get(`u:${un}`) : undefined);
         if (u) u.blocked = true;
       }
 
-      const list = Array.from(users.values()).map((u) => ({
+      const list = allUsers().map((u) => ({
         ...u,
         products: productList.map((p) => {
           const manualEntry = u.access[`product:${p.id}`];
