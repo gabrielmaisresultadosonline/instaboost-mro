@@ -844,3 +844,11 @@ export const loginAdmin = async (email: string, password: string): Promise<{ suc
 export const logoutAdmin = async (): Promise<void> => {
   localStorage.removeItem('mro_admin_session');
 };
+
+// Returns the Posts com IA / painel admin credentials when the main admin
+// session is active. Used to auto-login embedded admin panels without
+// asking the operator to sign in twice.
+export const getAdminCredentials = (): { email: string; password: string } | null => {
+  if (!isAdminLoggedIn()) return null;
+  return { email: ADMIN_EMAIL.toLowerCase(), password: ADMIN_PASSWORD };
+};
