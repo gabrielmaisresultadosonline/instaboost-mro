@@ -30,6 +30,8 @@ import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
+import HubProductsPanel from '@/components/admin/HubProductsPanel';
+
 import MroToolPanel from '@/components/admin/MroToolPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import ExtensionDocs from '@/components/admin/ExtensionDocs';
@@ -40,8 +42,11 @@ import {
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
   Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome, Key
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome, Key,
+  Package,
+
 } from 'lucide-react';
+
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -60,7 +65,7 @@ import {
 import { cn } from "@/lib/utils";
 
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension' | 'lovable_extension';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension' | 'lovable_extension' | 'hub';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -211,6 +216,8 @@ const Admin = () => {
 
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+    { id: 'hub', label: 'Dashboard Produtos', icon: <Package className="w-4 h-4" /> },
+
     { id: 'partners', label: 'Parceiros', icon: <UserPlus className="w-4 h-4" /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
     { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
@@ -966,6 +973,10 @@ const Admin = () => {
 
         {/* ZAPMRO Taxas Pagas Tab */}
         {activeTab === 'zapmro_taxas' && <ZapmroFeesPanel />}
+
+        {/* Dashboard Produtos Tab */}
+        {activeTab === 'hub' && <HubProductsPanel />}
+
 
 
 

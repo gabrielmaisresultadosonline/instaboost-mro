@@ -204,12 +204,28 @@ serve(async (req) => {
     let isSalaoBelOrder = false;
     let isDeliveryOrder = false;
     let isLocalVppOrder = false;
+    let isHubOrder = false;
+    let hubSlug: string | null = null;
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
 
+        // Dashboard (hub de produtos) — formato: HUB_{slug}_{email}
+        if (itemName.startsWith("HUB_")) {
+          isHubOrder = true;
+          const rest = itemName.slice(4);
+          const sep = rest.lastIndexOf("_");
+          if (sep > 0) {
+            hubSlug = rest.slice(0, sep);
+            email = rest.slice(sep + 1).toLowerCase();
+          }
+          log("Parsed HUB order", { hubSlug, email });
+          break;
+        }
+
         if (itemName.startsWith("LOCALVPP_")) {
+
           isLocalVppOrder = true;
           email = itemName.replace("LOCALVPP_", "").toLowerCase();
           log("Parsed LOCALVPP order", { email });
@@ -311,7 +327,50 @@ serve(async (req) => {
       paid_amount
     });
 
+    // DASHBOARD (hub de produtos)
+    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && order_nsu.startsWith("HUB"))) {
+      log("Processing as HUB order", { order_nsu, email, hubSlug });
+
+      let hubOrder: Record<string, unknown> | null = null;
+      if (order_nsu) {
+        const r = await supabase.from("hub_orders").select("*").eq("nsu_order", order_nsu).maybeSingle();
+        hubOrder = r.data;
+      }
+      if (!hubOrder && email) {
+        const r = await supabase
+          .from("hub_orders")
+          .select("*")
+          .eq("email", email)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        hubOrder = r.data;
+      }
+
+      if (hubOrder) {
+        await supabase
+          .from("hub_orders")
+          .update({ status: "paid", paid_at: new Date().toISOString() })
+          .eq("id", hubOrder.id as string);
+
+        if (hubOrder.product_id) {
+          await supabase.from("hub_access").insert({
+            product_id: hubOrder.product_id as string,
+            email: (hubOrder.email as string) || email,
+            source: "purchase",
+          });
+        }
+        log("HUB order paid + access granted", { id: hubOrder.id });
+      } else {
+        log("HUB order not found", { order_nsu, email });
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "HUB confirmed" }), { status: 200, headers: corsHeaders });
+    }
+
     // VENDER NA INTERNET orders
+
     if (isVenderOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("VENDER"))) {
       log("Processing as VENDER order", { order_nsu, email });
 

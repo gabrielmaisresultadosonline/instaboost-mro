@@ -2376,6 +2376,198 @@ export type Database = {
         }
         Relationships: []
       }
+      hub_access: {
+        Row: {
+          created_at: string
+          email: string | null
+          expires_at: string | null
+          id: string
+          product_id: string
+          source: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          expires_at?: string | null
+          id?: string
+          product_id: string
+          source?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          expires_at?: string | null
+          id?: string
+          product_id?: string
+          source?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_access_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "hub_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hub_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          id: string
+          infinitepay_link: string | null
+          name: string | null
+          nsu_order: string | null
+          paid_at: string | null
+          product_id: string | null
+          product_slug: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          id?: string
+          infinitepay_link?: string | null
+          name?: string | null
+          nsu_order?: string | null
+          paid_at?: string | null
+          product_id?: string | null
+          product_slug?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          id?: string
+          infinitepay_link?: string | null
+          name?: string | null
+          nsu_order?: string | null
+          paid_at?: string | null
+          product_id?: string | null
+          product_slug?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "hub_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hub_product_tutorials: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          download_url: string | null
+          id: string
+          is_active: boolean
+          order_index: number
+          product_id: string
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          product_id: string
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          product_id?: string
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_product_tutorials_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "hub_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hub_products: {
+        Row: {
+          access_source: string
+          app_route: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          order_index: number
+          price: number
+          sales_page_url: string | null
+          slug: string
+          thumb_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_source?: string
+          app_route?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          price?: number
+          sales_page_url?: string | null
+          slug: string
+          thumb_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_source?: string
+          app_route?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          price?: number
+          sales_page_url?: string | null
+          slug?: string
+          thumb_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       infinitepay_webhook_logs: {
         Row: {
           affiliate_id: string | null
