@@ -64,22 +64,37 @@ const emptyTutorial = (productId: string): HubTutorialRow => ({
 export default function HubProductsPanel() {
   const { toast } = useToast();
   const [products, setProducts] = useState<HubProductRow[]>([]);
-  const [tutorials, setTutorials] = useState<HubTutorialRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<HubProductRow | null>(null);
-  const [tutorialDraft, setTutorialDraft] = useState<HubTutorialRow | null>(null);
   // Produto cuja área de membros (módulos) está aberta para edição
   const [membersFor, setMembersFor] = useState<string | null>(null);
   const [hubDownloadLinks, setHubDownloadLinks] = useState<Record<string, string>>({});
+  // Quantidade de módulos publicados por slug (para exibir a tarja "Área de membros ativa")
+  const [membersCount, setMembersCount] = useState<Record<string, number>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await supabase.functions.invoke("hub-api", { body: { action: "admin_list_products" } });
       if (data?.success) {
-        setProducts(data.products || []);
-        setTutorials(data.tutorials || []);
+        const list: HubProductRow[] = data.products || [];
+        setProducts(list);
+
+        // Verifica quais produtos já possuem área de membros publicada
+        const entries = await Promise.all(
+          list
+            .filter((p) => !!p.slug)
+            .map(async (p) => {
+              try {
+                const cloud = await loadModulesFromCloud(`hub-${p.slug}` as ModulePlatform);
+                return [p.slug, cloud?.modules?.length || 0] as const;
+              } catch {
+                return [p.slug, 0] as const;
+              }
+            })
+        );
+        setMembersCount(Object.fromEntries(entries));
       }
     } finally {
       setLoading(false);
