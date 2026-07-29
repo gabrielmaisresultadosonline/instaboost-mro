@@ -149,7 +149,7 @@ const MeuNegocioPage = () => {
                     style={{ animation: 'pulse-emerald 2s infinite' }}
                     onClick={() => {
                       localStorage.setItem('mro_force_registration', 'true');
-                      navigate('/instagram');
+                      navigate('/instagram/painel');
                     }}
                   >
                     CADASTRAR E ANALISAR <ArrowRight className="w-5 h-5 ml-2" />
