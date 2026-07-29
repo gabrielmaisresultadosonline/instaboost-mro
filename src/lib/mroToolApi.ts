@@ -82,6 +82,15 @@ export const mroToolApi = async (
   }
 };
 
+/** Login pela API interna (substitui a antiga SquareCloud). */
+export const mroLogin = (username: string, password: string, instagram?: string) =>
+  mroToolApi({
+    action: 'login',
+    username: String(username || '').trim().toLowerCase(),
+    password: String(password || ''),
+    ...(instagram ? { instagram: normalizeIG(instagram) } : {}),
+  });
+
 /** Dados completos do usuário (plano, contas fixas, testes e slots). */
 export const mroVerifyUser = (username: string) =>
   mroToolApi({ action: 'verify_user', username: String(username || '').trim().toLowerCase() });
