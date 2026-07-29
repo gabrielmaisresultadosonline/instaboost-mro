@@ -249,7 +249,7 @@ const MroUsersPanel: React.FC = () => {
 
       {/* Lista */}
       <div className="space-y-3">
-        {filtered.map((u) => {
+        {visible.map((u) => {
           const isOpen = expanded === u.id;
           const slotsUsed = u.accounts.length;
           const full = slotsUsed >= u.plan_accounts;
