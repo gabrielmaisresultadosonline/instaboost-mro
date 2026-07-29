@@ -144,8 +144,12 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    if (session) loadProducts(session);
-  }, [session, loadProducts]);
+    if (session) {
+      loadProducts(session);
+      loadProfile(session);
+    }
+  }, [session, loadProducts, loadProfile]);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
