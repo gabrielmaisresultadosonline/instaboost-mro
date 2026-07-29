@@ -17,6 +17,7 @@ const LIFETIME_DAYS = 999999;
 /** Testes gratuitos por mês, cada um com duração de 1 dia. */
 const MONTHLY_TRIALS = 5;
 const DEFAULT_PLAN_ACCOUNTS = 4;
+const PAGE_SIZE = 1000;
 
 /** SHA-256 (Web Crypto) — mesmo padrão usado nas demais APIs do projeto. */
 async function sha256(value: string): Promise<string> {
@@ -49,6 +50,33 @@ interface MroAccountRow {
   is_trial: boolean;
   trial_expires_at: string | null;
   created_at: string;
+}
+
+interface ProfileScreenshotRow {
+  squarecloud_username: string | null;
+  instagram_username: string | null;
+  profile_screenshot_url: string | null;
+  updated_at: string | null;
+}
+
+async function fetchAllRows<Row>(
+  queryFactory: () => { range: (from: number, to: number) => PromiseLike<{ data: Row[] | null; error: { message: string } | null }> },
+): Promise<{ data: Row[]; error: string | null }> {
+  const rows: Row[] = [];
+
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await queryFactory().range(from, to);
+
+    if (error) return { data: rows, error: error.message };
+
+    const page = data || [];
+    rows.push(...page);
+
+    if (page.length < PAGE_SIZE) break;
+  }
+
+  return { data: rows, error: null };
 }
 
 const monthStart = () => {
@@ -268,24 +296,36 @@ serve(async (req) => {
       const nowIso = new Date().toISOString();
       await supabase.from("mro_tool_accounts").delete().eq("is_trial", true).lt("trial_expires_at", nowIso);
 
-      const { data: users, error } = await supabase
-        .from("mro_tool_users")
-        .select("*")
-        .order("created_at", { ascending: true });
-      if (error) return json({ success: false, error: error.message }, 500);
+      const { data: users, error: usersError } = await fetchAllRows<MroUserRow>(() =>
+        supabase
+          .from("mro_tool_users")
+          .select("*")
+          .order("created_at", { ascending: true }),
+      );
+      if (usersError) return json({ success: false, error: usersError }, 500);
 
-      const { data: accounts } = await supabase.from("mro_tool_accounts").select("*");
+      const { data: accounts, error: accountsError } = await fetchAllRows<MroAccountRow>(() =>
+        supabase
+          .from("mro_tool_accounts")
+          .select("*")
+          .order("created_at", { ascending: true }),
+      );
+      if (accountsError) return json({ success: false, error: accountsError }, 500);
 
       // Prints capturados na área /instagram (squarecloud_user_profiles)
-      const { data: profiles } = await supabase
-        .from("squarecloud_user_profiles")
-        .select("squarecloud_username, instagram_username, profile_screenshot_url, updated_at");
+      const { data: profiles, error: profilesError } = await fetchAllRows<ProfileScreenshotRow>(() =>
+        supabase
+          .from("squarecloud_user_profiles")
+          .select("squarecloud_username, instagram_username, profile_screenshot_url, updated_at")
+          .order("updated_at", { ascending: false }),
+      );
+      if (profilesError) return json({ success: false, error: profilesError }, 500);
 
       const shotKey = (user: string, ig: string) =>
         `${String(user || "").toLowerCase().trim()}::${String(ig || "").toLowerCase().replace("@", "").trim()}`;
       const shots = new Map<string, string>();
       const shotsByIg = new Map<string, string>();
-      for (const p of ((profiles || []) as Array<Record<string, string | null>>)) {
+      for (const p of profiles) {
         if (!p.profile_screenshot_url) continue;
         shots.set(shotKey(p.squarecloud_username || "", p.instagram_username || ""), p.profile_screenshot_url);
         shotsByIg.set(
@@ -295,13 +335,13 @@ serve(async (req) => {
       }
 
       const byUser = new Map<string, MroAccountRow[]>();
-      for (const a of ((accounts || []) as MroAccountRow[])) {
+      for (const a of accounts) {
         const list = byUser.get(a.user_id) || [];
         list.push(a);
         byUser.set(a.user_id, list);
       }
 
-      const result = ((users || []) as MroUserRow[]).map((u) => {
+      const result = users.map((u) => {
         const list = byUser.get(u.id) || [];
         const { password_hash, ...rest } = u as any;
         const withShots = list.map((a) => {
