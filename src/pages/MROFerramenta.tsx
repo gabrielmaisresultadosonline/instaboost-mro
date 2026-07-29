@@ -30,6 +30,8 @@ const MROFerramenta = () => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [embed] = useState(() => isEmbedMode());
+  const [embedError, setEmbedError] = useState<string | null>(null);
 
   // Check authentication on mount
   useEffect(() => {
@@ -40,6 +42,53 @@ const MROFerramenta = () => {
     };
     checkAuth();
   }, []);
+
+  // Embed mode: hidrata a sessão via query string ou postMessage (extensão / site externo)
+  useEffect(() => {
+    if (!embed) return;
+
+    let cancelled = false;
+
+    const authenticate = async ({ username, password }: EmbedCredentials) => {
+      if (cancelled) return;
+      setCheckingAuth(true);
+      setEmbedError(null);
+      try {
+        const result = await loginToSquare(username.trim(), password.trim());
+        if (!result.success) {
+          throw new Error(result.message || 'Credenciais inválidas');
+        }
+        await loginUser(username.trim(), result.daysRemaining || 365, undefined, password.trim());
+        if (cancelled) return;
+        setIsAuthenticated(true);
+        scrubEmbedUrl();
+        postToHost({ type: 'MRO_EMBED_AUTH_RESULT', success: true, username: username.trim() });
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : 'Falha ao autenticar';
+        setEmbedError(message);
+        postToHost({ type: 'MRO_EMBED_AUTH_RESULT', success: false, error: message });
+      } finally {
+        if (!cancelled) setCheckingAuth(false);
+      }
+    };
+
+    // 1) Credenciais na URL
+    const urlCreds = readEmbedCredentialsFromUrl();
+    if (urlCreds && !getUserSession().isAuthenticated) {
+      void authenticate(urlCreds);
+    }
+
+    // 2) Credenciais via postMessage (host informa depois do load)
+    const stop = listenForEmbedCredentials(authenticate);
+    postToHost({ type: 'MRO_EMBED_READY' });
+
+    return () => {
+      cancelled = true;
+      stop();
+    };
+  }, [embed]);
+
 
   // Load modules from cloud on mount (only if authenticated)
   useEffect(() => {
