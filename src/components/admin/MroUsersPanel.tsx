@@ -18,6 +18,8 @@ export interface MroAccount {
   is_trial: boolean;
   trial_expires_at: string | null;
   created_at: string;
+  /** Print capturado na área /instagram (pode não existir). */
+  screenshot_url?: string | null;
 }
 
 export interface MroUser {
