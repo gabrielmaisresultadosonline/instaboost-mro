@@ -369,6 +369,13 @@ export const ZapmroUsersTab: React.FC = () => {
           ))}
         </div>
       )}
+      {!isLoading && hiddenCount > 0 && (
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={() => setShowAll(true)}>
+            Ver todos ({hiddenCount} restantes)
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
