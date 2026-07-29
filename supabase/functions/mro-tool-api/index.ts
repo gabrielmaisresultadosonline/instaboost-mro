@@ -412,9 +412,10 @@ serve(async (req) => {
         return json({
           success: false,
           limit_reached: true,
-          error: `Você não pode cadastrar mais contas do que o seu plano permite (${totalSlots(user)} contas). Faça upgrade ou use um dos testes gratuitos.`,
+          error: `Você não pode cadastrar mais nenhum perfil: o limite de ${totalSlots(user)} conta(s) já foi excedido. Entre em contato com o administrador para liberar contas extras.`,
         });
       }
+
 
       await supabase.from("mro_tool_accounts").insert({ user_id: user.id, instagram_username: instagram });
       return json({ success: true, ...(await fullPayload(user)) });
