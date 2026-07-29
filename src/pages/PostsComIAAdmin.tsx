@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, LogOut, RefreshCw, CheckCircle2, Trash2, DollarSign, Users, Clock, TrendingUp, Mail, Video, Plus, Pencil, X, UploadCloud, BarChart3, Settings, UserPlus, Eye } from "lucide-react";
 import HeroVideoVPSUploader from "@/components/HeroVideoVPSUploader";
+import { getAdminCredentials } from "@/lib/adminConfig";
 
 
 const STORAGE_KEY = "postscomia_admin_auth";
@@ -28,7 +29,12 @@ interface Stats {
   bumpCount: number;
 }
 
-export default function PostsComIAAdmin() {
+interface PostsComIAAdminProps {
+  /** When true, the panel is rendered inside /admin and auto-authenticates. */
+  embedded?: boolean;
+}
+
+export default function PostsComIAAdmin({ embedded = false }: PostsComIAAdminProps) {
   const [creds, setCreds] = useState<{ email: string; password: string } | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [pwInput, setPwInput] = useState("");
@@ -49,13 +55,25 @@ export default function PostsComIAAdmin() {
 
 
   useEffect(() => {
+    // Embedded inside /admin: the operator is already authenticated there,
+    // so reuse that session instead of asking for credentials again.
+    if (embedded) {
+      const bridged = getAdminCredentials();
+      if (bridged) {
+        setCreds(bridged);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(bridged));
+        } catch {}
+        return;
+      }
+    }
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         setCreds(JSON.parse(saved));
       } catch {}
     }
-  }, []);
+  }, [embedded]);
 
   useEffect(() => {
     if (creds) refresh();
@@ -248,12 +266,14 @@ export default function PostsComIAAdmin() {
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
               Atualizar
             </button>
-            <button
-              onClick={logout}
-              className="px-3 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-sm flex items-center gap-2 text-neutral-400"
-            >
-              <LogOut className="w-4 h-4" /> Sair
-            </button>
+            {!embedded && (
+              <button
+                onClick={logout}
+                className="px-3 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-sm flex items-center gap-2 text-neutral-400"
+              >
+                <LogOut className="w-4 h-4" /> Sair
+              </button>
+            )}
           </div>
         </div>
       </header>

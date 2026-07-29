@@ -960,7 +960,7 @@ const Admin = () => {
         {activeTab === 'postscomia' && (
           <div className="-m-4 md:-m-6">
             <Suspense fallback={<div className="p-8 text-muted-foreground">Carregando...</div>}>
-              <PostsComIAAdmin />
+              <PostsComIAAdmin embedded />
             </Suspense>
           </div>
         )}
