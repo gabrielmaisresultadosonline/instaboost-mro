@@ -158,11 +158,44 @@ const MeuNegocioPage = () => {
               </div>
             </div>
 
-            {/* Action 2: Dashboard */}
+            {/* Action 2: Tool */}
+            <div className="relative group p-1 rounded-[3rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent h-full">
+              <div className="h-full p-8 rounded-[2.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8">
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-2xl shadow-inner">02</div>
+                <div className="space-y-4">
+                  <h4 className="text-white font-black text-2xl uppercase italic leading-tight">FERRAMENTA MRO</h4>
+                  <p className="text-white/40 text-xs leading-relaxed font-medium">Acesso direto, utilize a ferramenta completa em seu navegador com as contas já vinculadas para automação total.</p>
+                  <div className="py-3 px-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center">
+                    <p className="text-blue-400 text-[10px] font-black uppercase tracking-wider italic">Software Instalado & Pronto</p>
+                  </div>
+                </div>
+                <div className="mt-auto pt-4">
+                  <Button 
+                    className={`w-full py-8 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all animate-shine ${
+                      hasRegisteredProfiles 
+                        ? 'bg-emerald-800 text-white hover:bg-emerald-700 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-500/30' 
+                        : 'bg-white/5 text-white/20 border border-white/10'
+                    }`}
+                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 2.5s infinite' } : {}}
+                    onClick={() => {
+                      if (!hasRegisteredProfiles) {
+                          toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
+                          return;
+                      }
+                      navigate('/mro-ferramenta');
+                    }}
+                  >
+                      INSTALAR E UTILIZAR <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action 3: Dashboard */}
             <div className="relative group p-1 rounded-[3rem] bg-gradient-to-br from-purple-500/20 via-transparent to-transparent h-full">
               <div className="h-full p-8 rounded-[2.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8">
                 <div className="flex justify-between items-start">
-                    <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-2xl shadow-inner">02</div>
+                    <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-2xl shadow-inner">03</div>
                     {hasRegisteredProfiles && (
                         <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 animate-pulse">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
@@ -198,50 +231,17 @@ const MeuNegocioPage = () => {
                         ? 'bg-emerald-800 text-white hover:bg-emerald-700 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-500/30' 
                         : 'bg-white/5 text-white/20 border border-white/10'
                     }`}
-                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 2.5s infinite' } : {}}
+                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 3s infinite' } : {}}
                     onClick={() => {
                         if (!hasRegisteredProfiles) {
                             toast({ variant: "destructive", title: "Nenhum perfil cadastrado", description: "Cadastre uma conta primeiro no Passo 01." });
                             return;
                         }
                         localStorage.setItem('mro_force_dashboard', 'true');
-                        navigate('/instagram');
+                        navigate('/instagram/painel');
                     }}
                   >
                       ACESSAR DASHBOARD <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Action 3: Tool */}
-            <div className="relative group p-1 rounded-[3rem] bg-gradient-to-br from-blue-500/20 via-transparent to-transparent h-full">
-              <div className="h-full p-8 rounded-[2.9rem] bg-[#0d0d16] border border-white/5 flex flex-col gap-8">
-                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-2xl shadow-inner">03</div>
-                <div className="space-y-4">
-                  <h4 className="text-white font-black text-2xl uppercase italic leading-tight">FERRAMENTA MRO</h4>
-                  <p className="text-white/40 text-xs leading-relaxed font-medium">Acesso direto, utilize a ferramenta completa em seu navegador com as contas já vinculadas para automação total.</p>
-                  <div className="py-3 px-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center">
-                    <p className="text-blue-400 text-[10px] font-black uppercase tracking-wider italic">Software Instalado & Pronto</p>
-                  </div>
-                </div>
-                <div className="mt-auto pt-4">
-                  <Button 
-                    className={`w-full py-8 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all animate-shine ${
-                      hasRegisteredProfiles 
-                        ? 'bg-emerald-800 text-white hover:bg-emerald-700 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-500/30' 
-                        : 'bg-white/5 text-white/20 border border-white/10'
-                    }`}
-                    style={hasRegisteredProfiles ? { animation: 'pulse-emerald 3s infinite' } : {}}
-                    onClick={() => {
-                      if (!hasRegisteredProfiles) {
-                          toast({ variant: "destructive", title: "Acesso bloqueado", description: "Você precisa cadastrar pelo menos 1 conta que vai utilizar do instagram para acessar essa etapa." });
-                          return;
-                      }
-                      navigate('/mro-ferramenta');
-                    }}
-                  >
-                      INSTALAR E UTILIZAR <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </div>
               </div>
