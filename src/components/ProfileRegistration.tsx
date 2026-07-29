@@ -106,9 +106,11 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   useEffect(() => {
     if (user?.email) {
       setEmail(user.email);
+      if (user?.isEmailLocked) setEmailLocked(true);
     }
     const igs = getRegisteredIGs();
     setRegisteredIGs(igs.map(ig => ig.username));
+
     
     const checkAndFixPartialData = async () => {
       if (user?.username && igs.length > 0 && !user?.email) {
