@@ -193,6 +193,15 @@ export const ZapmroUsersTab: React.FC = () => {
     );
   }, [users, search]);
 
+  /** Limite inicial de renderização para não sobrecarregar a página. */
+  const PAGE_SIZE = 50;
+  const [showAll, setShowAll] = useState(false);
+  const visible = useMemo(
+    () => (showAll || search.trim() ? filtered : filtered.slice(0, PAGE_SIZE)),
+    [filtered, showAll, search],
+  );
+  const hiddenCount = filtered.length - visible.length;
+
   return (
     <div className="space-y-6">
       <Card className="p-4 md:p-6 space-y-4">
