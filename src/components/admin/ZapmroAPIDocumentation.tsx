@@ -119,6 +119,40 @@ const ZapmroAPIDocumentation: React.FC = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Tipos de acesso (Vitalício, Anual e Mensal)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            O tipo de plano é identificado pelos campos <code className="text-xs">expires_at</code> e{' '}
+            <code className="text-xs">days_remaining</code> retornados no login/verificação. A ferramenta
+            externa deve interpretar assim:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {PLANS.map((plan) => (
+              <div key={plan.label} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{plan.label}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{plan.description}</p>
+                <pre className="text-[11px] bg-muted p-2 rounded overflow-x-auto">
+                  {JSON.stringify(plan.example, null, 2)}
+                </pre>
+              </div>
+            ))}
+          </div>
+          <div>
+            <p className="text-xs font-semibold mb-1">Como detectar no seu código</p>
+            <pre className="text-xs bg-muted p-3 rounded overflow-x-auto">{planSnippet}</pre>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => copy('plans', planSnippet)}>
+            {copied === 'plans' ? <Check className="w-3 h-3 mr-2" /> : <Copy className="w-3 h-3 mr-2" />}
+            Copiar exemplo
+          </Button>
+        </CardContent>
+      </Card>
+
       {ENDPOINTS.map((endpoint) => (
         <Card key={endpoint.action}>
           <CardHeader>
