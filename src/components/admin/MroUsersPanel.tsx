@@ -114,6 +114,15 @@ const MroUsersPanel: React.FC = () => {
     );
   }, [users, search]);
 
+  /** Limite inicial de renderização para não travar a página com muitos usuários. */
+  const PAGE_SIZE = 50;
+  const [showAll, setShowAll] = useState(false);
+  const visible = useMemo(
+    () => (showAll || search.trim() ? filtered : filtered.slice(0, PAGE_SIZE)),
+    [filtered, showAll, search],
+  );
+  const hiddenCount = filtered.length - visible.length;
+
   const handleSave = async () => {
     if (!form.username.trim()) {
       toast({ title: 'Usuário obrigatório', variant: 'destructive' });
@@ -240,7 +249,7 @@ const MroUsersPanel: React.FC = () => {
 
       {/* Lista */}
       <div className="space-y-3">
-        {filtered.map((u) => {
+        {visible.map((u) => {
           const isOpen = expanded === u.id;
           const slotsUsed = u.accounts.length;
           const full = slotsUsed >= u.plan_accounts;
@@ -366,6 +375,13 @@ const MroUsersPanel: React.FC = () => {
         })}
         {!loading && !filtered.length && (
           <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
+        )}
+        {!loading && hiddenCount > 0 && (
+          <div className="flex justify-center pt-2">
+            <Button variant="outline" onClick={() => setShowAll(true)}>
+              Ver todos ({hiddenCount} restantes)
+            </Button>
+          </div>
         )}
       </div>
 

@@ -193,6 +193,15 @@ export const ZapmroUsersTab: React.FC = () => {
     );
   }, [users, search]);
 
+  /** Limite inicial de renderização para não sobrecarregar a página. */
+  const PAGE_SIZE = 50;
+  const [showAll, setShowAll] = useState(false);
+  const visible = useMemo(
+    () => (showAll || search.trim() ? filtered : filtered.slice(0, PAGE_SIZE)),
+    [filtered, showAll, search],
+  );
+  const hiddenCount = filtered.length - visible.length;
+
   return (
     <div className="space-y-6">
       <Card className="p-4 md:p-6 space-y-4">
@@ -293,7 +302,7 @@ export const ZapmroUsersTab: React.FC = () => {
         <p className="text-center text-muted-foreground py-12">Nenhum usuário encontrado.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((user) => (
+          {visible.map((user) => (
             <Card key={user.id} className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -358,6 +367,13 @@ export const ZapmroUsersTab: React.FC = () => {
               </div>
             </Card>
           ))}
+        </div>
+      )}
+      {!isLoading && hiddenCount > 0 && (
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={() => setShowAll(true)}>
+            Ver todos ({hiddenCount} restantes)
+          </Button>
         </div>
       )}
     </div>
