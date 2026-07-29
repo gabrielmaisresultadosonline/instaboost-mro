@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Rocket, Briefcase, ArrowRight, Instagram, CheckSquare, X, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Rocket, Briefcase, ArrowRight, Instagram, CheckSquare, X, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRegisteredIGs, isAuthenticated, getCurrentUser } from '@/lib/userStorage';
 import { useToast } from '@/hooks/use-toast';
@@ -82,20 +82,7 @@ const MeuNegocioPage = () => {
       </div>
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            onClick={() => {
-              localStorage.removeItem('mro_force_registration');
-              localStorage.removeItem('mro_force_dashboard');
-              navigate('/instagram');
-            }} 
-
-
-            className="text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
-          </Button>
+        <div className="flex items-center justify-center">
           <Logo size="sm" />
         </div>
 
