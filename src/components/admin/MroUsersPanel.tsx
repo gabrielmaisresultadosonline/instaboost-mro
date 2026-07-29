@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon, ImageOff,
-  Copy, Eye, EyeOff,
+  Copy, Eye, EyeOff, Mail,
 } from 'lucide-react';
 import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
@@ -103,6 +103,30 @@ const MroUsersPanel: React.FC = () => {
   }, [call, toast]);
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const [syncing, setSyncing] = useState(false);
+
+  /** Vincula os emails já cadastrados na área /instagram aos usuários da ferramenta. */
+  const handleSyncEmails = async () => {
+    setSyncing(true);
+    try {
+      const data = await call({ action: 'sync_emails' });
+      toast({
+        title: 'Emails vinculados',
+        description: `${data.updated ?? 0} usuário(s) atualizados com o email do cadastro do /instagram.`,
+      });
+      await loadUsers();
+    } catch (err) {
+      toast({
+        title: 'Erro ao vincular emails',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -240,6 +264,15 @@ const MroUsersPanel: React.FC = () => {
           <Instagram className="w-3 h-3" />
           {filtered.reduce((acc, u) => acc + u.accounts.length + u.trial_accounts.length, 0)} contas
         </Badge>
+        <Badge variant="outline" className="gap-1">
+          <Mail className="w-3 h-3" />
+          {filtered.filter((u) => !!u.email).length} com email
+        </Badge>
+
+        <Button variant="outline" size="sm" onClick={() => void handleSyncEmails()} disabled={syncing} className="gap-2">
+          {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+          Vincular emails do /instagram
+        </Button>
 
         <Button variant="outline" size="sm" onClick={loadUsers} disabled={loading} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
