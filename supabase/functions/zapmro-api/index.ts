@@ -343,6 +343,93 @@ serve(async (req) => {
       return json({ success: true, created, updated, errors });
     }
 
+    /**
+     * Vincula emails e senhas já cadastrados na área de acessos (created_accesses)
+     * aos usuários do ZAPMRO, permitindo copiar/reenviar o acesso.
+     */
+    if (action === "sync_credentials") {
+      const { data: accesses } = await supabase
+        .from("created_accesses")
+        .select("username, customer_email, password")
+        .order("created_at", { ascending: false });
+
+      const emailBy = new Map<string, string>();
+      const passBy = new Map<string, string>();
+      for (const row of accesses || []) {
+        const u = String((row as any).username || "").trim().toLowerCase();
+        const e = String((row as any).customer_email || "").trim().toLowerCase();
+        const p = String((row as any).password || "").trim();
+        if (!u) continue;
+        if (e && !emailBy.has(u)) emailBy.set(u, e);
+        if (p && !passBy.has(u)) passBy.set(u, p);
+      }
+
+      const { data: allUsers } = await supabase
+        .from("zapmro_users")
+        .select("id, username, email, password_plain");
+
+      let updated = 0;
+      let passwords = 0;
+      for (const u of (allUsers || []) as any[]) {
+        const key = String(u.username || "").trim().toLowerCase();
+        const patch: Record<string, unknown> = {};
+        const email = emailBy.get(key);
+        if (email && !u.email) patch.email = email;
+        const password = passBy.get(key);
+        if (password && !u.password_plain) {
+          patch.password_plain = password;
+          patch.password_hash = await sha256(password);
+        }
+        if (!Object.keys(patch).length) continue;
+        const { error } = await supabase.from("zapmro_users").update(patch).eq("id", u.id);
+        if (!error) {
+          updated += 1;
+          if (patch.password_plain) passwords += 1;
+        }
+      }
+
+      return json({ success: true, updated, passwords, total: (allUsers || []).length });
+    }
+
+    /** Reenvia o acesso do cliente por email (template oficial de boas-vindas). */
+    if (action === "send_access") {
+      const id = String(body.id || "");
+      if (!id) return json({ success: false, error: "ID é obrigatório" }, 400);
+
+      const { data: user } = await supabase
+        .from("zapmro_users")
+        .select("id, username, email, password_plain, days_remaining")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!user) return json({ success: false, error: "Usuário não encontrado" }, 404);
+      if (!(user as any).email) return json({ success: false, error: "Usuário sem email cadastrado" }, 400);
+      if (!(user as any).password_plain) {
+        return json({ success: false, error: "Senha não disponível — edite o usuário e defina uma nova senha" }, 400);
+      }
+
+      const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-welcome-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          email: (user as any).email,
+          username: (user as any).username,
+          password: (user as any).password_plain,
+          daysRemaining: (user as any).days_remaining,
+        }),
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || result?.success === false) {
+        return json({ success: false, error: result?.error || "Falha ao enviar email" }, 500);
+      }
+
+      return json({ success: true, email: (user as any).email });
+    }
+
 
     if (action === "delete_user") {
       if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);

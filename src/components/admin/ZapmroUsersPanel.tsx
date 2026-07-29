@@ -22,7 +22,9 @@ import {
   Copy,
   Eye,
   EyeOff,
+  Mail,
 } from 'lucide-react';
+
 import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
 export interface ZapmroUser {
@@ -102,6 +104,42 @@ export const ZapmroUsersTab: React.FC = () => {
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<UserForm>(EMPTY_USER);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [syncing, setSyncing] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  /** Vincula emails e senhas já cadastrados nos acessos criados. */
+  const handleSyncCredentials = async () => {
+    setSyncing(true);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-api', { body: { action: 'sync_credentials' } });
+      if (data?.success) {
+        toast({
+          title: 'Acessos vinculados',
+          description: `${data.updated ?? 0} usuário(s) atualizados (${data.passwords ?? 0} senha(s) recuperadas).`,
+        });
+        void load();
+      } else {
+        toast({ title: data?.error || 'Erro ao vincular acessos', variant: 'destructive' });
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  /** Reenvia o acesso (usuário + senha) para o email cadastrado. */
+  const handleSendAccess = async (user: ZapmroUser) => {
+    setSendingId(user.id);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-api', {
+        body: { action: 'send_access', id: user.id },
+      });
+      if (data?.success) toast({ title: 'Acesso enviado!', description: `Email enviado para ${user.email}` });
+      else toast({ title: data?.error || 'Erro ao enviar acesso', variant: 'destructive' });
+    } finally {
+      setSendingId(null);
+    }
+  };
+
 
   const handleCopyAccess = async (user: ZapmroUser) => {
     const ok = await copyAccessToClipboard({
@@ -288,10 +326,15 @@ export const ZapmroUsersTab: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <Button variant="outline" onClick={() => void handleSyncCredentials()} disabled={syncing}>
+          {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+          Vincular emails e senhas
+        </Button>
         <Button variant="outline" onClick={() => void load()} disabled={isLoading}>
           <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
           Atualizar ({users.length})
         </Button>
+
       </div>
 
       {isLoading ? (
@@ -361,6 +404,18 @@ export const ZapmroUsersTab: React.FC = () => {
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => void handleCopyAccess(user)}>
                   <Copy className="w-3.5 h-3.5" /> Copiar acesso
                 </Button>
+                {user.email && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1"
+                    disabled={sendingId === user.id}
+                    onClick={() => void handleSendAccess(user)}
+                  >
+                    {sendingId === user.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    Enviar acesso
+                  </Button>
+                )}
                 <Button size="sm" variant="destructive" onClick={() => void handleDelete(user)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
