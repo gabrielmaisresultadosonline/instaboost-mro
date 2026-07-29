@@ -30,6 +30,8 @@ import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
+import HubProductsPanel from '@/components/admin/HubProductsPanel';
+
 import MroToolPanel from '@/components/admin/MroToolPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import ExtensionDocs from '@/components/admin/ExtensionDocs';
