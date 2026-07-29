@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { markHubReturn } from "@/lib/hubReturn";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,7 @@ export default function Dashboard() {
   // Unificação de acessos quando o e-mail já pertence a outro login
   const [mergeEmail, setMergeEmail] = useState("");
   const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string }[]>([]);
+  const [mergePrimary, setMergePrimary] = useState("");
   const [merging, setMerging] = useState(false);
   const [mergeResult, setMergeResult] = useState<{
     email: string;
@@ -115,8 +117,10 @@ export default function Dashboard() {
         setFormName(p.name || current.name || "");
         setFormEmail(p.email || "");
         setFormWhats(p.whatsapp || "");
-        // Cliente sem e-mail cadastrado precisa cadastrar antes de continuar.
-        setNeedsEmail(!p.email);
+        // Cliente sem e-mail, nome ou WhatsApp precisa completar antes de continuar.
+        const whatsDigits = (p.whatsapp || "").replace(/\D/g, "");
+        const nameOk = ((p.name || current.name || "").trim()).length >= 3;
+        setNeedsEmail(!p.email || !nameOk || whatsDigits.length < 10);
       }
     } catch {
       /* silencioso: o dashboard continua funcionando sem o perfil */
@@ -211,6 +215,19 @@ export default function Dashboard() {
       toast({ title: "Informe um e-mail válido", variant: "destructive" });
       return;
     }
+    // No cadastro obrigatório, nome e WhatsApp também são exigidos
+    const nameValue = formName.trim();
+    const whatsDigits = formWhats.replace(/\D/g, "");
+    if (requireEmail) {
+      if (nameValue.length < 3) {
+        toast({ title: "Informe seu nome completo", variant: "destructive" });
+        return;
+      }
+      if (whatsDigits.length < 10 || whatsDigits.length > 13) {
+        toast({ title: "Informe um WhatsApp válido com DDD", variant: "destructive" });
+        return;
+      }
+    }
     if (formNewPassword && formNewPassword !== formConfirmPassword) {
       toast({ title: "As senhas não conferem", variant: "destructive" });
       return;
@@ -277,6 +294,7 @@ export default function Dashboard() {
           email: session.email || "",
           password: session.password,
           target_email: mergeEmail,
+          primary_username: mergePrimary || mergeConflicts[0]?.username || session.username || "",
         },
       });
       if (!data?.success) {
@@ -669,9 +687,9 @@ export default function Dashboard() {
       <Dialog open={needsEmail && !showConfig} onOpenChange={() => { /* obrigatório */ }}>
         <DialogContent className="sm:max-w-md [&>button]:hidden">
           <DialogHeader>
-            <DialogTitle>Cadastre seu e-mail</DialogTitle>
+            <DialogTitle>Complete seu cadastro</DialogTitle>
             <DialogDescription>
-              Precisamos do seu e-mail para vincular seus acessos e permitir a recuperação de senha. Ele fica salvo junto ao seu acesso.
+              Precisamos do seu e-mail, nome e WhatsApp para vincular seus acessos e permitir a recuperação de senha. Ficam salvos junto ao seu acesso.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -690,11 +708,11 @@ export default function Dashboard() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="force-name">Nome</Label>
-              <Input id="force-name" value={formName} onChange={(e) => setFormName(e.target.value)} />
+              <Label htmlFor="force-name">Nome completo *</Label>
+              <Input id="force-name" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Seu nome completo" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="force-whats">WhatsApp (opcional)</Label>
+              <Label htmlFor="force-whats">WhatsApp *</Label>
               <Input id="force-whats" value={formWhats} onChange={(e) => setFormWhats(e.target.value)} placeholder="11999999999" />
             </div>
             <Button className="w-full" onClick={() => saveProfile(true)} disabled={savingProfile}>
@@ -776,18 +794,48 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             <div className="rounded-2xl border border-zinc-800 bg-black/60 p-4">
-              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">Acessos encontrados</p>
+              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">
+                Escolha o acesso principal
+              </p>
               <ul className="space-y-2">
-                {mergeConflicts.map((c, i) => (
-                  <li key={`${c.tool}-${c.username}-${i}`} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-bold text-white break-all">{c.username}</span>
-                    <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
-                      {c.tool}
-                    </span>
-                  </li>
-                ))}
+                {mergeConflicts.map((c, i) => {
+                  const selected = (mergePrimary || mergeConflicts[0]?.username) === c.username;
+                  return (
+                    <li key={`${c.tool}-${c.username}-${i}`}>
+                      <button
+                        type="button"
+                        onClick={() => setMergePrimary(c.username)}
+                        className={cn(
+                          "flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition",
+                          selected
+                            ? "border-yellow-500 bg-yellow-500/10"
+                            : "border-zinc-800 bg-transparent hover:border-zinc-600",
+                        )}
+                      >
+                        <span className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={cn(
+                              "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2",
+                              selected ? "border-yellow-400" : "border-zinc-600",
+                            )}
+                          >
+                            {selected && <span className="h-2 w-2 rounded-full bg-yellow-400" />}
+                          </span>
+                          <span className="font-bold text-white break-all">{c.username}</span>
+                        </span>
+                        <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
+                          {c.tool}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
+              <p className="mt-3 text-[11px] text-zinc-500">
+                O acesso selecionado será o seu login principal. Os demais continuam liberados no mesmo e-mail.
+              </p>
             </div>
+
 
             <p className="text-xs leading-relaxed text-zinc-400">
               Ao unificar, todos os seus produtos passam a ficar no mesmo e-mail. Você poderá entrar na área de membros

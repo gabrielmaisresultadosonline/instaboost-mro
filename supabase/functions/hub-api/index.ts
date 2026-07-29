@@ -934,7 +934,13 @@ serve(async (req) => {
         ...(zapAll || []).map((r) => ({ tool: "ZAPMRO", username: String(r.username || ""), password: String(r.password_plain || "") })),
       ].filter((a) => a.username);
 
-      const primary = accounts.find((a) => a.username.toLowerCase() === username) || accounts[0] || null;
+      // O cliente pode escolher qual acesso quer manter como principal
+      const chosen = String(body.primary_username || "").trim().toLowerCase();
+      const primary =
+        (chosen ? accounts.find((a) => a.username.toLowerCase() === chosen) : null) ||
+        accounts.find((a) => a.username.toLowerCase() === username) ||
+        accounts[0] ||
+        null;
       const primaryPassword = primary?.password || password;
 
       let emailSent = false;
