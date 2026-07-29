@@ -232,7 +232,7 @@ const App = () => (
       <BrowserRouter>
         <HubReturnButton />
         <Routes>
-          <Route path="/" element={<AreaDeMembros />} />
+          <Route path="/" element={<ToolSelector />} />
           <Route path="/instagram" element={<HubEntryGate><MeuNegocioPage /></HubEntryGate>} />
           <Route path="/instagram/painel" element={<Index />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
