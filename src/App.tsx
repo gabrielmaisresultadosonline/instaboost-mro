@@ -228,6 +228,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <HubReturnButton />
         <Routes>
           <Route path="/" element={<ToolSelector />} />
           <Route path="/instagram" element={<Index />} />
