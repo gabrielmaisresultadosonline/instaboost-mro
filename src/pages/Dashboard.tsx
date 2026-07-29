@@ -563,6 +563,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="bg-warning text-warning-foreground text-center py-2.5 px-4 text-sm font-medium">
+        Estamos atualizando nossa área e incluindo novidades. Pode utilizar normalmente.
+      </div>
       <header className="border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div>
