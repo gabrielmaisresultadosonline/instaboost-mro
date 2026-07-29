@@ -56,6 +56,18 @@ const monthStart = () => {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString().slice(0, 10);
 };
 
+/**
+ * Normaliza os dias de acesso:
+ * - valores inválidos/negativos viram 0
+ * - qualquer valor >= 9999 é tratado como vitalício (LIFETIME_DAYS = 999999)
+ * Isso evita o erro "out of range for type integer" na importação.
+ */
+function normalizeExpiration(value: unknown): number {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return n >= 9999 ? LIFETIME_DAYS : n;
+}
+
 function planInfo(user: MroUserRow) {
   const lifetime = user.expiration_days >= LIFETIME_DAYS;
   return {
