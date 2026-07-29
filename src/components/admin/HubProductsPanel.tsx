@@ -122,6 +122,21 @@ export default function HubProductsPanel() {
 
   return (
     <div className="space-y-6">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="produtos">
+            <Package className="h-4 w-4" /> Produtos
+          </TabsTrigger>
+          <TabsTrigger value="usuarios">
+            <Users className="h-4 w-4" /> Usuários
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="usuarios">
+          <HubUsersPanel />
+        </TabsContent>
+
+        <TabsContent value="produtos" className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Dashboard — Produtos</h2>
@@ -133,6 +148,8 @@ export default function HubProductsPanel() {
           <Plus className="h-4 w-4" /> Novo produto
         </Button>
       </div>
+
+
 
       {editing && (
         <Card>
