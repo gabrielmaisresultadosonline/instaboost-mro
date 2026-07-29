@@ -63,7 +63,9 @@ export function parseMroUsers(text: string): ParsedMroUser[] {
 
     if (EXP_RE.test(line)) {
       const digits = valueOf(line).replace(/[^\d]/g, '');
-      current.expiration_days = digits ? Number(digits) : 0;
+      // Qualquer valor >= 9999 é considerado vitalício (999999) para não estourar o integer do banco
+      const raw = digits ? Number(digits) : 0;
+      current.expiration_days = Number.isFinite(raw) ? (raw >= 9999 ? 999999 : raw) : 0;
       collectingAccounts = false;
       continue;
     }

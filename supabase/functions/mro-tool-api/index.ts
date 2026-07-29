@@ -56,6 +56,18 @@ const monthStart = () => {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString().slice(0, 10);
 };
 
+/**
+ * Normaliza os dias de acesso:
+ * - valores inválidos/negativos viram 0
+ * - qualquer valor >= 9999 é tratado como vitalício (LIFETIME_DAYS = 999999)
+ * Isso evita o erro "out of range for type integer" na importação.
+ */
+function normalizeExpiration(value: unknown): number {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return n >= 9999 ? LIFETIME_DAYS : n;
+}
+
 function planInfo(user: MroUserRow) {
   const lifetime = user.expiration_days >= LIFETIME_DAYS;
   return {
@@ -301,7 +313,7 @@ serve(async (req) => {
         payload.plan_accounts = Math.max(0, Number(body.plan_accounts) || 0);
       }
       if (body.expiration_days !== undefined && body.expiration_days !== null && body.expiration_days !== "") {
-        payload.expiration_days = Math.max(0, Number(body.expiration_days) || 0);
+        payload.expiration_days = normalizeExpiration(body.expiration_days);
       }
       if (body.password) payload.password_hash = await sha256(String(body.password));
 
@@ -395,7 +407,7 @@ serve(async (req) => {
           username,
           email: item?.email ? String(item.email).trim().toLowerCase() : null,
           password: item?.password ? String(item.password) : null,
-          expiration: Math.max(0, Number(item?.expiration_days) || 0),
+          expiration: normalizeExpiration(item?.expiration_days),
           igs,
         });
       }
