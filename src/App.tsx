@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { HubEntryGate } from "@/components/HubEntryGate";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -232,20 +233,20 @@ const App = () => (
         <HubReturnButton />
         <Routes>
           <Route path="/" element={<FerramentaMROPromo />} />
-          <Route path="/instagram" element={<MeuNegocioPage />} />
+          <Route path="/instagram" element={<HubEntryGate><MeuNegocioPage /></HubEntryGate>} />
           <Route path="/instagram/painel" element={<Index />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
           <Route path="/renda-extra2" element={<Navigate to="/ferramentamropromo2" replace />} />
           <Route path="/renda-extrass" element={<RendaExtrassPage />} />
           <Route path="/renda-extrass/admin" element={<RendaExtrassAdmin />} />
-          <Route path="/zapmro" element={<ZapMRO />} />
+          <Route path="/zapmro" element={<HubEntryGate><ZapMRO /></HubEntryGate>} />
           <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
           <Route path="/zapmro/vendas/prom" element={<ZapMROVendasProm />} />
           <Route path="/zapmro/vendas/admin" element={<ZapmroVendasAdmin />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/mro-ferramenta" element={<MROFerramenta />} />
+          <Route path="/mro-ferramenta" element={<HubEntryGate allowEmbed><MROFerramenta /></HubEntryGate>} />
           <Route path="/mropagamento" element={<MROPagamento />} />
           <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/mro-obrigado" element={<MROObrigado />} />
@@ -364,7 +365,7 @@ const App = () => (
           <Route path="/descontoalunosrendaextrasss" element={<DescontoAlunosRendaExtrasss />} />
           <Route path="/rendaextradesconto" element={<RendaExtraDesconto />} />
           <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />
-          <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
+          <Route path="/estruturarendaextra" element={<HubEntryGate><EstruturaRendaExtra /></HubEntryGate>} />
           <Route path="/estruturarendaextra4" element={<Navigate to="/ferramentamropromo2" replace />} />
           <Route path="/estruturarendaextra4/admin" element={<EstruturaRendaExtra4Admin />} />
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
