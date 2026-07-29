@@ -69,6 +69,9 @@ export default function HubProductsPanel() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<HubProductRow | null>(null);
   const [tutorialDraft, setTutorialDraft] = useState<HubTutorialRow | null>(null);
+  // Produto cuja área de membros (módulos) está aberta para edição
+  const [membersFor, setMembersFor] = useState<string | null>(null);
+  const [hubDownloadLinks, setHubDownloadLinks] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
