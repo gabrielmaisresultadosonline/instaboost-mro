@@ -131,31 +131,8 @@ export default function HubProductsPanel() {
     load();
   };
 
-  const saveTutorial = async () => {
-    if (!tutorialDraft) return;
-    setSaving(true);
-    try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: { action: "admin_save_tutorial", tutorial: tutorialDraft },
-      });
-      if (data?.success) {
-        toast({ title: "Tutorial salvo" });
-        setTutorialDraft(null);
-        load();
-      } else {
-        toast({ title: data?.error || "Erro ao salvar", variant: "destructive" });
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
 
-  const deleteTutorial = async (id?: string) => {
-    if (!id) return;
-    if (!confirm("Excluir este tutorial?")) return;
-    await supabase.functions.invoke("hub-api", { body: { action: "admin_delete_tutorial", id } });
-    load();
-  };
+
 
   if (loading) {
     return (
