@@ -89,6 +89,59 @@ serve(async (req) => {
     const action = String(body.action || "");
     log("Request", { action });
 
+    /** Client IP from proxy headers. */
+    const clientIp =
+      (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+    const userAgent = req.headers.get("user-agent") || "";
+
+    /** Checks if an IP is blocked (globally or for that username). */
+    async function isIpBlocked(username: string, ip: string) {
+      const { data } = await supabase
+        .from("zapmro_blocked_ips")
+        .select("id")
+        .eq("ip", ip)
+        .or(`username.is.null,username.eq.${username}`)
+        .limit(1);
+      return !!(data && data.length);
+    }
+
+    /** Creates/updates the session row for a user + IP pair. */
+    async function touchSession(user: ZapmroUserRow, ip: string, ua: string) {
+      const nowIso = new Date().toISOString();
+      const { data: existing } = await supabase
+        .from("zapmro_user_sessions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("ip", ip)
+        .maybeSingle();
+
+      const deviceLabel = /mobile|android|iphone/i.test(ua)
+        ? "Mobile"
+        : /chrome/i.test(ua)
+        ? "Chrome / Desktop"
+        : "Desktop";
+
+      if (existing) {
+        await supabase
+          .from("zapmro_user_sessions")
+          .update({ last_seen: nowIso, is_active: true, revoked_at: null, user_agent: ua, device_label: deviceLabel })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("zapmro_user_sessions").insert({
+          user_id: user.id,
+          username: user.username,
+          ip,
+          user_agent: ua,
+          device_label: deviceLabel,
+          is_active: true,
+          first_seen: nowIso,
+          last_seen: nowIso,
+        });
+      }
+    }
+
     // ---------------------------------------------------------------
     // PUBLIC: login (username OR email + senha)
     // ---------------------------------------------------------------
