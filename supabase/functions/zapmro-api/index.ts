@@ -282,6 +282,61 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    // Importação em massa (colar lista exportada).
+    if (action === "bulk_import_users") {
+      const items = Array.isArray(body.users) ? body.users : [];
+      if (!items.length) return json({ success: false, error: "Lista vazia" }, 400);
+
+      const errors: string[] = [];
+      let created = 0;
+      let updated = 0;
+
+      const normalized = items
+        .map((it: any) => ({
+          username: String(it?.username || "").trim().toLowerCase(),
+          password: String(it?.password || "").trim(),
+          days_remaining: Math.min(Number(it?.days_remaining) || 0, 999999),
+          is_active: it?.is_active !== false,
+        }))
+        .filter((it: any) => it.username);
+
+      if (!normalized.length) return json({ success: false, error: "Nenhum usuário válido" }, 400);
+
+      const usernames = normalized.map((u: any) => u.username);
+      const { data: existingRows } = await supabase
+        .from("zapmro_users")
+        .select("id, username")
+        .in("username", usernames);
+
+      const existingMap = new Map<string, string>();
+      (existingRows || []).forEach((r: any) => existingMap.set(r.username, r.id));
+
+      for (const item of normalized) {
+        const payload: Record<string, unknown> = {
+          username: item.username,
+          days_remaining: item.days_remaining,
+          is_active: item.is_active,
+        };
+        if (item.password) payload.password_hash = await sha256(item.password);
+
+        const existingId = existingMap.get(item.username);
+        const { error } = existingId
+          ? await supabase.from("zapmro_users").update(payload).eq("id", existingId)
+          : await supabase.from("zapmro_users").insert(payload);
+
+        if (error) {
+          errors.push(`${item.username}: ${error.message}`);
+        } else if (existingId) {
+          updated++;
+        } else {
+          created++;
+        }
+      }
+
+      return json({ success: true, created, updated, errors });
+    }
+
+
     if (action === "delete_user") {
       if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
       const { error } = await supabase.from("zapmro_users").delete().eq("id", body.id);
