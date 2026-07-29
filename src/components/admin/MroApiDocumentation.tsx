@@ -29,8 +29,9 @@ const MroApiDocumentation: React.FC = () => (
         <Badge variant="outline">Vitalício = 999999 dias</Badge>
         <Badge variant="outline">Anual = mostra os dias restantes</Badge>
         <Badge variant="outline">Mensal = dias restantes</Badge>
-        <Badge variant="secondary">5 testes por mês · 1 dia cada</Badge>
+        <Badge variant="secondary">5 testes por mês · 1 dia ou 6 horas</Badge>
         <Badge className="bg-amber-500 text-black hover:bg-amber-500">Verificação de @instagram no login</Badge>
+        <Badge variant="destructive">Conta fixa não pode ser removida</Badge>
       </div>
     </Card>
 
