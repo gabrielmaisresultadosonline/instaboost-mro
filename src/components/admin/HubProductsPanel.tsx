@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Save, Trash2, Package, Video, LayoutList } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
-import type { ModulePlatform } from "@/lib/adminConfig";
+import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubProductRow {
   id?: string;
