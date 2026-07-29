@@ -2414,6 +2414,30 @@ export type Database = {
           },
         ]
       }
+      hub_blocked_users: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          reason: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          reason?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          reason?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       hub_orders: {
         Row: {
           amount: number

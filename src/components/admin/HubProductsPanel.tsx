@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
+import HubUsersPanel from "@/components/admin/HubUsersPanel";
 import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubProductRow {
@@ -42,6 +44,7 @@ const emptyProduct = (): HubProductRow => ({
 export default function HubProductsPanel() {
   const { toast } = useToast();
   const [products, setProducts] = useState<HubProductRow[]>([]);
+  const [tab, setTab] = useState("produtos");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<HubProductRow | null>(null);
@@ -122,6 +125,21 @@ export default function HubProductsPanel() {
 
   return (
     <div className="space-y-6">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="produtos">
+            <Package className="h-4 w-4" /> Produtos
+          </TabsTrigger>
+          <TabsTrigger value="usuarios">
+            <Users className="h-4 w-4" /> Usuários
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="usuarios">
+          <HubUsersPanel />
+        </TabsContent>
+
+        <TabsContent value="produtos" className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Dashboard — Produtos</h2>
@@ -133,6 +151,8 @@ export default function HubProductsPanel() {
           <Plus className="h-4 w-4" /> Novo produto
         </Button>
       </div>
+
+
 
       {editing && (
         <Card>
@@ -291,6 +311,9 @@ export default function HubProductsPanel() {
           );
         })}
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+

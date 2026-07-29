@@ -85,7 +85,8 @@ serve(async (req) => {
       },
     });
 
-    const memberAreaUrl = 'https://maisresultadosonline.com.br/areademembros';
+    // Todos os acessos passam agora pela dashboard unificada de produtos.
+    const memberAreaUrl = 'https://maisresultadosonline.com.br/dashboard';
 
     const htmlContent = `<!DOCTYPE html>
 <html>
