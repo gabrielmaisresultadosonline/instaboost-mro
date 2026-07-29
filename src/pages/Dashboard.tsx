@@ -183,6 +183,10 @@ export default function Dashboard() {
       }
 
 
+      // Marca a sessão para que os botões de "voltar" das ferramentas
+      // retornem para o Dashboard.
+      markHubReturn();
+
       if (product.app_route) {
         navigate(product.app_route);
       } else {
