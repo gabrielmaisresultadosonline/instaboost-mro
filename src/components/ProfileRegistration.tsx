@@ -692,7 +692,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             <Button 
               className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold" 
               onClick={handleSearchProfile}
-              disabled={isLoading}
+              disabled={isLoading || !isEmailReady}
               data-tutorial="buscar-button"
             >
               {isLoading ? (
@@ -707,9 +707,15 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 </>
               )}
             </Button>
+            {!isEmailReady && (
+              <p className="text-xs text-amber-400 text-center font-medium">
+                🔒 Cadastre e salve seu e-mail acima para liberar o cadastro do Instagram.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground text-center">
               📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
             </p>
+
           </CardContent>
         </Card>
 
