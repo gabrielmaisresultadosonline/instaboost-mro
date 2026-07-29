@@ -108,6 +108,16 @@ function planInfo(user: MroUserRow) {
   };
 }
 
+/**
+ * Limite real de contas fixas do usuário.
+ * Soma as contas do plano com os extras liberados manualmente pelo admin.
+ */
+function totalSlots(user: MroUserRow): number {
+  const plan = Math.max(0, Number(user.plan_accounts) || 0);
+  const extra = Math.max(0, Number(user.extra_accounts) || 0);
+  return plan + extra;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
