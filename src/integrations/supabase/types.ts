@@ -2438,6 +2438,45 @@ export type Database = {
         }
         Relationships: []
       }
+      hub_merge_logs: {
+        Row: {
+          accounts: Json
+          created_at: string
+          email_sent: boolean
+          id: string
+          primary_tool: string | null
+          primary_username: string | null
+          reason: string | null
+          reverted: boolean
+          reverted_at: string | null
+          target_email: string
+        }
+        Insert: {
+          accounts?: Json
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          primary_tool?: string | null
+          primary_username?: string | null
+          reason?: string | null
+          reverted?: boolean
+          reverted_at?: string | null
+          target_email: string
+        }
+        Update: {
+          accounts?: Json
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          primary_tool?: string | null
+          primary_username?: string | null
+          reason?: string | null
+          reverted?: boolean
+          reverted_at?: string | null
+          target_email?: string
+        }
+        Relationships: []
+      }
       hub_orders: {
         Row: {
           amount: number
