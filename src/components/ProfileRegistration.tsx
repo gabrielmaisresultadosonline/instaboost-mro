@@ -176,18 +176,14 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   // Handle syncing a single profile that already exists in SquareCloud
   const handleSyncSingleProfile = async () => {
     if (!pendingSyncIG || !user) return;
-    
+    if (!requireEmail()) return;
+
     setShowSyncOfferDialog(false);
     setIsLoading(true);
     setLoadingMessage(`Sincronizando @${pendingSyncIG}...`);
     
     try {
-      if (!email.trim()) {
-        toast({ title: 'Digite seu e-mail', description: 'Necessário para sincronizar', variant: 'destructive' });
-        setIsLoading(false);
-        setLoadingMessage('');
-        return;
-      }
+
 
       updateUserEmail(email);
       
