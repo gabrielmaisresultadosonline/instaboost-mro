@@ -4358,6 +4358,7 @@ export type Database = {
           trials_used: number
           updated_at: string
           username: string
+          whatsapp: string | null
         }
         Insert: {
           created_at?: string
@@ -4375,6 +4376,7 @@ export type Database = {
           trials_used?: number
           updated_at?: string
           username: string
+          whatsapp?: string | null
         }
         Update: {
           created_at?: string
@@ -4392,6 +4394,7 @@ export type Database = {
           trials_used?: number
           updated_at?: string
           username?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -7563,6 +7566,7 @@ export type Database = {
           password_plain: string | null
           updated_at: string
           username: string
+          whatsapp: string | null
         }
         Insert: {
           created_at?: string
@@ -7578,6 +7582,7 @@ export type Database = {
           password_plain?: string | null
           updated_at?: string
           username: string
+          whatsapp?: string | null
         }
         Update: {
           created_at?: string
@@ -7593,6 +7598,7 @@ export type Database = {
           password_plain?: string | null
           updated_at?: string
           username?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
