@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users, Upload, Image as ImageIcon } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
 import HubUsersPanel from "@/components/admin/HubUsersPanel";
 import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
