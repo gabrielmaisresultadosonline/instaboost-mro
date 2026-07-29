@@ -94,7 +94,13 @@ export default function DashboardProduto() {
             <ArrowLeft className="h-4 w-4" /> Ver todos os produtos
           </Button>
           {product.app_route && (
-            <Button size="sm" onClick={() => navigate(product.app_route as string)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                markHubReturn();
+                navigate(product.app_route as string);
+              }}
+            >
               Abrir ferramenta <ExternalLink className="h-4 w-4" />
             </Button>
           )}
