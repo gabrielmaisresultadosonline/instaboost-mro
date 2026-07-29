@@ -92,6 +92,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [editEmailValue, setEditEmailValue] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
+  const [emailLocked, setEmailLocked] = useState(false);
+
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
