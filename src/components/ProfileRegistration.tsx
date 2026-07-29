@@ -24,10 +24,7 @@ import {
   Camera,
   LayoutDashboard,
   ChevronDown,
-  Rocket,
   Wrench,
-  Briefcase,
-  DollarSign,
   KeyRound,
   X as XIcon
 } from 'lucide-react';
