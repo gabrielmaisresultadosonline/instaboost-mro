@@ -160,12 +160,28 @@ export default function Dashboard() {
         if (session.email) localStorage.setItem("zapmro_email", session.email);
       }
 
-      if (product.access_source === "postscomia" && session.email) {
-        localStorage.setItem(
-          "postscomia_member",
-          JSON.stringify({ email: session.email, name: session.name || session.email }),
-        );
+      // Posts com IA usa apenas e-mail. Se o cliente entrou por usuário, tentamos
+      // resolver o e-mail vinculado antes de abrir a área de membros.
+      if (product.access_source === "postscomia" || product.slug === "postscomia") {
+        let memberEmail = session.email;
+        if (!memberEmail) {
+          try {
+            const { data } = await supabase.functions.invoke("hub-api", {
+              body: { action: "products", username: session.username || "", email: "" },
+            });
+            memberEmail = (data?.identity?.email as string | undefined) || null;
+          } catch {
+            /* mantém null e cai na tela de login da ferramenta */
+          }
+        }
+        if (memberEmail) {
+          localStorage.setItem(
+            "postscomia_member",
+            JSON.stringify({ email: memberEmail, name: session.name || memberEmail }),
+          );
+        }
       }
+
 
       if (product.app_route) {
         navigate(product.app_route);
