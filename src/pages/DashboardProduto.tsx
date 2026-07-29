@@ -25,6 +25,9 @@ export default function DashboardProduto() {
   const [tutorials, setTutorials] = useState<HubTutorial[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<HubTutorial | null>(null);
+  const [modules, setModules] = useState<TutorialModule[]>([]);
+  const [modulesLoading, setModulesLoading] = useState(true);
+  const [downloadLink, setDownloadLink] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -39,6 +42,23 @@ export default function DashboardProduto() {
       setLoading(false);
     }
   }, [slug]);
+
+  // Carrega a área de membros (módulos) publicada para este produto
+  const loadMembersArea = useCallback(async () => {
+    if (!slug) return;
+    setModulesLoading(true);
+    try {
+      const cloud = await loadModulesFromCloud(`hub-${slug}` as ModulePlatform);
+      setModules(cloud?.modules || []);
+      setDownloadLink(cloud?.settings?.downloadLink || "");
+    } catch (error) {
+      console.error("[DashboardProduto] Falha ao carregar módulos:", error);
+      setModules([]);
+    } finally {
+      setModulesLoading(false);
+    }
+  }, [slug]);
+
 
   useEffect(() => {
     if (!getDashboardSession()) {
