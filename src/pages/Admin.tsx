@@ -926,18 +926,6 @@ const Admin = () => {
           </div>
         )}
 
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
-          <AnalyticsDashboard 
-            profiles={allMergedProfiles}
-            onProfilesUpdate={() => setSyncData(getSyncData())}
-          />
-        )}
-
-        {/* Sync Tab */}
-        {activeTab === 'sync' && (
-          <SyncDashboard />
-        )}
 
         {/* MRO Ferramenta Tab */}
         {activeTab === 'tutorials' && (
