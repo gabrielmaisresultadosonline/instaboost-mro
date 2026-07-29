@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import HubReturnButton from "@/components/HubReturnButton";
 import { getAdminData } from "./lib/adminConfig";
 import { trackPageView } from "./lib/facebookTracking";
-import ToolSelector from "./pages/ToolSelector";
+
 import Index from "./pages/Index";
 import MeuNegocioPage from "./pages/MeuNegocio";
 import RendaExtraPage from "./pages/RendaExtra";
@@ -231,7 +231,7 @@ const App = () => (
       <BrowserRouter>
         <HubReturnButton />
         <Routes>
-          <Route path="/" element={<ToolSelector />} />
+          <Route path="/" element={<FerramentaMROPromo />} />
           <Route path="/instagram" element={<MeuNegocioPage />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
