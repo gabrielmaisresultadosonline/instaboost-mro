@@ -66,6 +66,7 @@ import PagamentoAdmin from "./pages/PagamentoAdmin";
 import ComprouSeguidores from "./pages/ComprouSeguidores";
 import MetodoSeguidorMembro from "./pages/MetodoSeguidorMembro";
 import MetodoSeguidorAdmin from "./pages/MetodoSeguidorAdmin";
+import ToolSelector from "./pages/ToolSelector";
 import AreaDeMembros from "./pages/AreaDeMembros";
 import AdsNews from "./pages/AdsNews";
 import AdsNewsDash from "./pages/AdsNewsDash";
