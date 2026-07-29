@@ -1,6 +1,6 @@
 import { useLocation, Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { HUB_DASHBOARD_ROUTE, shouldReturnToHub } from "@/lib/hubReturn";
+import { HUB_DASHBOARD_ROUTE } from "@/lib/hubReturn";
 
 /** Indica se a URL atual está em modo embed (iframe/extensão). */
 function isEmbedded(search: string): boolean {
@@ -37,9 +37,10 @@ export function HubEntryGate({ children, allowEmbed = false }: HubEntryGateProps
   // navegação, ou seja: URL digitada, link externo ou F5 na própria página.
   const isDirectEntry = location.key === "default";
   const embedded = allowEmbed && isEmbedded(location.search);
-  const cameFromHub = shouldReturnToHub();
 
-  if (isDirectEntry && !embedded && !cameFromHub) {
+  // Entrada direta (URL digitada ou F5) sempre volta ao hub, mesmo que a sessão
+  // já tenha a marcação de retorno ao Dashboard.
+  if (isDirectEntry && !embedded) {
     return <Navigate to={HUB_DASHBOARD_ROUTE} replace />;
   }
 
