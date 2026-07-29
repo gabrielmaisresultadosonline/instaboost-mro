@@ -35,6 +35,8 @@ interface MroUserRow {
   name: string | null;
   password_hash: string | null;
   plan_accounts: number;
+  /** Contas liberadas além do plano (extras concedidos pelo admin). */
+  extra_accounts?: number | null;
   expiration_days: number;
   is_active: boolean;
   trials_used: number;
