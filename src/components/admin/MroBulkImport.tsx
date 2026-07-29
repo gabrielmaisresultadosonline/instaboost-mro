@@ -102,8 +102,11 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
           <div className="flex-1" />
           <Button onClick={handleImport} disabled={importing || !parsed.length} className="gap-2">
             {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            Importar {parsed.length ? `(${parsed.length})` : ''}
+            {importing && progress
+              ? `Importando ${progress.done}/${progress.total}...`
+              : `Importar ${parsed.length ? `(${parsed.length})` : ''}`}
           </Button>
+
         </div>
       </Card>
 
