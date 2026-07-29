@@ -164,7 +164,7 @@ async function sendAccessEmail(
       },
     });
 
-    const memberAreaUrl = "https://maisresultadosonline.com.br";
+    const memberAreaUrl = "https://maisresultadosonline.com.br/dashboard";
     const whatsappGroupLink = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
     const planLabel =
       planType === "solo" ? "Anual Solo (1 conta)" :
