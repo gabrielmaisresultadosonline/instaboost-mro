@@ -233,6 +233,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<FerramentaMROPromo />} />
           <Route path="/instagram" element={<MeuNegocioPage />} />
+          <Route path="/instagram/painel" element={<Index />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
           <Route path="/renda-extra2" element={<Navigate to="/ferramentamropromo2" replace />} />
