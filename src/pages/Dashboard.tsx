@@ -684,9 +684,9 @@ export default function Dashboard() {
       <Dialog open={needsEmail && !showConfig} onOpenChange={() => { /* obrigatório */ }}>
         <DialogContent className="sm:max-w-md [&>button]:hidden">
           <DialogHeader>
-            <DialogTitle>Cadastre seu e-mail</DialogTitle>
+            <DialogTitle>Complete seu cadastro</DialogTitle>
             <DialogDescription>
-              Precisamos do seu e-mail para vincular seus acessos e permitir a recuperação de senha. Ele fica salvo junto ao seu acesso.
+              Precisamos do seu e-mail, nome e WhatsApp para vincular seus acessos e permitir a recuperação de senha. Ficam salvos junto ao seu acesso.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -705,11 +705,11 @@ export default function Dashboard() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="force-name">Nome</Label>
-              <Input id="force-name" value={formName} onChange={(e) => setFormName(e.target.value)} />
+              <Label htmlFor="force-name">Nome completo *</Label>
+              <Input id="force-name" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Seu nome completo" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="force-whats">WhatsApp (opcional)</Label>
+              <Label htmlFor="force-whats">WhatsApp *</Label>
               <Input id="force-whats" value={formWhats} onChange={(e) => setFormWhats(e.target.value)} placeholder="11999999999" />
             </div>
             <Button className="w-full" onClick={() => saveProfile(true)} disabled={savingProfile}>
