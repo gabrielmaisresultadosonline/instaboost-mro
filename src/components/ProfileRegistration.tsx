@@ -683,7 +683,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 placeholder="@usuario ou link do perfil"
                 value={instagramInput}
                 onChange={(e) => setInstagramInput(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || !isEmailReady}
+
                 className="bg-background/50"
                 data-tutorial="instagram-input"
               />
