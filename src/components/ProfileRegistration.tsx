@@ -293,6 +293,9 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
   const handleFinalConfirmation = async () => {
     if (!pendingRegisterIG || !user) return;
+    if (!requireEmail()) return;
+
+
 
     setShowWarningDialog(false);
     setIsLoading(true);
