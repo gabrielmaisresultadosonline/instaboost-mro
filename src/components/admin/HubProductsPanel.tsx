@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users, Upload, Image as ImageIcon } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
 import HubUsersPanel from "@/components/admin/HubUsersPanel";
 import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
@@ -53,6 +53,52 @@ export default function HubProductsPanel() {
   const [hubDownloadLinks, setHubDownloadLinks] = useState<Record<string, string>>({});
   // Quantidade de módulos publicados por slug (para exibir a tarja "Área de membros ativa")
   const [membersCount, setMembersCount] = useState<Record<string, number>>({});
+  // Upload da imagem de capa (arquivo, colar ou arrastar)
+  const [uploadingThumb, setUploadingThumb] = useState(false);
+
+  /**
+   * Envia a imagem para o bucket público "assets" e devolve a URL pública.
+   * Valida tipo e tamanho antes do upload para evitar arquivos inválidos.
+   */
+  const uploadThumbFile = useCallback(
+    async (file: File | null | undefined) => {
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "Arquivo inválido", description: "Envie uma imagem (PNG, JPG, WEBP).", variant: "destructive" });
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        toast({ title: "Imagem muito grande", description: "O limite é 8MB.", variant: "destructive" });
+        return;
+      }
+      setUploadingThumb(true);
+      try {
+        const ext = (file.name.split(".").pop() || "png").toLowerCase();
+        const path = `hub-products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("assets").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
+        if (error) throw error;
+        const { data } = supabase.storage.from("assets").getPublicUrl(path);
+        setEditing((prev) => (prev ? { ...prev, thumb_url: data.publicUrl } : prev));
+        toast({ title: "Imagem enviada", description: "Capa atualizada com sucesso." });
+      } catch (err) {
+        console.error("Erro ao subir capa:", err);
+        toast({
+          title: "Erro no upload",
+          description: err instanceof Error ? err.message : "Não foi possível enviar a imagem.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingThumb(false);
+      }
+    },
+    [toast]
+  );
+
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -176,9 +222,72 @@ export default function HubProductsPanel() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Imagem de capa (URL)</Label>
-                <Input value={editing.thumb_url || ""} onChange={(e) => setEditing({ ...editing, thumb_url: e.target.value })} />
+                <Label>Imagem de capa</Label>
+                <div
+                  onPaste={(e) => {
+                    const item = Array.from(e.clipboardData?.items || []).find((i) => i.type.startsWith("image/"));
+                    if (item) {
+                      e.preventDefault();
+                      void uploadThumbFile(item.getAsFile());
+                    }
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    void uploadThumbFile(e.dataTransfer.files?.[0]);
+                  }}
+                  className="rounded-lg border border-dashed border-border p-3 space-y-3"
+                >
+                  <div className="flex items-center gap-3">
+                    {editing.thumb_url ? (
+                      <img
+                        src={editing.thumb_url}
+                        alt="Capa do produto"
+                        className="h-16 w-16 rounded-md object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-md bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <input
+                        id="hub-thumb-file"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          void uploadThumbFile(e.target.files?.[0]);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingThumb}
+                        onClick={() => document.getElementById("hub-thumb-file")?.click()}
+                      >
+                        {uploadingThumb ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        {uploadingThumb ? "Enviando..." : "Enviar imagem"}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Clique, arraste o arquivo ou cole (Ctrl+V) a imagem aqui. Também aceita URL abaixo.
+                      </p>
+                    </div>
+                  </div>
+                  <Input
+                    placeholder="https://... (opcional)"
+                    value={editing.thumb_url || ""}
+                    onChange={(e) => setEditing({ ...editing, thumb_url: e.target.value })}
+                  />
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label>Rota interna (ex: /instagram)</Label>
                 <Input value={editing.app_route || ""} onChange={(e) => setEditing({ ...editing, app_route: e.target.value })} />
