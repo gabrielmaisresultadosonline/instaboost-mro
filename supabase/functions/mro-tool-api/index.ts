@@ -702,12 +702,44 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    /**
+     * Remove uma conta do Instagram.
+     * REGRA: remover NÃO devolve a vaga. O slot é consumido definitivamente,
+     * ou seja 22/22 -> 21/21 (e não 21/22). Primeiro consome o extra, depois o plano.
+     */
     if (action === "remove_account") {
       if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
+
+      const { data: account } = await supabase
+        .from("mro_tool_accounts")
+        .select("id, user_id, is_trial")
+        .eq("id", body.id)
+        .maybeSingle();
+
       const { error } = await supabase.from("mro_tool_accounts").delete().eq("id", body.id);
       if (error) return json({ success: false, error: error.message }, 500);
+
+      // Contas de teste não ocupam slot fixo, então não reduzem o limite.
+      if (account && !account.is_trial && account.user_id) {
+        const { data: user } = await supabase
+          .from("mro_tool_users")
+          .select("id, plan_accounts, extra_accounts")
+          .eq("id", account.user_id)
+          .maybeSingle();
+
+        if (user) {
+          const extra = Math.max(0, Number(user.extra_accounts) || 0);
+          const plan = Math.max(0, Number(user.plan_accounts) || 0);
+          const patch = extra > 0
+            ? { extra_accounts: extra - 1 }
+            : { plan_accounts: Math.max(0, plan - 1) };
+          await supabase.from("mro_tool_users").update(patch).eq("id", user.id);
+        }
+      }
+
       return json({ success: true });
     }
+
 
     if (action === "reset_trials") {
       if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
