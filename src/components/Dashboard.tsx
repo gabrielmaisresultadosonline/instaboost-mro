@@ -34,19 +34,16 @@ import {
   MessageCircle, 
   ArrowRight, 
   Settings, 
-  Rocket, 
-  Lightbulb, 
-  ShieldCheck, 
+  Lightbulb,
+  ShieldCheck,
   UserPlus,
-  DollarSign,
   Type,
   TrendingUp,
   Instagram,
   Wrench,
   Lock,
   Camera,
-  RefreshCw,
-  Briefcase
+  RefreshCw
 } from 'lucide-react';
 import {
   DropdownMenu,
