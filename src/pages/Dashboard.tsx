@@ -211,6 +211,19 @@ export default function Dashboard() {
       toast({ title: "Informe um e-mail válido", variant: "destructive" });
       return;
     }
+    // No cadastro obrigatório, nome e WhatsApp também são exigidos
+    const nameValue = formName.trim();
+    const whatsDigits = formWhats.replace(/\D/g, "");
+    if (requireEmail) {
+      if (nameValue.length < 3) {
+        toast({ title: "Informe seu nome completo", variant: "destructive" });
+        return;
+      }
+      if (whatsDigits.length < 10 || whatsDigits.length > 13) {
+        toast({ title: "Informe um WhatsApp válido com DDD", variant: "destructive" });
+        return;
+      }
+    }
     if (formNewPassword && formNewPassword !== formConfirmPassword) {
       toast({ title: "As senhas não conferem", variant: "destructive" });
       return;
