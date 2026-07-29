@@ -346,6 +346,20 @@ const MroUsersPanel: React.FC = () => {
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => void handleCopyAccess(u)}>
                   <Copy className="w-3.5 h-3.5" /> Copiar acesso
                 </Button>
+                {u.email && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1"
+                    disabled={sendingId === u.id}
+                    onClick={() => void handleSendAccess(u)}
+                  >
+                    {sendingId === u.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    Enviar acesso
+                  </Button>
+                )}
+
+                </Button>
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => runAction({ action: 'reset_trials', id: u.id }, 'Testes reiniciados')}>
                   <RotateCcw className="w-3 h-3" /> Testes
                 </Button>
