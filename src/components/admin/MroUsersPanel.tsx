@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon, ImageOff,
-  Copy, Eye, EyeOff,
+  Copy, Eye, EyeOff, Mail,
 } from 'lucide-react';
 import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
