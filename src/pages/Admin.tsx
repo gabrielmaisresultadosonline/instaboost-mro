@@ -942,14 +942,15 @@ const Admin = () => {
           <SyncDashboard />
         )}
 
-        {/* Tutorials Tab */}
+        {/* MRO Ferramenta Tab */}
         {activeTab === 'tutorials' && (
-          <ModuleManager 
+          <MroToolPanel
             downloadLink={settings.downloadLink}
             onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
             onSaveSettings={handleSaveSettings}
           />
         )}
+
 
         {/* ZAPMRO Ferramenta Tab */}
         {activeTab === 'zapmro' && (
