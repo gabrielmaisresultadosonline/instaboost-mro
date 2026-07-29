@@ -14,10 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
-import SyncDashboard from '@/components/admin/SyncDashboard';
 import ModuleManager from '@/components/admin/ModuleManager';
 import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
-import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ProfileActions from '@/components/admin/ProfileActions';
 import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
@@ -31,11 +29,7 @@ import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
 import HubProductsPanel from '@/components/admin/HubProductsPanel';
-
 import MroToolPanel from '@/components/admin/MroToolPanel';
-import ManualScraper from '@/components/admin/ManualScraper';
-import ExtensionDocs from '@/components/admin/ExtensionDocs';
-import LovableExtensionPanel from '@/components/admin/LovableExtensionPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
