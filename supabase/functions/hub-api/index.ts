@@ -31,7 +31,7 @@ function genNSU() {
 function isAccessActive(row: Record<string, unknown> | null): boolean {
   if (!row) return false;
   if (row.is_active === false) return false;
-  const days = Number(row.expiration_days ?? 0);
+  const days = Number(row.expiration_days ?? row.days_remaining ?? 0);
   if (days >= LIFETIME_DAYS) return true;
   const created = row.last_access || row.created_at;
   if (!days) return false;
@@ -183,7 +183,7 @@ serve(async (req) => {
         const zap = zapRows?.[0] || null;
         access.zapmro = isAccessActive(zap);
         if (zap) {
-          details.zapmro = { expiration_days: zap.expiration_days, username: zap.username };
+          details.zapmro = { expiration_days: zap.expiration_days ?? zap.days_remaining, username: zap.username };
           effEmail = effEmail || String(zap.email || "").trim().toLowerCase();
           effUsername = effUsername || String(zap.username || "").trim().toLowerCase();
         }
@@ -499,7 +499,7 @@ serve(async (req) => {
         const size = 1000;
         // Paginação para não truncar em 1000 linhas.
         for (;;) {
-          const { data, error } = await supabase.from(table).select(columns).range(from, from + size - 1);
+          const { data, error } = await supabase.from(table).select(columns).order("created_at", { ascending: true }).range(from, from + size - 1);
           if (error || !data || data.length === 0) break;
           out.push(...(data as Record<string, unknown>[]));
           if (data.length < size) break;
@@ -511,7 +511,7 @@ serve(async (req) => {
       const [products, mroUsers, zapUsers, postsOrders, hubOrders, grants, blocked] = await Promise.all([
         supabase.from("hub_products").select("*").order("order_index", { ascending: true }),
         fetchAll("mro_tool_users", "id,username,email,name,expiration_days,is_active,password_plain"),
-        fetchAll("zapmro_users", "id,username,email,name,expiration_days,is_active,password_plain"),
+        fetchAll("zapmro_users", "id,username,email,name,days_remaining,is_active,password_plain"),
         fetchAll("postscomia_orders", "email,name,status,paid_at"),
         fetchAll("hub_orders", "email,name,product_slug,status"),
         fetchAll("hub_access", "product_id,email,username,expires_at"),
