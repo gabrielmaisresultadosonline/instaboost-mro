@@ -399,6 +399,21 @@ export const ZapmroUsersTab: React.FC = () => {
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => void handleCopyAccess(user)}>
                   <Copy className="w-3.5 h-3.5" /> Copiar acesso
                 </Button>
+                {user.email && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1"
+                    disabled={sendingId === user.id}
+                    onClick={() => void handleSendAccess(user)}
+                  >
+                    {sendingId === user.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    Enviar acesso
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" className="hidden">
+
+                </Button>
                 <Button size="sm" variant="destructive" onClick={() => void handleDelete(user)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
