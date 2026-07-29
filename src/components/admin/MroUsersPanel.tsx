@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon, ImageOff,
-  Copy, Eye, EyeOff, Mail,
+  Copy, Eye, EyeOff, Mail, Minus,
 } from 'lucide-react';
 import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
@@ -32,6 +32,8 @@ export interface MroUser {
   name: string | null;
   is_active: boolean;
   plan_accounts: number;
+  /** Contas liberadas além do plano (extras concedidos pelo admin). */
+  extra_accounts?: number | null;
   expiration_days: number;
   lifetime: boolean;
   plan_type: string;
@@ -51,12 +53,13 @@ type UserForm = {
   email: string;
   password: string;
   plan_accounts: string;
+  extra_accounts: string;
   expiration_days: string;
   is_active: boolean;
 };
 
 const EMPTY_USER: UserForm = {
-  username: '', name: '', email: '', password: '', plan_accounts: '4', expiration_days: '30', is_active: true,
+  username: '', name: '', email: '', password: '', plan_accounts: '4', extra_accounts: '0', expiration_days: '30', is_active: true,
 };
 
 const LIFETIME = 999999;
@@ -181,6 +184,7 @@ const MroUsersPanel: React.FC = () => {
         email: form.email,
         password: form.password || undefined,
         plan_accounts: form.plan_accounts,
+        extra_accounts: form.extra_accounts,
         expiration_days: form.expiration_days,
         is_active: form.is_active,
       });
@@ -204,11 +208,30 @@ const MroUsersPanel: React.FC = () => {
     }
   };
 
-  const handleAddAccount = async (user: MroUser) => {
+  /**
+   * Adiciona um Instagram manualmente ao usuário.
+   * Quando `withExtra` é true, libera automaticamente 1 conta extra antes de cadastrar,
+   * permitindo passar do limite fixo do plano (ex.: mais de 4 contas).
+   */
+  const handleAddAccount = async (user: MroUser, withExtra = false) => {
     const value = (newAccount[user.id] || '').trim();
-    if (!value) return;
+    if (!value) {
+      toast({ title: 'Informe a conta do Instagram', variant: 'destructive' });
+      return;
+    }
     setNewAccount((prev) => ({ ...prev, [user.id]: '' }));
-    await runAction({ action: 'admin_add_account', user_id: user.id, instagram: value }, 'Conta adicionada');
+    try {
+      if (withExtra) await call({ action: 'set_extras', id: user.id, delta: 1 });
+      await call({ action: 'admin_add_account', user_id: user.id, instagram: value, force: withExtra });
+      toast({ title: 'Conta adicionada' });
+      loadUsers();
+    } catch (err) {
+      toast({
+        title: 'Erro ao adicionar conta',
+        description: err instanceof Error ? err.message : '',
+        variant: 'destructive',
+      });
+    }
   };
 
   const editUser = (u: MroUser) => {
@@ -218,6 +241,7 @@ const MroUsersPanel: React.FC = () => {
       email: u.email || '',
       password: u.password_plain || '',
       plan_accounts: String(u.plan_accounts),
+      extra_accounts: String(u.extra_accounts ?? 0),
       expiration_days: String(u.expiration_days),
       is_active: u.is_active,
     });
@@ -253,6 +277,10 @@ const MroUsersPanel: React.FC = () => {
           <div className="space-y-1">
             <Label>Contas do plano</Label>
             <Input type="number" min={0} value={form.plan_accounts} onChange={(e) => setForm({ ...form, plan_accounts: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label>Contas extras (além do plano)</Label>
+            <Input type="number" min={0} value={form.extra_accounts} onChange={(e) => setForm({ ...form, extra_accounts: e.target.value })} />
           </div>
           <div className="space-y-1">
             <Label>Dias de acesso (999999 = vitalício)</Label>
@@ -305,7 +333,9 @@ const MroUsersPanel: React.FC = () => {
         {visible.map((u) => {
           const isOpen = expanded === u.id;
           const slotsUsed = u.accounts.length;
-          const full = slotsUsed >= u.plan_accounts;
+          const extras = Math.max(0, Number(u.extra_accounts) || 0);
+          const totalSlots = u.plan_accounts + extras;
+          const full = slotsUsed >= totalSlots;
           const allAccounts = [...u.accounts, ...u.trial_accounts];
           return (
             <Card key={u.id} className="p-4">
@@ -318,7 +348,8 @@ const MroUsersPanel: React.FC = () => {
                 <Badge variant="outline" className="gap-1">
                   {u.expiration_days >= LIFETIME ? <><InfinityIcon className="w-3 h-3" /> Vitalício</> : `${u.expiration_days} dias`}
                 </Badge>
-                <Badge variant={full ? 'destructive' : 'secondary'}>{slotsUsed}/{u.plan_accounts} contas</Badge>
+                <Badge variant={full ? 'destructive' : 'secondary'}>{slotsUsed}/{totalSlots} contas</Badge>
+                {extras > 0 && <Badge className="gap-1"><Plus className="w-3 h-3" />{extras} extras</Badge>}
                 <Badge variant="outline">{u.trials_remaining}/5 testes</Badge>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   senha:{' '}
@@ -358,6 +389,29 @@ const MroUsersPanel: React.FC = () => {
                     Enviar acesso
                   </Button>
                 )}
+                <div className="flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5">
+                  <span className="text-[11px] text-muted-foreground">extras</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    aria-label="Remover conta extra"
+                    disabled={extras <= 0}
+                    onClick={() => runAction({ action: 'set_extras', id: u.id, delta: -1 }, 'Conta extra removida')}
+                  >
+                    <Minus className="w-3 h-3" />
+                  </Button>
+                  <span className="text-xs font-semibold w-4 text-center">{extras}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    aria-label="Adicionar conta extra"
+                    onClick={() => runAction({ action: 'set_extras', id: u.id, delta: 1 }, 'Conta extra liberada')}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => runAction({ action: 'reset_trials', id: u.id }, 'Testes reiniciados')}>
                   <RotateCcw className="w-3 h-3" /> Testes
                 </Button>
@@ -416,24 +470,33 @@ const MroUsersPanel: React.FC = () => {
                 )}
               </div>
 
-              {isOpen && (
-                <div className="mt-4 space-y-3 border-t pt-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Input
-                      className={cn('max-w-xs')}
-                      value={newAccount[u.id] || ''}
-                      onChange={(e) => setNewAccount((prev) => ({ ...prev, [u.id]: e.target.value }))}
-                      placeholder="nova conta do Instagram"
-                    />
-                    <Button size="sm" className="gap-1" onClick={() => handleAddAccount(u)}>
-                      <Plus className="w-3 h-3" /> Adicionar conta
-                    </Button>
-                    <span className="text-xs text-muted-foreground">
-                      Limite do plano: {u.plan_accounts}. Para liberar mais, aumente "Contas do plano" ao editar.
-                    </span>
-                  </div>
-                </div>
-              )}
+              {/* Cadastro manual de Instagram — sempre disponível para o admin */}
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+                <Input
+                  className={cn('max-w-xs')}
+                  value={newAccount[u.id] || ''}
+                  onChange={(e) => setNewAccount((prev) => ({ ...prev, [u.id]: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') void handleAddAccount(u); }}
+                  placeholder="@conta do Instagram"
+                />
+                <Button size="sm" className="gap-1" onClick={() => void handleAddAccount(u)}>
+                  <Plus className="w-3 h-3" /> Adicionar Instagram
+                </Button>
+                {full && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1"
+                    onClick={() => void handleAddAccount(u, true)}
+                    title="Libera 1 conta extra e cadastra o Instagram"
+                  >
+                    <Plus className="w-3 h-3" /> Adicionar com extra
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  Limite: {u.plan_accounts} do plano{extras > 0 ? ` + ${extras} extra(s)` : ''} = {totalSlots} contas.
+                </span>
+              </div>
 
             </Card>
           );
