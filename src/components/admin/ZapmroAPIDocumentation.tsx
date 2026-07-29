@@ -69,6 +69,50 @@ const ENDPOINTS: EndpointDoc[] = [
   },
 ];
 
+interface PlanDoc {
+  label: string;
+  description: string;
+  example: Record<string, unknown>;
+}
+
+/** Como cada tipo de plano se apresenta na resposta da API. */
+const PLANS: PlanDoc[] = [
+  {
+    label: 'Vitalício',
+    description:
+      'Sem data de expiração. Cadastre o usuário sem "expires_at" e com days_remaining alto (ex.: 9999). Acesso liberado enquanto is_active for true.',
+    example: { is_active: true, expires_at: null, days_remaining: 9999 },
+  },
+  {
+    label: 'Anual',
+    description:
+      'Expira em 365 dias. Cadastre "expires_at" com a data de vencimento e days_remaining com os dias restantes.',
+    example: { is_active: true, expires_at: '2027-07-29T00:00:00.000Z', days_remaining: 365 },
+  },
+  {
+    label: 'Mensal',
+    description:
+      'Expira em 30 dias. Mesmo formato do anual, apenas com a data mais curta. Ao expirar, a API retorna success:false com "Acesso expirado".',
+    example: { is_active: true, expires_at: '2026-08-28T00:00:00.000Z', days_remaining: 30 },
+  },
+];
+
+const planSnippet = `// resposta do action "login" ou "verify_user"
+const { user } = await res.json();
+
+if (!user.is_active) {
+  // bloqueado ou expirado -> user.access_denied_reason
+  return bloquear(user.access_denied_reason);
+}
+
+const plano =
+  !user.expires_at && user.days_remaining >= 3650 ? 'vitalicio'
+  : user.days_remaining > 31 ? 'anual'
+  : 'mensal';
+
+liberarAcesso(plano);`;
+
+
 const ZapmroAPIDocumentation: React.FC = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
