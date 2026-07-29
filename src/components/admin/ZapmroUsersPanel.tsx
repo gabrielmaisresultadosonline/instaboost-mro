@@ -326,10 +326,15 @@ export const ZapmroUsersTab: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <Button variant="outline" onClick={() => void handleSyncCredentials()} disabled={syncing}>
+          {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+          Vincular emails e senhas
+        </Button>
         <Button variant="outline" onClick={() => void load()} disabled={isLoading}>
           <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
           Atualizar ({users.length})
         </Button>
+
       </div>
 
       {isLoading ? (
