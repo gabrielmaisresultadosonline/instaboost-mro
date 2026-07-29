@@ -841,14 +841,30 @@ serve(async (req) => {
       // E-mail já usado por outro cliente? (o vínculo é único por e-mail)
       if (newEmailRaw) {
         const safeEmail = newEmailRaw.replace(/[,()"']/g, "");
-        const { data: dupe } = await supabase
+        const { data: dupeMro } = await supabase
           .from("mro_tool_users")
           .select("id,username")
           .eq("email", safeEmail)
           .limit(5);
-        const conflict = (dupe || []).some((r) => r.id !== (mro?.id as string) && String(r.username || "").toLowerCase() !== username);
-        if (conflict) return json({ success: false, error: "Este e-mail já está vinculado a outro acesso" }, 200);
+        const { data: dupeZap } = await supabase
+          .from("zapmro_users")
+          .select("id,username")
+          .eq("email", safeEmail)
+          .limit(5);
+        const others = [
+          ...(dupeMro || []).filter((r) => r.id !== (mro?.id as string)).map((r) => ({ tool: "MRO Ferramenta", username: r.username })),
+          ...(dupeZap || []).filter((r) => r.id !== (zap?.id as string)).map((r) => ({ tool: "ZAPMRO", username: r.username })),
+        ].filter((r) => String(r.username || "").toLowerCase() !== username);
+        if (others.length) {
+          return json({
+            success: false,
+            conflict: true,
+            conflict_accounts: others,
+            error: "Este e-mail já está vinculado a outro acesso",
+          }, 200);
+        }
       }
+
 
       const patch: Record<string, unknown> = {};
       if (newEmailRaw) patch.email = newEmailRaw;
