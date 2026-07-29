@@ -104,6 +104,42 @@ export const ZapmroUsersTab: React.FC = () => {
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<UserForm>(EMPTY_USER);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [syncing, setSyncing] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  /** Vincula emails e senhas já cadastrados nos acessos criados. */
+  const handleSyncCredentials = async () => {
+    setSyncing(true);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-api', { body: { action: 'sync_credentials' } });
+      if (data?.success) {
+        toast({
+          title: 'Acessos vinculados',
+          description: `${data.updated ?? 0} usuário(s) atualizados (${data.passwords ?? 0} senha(s) recuperadas).`,
+        });
+        void load();
+      } else {
+        toast({ title: data?.error || 'Erro ao vincular acessos', variant: 'destructive' });
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  /** Reenvia o acesso (usuário + senha) para o email cadastrado. */
+  const handleSendAccess = async (user: ZapmroUser) => {
+    setSendingId(user.id);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-api', {
+        body: { action: 'send_access', id: user.id },
+      });
+      if (data?.success) toast({ title: 'Acesso enviado!', description: `Email enviado para ${user.email}` });
+      else toast({ title: data?.error || 'Erro ao enviar acesso', variant: 'destructive' });
+    } finally {
+      setSendingId(null);
+    }
+  };
+
 
   const handleCopyAccess = async (user: ZapmroUser) => {
     const ok = await copyAccessToClipboard({
