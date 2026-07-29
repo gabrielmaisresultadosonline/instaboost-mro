@@ -365,6 +365,56 @@ serve(async (req) => {
       return json({ success: true, users: result, trials_limit: MONTHLY_TRIALS });
     }
 
+    /**
+     * Vincula automaticamente os emails já cadastrados na área /instagram
+     * (created_accesses e mro_orders) aos usuários da ferramenta MRO.
+     * Assim o cliente consegue logar tanto por usuário quanto por email.
+     */
+    if (action === "sync_emails") {
+      const emailByUsername = new Map<string, string>();
+
+      const { data: accesses } = await fetchAllRows<{ username: string; customer_email: string | null }>(() =>
+        supabase
+          .from("created_accesses")
+          .select("username, customer_email")
+          .order("created_at", { ascending: false }),
+      );
+      for (const row of accesses) {
+        const u = String(row.username || "").trim().toLowerCase();
+        const e = String(row.customer_email || "").trim().toLowerCase();
+        if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+      }
+
+      const { data: orders } = await fetchAllRows<{ username: string | null; email: string | null }>(() =>
+        supabase
+          .from("mro_orders")
+          .select("username, email")
+          .order("created_at", { ascending: false }),
+      );
+      for (const row of orders) {
+        const u = String(row.username || "").trim().toLowerCase();
+        const e = String(row.email || "").trim().toLowerCase();
+        if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+      }
+
+      const { data: allUsers } = await fetchAllRows<MroUserRow>(() =>
+        supabase.from("mro_tool_users").select("id, username, email").order("created_at", { ascending: true }),
+      );
+
+      const overwrite = body.overwrite === true;
+      let updated = 0;
+      for (const u of allUsers) {
+        if (u.email && !overwrite) continue;
+        const email = emailByUsername.get(String(u.username || "").trim().toLowerCase());
+        if (!email || email === u.email) continue;
+        const { error } = await supabase.from("mro_tool_users").update({ email }).eq("id", u.id);
+        if (!error) updated += 1;
+      }
+
+      return json({ success: true, updated, total: allUsers.length });
+    }
+
+
     if (action === "upsert_user") {
       const username = String(body.username || "").trim().toLowerCase();
       if (!username) return json({ success: false, error: "Usuário é obrigatório" }, 400);
