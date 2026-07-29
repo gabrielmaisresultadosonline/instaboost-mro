@@ -248,7 +248,16 @@ serve(async (req) => {
         unlocked: !isBlocked && (grantedIds.has(p.id) || !!access[p.access_source]),
       }));
 
-      return json({ success: true, products: result, access, details, blocked: isBlocked });
+      // Identidade efetiva devolvida para o front hidratar o login das ferramentas
+      // (ex.: Posts com IA só reconhece e-mail, mesmo se o cliente entrou por usuário).
+      return json({
+        success: true,
+        products: result,
+        access,
+        details,
+        blocked: isBlocked,
+        identity: { email: effEmail || null, username: effUsername || null },
+      });
 
     }
 
