@@ -263,6 +263,14 @@ export default function HubProductsPanel() {
                     <Badge variant={product.is_active ? "default" : "secondary"}>
                       {product.is_active ? "Ativo" : "Inativo"}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant={membersFor === product.slug ? "default" : "outline"}
+                      onClick={() => setMembersFor(membersFor === product.slug ? null : product.slug)}
+                      disabled={!product.slug}
+                    >
+                      <LayoutList className="h-4 w-4" /> Área de membros
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => setEditing(product)}>
                       Editar
                     </Button>
@@ -271,6 +279,27 @@ export default function HubProductsPanel() {
                     </Button>
                   </div>
                 </div>
+
+                {membersFor === product.slug && product.slug && (
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Monte a área de membros deste produto (módulos, vídeos MP4/YouTube, capas 1080x1920, seções e
+                      botões) — mesmo padrão da área do ZAPMRO.
+                    </p>
+                    <ModuleManager
+                      key={`hub-${product.slug}`}
+                      platform={`hub-${product.slug}` as ModulePlatform}
+                      downloadLink={hubDownloadLinks[product.slug] || ""}
+                      onDownloadLinkChange={(link) =>
+                        setHubDownloadLinks((prev) => ({ ...prev, [product.slug]: link }))
+                      }
+                      onSaveSettings={() => {
+                        toast({ title: "Configurações salvas" });
+                      }}
+                    />
+                  </div>
+                )}
+
 
                 <div className="border-t border-border pt-3 space-y-2">
                   <div className="flex items-center justify-between">
