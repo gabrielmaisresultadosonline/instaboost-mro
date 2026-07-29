@@ -658,45 +658,23 @@ const ZapMRO = () => {
             </p>
           </div>
 
-          {/* Download Link (com trava de taxa de atualização) */}
+          {/* Download Link (liberado temporariamente) */}
           {settings?.downloadLink && (
             <div className="flex flex-col items-center gap-3 mb-8">
-              {feePaid && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-400/40">
-                  <Sparkles className="w-4 h-4 text-emerald-300" />
-                  <span className="text-emerald-200 text-sm font-semibold">
-                    Você está com a versão atualizada liberada! Faça download.
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-400/40">
+                <Sparkles className="w-4 h-4 text-emerald-300" />
+                <span className="text-emerald-200 text-sm font-semibold">
+                  Download liberado! Faça download da versão atualizada.
+                </span>
+              </div>
 
-              {isCheckingFee ? (
-                <Button disabled className="bg-green-800/60 text-green-200 gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Verificando liberação...
-                </Button>
-              ) : feePaid ? (
-                <Button
-                  onClick={() => window.open(settings.downloadLink, '_blank')}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2"
-                >
-                  <Download className="w-5 h-5" />
-                  Download ZAPMRO
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    onClick={() => setShowFeeModal(true)}
-                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white gap-2"
-                  >
-                    <Lock className="w-5 h-5" />
-                    Download bloqueado — Liberar por R$97
-                  </Button>
-                  <p className="text-amber-300/70 text-xs text-center max-w-md">
-                    Clique para entender a atualização obrigatória da extensão ZAPMRO.
-                  </p>
-                </>
-              )}
+              <Button
+                onClick={() => window.open(settings.downloadLink, '_blank')}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Download ZAPMRO
+              </Button>
             </div>
           )}
 
