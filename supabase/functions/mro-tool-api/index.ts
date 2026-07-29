@@ -694,9 +694,10 @@ serve(async (req) => {
         return json({
           success: false,
           limit_reached: true,
-          error: `Limite atingido (${totalSlots(user as MroUserRow)} contas). Adicione contas extras para liberar mais.`,
+          error: `Limite excedido (${totalSlots(user as MroUserRow)} conta(s)). Adicione contas extras para liberar mais.`,
         });
       }
+
 
       const { error } = await supabase.from("mro_tool_accounts").insert({ user_id: userId, instagram_username: instagram });
       if (error) return json({ success: false, error: error.message }, 500);
