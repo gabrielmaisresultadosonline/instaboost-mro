@@ -131,7 +131,9 @@ export default function DashboardProduto() {
         )}
 
         {tutorials.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum tutorial cadastrado ainda para este produto.</p>
+          modules.length === 0 && !modulesLoading ? (
+            <p className="text-muted-foreground">Nenhum conteúdo cadastrado ainda para este produto.</p>
+          ) : null
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tutorials.map((tutorial) => (
