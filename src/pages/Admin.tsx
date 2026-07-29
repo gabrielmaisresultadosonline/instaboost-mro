@@ -961,6 +961,10 @@ const Admin = () => {
         {/* Dashboard Produtos Tab */}
         {activeTab === 'hub' && <HubProductsPanel />}
 
+        {/* Unificações de Acesso (logs + desfazer) */}
+        {activeTab === 'merges' && <MergeLogsPanel />}
+
+
         {/* Admin Posts com IA (embutido) */}
         {activeTab === 'postscomia' && (
           <div className="-m-4 md:-m-6">
