@@ -43,7 +43,12 @@ interface HubUser {
   name: string | null;
   password: string | null;
   sources: string[];
+  /** Todos os e-mails/usernames vinculados à mesma identidade (busca). */
+  aliases?: string[];
+  /** Origem da conta desta linha (mro_tool, zapmro, ...). */
+  account_source?: string | null;
   blocked: boolean;
+
   products: HubUserProduct[];
 }
 
