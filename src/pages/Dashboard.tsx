@@ -606,6 +606,103 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Cadastro obrigatório de e-mail para quem ainda não tem */}
+      <Dialog open={needsEmail && !showConfig} onOpenChange={() => { /* obrigatório */ }}>
+        <DialogContent className="sm:max-w-md [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle>Cadastre seu e-mail</DialogTitle>
+            <DialogDescription>
+              Precisamos do seu e-mail para vincular seus acessos e permitir a recuperação de senha. Ele fica salvo junto ao seu acesso.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Nome de acesso</Label>
+              <Input value={profile?.username || session.username || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="force-email">E-mail *</Label>
+              <Input
+                id="force-email"
+                type="email"
+                value={formEmail}
+                onChange={(e) => setFormEmail(e.target.value)}
+                placeholder="seuemail@exemplo.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="force-name">Nome</Label>
+              <Input id="force-name" value={formName} onChange={(e) => setFormName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="force-whats">WhatsApp (opcional)</Label>
+              <Input id="force-whats" value={formWhats} onChange={(e) => setFormWhats(e.target.value)} placeholder="11999999999" />
+            </div>
+            <Button className="w-full" onClick={() => saveProfile(true)} disabled={savingProfile}>
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+              Salvar e continuar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configurações da conta */}
+      <Dialog open={showConfig} onOpenChange={(open) => setShowConfig(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configurações da conta</DialogTitle>
+            <DialogDescription>
+              Atualize seus dados de acesso. O nome de acesso não pode ser alterado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Nome de acesso</Label>
+              <Input value={profile?.username || session.username || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cfg-name">Nome</Label>
+              <Input id="cfg-name" value={formName} onChange={(e) => setFormName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cfg-email">E-mail</Label>
+              <Input id="cfg-email" type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cfg-whats">WhatsApp (opcional)</Label>
+              <Input id="cfg-whats" value={formWhats} onChange={(e) => setFormWhats(e.target.value)} placeholder="11999999999" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="cfg-pass">Nova senha</Label>
+                <Input
+                  id="cfg-pass"
+                  type="password"
+                  value={formNewPassword}
+                  onChange={(e) => setFormNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cfg-pass2">Confirmar senha</Label>
+                <Input
+                  id="cfg-pass2"
+                  type="password"
+                  value={formConfirmPassword}
+                  onChange={(e) => setFormConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => saveProfile(false)} disabled={savingProfile}>
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              Salvar alterações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
