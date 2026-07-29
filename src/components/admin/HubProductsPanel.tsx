@@ -244,7 +244,7 @@ export default function HubProductsPanel() {
 
       <div className="space-y-4">
         {products.map((product) => {
-          const productTutorials = tutorials.filter((t) => t.product_id === product.id);
+          const hasMembers = (membersCount[product.slug] || 0) > 0;
           return (
             <Card key={product.id}>
               <CardContent className="pt-6 space-y-4">
@@ -264,10 +264,20 @@ export default function HubProductsPanel() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={product.is_active ? "default" : "secondary"}>
                       {product.is_active ? "Ativo" : "Inativo"}
                     </Badge>
+                    {hasMembers && (
+                      <Badge variant="outline" className="gap-1">
+                        <LayoutList className="h-3 w-3" /> Área de membros ativa
+                      </Badge>
+                    )}
+                    {product.app_route && (
+                      <Badge variant="outline" className="gap-1">
+                        <ExternalLink className="h-3 w-3" /> Redirecionado · {product.app_route}
+                      </Badge>
+                    )}
                     <Button
                       size="sm"
                       variant={membersFor === product.slug ? "default" : "outline"}
@@ -276,6 +286,7 @@ export default function HubProductsPanel() {
                     >
                       <LayoutList className="h-4 w-4" /> Área de membros
                     </Button>
+
                     <Button size="sm" variant="outline" onClick={() => setEditing(product)}>
                       Editar
                     </Button>
