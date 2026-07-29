@@ -974,6 +974,10 @@ const Admin = () => {
         {/* ZAPMRO Taxas Pagas Tab */}
         {activeTab === 'zapmro_taxas' && <ZapmroFeesPanel />}
 
+        {/* Dashboard Produtos Tab */}
+        {activeTab === 'hub' && <HubProductsPanel />}
+
+
 
 
         {/* Estrutura Tutoriais Tab */}
