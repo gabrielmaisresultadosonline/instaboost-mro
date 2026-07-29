@@ -1,6 +1,6 @@
 import { useLocation, Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { HUB_DASHBOARD_ROUTE, shouldReturnToHub } from "@/lib/hubReturn";
+import { HUB_DASHBOARD_ROUTE } from "@/lib/hubReturn";
 
 /** Indica se a URL atual está em modo embed (iframe/extensão). */
 function isEmbedded(search: string): boolean {
