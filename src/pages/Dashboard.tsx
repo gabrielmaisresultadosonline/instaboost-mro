@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { markHubReturn } from "@/lib/hubReturn";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,7 @@ export default function Dashboard() {
   // Unificação de acessos quando o e-mail já pertence a outro login
   const [mergeEmail, setMergeEmail] = useState("");
   const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string }[]>([]);
+  const [mergePrimary, setMergePrimary] = useState("");
   const [merging, setMerging] = useState(false);
   const [mergeResult, setMergeResult] = useState<{
     email: string;
@@ -292,6 +294,7 @@ export default function Dashboard() {
           email: session.email || "",
           password: session.password,
           target_email: mergeEmail,
+          primary_username: mergePrimary || mergeConflicts[0]?.username || session.username || "",
         },
       });
       if (!data?.success) {
