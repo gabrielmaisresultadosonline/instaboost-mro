@@ -124,10 +124,26 @@ serve(async (req) => {
 
       if (!matched) return json({ success: false, error: "Usuário ou senha incorretos" }, 200);
 
+      // Bloqueio manual feito pelo admin na dashboard de produtos.
+      const blockFilters: string[] = [];
+      if (email) blockFilters.push(`email.eq.${String(email).toLowerCase()}`);
+      if (username) blockFilters.push(`username.eq.${String(username).toLowerCase()}`);
+      if (blockFilters.length) {
+        const { data: blockedRows } = await supabase
+          .from("hub_blocked_users")
+          .select("id")
+          .or(blockFilters.join(","))
+          .limit(1);
+        if (blockedRows && blockedRows.length > 0) {
+          return json({ success: false, error: "Acesso bloqueado. Fale com o suporte." }, 200);
+        }
+      }
+
       return json({
         success: true,
         user: { username, email, name },
       });
+
     }
 
     // ================= PRODUTOS + ACESSOS =================
