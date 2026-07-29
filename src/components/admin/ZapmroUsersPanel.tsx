@@ -22,7 +22,9 @@ import {
   Copy,
   Eye,
   EyeOff,
+  Mail,
 } from 'lucide-react';
+
 import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
 export interface ZapmroUser {
