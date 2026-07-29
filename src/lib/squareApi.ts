@@ -6,6 +6,7 @@ import {
   normalizeInstagramUsername 
 } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
+import { mroVerifyUser, mroAddAccount } from '@/lib/mroToolApi';
 
 // Login with username and password
 export const loginToSquare = async (
