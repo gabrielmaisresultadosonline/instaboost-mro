@@ -4090,6 +4090,89 @@ export type Database = {
         }
         Relationships: []
       }
+      mro_tool_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          instagram_username: string
+          is_trial: boolean
+          trial_expires_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instagram_username: string
+          is_trial?: boolean
+          trial_expires_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instagram_username?: string
+          is_trial?: boolean
+          trial_expires_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mro_tool_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mro_tool_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mro_tool_users: {
+        Row: {
+          created_at: string
+          email: string | null
+          expiration_days: number
+          id: string
+          is_active: boolean
+          last_access: string | null
+          name: string | null
+          password_hash: string | null
+          plan_accounts: number
+          trials_period_start: string
+          trials_used: number
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          expiration_days?: number
+          id?: string
+          is_active?: boolean
+          last_access?: string | null
+          name?: string | null
+          password_hash?: string | null
+          plan_accounts?: number
+          trials_period_start?: string
+          trials_used?: number
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          expiration_days?: number
+          id?: string
+          is_active?: boolean
+          last_access?: string | null
+          name?: string | null
+          password_hash?: string | null
+          plan_accounts?: number
+          trials_period_start?: string
+          trials_used?: number
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       paid_users: {
         Row: {
           created_at: string
