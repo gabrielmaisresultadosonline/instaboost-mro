@@ -28,7 +28,12 @@ interface Stats {
   bumpCount: number;
 }
 
-export default function PostsComIAAdmin() {
+interface PostsComIAAdminProps {
+  /** When true, the panel is rendered inside /admin and auto-authenticates. */
+  embedded?: boolean;
+}
+
+export default function PostsComIAAdmin({ embedded = false }: PostsComIAAdminProps) {
   const [creds, setCreds] = useState<{ email: string; password: string } | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [pwInput, setPwInput] = useState("");
