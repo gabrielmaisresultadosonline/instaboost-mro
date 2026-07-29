@@ -94,8 +94,11 @@ export default function HubUsersPanel() {
     const term = search.trim().toLowerCase();
     if (!term) return users;
     return users.filter((u) =>
-      [u.name, u.email, u.username].filter(Boolean).some((v) => String(v).toLowerCase().includes(term)),
+      [u.name, u.email, u.username, ...(u.aliases || [])]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(term)),
     );
+
   }, [users, search]);
 
   // Mostra apenas os primeiros 50 para não pesar a página, a menos que haja busca.
