@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearHubReturn, shouldReturnToHub, HUB_DASHBOARD_ROUTE } from "@/lib/hubReturn";
+import { isEmbedMode } from "@/lib/embedAuth";
+
 
 /**
  * Botão flutuante "Voltar ao Dashboard".
