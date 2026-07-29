@@ -591,25 +591,25 @@ serve(async (req) => {
       order.plan_type === "lifetime" ? 9999 :
       365;
 
-    // Verificar se usuário já existe antes de criar
-    const userExists = await checkUserExists(order.username);
-    let apiResult;
-    
-    if (userExists) {
-      log("User already exists on SquareCloud, skipping creation", { username: order.username });
-      apiResult = { success: true, alreadyExists: true, message: "Usuário já existe" };
-    } else {
-      // Criar usuário na API do SquareCloud
-      apiResult = await createInstagramUser(order.username, order.username, daysAccess, order.plan_type);
-      log("API user creation result", apiResult);
-    }
-
     // Determinar email real do cliente (remover prefixo de afiliado se houver)
     let customerEmail = order.email;
     const emailParts = order.email.split(":");
     if (emailParts.length >= 2) {
       customerEmail = emailParts.slice(1).join(":");
     }
+
+    // Criar/atualizar o acesso direto na NOSSA API interna (mro_tool_users)
+    const userExists = await checkUserExists(supabase, order.username);
+    const apiResult = await createInstagramUser(
+      supabase,
+      order.username,
+      order.username,
+      customerEmail,
+      daysAccess,
+      order.plan_type,
+    );
+    log("Internal API user creation result", { ...apiResult, userExists });
+
 
     // Enviar email (SEMPRE enviar, mesmo se usuário já existia)
     let emailSent = order.email_sent || false;
