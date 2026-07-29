@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
 
   if (mode === 'choice') {
     return (
@@ -85,16 +85,8 @@ const RendaExtraPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-12 text-center relative">
-        <div className="flex justify-start">
-            <Button 
-                variant="ghost" 
-                onClick={() => setMode('choice')} 
-                className="text-white/60 hover:text-white hover:bg-white/5"
-            >
-                <ArrowLeft className="w-5 h-5 mr-2" /> Voltar
-            </Button>
-        </div>
+      <div className="max-w-4xl mx-auto space-y-12 text-center relative pt-6">
+
 
         <div className="space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Treinamento Exclusivo</div>
