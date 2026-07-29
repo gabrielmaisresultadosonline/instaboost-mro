@@ -60,7 +60,7 @@ import {
 import { cn } from "@/lib/utils";
 
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension' | 'lovable_extension';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension' | 'lovable_extension' | 'hub';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
