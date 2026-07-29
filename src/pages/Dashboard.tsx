@@ -69,13 +69,28 @@ export default function Dashboard() {
       const { data } = await supabase.functions.invoke("hub-api", {
         body: { action: "products", username: current.username || "", email: current.email || "" },
       });
-      if (data?.success) setProducts(data.products as HubProduct[]);
+      if (data?.success) {
+        setProducts(data.products as HubProduct[]);
+        // O backend resolve a identidade completa (e-mail vinculado ao usuário etc).
+        // Guardamos isso na sessão para conseguir logar automaticamente nas ferramentas.
+        const identity = data.identity as { email?: string | null; username?: string | null } | undefined;
+        if (identity && ((identity.email && !current.email) || (identity.username && !current.username))) {
+          const merged: DashboardSession = {
+            ...current,
+            email: current.email || identity.email || null,
+            username: current.username || identity.username || null,
+          };
+          localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(merged));
+          setSession(merged);
+        }
+      }
     } catch {
       toast({ title: "Erro ao carregar produtos", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   }, [toast]);
+
 
   useEffect(() => {
     if (session) loadProducts(session);
