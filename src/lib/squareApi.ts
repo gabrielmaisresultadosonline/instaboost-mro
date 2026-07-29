@@ -1,58 +1,43 @@
-// SquareCloud API Integration via Edge Function Proxy
-import { 
-  SquareLoginResponse, 
-  SquareVerifyIGResponse, 
+// Autenticação e contas — 100% via API interna (mro-tool-api).
+// A SquareCloud não é mais usada para login nem para gestão de perfis.
+import {
+  SquareVerifyIGResponse,
   SquareAddIGResponse,
-  normalizeInstagramUsername 
+  normalizeInstagramUsername
 } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
-import { mroVerifyUser, mroAddAccount } from '@/lib/mroToolApi';
+import { mroVerifyUser, mroAddAccount, mroLogin } from '@/lib/mroToolApi';
 
-// Login with username and password
+/** Converte o payload da API interna em dias restantes de acesso. */
+const resolveDaysRemaining = (user?: Record<string, unknown>): number => {
+  if (!user) return 365;
+  if (user.lifetime === true) return 99999;
+  const days = Number(user.days_remaining);
+  return Number.isFinite(days) ? days : 365;
+};
+
+// Login com usuário e senha (API interna MRO)
 export const loginToSquare = async (
-  username: string, 
+  username: string,
   password: string
 ): Promise<{ success: boolean; daysRemaining?: number; error?: string }> => {
   try {
-    const { data, error } = await supabase.functions.invoke('square-proxy', {
-      body: {
-        endpoint: '/verificar-numero',
-        method: 'POST',
-        contentType: 'form',
-        body: `numero=${encodeURIComponent(password)}&nome=${encodeURIComponent(username)}`
-      }
-    });
+    const result = await mroLogin(username, password);
 
-    if (error) {
-      console.error('Login error:', error);
-      return { success: false, error: 'Erro ao conectar com o servidor' };
+    if (result?.success) {
+      return { success: true, daysRemaining: resolveDaysRemaining(result.user) };
     }
 
-    const result = data as SquareLoginResponse;
-    
-    console.log('[SquareAPI] Raw login response:', JSON.stringify(result));
-    console.log('[SquareAPI] diasRestantes from API:', result?.diasRestantes, 'type:', typeof result?.diasRestantes);
-
-    if (result && result.senhaCorrespondente) {
-      // CRITICAL: Only use fallback if diasRestantes is truly undefined/null
-      // Don't fallback for 0 (expired) or any actual number
-      const daysFromApi = result.diasRestantes;
-      const finalDays = daysFromApi !== undefined && daysFromApi !== null ? daysFromApi : 365;
-      
-      console.log('[SquareAPI] Final days to use:', finalDays, daysFromApi > 365 ? '(Vitalício)' : `(${finalDays} dias)`);
-      
-      return { 
-        success: true, 
-        daysRemaining: finalDays
-      };
-    } else {
-      return { success: false, error: 'Usuário ou senha incorretos' };
-    }
+    return {
+      success: false,
+      error: result?.error || 'Usuário ou senha incorretos'
+    };
   } catch (error) {
     console.error('Login error:', error);
     return { success: false, error: 'Erro ao conectar com o servidor' };
   }
 };
+
 
 // ---------------------------------------------------------------------------
 // Contas do Instagram — agora servidas pela API interna (mro-tool-api).
