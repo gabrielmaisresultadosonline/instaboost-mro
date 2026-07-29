@@ -517,7 +517,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   variant="outline" 
                   size="sm" 
                   onClick={handleSyncAll}
-                  disabled={isLoading}
+                  disabled={isLoading || !isEmailReady}
+
                   className="text-primary border-primary/20 hover:bg-primary/10"
                 >
                   <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
