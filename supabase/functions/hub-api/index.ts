@@ -160,6 +160,11 @@ serve(async (req) => {
       const access: Record<string, boolean> = {};
       const details: Record<string, unknown> = {};
 
+      // Identidade efetiva: o cliente pode ter entrado só com usuário (MRO/ZAPMRO)
+      // mas ter o mesmo e-mail cadastrado em outros produtos (Posts com IA etc).
+      let effEmail = email;
+      let effUsername = username;
+
       // MRO Ferramenta
       if (username || email) {
         const parts: string[] = [];
@@ -168,19 +173,46 @@ serve(async (req) => {
         const { data: mroRows } = await supabase.from("mro_tool_users").select("*").or(parts.join(",")).limit(1);
         const mro = mroRows?.[0] || null;
         access.mro_tool = isAccessActive(mro);
-        if (mro) details.mro_tool = { expiration_days: mro.expiration_days, username: mro.username };
+        if (mro) {
+          details.mro_tool = { expiration_days: mro.expiration_days, username: mro.username };
+          effEmail = effEmail || String(mro.email || "").trim().toLowerCase();
+          effUsername = effUsername || String(mro.username || "").trim().toLowerCase();
+        }
 
         const { data: zapRows } = await supabase.from("zapmro_users").select("*").or(parts.join(",")).limit(1);
         const zap = zapRows?.[0] || null;
         access.zapmro = isAccessActive(zap);
-        if (zap) details.zapmro = { expiration_days: zap.expiration_days, username: zap.username };
+        if (zap) {
+          details.zapmro = { expiration_days: zap.expiration_days, username: zap.username };
+          effEmail = effEmail || String(zap.email || "").trim().toLowerCase();
+          effUsername = effUsername || String(zap.username || "").trim().toLowerCase();
+        }
+
+        // Se descobrimos o e-mail agora, checa os produtos que só usam e-mail.
+        if (effEmail && !email) {
+          const extraParts: string[] = [`email.eq.${effEmail}`];
+          if (!access.mro_tool) {
+            const { data: r } = await supabase.from("mro_tool_users").select("*").or(extraParts.join(",")).limit(1);
+            if (r?.[0]) {
+              access.mro_tool = isAccessActive(r[0]);
+              if (access.mro_tool) details.mro_tool = { expiration_days: r[0].expiration_days, username: r[0].username };
+            }
+          }
+          if (!access.zapmro) {
+            const { data: r } = await supabase.from("zapmro_users").select("*").or(extraParts.join(",")).limit(1);
+            if (r?.[0]) {
+              access.zapmro = isAccessActive(r[0]);
+              if (access.zapmro) details.zapmro = { expiration_days: r[0].expiration_days, username: r[0].username };
+            }
+          }
+        }
       }
 
-      if (email) {
+      if (effEmail) {
         const { data: pOrder } = await supabase
           .from("postscomia_orders")
           .select("email,status")
-          .eq("email", email)
+          .eq("email", effEmail)
           .eq("status", "paid")
           .limit(1)
           .maybeSingle();
@@ -189,8 +221,8 @@ serve(async (req) => {
 
       // Liberações manuais / compras feitas pela dashboard
       const grantFilters: string[] = [];
-      if (email) grantFilters.push(`email.eq.${email}`);
-      if (username) grantFilters.push(`username.eq.${username}`);
+      if (effEmail) grantFilters.push(`email.eq.${effEmail}`);
+      if (effUsername) grantFilters.push(`username.eq.${effUsername}`);
       let grants: { product_id: string; expires_at: string | null }[] = [];
       if (grantFilters.length) {
         const { data } = await supabase.from("hub_access").select("product_id,expires_at").or(grantFilters.join(","));
