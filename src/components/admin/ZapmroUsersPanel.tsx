@@ -411,9 +411,6 @@ export const ZapmroUsersTab: React.FC = () => {
                     Enviar acesso
                   </Button>
                 )}
-                <Button size="sm" variant="outline" className="hidden">
-
-                </Button>
                 <Button size="sm" variant="destructive" onClick={() => void handleDelete(user)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
