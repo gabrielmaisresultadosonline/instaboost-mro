@@ -913,9 +913,13 @@ serve(async (req) => {
       const email = String(body.email || "").trim().toLowerCase();
       const password = String(body.password || "");
       const targetEmail = String(body.target_email || "").trim().toLowerCase();
+      const newName = String(body.new_name || "").trim().slice(0, 120);
+      const newWhats = String(body.new_whatsapp || "").replace(/\D/g, "").slice(0, 15);
 
       if (!password || (!username && !email)) return json({ success: false, error: "Credenciais inválidas" }, 400);
       if (!targetEmail.includes("@") || targetEmail.length > 255) return json({ success: false, error: "E-mail inválido" }, 400);
+      if (newName && newName.length < 3) return json({ success: false, error: "Informe seu nome completo" }, 400);
+      if (newWhats && newWhats.length < 10) return json({ success: false, error: "Informe um WhatsApp válido com DDD" }, 400);
 
       const { mro, zap } = await findAccounts(username, email, password);
       if (!mro && !zap) return json({ success: false, error: "Senha atual incorreta" }, 200);
@@ -945,9 +949,13 @@ serve(async (req) => {
         });
       }
 
-      // Aplica o e-mail nos acessos atuais
-      if (mro) await supabase.from("mro_tool_users").update({ email: targetEmail }).eq("id", mro.id as string);
-      if (zap) await supabase.from("zapmro_users").update({ email: targetEmail }).eq("id", zap.id as string);
+      const completedProfilePatch: Record<string, unknown> = { email: targetEmail };
+      if (newName) completedProfilePatch.name = newName;
+      if (newWhats) completedProfilePatch.whatsapp = newWhats;
+
+      // Aplica e-mail + dados obrigatórios nos acessos atuais
+      if (mro) await supabase.from("mro_tool_users").update(completedProfilePatch).eq("id", mro.id as string);
+      if (zap) await supabase.from("zapmro_users").update(completedProfilePatch).eq("id", zap.id as string);
 
       // Recolhe todos os acessos que agora compartilham o mesmo e-mail
       const { data: mroAll } = await supabase
@@ -965,6 +973,16 @@ serve(async (req) => {
         ...(mroAll || []).map((r) => ({ tool: "MRO Ferramenta", username: String(r.username || ""), password: String(r.password_plain || "") })),
         ...(zapAll || []).map((r) => ({ tool: "ZAPMRO", username: String(r.username || ""), password: String(r.password_plain || "") })),
       ].filter((a) => a.username);
+
+      // Garante que todos os acessos agora vinculados ao e-mail também recebam nome/WhatsApp,
+      // evitando que o dashboard peça "Complete seu cadastro" novamente após atualizar a página.
+      if (newName || newWhats) {
+        const fullPatch: Record<string, unknown> = {};
+        if (newName) fullPatch.name = newName;
+        if (newWhats) fullPatch.whatsapp = newWhats;
+        await supabase.from("mro_tool_users").update(fullPatch).eq("email", safeEmail);
+        await supabase.from("zapmro_users").update(fullPatch).eq("email", safeEmail);
+      }
 
       // Acessos que já usavam o e-mail antes da unificação entram no log apenas como referência
       const snapshotIds = new Set(snapshot.map((s) => String(s.id)));
@@ -998,7 +1016,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             email: targetEmail,
-            name: String(mro?.name || zap?.name || ""),
+            name: newName || String(mro?.name || zap?.name || ""),
             primaryUsername: primary?.username || username,
             primaryPassword,
             accounts,
@@ -1030,6 +1048,12 @@ serve(async (req) => {
         emailSent,
         accounts,
         primary: { username: primary?.username || username, password: primaryPassword },
+        profile: {
+          username: primary?.username || username,
+          email: targetEmail,
+          name: newName || String(mro?.name || zap?.name || ""),
+          whatsapp: newWhats || String(mro?.whatsapp || zap?.whatsapp || ""),
+        },
       });
     }
 
