@@ -302,7 +302,7 @@ export const ZapmroUsersTab: React.FC = () => {
         <p className="text-center text-muted-foreground py-12">Nenhum usuário encontrado.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((user) => (
+          {visible.map((user) => (
             <Card key={user.id} className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
