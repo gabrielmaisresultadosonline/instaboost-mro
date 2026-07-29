@@ -7067,6 +7067,30 @@ export type Database = {
         }
         Relationships: []
       }
+      zapmro_blocked_ips: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string
+          reason: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip: string
+          reason?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string
+          reason?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       zapmro_orders: {
         Row: {
           amount: number
@@ -7162,6 +7186,62 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      zapmro_user_sessions: {
+        Row: {
+          created_at: string
+          device_label: string | null
+          first_seen: string
+          id: string
+          ip: string
+          is_active: boolean
+          last_seen: string
+          revoked_at: string | null
+          session_token: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          device_label?: string | null
+          first_seen?: string
+          id?: string
+          ip?: string
+          is_active?: boolean
+          last_seen?: string
+          revoked_at?: string | null
+          session_token?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string
+          device_label?: string | null
+          first_seen?: string
+          id?: string
+          ip?: string
+          is_active?: boolean
+          last_seen?: string
+          revoked_at?: string | null
+          session_token?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zapmro_user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "zapmro_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       zapmro_users: {
         Row: {
