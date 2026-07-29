@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin, verifyAdmin, getAdminData, saveAdminData, AdminData } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
@@ -58,8 +58,9 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -211,6 +212,7 @@ const Admin = () => {
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
     { id: 'hub', label: 'Dashboard Produtos', icon: <Package className="w-4 h-4" /> },
+    { id: 'postscomia', label: 'Admin Posts com IA', icon: <Package className="w-4 h-4" /> },
 
     { id: 'partners', label: 'Parceiros', icon: <UserPlus className="w-4 h-4" /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
@@ -953,6 +955,16 @@ const Admin = () => {
 
         {/* Dashboard Produtos Tab */}
         {activeTab === 'hub' && <HubProductsPanel />}
+
+        {/* Admin Posts com IA (embutido) */}
+        {activeTab === 'postscomia' && (
+          <div className="-m-4 md:-m-6">
+            <Suspense fallback={<div className="p-8 text-muted-foreground">Carregando...</div>}>
+              <PostsComIAAdmin />
+            </Suspense>
+          </div>
+        )}
+
 
 
 
