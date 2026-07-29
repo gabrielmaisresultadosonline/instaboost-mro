@@ -226,6 +226,7 @@ const MroUsersPanel: React.FC = () => {
           const isOpen = expanded === u.id;
           const slotsUsed = u.accounts.length;
           const full = slotsUsed >= u.plan_accounts;
+          const allAccounts = [...u.accounts, ...u.trial_accounts];
           return (
             <Card key={u.id} className="p-4">
               <div className="flex flex-wrap items-center gap-3">
@@ -249,31 +250,35 @@ const MroUsersPanel: React.FC = () => {
                 </Button>
               </div>
 
+              {/* Cascata de contas do Instagram — sempre visível */}
+              <div className="mt-3 pl-3 border-l-2 border-border space-y-1">
+                {allAccounts.map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60 transition-colors"
+                  >
+                    <span className="text-muted-foreground text-xs">└</span>
+                    <Instagram className={cn('w-3.5 h-3.5', a.is_trial ? 'text-primary' : 'text-muted-foreground')} />
+                    <span className="text-sm font-medium">@{a.instagram_username.replace(/^@/, '')}</span>
+                    {a.is_trial && <Badge variant="outline" className="text-[10px] py-0">teste</Badge>}
+                    <div className="flex-1" />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-destructive"
+                      onClick={() => runAction({ action: 'remove_account', id: a.id }, 'Conta removida')}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                {!allAccounts.length && (
+                  <span className="text-xs text-muted-foreground">Nenhuma conta do Instagram cadastrada.</span>
+                )}
+              </div>
+
               {isOpen && (
                 <div className="mt-4 space-y-3 border-t pt-3">
-                  <div className="flex flex-wrap gap-2">
-                    {u.accounts.map((a) => (
-                      <span key={a.id} className="inline-flex items-center gap-1 text-xs bg-muted rounded-full px-3 py-1">
-                        <Instagram className="w-3 h-3" />
-                        {a.instagram_username}
-                        <button onClick={() => runAction({ action: 'remove_account', id: a.id }, 'Conta removida')}>
-                          <X className="w-3 h-3 text-destructive" />
-                        </button>
-                      </span>
-                    ))}
-                    {u.trial_accounts.map((a) => (
-                      <span key={a.id} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary rounded-full px-3 py-1">
-                        {a.instagram_username} · teste
-                        <button onClick={() => runAction({ action: 'remove_account', id: a.id }, 'Teste removido')}>
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                    {!u.accounts.length && !u.trial_accounts.length && (
-                      <span className="text-xs text-muted-foreground">Nenhuma conta cadastrada.</span>
-                    )}
-                  </div>
-
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       className={cn('max-w-xs')}
@@ -290,6 +295,7 @@ const MroUsersPanel: React.FC = () => {
                   </div>
                 </div>
               )}
+
             </Card>
           );
         })}
