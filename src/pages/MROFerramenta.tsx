@@ -66,7 +66,7 @@ const MROFerramenta = () => {
       try {
         const result = await loginToSquare(username.trim(), password.trim());
         if (!result.success) {
-          throw new Error(result.message || 'Credenciais inválidas');
+          throw new Error(result.error || 'Credenciais inválidas');
         }
         await loginUser(username.trim(), result.daysRemaining || 365, undefined, password.trim());
         if (cancelled) return;
