@@ -214,6 +214,11 @@ const MroUsersPanel: React.FC = () => {
           <Input className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por usuário, email ou conta do Instagram" />
         </div>
         <Badge variant="secondary">{filtered.length} usuários</Badge>
+        <Badge variant="outline" className="gap-1">
+          <Instagram className="w-3 h-3" />
+          {filtered.reduce((acc, u) => acc + u.accounts.length + u.trial_accounts.length, 0)} contas
+        </Badge>
+
         <Button variant="outline" size="sm" onClick={loadUsers} disabled={loading} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Atualizar
