@@ -291,7 +291,7 @@ const MroUsersPanel: React.FC = () => {
 
         <Button variant="outline" size="sm" onClick={() => void handleSyncEmails()} disabled={syncing} className="gap-2">
           {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-          Vincular emails do /instagram
+          Vincular emails e senhas do /instagram
         </Button>
 
         <Button variant="outline" size="sm" onClick={loadUsers} disabled={loading} className="gap-2">
