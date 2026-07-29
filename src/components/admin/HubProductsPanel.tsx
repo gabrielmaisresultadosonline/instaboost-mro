@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Save, Trash2, Package, Video, LayoutList } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
-import type { ModulePlatform } from "@/lib/adminConfig";
+import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubProductRow {
   id?: string;
@@ -21,18 +21,6 @@ interface HubProductRow {
   sales_page_url: string | null;
   price: number;
   access_source: string;
-  order_index: number;
-  is_active: boolean;
-}
-
-interface HubTutorialRow {
-  id?: string;
-  product_id: string;
-  title: string;
-  description: string | null;
-  cover_url: string | null;
-  video_url: string | null;
-  download_url: string | null;
   order_index: number;
   is_active: boolean;
 }
@@ -50,36 +38,41 @@ const emptyProduct = (): HubProductRow => ({
   is_active: true,
 });
 
-const emptyTutorial = (productId: string): HubTutorialRow => ({
-  product_id: productId,
-  title: "",
-  description: "",
-  cover_url: "",
-  video_url: "",
-  download_url: "",
-  order_index: 0,
-  is_active: true,
-});
 
 export default function HubProductsPanel() {
   const { toast } = useToast();
   const [products, setProducts] = useState<HubProductRow[]>([]);
-  const [tutorials, setTutorials] = useState<HubTutorialRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<HubProductRow | null>(null);
-  const [tutorialDraft, setTutorialDraft] = useState<HubTutorialRow | null>(null);
   // Produto cuja área de membros (módulos) está aberta para edição
   const [membersFor, setMembersFor] = useState<string | null>(null);
   const [hubDownloadLinks, setHubDownloadLinks] = useState<Record<string, string>>({});
+  // Quantidade de módulos publicados por slug (para exibir a tarja "Área de membros ativa")
+  const [membersCount, setMembersCount] = useState<Record<string, number>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await supabase.functions.invoke("hub-api", { body: { action: "admin_list_products" } });
       if (data?.success) {
-        setProducts(data.products || []);
-        setTutorials(data.tutorials || []);
+        const list: HubProductRow[] = data.products || [];
+        setProducts(list);
+
+        // Verifica quais produtos já possuem área de membros publicada
+        const entries = await Promise.all(
+          list
+            .filter((p) => !!p.slug)
+            .map(async (p) => {
+              try {
+                const cloud = await loadModulesFromCloud(`hub-${p.slug}` as ModulePlatform);
+                return [p.slug, cloud?.modules?.length || 0] as const;
+              } catch {
+                return [p.slug, 0] as const;
+              }
+            })
+        );
+        setMembersCount(Object.fromEntries(entries));
       }
     } finally {
       setLoading(false);
@@ -116,31 +109,8 @@ export default function HubProductsPanel() {
     load();
   };
 
-  const saveTutorial = async () => {
-    if (!tutorialDraft) return;
-    setSaving(true);
-    try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: { action: "admin_save_tutorial", tutorial: tutorialDraft },
-      });
-      if (data?.success) {
-        toast({ title: "Tutorial salvo" });
-        setTutorialDraft(null);
-        load();
-      } else {
-        toast({ title: data?.error || "Erro ao salvar", variant: "destructive" });
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
 
-  const deleteTutorial = async (id?: string) => {
-    if (!id) return;
-    if (!confirm("Excluir este tutorial?")) return;
-    await supabase.functions.invoke("hub-api", { body: { action: "admin_delete_tutorial", id } });
-    load();
-  };
+
 
   if (loading) {
     return (
@@ -244,7 +214,7 @@ export default function HubProductsPanel() {
 
       <div className="space-y-4">
         {products.map((product) => {
-          const productTutorials = tutorials.filter((t) => t.product_id === product.id);
+          const hasMembers = (membersCount[product.slug] || 0) > 0;
           return (
             <Card key={product.id}>
               <CardContent className="pt-6 space-y-4">
@@ -264,10 +234,20 @@ export default function HubProductsPanel() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={product.is_active ? "default" : "secondary"}>
                       {product.is_active ? "Ativo" : "Inativo"}
                     </Badge>
+                    {hasMembers && (
+                      <Badge variant="outline" className="gap-1">
+                        <LayoutList className="h-3 w-3" /> Área de membros ativa
+                      </Badge>
+                    )}
+                    {product.app_route && (
+                      <Badge variant="outline" className="gap-1">
+                        <ExternalLink className="h-3 w-3" /> Redirecionado · {product.app_route}
+                      </Badge>
+                    )}
                     <Button
                       size="sm"
                       variant={membersFor === product.slug ? "default" : "outline"}
@@ -276,6 +256,7 @@ export default function HubProductsPanel() {
                     >
                       <LayoutList className="h-4 w-4" /> Área de membros
                     </Button>
+
                     <Button size="sm" variant="outline" onClick={() => setEditing(product)}>
                       Editar
                     </Button>
@@ -305,80 +286,6 @@ export default function HubProductsPanel() {
                   </div>
                 )}
 
-
-                <div className="border-t border-border pt-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <Video className="h-4 w-4" /> Tutoriais ({productTutorials.length})
-                    </p>
-                    <Button size="sm" variant="secondary" onClick={() => setTutorialDraft(emptyTutorial(product.id!))}>
-                      <Plus className="h-4 w-4" /> Novo tutorial
-                    </Button>
-                  </div>
-                  {productTutorials.map((tutorial) => (
-                    <div key={tutorial.id} className="flex items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2">
-                      <span className="text-sm text-foreground">{tutorial.title}</span>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => setTutorialDraft(tutorial)}>
-                          Editar
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => deleteTutorial(tutorial.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {tutorialDraft && tutorialDraft.product_id === product.id && (
-                    <div className="space-y-3 rounded-lg border border-border p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label>Título</Label>
-                          <Input
-                            value={tutorialDraft.title}
-                            onChange={(e) => setTutorialDraft({ ...tutorialDraft, title: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Capa (URL)</Label>
-                          <Input
-                            value={tutorialDraft.cover_url || ""}
-                            onChange={(e) => setTutorialDraft({ ...tutorialDraft, cover_url: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Vídeo (URL)</Label>
-                          <Input
-                            value={tutorialDraft.video_url || ""}
-                            onChange={(e) => setTutorialDraft({ ...tutorialDraft, video_url: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Download (URL)</Label>
-                          <Input
-                            value={tutorialDraft.download_url || ""}
-                            onChange={(e) => setTutorialDraft({ ...tutorialDraft, download_url: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Descrição</Label>
-                        <Textarea
-                          value={tutorialDraft.description || ""}
-                          onChange={(e) => setTutorialDraft({ ...tutorialDraft, description: e.target.value })}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={saveTutorial} disabled={saving}>
-                          <Save className="h-4 w-4" /> Salvar tutorial
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setTutorialDraft(null)}>
-                          Cancelar
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
           );
