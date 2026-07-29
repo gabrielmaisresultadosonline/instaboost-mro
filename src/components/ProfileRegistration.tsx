@@ -613,26 +613,48 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   </div>
                 </div>
               ) : (
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => !user?.isEmailLocked && setEmail(e.target.value)}
-                  disabled={user?.isEmailLocked}
-                  className={`bg-background/50 ${user?.isEmailLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  data-tutorial="email-input"
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => !isEmailReady && setEmail(e.target.value)}
+                    disabled={isEmailReady}
+                    className={`bg-background/50 ${isEmailReady ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    data-tutorial="email-input"
+                  />
+                  {!isEmailReady && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={savingEmail || !isEmailValid}
+                      onClick={handleSaveEmail}
+                      className="bg-primary hover:bg-primary/90 shrink-0"
+                    >
+                      {savingEmail ? 'Salvando...' : 'Salvar e-mail'}
+                    </Button>
+                  )}
+                </div>
               )}
 
               <p className="text-xs text-muted-foreground">
                 {isEditingEmail
                   ? 'Digite o novo e-mail e clique em Salvar. Ele ficará vinculado à sua conta.'
-                  : user?.isEmailLocked
+                  : isEmailReady
                     ? 'Este e-mail está vinculado à sua conta. Clique em "Alterar" para trocar.'
-                    : 'Este e-mail será salvo e vinculado permanentemente à sua conta'
+                    : 'Obrigatório: cadastre e salve seu e-mail para liberar o cadastro de contas do Instagram.'
                 }
               </p>
+
+              {!isEmailReady && !isEditingEmail && (
+                <div className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+                  <p className="text-xs text-amber-400 font-medium">
+                    ⚠️ Sem e-mail cadastrado você não consegue cadastrar nem sincronizar contas do Instagram.
+                  </p>
+                </div>
+              )}
+
             </div>
           </CardContent>
         </Card>
