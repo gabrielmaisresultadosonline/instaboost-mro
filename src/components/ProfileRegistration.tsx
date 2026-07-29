@@ -356,6 +356,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
   const handleSyncAll = async () => {
     if (!user) return;
+    if (!requireEmail()) return;
+
     
     setIsLoading(true);
     setLoadingMessage('Sincronizando todas as suas contas...');
