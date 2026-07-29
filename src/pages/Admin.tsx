@@ -14,10 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
-import SyncDashboard from '@/components/admin/SyncDashboard';
 import ModuleManager from '@/components/admin/ModuleManager';
 import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
-import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ProfileActions from '@/components/admin/ProfileActions';
 import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
@@ -31,18 +29,14 @@ import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
 import HubProductsPanel from '@/components/admin/HubProductsPanel';
-
 import MroToolPanel from '@/components/admin/MroToolPanel';
-import ManualScraper from '@/components/admin/ManualScraper';
-import ExtensionDocs from '@/components/admin/ExtensionDocs';
-import LovableExtensionPanel from '@/components/admin/LovableExtensionPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
-  Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome, Key,
+  Image as ImageIcon, User,
+  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket,
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus,
   Package,
 
 } from 'lucide-react';
@@ -65,7 +59,7 @@ import {
 import { cn } from "@/lib/utils";
 
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp' | 'partners' | 'extension' | 'lovable_extension' | 'hub';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -221,9 +215,6 @@ const Admin = () => {
     { id: 'partners', label: 'Parceiros', icon: <UserPlus className="w-4 h-4" /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
     { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
-    { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
-    { id: 'scraper', label: 'Scraper Manual', icon: <Globe className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'zapmro', label: 'ZAPMRO Ferramenta', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'zapmro_taxas', label: 'ZAPMRO Taxas Pagas', icon: <CheckCircle className="w-4 h-4" /> },
@@ -233,8 +224,6 @@ const Admin = () => {
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
-    { id: 'extension', label: 'Extensão', icon: <Chrome className="w-4 h-4" /> },
-    { id: 'lovable_extension', label: 'Lovable Extensão', icon: <Key className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
@@ -829,7 +818,7 @@ const Admin = () => {
                     <p className="text-muted-foreground">
                       {searchTerm 
                         ? 'Nenhum perfil encontrado com esse termo' 
-                        : 'Nenhum perfil sincronizado ainda. Vá para a aba "Sincronizar" para buscar perfis.'}
+                        : 'Nenhum perfil sincronizado ainda.'}
                     </p>
                   </div>
                 ) : (
@@ -937,18 +926,6 @@ const Admin = () => {
           </div>
         )}
 
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
-          <AnalyticsDashboard 
-            profiles={allMergedProfiles}
-            onProfilesUpdate={() => setSyncData(getSyncData())}
-          />
-        )}
-
-        {/* Sync Tab */}
-        {activeTab === 'sync' && (
-          <SyncDashboard />
-        )}
 
         {/* MRO Ferramenta Tab */}
         {activeTab === 'tutorials' && (
@@ -992,10 +969,6 @@ const Admin = () => {
           />
         )}
 
-        {/* Scraper Manual Tab */}
-        {activeTab === 'scraper' && (
-          <ManualScraper />
-        )}
 
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
@@ -1144,14 +1117,6 @@ const Admin = () => {
         {/* Users List Tab */}
         {activeTab === 'userlist' && (
           <UsersListPanel />
-        )}
-        {/* Extension Docs Tab */}
-        {activeTab === 'extension' && (
-          <ExtensionDocs />
-        )}
-        {/* Lovable Extensão (banco separado) */}
-        {activeTab === 'lovable_extension' && (
-          <LovableExtensionPanel />
         )}
           </main>
         </SidebarInset>
