@@ -69,13 +69,28 @@ export default function Dashboard() {
       const { data } = await supabase.functions.invoke("hub-api", {
         body: { action: "products", username: current.username || "", email: current.email || "" },
       });
-      if (data?.success) setProducts(data.products as HubProduct[]);
+      if (data?.success) {
+        setProducts(data.products as HubProduct[]);
+        // O backend resolve a identidade completa (e-mail vinculado ao usuário etc).
+        // Guardamos isso na sessão para conseguir logar automaticamente nas ferramentas.
+        const identity = data.identity as { email?: string | null; username?: string | null } | undefined;
+        if (identity && ((identity.email && !current.email) || (identity.username && !current.username))) {
+          const merged: DashboardSession = {
+            ...current,
+            email: current.email || identity.email || null,
+            username: current.username || identity.username || null,
+          };
+          localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(merged));
+          setSession(merged);
+        }
+      }
     } catch {
       toast({ title: "Erro ao carregar produtos", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   }, [toast]);
+
 
   useEffect(() => {
     if (session) loadProducts(session);
@@ -145,12 +160,28 @@ export default function Dashboard() {
         if (session.email) localStorage.setItem("zapmro_email", session.email);
       }
 
-      if (product.access_source === "postscomia" && session.email) {
-        localStorage.setItem(
-          "postscomia_member",
-          JSON.stringify({ email: session.email, name: session.name || session.email }),
-        );
+      // Posts com IA usa apenas e-mail. Se o cliente entrou por usuário, tentamos
+      // resolver o e-mail vinculado antes de abrir a área de membros.
+      if (product.access_source === "postscomia" || product.slug === "postscomia") {
+        let memberEmail = session.email;
+        if (!memberEmail) {
+          try {
+            const { data } = await supabase.functions.invoke("hub-api", {
+              body: { action: "products", username: session.username || "", email: "" },
+            });
+            memberEmail = (data?.identity?.email as string | undefined) || null;
+          } catch {
+            /* mantém null e cai na tela de login da ferramenta */
+          }
+        }
+        if (memberEmail) {
+          localStorage.setItem(
+            "postscomia_member",
+            JSON.stringify({ email: memberEmail, name: session.name || memberEmail }),
+          );
+        }
       }
+
 
       if (product.app_route) {
         navigate(product.app_route);
