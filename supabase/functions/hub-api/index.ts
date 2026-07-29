@@ -200,12 +200,24 @@ serve(async (req) => {
         grants.filter((g) => !g.expires_at || new Date(g.expires_at).getTime() > Date.now()).map((g) => g.product_id),
       );
 
+      // Cliente bloqueado manualmente perde acesso a tudo.
+      let isBlocked = false;
+      if (grantFilters.length) {
+        const { data: blockedRows } = await supabase
+          .from("hub_blocked_users")
+          .select("id")
+          .or(grantFilters.join(","))
+          .limit(1);
+        isBlocked = !!(blockedRows && blockedRows.length > 0);
+      }
+
       const result = (products || []).map((p) => ({
         ...p,
-        unlocked: grantedIds.has(p.id) || !!access[p.access_source],
+        unlocked: !isBlocked && (grantedIds.has(p.id) || !!access[p.access_source]),
       }));
 
-      return json({ success: true, products: result, access, details });
+      return json({ success: true, products: result, access, details, blocked: isBlocked });
+
     }
 
     // ================= PRODUTO + TUTORIAIS =================
