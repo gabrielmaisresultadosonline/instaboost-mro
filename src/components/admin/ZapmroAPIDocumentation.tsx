@@ -69,6 +69,50 @@ const ENDPOINTS: EndpointDoc[] = [
   },
 ];
 
+interface PlanDoc {
+  label: string;
+  description: string;
+  example: Record<string, unknown>;
+}
+
+/** Como cada tipo de plano se apresenta na resposta da API. */
+const PLANS: PlanDoc[] = [
+  {
+    label: 'Vitalício',
+    description:
+      'Sem data de expiração. Cadastre o usuário sem "expires_at" e com days_remaining alto (ex.: 9999). Acesso liberado enquanto is_active for true.',
+    example: { is_active: true, expires_at: null, days_remaining: 9999 },
+  },
+  {
+    label: 'Anual',
+    description:
+      'Expira em 365 dias. Cadastre "expires_at" com a data de vencimento e days_remaining com os dias restantes.',
+    example: { is_active: true, expires_at: '2027-07-29T00:00:00.000Z', days_remaining: 365 },
+  },
+  {
+    label: 'Mensal',
+    description:
+      'Expira em 30 dias. Mesmo formato do anual, apenas com a data mais curta. Ao expirar, a API retorna success:false com "Acesso expirado".',
+    example: { is_active: true, expires_at: '2026-08-28T00:00:00.000Z', days_remaining: 30 },
+  },
+];
+
+const planSnippet = `// resposta do action "login" ou "verify_user"
+const { user } = await res.json();
+
+if (!user.is_active) {
+  // bloqueado ou expirado -> user.access_denied_reason
+  return bloquear(user.access_denied_reason);
+}
+
+const plano =
+  !user.expires_at && user.days_remaining >= 3650 ? 'vitalicio'
+  : user.days_remaining > 31 ? 'anual'
+  : 'mensal';
+
+liberarAcesso(plano);`;
+
+
 const ZapmroAPIDocumentation: React.FC = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
@@ -116,6 +160,40 @@ const ZapmroAPIDocumentation: React.FC = () => {
               {copied === 'curl' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Tipos de acesso (Vitalício, Anual e Mensal)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            O tipo de plano é identificado pelos campos <code className="text-xs">expires_at</code> e{' '}
+            <code className="text-xs">days_remaining</code> retornados no login/verificação. A ferramenta
+            externa deve interpretar assim:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {PLANS.map((plan) => (
+              <div key={plan.label} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{plan.label}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{plan.description}</p>
+                <pre className="text-[11px] bg-muted p-2 rounded overflow-x-auto">
+                  {JSON.stringify(plan.example, null, 2)}
+                </pre>
+              </div>
+            ))}
+          </div>
+          <div>
+            <p className="text-xs font-semibold mb-1">Como detectar no seu código</p>
+            <pre className="text-xs bg-muted p-3 rounded overflow-x-auto">{planSnippet}</pre>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => copy('plans', planSnippet)}>
+            {copied === 'plans' ? <Check className="w-3 h-3 mr-2" /> : <Copy className="w-3 h-3 mr-2" />}
+            Copiar exemplo
+          </Button>
         </CardContent>
       </Card>
 
