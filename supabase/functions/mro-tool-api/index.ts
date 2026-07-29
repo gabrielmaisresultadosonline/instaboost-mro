@@ -313,7 +313,7 @@ serve(async (req) => {
         payload.plan_accounts = Math.max(0, Number(body.plan_accounts) || 0);
       }
       if (body.expiration_days !== undefined && body.expiration_days !== null && body.expiration_days !== "") {
-        payload.expiration_days = Math.max(0, Number(body.expiration_days) || 0);
+        payload.expiration_days = normalizeExpiration(body.expiration_days);
       }
       if (body.password) payload.password_hash = await sha256(String(body.password));
 
