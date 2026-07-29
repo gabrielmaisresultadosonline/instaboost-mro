@@ -822,10 +822,16 @@ export default function Dashboard() {
                             {selected && <span className="h-2 w-2 rounded-full bg-yellow-400" />}
                           </span>
                           <span className="font-bold text-white break-all">{c.username}</span>
+                          {c.current && (
+                            <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">
+                              Seu acesso atual
+                            </span>
+                          )}
                         </span>
                         <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
                           {c.tool}
                         </span>
+
                       </button>
                     </li>
                   );
