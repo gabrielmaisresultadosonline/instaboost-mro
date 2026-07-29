@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon, ImageOff,
+  Copy, Eye, EyeOff,
 } from 'lucide-react';
+import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
 export interface MroAccount {
   id: string;
@@ -37,6 +39,7 @@ export interface MroUser {
   last_access: string | null;
   created_at: string;
   has_password: boolean;
+  password_plain?: string | null;
   accounts: MroAccount[];
   trial_accounts: MroAccount[];
   trials_remaining: number;
@@ -69,6 +72,12 @@ const MroUsersPanel: React.FC = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newAccount, setNewAccount] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<{ url: string; username: string } | null>(null);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+
+  const handleCopyAccess = async (u: MroUser) => {
+    const ok = await copyAccessToClipboard({ username: u.username, password: u.password_plain, email: u.email });
+    toast(ok ? { title: 'Acesso copiado!' } : { title: 'Não foi possível copiar', variant: 'destructive' });
+  };
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('mro-tool-api', { body });
@@ -154,7 +163,7 @@ const MroUsersPanel: React.FC = () => {
       username: u.username,
       name: u.name || '',
       email: u.email || '',
-      password: '',
+      password: u.password_plain || '',
       plan_accounts: String(u.plan_accounts),
       expiration_days: String(u.expiration_days),
       is_active: u.is_active,
@@ -249,8 +258,32 @@ const MroUsersPanel: React.FC = () => {
                 </Badge>
                 <Badge variant={full ? 'destructive' : 'secondary'}>{slotsUsed}/{u.plan_accounts} contas</Badge>
                 <Badge variant="outline">{u.trials_remaining}/5 testes</Badge>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  senha:{' '}
+                  <span className="font-mono text-foreground">
+                    {u.password_plain
+                      ? visiblePasswords[u.id]
+                        ? u.password_plain
+                        : '••••••••'
+                      : u.has_password
+                      ? 'não visível'
+                      : '—'}
+                  </span>
+                  {u.password_plain && (
+                    <button
+                      type="button"
+                      aria-label={visiblePasswords[u.id] ? 'Ocultar senha' : 'Mostrar senha'}
+                      onClick={() => setVisiblePasswords((p) => ({ ...p, [u.id]: !p[u.id] }))}
+                    >
+                      {visiblePasswords[u.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </span>
                 <div className="flex-1" />
                 <Button size="sm" variant="outline" onClick={() => editUser(u)}>Editar</Button>
+                <Button size="sm" variant="outline" className="gap-1" onClick={() => void handleCopyAccess(u)}>
+                  <Copy className="w-3.5 h-3.5" /> Copiar acesso
+                </Button>
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => runAction({ action: 'reset_trials', id: u.id }, 'Testes reiniciados')}>
                   <RotateCcw className="w-3 h-3" /> Testes
                 </Button>
