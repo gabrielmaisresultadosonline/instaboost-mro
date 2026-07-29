@@ -88,6 +88,17 @@ export default function Dashboard() {
   const [recoverEmail, setRecoverEmail] = useState("");
   const [recovering, setRecovering] = useState(false);
 
+  // Unificação de acessos quando o e-mail já pertence a outro login
+  const [mergeEmail, setMergeEmail] = useState("");
+  const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string }[]>([]);
+  const [merging, setMerging] = useState(false);
+  const [mergeResult, setMergeResult] = useState<{
+    email: string;
+    emailSent: boolean;
+    primary: { username: string; password: string };
+    accounts: { tool: string; username: string; password: string }[];
+  } | null>(null);
+
   const loadProfile = useCallback(async (current: DashboardSession) => {
     try {
       const { data } = await supabase.functions.invoke("hub-api", {
