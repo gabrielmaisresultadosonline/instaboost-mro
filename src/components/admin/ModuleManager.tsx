@@ -4,7 +4,7 @@ import {
   addVideoToModule, addTextToModule, addButtonToModule, addSectionToModule, deleteContent, updateContent,
   addVideoToSection, addButtonToSection, deleteSectionContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail,
-  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData
+  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData, getModulesStorageKey
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ const deleteStorageFile = async (url: string) => {
 
 const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, platform = 'mro' }: ModuleManagerProps) => {
   const { toast } = useToast();
-  const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : platform === 'estrutura' ? 'mro_estrutura_modules' : 'mro_admin_data';
+  const storageKey = getModulesStorageKey(platform);
   
   // Default empty data for fresh state
   const getEmptyData = (): AdminData => ({

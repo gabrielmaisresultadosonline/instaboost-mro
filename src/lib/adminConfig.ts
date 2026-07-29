@@ -325,7 +325,17 @@ export const saveAdminData = (data: AdminData): void => {
 };
 
 // Platform type for module storage
-export type ModulePlatform = 'mro' | 'zapmro' | 'estrutura';
+// Além das plataformas fixas, aceitamos áreas de membros dinâmicas dos produtos
+// do dashboard no formato `hub-<slug>`.
+export type ModulePlatform = 'mro' | 'zapmro' | 'estrutura' | `hub-${string}`;
+
+/** Chave de localStorage usada para cada plataforma de módulos. */
+export const getModulesStorageKey = (platform: ModulePlatform = 'mro'): string => {
+  if (platform === 'zapmro') return 'mro_zapmro_modules';
+  if (platform === 'estrutura') return 'mro_estrutura_modules';
+  if (platform.startsWith('hub-')) return `mro_${platform.replace(/-/g, '_')}_modules`;
+  return 'mro_admin_data';
+};
 
 // Save modules to cloud storage
 export const saveModulesToCloud = async (
@@ -337,7 +347,7 @@ export const saveModulesToCloud = async (
 ): Promise<boolean> => {
   try {
     const data = getAdminData();
-    const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : platform === 'estrutura' ? 'mro_estrutura_modules' : 'mro_admin_data';
+    const storageKey = getModulesStorageKey(platform);
     const localData = localStorage.getItem(storageKey);
     const parsedData = localData ? JSON.parse(localData) : data;
 

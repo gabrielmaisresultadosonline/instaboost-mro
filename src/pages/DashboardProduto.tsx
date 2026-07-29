@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, Download, Play, ExternalLink, Package } from "lucide-react";
 import { getDashboardSession, type HubProduct } from "./Dashboard";
+import MembersModulesView from "@/components/members/MembersModulesView";
+import { loadModulesFromCloud, type TutorialModule, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubTutorial {
   id: string;
@@ -23,6 +25,9 @@ export default function DashboardProduto() {
   const [tutorials, setTutorials] = useState<HubTutorial[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<HubTutorial | null>(null);
+  const [modules, setModules] = useState<TutorialModule[]>([]);
+  const [modulesLoading, setModulesLoading] = useState(true);
+  const [downloadLink, setDownloadLink] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,13 +43,31 @@ export default function DashboardProduto() {
     }
   }, [slug]);
 
+  // Carrega a área de membros (módulos) publicada para este produto
+  const loadMembersArea = useCallback(async () => {
+    if (!slug) return;
+    setModulesLoading(true);
+    try {
+      const cloud = await loadModulesFromCloud(`hub-${slug}` as ModulePlatform);
+      setModules(cloud?.modules || []);
+      setDownloadLink(cloud?.settings?.downloadLink || "");
+    } catch (error) {
+      console.error("[DashboardProduto] Falha ao carregar módulos:", error);
+      setModules([]);
+    } finally {
+      setModulesLoading(false);
+    }
+  }, [slug]);
+
+
   useEffect(() => {
     if (!getDashboardSession()) {
       navigate("/dashboard");
       return;
     }
     load();
-  }, [load, navigate]);
+    loadMembersArea();
+  }, [load, loadMembersArea, navigate]);
 
   if (loading) {
     return (
@@ -84,6 +107,19 @@ export default function DashboardProduto() {
           {product.description && <p className="text-muted-foreground mt-2">{product.description}</p>}
         </div>
 
+        {downloadLink && (
+          <Button onClick={() => window.open(downloadLink, "_blank", "noopener,noreferrer")}>
+            <Download className="h-4 w-4" /> Baixar arquivo
+          </Button>
+        )}
+
+        {/* Área de membros montada no /admin (mesmo padrão do ZAPMRO) */}
+        {(modulesLoading || modules.length > 0) && (
+          <MembersModulesView modules={modules} isLoading={modulesLoading} />
+        )}
+
+
+
         {active?.video_url && (
           <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted">
             {active.video_url.includes("youtube") || active.video_url.includes("vimeo") ? (
@@ -95,7 +131,9 @@ export default function DashboardProduto() {
         )}
 
         {tutorials.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum tutorial cadastrado ainda para este produto.</p>
+          modules.length === 0 && !modulesLoading ? (
+            <p className="text-muted-foreground">Nenhum conteúdo cadastrado ainda para este produto.</p>
+          ) : null
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tutorials.map((tutorial) => (
