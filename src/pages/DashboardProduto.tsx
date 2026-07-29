@@ -107,6 +107,19 @@ export default function DashboardProduto() {
           {product.description && <p className="text-muted-foreground mt-2">{product.description}</p>}
         </div>
 
+        {downloadLink && (
+          <Button onClick={() => window.open(downloadLink, "_blank", "noopener,noreferrer")}>
+            <Download className="h-4 w-4" /> Baixar arquivo
+          </Button>
+        )}
+
+        {/* Área de membros montada no /admin (mesmo padrão do ZAPMRO) */}
+        {(modulesLoading || modules.length > 0) && (
+          <MembersModulesView modules={modules} isLoading={modulesLoading} />
+        )}
+
+
+
         {active?.video_url && (
           <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted">
             {active.video_url.includes("youtube") || active.video_url.includes("vimeo") ? (
