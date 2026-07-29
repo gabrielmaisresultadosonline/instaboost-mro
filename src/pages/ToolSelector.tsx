@@ -92,9 +92,8 @@ const ToolSelector = () => {
   const handleMembersSelect = (platform: 'instagram' | 'zapmro' | 'zapmro-oficial') => {
     trackViewContent(`Members Area: ${platform}`, 'Navigation');
     setShowMembersModal(false);
-    if (platform === 'instagram') navigate('/instagram');
-    else if (platform === 'zapmro') navigate('/zapmro');
-    else if (platform === 'zapmro-oficial') window.open('https://zapmro.com.br', '_blank');
+    // Toda a área de membros passa pelo hub central
+    navigate('/dashboard');
   };
 
   const handleMove = (e: React.MouseEvent) => {
