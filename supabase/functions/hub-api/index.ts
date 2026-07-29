@@ -841,14 +841,30 @@ serve(async (req) => {
       // E-mail já usado por outro cliente? (o vínculo é único por e-mail)
       if (newEmailRaw) {
         const safeEmail = newEmailRaw.replace(/[,()"']/g, "");
-        const { data: dupe } = await supabase
+        const { data: dupeMro } = await supabase
           .from("mro_tool_users")
           .select("id,username")
           .eq("email", safeEmail)
           .limit(5);
-        const conflict = (dupe || []).some((r) => r.id !== (mro?.id as string) && String(r.username || "").toLowerCase() !== username);
-        if (conflict) return json({ success: false, error: "Este e-mail já está vinculado a outro acesso" }, 200);
+        const { data: dupeZap } = await supabase
+          .from("zapmro_users")
+          .select("id,username")
+          .eq("email", safeEmail)
+          .limit(5);
+        const others = [
+          ...(dupeMro || []).filter((r) => r.id !== (mro?.id as string)).map((r) => ({ tool: "MRO Ferramenta", username: r.username })),
+          ...(dupeZap || []).filter((r) => r.id !== (zap?.id as string)).map((r) => ({ tool: "ZAPMRO", username: r.username })),
+        ].filter((r) => String(r.username || "").toLowerCase() !== username);
+        if (others.length) {
+          return json({
+            success: false,
+            conflict: true,
+            conflict_accounts: others,
+            error: "Este e-mail já está vinculado a outro acesso",
+          }, 200);
+        }
       }
+
 
       const patch: Record<string, unknown> = {};
       if (newEmailRaw) patch.email = newEmailRaw;
@@ -877,6 +893,82 @@ serve(async (req) => {
         password: newPassword || password,
       });
     }
+
+    // ================= UNIFICAR ACESSOS NO MESMO E-MAIL =================
+    /**
+     * Vincula o e-mail informado a TODOS os acessos do cliente (MRO + ZAPMRO),
+     * inclusive os que já usavam esse e-mail, e envia um resumo por e-mail.
+     */
+    if (action === "merge_accounts") {
+      const username = String(body.username || "").trim().toLowerCase();
+      const email = String(body.email || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      const targetEmail = String(body.target_email || "").trim().toLowerCase();
+
+      if (!password || (!username && !email)) return json({ success: false, error: "Credenciais inválidas" }, 400);
+      if (!targetEmail.includes("@") || targetEmail.length > 255) return json({ success: false, error: "E-mail inválido" }, 400);
+
+      const { mro, zap } = await findAccounts(username, email, password);
+      if (!mro && !zap) return json({ success: false, error: "Senha atual incorreta" }, 200);
+
+      const safeEmail = targetEmail.replace(/[,()"']/g, "");
+
+      // Aplica o e-mail nos acessos atuais
+      if (mro) await supabase.from("mro_tool_users").update({ email: targetEmail }).eq("id", mro.id as string);
+      if (zap) await supabase.from("zapmro_users").update({ email: targetEmail }).eq("id", zap.id as string);
+
+      // Recolhe todos os acessos que agora compartilham o mesmo e-mail
+      const { data: mroAll } = await supabase
+        .from("mro_tool_users")
+        .select("username,password_plain,expiration_days")
+        .eq("email", safeEmail)
+        .limit(20);
+      const { data: zapAll } = await supabase
+        .from("zapmro_users")
+        .select("username,password_plain,days_remaining")
+        .eq("email", safeEmail)
+        .limit(20);
+
+      const accounts = [
+        ...(mroAll || []).map((r) => ({ tool: "MRO Ferramenta", username: String(r.username || ""), password: String(r.password_plain || "") })),
+        ...(zapAll || []).map((r) => ({ tool: "ZAPMRO", username: String(r.username || ""), password: String(r.password_plain || "") })),
+      ].filter((a) => a.username);
+
+      const primary = accounts.find((a) => a.username.toLowerCase() === username) || accounts[0] || null;
+      const primaryPassword = primary?.password || password;
+
+      let emailSent = false;
+      try {
+        const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-unified-access-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            email: targetEmail,
+            name: String(mro?.name || zap?.name || ""),
+            primaryUsername: primary?.username || username,
+            primaryPassword,
+            accounts,
+          }),
+        });
+        const result = await res.json().catch(() => ({}));
+        emailSent = res.ok && result?.success !== false;
+      } catch {
+        emailSent = false;
+      }
+
+      return json({
+        success: true,
+        email: targetEmail,
+        emailSent,
+        accounts,
+        primary: { username: primary?.username || username, password: primaryPassword },
+      });
+    }
+
+
 
     // ================= RECUPERAR ACESSO POR E-MAIL =================
     if (action === "recover_access") {
