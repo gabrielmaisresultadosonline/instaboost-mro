@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { markHubReturn } from "@/lib/hubReturn";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, Download, Play, ExternalLink, Package } from "lucide-react";
@@ -94,7 +95,13 @@ export default function DashboardProduto() {
             <ArrowLeft className="h-4 w-4" /> Ver todos os produtos
           </Button>
           {product.app_route && (
-            <Button size="sm" onClick={() => navigate(product.app_route as string)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                markHubReturn();
+                navigate(product.app_route as string);
+              }}
+            >
               Abrir ferramenta <ExternalLink className="h-4 w-4" />
             </Button>
           )}

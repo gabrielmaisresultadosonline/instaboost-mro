@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { markHubReturn } from "@/lib/hubReturn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,6 +184,10 @@ export default function Dashboard() {
       }
 
 
+      // Marca a sessão para que os botões de "voltar" das ferramentas
+      // retornem para o Dashboard.
+      markHubReturn();
+
       if (product.app_route) {
         navigate(product.app_route);
       } else {
@@ -197,7 +202,10 @@ export default function Dashboard() {
     if (product.unlocked) {
       // Produtos com rota própria abrem direto a ferramenta já logada.
       if (product.app_route) void openProduct(product);
-      else navigate(`/dashboard/produto/${product.slug}`);
+      else {
+        markHubReturn();
+        navigate(`/dashboard/produto/${product.slug}`);
+      }
       return;
     }
     setBuyName(session?.name || "");

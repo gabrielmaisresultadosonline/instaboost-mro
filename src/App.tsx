@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import HubReturnButton from "@/components/HubReturnButton";
 import { getAdminData } from "./lib/adminConfig";
 import { trackPageView } from "./lib/facebookTracking";
 import ToolSelector from "./pages/ToolSelector";
@@ -228,6 +229,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <HubReturnButton />
         <Routes>
           <Route path="/" element={<ToolSelector />} />
           <Route path="/instagram" element={<Index />} />
