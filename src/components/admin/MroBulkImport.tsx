@@ -58,7 +58,7 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
 
       toast({
         title: 'Importação concluída',
-        description: `${totals.created} criados · ${totals.updated} atualizados · ${totals.accounts} contas vinculadas.`,
+        description: `${totals.created} criados · ${totals.updated} atualizados · ${totals.accounts} novas contas vinculadas${allErrors.length ? ` · ${allErrors.length} avisos` : ''}.`,
       });
       if (allErrors.length) console.warn('[mro-bulk-import] erros:', allErrors);
       setText('');
@@ -85,7 +85,8 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
         </div>
         <p className="text-sm text-muted-foreground">
           Cole exatamente no formato exportado (Usuário / Senha / Tempo de Expiração / Contas associadas / Lista de Testes).
-          O sistema organiza tudo automaticamente. Usuários já existentes são atualizados.
+          O sistema organiza tudo automaticamente. Pode colar a lista completa quantas vezes quiser: usuários e contas
+          que já existem são mantidos, e apenas o que está faltando (inclusive Instagrams novos) é importado.
         </p>
 
         <Textarea
