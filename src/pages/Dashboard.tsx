@@ -91,7 +91,7 @@ export default function Dashboard() {
 
   // Unificação de acessos quando o e-mail já pertence a outro login
   const [mergeEmail, setMergeEmail] = useState("");
-  const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string }[]>([]);
+  const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string; current?: boolean }[]>([]);
   const [mergePrimary, setMergePrimary] = useState("");
   const [merging, setMerging] = useState(false);
   const [mergeResult, setMergeResult] = useState<{
