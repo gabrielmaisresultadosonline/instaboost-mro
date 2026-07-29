@@ -5,7 +5,17 @@ import { Logo } from '@/components/Logo';
 import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2, Gift, LayoutList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LoginPage } from '@/components/LoginPage';
-import { getUserSession } from '@/lib/userStorage';
+import { getUserSession, loginUser } from '@/lib/userStorage';
+import { loginToSquare } from '@/lib/squareApi';
+import {
+  isEmbedMode,
+  readEmbedCredentialsFromUrl,
+  listenForEmbedCredentials,
+  scrubEmbedUrl,
+  postToHost,
+  type EmbedCredentials,
+} from '@/lib/embedAuth';
+
 
 // Color mapping for modules
 const moduleColorClasses: Record<ModuleColor, { border: string; bg: string; accent: string }> = {
@@ -30,6 +40,8 @@ const MROFerramenta = () => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [embed] = useState(() => isEmbedMode());
+  const [embedError, setEmbedError] = useState<string | null>(null);
 
   // Check authentication on mount
   useEffect(() => {
@@ -40,6 +52,53 @@ const MROFerramenta = () => {
     };
     checkAuth();
   }, []);
+
+  // Embed mode: hidrata a sessão via query string ou postMessage (extensão / site externo)
+  useEffect(() => {
+    if (!embed) return;
+
+    let cancelled = false;
+
+    const authenticate = async ({ username, password }: EmbedCredentials) => {
+      if (cancelled) return;
+      setCheckingAuth(true);
+      setEmbedError(null);
+      try {
+        const result = await loginToSquare(username.trim(), password.trim());
+        if (!result.success) {
+          throw new Error(result.error || 'Credenciais inválidas');
+        }
+        await loginUser(username.trim(), result.daysRemaining || 365, undefined, password.trim());
+        if (cancelled) return;
+        setIsAuthenticated(true);
+        scrubEmbedUrl();
+        postToHost({ type: 'MRO_EMBED_AUTH_RESULT', success: true, username: username.trim() });
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : 'Falha ao autenticar';
+        setEmbedError(message);
+        postToHost({ type: 'MRO_EMBED_AUTH_RESULT', success: false, error: message });
+      } finally {
+        if (!cancelled) setCheckingAuth(false);
+      }
+    };
+
+    // 1) Credenciais na URL
+    const urlCreds = readEmbedCredentialsFromUrl();
+    if (urlCreds && !getUserSession().isAuthenticated) {
+      void authenticate(urlCreds);
+    }
+
+    // 2) Credenciais via postMessage (host informa depois do load)
+    const stop = listenForEmbedCredentials(authenticate);
+    postToHost({ type: 'MRO_EMBED_READY' });
+
+    return () => {
+      cancelled = true;
+      stop();
+    };
+  }, [embed]);
+
 
   // Load modules from cloud on mount (only if authenticated)
   useEffect(() => {
@@ -99,8 +158,24 @@ const MROFerramenta = () => {
 
   // Show login if not authenticated
   if (!isAuthenticated) {
+    // Em embed, mostra um estado enxuto (o host é quem envia as credenciais)
+    if (embed) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-6">
+          <div className="text-center max-w-sm space-y-3">
+            <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+            <p className="text-sm text-muted-foreground">
+              {embedError
+                ? `Não foi possível autenticar: ${embedError}`
+                : 'Aguardando autenticação da extensão...'}
+            </p>
+          </div>
+        </div>
+      );
+    }
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
+
 
   const welcomeVideo = settings?.welcomeVideo;
 
@@ -401,7 +476,8 @@ const MROFerramenta = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header — oculto no modo embed (layout enxuto para iframe/extensão) */}
+      {!embed && (
       <header className="sticky top-0 z-40 glass-card border-b border-border">
         <div className="container mx-auto px-4 py-3 md:py-4">
           {/* Mobile: Logo on top, buttons below */}
@@ -446,6 +522,8 @@ const MROFerramenta = () => {
           </div>
         </div>
       </header>
+      )}
+
 
       {/* Content */}
       <main className="container mx-auto px-4 py-8">

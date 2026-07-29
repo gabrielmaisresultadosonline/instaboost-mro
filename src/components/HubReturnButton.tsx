@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearHubReturn, shouldReturnToHub, HUB_DASHBOARD_ROUTE } from "@/lib/hubReturn";
+import { isEmbedMode } from "@/lib/embedAuth";
+
 
 /**
  * Botão flutuante "Voltar ao Dashboard".
@@ -17,6 +19,11 @@ export default function HubReturnButton() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Modo embed (iframe/extensão): nunca exibir navegação do hub.
+    if (isEmbedMode()) {
+      setVisible(false);
+      return;
+    }
     const onDashboard = location.pathname.startsWith(HUB_DASHBOARD_ROUTE);
     if (onDashboard) {
       // Já está no hub: a marcação deixa de ser necessária.
@@ -26,6 +33,7 @@ export default function HubReturnButton() {
     }
     setVisible(shouldReturnToHub());
   }, [location.pathname]);
+
 
   if (!visible) return null;
 
