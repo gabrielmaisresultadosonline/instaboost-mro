@@ -354,7 +354,7 @@ serve(async (req) => {
         return {
           ...rest,
           ...planInfo(u),
-          has_password: !!password_hash,
+          has_password: !!password_hash || !!(u as any).password_plain,
           accounts: withShots.filter((a) => !a.is_trial),
           trial_accounts: withShots.filter((a) => a.is_trial),
           trials_remaining: Math.max(0, MONTHLY_TRIALS - u.trials_used),
@@ -381,7 +381,11 @@ serve(async (req) => {
       if (body.expiration_days !== undefined && body.expiration_days !== null && body.expiration_days !== "") {
         payload.expiration_days = normalizeExpiration(body.expiration_days);
       }
-      if (body.password) payload.password_hash = await sha256(String(body.password));
+      if (body.password) {
+        payload.password_hash = await sha256(String(body.password));
+        // Cópia visível para o admin conseguir reenviar/copiar o acesso do cliente.
+        payload.password_plain = String(body.password);
+      }
 
       const { data: existing } = await supabase
         .from("mro_tool_users").select("id").eq("username", username).maybeSingle();
@@ -486,7 +490,7 @@ serve(async (req) => {
       // 2) Uma única leitura dos usuários já existentes.
       const { data: existingUsers, error: exErr } = await supabase
         .from("mro_tool_users")
-        .select("id, username, password_hash, plan_accounts")
+        .select("id, username, password_hash, password_plain, plan_accounts")
         .in("username", usernames);
       if (exErr) return json({ success: false, error: exErr.message }, 500);
 
@@ -495,6 +499,7 @@ serve(async (req) => {
         existingMap.set(String(u.username).toLowerCase(), {
           id: u.id,
           password_hash: u.password_hash,
+          password_plain: u.password_plain ?? null,
           plan_accounts: u.plan_accounts ?? null,
         });
       }
@@ -505,6 +510,7 @@ serve(async (req) => {
         const password_hash = item.password
           ? await sha256(item.password)
           : prev?.password_hash ?? null;
+        const password_plain = item.password ? item.password : (prev as any)?.password_plain ?? null;
         return {
           username: item.username,
           email: item.email,
@@ -513,6 +519,7 @@ serve(async (req) => {
           plan_accounts: Math.max(DEFAULT_PLAN_ACCOUNTS, item.igs.length, prev?.plan_accounts ?? 0),
           is_active: true,
           password_hash,
+          password_plain,
         };
       }));
 
