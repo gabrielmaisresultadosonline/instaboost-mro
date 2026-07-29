@@ -245,21 +245,22 @@ async function sendAccessEmail(
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span>
-<span style="color:#333;">Acesse nossa página oficial</span>
+<span style="color:#333;">Clique no botão <strong>"Área de Membros"</strong> abaixo</span>
 </td>
 </tr>
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span>
-<span style="color:#333;">Clique em <strong>"Área de Membros"</strong></span>
+<span style="color:#333;">Você será levado para <strong>maisresultadosonline.com.br/dashboard</strong></span>
 </td>
 </tr>
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span>
-<span style="color:#333;">Insira seu <strong>usuário</strong> e <strong>senha</strong></span>
+<span style="color:#333;">Entre com seu <strong>usuário</strong> e <strong>senha</strong> acima</span>
 </td>
 </tr>
+
 <tr>
 <td style="padding:10px 0;">
 <span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
