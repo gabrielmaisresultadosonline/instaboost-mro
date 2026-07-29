@@ -72,6 +72,9 @@ export function parseMroUsers(text: string): ParsedMroUser[] {
 
     if (ACCOUNTS_RE.test(line)) {
       collectingAccounts = true;
+      // Suporta o valor na MESMA linha: "Contas associadas: conta1, conta2"
+      const inline = valueOf(line);
+      if (inline) addAccounts(current, inline);
       continue;
     }
 
@@ -80,17 +83,7 @@ export function parseMroUsers(text: string): ParsedMroUser[] {
       continue;
     }
 
-    if (collectingAccounts) {
-      // Linhas com "×" são apenas o botão de remover da interface antiga.
-      if (line === '×' || line === 'x' || line === 'X') continue;
-      const handle = line
-        .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
-        .replace(/\/+$/, '')
-        .replace(/^@/, '')
-        .trim()
-        .toLowerCase();
-      if (handle && !current.accounts.includes(handle)) current.accounts.push(handle);
-    }
+    if (collectingAccounts) addAccounts(current, line);
   }
 
   push();
