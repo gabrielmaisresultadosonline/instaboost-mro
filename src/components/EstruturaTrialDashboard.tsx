@@ -3,10 +3,11 @@ import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap, Wifi } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { mroVerifyUser, mroAddTrialAccount, normalizeIG as normalizeInstagram, type MroToolResponse } from '@/lib/mroToolApi';
 
-const SQUARE_API_URL = 'https://dashboardmroinstagramvini-online.squareweb.app';
+const TRIAL_DURATION_HOURS = 6;
+
 
 interface Trial {
   id: string;
@@ -50,60 +51,73 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   const [realtimeActiveTests, setRealtimeActiveTests] = useState<number | null>(null);
   const initialLoadStartedRef = useRef(false);
 
-  // Poll the new /testes-restantes/:username endpoint for real-time remaining count
+  const normalizeIG = normalizeInstagram;
+
+  /** Converte o payload da API interna (mro-tool-api) para o formato da tela. */
+  const mapPayload = useCallback((result: MroToolResponse): TrialData => {
+    const now = Date.now();
+
+    const trials: Trial[] = (result.trial_accounts || []).map((acc, index) => {
+      const expiresAt = acc.trial_expires_at || new Date(now).toISOString();
+      const diffMs = new Date(expiresAt).getTime() - now;
+      const active = diffMs > 0;
+      const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+      return {
+        id: `${acc.instagram_username}-${acc.created_at || index}`,
+        instagram_username: acc.instagram_username,
+        full_name: 'Cliente Teste',
+        email: '',
+        created_at: acc.created_at || expiresAt,
+        expires_at: expiresAt,
+        status: active ? 'active' : 'expired',
+        remaining_hours: Math.floor(totalMinutes / 60),
+        remaining_minutes: totalMinutes % 60,
+        instagram_removed: false,
+      };
+    });
+
+    const limit = result.trials?.limit ?? 5;
+    const used = result.trials?.used ?? 0;
+
+    return {
+      trials,
+      total_generated: used,
+      trials_last_30_days: used,
+      trials_remaining: result.trials?.remaining ?? Math.max(0, limit - used),
+      max_trials: limit,
+      trial_duration_hours: TRIAL_DURATION_HOURS,
+      synced_with_square: true,
+      sync_message: null,
+    };
+  }, []);
+
+  /** Busca em tempo real o saldo de testes restantes na API interna. */
   const fetchRealtimeRemaining = useCallback(async () => {
     setSummaryLoading(true);
-
     try {
-      const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 8000);
-
-      const res = await fetch(`${SQUARE_API_URL}/testes-restantes/${encodeURIComponent(mroUsername)}`, {
-        signal: controller.signal,
-      });
-
-      window.clearTimeout(timeoutId);
-
-      if (!res.ok) {
-        throw new Error(`Falha ao buscar testes em tempo real (${res.status})`);
-      }
-
-      const json = await res.json();
-
-      if (json.success) {
-        setRealtimeRemaining(json.testsRemaining ?? null);
-        setRealtimeActiveTests(json.activeTests ?? null);
-        setData((prev) => prev ? {
-          ...prev,
-          trials_remaining: typeof json.testsRemaining === 'number' ? json.testsRemaining : prev.trials_remaining,
-        } : prev);
+      const result = await mroVerifyUser(mroUsername);
+      if (result.success) {
+        const mapped = mapPayload(result);
+        setRealtimeRemaining(mapped.trials_remaining);
+        setRealtimeActiveTests(mapped.trials.filter((t) => t.status === 'active').length);
+        setData(mapped);
       }
     } catch (err) {
       console.error('[RealtimeRemaining] fetch error:', err);
     } finally {
       setSummaryLoading(false);
     }
-  }, [mroUsername]);
-
-  const normalizeIG = (input: string): string => {
-    let val = input.trim().toLowerCase();
-    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
-    if (urlMatch) return urlMatch[1];
-    return val.replace(/^@/, '');
-  };
+  }, [mapPayload, mroUsername]);
 
   const loadTrials = useCallback(async (silent = false) => {
     setListLoading(true);
-
     try {
-      const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
-        body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
-      });
-      if (error) throw error;
-      if (result?.success) {
-        setData(result);
-      } else {
-        toast.error(result?.message || 'Erro ao carregar testes');
+      const result = await mroVerifyUser(mroUsername);
+      if (result.success) {
+        setData(mapPayload(result));
+      } else if (!silent) {
+        toast.error(result.error || 'Erro ao carregar testes');
       }
     } catch (err) {
       console.error('Error loading trials:', err);
@@ -111,7 +125,8 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
     } finally {
       setListLoading(false);
     }
-  }, [mroPassword, mroUsername]);
+  }, [mapPayload, mroUsername]);
+
 
   useEffect(() => {
     if (!mroUsername) return;
@@ -145,49 +160,16 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
 
     setCreating(true);
     try {
-      const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
-        body: {
-          action: 'create',
-          mro_username: mroUsername,
-          mro_password: mroPassword,
-          instagram_username: ig,
-        }
-      });
+      const result = await mroAddTrialAccount(mroUsername, ig, TRIAL_DURATION_HOURS);
 
-      if (error) throw error;
-
-      if (result?.success) {
-        setData((prev) => {
-          if (!prev || !result?.trial) return prev;
-
-          const createdTrial: Trial = {
-            id: `local-${result.trial.instagram_username}-${result.trial.created_at || new Date().toISOString()}`,
-            instagram_username: result.trial.instagram_username,
-            full_name: 'Cliente Teste',
-            email: '',
-            created_at: result.trial.created_at || new Date().toISOString(),
-            expires_at: result.trial.expires_at,
-            status: 'active',
-            remaining_hours: Math.floor((result.trial.trial_duration_hours || 6)),
-            remaining_minutes: 0,
-            instagram_removed: false,
-          };
-
-          return {
-            ...prev,
-            trials: [createdTrial, ...prev.trials],
-            total_generated: prev.total_generated + 1,
-            trials_last_30_days: prev.trials_last_30_days + 1,
-            trials_remaining: typeof result.trials_remaining === 'number'
-              ? result.trials_remaining
-              : Math.max(0, prev.trials_remaining - 1),
-          };
-        });
+      if (result.success) {
+        setData(mapPayload(result));
 
         toast.success('Teste de 6 horas criado com sucesso! 🎉');
         setJustCreated(ig);
         setInstagramInput('');
         setShowForm(false);
+
 
         // Immediately refresh real-time remaining
         void fetchRealtimeRemaining();
@@ -200,7 +182,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
           void fetchRealtimeRemaining();
         }, 2200);
       } else {
-        toast.error(result?.message || 'Erro ao criar teste');
+        toast.error(result.error || 'Erro ao criar teste');
       }
     } catch (err) {
       console.error('Error creating trial:', err);

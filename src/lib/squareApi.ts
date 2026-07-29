@@ -6,6 +6,7 @@ import {
   normalizeInstagramUsername 
 } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
+import { mroVerifyUser, mroAddAccount } from '@/lib/mroToolApi';
 
 // Login with username and password
 export const loginToSquare = async (
@@ -53,122 +54,110 @@ export const loginToSquare = async (
   }
 };
 
-// Verify registered Instagram accounts for a user
+// ---------------------------------------------------------------------------
+// Contas do Instagram — agora servidas pela API interna (mro-tool-api).
+// A SquareCloud não é mais consultada para listar/cadastrar perfis.
+// ---------------------------------------------------------------------------
+
+// Verify registered Instagram accounts for a user (API interna MRO)
 export const verifyRegisteredIGs = async (
   username: string
 ): Promise<{ success: boolean; instagrams?: string[]; error?: string }> => {
   try {
-    const { data, error } = await supabase.functions.invoke('square-proxy', {
-      body: {
-        endpoint: '/verificar-usuario-instagram',
-        method: 'POST',
-        body: { username }
-      }
-    });
+    const result = await mroVerifyUser(username);
 
-    if (error) {
-      console.error('Verify IGs error:', error);
-      return { success: false, error: 'Erro ao verificar contas' };
-    }
-
-    const result = data as SquareVerifyIGResponse;
-
-    if (result && result.success) {
-      const allIGs = [
-        ...(result.igInstagram || []),
-        ...(result.igTesteUserMro || [])
-      ].map(ig => normalizeInstagramUsername(ig));
-      
-      return { success: true, instagrams: allIGs };
-    } else {
+    if (!result.success) {
+      // Usuário ainda não existe na API interna — trata como "sem contas"
       return { success: true, instagrams: [] };
     }
+
+    const all = [
+      ...(result.accounts || []),
+      ...(result.trial_accounts || []),
+    ]
+      .map((a) => normalizeInstagramUsername(a.instagram_username || ''))
+      .filter(Boolean);
+
+    return { success: true, instagrams: Array.from(new Set(all)) };
   } catch (error) {
     console.error('Verify IGs error:', error);
     return { success: false, error: 'Erro ao verificar contas' };
   }
 };
 
-// Check if user can register a new Instagram (has available slots)
-// Returns: canRegister, alreadyExists (for sync option), error
+// Check if user can register a new Instagram (slots do plano na API interna)
 export const canRegisterIG = async (
   username: string,
   instagram: string
-): Promise<{ 
-  canRegister: boolean; 
+): Promise<{
+  canRegister: boolean;
   alreadyExists: boolean;
   registeredIGs?: string[];
-  error?: string 
+  error?: string;
+  limitReached?: boolean;
 }> => {
   try {
     const normalizedIG = normalizeInstagramUsername(instagram);
-    
-    // First check if user already has this IG registered
-    const verifyResult = await verifyRegisteredIGs(username);
-    
-    if (verifyResult.success && verifyResult.instagrams) {
-      // Check if IG is already registered - offer sync
-      if (verifyResult.instagrams.includes(normalizedIG)) {
-        return { 
-          canRegister: false, 
-          alreadyExists: true,
-          registeredIGs: verifyResult.instagrams,
-          error: 'Este Instagram já está cadastrado na sua conta. Deseja sincronizar?' 
-        };
-      }
-      
-      // No client-side limit - SquareCloud API handles slot limits per account
-      
-      return { 
-        canRegister: true, 
-        alreadyExists: false,
-        registeredIGs: verifyResult.instagrams 
+    const result = await mroVerifyUser(username);
+
+    if (!result.success) {
+      return { canRegister: true, alreadyExists: false };
+    }
+
+    const registeredIGs = [
+      ...(result.accounts || []),
+      ...(result.trial_accounts || []),
+    ]
+      .map((a) => normalizeInstagramUsername(a.instagram_username || ''))
+      .filter(Boolean);
+
+    if (registeredIGs.includes(normalizedIG)) {
+      return {
+        canRegister: false,
+        alreadyExists: true,
+        registeredIGs,
+        error: 'Este Instagram já está cadastrado na sua conta. Deseja sincronizar?',
       };
     }
-    
-    return { canRegister: true, alreadyExists: false };
+
+    const slots = result.slots;
+    if (slots && slots.available <= 0) {
+      return {
+        canRegister: false,
+        alreadyExists: false,
+        limitReached: true,
+        registeredIGs,
+        error: `Você não pode cadastrar mais contas do que o seu plano permite (${slots.total} conta(s)). Entre em contato com o administrador para liberar contas extras.`,
+      };
+    }
+
+    return { canRegister: true, alreadyExists: false, registeredIGs };
   } catch (error) {
     console.error('Check register error:', error);
     return { canRegister: false, alreadyExists: false, error: 'Erro ao verificar disponibilidade' };
   }
 };
 
-// Add Instagram account to user
+// Add Instagram account to user (API interna MRO)
 export const addIGToSquare = async (
   username: string,
   instagram: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const normalizedIG = normalizeInstagramUsername(instagram);
-    
-    const { data, error } = await supabase.functions.invoke('square-proxy', {
-      body: {
-        endpoint: '/adicionar-ig',
-        method: 'POST',
-        body: { 
-          newUsernameUser: username, 
-          IgsUsers: normalizedIG 
-        }
-      }
-    });
+    const result = await mroAddAccount(username, instagram);
 
-    if (error) {
-      console.error('Add IG error:', error);
-      return { success: false, error: 'Erro ao adicionar Instagram' };
-    }
+    if (result.success) return { success: true };
 
-    const result = data as SquareAddIGResponse;
-
-    if (result.success) {
-      return { success: true };
-    } else {
-      return { success: false, error: result.message || 'Não foi possível adicionar o Instagram' };
-    }
+    return {
+      success: false,
+      error: result.error || 'Não foi possível adicionar o Instagram',
+    };
   } catch (error) {
     console.error('Add IG error:', error);
     return { success: false, error: 'Erro ao adicionar Instagram' };
   }
 };
+
 
 // Save email and print to SquareCloud
 export const saveEmailAndPrint = async (
