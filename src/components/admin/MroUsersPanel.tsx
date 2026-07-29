@@ -8,8 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon,
+  Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon, ImageOff,
 } from 'lucide-react';
 
 export interface MroAccount {
@@ -18,6 +19,8 @@ export interface MroAccount {
   is_trial: boolean;
   trial_expires_at: string | null;
   created_at: string;
+  /** Print capturado na área /instagram (pode não existir). */
+  screenshot_url?: string | null;
 }
 
 export interface MroUser {
@@ -65,6 +68,7 @@ const MroUsersPanel: React.FC = () => {
   const [form, setForm] = useState<UserForm>(EMPTY_USER);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newAccount, setNewAccount] = useState<Record<string, string>>({});
+  const [preview, setPreview] = useState<{ url: string; username: string } | null>(null);
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('mro-tool-api', { body });
@@ -263,9 +267,31 @@ const MroUsersPanel: React.FC = () => {
                     className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60 transition-colors"
                   >
                     <span className="text-muted-foreground text-xs">└</span>
+                    {a.screenshot_url ? (
+                      <button
+                        type="button"
+                        title="Ver print do perfil"
+                        onClick={() => setPreview({ url: a.screenshot_url as string, username: a.instagram_username })}
+                        className="shrink-0 rounded-md overflow-hidden border border-border w-10 h-10 bg-muted"
+                      >
+                        <img
+                          src={a.screenshot_url}
+                          alt={`Print do perfil @${a.instagram_username.replace(/^@/, '')}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    ) : (
+                      <div className="shrink-0 w-10 h-10 rounded-md border border-dashed border-border flex items-center justify-center">
+                        <ImageOff className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
+                    )}
                     <Instagram className={cn('w-3.5 h-3.5', a.is_trial ? 'text-primary' : 'text-muted-foreground')} />
                     <span className="text-sm font-medium">@{a.instagram_username.replace(/^@/, '')}</span>
                     {a.is_trial && <Badge variant="outline" className="text-[10px] py-0">teste</Badge>}
+                    {!a.screenshot_url && (
+                      <span className="text-[10px] text-muted-foreground">sem print</span>
+                    )}
                     <div className="flex-1" />
                     <Button
                       size="sm"
@@ -277,6 +303,7 @@ const MroUsersPanel: React.FC = () => {
                     </Button>
                   </div>
                 ))}
+
                 {!allAccounts.length && (
                   <span className="text-xs text-muted-foreground">Nenhuma conta do Instagram cadastrada.</span>
                 )}
@@ -308,6 +335,22 @@ const MroUsersPanel: React.FC = () => {
           <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
         )}
       </div>
+
+      {/* Print do perfil em tamanho grande */}
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Print de @{preview?.username.replace(/^@/, '')}</DialogTitle>
+          </DialogHeader>
+          {preview && (
+            <img
+              src={preview.url}
+              alt={`Print do perfil @${preview.username.replace(/^@/, '')}`}
+              className="w-full rounded-md border border-border"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
