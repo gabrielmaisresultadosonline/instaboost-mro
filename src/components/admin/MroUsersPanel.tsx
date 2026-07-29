@@ -358,8 +358,6 @@ const MroUsersPanel: React.FC = () => {
                     Enviar acesso
                   </Button>
                 )}
-
-                </Button>
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => runAction({ action: 'reset_trials', id: u.id }, 'Testes reiniciados')}>
                   <RotateCcw className="w-3 h-3" /> Testes
                 </Button>
