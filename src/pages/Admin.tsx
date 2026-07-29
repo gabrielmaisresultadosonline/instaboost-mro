@@ -818,7 +818,7 @@ const Admin = () => {
                     <p className="text-muted-foreground">
                       {searchTerm 
                         ? 'Nenhum perfil encontrado com esse termo' 
-                        : 'Nenhum perfil sincronizado ainda. Vá para a aba "Sincronizar" para buscar perfis.'}
+                        : 'Nenhum perfil sincronizado ainda.'}
                     </p>
                   </div>
                 ) : (
