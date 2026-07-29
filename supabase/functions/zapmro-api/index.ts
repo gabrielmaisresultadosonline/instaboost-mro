@@ -177,12 +177,18 @@ serve(async (req) => {
         return json({ success: false, error: reason, needs_renewal: true }, 200);
       }
 
+      if (await isIpBlocked(user.username, clientIp)) {
+        return json({ success: false, error: "IP bloqueado", ip_blocked: true }, 200);
+      }
+
       await supabase
         .from("zapmro_users")
         .update({ last_access: new Date().toISOString() })
         .eq("id", user.id);
 
-      return json({ success: true, user: publicUser(user) });
+      await touchSession(user, clientIp, userAgent);
+
+      return json({ success: true, user: publicUser(user), ip: clientIp });
     }
 
     // ---------------------------------------------------------------
