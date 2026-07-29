@@ -499,7 +499,7 @@ serve(async (req) => {
         const size = 1000;
         // Paginação para não truncar em 1000 linhas.
         for (;;) {
-          const { data, error } = await supabase.from(table).select(columns).range(from, from + size - 1);
+          const { data, error } = await supabase.from(table).select(columns).order("created_at", { ascending: true }).range(from, from + size - 1);
           if (error || !data || data.length === 0) break;
           out.push(...(data as Record<string, unknown>[]));
           if (data.length < size) break;
