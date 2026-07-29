@@ -332,6 +332,114 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    // ---------------------------------------------------------------
+    // PUBLIC: heartbeat (mantém sessão "online" e valida revogação)
+    // ---------------------------------------------------------------
+    if (action === "heartbeat") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      if (!identifier) return json({ success: false, error: "Usuário é obrigatório" }, 400);
+
+      const { data: users } = await supabase
+        .from("zapmro_users")
+        .select("*")
+        .or(`username.eq.${identifier},email.eq.${identifier}`)
+        .limit(1);
+
+      const user = (users?.[0] || null) as ZapmroUserRow | null;
+      if (!user) return json({ success: false, error: "Usuário não encontrado" }, 200);
+
+      if (await isIpBlocked(user.username, clientIp)) {
+        return json({ success: false, ip_blocked: true, error: "IP bloqueado" }, 200);
+      }
+
+      const { data: session } = await supabase
+        .from("zapmro_user_sessions")
+        .select("id, is_active")
+        .eq("user_id", user.id)
+        .eq("ip", clientIp)
+        .maybeSingle();
+
+      if (session && session.is_active === false) {
+        return json({ success: false, session_revoked: true, error: "Sessão encerrada" }, 200);
+      }
+
+      await touchSession(user, clientIp, userAgent);
+
+      const { active, reason } = computeAccess(user);
+      return json({ success: active, error: reason, user: publicUser(user) });
+    }
+
+    // ---------------------------------------------------------------
+    // ADMIN: sessões / IPs
+    // ---------------------------------------------------------------
+    if (action === "list_sessions") {
+      const { data: sessions, error } = await supabase
+        .from("zapmro_user_sessions")
+        .select("*")
+        .order("last_seen", { ascending: false });
+      if (error) return json({ success: false, error: error.message }, 500);
+
+      const { data: blocked } = await supabase
+        .from("zapmro_blocked_ips")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      return json({ success: true, sessions: sessions || [], blocked_ips: blocked || [] });
+    }
+
+    if (action === "revoke_session") {
+      if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
+      const { error } = await supabase
+        .from("zapmro_user_sessions")
+        .update({ is_active: false, revoked_at: new Date().toISOString() })
+        .eq("id", body.id);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    if (action === "revoke_all_sessions") {
+      const username = String(body.username || "").trim().toLowerCase();
+      if (!username) return json({ success: false, error: "Usuário é obrigatório" }, 400);
+      const { error } = await supabase
+        .from("zapmro_user_sessions")
+        .update({ is_active: false, revoked_at: new Date().toISOString() })
+        .eq("username", username);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    if (action === "block_ip") {
+      const ip = String(body.ip || "").trim();
+      if (!ip) return json({ success: false, error: "IP é obrigatório" }, 400);
+      const username = body.username ? String(body.username).trim().toLowerCase() : null;
+
+      const { error } = await supabase.from("zapmro_blocked_ips").insert({
+        ip,
+        username,
+        reason: body.reason ? String(body.reason) : null,
+      });
+      if (error) return json({ success: false, error: error.message }, 500);
+
+      let revoke = supabase
+        .from("zapmro_user_sessions")
+        .update({ is_active: false, revoked_at: new Date().toISOString() })
+        .eq("ip", ip);
+      if (username) revoke = revoke.eq("username", username);
+      await revoke;
+
+      return json({ success: true });
+    }
+
+    if (action === "unblock_ip") {
+      const ip = String(body.ip || "").trim();
+      if (!ip) return json({ success: false, error: "IP é obrigatório" }, 400);
+      let query = supabase.from("zapmro_blocked_ips").delete().eq("ip", ip);
+      if (body.username) query = query.eq("username", String(body.username).trim().toLowerCase());
+      const { error } = await query;
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
     return json({ success: false, error: "Ação inválida" }, 400);
   } catch (error) {
     log("Error", { error: error instanceof Error ? error.message : "Unknown" });
