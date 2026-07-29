@@ -1,0 +1,438 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+/** Vitalício threshold — qualquer valor >= 999999 é considerado acesso vitalício. */
+const LIFETIME_DAYS = 999999;
+/** Testes gratuitos por mês, cada um com duração de 1 dia. */
+const MONTHLY_TRIALS = 5;
+const DEFAULT_PLAN_ACCOUNTS = 4;
+
+/** SHA-256 (Web Crypto) — mesmo padrão usado nas demais APIs do projeto. */
+async function sha256(value: string): Promise<string> {
+  const data = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+interface MroUserRow {
+  id: string;
+  username: string;
+  email: string | null;
+  name: string | null;
+  password_hash: string | null;
+  plan_accounts: number;
+  expiration_days: number;
+  is_active: boolean;
+  trials_used: number;
+  trials_period_start: string;
+  last_access: string | null;
+  created_at: string;
+}
+
+interface MroAccountRow {
+  id: string;
+  user_id: string;
+  instagram_username: string;
+  is_trial: boolean;
+  trial_expires_at: string | null;
+  created_at: string;
+}
+
+const monthStart = () => {
+  const d = new Date();
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString().slice(0, 10);
+};
+
+function planInfo(user: MroUserRow) {
+  const lifetime = user.expiration_days >= LIFETIME_DAYS;
+  return {
+    plan_type: lifetime ? "vitalicio" : user.expiration_days > 365 ? "anual+" : user.expiration_days > 31 ? "anual" : "mensal",
+    lifetime,
+    days_remaining: lifetime ? LIFETIME_DAYS : user.expiration_days,
+    access_allowed: user.is_active && (lifetime || user.expiration_days > 0),
+  };
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const raw = await req.text();
+    let body: Record<string, any> = {};
+    try {
+      body = raw ? JSON.parse(raw) : {};
+    } catch {
+      return json({ success: false, error: "Corpo da requisição inválido" }, 400);
+    }
+
+    const action = String(body.action || "");
+
+    /** Busca usuário por username OU email. */
+    async function findUser(identifier: string): Promise<MroUserRow | null> {
+      const id = identifier.trim().toLowerCase();
+      if (!id) return null;
+      const { data } = await supabase
+        .from("mro_tool_users")
+        .select("*")
+        .or(`username.eq.${id},email.eq.${id}`)
+        .limit(1);
+      return (data?.[0] as MroUserRow) || null;
+    }
+
+    /** Remove contas de teste expiradas e devolve as contas válidas. */
+    async function getAccounts(userId: string): Promise<MroAccountRow[]> {
+      await supabase
+        .from("mro_tool_accounts")
+        .delete()
+        .eq("user_id", userId)
+        .eq("is_trial", true)
+        .lt("trial_expires_at", new Date().toISOString());
+
+      const { data } = await supabase
+        .from("mro_tool_accounts")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      return (data || []) as MroAccountRow[];
+    }
+
+    /** Reinicia o contador de testes quando muda o mês. */
+    async function ensureTrialPeriod(user: MroUserRow): Promise<MroUserRow> {
+      const start = monthStart();
+      if (user.trials_period_start >= start) return user;
+      await supabase
+        .from("mro_tool_users")
+        .update({ trials_used: 0, trials_period_start: start })
+        .eq("id", user.id);
+      return { ...user, trials_used: 0, trials_period_start: start };
+    }
+
+    async function fullPayload(user: MroUserRow) {
+      const accounts = await getAccounts(user.id);
+      const fixed = accounts.filter((a) => !a.is_trial);
+      const trials = accounts.filter((a) => a.is_trial);
+      return {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          is_active: user.is_active,
+          plan_accounts: user.plan_accounts,
+          expiration_days: user.expiration_days,
+          last_access: user.last_access,
+          created_at: user.created_at,
+          ...planInfo(user),
+        },
+        accounts: fixed,
+        trial_accounts: trials,
+        trials: {
+          limit: MONTHLY_TRIALS,
+          used: user.trials_used,
+          remaining: Math.max(0, MONTHLY_TRIALS - user.trials_used),
+          duration_days: 1,
+          period_start: user.trials_period_start,
+        },
+        slots: {
+          total: user.plan_accounts,
+          used: fixed.length,
+          available: Math.max(0, user.plan_accounts - fixed.length),
+        },
+      };
+    }
+
+    // ---------------- PÚBLICO ----------------
+    if (action === "login") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (!identifier || !password) return json({ success: false, error: "Usuário/email e senha são obrigatórios" }, 400);
+      if (identifier.length > 255 || password.length > 255) return json({ success: false, error: "Credenciais inválidas" }, 400);
+
+      let user = await findUser(identifier);
+      if (!user || !user.password_hash) return json({ success: false, error: "Usuário ou senha incorretos" });
+
+      const hash = await sha256(password);
+      if (hash !== user.password_hash) return json({ success: false, error: "Usuário ou senha incorretos" });
+
+      const info = planInfo(user);
+      if (!info.access_allowed) return json({ success: false, error: "Acesso expirado ou desativado", needs_renewal: true });
+
+      user = await ensureTrialPeriod(user);
+      await supabase.from("mro_tool_users").update({ last_access: new Date().toISOString() }).eq("id", user.id);
+
+      return json({ success: true, ...(await fullPayload(user)) });
+    }
+
+    if (action === "verify_user") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      if (!identifier) return json({ success: false, error: "Usuário ou email é obrigatório" }, 400);
+      let user = await findUser(identifier);
+      if (!user) return json({ success: false, error: "Usuário não encontrado" });
+      user = await ensureTrialPeriod(user);
+      return json({ success: true, ...(await fullPayload(user)) });
+    }
+
+    /** Verifica se uma conta do Instagram pode ser usada por esse usuário. */
+    if (action === "check_account") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      const instagram = String(body.instagram || body.instagram_username || "").trim().toLowerCase();
+      if (!identifier || !instagram) return json({ success: false, error: "Usuário e conta do Instagram são obrigatórios" }, 400);
+
+      const user = await findUser(identifier);
+      if (!user) return json({ success: false, error: "Usuário não encontrado" });
+      if (!planInfo(user).access_allowed) return json({ success: false, error: "Acesso expirado ou desativado" });
+
+      const accounts = await getAccounts(user.id);
+      const match = accounts.find((a) => a.instagram_username.toLowerCase() === instagram);
+      if (!match) return json({ success: false, allowed: false, error: "Conta não cadastrada no plano" });
+      return json({ success: true, allowed: true, is_trial: match.is_trial, trial_expires_at: match.trial_expires_at });
+    }
+
+    /** Cadastra conta fixa do plano (respeitando o limite) — usado pela extensão. */
+    if (action === "add_account") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      const instagram = String(body.instagram || body.instagram_username || "").trim().toLowerCase();
+      if (!identifier || !instagram) return json({ success: false, error: "Usuário e conta do Instagram são obrigatórios" }, 400);
+      if (instagram.length > 120) return json({ success: false, error: "Conta inválida" }, 400);
+
+      let user = await findUser(identifier);
+      if (!user) return json({ success: false, error: "Usuário não encontrado" });
+      if (!planInfo(user).access_allowed) return json({ success: false, error: "Acesso expirado ou desativado" });
+
+      user = await ensureTrialPeriod(user);
+      const isTrial = !!body.trial;
+      const accounts = await getAccounts(user.id);
+
+      if (accounts.some((a) => a.instagram_username.toLowerCase() === instagram)) {
+        return json({ success: false, error: "Essa conta já está cadastrada" });
+      }
+
+      if (isTrial) {
+        if (user.trials_used >= MONTHLY_TRIALS) {
+          return json({ success: false, error: `Você já usou seus ${MONTHLY_TRIALS} testes deste mês`, trials_exhausted: true });
+        }
+        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        await supabase.from("mro_tool_accounts").insert({
+          user_id: user.id, instagram_username: instagram, is_trial: true, trial_expires_at: expires,
+        });
+        await supabase.from("mro_tool_users").update({ trials_used: user.trials_used + 1 }).eq("id", user.id);
+        user = { ...user, trials_used: user.trials_used + 1 };
+        return json({ success: true, trial: true, trial_expires_at: expires, ...(await fullPayload(user)) });
+      }
+
+      const fixedCount = accounts.filter((a) => !a.is_trial).length;
+      if (fixedCount >= user.plan_accounts) {
+        return json({
+          success: false,
+          limit_reached: true,
+          error: `Você não pode cadastrar mais contas do que o seu plano permite (${user.plan_accounts} contas). Faça upgrade ou use um dos testes gratuitos.`,
+        });
+      }
+
+      await supabase.from("mro_tool_accounts").insert({ user_id: user.id, instagram_username: instagram });
+      return json({ success: true, ...(await fullPayload(user)) });
+    }
+
+    // ---------------- ADMIN ----------------
+    if (action === "list_users") {
+      const nowIso = new Date().toISOString();
+      await supabase.from("mro_tool_accounts").delete().eq("is_trial", true).lt("trial_expires_at", nowIso);
+
+      const { data: users, error } = await supabase
+        .from("mro_tool_users")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) return json({ success: false, error: error.message }, 500);
+
+      const { data: accounts } = await supabase.from("mro_tool_accounts").select("*");
+
+      const byUser = new Map<string, MroAccountRow[]>();
+      for (const a of ((accounts || []) as MroAccountRow[])) {
+        const list = byUser.get(a.user_id) || [];
+        list.push(a);
+        byUser.set(a.user_id, list);
+      }
+
+      const result = ((users || []) as MroUserRow[]).map((u) => {
+        const list = byUser.get(u.id) || [];
+        const { password_hash, ...rest } = u as any;
+        return {
+          ...rest,
+          ...planInfo(u),
+          has_password: !!password_hash,
+          accounts: list.filter((a) => !a.is_trial),
+          trial_accounts: list.filter((a) => a.is_trial),
+          trials_remaining: Math.max(0, MONTHLY_TRIALS - u.trials_used),
+        };
+      });
+
+      return json({ success: true, users: result, trials_limit: MONTHLY_TRIALS });
+    }
+
+    if (action === "upsert_user") {
+      const username = String(body.username || "").trim().toLowerCase();
+      if (!username) return json({ success: false, error: "Usuário é obrigatório" }, 400);
+
+      const payload: Record<string, unknown> = {
+        username,
+        email: body.email ? String(body.email).trim().toLowerCase() : null,
+        name: body.name ? String(body.name).trim() : null,
+      };
+      if (body.is_active !== undefined) payload.is_active = !!body.is_active;
+      if (body.plan_accounts !== undefined && body.plan_accounts !== null && body.plan_accounts !== "") {
+        payload.plan_accounts = Math.max(0, Number(body.plan_accounts) || 0);
+      }
+      if (body.expiration_days !== undefined && body.expiration_days !== null && body.expiration_days !== "") {
+        payload.expiration_days = Math.max(0, Number(body.expiration_days) || 0);
+      }
+      if (body.password) payload.password_hash = await sha256(String(body.password));
+
+      const { data: existing } = await supabase
+        .from("mro_tool_users").select("id").eq("username", username).maybeSingle();
+
+      const query = existing
+        ? supabase.from("mro_tool_users").update(payload).eq("id", existing.id)
+        : supabase.from("mro_tool_users").insert(payload);
+
+      const { error } = await query;
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    if (action === "delete_user") {
+      if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
+      const { error } = await supabase.from("mro_tool_users").delete().eq("id", body.id);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    /** Admin adiciona conta ignorando o limite quando force=true. */
+    if (action === "admin_add_account") {
+      const userId = String(body.user_id || "");
+      const instagram = String(body.instagram || "").trim().toLowerCase();
+      if (!userId || !instagram) return json({ success: false, error: "Usuário e conta são obrigatórios" }, 400);
+
+      const { data: user } = await supabase.from("mro_tool_users").select("*").eq("id", userId).maybeSingle();
+      if (!user) return json({ success: false, error: "Usuário não encontrado" });
+
+      const accounts = await getAccounts(userId);
+      const fixedCount = accounts.filter((a) => !a.is_trial).length;
+      if (!body.force && fixedCount >= (user as MroUserRow).plan_accounts) {
+        return json({
+          success: false,
+          limit_reached: true,
+          error: `Limite do plano atingido (${(user as MroUserRow).plan_accounts} contas). Aumente as contas do plano para adicionar mais.`,
+        });
+      }
+
+      const { error } = await supabase.from("mro_tool_accounts").insert({ user_id: userId, instagram_username: instagram });
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    if (action === "remove_account") {
+      if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
+      const { error } = await supabase.from("mro_tool_accounts").delete().eq("id", body.id);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    if (action === "reset_trials") {
+      if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
+      const { error } = await supabase
+        .from("mro_tool_users")
+        .update({ trials_used: 0, trials_period_start: monthStart() })
+        .eq("id", body.id);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    /** Importa em massa: [{ username, password, expiration_days, accounts: [] }] */
+    if (action === "bulk_import") {
+      const items = Array.isArray(body.users) ? body.users : [];
+      if (!items.length) return json({ success: false, error: "Nenhum usuário para importar" }, 400);
+      if (items.length > 2000) return json({ success: false, error: "Máximo de 2000 usuários por importação" }, 400);
+
+      let created = 0, updated = 0, accountsAdded = 0;
+      const errors: string[] = [];
+
+      for (const item of items) {
+        const username = String(item?.username || "").trim().toLowerCase();
+        if (!username) continue;
+        try {
+          const expiration = Math.max(0, Number(item?.expiration_days) || 0);
+          const igs: string[] = Array.isArray(item?.accounts)
+            ? item.accounts.map((a: unknown) => String(a).trim().toLowerCase()).filter(Boolean)
+            : [];
+          const planAccounts = Math.max(DEFAULT_PLAN_ACCOUNTS, igs.length);
+
+          const payload: Record<string, unknown> = {
+            username,
+            email: item?.email ? String(item.email).trim().toLowerCase() : null,
+            expiration_days: expiration,
+            plan_accounts: planAccounts,
+            is_active: true,
+          };
+          if (item?.password) payload.password_hash = await sha256(String(item.password));
+
+          const { data: existing } = await supabase
+            .from("mro_tool_users").select("id").eq("username", username).maybeSingle();
+
+          let userId: string;
+          if (existing) {
+            await supabase.from("mro_tool_users").update(payload).eq("id", existing.id);
+            userId = existing.id;
+            updated++;
+          } else {
+            const { data: inserted, error: insErr } = await supabase
+              .from("mro_tool_users").insert(payload).select("id").single();
+            if (insErr || !inserted) { errors.push(`${username}: ${insErr?.message || "erro"}`); continue; }
+            userId = inserted.id;
+            created++;
+          }
+
+          if (igs.length) {
+            const { data: current } = await supabase
+              .from("mro_tool_accounts").select("instagram_username").eq("user_id", userId).eq("is_trial", false);
+            const existingSet = new Set(((current || []) as any[]).map((c) => String(c.instagram_username).toLowerCase()));
+            const toInsert = igs
+              .filter((ig) => !existingSet.has(ig))
+              .map((ig) => ({ user_id: userId, instagram_username: ig }));
+            if (toInsert.length) {
+              const { error: accErr } = await supabase.from("mro_tool_accounts").insert(toInsert);
+              if (accErr) errors.push(`${username} (contas): ${accErr.message}`);
+              else accountsAdded += toInsert.length;
+            }
+          }
+        } catch (e) {
+          errors.push(`${username}: ${e instanceof Error ? e.message : "erro"}`);
+        }
+      }
+
+      return json({ success: true, created, updated, accounts_added: accountsAdded, errors: errors.slice(0, 20) });
+    }
+
+    return json({ success: false, error: "Ação inválida" }, 400);
+  } catch (error) {
+    console.error("[MRO-TOOL-API]", error instanceof Error ? error.message : "Unknown");
+    return json({ success: false, error: "Erro interno" }, 500);
+  }
+});

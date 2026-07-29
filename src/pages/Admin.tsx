@@ -30,6 +30,7 @@ import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
+import MroToolPanel from '@/components/admin/MroToolPanel';
 import ManualScraper from '@/components/admin/ManualScraper';
 import ExtensionDocs from '@/components/admin/ExtensionDocs';
 import LovableExtensionPanel from '@/components/admin/LovableExtensionPanel';
@@ -942,14 +943,15 @@ const Admin = () => {
           <SyncDashboard />
         )}
 
-        {/* Tutorials Tab */}
+        {/* MRO Ferramenta Tab */}
         {activeTab === 'tutorials' && (
-          <ModuleManager 
+          <MroToolPanel
             downloadLink={settings.downloadLink}
             onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
             onSaveSettings={handleSaveSettings}
           />
         )}
+
 
         {/* ZAPMRO Ferramenta Tab */}
         {activeTab === 'zapmro' && (
