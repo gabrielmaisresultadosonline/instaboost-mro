@@ -202,7 +202,10 @@ export default function Dashboard() {
     if (product.unlocked) {
       // Produtos com rota própria abrem direto a ferramenta já logada.
       if (product.app_route) void openProduct(product);
-      else navigate(`/dashboard/produto/${product.slug}`);
+      else {
+        markHubReturn();
+        navigate(`/dashboard/produto/${product.slug}`);
+      }
       return;
     }
     setBuyName(session?.name || "");
