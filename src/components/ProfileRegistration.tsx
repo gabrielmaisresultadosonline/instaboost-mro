@@ -92,6 +92,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [editEmailValue, setEditEmailValue] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
+  const [emailLocked, setEmailLocked] = useState(false);
+
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -104,9 +106,11 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   useEffect(() => {
     if (user?.email) {
       setEmail(user.email);
+      if (user?.isEmailLocked) setEmailLocked(true);
     }
     const igs = getRegisteredIGs();
     setRegisteredIGs(igs.map(ig => ig.username));
+
     
     const checkAndFixPartialData = async () => {
       if (user?.username && igs.length > 0 && !user?.email) {
@@ -131,21 +135,55 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email, user?.username]);
 
+  // ===== E-mail obrigatório =====
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = EMAIL_REGEX.test(email.trim());
+  // Só libera as ações (cadastrar/sincronizar Instagram) depois do e-mail salvo/vinculado
+  const isEmailReady = (emailLocked || !!user?.isEmailLocked) && isEmailValid;
+
+  const handleSaveEmail = async () => {
+    const value = email.trim();
+    if (!EMAIL_REGEX.test(value)) {
+      toast({ title: 'E-mail inválido', description: 'Digite um e-mail válido para continuar', variant: 'destructive' });
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      await updateUserEmail(value);
+      setEmail(value);
+      setEmailLocked(true);
+      toast({ title: 'E-mail cadastrado!', description: 'Agora você já pode cadastrar seu Instagram' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao salvar e-mail', description: err?.message || 'Tente novamente', variant: 'destructive' });
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const requireEmail = (): boolean => {
+    if (!isEmailReady) {
+      toast({
+        title: 'Cadastre seu e-mail primeiro',
+        description: 'É obrigatório salvar um e-mail válido antes de cadastrar ou sincronizar contas do Instagram.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    return true;
+  };
+
+
   // Handle syncing a single profile that already exists in SquareCloud
   const handleSyncSingleProfile = async () => {
     if (!pendingSyncIG || !user) return;
-    
+    if (!requireEmail()) return;
+
     setShowSyncOfferDialog(false);
     setIsLoading(true);
     setLoadingMessage(`Sincronizando @${pendingSyncIG}...`);
     
     try {
-      if (!email.trim()) {
-        toast({ title: 'Digite seu e-mail', description: 'Necessário para sincronizar', variant: 'destructive' });
-        setIsLoading(false);
-        setLoadingMessage('');
-        return;
-      }
+
 
       updateUserEmail(email);
       
@@ -206,16 +244,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
       return;
     }
 
-    if (!email.trim()) {
-      toast({ title: 'Digite seu e-mail primeiro', variant: 'destructive' });
-      return;
-    }
+    if (!requireEmail()) return;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({ title: 'E-mail inválido', variant: 'destructive' });
-      return;
-    }
 
     const normalizedIG = normalizeInstagramUsername(instagramInput);
 
@@ -263,6 +293,9 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
   const handleFinalConfirmation = async () => {
     if (!pendingRegisterIG || !user) return;
+    if (!requireEmail()) return;
+
+
 
     setShowWarningDialog(false);
     setIsLoading(true);
@@ -322,6 +355,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
   const handleSyncAll = async () => {
     if (!user) return;
+    if (!requireEmail()) return;
+
     
     setIsLoading(true);
     setLoadingMessage('Sincronizando todas as suas contas...');
@@ -482,7 +517,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   variant="outline" 
                   size="sm" 
                   onClick={handleSyncAll}
-                  disabled={isLoading}
+                  disabled={isLoading || !isEmailReady}
+
                   className="text-primary border-primary/20 hover:bg-primary/10"
                 >
                   <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
@@ -578,26 +614,48 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   </div>
                 </div>
               ) : (
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => !user?.isEmailLocked && setEmail(e.target.value)}
-                  disabled={user?.isEmailLocked}
-                  className={`bg-background/50 ${user?.isEmailLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  data-tutorial="email-input"
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => !isEmailReady && setEmail(e.target.value)}
+                    disabled={isEmailReady}
+                    className={`bg-background/50 ${isEmailReady ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    data-tutorial="email-input"
+                  />
+                  {!isEmailReady && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={savingEmail || !isEmailValid}
+                      onClick={handleSaveEmail}
+                      className="bg-primary hover:bg-primary/90 shrink-0"
+                    >
+                      {savingEmail ? 'Salvando...' : 'Salvar e-mail'}
+                    </Button>
+                  )}
+                </div>
               )}
 
               <p className="text-xs text-muted-foreground">
                 {isEditingEmail
                   ? 'Digite o novo e-mail e clique em Salvar. Ele ficará vinculado à sua conta.'
-                  : user?.isEmailLocked
+                  : isEmailReady
                     ? 'Este e-mail está vinculado à sua conta. Clique em "Alterar" para trocar.'
-                    : 'Este e-mail será salvo e vinculado permanentemente à sua conta'
+                    : 'Obrigatório: cadastre e salve seu e-mail para liberar o cadastro de contas do Instagram.'
                 }
               </p>
+
+              {!isEmailReady && !isEditingEmail && (
+                <div className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+                  <p className="text-xs text-amber-400 font-medium">
+                    ⚠️ Sem e-mail cadastrado você não consegue cadastrar nem sincronizar contas do Instagram.
+                  </p>
+                </div>
+              )}
+
             </div>
           </CardContent>
         </Card>
@@ -625,7 +683,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 placeholder="@usuario ou link do perfil"
                 value={instagramInput}
                 onChange={(e) => setInstagramInput(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || !isEmailReady}
+
                 className="bg-background/50"
                 data-tutorial="instagram-input"
               />
@@ -633,7 +692,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             <Button 
               className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold" 
               onClick={handleSearchProfile}
-              disabled={isLoading}
+              disabled={isLoading || !isEmailReady}
               data-tutorial="buscar-button"
             >
               {isLoading ? (
@@ -648,9 +707,15 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 </>
               )}
             </Button>
+            {!isEmailReady && (
+              <p className="text-xs text-amber-400 text-center font-medium">
+                🔒 Cadastre e salve seu e-mail acima para liberar o cadastro do Instagram.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground text-center">
               📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
             </p>
+
           </CardContent>
         </Card>
 

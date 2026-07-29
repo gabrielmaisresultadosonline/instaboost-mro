@@ -658,25 +658,48 @@ const ZapMRO = () => {
             </p>
           </div>
 
-          {/* Download Link (liberado temporariamente) */}
+          {/* Download Link (exige e-mail cadastrado) */}
           {settings?.downloadLink && (
             <div className="flex flex-col items-center gap-3 mb-8">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-400/40">
-                <Sparkles className="w-4 h-4 text-emerald-300" />
-                <span className="text-emerald-200 text-sm font-semibold">
-                  Download liberado! Faça download da versão atualizada.
-                </span>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isEmailLocked ? 'bg-emerald-500/15 border-emerald-400/40' : 'bg-amber-500/15 border-amber-400/40'}`}>
+                {isEmailLocked ? (
+                  <>
+                    <Sparkles className="w-4 h-4 text-emerald-300" />
+                    <span className="text-emerald-200 text-sm font-semibold">
+                      Download liberado! Faça download da versão atualizada.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldAlert className="w-4 h-4 text-amber-300" />
+                    <span className="text-amber-200 text-sm font-semibold">
+                      Cadastre seu e-mail acima para liberar o download.
+                    </span>
+                  </>
+                )}
               </div>
 
               <Button
-                onClick={() => window.open(settings.downloadLink, '_blank')}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2"
+                onClick={() => {
+                  if (!isEmailLocked) {
+                    toast({
+                      title: 'Cadastre seu e-mail primeiro',
+                      description: 'É obrigatório cadastrar um e-mail válido para baixar o ZAPMRO.',
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+                  window.open(settings.downloadLink, '_blank');
+                }}
+                disabled={!isEmailLocked}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Download className="w-5 h-5" />
+                {isEmailLocked ? <Download className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                 Download ZAPMRO
               </Button>
             </div>
           )}
+
 
           {/* Modal da taxa de atualização */}
           <Dialog open={showFeeModal} onOpenChange={setShowFeeModal}>
