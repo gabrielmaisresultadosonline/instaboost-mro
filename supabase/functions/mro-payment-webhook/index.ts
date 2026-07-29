@@ -52,143 +52,91 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
   }
 }
 
-// Verificar se usuário já existe
-async function checkUserExists(username: string): Promise<boolean> {
+/** Vitalício — qualquer valor >= 9999 dias vira 999999 na API interna. */
+const LIFETIME_DAYS = 999999;
+
+/** SHA-256 (Web Crypto) — mesmo padrão da API interna (mro-tool-api). */
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Verifica se o usuário já existe na NOSSA base interna (mro_tool_users). */
+async function checkUserExists(supabase: any, username: string): Promise<boolean> {
   try {
-    log("Checking if user exists", { username });
-    
-    // Tentar primeiro pelo endpoint de API de usuários
-    const response = await fetch(`${INSTAGRAM_API_URL}/api/users/${username}`);
-    
-    if (response.ok) {
-      const data = await response.json().catch(() => ({}));
-      if (data && data.username) {
-        log("User check result (via API users)", { username, exists: true });
-        return true;
-      }
-    }
-
-    // Backup: Tentar pelo endpoint de login (mais confiável em caso de 404/HTML nos outros)
-    const loginResponse = await fetch(`${INSTAGRAM_API_URL}/verificar-numero`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `numero=${encodeURIComponent(username)}&nome=${encodeURIComponent(username)}`
-    });
-
-    if (loginResponse.ok) {
-      const loginData = await loginResponse.json().catch(() => ({}));
-      if (loginData && loginData.senhaCorrespondente) {
-        log("User check result (via login check)", { username, exists: true });
-        return true;
-      }
-    }
-    
-    log("User check result", { username, exists: false });
-    return false;
+    const { data } = await supabase
+      .from("mro_tool_users")
+      .select("id")
+      .eq("username", username.trim().toLowerCase())
+      .maybeSingle();
+    log("User check result (internal API)", { username, exists: !!data });
+    return !!data;
   } catch (error) {
     log("Error checking user existence", { username, error: String(error) });
     return false;
   }
 }
 
-// Criar usuário na API SquareCloud/Instagram
-async function createInstagramUser(username: string, password: string, daysAccess: number, plan: string): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
+/**
+ * Cria (ou atualiza) o usuário direto na NOSSA API interna — mro_tool_users.
+ * Não usamos mais a SquareCloud para liberar acesso.
+ */
+async function createInstagramUser(
+  supabase: any,
+  username: string,
+  password: string,
+  email: string | null,
+  daysAccess: number,
+  plan: string,
+): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
-    // Mapear plano -> maxAccounts / dias / plano-label conforme /adminusuario docs
-    // solo=1 conta 365d | pro=4 contas 365d | agencia=12 contas 9999d | trial=4 contas 1d
-    const planMap: Record<string, { plano: string; maxAccounts: number; dias: number }> = {
-      solo:     { plano: "solo",  maxAccounts: 1,  dias: 365 },
-      pro:      { plano: "pro",   maxAccounts: 4,  dias: 365 },
-      agencia:  { plano: "pro",   maxAccounts: 12, dias: 9999 },
-      trial:    { plano: "pro",   maxAccounts: 4,  dias: 1 },
-      annual:   { plano: "pro",   maxAccounts: 4,  dias: 365 },
-      monthly:  { plano: "pro",   maxAccounts: 4,  dias: 30 },
-      lifetime: { plano: "pro",   maxAccounts: 4,  dias: 9999 },
+    const planMap: Record<string, { accounts: number; dias: number }> = {
+      solo: { accounts: 1, dias: 365 },
+      pro: { accounts: 4, dias: 365 },
+      agencia: { accounts: 12, dias: LIFETIME_DAYS },
+      trial: { accounts: 4, dias: 1 },
+      annual: { accounts: 4, dias: 365 },
+      monthly: { accounts: 4, dias: 30 },
+      lifetime: { accounts: 4, dias: LIFETIME_DAYS },
     };
     const cfg = planMap[plan] || planMap.annual;
-    const isSpecialPlan = ['solo', 'pro', 'agencia', 'trial'].includes(plan);
-    const createUrl = isSpecialPlan
-      ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
-      : `${INSTAGRAM_API_URL}/adicionar-usuario`;
+    const rawDays = Number(daysAccess) || cfg.dias;
+    const expiration = rawDays >= 9999 ? LIFETIME_DAYS : Math.max(0, Math.floor(rawDays));
 
-    const payload: Record<string, unknown> = isSpecialPlan
-      ? {
-          username,
-          password,
-          plano: cfg.plano,
-          dias: cfg.dias,
-          blackList: false,
-          acessFull: false,
-          maxAccounts: cfg.maxAccounts,
-          igUsers: "",
-        }
-      : { username, password, time: daysAccess, igUsers: '', accounts: 1, extraIgSlots: 0 };
+    const normalizedUser = username.trim().toLowerCase();
+    const normalizedEmail = email ? email.trim().toLowerCase() : null;
 
-    log("Creating Instagram user via API", { url: createUrl, username, plan, isSpecialPlan });
-
-    const adminName = Deno.env.get("MRO_ADMIN_NAME");
-    const adminPass = Deno.env.get("MRO_ADMIN_PASS");
-
-    // Primeiro tentar habilitar o usuário (como no manage-user-access)
-    try {
-      await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario: username, senha: password }),
-      });
-      log("Enable user call sent");
-    } catch (e) {
-      log("Enable user failed (non-blocking)", e);
-    }
-
-    const headers: Record<string, string> = { 
-      "Content-Type": "application/json"
+    const payload: Record<string, unknown> = {
+      username: normalizedUser,
+      email: normalizedEmail,
+      password_hash: await sha256(password),
+      password_plain: password,
+      plan_accounts: cfg.accounts,
+      expiration_days: expiration,
+      is_active: true,
     };
 
-    // Usar credenciais de admin conforme padrão do sistema
-    headers["x-admin-name"] = "MRO";
-    headers["x-admin-pass"] = "Ga145523@";
+    const { data: existing } = await supabase
+      .from("mro_tool_users").select("id").eq("username", normalizedUser).maybeSingle();
 
-    const response = await fetch(createUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    });
-
-    const responseText = await response.text();
-    log("API Response raw", { status: response.status, body: responseText });
-
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch {
-      result = { success: response.ok, error: "Non-JSON response" };
+    if (existing) {
+      const { error } = await supabase.from("mro_tool_users").update(payload).eq("id", existing.id);
+      if (error) return { success: false, alreadyExists: true, message: error.message };
+      log("Internal user updated", { username: normalizedUser });
+      return { success: true, alreadyExists: true, message: "Usuário já existia — acesso atualizado" };
     }
 
-    if (response.ok || responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("already exists") || responseText.toLowerCase().includes("já existe")) {
-      const alreadyExists = responseText.toLowerCase().includes("already exists") || responseText.toLowerCase().includes("já existe");
-      return { 
-        success: true, 
-        alreadyExists, 
-        message: alreadyExists ? "Usuário já existe" : "Usuário criado com sucesso" 
-      };
-    } else {
-      // Caso falhe mas a resposta contenha indícios de sucesso (alguns endpoints retornam 201 ou 200 com msg de erro no corpo mas criam o user)
-      if (responseText.toLowerCase().includes("sucesso") || responseText.toLowerCase().includes("criado")) {
-        return { success: true, alreadyExists: false, message: "Criado (identificado via texto)" };
-      }
+    const { error } = await supabase.from("mro_tool_users").insert(payload);
+    if (error) return { success: false, alreadyExists: false, message: error.message };
 
-      return { 
-        success: false, 
-        alreadyExists: false, 
-        message: result.error || result.message || responseText || "Erro ao criar usuário" 
-      };
-    }
+    log("Internal user created", { username: normalizedUser, expiration });
+    return { success: true, alreadyExists: false, message: "Usuário criado na API interna" };
   } catch (error) {
-    log("Error creating Instagram user", { error: String(error) });
+    log("Error creating internal user", { error: String(error) });
     return { success: false, alreadyExists: false, message: String(error) };
   }
 }
+
 
 // Enviar email de acesso
 async function sendAccessEmail(
