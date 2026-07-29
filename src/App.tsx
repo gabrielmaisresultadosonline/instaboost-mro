@@ -232,7 +232,7 @@ const App = () => (
         <HubReturnButton />
         <Routes>
           <Route path="/" element={<ToolSelector />} />
-          <Route path="/instagram" element={<Index />} />
+          <Route path="/instagram" element={<MeuNegocioPage />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
           <Route path="/renda-extra2" element={<Navigate to="/ferramentamropromo2" replace />} />
