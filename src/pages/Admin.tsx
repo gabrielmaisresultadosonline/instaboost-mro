@@ -34,9 +34,9 @@ import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
-  Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
-  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus, Chrome, Key,
+  Image as ImageIcon, User,
+  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket,
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus,
   Package,
 
 } from 'lucide-react';
