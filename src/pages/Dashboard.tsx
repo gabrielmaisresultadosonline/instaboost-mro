@@ -437,12 +437,47 @@ export default function Dashboard() {
                 {loggingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 Entrar
               </Button>
+              <button
+                type="button"
+                className="w-full text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+                onClick={() => setShowRecover(true)}
+              >
+                Esqueci minha senha
+              </button>
             </form>
           </CardContent>
         </Card>
+
+        <Dialog open={showRecover} onOpenChange={setShowRecover}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Recuperar acesso</DialogTitle>
+              <DialogDescription>
+                Informe o e-mail cadastrado. Enviamos um único lembrete com seu acesso — ele vale para todos os seus produtos.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="recover-email">E-mail de acesso</Label>
+                <Input
+                  id="recover-email"
+                  type="email"
+                  value={recoverEmail}
+                  onChange={(e) => setRecoverEmail(e.target.value)}
+                  placeholder="seuemail@exemplo.com"
+                />
+              </div>
+              <Button className="w-full" onClick={handleRecover} disabled={recovering}>
+                {recovering ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                Enviar meu acesso
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background">
