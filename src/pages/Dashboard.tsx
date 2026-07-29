@@ -263,6 +263,48 @@ export default function Dashboard() {
     }
   };
 
+  /**
+   * Unifica todos os acessos do cliente no mesmo e-mail e dispara o resumo por e-mail.
+   */
+  const handleMerge = async () => {
+    if (!session || !mergeEmail) return;
+    setMerging(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: {
+          action: "merge_accounts",
+          username: session.username || "",
+          email: session.email || "",
+          password: session.password,
+          target_email: mergeEmail,
+        },
+      });
+      if (!data?.success) {
+        toast({ title: data?.error || "Não foi possível unificar", variant: "destructive" });
+        return;
+      }
+      const next: DashboardSession = { ...session, email: mergeEmail };
+      localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
+      setSession(next);
+      setProfile((prev) => (prev ? { ...prev, email: mergeEmail, has_email: true } : prev));
+      setNeedsEmail(false);
+      setShowConfig(false);
+      setMergeConflicts([]);
+      setMergeResult({
+        email: data.email || mergeEmail,
+        emailSent: !!data.emailSent,
+        primary: data.primary || { username: session.username || "", password: session.password },
+        accounts: Array.isArray(data.accounts) ? data.accounts : [],
+      });
+    } catch {
+      toast({ title: "Erro ao unificar seus acessos", variant: "destructive" });
+    } finally {
+      setMerging(false);
+    }
+  };
+
+
+
   /** Envia um único lembrete de acesso para o e-mail vinculado ao cliente. */
   const handleRecover = async () => {
     const email = recoverEmail.trim().toLowerCase();
