@@ -17,6 +17,7 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
   const { toast } = useToast();
   const [text, setText] = useState('');
   const [importing, setImporting] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const parsed = useMemo(() => parseMroUsers(text), [text]);
   const totalAccounts = useMemo(
@@ -24,26 +25,42 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
     [parsed],
   );
 
+  /** Envia em lotes pequenos para nunca estourar o timeout da edge function. */
+  const BATCH_SIZE = 40;
+
   const handleImport = async () => {
     if (!parsed.length) {
       toast({ title: 'Nada para importar', description: 'Cole a lista de usuários primeiro.', variant: 'destructive' });
       return;
     }
     setImporting(true);
+    setProgress({ done: 0, total: parsed.length });
+
+    const totals = { created: 0, updated: 0, accounts: 0 };
+    const allErrors: string[] = [];
+
     try {
-      const { data, error } = await supabase.functions.invoke('mro-tool-api', {
-        body: { action: 'bulk_import', users: parsed },
-      });
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'Falha na importação');
+      for (let i = 0; i < parsed.length; i += BATCH_SIZE) {
+        const batch = parsed.slice(i, i + BATCH_SIZE);
+        const { data, error } = await supabase.functions.invoke('mro-tool-api', {
+          body: { action: 'bulk_import', users: batch },
+        });
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'Falha na importação');
+
+        totals.created += Number(data.created || 0);
+        totals.updated += Number(data.updated || 0);
+        totals.accounts += Number(data.accounts_added || 0);
+        if (Array.isArray(data.errors)) allErrors.push(...data.errors);
+
+        setProgress({ done: Math.min(i + BATCH_SIZE, parsed.length), total: parsed.length });
+      }
 
       toast({
         title: 'Importação concluída',
-        description: `${data.created} criados · ${data.updated} atualizados · ${data.accounts_added} contas vinculadas.`,
+        description: `${totals.created} criados · ${totals.updated} atualizados · ${totals.accounts} contas vinculadas.`,
       });
-      if (Array.isArray(data.errors) && data.errors.length) {
-        console.warn('[mro-bulk-import] erros:', data.errors);
-      }
+      if (allErrors.length) console.warn('[mro-bulk-import] erros:', allErrors);
       setText('');
       onImported();
     } catch (err) {
@@ -54,8 +71,10 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
       });
     } finally {
       setImporting(false);
+      setProgress(null);
     }
   };
+
 
   return (
     <div className="space-y-4">
@@ -83,8 +102,11 @@ const MroBulkImport: React.FC<MroBulkImportProps> = ({ onImported }) => {
           <div className="flex-1" />
           <Button onClick={handleImport} disabled={importing || !parsed.length} className="gap-2">
             {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            Importar {parsed.length ? `(${parsed.length})` : ''}
+            {importing && progress
+              ? `Importando ${progress.done}/${progress.total}...`
+              : `Importar ${parsed.length ? `(${parsed.length})` : ''}`}
           </Button>
+
         </div>
       </Card>
 

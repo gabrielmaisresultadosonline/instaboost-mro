@@ -365,70 +365,130 @@ serve(async (req) => {
       return json({ success: true });
     }
 
-    /** Importa em massa: [{ username, password, expiration_days, accounts: [] }] */
+    /**
+     * Importa em massa: [{ username, password, expiration_days, accounts: [] }]
+     * Estratégia set-based (poucas queries) para não estourar o timeout de 150s
+     * da edge function quando há centenas de usuários.
+     */
     if (action === "bulk_import") {
-      const items = Array.isArray(body.users) ? body.users : [];
-      if (!items.length) return json({ success: false, error: "Nenhum usuário para importar" }, 400);
-      if (items.length > 2000) return json({ success: false, error: "Máximo de 2000 usuários por importação" }, 400);
+      const rawItems = Array.isArray(body.users) ? body.users : [];
+      if (!rawItems.length) return json({ success: false, error: "Nenhum usuário para importar" }, 400);
+      if (rawItems.length > 500) {
+        return json({ success: false, error: "Máximo de 500 usuários por lote" }, 400);
+      }
 
-      let created = 0, updated = 0, accountsAdded = 0;
       const errors: string[] = [];
 
-      for (const item of items) {
+      // 1) Normaliza + deduplica por username (mantém a última ocorrência).
+      const byUsername = new Map<string, { username: string; email: string | null; password: string | null; expiration: number; igs: string[] }>();
+      for (const item of rawItems) {
         const username = String(item?.username || "").trim().toLowerCase();
-        if (!username) continue;
-        try {
-          const expiration = Math.max(0, Number(item?.expiration_days) || 0);
-          const igs: string[] = Array.isArray(item?.accounts)
-            ? item.accounts.map((a: unknown) => String(a).trim().toLowerCase()).filter(Boolean)
-            : [];
-          const planAccounts = Math.max(DEFAULT_PLAN_ACCOUNTS, igs.length);
+        if (!username || username.length > 255) continue;
+        const igs = Array.isArray(item?.accounts)
+          ? Array.from(new Set(
+              item.accounts
+                .map((a: unknown) => String(a ?? "").trim().toLowerCase())
+                .filter((a: string) => !!a && a.length <= 120),
+            )) as string[]
+          : [];
+        byUsername.set(username, {
+          username,
+          email: item?.email ? String(item.email).trim().toLowerCase() : null,
+          password: item?.password ? String(item.password) : null,
+          expiration: Math.max(0, Number(item?.expiration_days) || 0),
+          igs,
+        });
+      }
 
-          const payload: Record<string, unknown> = {
-            username,
-            email: item?.email ? String(item.email).trim().toLowerCase() : null,
-            expiration_days: expiration,
-            plan_accounts: planAccounts,
-            is_active: true,
-          };
-          if (item?.password) payload.password_hash = await sha256(String(item.password));
+      const items = Array.from(byUsername.values());
+      if (!items.length) return json({ success: false, error: "Nenhum usuário válido encontrado" }, 400);
 
-          const { data: existing } = await supabase
-            .from("mro_tool_users").select("id").eq("username", username).maybeSingle();
+      const usernames = items.map((i) => i.username);
 
-          let userId: string;
-          if (existing) {
-            await supabase.from("mro_tool_users").update(payload).eq("id", existing.id);
-            userId = existing.id;
-            updated++;
-          } else {
-            const { data: inserted, error: insErr } = await supabase
-              .from("mro_tool_users").insert(payload).select("id").single();
-            if (insErr || !inserted) { errors.push(`${username}: ${insErr?.message || "erro"}`); continue; }
-            userId = inserted.id;
-            created++;
-          }
+      // 2) Uma única leitura dos usuários já existentes.
+      const { data: existingUsers, error: exErr } = await supabase
+        .from("mro_tool_users")
+        .select("id, username, password_hash")
+        .in("username", usernames);
+      if (exErr) return json({ success: false, error: exErr.message }, 500);
 
-          if (igs.length) {
-            const { data: current } = await supabase
-              .from("mro_tool_accounts").select("instagram_username").eq("user_id", userId).eq("is_trial", false);
-            const existingSet = new Set(((current || []) as any[]).map((c) => String(c.instagram_username).toLowerCase()));
-            const toInsert = igs
-              .filter((ig) => !existingSet.has(ig))
-              .map((ig) => ({ user_id: userId, instagram_username: ig }));
-            if (toInsert.length) {
-              const { error: accErr } = await supabase.from("mro_tool_accounts").insert(toInsert);
-              if (accErr) errors.push(`${username} (contas): ${accErr.message}`);
-              else accountsAdded += toInsert.length;
-            }
-          }
-        } catch (e) {
-          errors.push(`${username}: ${e instanceof Error ? e.message : "erro"}`);
+      const existingMap = new Map<string, { id: string; password_hash: string | null }>();
+      for (const u of (existingUsers || []) as any[]) {
+        existingMap.set(String(u.username).toLowerCase(), { id: u.id, password_hash: u.password_hash });
+      }
+
+      // 3) Monta as linhas do upsert (hash calculado em paralelo).
+      const rows = await Promise.all(items.map(async (item) => {
+        const prev = existingMap.get(item.username);
+        const password_hash = item.password
+          ? await sha256(item.password)
+          : prev?.password_hash ?? null;
+        return {
+          username: item.username,
+          email: item.email,
+          expiration_days: item.expiration,
+          plan_accounts: Math.max(DEFAULT_PLAN_ACCOUNTS, item.igs.length),
+          is_active: true,
+          password_hash,
+        };
+      }));
+
+      // 4) Upsert único por username.
+      const { data: upserted, error: upErr } = await supabase
+        .from("mro_tool_users")
+        .upsert(rows, { onConflict: "username" })
+        .select("id, username");
+      if (upErr) return json({ success: false, error: upErr.message }, 500);
+
+      const idByUsername = new Map<string, string>();
+      for (const u of (upserted || []) as any[]) {
+        idByUsername.set(String(u.username).toLowerCase(), u.id);
+      }
+
+      const created = items.filter((i) => !existingMap.has(i.username)).length;
+      const updated = items.length - created;
+
+      // 5) Uma leitura de todas as contas já vinculadas + um insert em lote.
+      const userIds = Array.from(idByUsername.values());
+      const alreadyLinked = new Set<string>();
+      if (userIds.length) {
+        const { data: currentAccounts } = await supabase
+          .from("mro_tool_accounts")
+          .select("user_id, instagram_username")
+          .in("user_id", userIds)
+          .eq("is_trial", false);
+        for (const a of (currentAccounts || []) as any[]) {
+          alreadyLinked.add(`${a.user_id}::${String(a.instagram_username).toLowerCase()}`);
         }
+      }
+
+      const toInsert: { user_id: string; instagram_username: string }[] = [];
+      for (const item of items) {
+        const userId = idByUsername.get(item.username);
+        if (!userId) {
+          errors.push(`${item.username}: usuário não pôde ser gravado`);
+          continue;
+        }
+        for (const ig of item.igs) {
+          const key = `${userId}::${ig}`;
+          if (alreadyLinked.has(key)) continue;
+          alreadyLinked.add(key);
+          toInsert.push({ user_id: userId, instagram_username: ig });
+        }
+      }
+
+      let accountsAdded = 0;
+      const CHUNK = 500;
+      for (let i = 0; i < toInsert.length; i += CHUNK) {
+        const chunk = toInsert.slice(i, i + CHUNK);
+        const { error: accErr } = await supabase.from("mro_tool_accounts").insert(chunk);
+        if (accErr) errors.push(`contas (lote ${i / CHUNK + 1}): ${accErr.message}`);
+        else accountsAdded += chunk.length;
       }
 
       return json({ success: true, created, updated, accounts_added: accountsAdded, errors: errors.slice(0, 20) });
     }
+
 
     return json({ success: false, error: "Ação inválida" }, 400);
   } catch (error) {
