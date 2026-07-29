@@ -279,6 +279,29 @@ serve(async (req) => {
       if (!info.access_allowed) return json({ success: false, error: "Acesso expirado ou desativado", needs_renewal: true });
 
       user = await ensureTrialPeriod(user);
+
+      // Verificação opcional do @instagram que está logado na extensão.
+      // Se o instagram for enviado e NÃO estiver cadastrado, o login é negado.
+      const loginInstagram = String(body.instagram || body.instagram_username || "").trim().toLowerCase().replace(/^@/, "");
+      if (loginInstagram) {
+        const check = await resolveInstagram(user, loginInstagram);
+        if (!check.registered) {
+          return json({
+            success: false,
+            instagram_not_registered: true,
+            instagram: loginInstagram,
+            error: `O Instagram @${loginInstagram} não está cadastrado na sua conta. Cadastre o perfil na área /instagram antes de usar a ferramenta.`,
+          });
+        }
+        await supabase.from("mro_tool_users").update({ last_access: new Date().toISOString() }).eq("id", user.id);
+        return json({
+          success: true,
+          instagram_verified: true,
+          instagram: { username: loginInstagram, ...check },
+          ...(await fullPayload(user)),
+        });
+      }
+
       await supabase.from("mro_tool_users").update({ last_access: new Date().toISOString() }).eq("id", user.id);
 
       return json({ success: true, ...(await fullPayload(user)) });
@@ -293,21 +316,47 @@ serve(async (req) => {
       return json({ success: true, ...(await fullPayload(user)) });
     }
 
+    /** Verifica se o @instagram está cadastrado (plano, teste de 1 dia, teste grátis ou área /instagram). */
+    if (action === "verify_instagram" || action === "check_instagram") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      const instagram = String(body.instagram || body.instagram_username || "").trim().toLowerCase().replace(/^@/, "");
+      if (!identifier || !instagram) return json({ success: false, error: "Usuário e conta do Instagram são obrigatórios" }, 400);
+
+      const user = await findUser(identifier);
+      if (!user) return json({ success: false, error: "Usuário não encontrado" });
+      const info = planInfo(user);
+      if (!info.access_allowed) return json({ success: false, allowed: false, error: "Acesso expirado ou desativado", needs_renewal: true });
+
+      const check = await resolveInstagram(user, instagram);
+      if (!check.registered) {
+        return json({
+          success: true,
+          allowed: false,
+          registered: false,
+          instagram,
+          error: `O Instagram @${instagram} não está cadastrado nessa conta.`,
+        });
+      }
+      return json({ success: true, allowed: true, registered: true, instagram, ...check, plan: info });
+    }
+
     /** Verifica se uma conta do Instagram pode ser usada por esse usuário. */
     if (action === "check_account") {
       const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
-      const instagram = String(body.instagram || body.instagram_username || "").trim().toLowerCase();
+      const instagram = String(body.instagram || body.instagram_username || "").trim().toLowerCase().replace(/^@/, "");
       if (!identifier || !instagram) return json({ success: false, error: "Usuário e conta do Instagram são obrigatórios" }, 400);
 
       const user = await findUser(identifier);
       if (!user) return json({ success: false, error: "Usuário não encontrado" });
       if (!planInfo(user).access_allowed) return json({ success: false, error: "Acesso expirado ou desativado" });
 
-      const accounts = await getAccounts(user.id);
-      const match = accounts.find((a) => a.instagram_username.toLowerCase() === instagram);
-      if (!match) return json({ success: false, allowed: false, error: "Conta não cadastrada no plano" });
-      return json({ success: true, allowed: true, is_trial: match.is_trial, trial_expires_at: match.trial_expires_at });
+      const check = await resolveInstagram(user, instagram);
+      if (!check.registered) {
+        return json({ success: false, allowed: false, registered: false, error: "Conta não cadastrada no plano" });
+      }
+      return json({ success: true, allowed: true, registered: true, source: check.source, is_trial: check.is_trial, trial_expires_at: check.trial_expires_at });
     }
+
 
     /** Cadastra conta fixa do plano (respeitando o limite) — usado pela extensão. */
     if (action === "add_account") {
