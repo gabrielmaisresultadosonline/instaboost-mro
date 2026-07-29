@@ -531,9 +531,22 @@ serve(async (req) => {
         access: Record<string, { unlocked: boolean; manual: boolean; origin: string }>;
       };
 
-      const users = new Map<string, HubUser>();
-      const keyOf = (email?: string | null, username?: string | null) =>
-        (String(email || "").trim().toLowerCase() || String(username || "").trim().toLowerCase());
+      // Índice por "apelido": cada e-mail e cada usuário aponta para o MESMO registro.
+      // Assim o cliente que usa o mesmo e-mail no MRO, ZAPMRO e Posts com IA
+      // aparece uma única vez com todos os acessos juntos.
+      const aliasIndex = new Map<string, HubUser>();
+      const norm = (v?: string | null) => String(v || "").trim().toLowerCase() || null;
+
+      const mergeInto = (target: HubUser, other: HubUser) => {
+        target.email = target.email || other.email;
+        target.username = target.username || other.username;
+        target.name = target.name || other.name;
+        target.password = target.password || other.password;
+        target.blocked = target.blocked || other.blocked;
+        for (const s of other.sources) if (!target.sources.includes(s)) target.sources.push(s);
+        for (const [k, v] of Object.entries(other.access)) target.access[k] = target.access[k] || v;
+        for (const [alias, ref] of aliasIndex.entries()) if (ref === other) aliasIndex.set(alias, target);
+      };
 
       const touch = (
         email: string | null,
@@ -542,30 +555,45 @@ serve(async (req) => {
         source: string,
         password?: string | null,
       ): HubUser | null => {
-        const key = keyOf(email, username);
-        if (!key) return null;
-        const existing = users.get(key);
-        if (existing) {
-          existing.email = existing.email || (email ? email.toLowerCase() : null);
-          existing.username = existing.username || username;
-          existing.name = existing.name || name;
-          existing.password = existing.password || password || null;
-          if (!existing.sources.includes(source)) existing.sources.push(source);
-          return existing;
+        const e = norm(email);
+        const un = norm(username);
+        if (!e && !un) return null;
+
+        const byEmail = e ? aliasIndex.get(`e:${e}`) : undefined;
+        const byUser = un ? aliasIndex.get(`u:${un}`) : undefined;
+
+        let user = byEmail || byUser || null;
+        if (byEmail && byUser && byEmail !== byUser) {
+          mergeInto(byEmail, byUser);
+          user = byEmail;
         }
-        const created: HubUser = {
-          key,
-          username: username || null,
-          email: email ? email.toLowerCase() : null,
-          name: name || null,
-          password: password || null,
-          sources: [source],
-          blocked: false,
-          access: {},
-        };
-        users.set(key, created);
-        return created;
+
+        if (!user) {
+          user = {
+            key: e || un || "",
+            username: un,
+            email: e,
+            name: name || null,
+            password: password || null,
+            sources: [source],
+            blocked: false,
+            access: {},
+          };
+        } else {
+          user.email = user.email || e;
+          user.username = user.username || un;
+          user.name = user.name || name || null;
+          user.password = user.password || password || null;
+          if (!user.sources.includes(source)) user.sources.push(source);
+        }
+
+        if (e) aliasIndex.set(`e:${e}`, user);
+        if (un) aliasIndex.set(`u:${un}`, user);
+        return user;
       };
+
+      const allUsers = (): HubUser[] => Array.from(new Set(aliasIndex.values()));
+
 
       const setAccess = (u: HubUser | null, source: string, unlocked: boolean, origin: string, manual = false) => {
         if (!u || !unlocked) return;
