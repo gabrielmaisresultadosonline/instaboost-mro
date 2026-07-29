@@ -182,7 +182,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
           void fetchRealtimeRemaining();
         }, 2200);
       } else {
-        toast.error(result?.message || 'Erro ao criar teste');
+        toast.error(result.error || 'Erro ao criar teste');
       }
     } catch (err) {
       console.error('Error creating trial:', err);
