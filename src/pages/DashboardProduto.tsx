@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, Download, Play, ExternalLink, Package } from "lucide-react";
 import { getDashboardSession, type HubProduct } from "./Dashboard";
+import MembersModulesView from "@/components/members/MembersModulesView";
+import { loadModulesFromCloud, type TutorialModule, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubTutorial {
   id: string;
