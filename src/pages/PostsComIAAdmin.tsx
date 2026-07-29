@@ -54,13 +54,25 @@ export default function PostsComIAAdmin({ embedded = false }: PostsComIAAdminPro
 
 
   useEffect(() => {
+    // Embedded inside /admin: the operator is already authenticated there,
+    // so reuse that session instead of asking for credentials again.
+    if (embedded) {
+      const bridged = getAdminCredentials();
+      if (bridged) {
+        setCreds(bridged);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(bridged));
+        } catch {}
+        return;
+      }
+    }
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         setCreds(JSON.parse(saved));
       } catch {}
     }
-  }, []);
+  }, [embedded]);
 
   useEffect(() => {
     if (creds) refresh();
