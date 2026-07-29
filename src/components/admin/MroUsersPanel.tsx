@@ -104,6 +104,30 @@ const MroUsersPanel: React.FC = () => {
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
+  const [syncing, setSyncing] = useState(false);
+
+  /** Vincula os emails já cadastrados na área /instagram aos usuários da ferramenta. */
+  const handleSyncEmails = async () => {
+    setSyncing(true);
+    try {
+      const data = await call({ action: 'sync_emails' });
+      toast({
+        title: 'Emails vinculados',
+        description: `${data.updated ?? 0} usuário(s) atualizados com o email do cadastro do /instagram.`,
+      });
+      await loadUsers();
+    } catch (err) {
+      toast({
+        title: 'Erro ao vincular emails',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return users;
