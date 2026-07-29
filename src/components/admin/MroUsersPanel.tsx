@@ -335,6 +335,22 @@ const MroUsersPanel: React.FC = () => {
           <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
         )}
       </div>
+
+      {/* Print do perfil em tamanho grande */}
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Print de @{preview?.username.replace(/^@/, '')}</DialogTitle>
+          </DialogHeader>
+          {preview && (
+            <img
+              src={preview.url}
+              alt={`Print do perfil @${preview.username.replace(/^@/, '')}`}
+              className="w-full rounded-md border border-border"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
