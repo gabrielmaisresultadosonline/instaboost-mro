@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package } from "lucide-react";
+import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package, Settings, Mail, KeyRound } from "lucide-react";
+
 
 export const DASHBOARD_SESSION_KEY = "mro_dashboard_session";
 
@@ -64,6 +65,55 @@ export default function Dashboard() {
   const [buyPhone, setBuyPhone] = useState("");
   const [buying, setBuying] = useState(false);
 
+  // ---- Perfil / Configurações ----
+  interface HubProfile {
+    username: string;
+    email: string;
+    name: string;
+    whatsapp: string;
+    has_email: boolean;
+  }
+  const [profile, setProfile] = useState<HubProfile | null>(null);
+  const [showConfig, setShowConfig] = useState(false);
+  const [needsEmail, setNeedsEmail] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formWhats, setFormWhats] = useState("");
+  const [formNewPassword, setFormNewPassword] = useState("");
+  const [formConfirmPassword, setFormConfirmPassword] = useState("");
+
+  // ---- Recuperar acesso ----
+  const [showRecover, setShowRecover] = useState(false);
+  const [recoverEmail, setRecoverEmail] = useState("");
+  const [recovering, setRecovering] = useState(false);
+
+  const loadProfile = useCallback(async (current: DashboardSession) => {
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: {
+          action: "profile",
+          username: current.username || "",
+          email: current.email || "",
+          password: current.password,
+        },
+      });
+      if (data?.success && data.profile) {
+        const p = data.profile as HubProfile;
+        setProfile(p);
+        setFormName(p.name || current.name || "");
+        setFormEmail(p.email || "");
+        setFormWhats(p.whatsapp || "");
+        // Cliente sem e-mail cadastrado precisa cadastrar antes de continuar.
+        setNeedsEmail(!p.email);
+      }
+    } catch {
+      /* silencioso: o dashboard continua funcionando sem o perfil */
+    }
+  }, []);
+
+
+
   const loadProducts = useCallback(async (current: DashboardSession) => {
     setLoading(true);
     try {
@@ -94,8 +144,12 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    if (session) loadProducts(session);
-  }, [session, loadProducts]);
+    if (session) {
+      loadProducts(session);
+      loadProfile(session);
+    }
+  }, [session, loadProducts, loadProfile]);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +185,95 @@ export default function Dashboard() {
     localStorage.removeItem(DASHBOARD_SESSION_KEY);
     setSession(null);
     setProducts([]);
+    setProfile(null);
+    setNeedsEmail(false);
   };
+
+  /**
+   * Salva os dados do cliente (nome, e-mail, WhatsApp e senha) no banco.
+   * O nome de acesso (usuário) nunca é alterado nem removido.
+   */
+  const saveProfile = async (requireEmail: boolean) => {
+    if (!session) return;
+    const email = formEmail.trim().toLowerCase();
+    if ((requireEmail || email) && !email.includes("@")) {
+      toast({ title: "Informe um e-mail válido", variant: "destructive" });
+      return;
+    }
+    if (formNewPassword && formNewPassword !== formConfirmPassword) {
+      toast({ title: "As senhas não conferem", variant: "destructive" });
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: {
+          action: "update_profile",
+          username: session.username || "",
+          email: session.email || "",
+          password: session.password,
+          new_email: email,
+          new_name: formName.trim(),
+          new_whatsapp: formWhats,
+          new_password: formNewPassword || undefined,
+        },
+      });
+      if (!data?.success) {
+        toast({ title: data?.error || "Não foi possível salvar", variant: "destructive" });
+        return;
+      }
+      const next: DashboardSession = {
+        username: session.username || data.profile?.username || null,
+        email: data.profile?.email || email || session.email,
+        name: data.profile?.name || formName.trim() || session.name,
+        password: (data.password as string) || session.password,
+      };
+      localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
+      setSession(next);
+      setProfile((prev) =>
+        prev
+          ? { ...prev, email: next.email || "", name: next.name || "", whatsapp: formWhats, has_email: !!next.email }
+          : prev,
+      );
+      setFormNewPassword("");
+      setFormConfirmPassword("");
+      setNeedsEmail(false);
+      setShowConfig(false);
+      toast({ title: "Dados salvos com sucesso" });
+    } catch {
+      toast({ title: "Erro ao salvar seus dados", variant: "destructive" });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  /** Envia um único lembrete de acesso para o e-mail vinculado ao cliente. */
+  const handleRecover = async () => {
+    const email = recoverEmail.trim().toLowerCase();
+    if (!email.includes("@")) {
+      toast({ title: "Informe um e-mail válido", variant: "destructive" });
+      return;
+    }
+    setRecovering(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: { action: "recover_access", email },
+      });
+      if (data?.success) {
+        toast({ title: "Enviamos seu acesso", description: `Confira a caixa de entrada de ${email}.` });
+        setShowRecover(false);
+        setRecoverEmail("");
+      } else {
+        toast({ title: data?.error || "Não foi possível recuperar", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Erro ao recuperar acesso", variant: "destructive" });
+    } finally {
+      setRecovering(false);
+    }
+  };
+
+
 
   /**
    * Abre o produto já autenticado. Cada ferramenta guarda a sessão de um jeito
@@ -295,12 +437,47 @@ export default function Dashboard() {
                 {loggingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 Entrar
               </Button>
+              <button
+                type="button"
+                className="w-full text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+                onClick={() => setShowRecover(true)}
+              >
+                Esqueci minha senha
+              </button>
             </form>
           </CardContent>
         </Card>
+
+        <Dialog open={showRecover} onOpenChange={setShowRecover}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Recuperar acesso</DialogTitle>
+              <DialogDescription>
+                Informe o e-mail cadastrado. Enviamos um único lembrete com seu acesso — ele vale para todos os seus produtos.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="recover-email">E-mail de acesso</Label>
+                <Input
+                  id="recover-email"
+                  type="email"
+                  value={recoverEmail}
+                  onChange={(e) => setRecoverEmail(e.target.value)}
+                  placeholder="seuemail@exemplo.com"
+                />
+              </div>
+              <Button className="w-full" onClick={handleRecover} disabled={recovering}>
+                {recovering ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                Enviar meu acesso
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -310,9 +487,15 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold text-foreground">Seus produtos</h1>
             <p className="text-sm text-muted-foreground">Olá, {greeting}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4" /> Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowConfig(true)}>
+              <Settings className="h-4 w-4" /> Config
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" /> Sair
+            </Button>
+          </div>
+
         </div>
       </header>
 
@@ -423,6 +606,103 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Cadastro obrigatório de e-mail para quem ainda não tem */}
+      <Dialog open={needsEmail && !showConfig} onOpenChange={() => { /* obrigatório */ }}>
+        <DialogContent className="sm:max-w-md [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle>Cadastre seu e-mail</DialogTitle>
+            <DialogDescription>
+              Precisamos do seu e-mail para vincular seus acessos e permitir a recuperação de senha. Ele fica salvo junto ao seu acesso.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Nome de acesso</Label>
+              <Input value={profile?.username || session.username || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="force-email">E-mail *</Label>
+              <Input
+                id="force-email"
+                type="email"
+                value={formEmail}
+                onChange={(e) => setFormEmail(e.target.value)}
+                placeholder="seuemail@exemplo.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="force-name">Nome</Label>
+              <Input id="force-name" value={formName} onChange={(e) => setFormName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="force-whats">WhatsApp (opcional)</Label>
+              <Input id="force-whats" value={formWhats} onChange={(e) => setFormWhats(e.target.value)} placeholder="11999999999" />
+            </div>
+            <Button className="w-full" onClick={() => saveProfile(true)} disabled={savingProfile}>
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+              Salvar e continuar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configurações da conta */}
+      <Dialog open={showConfig} onOpenChange={(open) => setShowConfig(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configurações da conta</DialogTitle>
+            <DialogDescription>
+              Atualize seus dados de acesso. O nome de acesso não pode ser alterado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Nome de acesso</Label>
+              <Input value={profile?.username || session.username || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cfg-name">Nome</Label>
+              <Input id="cfg-name" value={formName} onChange={(e) => setFormName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cfg-email">E-mail</Label>
+              <Input id="cfg-email" type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cfg-whats">WhatsApp (opcional)</Label>
+              <Input id="cfg-whats" value={formWhats} onChange={(e) => setFormWhats(e.target.value)} placeholder="11999999999" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="cfg-pass">Nova senha</Label>
+                <Input
+                  id="cfg-pass"
+                  type="password"
+                  value={formNewPassword}
+                  onChange={(e) => setFormNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cfg-pass2">Confirmar senha</Label>
+                <Input
+                  id="cfg-pass2"
+                  type="password"
+                  value={formConfirmPassword}
+                  onChange={(e) => setFormConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => saveProfile(false)} disabled={savingProfile}>
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              Salvar alterações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

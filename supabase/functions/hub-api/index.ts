@@ -770,8 +770,171 @@ serve(async (req) => {
       return json({ success: true, email });
     }
 
+    // ================= PERFIL DO CLIENTE (/dashboard → Configurações) =================
+    /**
+     * Localiza todas as contas de ferramenta (MRO/ZAPMRO) do cliente a partir do
+     * usuário e/ou e-mail informados, validando a senha antes de expor qualquer dado.
+     */
+    const findAccounts = async (username: string, email: string, password: string) => {
+      const hash = await sha256(password);
+      const safeUser = username.replace(/[,()"']/g, "");
+      const safeEmail = email.replace(/[,()"']/g, "");
+      const filters: string[] = [];
+      if (safeUser) filters.push(`username.eq.${safeUser}`);
+      if (safeEmail) filters.push(`email.eq.${safeEmail}`);
+      if (!filters.length) return { mro: null, zap: null } as Record<string, Record<string, unknown> | null>;
+
+      const ok = (row: Record<string, unknown> | null) =>
+        !!row && (row.password_hash === hash || (!!row.password_plain && row.password_plain === password));
+
+      const { data: mroRows } = await supabase.from("mro_tool_users").select("*").or(filters.join(",")).limit(5);
+      const { data: zapRows } = await supabase.from("zapmro_users").select("*").or(filters.join(",")).limit(5);
+      const mro = (mroRows || []).find(ok) || null;
+      const zap = (zapRows || []).find(ok) || null;
+      return { mro, zap };
+    };
+
+    if (action === "profile") {
+      const username = String(body.username || "").trim().toLowerCase();
+      const email = String(body.email || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (!password || (!username && !email)) return json({ success: false, error: "Credenciais inválidas" }, 400);
+
+      const { mro, zap } = await findAccounts(username, email, password);
+      if (!mro && !zap) return json({ success: false, error: "Não foi possível validar seu acesso" }, 200);
+
+      const src = mro || zap!;
+      return json({
+        success: true,
+        profile: {
+          username: String(src.username || username || ""),
+          email: String(src.email || email || ""),
+          name: src.name ? String(src.name) : "",
+          whatsapp: src.whatsapp ? String(src.whatsapp) : "",
+          has_email: !!(src.email || email),
+          username_locked: !!src.username,
+        },
+      });
+    }
+
+    if (action === "update_profile") {
+      const username = String(body.username || "").trim().toLowerCase();
+      const email = String(body.email || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (!password || (!username && !email)) return json({ success: false, error: "Credenciais inválidas" }, 400);
+
+      const newEmailRaw = body.new_email === undefined ? null : String(body.new_email || "").trim().toLowerCase();
+      const newName = body.new_name === undefined ? null : String(body.new_name || "").trim().slice(0, 120);
+      const newWhats = body.new_whatsapp === undefined ? null : String(body.new_whatsapp || "").replace(/\D/g, "").slice(0, 15);
+      const newPassword = body.new_password ? String(body.new_password) : "";
+
+      if (newEmailRaw !== null && newEmailRaw && (!newEmailRaw.includes("@") || newEmailRaw.length > 255)) {
+        return json({ success: false, error: "E-mail inválido" }, 400);
+      }
+      if (newPassword && (newPassword.length < 4 || newPassword.length > 100)) {
+        return json({ success: false, error: "A nova senha deve ter entre 4 e 100 caracteres" }, 400);
+      }
+
+      const { mro, zap } = await findAccounts(username, email, password);
+      if (!mro && !zap) return json({ success: false, error: "Senha atual incorreta" }, 200);
+
+      // E-mail já usado por outro cliente? (o vínculo é único por e-mail)
+      if (newEmailRaw) {
+        const safeEmail = newEmailRaw.replace(/[,()"']/g, "");
+        const { data: dupe } = await supabase
+          .from("mro_tool_users")
+          .select("id,username")
+          .eq("email", safeEmail)
+          .limit(5);
+        const conflict = (dupe || []).some((r) => r.id !== (mro?.id as string) && String(r.username || "").toLowerCase() !== username);
+        if (conflict) return json({ success: false, error: "Este e-mail já está vinculado a outro acesso" }, 200);
+      }
+
+      const patch: Record<string, unknown> = {};
+      if (newEmailRaw) patch.email = newEmailRaw;
+      if (newName !== null) patch.name = newName || null;
+      if (newWhats !== null) patch.whatsapp = newWhats || null;
+      if (newPassword) {
+        patch.password_hash = await sha256(newPassword);
+        patch.password_plain = newPassword;
+      }
+      if (Object.keys(patch).length === 0) return json({ success: true, unchanged: true });
+
+      if (mro) await supabase.from("mro_tool_users").update(patch).eq("id", mro.id as string);
+      if (zap) await supabase.from("zapmro_users").update(patch).eq("id", zap.id as string);
+
+      const finalEmail = (patch.email as string) || String(mro?.email || zap?.email || email || "");
+      const finalUser = String(mro?.username || zap?.username || username || "");
+
+      return json({
+        success: true,
+        profile: {
+          username: finalUser,
+          email: finalEmail,
+          name: (patch.name as string) ?? (mro?.name || zap?.name || ""),
+          whatsapp: (patch.whatsapp as string) ?? (mro?.whatsapp || zap?.whatsapp || ""),
+        },
+        password: newPassword || password,
+      });
+    }
+
+    // ================= RECUPERAR ACESSO POR E-MAIL =================
+    if (action === "recover_access") {
+      const email = String(body.email || "").trim().toLowerCase();
+      if (!email.includes("@") || email.length > 255) return json({ success: false, error: "Informe um e-mail válido" }, 400);
+      const safeEmail = email.replace(/[,()"']/g, "");
+
+      const { data: mroRows } = await supabase
+        .from("mro_tool_users")
+        .select("username,email,password_plain,expiration_days")
+        .eq("email", safeEmail)
+        .limit(1);
+      const { data: zapRows } = await supabase
+        .from("zapmro_users")
+        .select("username,email,password_plain,days_remaining")
+        .eq("email", safeEmail)
+        .limit(1);
+
+      const account = mroRows?.[0] || zapRows?.[0] || null;
+      if (!account) {
+        return json({
+          success: false,
+          notFound: true,
+          error:
+            "Não encontramos seu e-mail no nosso sistema. Por favor entre em contato com nosso administrador em maisresultadosonline.com.br/whatsapp",
+        }, 200);
+      }
+      if (!account.password_plain) {
+        return json({
+          success: false,
+          error:
+            "Não conseguimos recuperar sua senha automaticamente. Fale com nosso administrador em maisresultadosonline.com.br/whatsapp",
+        }, 200);
+      }
+
+      // Um único e-mail de lembrete, pois todos os produtos ficam vinculados ao mesmo e-mail.
+      const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-welcome-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          email,
+          username: account.username || email,
+          password: account.password_plain,
+          daysRemaining: Number(account.expiration_days ?? account.days_remaining ?? 0) || undefined,
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || result?.success === false) {
+        return json({ success: false, error: "Falha ao enviar o e-mail. Tente novamente em instantes." }, 200);
+      }
+      return json({ success: true, email });
+    }
 
     return json({ success: false, error: "Ação inválida" }, 400);
+
   } catch (e) {
     return json({ success: false, error: e instanceof Error ? e.message : "Erro inesperado" }, 500);
   }
