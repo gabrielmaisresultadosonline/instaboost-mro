@@ -101,6 +101,9 @@ export default function Dashboard() {
     accounts: { tool: string; username: string; password: string }[];
   } | null>(null);
 
+  const profileNameIsComplete = (value: string | null | undefined) => (value || "").trim().length >= 3;
+  const profileWhatsIsComplete = (value: string | null | undefined) => (value || "").replace(/\D/g, "").length >= 10;
+
   const loadProfile = useCallback(async (current: DashboardSession) => {
     try {
       const { data } = await supabase.functions.invoke("hub-api", {
@@ -118,9 +121,9 @@ export default function Dashboard() {
         setFormEmail(p.email || "");
         setFormWhats(p.whatsapp || "");
         // Cliente sem e-mail, nome ou WhatsApp precisa completar antes de continuar.
-        const whatsDigits = (p.whatsapp || "").replace(/\D/g, "");
-        const nameOk = ((p.name || current.name || "").trim()).length >= 3;
-        setNeedsEmail(!p.email || !nameOk || whatsDigits.length < 10);
+        const nameOk = profileNameIsComplete(p.name || current.name);
+        const whatsOk = profileWhatsIsComplete(p.whatsapp);
+        setNeedsEmail(!p.email || !nameOk || !whatsOk);
       }
     } catch {
       /* silencioso: o dashboard continua funcionando sem o perfil */
@@ -301,16 +304,32 @@ export default function Dashboard() {
           password: session.password,
           target_email: mergeEmail,
           primary_username: mergePrimary || mergeConflicts[0]?.username || session.username || "",
+          new_name: formName.trim(),
+          new_whatsapp: formWhats,
         },
       });
       if (!data?.success) {
         toast({ title: data?.error || "Não foi possível unificar", variant: "destructive" });
         return;
       }
-      const next: DashboardSession = { ...session, email: mergeEmail };
+      const normalizedWhats = formWhats.replace(/\D/g, "");
+      const next: DashboardSession = {
+        ...session,
+        email: data.email || mergeEmail,
+        name: data.profile?.name || formName.trim() || session.name,
+      };
       localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
       setSession(next);
-      setProfile((prev) => (prev ? { ...prev, email: mergeEmail, has_email: true } : prev));
+      setProfile((prev) => ({
+        username: prev?.username || session.username || data.primary?.username || "",
+        email: data.email || mergeEmail,
+        name: data.profile?.name || formName.trim() || prev?.name || "",
+        whatsapp: data.profile?.whatsapp || normalizedWhats || prev?.whatsapp || "",
+        has_email: true,
+      }));
+      setFormName(data.profile?.name || formName.trim());
+      setFormWhats(data.profile?.whatsapp || normalizedWhats);
+      setFormEmail(data.email || mergeEmail);
       setNeedsEmail(false);
       setShowConfig(false);
       setMergeConflicts([]);
@@ -693,7 +712,7 @@ export default function Dashboard() {
       </Dialog>
 
       {/* Cadastro obrigatório de e-mail para quem ainda não tem */}
-      <Dialog open={needsEmail && !showConfig} onOpenChange={() => { /* obrigatório */ }}>
+      <Dialog open={needsEmail && !showConfig && mergeConflicts.length === 0 && !mergeResult} onOpenChange={() => { /* obrigatório */ }}>
         <DialogContent className="sm:max-w-md [&>button]:hidden">
           <DialogHeader>
             <DialogTitle>Complete seu cadastro</DialogTitle>
