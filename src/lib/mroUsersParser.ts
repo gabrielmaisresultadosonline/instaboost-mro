@@ -29,6 +29,32 @@ const TESTS_RE = /^lista\s+de\s+testes\s*:/i;
 /** Remove o rótulo (tudo até o primeiro ":") e devolve o valor limpo. */
 const valueOf = (line: string) => line.slice(line.indexOf(':') + 1).trim();
 
+/** Normaliza e adiciona um ou mais handles de Instagram ao usuário atual. */
+function addAccounts(user: ParsedMroUser, rawLine: string) {
+  // Linhas informativas da interface antiga não são contas.
+  if (/nenhuma\s+conta/i.test(rawLine)) return;
+
+  // Uma linha pode conter várias contas separadas por vírgula/;/× (botão remover).
+  const parts = rawLine.split(/[,;]|\s*[×✕✖x]\s*$/i);
+  for (const part of parts) {
+    const handle = part
+      .replace(/[×✕✖]/g, ' ')
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+      .replace(/\/+$/, '')
+      .replace(/^@/, '')
+      .trim()
+      .toLowerCase();
+    if (!handle) continue;
+    if (handle === 'x') continue;
+    if (handle.length > 120) continue;
+    // Handles válidos do Instagram: letras, números, ponto e underline.
+    if (!/^[a-z0-9._]+$/.test(handle)) continue;
+    if (!user.accounts.includes(handle)) user.accounts.push(handle);
+  }
+}
+
+
+
 /** Converte o texto colado em uma lista estruturada de usuários. */
 export function parseMroUsers(text: string): ParsedMroUser[] {
   const lines = String(text || '').split(/\r?\n/);
@@ -72,6 +98,9 @@ export function parseMroUsers(text: string): ParsedMroUser[] {
 
     if (ACCOUNTS_RE.test(line)) {
       collectingAccounts = true;
+      // Suporta o valor na MESMA linha: "Contas associadas: conta1, conta2"
+      const inline = valueOf(line);
+      if (inline) addAccounts(current, inline);
       continue;
     }
 
@@ -80,17 +109,7 @@ export function parseMroUsers(text: string): ParsedMroUser[] {
       continue;
     }
 
-    if (collectingAccounts) {
-      // Linhas com "×" são apenas o botão de remover da interface antiga.
-      if (line === '×' || line === 'x' || line === 'X') continue;
-      const handle = line
-        .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
-        .replace(/\/+$/, '')
-        .replace(/^@/, '')
-        .trim()
-        .toLowerCase();
-      if (handle && !current.accounts.includes(handle)) current.accounts.push(handle);
-    }
+    if (collectingAccounts) addAccounts(current, line);
   }
 
   push();
