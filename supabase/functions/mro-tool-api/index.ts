@@ -366,23 +366,31 @@ serve(async (req) => {
     }
 
     /**
-     * Vincula automaticamente os emails já cadastrados na área /instagram
-     * (created_accesses e mro_orders) aos usuários da ferramenta MRO.
-     * Assim o cliente consegue logar tanto por usuário quanto por email.
+     * Vincula automaticamente os emails (created_accesses e mro_orders) e as senhas
+     * já cadastradas na área /instagram aos usuários da ferramenta MRO.
+     * Assim o cliente consegue logar por usuário ou email e o admin consegue reenviar o acesso.
      */
-    if (action === "sync_emails") {
+    if (action === "sync_emails" || action === "sync_credentials") {
       const emailByUsername = new Map<string, string>();
+      const passwordByUsername = new Map<string, string>();
 
-      const { data: accesses } = await fetchAllRows<{ username: string; customer_email: string | null }>(() =>
+      const { data: accesses } = await fetchAllRows<{
+        username: string;
+        customer_email: string | null;
+        password: string | null;
+      }>(() =>
         supabase
           .from("created_accesses")
-          .select("username, customer_email")
+          .select("username, customer_email, password")
           .order("created_at", { ascending: false }),
       );
       for (const row of accesses) {
         const u = String(row.username || "").trim().toLowerCase();
         const e = String(row.customer_email || "").trim().toLowerCase();
-        if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+        const p = String(row.password || "").trim();
+        if (!u) continue;
+        if (e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+        if (p && !passwordByUsername.has(u)) passwordByUsername.set(u, p);
       }
 
       const { data: orders } = await fetchAllRows<{ username: string | null; email: string | null }>(() =>
@@ -398,21 +406,82 @@ serve(async (req) => {
       }
 
       const { data: allUsers } = await fetchAllRows<MroUserRow>(() =>
-        supabase.from("mro_tool_users").select("id, username, email").order("created_at", { ascending: true }),
+        supabase
+          .from("mro_tool_users")
+          .select("id, username, email, password_plain")
+          .order("created_at", { ascending: true }),
       );
 
       const overwrite = body.overwrite === true;
       let updated = 0;
+      let passwords = 0;
       for (const u of allUsers) {
-        if (u.email && !overwrite) continue;
-        const email = emailByUsername.get(String(u.username || "").trim().toLowerCase());
-        if (!email || email === u.email) continue;
-        const { error } = await supabase.from("mro_tool_users").update({ email }).eq("id", u.id);
-        if (!error) updated += 1;
+        const key = String(u.username || "").trim().toLowerCase();
+        const patch: Record<string, unknown> = {};
+
+        const email = emailByUsername.get(key);
+        if (email && email !== u.email && (!u.email || overwrite)) patch.email = email;
+
+        const currentPlain = (u as any).password_plain as string | null;
+        const password = passwordByUsername.get(key);
+        if (password && password !== currentPlain && (!currentPlain || overwrite)) {
+          patch.password_plain = password;
+          patch.password_hash = await sha256(password);
+        }
+
+        if (!Object.keys(patch).length) continue;
+        const { error } = await supabase.from("mro_tool_users").update(patch).eq("id", u.id);
+        if (!error) {
+          updated += 1;
+          if (patch.password_plain) passwords += 1;
+        }
       }
 
-      return json({ success: true, updated, total: allUsers.length });
+      return json({ success: true, updated, passwords, total: allUsers.length });
     }
+
+    /**
+     * Envia (ou reenvia) o acesso do cliente por email, reaproveitando o template
+     * oficial de boas-vindas. Só funciona se o usuário tiver email e senha visível.
+     */
+    if (action === "send_access") {
+      const id = String(body.id || "");
+      if (!id) return json({ success: false, error: "ID é obrigatório" }, 400);
+
+      const { data: user } = await supabase
+        .from("mro_tool_users")
+        .select("id, username, email, password_plain, expiration_days")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!user) return json({ success: false, error: "Usuário não encontrado" }, 404);
+      if (!user.email) return json({ success: false, error: "Usuário sem email cadastrado" }, 400);
+      if (!user.password_plain) {
+        return json({ success: false, error: "Senha não disponível — edite o usuário e defina uma nova senha" }, 400);
+      }
+
+      const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-welcome-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          username: user.username,
+          password: user.password_plain,
+          daysRemaining: user.expiration_days,
+        }),
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || result?.success === false) {
+        return json({ success: false, error: result?.error || "Falha ao enviar email" }, 500);
+      }
+
+      return json({ success: true, email: user.email });
+    }
+
 
 
     if (action === "upsert_user") {
