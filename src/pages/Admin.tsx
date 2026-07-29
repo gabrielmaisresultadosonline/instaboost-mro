@@ -969,10 +969,6 @@ const Admin = () => {
           />
         )}
 
-        {/* Scraper Manual Tab */}
-        {activeTab === 'scraper' && (
-          <ManualScraper />
-        )}
 
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
