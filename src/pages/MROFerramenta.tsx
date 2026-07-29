@@ -158,8 +158,24 @@ const MROFerramenta = () => {
 
   // Show login if not authenticated
   if (!isAuthenticated) {
+    // Em embed, mostra um estado enxuto (o host é quem envia as credenciais)
+    if (embed) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-6">
+          <div className="text-center max-w-sm space-y-3">
+            <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+            <p className="text-sm text-muted-foreground">
+              {embedError
+                ? `Não foi possível autenticar: ${embedError}`
+                : 'Aguardando autenticação da extensão...'}
+            </p>
+          </div>
+        </div>
+      );
+    }
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
+
 
   const welcomeVideo = settings?.welcomeVideo;
 
