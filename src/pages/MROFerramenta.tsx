@@ -5,7 +5,17 @@ import { Logo } from '@/components/Logo';
 import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2, Gift, LayoutList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LoginPage } from '@/components/LoginPage';
-import { getUserSession } from '@/lib/userStorage';
+import { getUserSession, loginUser } from '@/lib/userStorage';
+import { loginToSquare } from '@/lib/squareApi';
+import {
+  isEmbedMode,
+  readEmbedCredentialsFromUrl,
+  listenForEmbedCredentials,
+  scrubEmbedUrl,
+  postToHost,
+  type EmbedCredentials,
+} from '@/lib/embedAuth';
+
 
 // Color mapping for modules
 const moduleColorClasses: Record<ModuleColor, { border: string; bg: string; accent: string }> = {
