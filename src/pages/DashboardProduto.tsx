@@ -66,7 +66,8 @@ export default function DashboardProduto() {
       return;
     }
     load();
-  }, [load, navigate]);
+    loadMembersArea();
+  }, [load, loadMembersArea, navigate]);
 
   if (loading) {
     return (
