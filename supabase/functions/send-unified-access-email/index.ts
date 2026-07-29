@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { sanitizeEmailSubject, htmlToPlainText } from "../_shared/email-encode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -152,7 +153,8 @@ serve(async (req) => {
     await client.send({
       from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
       to: email,
-      subject: "✅ Seus acessos foram unificados — entre pelo e-mail ou usuário",
+      subject: sanitizeEmailSubject("Seus acessos foram unificados - entre pelo e-mail ou usuario"),
+      content: htmlToPlainText(html),
       html,
     });
     await client.close();
