@@ -248,16 +248,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
       return;
     }
 
-    if (!email.trim()) {
-      toast({ title: 'Digite seu e-mail primeiro', variant: 'destructive' });
-      return;
-    }
+    if (!requireEmail()) return;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({ title: 'E-mail inválido', variant: 'destructive' });
-      return;
-    }
 
     const normalizedIG = normalizeInstagramUsername(instagramInput);
 
