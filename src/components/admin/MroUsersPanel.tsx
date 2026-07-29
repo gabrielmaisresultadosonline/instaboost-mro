@@ -68,6 +68,7 @@ const MroUsersPanel: React.FC = () => {
   const [form, setForm] = useState<UserForm>(EMPTY_USER);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newAccount, setNewAccount] = useState<Record<string, string>>({});
+  const [preview, setPreview] = useState<{ url: string; username: string } | null>(null);
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('mro-tool-api', { body });
