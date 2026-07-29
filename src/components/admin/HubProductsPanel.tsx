@@ -74,7 +74,8 @@ export default function HubProductsPanel() {
       setUploadingThumb(true);
       try {
         const ext = (file.name.split(".").pop() || "png").toLowerCase();
-        const path = `hub-products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        // Pasta "covers" é a única com policy de escrita liberada no bucket "assets"
+        const path = `covers/hub-products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error } = await supabase.storage.from("assets").upload(path, file, {
           cacheControl: "3600",
           upsert: false,
