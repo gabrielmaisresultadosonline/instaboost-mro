@@ -161,8 +161,11 @@ export default function Dashboard() {
         if (session.email) localStorage.setItem("zapmro_email", session.email);
       }
 
-      // Posts com IA usa apenas e-mail. Se o cliente entrou por usuário, tentamos
-      // resolver o e-mail vinculado antes de abrir a área de membros.
+      // Posts com IA usa apenas e-mail. Se o cliente entrou por usuário (ou o acesso
+      // foi liberado manualmente, sem pedido no /postscomia/admin), resolvemos o
+      // e-mail vinculado e, na falta dele, criamos a sessão pelo próprio usuário.
+      // O produto já veio marcado como `unlocked` pela hub-api, então a liberação
+      // manual é autoridade suficiente para abrir a área de membros logado.
       if (product.access_source === "postscomia" || product.slug === "postscomia") {
         let memberEmail = session.email;
         if (!memberEmail) {
@@ -172,16 +175,21 @@ export default function Dashboard() {
             });
             memberEmail = (data?.identity?.email as string | undefined) || null;
           } catch {
-            /* mantém null e cai na tela de login da ferramenta */
+            /* segue com o fallback por usuário */
           }
         }
-        if (memberEmail) {
-          localStorage.setItem(
-            "postscomia_member",
-            JSON.stringify({ email: memberEmail, name: session.name || memberEmail }),
-          );
-        }
+        const memberName = session.name || memberEmail || session.username || "Aluno";
+        localStorage.setItem(
+          "postscomia_member",
+          JSON.stringify({
+            email: memberEmail || "",
+            name: memberName,
+            username: session.username || null,
+            via_hub: true,
+          }),
+        );
       }
+
 
 
       // Marca a sessão para que os botões de "voltar" das ferramentas
