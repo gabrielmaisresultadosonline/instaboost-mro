@@ -4135,6 +4135,7 @@ export type Database = {
           last_access: string | null
           name: string | null
           password_hash: string | null
+          password_plain: string | null
           plan_accounts: number
           trials_period_start: string
           trials_used: number
@@ -4150,6 +4151,7 @@ export type Database = {
           last_access?: string | null
           name?: string | null
           password_hash?: string | null
+          password_plain?: string | null
           plan_accounts?: number
           trials_period_start?: string
           trials_used?: number
@@ -4165,6 +4167,7 @@ export type Database = {
           last_access?: string | null
           name?: string | null
           password_hash?: string | null
+          password_plain?: string | null
           plan_accounts?: number
           trials_period_start?: string
           trials_used?: number
@@ -7338,6 +7341,7 @@ export type Database = {
           last_access: string | null
           name: string | null
           password_hash: string | null
+          password_plain: string | null
           updated_at: string
           username: string
         }
@@ -7352,6 +7356,7 @@ export type Database = {
           last_access?: string | null
           name?: string | null
           password_hash?: string | null
+          password_plain?: string | null
           updated_at?: string
           username: string
         }
@@ -7366,6 +7371,7 @@ export type Database = {
           last_access?: string | null
           name?: string | null
           password_hash?: string | null
+          password_plain?: string | null
           updated_at?: string
           username?: string
         }

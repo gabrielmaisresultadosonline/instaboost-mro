@@ -19,7 +19,11 @@ import {
   Megaphone,
   Plus,
   KeyRound,
+  Copy,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
+import { copyAccessToClipboard } from '@/lib/accessClipboard';
 
 export interface ZapmroUser {
   id: string;
@@ -32,6 +36,7 @@ export interface ZapmroUser {
   last_access: string | null;
   created_at: string;
   has_password: boolean;
+  password_plain?: string | null;
 }
 
 export interface ZapmroAnnouncement {
@@ -96,6 +101,20 @@ export const ZapmroUsersTab: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<UserForm>(EMPTY_USER);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+
+  const handleCopyAccess = async (user: ZapmroUser) => {
+    const ok = await copyAccessToClipboard({
+      username: user.username,
+      password: user.password_plain,
+      email: user.email,
+    });
+    toast(
+      ok
+        ? { title: 'Acesso copiado!' }
+        : { title: 'Não foi possível copiar', variant: 'destructive' },
+    );
+  };
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -288,7 +307,27 @@ export const ZapmroUsersTab: React.FC = () => {
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>Nome: {user.name || '—'}</p>
                 <p>Dias restantes: {user.days_remaining ?? 0}</p>
-                <p>Senha cadastrada: {user.has_password ? 'sim' : 'não'}</p>
+                <p className="flex items-center gap-1">
+                  Senha:{' '}
+                  <span className="font-mono text-foreground">
+                    {user.password_plain
+                      ? visiblePasswords[user.id]
+                        ? user.password_plain
+                        : '••••••••'
+                      : user.has_password
+                      ? 'cadastrada (não visível)'
+                      : 'não cadastrada'}
+                  </span>
+                  {user.password_plain && (
+                    <button
+                      type="button"
+                      aria-label={visiblePasswords[user.id] ? 'Ocultar senha' : 'Mostrar senha'}
+                      onClick={() => setVisiblePasswords((p) => ({ ...p, [user.id]: !p[user.id] }))}
+                    >
+                      {visiblePasswords[user.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </p>
                 <p>Último acesso: {formatDate(user.last_access)}</p>
               </div>
               <div className="flex gap-2 pt-1">
@@ -302,13 +341,16 @@ export const ZapmroUsersTab: React.FC = () => {
                       username: user.username,
                       name: user.name || '',
                       email: user.email || '',
-                      password: '',
+                      password: user.password_plain || '',
                       days_remaining: String(user.days_remaining ?? 365),
                       is_active: user.is_active !== false,
                     })
                   }
                 >
                   Editar
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1" onClick={() => void handleCopyAccess(user)}>
+                  <Copy className="w-3.5 h-3.5" /> Copiar acesso
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => void handleDelete(user)}>
                   <Trash2 className="w-4 h-4" />

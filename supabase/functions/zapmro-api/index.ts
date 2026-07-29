@@ -244,7 +244,7 @@ serve(async (req) => {
 
       const users = (data || []).map((u: any) => {
         const { password_hash, ...rest } = u;
-        return { ...rest, has_password: !!password_hash };
+        return { ...rest, has_password: !!password_hash || !!u.password_plain };
       });
 
       return json({ success: true, users });
@@ -264,7 +264,11 @@ serve(async (req) => {
         payload.days_remaining = Number(body.days_remaining);
       }
       if (body.expires_at !== undefined) payload.expires_at = body.expires_at || null;
-      if (body.password) payload.password_hash = await sha256(String(body.password));
+      if (body.password) {
+        payload.password_hash = await sha256(String(body.password));
+        // Cópia visível para o admin conseguir reenviar/copiar o acesso do cliente.
+        payload.password_plain = String(body.password);
+      }
 
       const { data: existing } = await supabase
         .from("zapmro_users")
@@ -317,7 +321,10 @@ serve(async (req) => {
           days_remaining: item.days_remaining,
           is_active: item.is_active,
         };
-        if (item.password) payload.password_hash = await sha256(item.password);
+        if (item.password) {
+          payload.password_hash = await sha256(item.password);
+          payload.password_plain = item.password;
+        }
 
         const existingId = existingMap.get(item.username);
         const { error } = existingId
