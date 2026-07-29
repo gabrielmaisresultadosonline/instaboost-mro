@@ -51,60 +51,73 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   const [realtimeActiveTests, setRealtimeActiveTests] = useState<number | null>(null);
   const initialLoadStartedRef = useRef(false);
 
-  // Poll the new /testes-restantes/:username endpoint for real-time remaining count
+  const normalizeIG = normalizeInstagram;
+
+  /** Converte o payload da API interna (mro-tool-api) para o formato da tela. */
+  const mapPayload = useCallback((result: MroToolResponse): TrialData => {
+    const now = Date.now();
+
+    const trials: Trial[] = (result.trial_accounts || []).map((acc, index) => {
+      const expiresAt = acc.trial_expires_at || new Date(now).toISOString();
+      const diffMs = new Date(expiresAt).getTime() - now;
+      const active = diffMs > 0;
+      const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+      return {
+        id: `${acc.instagram_username}-${acc.created_at || index}`,
+        instagram_username: acc.instagram_username,
+        full_name: 'Cliente Teste',
+        email: '',
+        created_at: acc.created_at || expiresAt,
+        expires_at: expiresAt,
+        status: active ? 'active' : 'expired',
+        remaining_hours: Math.floor(totalMinutes / 60),
+        remaining_minutes: totalMinutes % 60,
+        instagram_removed: false,
+      };
+    });
+
+    const limit = result.trials?.limit ?? 5;
+    const used = result.trials?.used ?? 0;
+
+    return {
+      trials,
+      total_generated: used,
+      trials_last_30_days: used,
+      trials_remaining: result.trials?.remaining ?? Math.max(0, limit - used),
+      max_trials: limit,
+      trial_duration_hours: TRIAL_DURATION_HOURS,
+      synced_with_square: true,
+      sync_message: null,
+    };
+  }, []);
+
+  /** Busca em tempo real o saldo de testes restantes na API interna. */
   const fetchRealtimeRemaining = useCallback(async () => {
     setSummaryLoading(true);
-
     try {
-      const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 8000);
-
-      const res = await fetch(`${SQUARE_API_URL}/testes-restantes/${encodeURIComponent(mroUsername)}`, {
-        signal: controller.signal,
-      });
-
-      window.clearTimeout(timeoutId);
-
-      if (!res.ok) {
-        throw new Error(`Falha ao buscar testes em tempo real (${res.status})`);
-      }
-
-      const json = await res.json();
-
-      if (json.success) {
-        setRealtimeRemaining(json.testsRemaining ?? null);
-        setRealtimeActiveTests(json.activeTests ?? null);
-        setData((prev) => prev ? {
-          ...prev,
-          trials_remaining: typeof json.testsRemaining === 'number' ? json.testsRemaining : prev.trials_remaining,
-        } : prev);
+      const result = await mroVerifyUser(mroUsername);
+      if (result.success) {
+        const mapped = mapPayload(result);
+        setRealtimeRemaining(mapped.trials_remaining);
+        setRealtimeActiveTests(mapped.trials.filter((t) => t.status === 'active').length);
+        setData(mapped);
       }
     } catch (err) {
       console.error('[RealtimeRemaining] fetch error:', err);
     } finally {
       setSummaryLoading(false);
     }
-  }, [mroUsername]);
-
-  const normalizeIG = (input: string): string => {
-    let val = input.trim().toLowerCase();
-    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
-    if (urlMatch) return urlMatch[1];
-    return val.replace(/^@/, '');
-  };
+  }, [mapPayload, mroUsername]);
 
   const loadTrials = useCallback(async (silent = false) => {
     setListLoading(true);
-
     try {
-      const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
-        body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
-      });
-      if (error) throw error;
-      if (result?.success) {
-        setData(result);
-      } else {
-        toast.error(result?.message || 'Erro ao carregar testes');
+      const result = await mroVerifyUser(mroUsername);
+      if (result.success) {
+        setData(mapPayload(result));
+      } else if (!silent) {
+        toast.error(result.error || 'Erro ao carregar testes');
       }
     } catch (err) {
       console.error('Error loading trials:', err);
@@ -112,7 +125,8 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
     } finally {
       setListLoading(false);
     }
-  }, [mroPassword, mroUsername]);
+  }, [mapPayload, mroUsername]);
+
 
   useEffect(() => {
     if (!mroUsername) return;
