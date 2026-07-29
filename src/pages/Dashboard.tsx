@@ -65,6 +65,55 @@ export default function Dashboard() {
   const [buyPhone, setBuyPhone] = useState("");
   const [buying, setBuying] = useState(false);
 
+  // ---- Perfil / Configurações ----
+  interface HubProfile {
+    username: string;
+    email: string;
+    name: string;
+    whatsapp: string;
+    has_email: boolean;
+  }
+  const [profile, setProfile] = useState<HubProfile | null>(null);
+  const [showConfig, setShowConfig] = useState(false);
+  const [needsEmail, setNeedsEmail] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formWhats, setFormWhats] = useState("");
+  const [formNewPassword, setFormNewPassword] = useState("");
+  const [formConfirmPassword, setFormConfirmPassword] = useState("");
+
+  // ---- Recuperar acesso ----
+  const [showRecover, setShowRecover] = useState(false);
+  const [recoverEmail, setRecoverEmail] = useState("");
+  const [recovering, setRecovering] = useState(false);
+
+  const loadProfile = useCallback(async (current: DashboardSession) => {
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: {
+          action: "profile",
+          username: current.username || "",
+          email: current.email || "",
+          password: current.password,
+        },
+      });
+      if (data?.success && data.profile) {
+        const p = data.profile as HubProfile;
+        setProfile(p);
+        setFormName(p.name || current.name || "");
+        setFormEmail(p.email || "");
+        setFormWhats(p.whatsapp || "");
+        // Cliente sem e-mail cadastrado precisa cadastrar antes de continuar.
+        setNeedsEmail(!p.email);
+      }
+    } catch {
+      /* silencioso: o dashboard continua funcionando sem o perfil */
+    }
+  }, []);
+
+
+
   const loadProducts = useCallback(async (current: DashboardSession) => {
     setLoading(true);
     try {
