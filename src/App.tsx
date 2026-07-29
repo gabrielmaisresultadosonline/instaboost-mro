@@ -162,6 +162,9 @@ import MROCriativoOAuth from "./pages/MROCriativoOAuth";
 import GoogleContactsCallback from "./pages/GoogleContactsCallback";
 import WhiteLabel from "./pages/WhiteLabel";
 import PartnerDashboard from "./pages/PartnerDashboard";
+import Dashboard from "./pages/Dashboard";
+import DashboardProduto from "./pages/DashboardProduto";
+
 import InstagramNovaPlan from "./pages/InstagramNovaPlan";
 import InstagrammNew from "./pages/InstagrammNew";
 import InstagramNovaWS from "./pages/InstagramNovaWS";
@@ -266,7 +269,10 @@ const App = () => (
           <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
           <Route path="/promorendaextra/:affiliateId" element={<AffiliateRendaExtraPromo />} />
           <Route path="/promorendaextra" element={<AffiliateRendaExtraPromo />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/produto/:slug" element={<DashboardProduto />} />
           <Route path="/parceiro/:slug" element={<PartnerDashboard />} />
+
           <Route path="/dash/:slug" element={<PartnerDashboard />} />
           <Route path="/resumo-parceiro/:slug" element={<PartnerDashboard />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />

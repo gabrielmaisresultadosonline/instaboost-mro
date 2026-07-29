@@ -1,0 +1,379 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package } from "lucide-react";
+
+export const DASHBOARD_SESSION_KEY = "mro_dashboard_session";
+
+export interface DashboardSession {
+  username: string | null;
+  email: string | null;
+  name: string | null;
+  password: string;
+}
+
+export interface HubProduct {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  thumb_url: string | null;
+  app_route: string | null;
+  sales_page_url: string | null;
+  price: number;
+  access_source: string;
+  unlocked: boolean;
+}
+
+export function getDashboardSession(): DashboardSession | null {
+  try {
+    const raw = localStorage.getItem(DASHBOARD_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DashboardSession;
+    if (!parsed?.username && !parsed?.email) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [session, setSession] = useState<DashboardSession | null>(() => getDashboardSession());
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  const [products, setProducts] = useState<HubProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [opening, setOpening] = useState<string | null>(null);
+
+  const [lockedProduct, setLockedProduct] = useState<HubProduct | null>(null);
+  const [buyName, setBuyName] = useState("");
+  const [buyEmail, setBuyEmail] = useState("");
+  const [buyPhone, setBuyPhone] = useState("");
+  const [buying, setBuying] = useState(false);
+
+  const loadProducts = useCallback(async (current: DashboardSession) => {
+    setLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: { action: "products", username: current.username || "", email: current.email || "" },
+      });
+      if (data?.success) setProducts(data.products as HubProduct[]);
+    } catch {
+      toast({ title: "Erro ao carregar produtos", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (session) loadProducts(session);
+  }, [session, loadProducts]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!identifier.trim() || !password.trim()) {
+      toast({ title: "Preencha usuário/e-mail e senha", variant: "destructive" });
+      return;
+    }
+    setLoggingIn(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: { action: "login", identifier: identifier.trim(), password },
+      });
+      if (data?.success) {
+        const next: DashboardSession = {
+          username: data.user.username || null,
+          email: data.user.email || null,
+          name: data.user.name || null,
+          password,
+        };
+        localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
+        setSession(next);
+      } else {
+        toast({ title: data?.error || "Não foi possível entrar", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Erro inesperado ao entrar", variant: "destructive" });
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(DASHBOARD_SESSION_KEY);
+    setSession(null);
+    setProducts([]);
+  };
+
+  /**
+   * Abre o produto já autenticado. Cada ferramenta guarda a sessão de um jeito
+   * diferente, então hidratamos o storage esperado antes de navegar.
+   */
+  const openProduct = async (product: HubProduct) => {
+    if (!session) return;
+    setOpening(product.id);
+    try {
+      if (product.access_source === "mro_tool" && session.username) {
+        const { loginToSquare } = await import("@/lib/squareApi");
+        const { loginUser } = await import("@/lib/userStorage");
+        try {
+          const result = await loginToSquare(session.username, session.password);
+          if (result.success) {
+            await loginUser(session.username, result.daysRemaining || 365, session.email || undefined, session.password);
+          }
+        } catch {
+          /* segue para a tela de login da ferramenta se falhar */
+        }
+      }
+
+      if (product.access_source === "zapmro" && session.username) {
+        localStorage.setItem("zapmro_authenticated", "true");
+        localStorage.setItem("zapmro_username", session.username);
+        localStorage.setItem("zapmro_password", session.password);
+        if (session.email) localStorage.setItem("zapmro_email", session.email);
+      }
+
+      if (product.access_source === "postscomia" && session.email) {
+        localStorage.setItem(
+          "postscomia_member",
+          JSON.stringify({ email: session.email, name: session.name || session.email }),
+        );
+      }
+
+      if (product.app_route) {
+        navigate(product.app_route);
+      } else {
+        navigate(`/dashboard/produto/${product.slug}`);
+      }
+    } finally {
+      setOpening(null);
+    }
+  };
+
+  const handleCardClick = (product: HubProduct) => {
+    if (product.unlocked) {
+      navigate(`/dashboard/produto/${product.slug}`);
+      return;
+    }
+    setBuyName(session?.name || "");
+    setBuyEmail(session?.email || "");
+    setBuyPhone("");
+    setLockedProduct(product);
+  };
+
+  const handleBuy = async () => {
+    if (!lockedProduct) return;
+    if (!buyName.trim() || !buyEmail.includes("@")) {
+      toast({ title: "Informe nome e e-mail válidos", variant: "destructive" });
+      return;
+    }
+    setBuying(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: {
+          action: "create_checkout",
+          slug: lockedProduct.slug,
+          name: buyName.trim(),
+          email: buyEmail.trim().toLowerCase(),
+          whatsapp: buyPhone,
+        },
+      });
+      if (data?.success && data.payment_link) {
+        window.open(data.payment_link, "_blank");
+        toast({ title: "Pagamento gerado", description: "Assim que confirmado o acesso é liberado automaticamente." });
+        setLockedProduct(null);
+      } else {
+        toast({ title: data?.error || "Erro ao gerar pagamento", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Erro ao gerar pagamento", variant: "destructive" });
+    } finally {
+      setBuying(false);
+    }
+  };
+
+  const greeting = useMemo(() => session?.name || session?.username || session?.email || "", [session]);
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center mb-6">
+              <div className="mx-auto mb-3 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Package className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground">Dashboard MRO</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Entre com seu usuário ou e-mail para acessar todos os seus produtos em um só lugar.
+              </p>
+            </div>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="identifier">Usuário ou e-mail</Label>
+                <Input
+                  id="identifier"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="seu usuário ou e-mail"
+                  autoComplete="username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="sua senha"
+                  autoComplete="current-password"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loggingIn}>
+                {loggingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                Entrar
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Seus produtos</h1>
+            <p className="text-sm text-muted-foreground">Olá, {greeting}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" /> Sair
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : products.length === 0 ? (
+          <p className="text-center text-muted-foreground py-20">Nenhum produto disponível no momento.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Card
+                key={product.id}
+                className="overflow-hidden cursor-pointer transition-shadow hover:shadow-lg"
+                onClick={() => handleCardClick(product)}
+              >
+                <div className="relative aspect-video bg-muted">
+                  {product.thumb_url ? (
+                    <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Package className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                  )}
+                  {!product.unlocked && (
+                    <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex items-center justify-center">
+                      <Lock className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h2 className="font-semibold text-foreground">{product.title}</h2>
+                    <Badge variant={product.unlocked ? "default" : "secondary"}>
+                      {product.unlocked ? "Liberado" : "Bloqueado"}
+                    </Badge>
+                  </div>
+                  {product.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-3">{product.description}</p>
+                  )}
+                  <Button
+                    className="w-full mt-2"
+                    variant={product.unlocked ? "default" : "secondary"}
+                    disabled={opening === product.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (product.unlocked) openProduct(product);
+                      else handleCardClick(product);
+                    }}
+                  >
+                    {opening === product.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : product.unlocked ? (
+                      <>
+                        Acessar <ArrowRight className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-4 w-4" /> Desbloquear
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+
+      <Dialog open={!!lockedProduct} onOpenChange={(open) => !open && setLockedProduct(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{lockedProduct?.title}</DialogTitle>
+            <DialogDescription>
+              {lockedProduct?.description || "Este produto ainda não está liberado no seu acesso."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="buy-name">Nome completo</Label>
+              <Input id="buy-name" value={buyName} onChange={(e) => setBuyName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="buy-email">E-mail</Label>
+              <Input id="buy-email" type="email" value={buyEmail} onChange={(e) => setBuyEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="buy-phone">WhatsApp (DDD + número)</Label>
+              <Input id="buy-phone" value={buyPhone} onChange={(e) => setBuyPhone(e.target.value)} placeholder="11999999999" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <Button className="flex-1" onClick={handleBuy} disabled={buying}>
+                {buying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+                Comprar {lockedProduct?.price ? `R$ ${Number(lockedProduct.price).toFixed(0)}` : ""}
+              </Button>
+              {lockedProduct?.sales_page_url && (
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => window.open(lockedProduct.sales_page_url as string, "_blank")}
+                >
+                  <Eye className="h-4 w-4" /> Ver mais
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
