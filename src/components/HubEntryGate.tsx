@@ -37,9 +37,10 @@ export function HubEntryGate({ children, allowEmbed = false }: HubEntryGateProps
   // navegação, ou seja: URL digitada, link externo ou F5 na própria página.
   const isDirectEntry = location.key === "default";
   const embedded = allowEmbed && isEmbedded(location.search);
-  const cameFromHub = shouldReturnToHub();
 
-  if (isDirectEntry && !embedded && !cameFromHub) {
+  // Entrada direta (URL digitada ou F5) sempre volta ao hub, mesmo que a sessão
+  // já tenha a marcação de retorno ao Dashboard.
+  if (isDirectEntry && !embedded) {
     return <Navigate to={HUB_DASHBOARD_ROUTE} replace />;
   }
 
