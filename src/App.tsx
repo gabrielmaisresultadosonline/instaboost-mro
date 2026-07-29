@@ -231,7 +231,7 @@ const App = () => (
       <BrowserRouter>
         <HubReturnButton />
         <Routes>
-          <Route path="/" element={<ToolSelector />} />
+          <Route path="/" element={<FerramentaMROPromo />} />
           <Route path="/instagram" element={<MeuNegocioPage />} />
           <Route path="/meu-negocio" element={<MeuNegocioPage />} />
           <Route path="/renda-extra" element={<RendaExtraPage />} />
