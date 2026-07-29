@@ -1,0 +1,1 @@
+ALTER TABLE public.mro_tool_users ADD COLUMN IF NOT EXISTS extra_accounts integer NOT NULL DEFAULT 0;

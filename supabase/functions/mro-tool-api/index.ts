@@ -35,6 +35,8 @@ interface MroUserRow {
   name: string | null;
   password_hash: string | null;
   plan_accounts: number;
+  /** Contas liberadas além do plano (extras concedidos pelo admin). */
+  extra_accounts?: number | null;
   expiration_days: number;
   is_active: boolean;
   trials_used: number;
@@ -104,6 +106,16 @@ function planInfo(user: MroUserRow) {
     days_remaining: lifetime ? LIFETIME_DAYS : user.expiration_days,
     access_allowed: user.is_active && (lifetime || user.expiration_days > 0),
   };
+}
+
+/**
+ * Limite real de contas fixas do usuário.
+ * Soma as contas do plano com os extras liberados manualmente pelo admin.
+ */
+function totalSlots(user: MroUserRow): number {
+  const plan = Math.max(0, Number(user.plan_accounts) || 0);
+  const extra = Math.max(0, Number(user.extra_accounts) || 0);
+  return plan + extra;
 }
 
 serve(async (req) => {
@@ -240,6 +252,8 @@ serve(async (req) => {
           name: user.name,
           is_active: user.is_active,
           plan_accounts: user.plan_accounts,
+          extra_accounts: Math.max(0, Number(user.extra_accounts) || 0),
+          total_accounts: totalSlots(user),
           expiration_days: user.expiration_days,
           last_access: user.last_access,
           created_at: user.created_at,
@@ -255,9 +269,9 @@ serve(async (req) => {
           period_start: user.trials_period_start,
         },
         slots: {
-          total: user.plan_accounts,
+          total: totalSlots(user),
           used: fixed.length,
-          available: Math.max(0, user.plan_accounts - fixed.length),
+          available: Math.max(0, totalSlots(user) - fixed.length),
         },
       };
     }
@@ -391,11 +405,11 @@ serve(async (req) => {
       }
 
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
-      if (fixedCount >= user.plan_accounts) {
+      if (fixedCount >= totalSlots(user)) {
         return json({
           success: false,
           limit_reached: true,
-          error: `Você não pode cadastrar mais contas do que o seu plano permite (${user.plan_accounts} contas). Faça upgrade ou use um dos testes gratuitos.`,
+          error: `Você não pode cadastrar mais contas do que o seu plano permite (${totalSlots(user)} contas). Faça upgrade ou use um dos testes gratuitos.`,
         });
       }
 
@@ -609,6 +623,9 @@ serve(async (req) => {
       if (body.plan_accounts !== undefined && body.plan_accounts !== null && body.plan_accounts !== "") {
         payload.plan_accounts = Math.max(0, Number(body.plan_accounts) || 0);
       }
+      if (body.extra_accounts !== undefined && body.extra_accounts !== null && body.extra_accounts !== "") {
+        payload.extra_accounts = Math.max(0, Number(body.extra_accounts) || 0);
+      }
       if (body.expiration_days !== undefined && body.expiration_days !== null && body.expiration_days !== "") {
         payload.expiration_days = normalizeExpiration(body.expiration_days);
       }
@@ -630,6 +647,27 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    /** Admin define/soma contas extras (além do plano) para um usuário. */
+    if (action === "set_extras") {
+      const id = String(body.id || "");
+      if (!id) return json({ success: false, error: "ID é obrigatório" }, 400);
+
+      const { data: user } = await supabase
+        .from("mro_tool_users").select("id, extra_accounts").eq("id", id).maybeSingle();
+      if (!user) return json({ success: false, error: "Usuário não encontrado" });
+
+      const current = Math.max(0, Number((user as { extra_accounts?: number }).extra_accounts) || 0);
+      const next =
+        body.delta !== undefined && body.delta !== null && body.delta !== ""
+          ? current + Number(body.delta)
+          : Number(body.extra_accounts);
+      const value = Math.max(0, Math.min(999, Number.isFinite(next) ? Math.trunc(next) : current));
+
+      const { error } = await supabase.from("mro_tool_users").update({ extra_accounts: value }).eq("id", id);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true, extra_accounts: value });
+    }
+
     if (action === "delete_user") {
       if (!body.id) return json({ success: false, error: "ID é obrigatório" }, 400);
       const { error } = await supabase.from("mro_tool_users").delete().eq("id", body.id);
@@ -648,11 +686,11 @@ serve(async (req) => {
 
       const accounts = await getAccounts(userId);
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
-      if (!body.force && fixedCount >= (user as MroUserRow).plan_accounts) {
+      if (!body.force && fixedCount >= totalSlots(user as MroUserRow)) {
         return json({
           success: false,
           limit_reached: true,
-          error: `Limite do plano atingido (${(user as MroUserRow).plan_accounts} contas). Aumente as contas do plano para adicionar mais.`,
+          error: `Limite atingido (${totalSlots(user as MroUserRow)} contas). Adicione contas extras para liberar mais.`,
         });
       }
 
