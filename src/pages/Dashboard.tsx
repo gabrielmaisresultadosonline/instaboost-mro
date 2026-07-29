@@ -115,8 +115,10 @@ export default function Dashboard() {
         setFormName(p.name || current.name || "");
         setFormEmail(p.email || "");
         setFormWhats(p.whatsapp || "");
-        // Cliente sem e-mail cadastrado precisa cadastrar antes de continuar.
-        setNeedsEmail(!p.email);
+        // Cliente sem e-mail, nome ou WhatsApp precisa completar antes de continuar.
+        const whatsDigits = (p.whatsapp || "").replace(/\D/g, "");
+        const nameOk = ((p.name || current.name || "").trim()).length >= 3;
+        setNeedsEmail(!p.email || !nameOk || whatsDigits.length < 10);
       }
     } catch {
       /* silencioso: o dashboard continua funcionando sem o perfil */
