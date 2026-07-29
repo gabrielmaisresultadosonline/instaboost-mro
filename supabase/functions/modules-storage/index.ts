@@ -26,6 +26,11 @@ serve(async (req) => {
     const getBaseName = (p: string) => {
       if (p === 'zapmro') return 'zapmro-modules-data';
       if (p === 'estrutura') return 'estrutura-modules-data';
+      // Áreas de membros dinâmicas dos produtos do dashboard: hub-<slug>
+      if (p.startsWith('hub-')) {
+        const safe = p.replace(/[^a-zA-Z0-9-_]/g, '').slice(0, 80);
+        return `${safe}-modules-data`;
+      }
       return 'modules-data'; // default = mro
     };
     const baseName = getBaseName(platform || 'mro');
