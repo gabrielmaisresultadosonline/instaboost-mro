@@ -222,9 +222,72 @@ export default function HubProductsPanel() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Imagem de capa (URL)</Label>
-                <Input value={editing.thumb_url || ""} onChange={(e) => setEditing({ ...editing, thumb_url: e.target.value })} />
+                <Label>Imagem de capa</Label>
+                <div
+                  onPaste={(e) => {
+                    const item = Array.from(e.clipboardData?.items || []).find((i) => i.type.startsWith("image/"));
+                    if (item) {
+                      e.preventDefault();
+                      void uploadThumbFile(item.getAsFile());
+                    }
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    void uploadThumbFile(e.dataTransfer.files?.[0]);
+                  }}
+                  className="rounded-lg border border-dashed border-border p-3 space-y-3"
+                >
+                  <div className="flex items-center gap-3">
+                    {editing.thumb_url ? (
+                      <img
+                        src={editing.thumb_url}
+                        alt="Capa do produto"
+                        className="h-16 w-16 rounded-md object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-md bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <input
+                        id="hub-thumb-file"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          void uploadThumbFile(e.target.files?.[0]);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingThumb}
+                        onClick={() => document.getElementById("hub-thumb-file")?.click()}
+                      >
+                        {uploadingThumb ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        {uploadingThumb ? "Enviando..." : "Enviar imagem"}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Clique, arraste o arquivo ou cole (Ctrl+V) a imagem aqui. Também aceita URL abaixo.
+                      </p>
+                    </div>
+                  </div>
+                  <Input
+                    placeholder="https://... (opcional)"
+                    value={editing.thumb_url || ""}
+                    onChange={(e) => setEditing({ ...editing, thumb_url: e.target.value })}
+                  />
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label>Rota interna (ex: /instagram)</Label>
                 <Input value={editing.app_route || ""} onChange={(e) => setEditing({ ...editing, app_route: e.target.value })} />
