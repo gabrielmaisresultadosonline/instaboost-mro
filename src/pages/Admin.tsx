@@ -215,9 +215,6 @@ const Admin = () => {
     { id: 'partners', label: 'Parceiros', icon: <UserPlus className="w-4 h-4" /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
     { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
-    { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
-    { id: 'scraper', label: 'Scraper Manual', icon: <Globe className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'zapmro', label: 'ZAPMRO Ferramenta', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'zapmro_taxas', label: 'ZAPMRO Taxas Pagas', icon: <CheckCircle className="w-4 h-4" /> },
@@ -227,8 +224,6 @@ const Admin = () => {
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
-    { id: 'extension', label: 'Extensão', icon: <Chrome className="w-4 h-4" /> },
-    { id: 'lovable_extension', label: 'Lovable Extensão', icon: <Key className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
