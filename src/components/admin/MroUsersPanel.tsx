@@ -105,20 +105,21 @@ const MroUsersPanel: React.FC = () => {
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
   const [syncing, setSyncing] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
-  /** Vincula os emails já cadastrados na área /instagram aos usuários da ferramenta. */
+  /** Vincula emails e senhas já cadastrados na área /instagram aos usuários da ferramenta. */
   const handleSyncEmails = async () => {
     setSyncing(true);
     try {
-      const data = await call({ action: 'sync_emails' });
+      const data = await call({ action: 'sync_credentials' });
       toast({
-        title: 'Emails vinculados',
-        description: `${data.updated ?? 0} usuário(s) atualizados com o email do cadastro do /instagram.`,
+        title: 'Acessos vinculados',
+        description: `${data.updated ?? 0} usuário(s) atualizados (${data.passwords ?? 0} senha(s) recuperadas do /instagram).`,
       });
       await loadUsers();
     } catch (err) {
       toast({
-        title: 'Erro ao vincular emails',
+        title: 'Erro ao vincular acessos',
         description: err instanceof Error ? err.message : 'Tente novamente.',
         variant: 'destructive',
       });
@@ -126,6 +127,25 @@ const MroUsersPanel: React.FC = () => {
       setSyncing(false);
     }
   };
+
+  /** Reenvia o acesso (usuário + senha) para o email cadastrado do cliente. */
+  const handleSendAccess = async (u: MroUser) => {
+    setSendingId(u.id);
+    try {
+      await call({ action: 'send_access', id: u.id });
+      toast({ title: 'Acesso enviado!', description: `Email enviado para ${u.email}` });
+    } catch (err) {
+      toast({
+        title: 'Erro ao enviar acesso',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+
 
 
   const filtered = useMemo(() => {
