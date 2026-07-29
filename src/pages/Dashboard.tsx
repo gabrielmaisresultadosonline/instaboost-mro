@@ -487,9 +487,15 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold text-foreground">Seus produtos</h1>
             <p className="text-sm text-muted-foreground">Olá, {greeting}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4" /> Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowConfig(true)}>
+              <Settings className="h-4 w-4" /> Config
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" /> Sair
+            </Button>
+          </div>
+
         </div>
       </header>
 
