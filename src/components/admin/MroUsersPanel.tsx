@@ -114,6 +114,15 @@ const MroUsersPanel: React.FC = () => {
     );
   }, [users, search]);
 
+  /** Limite inicial de renderização para não travar a página com muitos usuários. */
+  const PAGE_SIZE = 50;
+  const [showAll, setShowAll] = useState(false);
+  const visible = useMemo(
+    () => (showAll || search.trim() ? filtered : filtered.slice(0, PAGE_SIZE)),
+    [filtered, showAll, search],
+  );
+  const hiddenCount = filtered.length - visible.length;
+
   const handleSave = async () => {
     if (!form.username.trim()) {
       toast({ title: 'Usuário obrigatório', variant: 'destructive' });
