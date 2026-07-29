@@ -376,6 +376,13 @@ const MroUsersPanel: React.FC = () => {
         {!loading && !filtered.length && (
           <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
         )}
+        {!loading && hiddenCount > 0 && (
+          <div className="flex justify-center pt-2">
+            <Button variant="outline" onClick={() => setShowAll(true)}>
+              Ver todos ({hiddenCount} restantes)
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Print do perfil em tamanho grande */}
