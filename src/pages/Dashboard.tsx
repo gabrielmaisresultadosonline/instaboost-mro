@@ -791,18 +791,48 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             <div className="rounded-2xl border border-zinc-800 bg-black/60 p-4">
-              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">Acessos encontrados</p>
+              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">
+                Escolha o acesso principal
+              </p>
               <ul className="space-y-2">
-                {mergeConflicts.map((c, i) => (
-                  <li key={`${c.tool}-${c.username}-${i}`} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-bold text-white break-all">{c.username}</span>
-                    <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
-                      {c.tool}
-                    </span>
-                  </li>
-                ))}
+                {mergeConflicts.map((c, i) => {
+                  const selected = (mergePrimary || mergeConflicts[0]?.username) === c.username;
+                  return (
+                    <li key={`${c.tool}-${c.username}-${i}`}>
+                      <button
+                        type="button"
+                        onClick={() => setMergePrimary(c.username)}
+                        className={cn(
+                          "flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition",
+                          selected
+                            ? "border-yellow-500 bg-yellow-500/10"
+                            : "border-zinc-800 bg-transparent hover:border-zinc-600",
+                        )}
+                      >
+                        <span className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={cn(
+                              "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2",
+                              selected ? "border-yellow-400" : "border-zinc-600",
+                            )}
+                          >
+                            {selected && <span className="h-2 w-2 rounded-full bg-yellow-400" />}
+                          </span>
+                          <span className="font-bold text-white break-all">{c.username}</span>
+                        </span>
+                        <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
+                          {c.tool}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
+              <p className="mt-3 text-[11px] text-zinc-500">
+                O acesso selecionado será o seu login principal. Os demais continuam liberados no mesmo e-mail.
+              </p>
             </div>
+
 
             <p className="text-xs leading-relaxed text-zinc-400">
               Ao unificar, todos os seus produtos passam a ficar no mesmo e-mail. Você poderá entrar na área de membros
