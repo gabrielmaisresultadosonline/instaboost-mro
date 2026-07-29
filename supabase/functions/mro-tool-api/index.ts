@@ -154,6 +154,69 @@ serve(async (req) => {
       return (data || []) as MroAccountRow[];
     }
 
+    /**
+     * Resolve onde um @instagram está cadastrado para o usuário informado.
+     * Fontes verificadas:
+     *  1. mro_tool_accounts       -> contas do plano (fixas) e contas de teste (1 dia)
+     *  2. free_trial_registrations-> perfis do teste grátis (ainda válidos)
+     *  3. squarecloud_user_profiles-> perfis já cadastrados na área /instagram
+     */
+    async function resolveInstagram(user: MroUserRow, instagram: string) {
+      const ig = instagram.trim().toLowerCase().replace(/^@/, "");
+
+      const accounts = await getAccounts(user.id);
+      const match = accounts.find((a) => a.instagram_username.toLowerCase().replace(/^@/, "") === ig);
+      if (match) {
+        return {
+          registered: true,
+          source: match.is_trial ? "trial_account" : "plan_account",
+          is_trial: match.is_trial,
+          trial_expires_at: match.trial_expires_at,
+        };
+      }
+
+      // Teste grátis (free_trial_registrations)
+      const { data: freeTrials } = await supabase
+        .from("free_trial_registrations")
+        .select("instagram_username, expires_at, instagram_removed, generated_username, email")
+        .ilike("instagram_username", ig)
+        .limit(5);
+
+      const validTrial = (freeTrials || []).find((t: any) => {
+        if (t.instagram_removed) return false;
+        if (t.expires_at && new Date(t.expires_at).getTime() < Date.now()) return false;
+        const owner = String(t.generated_username || "").toLowerCase();
+        const mail = String(t.email || "").toLowerCase();
+        return owner === user.username?.toLowerCase() || (!!user.email && mail === user.email.toLowerCase());
+      });
+
+      if (validTrial) {
+        return {
+          registered: true,
+          source: "free_trial",
+          is_trial: true,
+          trial_expires_at: (validTrial as any).expires_at || null,
+        };
+      }
+
+      // Perfis já cadastrados na área /instagram
+      const { data: profiles } = await supabase
+        .from("squarecloud_user_profiles")
+        .select("instagram_username, squarecloud_username")
+        .ilike("instagram_username", ig)
+        .limit(10);
+
+      const profileMatch = (profiles || []).find(
+        (p: any) => String(p.squarecloud_username || "").toLowerCase() === user.username?.toLowerCase(),
+      );
+      if (profileMatch) {
+        return { registered: true, source: "instagram_area", is_trial: false, trial_expires_at: null };
+      }
+
+      return { registered: false, source: null, is_trial: false, trial_expires_at: null };
+    }
+
+
     /** Reinicia o contador de testes quando muda o mês. */
     async function ensureTrialPeriod(user: MroUserRow): Promise<MroUserRow> {
       const start = monthStart();
