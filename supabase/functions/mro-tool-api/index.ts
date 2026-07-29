@@ -395,13 +395,16 @@ serve(async (req) => {
         if (user.trials_used >= MONTHLY_TRIALS) {
           return json({ success: false, error: `Você já usou seus ${MONTHLY_TRIALS} testes deste mês`, trials_exhausted: true });
         }
-        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        // Duração do teste: padrão 24h; a extensão pode pedir 6h (trial_hours: 6)
+        const rawHours = Number(body.trial_hours ?? body.hours ?? 24);
+        const trialHours = Number.isFinite(rawHours) ? Math.min(Math.max(rawHours, 1), 24) : 24;
+        const expires = new Date(Date.now() + trialHours * 60 * 60 * 1000).toISOString();
         await supabase.from("mro_tool_accounts").insert({
           user_id: user.id, instagram_username: instagram, is_trial: true, trial_expires_at: expires,
         });
         await supabase.from("mro_tool_users").update({ trials_used: user.trials_used + 1 }).eq("id", user.id);
         user = { ...user, trials_used: user.trials_used + 1 };
-        return json({ success: true, trial: true, trial_expires_at: expires, ...(await fullPayload(user)) });
+        return json({ success: true, trial: true, trial_hours: trialHours, trial_expires_at: expires, ...(await fullPayload(user)) });
       }
 
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
