@@ -476,7 +476,8 @@ const MROFerramenta = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header — oculto no modo embed (layout enxuto para iframe/extensão) */}
+      {!embed && (
       <header className="sticky top-0 z-40 glass-card border-b border-border">
         <div className="container mx-auto px-4 py-3 md:py-4">
           {/* Mobile: Logo on top, buttons below */}
@@ -521,6 +522,8 @@ const MROFerramenta = () => {
           </div>
         </div>
       </header>
+      )}
+
 
       {/* Content */}
       <main className="container mx-auto px-4 py-8">
