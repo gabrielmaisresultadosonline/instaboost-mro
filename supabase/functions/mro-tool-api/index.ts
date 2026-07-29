@@ -494,7 +494,10 @@ serve(async (req) => {
         .in("username", usernames);
       if (exErr) return json({ success: false, error: exErr.message }, 500);
 
-      const existingMap = new Map<string, { id: string; password_hash: string | null; plan_accounts: number | null }>();
+      const existingMap = new Map<
+        string,
+        { id: string; password_hash: string | null; password_plain: string | null; plan_accounts: number | null }
+      >();
       for (const u of (existingUsers || []) as any[]) {
         existingMap.set(String(u.username).toLowerCase(), {
           id: u.id,
