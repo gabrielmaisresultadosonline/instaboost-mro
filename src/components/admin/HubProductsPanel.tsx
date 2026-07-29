@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
+import HubUsersPanel from "@/components/admin/HubUsersPanel";
 import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubProductRow {
