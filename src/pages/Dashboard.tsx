@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package } from "lucide-react";
+import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package, Settings, Mail, KeyRound } from "lucide-react";
+
 
 export const DASHBOARD_SESSION_KEY = "mro_dashboard_session";
 
