@@ -446,13 +446,17 @@ serve(async (req) => {
       // 2) Uma única leitura dos usuários já existentes.
       const { data: existingUsers, error: exErr } = await supabase
         .from("mro_tool_users")
-        .select("id, username, password_hash")
+        .select("id, username, password_hash, plan_accounts")
         .in("username", usernames);
       if (exErr) return json({ success: false, error: exErr.message }, 500);
 
-      const existingMap = new Map<string, { id: string; password_hash: string | null }>();
+      const existingMap = new Map<string, { id: string; password_hash: string | null; plan_accounts: number | null }>();
       for (const u of (existingUsers || []) as any[]) {
-        existingMap.set(String(u.username).toLowerCase(), { id: u.id, password_hash: u.password_hash });
+        existingMap.set(String(u.username).toLowerCase(), {
+          id: u.id,
+          password_hash: u.password_hash,
+          plan_accounts: u.plan_accounts ?? null,
+        });
       }
 
       // 3) Monta as linhas do upsert (hash calculado em paralelo).
@@ -465,7 +469,8 @@ serve(async (req) => {
           username: item.username,
           email: item.email,
           expiration_days: item.expiration,
-          plan_accounts: Math.max(DEFAULT_PLAN_ACCOUNTS, item.igs.length),
+          // Nunca reduz o plano já configurado para o usuário.
+          plan_accounts: Math.max(DEFAULT_PLAN_ACCOUNTS, item.igs.length, prev?.plan_accounts ?? 0),
           is_active: true,
           password_hash,
         };
@@ -520,8 +525,17 @@ serve(async (req) => {
       for (let i = 0; i < toInsert.length; i += CHUNK) {
         const chunk = toInsert.slice(i, i + CHUNK);
         const { error: accErr } = await supabase.from("mro_tool_accounts").insert(chunk);
-        if (accErr) errors.push(`contas (lote ${i / CHUNK + 1}): ${accErr.message}`);
-        else accountsAdded += chunk.length;
+        if (!accErr) {
+          accountsAdded += chunk.length;
+          continue;
+        }
+        // Fallback: se o lote falhar (ex.: 1 conta duplicada), insere uma a uma
+        // para que as contas válidas não sejam perdidas.
+        for (const row of chunk) {
+          const { error: oneErr } = await supabase.from("mro_tool_accounts").insert(row);
+          if (oneErr) errors.push(`${row.instagram_username}: ${oneErr.message}`);
+          else accountsAdded += 1;
+        }
       }
 
       return json({ success: true, created, updated, accounts_added: accountsAdded, errors: errors.slice(0, 20) });
