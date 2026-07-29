@@ -3,10 +3,11 @@ import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap, Wifi } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { mroVerifyUser, mroAddTrialAccount, normalizeIG as normalizeInstagram, type MroToolResponse } from '@/lib/mroToolApi';
 
-const SQUARE_API_URL = 'https://dashboardmroinstagramvini-online.squareweb.app';
+const TRIAL_DURATION_HOURS = 6;
+
 
 interface Trial {
   id: string;
