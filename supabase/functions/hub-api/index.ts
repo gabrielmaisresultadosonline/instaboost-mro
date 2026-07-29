@@ -851,18 +851,27 @@ serve(async (req) => {
           .select("id,username")
           .eq("email", safeEmail)
           .limit(5);
+        // Acessos que o cliente está usando agora (precisam aparecer na lista de escolha)
+        const currentAccounts = [
+          ...(mro ? [{ tool: "MRO Ferramenta", username: String(mro.username || ""), current: true }] : []),
+          ...(zap ? [{ tool: "ZAPMRO", username: String(zap.username || ""), current: true }] : []),
+        ].filter((r) => r.username);
+
         const others = [
-          ...(dupeMro || []).filter((r) => r.id !== (mro?.id as string)).map((r) => ({ tool: "MRO Ferramenta", username: r.username })),
-          ...(dupeZap || []).filter((r) => r.id !== (zap?.id as string)).map((r) => ({ tool: "ZAPMRO", username: r.username })),
-        ].filter((r) => String(r.username || "").toLowerCase() !== username);
+          ...(dupeMro || []).filter((r) => r.id !== (mro?.id as string)).map((r) => ({ tool: "MRO Ferramenta", username: String(r.username || ""), current: false })),
+          ...(dupeZap || []).filter((r) => r.id !== (zap?.id as string)).map((r) => ({ tool: "ZAPMRO", username: String(r.username || ""), current: false })),
+        ].filter((r) => r.username && !currentAccounts.some((c) => c.username.toLowerCase() === r.username.toLowerCase()));
+
         if (others.length) {
           return json({
             success: false,
             conflict: true,
-            conflict_accounts: others,
+            // O acesso logado sempre vem primeiro para poder ser mantido como principal
+            conflict_accounts: [...currentAccounts, ...others],
             error: "Este e-mail já está vinculado a outro acesso",
           }, 200);
         }
+
       }
 
 

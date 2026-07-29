@@ -91,7 +91,7 @@ export default function Dashboard() {
 
   // Unificação de acessos quando o e-mail já pertence a outro login
   const [mergeEmail, setMergeEmail] = useState("");
-  const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string }[]>([]);
+  const [mergeConflicts, setMergeConflicts] = useState<{ tool: string; username: string; current?: boolean }[]>([]);
   const [mergePrimary, setMergePrimary] = useState("");
   const [merging, setMerging] = useState(false);
   const [mergeResult, setMergeResult] = useState<{
@@ -249,8 +249,14 @@ export default function Dashboard() {
       if (!data?.success) {
         if (data?.conflict) {
           setMergeEmail(email);
-          setMergeConflicts(Array.isArray(data.conflict_accounts) ? data.conflict_accounts : []);
+          const list = Array.isArray(data.conflict_accounts) ? data.conflict_accounts : [];
+          setMergeConflicts(list);
+          // Pré-seleciona o acesso com o qual o cliente está logado agora
+          setMergePrimary(
+            list.find((c: { current?: boolean }) => c.current)?.username || session.username || list[0]?.username || "",
+          );
           return;
+
         }
         toast({ title: data?.error || "Não foi possível salvar", variant: "destructive" });
         return;
@@ -822,10 +828,16 @@ export default function Dashboard() {
                             {selected && <span className="h-2 w-2 rounded-full bg-yellow-400" />}
                           </span>
                           <span className="font-bold text-white break-all">{c.username}</span>
+                          {c.current && (
+                            <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">
+                              Seu acesso atual
+                            </span>
+                          )}
                         </span>
                         <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
                           {c.tool}
                         </span>
+
                       </button>
                     </li>
                   );
