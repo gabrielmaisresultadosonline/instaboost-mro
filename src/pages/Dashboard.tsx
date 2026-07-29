@@ -164,7 +164,9 @@ export default function Dashboard() {
 
   const handleCardClick = (product: HubProduct) => {
     if (product.unlocked) {
-      navigate(`/dashboard/produto/${product.slug}`);
+      // Produtos com rota própria abrem direto a ferramenta já logada.
+      if (product.app_route) void openProduct(product);
+      else navigate(`/dashboard/produto/${product.slug}`);
       return;
     }
     setBuyName(session?.name || "");
