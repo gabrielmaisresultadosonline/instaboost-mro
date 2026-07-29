@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import ModuleManager from '@/components/admin/ModuleManager';
 import ZapmroAPIDocumentation from '@/components/admin/ZapmroAPIDocumentation';
 import { ZapmroUsersTab, ZapmroAnnouncementsTab } from '@/components/admin/ZapmroUsersPanel';
-import { BookOpen, Users, Megaphone, FileCode } from 'lucide-react';
+import ZapmroSessionsTab from '@/components/admin/ZapmroSessionsPanel';
+import { BookOpen, Users, Megaphone, FileCode, Wifi } from 'lucide-react';
 
-type SubTab = 'tutorials' | 'users' | 'announcements' | 'docs';
+type SubTab = 'tutorials' | 'users' | 'sessions' | 'announcements' | 'docs';
 
 interface ZapmroToolPanelProps {
   downloadLink: string;
@@ -17,6 +18,7 @@ interface ZapmroToolPanelProps {
 const SUB_TABS: { id: SubTab; label: string; icon: React.ReactNode }[] = [
   { id: 'tutorials', label: 'Tutoriais', icon: <BookOpen className="w-4 h-4" /> },
   { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+  { id: 'sessions', label: 'Acessos / IPs', icon: <Wifi className="w-4 h-4" /> },
   { id: 'announcements', label: 'Avisos', icon: <Megaphone className="w-4 h-4" /> },
   { id: 'docs', label: 'Documentação', icon: <FileCode className="w-4 h-4" /> },
 ];
@@ -56,6 +58,7 @@ const ZapmroToolPanel: React.FC<ZapmroToolPanelProps> = ({
       )}
 
       {subTab === 'users' && <ZapmroUsersTab />}
+      {subTab === 'sessions' && <ZapmroSessionsTab />}
       {subTab === 'announcements' && <ZapmroAnnouncementsTab />}
       {subTab === 'docs' && <ZapmroAPIDocumentation />}
     </div>
