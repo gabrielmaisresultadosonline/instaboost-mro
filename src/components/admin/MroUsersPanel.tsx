@@ -264,6 +264,15 @@ const MroUsersPanel: React.FC = () => {
           <Instagram className="w-3 h-3" />
           {filtered.reduce((acc, u) => acc + u.accounts.length + u.trial_accounts.length, 0)} contas
         </Badge>
+        <Badge variant="outline" className="gap-1">
+          <Mail className="w-3 h-3" />
+          {filtered.filter((u) => !!u.email).length} com email
+        </Badge>
+
+        <Button variant="outline" size="sm" onClick={() => void handleSyncEmails()} disabled={syncing} className="gap-2">
+          {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+          Vincular emails do /instagram
+        </Button>
 
         <Button variant="outline" size="sm" onClick={loadUsers} disabled={loading} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
