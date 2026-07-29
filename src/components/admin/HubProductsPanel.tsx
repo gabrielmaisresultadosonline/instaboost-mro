@@ -44,6 +44,7 @@ const emptyProduct = (): HubProductRow => ({
 export default function HubProductsPanel() {
   const { toast } = useToast();
   const [products, setProducts] = useState<HubProductRow[]>([]);
+  const [tab, setTab] = useState("produtos");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<HubProductRow | null>(null);
