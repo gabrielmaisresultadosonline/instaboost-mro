@@ -760,6 +760,124 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* E-mail já vinculado a outro acesso → oferecer unificação */}
+      <Dialog open={mergeConflicts.length > 0} onOpenChange={(open) => !open && setMergeConflicts([])}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto border-2 border-yellow-500/40 bg-zinc-950 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-yellow-400">
+              Este e-mail já está vinculado a outro acesso
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Encontramos outros acessos usando <span className="font-bold text-white">{mergeEmail}</span>. Deseja unificar tudo em uma
+              única conta?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-zinc-800 bg-black/60 p-4">
+              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">Acessos encontrados</p>
+              <ul className="space-y-2">
+                {mergeConflicts.map((c, i) => (
+                  <li key={`${c.tool}-${c.username}-${i}`} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-bold text-white break-all">{c.username}</span>
+                    <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
+                      {c.tool}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="text-xs leading-relaxed text-zinc-400">
+              Ao unificar, todos os seus produtos passam a ficar no mesmo e-mail. Você poderá entrar na área de membros
+              <span className="text-white"> pelo e-mail e senha</span> ou <span className="text-white">pelo usuário e senha</span> — e
+              enviaremos um resumo completo por e-mail.
+            </p>
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                variant="outline"
+                className="w-full border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-900 sm:w-1/3"
+                onClick={() => setMergeConflicts([])}
+                disabled={merging}
+              >
+                Agora não
+              </Button>
+              <Button
+                className="w-full bg-yellow-500 font-black uppercase tracking-wide text-black hover:bg-yellow-400 sm:w-2/3"
+                onClick={handleMerge}
+                disabled={merging}
+              >
+                {merging ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                Sim, unificar tudo
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resumo pós-unificação */}
+      <Dialog open={!!mergeResult} onOpenChange={(open) => !open && setMergeResult(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto border-2 border-yellow-500/40 bg-zinc-950 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-yellow-400">Acessos unificados!</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Tudo o que você tem liberado agora está no mesmo acesso. Guarde seus dados abaixo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-yellow-500/40 bg-black/60 p-4">
+              <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-yellow-500">Entrar pelo e-mail</p>
+              <p className="text-sm text-zinc-300">
+                E-mail: <span className="font-bold text-white break-all">{mergeResult?.email}</span>
+                <br />
+                Senha: <span className="font-bold text-white break-all">{mergeResult?.primary.password}</span>
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-800 bg-black/60 p-4">
+              <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-yellow-500">Entrar pelo usuário</p>
+              <p className="text-sm text-zinc-300">
+                Usuário: <span className="font-bold text-white break-all">{mergeResult?.primary.username}</span>
+                <br />
+                Senha: <span className="font-bold text-white break-all">{mergeResult?.primary.password}</span>
+              </p>
+            </div>
+
+            {!!mergeResult?.accounts.length && (
+              <div className="rounded-2xl border border-zinc-800 bg-black/40 p-4">
+                <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-zinc-500">Vinculados a você</p>
+                <ul className="space-y-2">
+                  {mergeResult.accounts.map((a, i) => (
+                    <li key={`${a.tool}-${a.username}-${i}`} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="font-bold text-white break-all">{a.username}</span>
+                      <span className="shrink-0 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
+                        {a.tool}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <p className="text-xs text-zinc-400">
+              {mergeResult?.emailSent
+                ? `Enviamos um e-mail para ${mergeResult?.email} com todos os seus acessos e o link da área de membros.`
+                : "Não conseguimos enviar o e-mail de resumo agora, mas seus acessos já estão unificados."}
+            </p>
+
+            <Button
+              className="w-full bg-yellow-500 font-black uppercase tracking-wide text-black hover:bg-yellow-400"
+              onClick={() => setMergeResult(null)}
+            >
+              <Mail className="h-4 w-4" />
+              Entendi, continuar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
 
   );
