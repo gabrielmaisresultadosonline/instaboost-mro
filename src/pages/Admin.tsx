@@ -29,6 +29,8 @@ import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
 import HubProductsPanel from '@/components/admin/HubProductsPanel';
+import MergeLogsPanel from '@/components/admin/MergeLogsPanel';
+
 import MroToolPanel from '@/components/admin/MroToolPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
