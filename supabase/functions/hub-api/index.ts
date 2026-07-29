@@ -922,6 +922,29 @@ serve(async (req) => {
 
       const safeEmail = targetEmail.replace(/[,()"']/g, "");
 
+      // Guarda o estado ANTERIOR dos acessos que serão alterados (para permitir desfazer no /admin)
+      const snapshot: Array<Record<string, unknown>> = [];
+      if (mro) {
+        snapshot.push({
+          table: "mro_tool_users",
+          tool: "MRO Ferramenta",
+          id: String(mro.id),
+          username: String(mro.username || ""),
+          previous_email: mro.email ? String(mro.email) : null,
+          changed: String(mro.email || "") !== targetEmail,
+        });
+      }
+      if (zap) {
+        snapshot.push({
+          table: "zapmro_users",
+          tool: "ZAPMRO",
+          id: String(zap.id),
+          username: String(zap.username || ""),
+          previous_email: zap.email ? String(zap.email) : null,
+          changed: String(zap.email || "") !== targetEmail,
+        });
+      }
+
       // Aplica o e-mail nos acessos atuais
       if (mro) await supabase.from("mro_tool_users").update({ email: targetEmail }).eq("id", mro.id as string);
       if (zap) await supabase.from("zapmro_users").update({ email: targetEmail }).eq("id", zap.id as string);
@@ -929,12 +952,12 @@ serve(async (req) => {
       // Recolhe todos os acessos que agora compartilham o mesmo e-mail
       const { data: mroAll } = await supabase
         .from("mro_tool_users")
-        .select("username,password_plain,expiration_days")
+        .select("id,username,password_plain,expiration_days")
         .eq("email", safeEmail)
         .limit(20);
       const { data: zapAll } = await supabase
         .from("zapmro_users")
-        .select("username,password_plain,days_remaining")
+        .select("id,username,password_plain,days_remaining")
         .eq("email", safeEmail)
         .limit(20);
 
@@ -942,6 +965,19 @@ serve(async (req) => {
         ...(mroAll || []).map((r) => ({ tool: "MRO Ferramenta", username: String(r.username || ""), password: String(r.password_plain || "") })),
         ...(zapAll || []).map((r) => ({ tool: "ZAPMRO", username: String(r.username || ""), password: String(r.password_plain || "") })),
       ].filter((a) => a.username);
+
+      // Acessos que já usavam o e-mail antes da unificação entram no log apenas como referência
+      const snapshotIds = new Set(snapshot.map((s) => String(s.id)));
+      for (const r of mroAll || []) {
+        if (!snapshotIds.has(String(r.id))) {
+          snapshot.push({ table: "mro_tool_users", tool: "MRO Ferramenta", id: String(r.id), username: String(r.username || ""), previous_email: targetEmail, changed: false });
+        }
+      }
+      for (const r of zapAll || []) {
+        if (!snapshotIds.has(String(r.id))) {
+          snapshot.push({ table: "zapmro_users", tool: "ZAPMRO", id: String(r.id), username: String(r.username || ""), previous_email: targetEmail, changed: false });
+        }
+      }
 
       // O cliente pode escolher qual acesso quer manter como principal
       const chosen = String(body.primary_username || "").trim().toLowerCase();
@@ -974,6 +1010,20 @@ serve(async (req) => {
         emailSent = false;
       }
 
+      // Registra o log da unificação (permite desfazer depois pelo /admin)
+      try {
+        await supabase.from("hub_merge_logs").insert({
+          target_email: targetEmail,
+          primary_username: primary?.username || username,
+          primary_tool: primary?.tool || (mro ? "MRO Ferramenta" : "ZAPMRO"),
+          reason: "Unificação solicitada pelo cliente no /dashboard (e-mail já vinculado a outro acesso)",
+          accounts: snapshot,
+          email_sent: emailSent,
+        });
+      } catch (_e) {
+        // O log é auxiliar: nunca deve quebrar a unificação em si
+      }
+
       return json({
         success: true,
         email: targetEmail,
@@ -982,6 +1032,46 @@ serve(async (req) => {
         primary: { username: primary?.username || username, password: primaryPassword },
       });
     }
+
+    // ================= ADMIN: LOGS DE UNIFICAÇÃO =================
+    if (action === "admin_list_merges") {
+      const { data, error } = await supabase
+        .from("hub_merge_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(300);
+      if (error) return json({ success: false, error: "Não foi possível carregar os logs" }, 500);
+      return json({ success: true, merges: data || [] });
+    }
+
+    if (action === "admin_undo_merge") {
+      const id = String(body.id || "").trim();
+      if (!id) return json({ success: false, error: "Log inválido" }, 400);
+
+      const { data: log } = await supabase.from("hub_merge_logs").select("*").eq("id", id).maybeSingle();
+      if (!log) return json({ success: false, error: "Log não encontrado" }, 404);
+      if (log.reverted) return json({ success: false, error: "Esta unificação já foi desfeita" }, 200);
+
+      const rows = Array.isArray(log.accounts) ? (log.accounts as Array<Record<string, unknown>>) : [];
+      let restored = 0;
+      for (const row of rows) {
+        // Só desfaz o que realmente foi alterado pela unificação
+        if (!row?.changed) continue;
+        const table = String(row.table || "");
+        if (table !== "mro_tool_users" && table !== "zapmro_users") continue;
+        const prev = row.previous_email ? String(row.previous_email) : null;
+        const { error } = await supabase.from(table).update({ email: prev }).eq("id", String(row.id));
+        if (!error) restored++;
+      }
+
+      await supabase
+        .from("hub_merge_logs")
+        .update({ reverted: true, reverted_at: new Date().toISOString() })
+        .eq("id", id);
+
+      return json({ success: true, restored });
+    }
+
 
 
 

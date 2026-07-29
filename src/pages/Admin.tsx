@@ -29,6 +29,8 @@ import PartnersPanel from '@/components/admin/PartnersPanel';
 import ZapmroFeesPanel from '@/components/admin/ZapmroFeesPanel';
 import ZapmroToolPanel from '@/components/admin/ZapmroToolPanel';
 import HubProductsPanel from '@/components/admin/HubProductsPanel';
+import MergeLogsPanel from '@/components/admin/MergeLogsPanel';
+
 import MroToolPanel from '@/components/admin/MroToolPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
@@ -60,7 +62,7 @@ import { cn } from "@/lib/utils";
 
 const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -213,6 +215,9 @@ const Admin = () => {
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
     { id: 'hub', label: 'Dashboard Produtos', icon: <Package className="w-4 h-4" /> },
     { id: 'postscomia', label: 'Admin Posts com IA', icon: <Package className="w-4 h-4" /> },
+    { id: 'merges', label: 'Unificações', icon: <ShieldCheck className="w-4 h-4" /> },
+
+
 
     { id: 'partners', label: 'Parceiros', icon: <UserPlus className="w-4 h-4" /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
@@ -955,6 +960,10 @@ const Admin = () => {
 
         {/* Dashboard Produtos Tab */}
         {activeTab === 'hub' && <HubProductsPanel />}
+
+        {/* Unificações de Acesso (logs + desfazer) */}
+        {activeTab === 'merges' && <MergeLogsPanel />}
+
 
         {/* Admin Posts com IA (embutido) */}
         {activeTab === 'postscomia' && (
