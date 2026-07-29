@@ -4130,6 +4130,7 @@ export type Database = {
           created_at: string
           email: string | null
           expiration_days: number
+          extra_accounts: number
           id: string
           is_active: boolean
           last_access: string | null
@@ -4146,6 +4147,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           expiration_days?: number
+          extra_accounts?: number
           id?: string
           is_active?: boolean
           last_access?: string | null
@@ -4162,6 +4164,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           expiration_days?: number
+          extra_accounts?: number
           id?: string
           is_active?: boolean
           last_access?: string | null
