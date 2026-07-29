@@ -135,6 +135,44 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email, user?.username]);
 
+  // ===== E-mail obrigatório =====
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = EMAIL_REGEX.test(email.trim());
+  // Só libera as ações (cadastrar/sincronizar Instagram) depois do e-mail salvo/vinculado
+  const isEmailReady = (emailLocked || !!user?.isEmailLocked) && isEmailValid;
+
+  const handleSaveEmail = async () => {
+    const value = email.trim();
+    if (!EMAIL_REGEX.test(value)) {
+      toast({ title: 'E-mail inválido', description: 'Digite um e-mail válido para continuar', variant: 'destructive' });
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      await updateUserEmail(value);
+      setEmail(value);
+      setEmailLocked(true);
+      toast({ title: 'E-mail cadastrado!', description: 'Agora você já pode cadastrar seu Instagram' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao salvar e-mail', description: err?.message || 'Tente novamente', variant: 'destructive' });
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const requireEmail = (): boolean => {
+    if (!isEmailReady) {
+      toast({
+        title: 'Cadastre seu e-mail primeiro',
+        description: 'É obrigatório salvar um e-mail válido antes de cadastrar ou sincronizar contas do Instagram.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    return true;
+  };
+
+
   // Handle syncing a single profile that already exists in SquareCloud
   const handleSyncSingleProfile = async () => {
     if (!pendingSyncIG || !user) return;
