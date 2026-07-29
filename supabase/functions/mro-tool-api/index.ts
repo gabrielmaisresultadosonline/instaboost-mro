@@ -276,6 +276,24 @@ serve(async (req) => {
 
       const { data: accounts } = await supabase.from("mro_tool_accounts").select("*");
 
+      // Prints capturados na área /instagram (squarecloud_user_profiles)
+      const { data: profiles } = await supabase
+        .from("squarecloud_user_profiles")
+        .select("squarecloud_username, instagram_username, profile_screenshot_url, updated_at");
+
+      const shotKey = (user: string, ig: string) =>
+        `${String(user || "").toLowerCase().trim()}::${String(ig || "").toLowerCase().replace("@", "").trim()}`;
+      const shots = new Map<string, string>();
+      const shotsByIg = new Map<string, string>();
+      for (const p of ((profiles || []) as Array<Record<string, string | null>>)) {
+        if (!p.profile_screenshot_url) continue;
+        shots.set(shotKey(p.squarecloud_username || "", p.instagram_username || ""), p.profile_screenshot_url);
+        shotsByIg.set(
+          String(p.instagram_username || "").toLowerCase().replace("@", "").trim(),
+          p.profile_screenshot_url,
+        );
+      }
+
       const byUser = new Map<string, MroAccountRow[]>();
       for (const a of ((accounts || []) as MroAccountRow[])) {
         const list = byUser.get(a.user_id) || [];
@@ -286,15 +304,23 @@ serve(async (req) => {
       const result = ((users || []) as MroUserRow[]).map((u) => {
         const list = byUser.get(u.id) || [];
         const { password_hash, ...rest } = u as any;
+        const withShots = list.map((a) => {
+          const ig = String(a.instagram_username || "").toLowerCase().replace("@", "").trim();
+          return {
+            ...a,
+            screenshot_url: shots.get(shotKey(u.username, ig)) || shotsByIg.get(ig) || null,
+          };
+        });
         return {
           ...rest,
           ...planInfo(u),
           has_password: !!password_hash,
-          accounts: list.filter((a) => !a.is_trial),
-          trial_accounts: list.filter((a) => a.is_trial),
+          accounts: withShots.filter((a) => !a.is_trial),
+          trial_accounts: withShots.filter((a) => a.is_trial),
           trials_remaining: Math.max(0, MONTHLY_TRIALS - u.trials_used),
         };
       });
+
 
       return json({ success: true, users: result, trials_limit: MONTHLY_TRIALS });
     }
