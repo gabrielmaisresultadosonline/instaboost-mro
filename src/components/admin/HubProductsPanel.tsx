@@ -53,6 +53,52 @@ export default function HubProductsPanel() {
   const [hubDownloadLinks, setHubDownloadLinks] = useState<Record<string, string>>({});
   // Quantidade de módulos publicados por slug (para exibir a tarja "Área de membros ativa")
   const [membersCount, setMembersCount] = useState<Record<string, number>>({});
+  // Upload da imagem de capa (arquivo, colar ou arrastar)
+  const [uploadingThumb, setUploadingThumb] = useState(false);
+
+  /**
+   * Envia a imagem para o bucket público "assets" e devolve a URL pública.
+   * Valida tipo e tamanho antes do upload para evitar arquivos inválidos.
+   */
+  const uploadThumbFile = useCallback(
+    async (file: File | null | undefined) => {
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "Arquivo inválido", description: "Envie uma imagem (PNG, JPG, WEBP).", variant: "destructive" });
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        toast({ title: "Imagem muito grande", description: "O limite é 8MB.", variant: "destructive" });
+        return;
+      }
+      setUploadingThumb(true);
+      try {
+        const ext = (file.name.split(".").pop() || "png").toLowerCase();
+        const path = `hub-products/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("assets").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
+        if (error) throw error;
+        const { data } = supabase.storage.from("assets").getPublicUrl(path);
+        setEditing((prev) => (prev ? { ...prev, thumb_url: data.publicUrl } : prev));
+        toast({ title: "Imagem enviada", description: "Capa atualizada com sucesso." });
+      } catch (err) {
+        console.error("Erro ao subir capa:", err);
+        toast({
+          title: "Erro no upload",
+          description: err instanceof Error ? err.message : "Não foi possível enviar a imagem.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingThumb(false);
+      }
+    },
+    [toast]
+  );
+
+
 
   const load = useCallback(async () => {
     setLoading(true);
