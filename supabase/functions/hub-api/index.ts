@@ -649,26 +649,88 @@ serve(async (req) => {
         if (u) u.blocked = true;
       }
 
-      const list = allUsers().map((u) => ({
-        ...u,
-        products: productList.map((p) => {
-          const manualEntry = u.access[`product:${p.id}`];
-          const planEntry = u.access[p.access_source];
+      // Lista final: cada conta de ferramenta (MRO / ZAPMRO) vira uma linha própria,
+      // preservando o username individual mesmo quando várias contas dividem o mesmo e-mail.
+      // O vínculo por e-mail continua valendo apenas para liberar os produtos.
+      const buildProducts = (group: HubUser) =>
+        productList.map((p) => {
+          const manualEntry = group.access[`product:${p.id}`];
+          const planEntry = group.access[p.access_source];
           const entry = manualEntry || planEntry;
           return {
             id: p.id,
             slug: p.slug,
             title: p.title,
-            unlocked: !!entry && !u.blocked,
+            unlocked: !!entry && !group.blocked,
             manual: !!manualEntry,
             origin: entry?.origin || null,
           };
-        }),
-      }));
+        });
 
-      list.sort((a, b) => (a.name || a.email || a.username || "").localeCompare(b.name || b.email || b.username || ""));
+      const groupAliases = new Map<HubUser, string[]>();
+      for (const [alias, ref] of aliasIndex.entries()) {
+        const arr = groupAliases.get(ref) || [];
+        const value = alias.slice(2);
+        if (!arr.includes(value)) arr.push(value);
+        groupAliases.set(ref, arr);
+      }
+
+      const rows: Record<string, unknown>[] = [];
+      const coveredGroups = new Set<HubUser>();
+
+      const pushAccountRow = (
+        row: Record<string, unknown>,
+        source: string,
+      ) => {
+        const e = norm(row.email as string);
+        const un = norm(row.username as string);
+        const group = (un ? aliasIndex.get(`u:${un}`) : undefined) || (e ? aliasIndex.get(`e:${e}`) : undefined);
+        if (!group) return;
+        coveredGroups.add(group);
+        rows.push({
+          key: `${source}:${row.id}`,
+          username: un,
+          email: e,
+          name: (row.name as string) || group.name || null,
+          password: (row.password_plain as string) || null,
+          sources: group.sources,
+          aliases: groupAliases.get(group) || [],
+          blocked: group.blocked,
+          access: group.access,
+          account_source: source,
+          products: buildProducts(group),
+        });
+      };
+
+      for (const row of mroUsers) pushAccountRow(row, "mro_tool");
+      for (const row of zapUsers) pushAccountRow(row, "zapmro");
+
+      // Identidades sem conta de ferramenta (compras Posts com IA / dashboard / liberações manuais)
+      for (const group of allUsers()) {
+        if (coveredGroups.has(group)) continue;
+        rows.push({
+          key: group.key,
+          username: group.username,
+          email: group.email,
+          name: group.name,
+          password: group.password,
+          sources: group.sources,
+          aliases: groupAliases.get(group) || [],
+          blocked: group.blocked,
+          access: group.access,
+          account_source: group.sources[0] || null,
+          products: buildProducts(group),
+        });
+      }
+
+      const list = rows;
+
+      list.sort((a, b) =>
+        String(a.name || a.email || a.username || "").localeCompare(String(b.name || b.email || b.username || "")),
+      );
 
       return json({ success: true, products: productList, users: list, total: list.length });
+
     }
 
     /** Reenvia o acesso do cliente por email, sempre apontando para /dashboard. */
