@@ -25,18 +25,6 @@ interface HubProductRow {
   is_active: boolean;
 }
 
-interface HubTutorialRow {
-  id?: string;
-  product_id: string;
-  title: string;
-  description: string | null;
-  cover_url: string | null;
-  video_url: string | null;
-  download_url: string | null;
-  order_index: number;
-  is_active: boolean;
-}
-
 const emptyProduct = (): HubProductRow => ({
   slug: "",
   title: "",
@@ -50,16 +38,6 @@ const emptyProduct = (): HubProductRow => ({
   is_active: true,
 });
 
-const emptyTutorial = (productId: string): HubTutorialRow => ({
-  product_id: productId,
-  title: "",
-  description: "",
-  cover_url: "",
-  video_url: "",
-  download_url: "",
-  order_index: 0,
-  is_active: true,
-});
 
 export default function HubProductsPanel() {
   const { toast } = useToast();
