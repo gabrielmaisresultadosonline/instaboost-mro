@@ -407,7 +407,7 @@ serve(async (req) => {
           username,
           email: item?.email ? String(item.email).trim().toLowerCase() : null,
           password: item?.password ? String(item.password) : null,
-          expiration: Math.max(0, Number(item?.expiration_days) || 0),
+          expiration: normalizeExpiration(item?.expiration_days),
           igs,
         });
       }
