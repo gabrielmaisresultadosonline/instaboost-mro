@@ -2,14 +2,6 @@ import { useLocation, Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { HUB_DASHBOARD_ROUTE, shouldReturnToHub } from "@/lib/hubReturn";
 
-/**
- * Marca se este é o primeiro render da aplicação (carregamento "frio" da URL).
- *
- * Só o carregamento direto de uma URL protegida deve cair no /dashboard.
- * Navegações internas (SPA) sempre abrem a página normalmente.
- */
-let coldStart = true;
-
 /** Indica se a URL atual está em modo embed (iframe/extensão). */
 function isEmbedded(search: string): boolean {
   try {
@@ -41,13 +33,13 @@ interface HubEntryGateProps {
 export function HubEntryGate({ children, allowEmbed = false }: HubEntryGateProps) {
   const location = useLocation();
 
-  const wasColdStart = coldStart;
-  coldStart = false;
-
+  // location.key === "default" identifica a primeira entrada da sessão de
+  // navegação, ou seja: URL digitada, link externo ou F5 na própria página.
+  const isDirectEntry = location.key === "default";
   const embedded = allowEmbed && isEmbedded(location.search);
   const cameFromHub = shouldReturnToHub();
 
-  if (wasColdStart && !embedded && !cameFromHub) {
+  if (isDirectEntry && !embedded && !cameFromHub) {
     return <Navigate to={HUB_DASHBOARD_ROUTE} replace />;
   }
 
