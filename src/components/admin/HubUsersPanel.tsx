@@ -43,7 +43,12 @@ interface HubUser {
   name: string | null;
   password: string | null;
   sources: string[];
+  /** Todos os e-mails/usernames vinculados à mesma identidade (busca). */
+  aliases?: string[];
+  /** Origem da conta desta linha (mro_tool, zapmro, ...). */
+  account_source?: string | null;
   blocked: boolean;
+
   products: HubUserProduct[];
 }
 
@@ -89,8 +94,11 @@ export default function HubUsersPanel() {
     const term = search.trim().toLowerCase();
     if (!term) return users;
     return users.filter((u) =>
-      [u.name, u.email, u.username].filter(Boolean).some((v) => String(v).toLowerCase().includes(term)),
+      [u.name, u.email, u.username, ...(u.aliases || [])]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(term)),
     );
+
   }, [users, search]);
 
   // Mostra apenas os primeiros 50 para não pesar a página, a menos que haja busca.
