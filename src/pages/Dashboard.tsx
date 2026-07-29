@@ -249,8 +249,14 @@ export default function Dashboard() {
       if (!data?.success) {
         if (data?.conflict) {
           setMergeEmail(email);
-          setMergeConflicts(Array.isArray(data.conflict_accounts) ? data.conflict_accounts : []);
+          const list = Array.isArray(data.conflict_accounts) ? data.conflict_accounts : [];
+          setMergeConflicts(list);
+          // Pré-seleciona o acesso com o qual o cliente está logado agora
+          setMergePrimary(
+            list.find((c: { current?: boolean }) => c.current)?.username || session.username || list[0]?.username || "",
+          );
           return;
+
         }
         toast({ title: data?.error || "Não foi possível salvar", variant: "destructive" });
         return;
