@@ -5,9 +5,10 @@ import ModuleManager from '@/components/admin/ModuleManager';
 import ZapmroAPIDocumentation from '@/components/admin/ZapmroAPIDocumentation';
 import { ZapmroUsersTab, ZapmroAnnouncementsTab } from '@/components/admin/ZapmroUsersPanel';
 import ZapmroSessionsTab from '@/components/admin/ZapmroSessionsPanel';
-import { BookOpen, Users, Megaphone, FileCode, Wifi } from 'lucide-react';
+import ZapmroBulkImport from '@/components/admin/ZapmroBulkImport';
+import { BookOpen, Users, Megaphone, FileCode, Wifi, ClipboardPaste } from 'lucide-react';
 
-type SubTab = 'tutorials' | 'users' | 'sessions' | 'announcements' | 'docs';
+type SubTab = 'tutorials' | 'users' | 'bulk' | 'sessions' | 'announcements' | 'docs';
 
 interface ZapmroToolPanelProps {
   downloadLink: string;
@@ -18,6 +19,7 @@ interface ZapmroToolPanelProps {
 const SUB_TABS: { id: SubTab; label: string; icon: React.ReactNode }[] = [
   { id: 'tutorials', label: 'Tutoriais', icon: <BookOpen className="w-4 h-4" /> },
   { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+  { id: 'bulk', label: 'Colar usuários', icon: <ClipboardPaste className="w-4 h-4" /> },
   { id: 'sessions', label: 'Acessos / IPs', icon: <Wifi className="w-4 h-4" /> },
   { id: 'announcements', label: 'Avisos', icon: <Megaphone className="w-4 h-4" /> },
   { id: 'docs', label: 'Documentação', icon: <FileCode className="w-4 h-4" /> },
@@ -58,6 +60,7 @@ const ZapmroToolPanel: React.FC<ZapmroToolPanelProps> = ({
       )}
 
       {subTab === 'users' && <ZapmroUsersTab />}
+      {subTab === 'bulk' && <ZapmroBulkImport onImported={() => setSubTab('users')} />}
       {subTab === 'sessions' && <ZapmroSessionsTab />}
       {subTab === 'announcements' && <ZapmroAnnouncementsTab />}
       {subTab === 'docs' && <ZapmroAPIDocumentation />}
