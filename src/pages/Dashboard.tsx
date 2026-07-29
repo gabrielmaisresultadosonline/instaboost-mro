@@ -185,7 +185,95 @@ export default function Dashboard() {
     localStorage.removeItem(DASHBOARD_SESSION_KEY);
     setSession(null);
     setProducts([]);
+    setProfile(null);
+    setNeedsEmail(false);
   };
+
+  /**
+   * Salva os dados do cliente (nome, e-mail, WhatsApp e senha) no banco.
+   * O nome de acesso (usuário) nunca é alterado nem removido.
+   */
+  const saveProfile = async (requireEmail: boolean) => {
+    if (!session) return;
+    const email = formEmail.trim().toLowerCase();
+    if ((requireEmail || email) && !email.includes("@")) {
+      toast({ title: "Informe um e-mail válido", variant: "destructive" });
+      return;
+    }
+    if (formNewPassword && formNewPassword !== formConfirmPassword) {
+      toast({ title: "As senhas não conferem", variant: "destructive" });
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: {
+          action: "update_profile",
+          username: session.username || "",
+          email: session.email || "",
+          password: session.password,
+          new_email: email,
+          new_name: formName.trim(),
+          new_whatsapp: formWhats,
+          new_password: formNewPassword || undefined,
+        },
+      });
+      if (!data?.success) {
+        toast({ title: data?.error || "Não foi possível salvar", variant: "destructive" });
+        return;
+      }
+      const next: DashboardSession = {
+        username: session.username || data.profile?.username || null,
+        email: data.profile?.email || email || session.email,
+        name: data.profile?.name || formName.trim() || session.name,
+        password: (data.password as string) || session.password,
+      };
+      localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
+      setSession(next);
+      setProfile((prev) =>
+        prev
+          ? { ...prev, email: next.email || "", name: next.name || "", whatsapp: formWhats, has_email: !!next.email }
+          : prev,
+      );
+      setFormNewPassword("");
+      setFormConfirmPassword("");
+      setNeedsEmail(false);
+      setShowConfig(false);
+      toast({ title: "Dados salvos com sucesso" });
+    } catch {
+      toast({ title: "Erro ao salvar seus dados", variant: "destructive" });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  /** Envia um único lembrete de acesso para o e-mail vinculado ao cliente. */
+  const handleRecover = async () => {
+    const email = recoverEmail.trim().toLowerCase();
+    if (!email.includes("@")) {
+      toast({ title: "Informe um e-mail válido", variant: "destructive" });
+      return;
+    }
+    setRecovering(true);
+    try {
+      const { data } = await supabase.functions.invoke("hub-api", {
+        body: { action: "recover_access", email },
+      });
+      if (data?.success) {
+        toast({ title: "Enviamos seu acesso", description: `Confira a caixa de entrada de ${email}.` });
+        setShowRecover(false);
+        setRecoverEmail("");
+      } else {
+        toast({ title: data?.error || "Não foi possível recuperar", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Erro ao recuperar acesso", variant: "destructive" });
+    } finally {
+      setRecovering(false);
+    }
+  };
+
+
 
   /**
    * Abre o produto já autenticado. Cada ferramenta guarda a sessão de um jeito
