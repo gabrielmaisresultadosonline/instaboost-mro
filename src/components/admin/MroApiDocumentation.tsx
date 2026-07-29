@@ -30,53 +30,110 @@ const MroApiDocumentation: React.FC = () => (
         <Badge variant="outline">Anual = mostra os dias restantes</Badge>
         <Badge variant="outline">Mensal = dias restantes</Badge>
         <Badge variant="secondary">5 testes por mês · 1 dia cada</Badge>
+        <Badge className="bg-amber-500 text-black hover:bg-amber-500">Verificação de @instagram no login</Badge>
       </div>
     </Card>
 
+    <Card className="p-4 space-y-2 border-amber-500/40 bg-amber-500/5">
+      <h4 className="font-semibold text-sm text-amber-500">🔒 Regra obrigatória: só entra com Instagram cadastrado</h4>
+      <p className="text-xs text-muted-foreground">
+        A extensão deve enviar o <code>@instagram</code> que está logado no navegador junto do login. A API verifica se
+        aquele perfil está cadastrado <strong>nesse usuário</strong>. Se não estiver, o login é recusado
+        (<code>instagram_not_registered: true</code>) e a ferramenta NÃO deve abrir.
+      </p>
+      <p className="text-xs text-muted-foreground">Fontes verificadas automaticamente:</p>
+      <ul className="text-xs text-muted-foreground list-disc pl-5 space-y-1">
+        <li><code>plan_account</code> — contas fixas do plano (vitalício / anual / mensal)</li>
+        <li><code>trial_account</code> — contas de teste da ferramenta (5 por mês, 1 dia cada)</li>
+        <li><code>free_trial</code> — perfis cadastrados no <strong>teste grátis</strong> (válidos e não removidos)</li>
+        <li><code>instagram_area</code> — perfis já cadastrados pelo cliente na área <code>/instagram</code></li>
+      </ul>
+    </Card>
+
     <Block
-      title="1) Login (usuário OU email + senha)"
-      description="Retorna o plano, as contas fixas, as contas em teste e os slots disponíveis."
+      title="1) Login com verificação do Instagram (recomendado)"
+      description="Envie o @instagram logado na extensão. Só retorna success:true se o perfil estiver cadastrado."
       code={`POST ${ENDPOINT}
 {
   "action": "login",
-  "username": "usuariovip",   // ou "email": "cliente@email.com"
-  "password": "senha"
+  "username": "usuariovip",       // ou "email": "cliente@email.com"
+  "password": "senha",
+  "instagram": "minhaconta"        // @ do perfil logado na extensão
 }
 
-// Resposta
+// ✅ Instagram cadastrado -> pode abrir a ferramenta
 {
   "success": true,
-  "user": {
-    "username": "usuariovip",
-    "plan_type": "vitalicio",      // vitalicio | anual | mensal
-    "lifetime": true,
-    "days_remaining": 999999,
-    "plan_accounts": 4,
-    "access_allowed": true
+  "instagram_verified": true,
+  "instagram": {
+    "username": "minhaconta",
+    "registered": true,
+    "source": "plan_account",      // plan_account | trial_account | free_trial | instagram_area
+    "is_trial": false,
+    "trial_expires_at": null
   },
+  "user": { "plan_type": "vitalicio", "lifetime": true, "days_remaining": 999999, "plan_accounts": 4, "access_allowed": true },
   "accounts": [{ "instagram_username": "minhaconta" }],
-  "trial_accounts": [],
   "trials": { "limit": 5, "used": 0, "remaining": 5, "duration_days": 1 },
   "slots": { "total": 4, "used": 1, "available": 3 }
-}`}
+}
+
+// ❌ Instagram NÃO cadastrado -> BLOQUEAR o login
+{
+  "success": false,
+  "instagram_not_registered": true,
+  "instagram": "outraconta",
+  "error": "O Instagram @outraconta não está cadastrado na sua conta. Cadastre o perfil na área /instagram antes de usar a ferramenta."
+}
+
+// ❌ Acesso expirado
+{ "success": false, "needs_renewal": true, "error": "Acesso expirado ou desativado" }`}
     />
 
     <Block
-      title="2) Verificar usuário (sem senha)"
+      title="2) Login simples (sem verificar Instagram)"
+      description="Se o campo instagram não for enviado, a API só valida o plano e retorna as contas cadastradas."
+      code={`{ "action": "login", "username": "usuariovip", "password": "senha" }`}
+    />
+
+    <Block
+      title="3) Verificar Instagram isoladamente"
+      description="Use quando o cliente trocar de perfil dentro da extensão, sem refazer o login."
+      code={`{ "action": "verify_instagram", "username": "usuariovip", "instagram": "minhaconta" }
+
+// Cadastrado
+{
+  "success": true,
+  "allowed": true,
+  "registered": true,
+  "instagram": "minhaconta",
+  "source": "free_trial",          // veio do teste grátis
+  "is_trial": true,
+  "trial_expires_at": "2026-07-30T12:00:00.000Z",
+  "plan": { "plan_type": "mensal", "lifetime": false, "days_remaining": 22, "access_allowed": true }
+}
+
+// Não cadastrado -> não liberar a ferramenta
+{ "success": true, "allowed": false, "registered": false, "instagram": "outraconta",
+  "error": "O Instagram @outraconta não está cadastrado nessa conta." }`}
+    />
+
+    <Block
+      title="4) Verificar usuário (sem senha)"
       code={`{ "action": "verify_user", "username": "usuariovip" }`}
     />
 
     <Block
-      title="3) Verificar se a conta do Instagram está liberada"
-      description="Use antes de iniciar automação em qualquer conta."
+      title="5) Verificar se a conta do Instagram está liberada (check_account)"
+      description="Mesma verificação do verify_instagram — inclui plano, testes de 1 dia, teste grátis e perfis da área /instagram."
       code={`{ "action": "check_account", "username": "usuariovip", "instagram": "minhaconta" }
 
 // Resposta
-{ "success": true, "allowed": true, "is_trial": false }`}
+{ "success": true, "allowed": true, "registered": true, "source": "instagram_area", "is_trial": false }`}
     />
 
     <Block
-      title="4) Cadastrar conta do plano"
+      title="6) Cadastrar conta do plano"
       description="Bloqueia automaticamente quando o cliente tenta cadastrar mais contas do que o plano permite."
       code={`{ "action": "add_account", "username": "usuariovip", "instagram": "novaconta" }
 
@@ -89,7 +146,7 @@ const MroApiDocumentation: React.FC = () => (
     />
 
     <Block
-      title="5) Cadastrar conta de TESTE (5 por mês, 1 dia cada)"
+      title="7) Cadastrar conta de TESTE (5 por mês, 1 dia cada)"
       description="Não consome slot do plano. Expira sozinha em 24h."
       code={`{ "action": "add_account", "username": "usuariovip", "instagram": "contateste", "trial": true }
 
@@ -101,17 +158,39 @@ const MroApiDocumentation: React.FC = () => (
     />
 
     <Block
-      title="Exemplo de uso na extensão"
-      code={`const res = await fetch("${ENDPOINT}", {
+      title="Exemplo completo na extensão (login + verificação do Instagram)"
+      code={`// 1. pega o @ logado no Instagram dentro da extensão
+const instagram = getLoggedInstagramUsername(); // ex.: "minhaconta"
+
+const res = await fetch("${ENDPOINT}", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ action: "login", username, password })
+  body: JSON.stringify({ action: "login", username, password, instagram })
 });
 const data = await res.json();
+
+if (data.instagram_not_registered) {
+  // NÃO abrir a ferramenta
+  return alert(data.error);
+}
 if (!data.success) return alert(data.error);
-// data.slots.available -> quantas contas ainda pode cadastrar
-// data.trials.remaining -> quantos testes de 1 dia restam neste mês`}
+
+// ✅ liberado
+console.log(data.instagram.source);   // plan_account | trial_account | free_trial | instagram_area
+console.log(data.user.plan_type);     // vitalicio | anual | mensal
+console.log(data.slots.available);    // quantas contas ainda pode cadastrar
+console.log(data.trials.remaining);   // testes de 1 dia restantes no mês
+
+// 2. ao trocar de perfil dentro da extensão, revalidar:
+const check = await fetch("${ENDPOINT}", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ action: "verify_instagram", username, instagram: novoPerfil })
+}).then(r => r.json());
+
+if (!check.allowed) return alert(check.error); // bloqueia o novo perfil`}
     />
+
   </div>
 );
 
