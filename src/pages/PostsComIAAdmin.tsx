@@ -266,12 +266,14 @@ export default function PostsComIAAdmin({ embedded = false }: PostsComIAAdminPro
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
               Atualizar
             </button>
-            <button
-              onClick={logout}
-              className="px-3 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-sm flex items-center gap-2 text-neutral-400"
-            >
-              <LogOut className="w-4 h-4" /> Sair
-            </button>
+            {!embedded && (
+              <button
+                onClick={logout}
+                className="px-3 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-sm flex items-center gap-2 text-neutral-400"
+              >
+                <LogOut className="w-4 h-4" /> Sair
+              </button>
+            )}
           </div>
         </div>
       </header>
