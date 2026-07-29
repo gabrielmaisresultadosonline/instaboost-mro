@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 const RendaExtraPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'choice' | 'prestar'>('choice');
+  const [mode, setMode] = useState<'choice' | 'prestar'>('prestar');
 
   if (mode === 'choice') {
     return (
