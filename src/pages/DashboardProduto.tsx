@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { markHubReturn } from "@/lib/hubReturn";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, Download, Play, ExternalLink, Package } from "lucide-react";
