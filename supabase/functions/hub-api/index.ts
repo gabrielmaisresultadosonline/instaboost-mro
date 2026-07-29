@@ -395,6 +395,222 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    /** Remove uma liberação manual (hub_access) de um produto para o cliente. */
+    if (action === "admin_revoke_access") {
+      const productId = String(body.product_id || "");
+      const email = String(body.email || "").trim().toLowerCase();
+      const username = String(body.username || "").trim().toLowerCase();
+      if (!productId || (!email && !username)) {
+        return json({ success: false, error: "Produto e e-mail/usuário são obrigatórios" }, 400);
+      }
+      if (email) await supabase.from("hub_access").delete().eq("product_id", productId).eq("email", email);
+      if (username) await supabase.from("hub_access").delete().eq("product_id", productId).eq("username", username);
+      return json({ success: true });
+    }
+
+    /** Bloqueia/desbloqueia totalmente o cliente na dashboard de produtos. */
+    if (action === "admin_toggle_block") {
+      const email = String(body.email || "").trim().toLowerCase();
+      const username = String(body.username || "").trim().toLowerCase();
+      const blocked = body.blocked !== false;
+      if (!email && !username) return json({ success: false, error: "E-mail ou usuário obrigatório" }, 400);
+
+      if (blocked) {
+        await supabase.from("hub_blocked_users").insert({
+          email: email || null,
+          username: username || null,
+          reason: body.reason ? String(body.reason).slice(0, 300) : null,
+        });
+      } else {
+        if (email) await supabase.from("hub_blocked_users").delete().eq("email", email);
+        if (username) await supabase.from("hub_blocked_users").delete().eq("username", username);
+      }
+      return json({ success: true, blocked });
+    }
+
+    /**
+     * Lista unificada de todos os clientes (MRO, ZAPMRO, Posts com IA, compras da
+     * dashboard e liberações manuais) com o mapa de acesso por produto.
+     */
+    if (action === "admin_list_users") {
+      const fetchAll = async (table: string, columns: string) => {
+        const out: Record<string, unknown>[] = [];
+        let from = 0;
+        const size = 1000;
+        // Paginação para não truncar em 1000 linhas.
+        for (;;) {
+          const { data, error } = await supabase.from(table).select(columns).range(from, from + size - 1);
+          if (error || !data || data.length === 0) break;
+          out.push(...(data as Record<string, unknown>[]));
+          if (data.length < size) break;
+          from += size;
+        }
+        return out;
+      };
+
+      const [products, mroUsers, zapUsers, postsOrders, hubOrders, grants, blocked] = await Promise.all([
+        supabase.from("hub_products").select("*").order("order_index", { ascending: true }),
+        fetchAll("mro_tool_users", "id,username,email,name,expiration_days,is_active,password_plain"),
+        fetchAll("zapmro_users", "id,username,email,name,expiration_days,is_active,password_plain"),
+        fetchAll("postscomia_orders", "email,name,status,paid_at"),
+        fetchAll("hub_orders", "email,name,product_slug,status"),
+        fetchAll("hub_access", "product_id,email,username,expires_at"),
+        fetchAll("hub_blocked_users", "email,username,reason"),
+      ]);
+
+      const productList = products.data || [];
+
+      type HubUser = {
+        key: string;
+        username: string | null;
+        email: string | null;
+        name: string | null;
+        password: string | null;
+        sources: string[];
+        blocked: boolean;
+        access: Record<string, { unlocked: boolean; manual: boolean; origin: string }>;
+      };
+
+      const users = new Map<string, HubUser>();
+      const keyOf = (email?: string | null, username?: string | null) =>
+        (String(email || "").trim().toLowerCase() || String(username || "").trim().toLowerCase());
+
+      const touch = (
+        email: string | null,
+        username: string | null,
+        name: string | null,
+        source: string,
+        password?: string | null,
+      ): HubUser | null => {
+        const key = keyOf(email, username);
+        if (!key) return null;
+        const existing = users.get(key);
+        if (existing) {
+          existing.email = existing.email || (email ? email.toLowerCase() : null);
+          existing.username = existing.username || username;
+          existing.name = existing.name || name;
+          existing.password = existing.password || password || null;
+          if (!existing.sources.includes(source)) existing.sources.push(source);
+          return existing;
+        }
+        const created: HubUser = {
+          key,
+          username: username || null,
+          email: email ? email.toLowerCase() : null,
+          name: name || null,
+          password: password || null,
+          sources: [source],
+          blocked: false,
+          access: {},
+        };
+        users.set(key, created);
+        return created;
+      };
+
+      const setAccess = (u: HubUser | null, source: string, unlocked: boolean, origin: string, manual = false) => {
+        if (!u || !unlocked) return;
+        u.access[source] = { unlocked: true, manual, origin };
+      };
+
+      for (const row of mroUsers) {
+        const u = touch(
+          (row.email as string) || null,
+          (row.username as string) || null,
+          (row.name as string) || null,
+          "mro_tool",
+          (row.password_plain as string) || null,
+        );
+        setAccess(u, "mro_tool", isAccessActive(row), "MRO Ferramenta");
+      }
+      for (const row of zapUsers) {
+        const u = touch(
+          (row.email as string) || null,
+          (row.username as string) || null,
+          (row.name as string) || null,
+          "zapmro",
+          (row.password_plain as string) || null,
+        );
+        setAccess(u, "zapmro", isAccessActive(row), "ZAPMRO");
+      }
+      for (const row of postsOrders) {
+        if (row.status !== "paid") continue;
+        const u = touch((row.email as string) || null, null, (row.name as string) || null, "postscomia");
+        setAccess(u, "postscomia", true, "Posts com IA");
+      }
+      for (const row of hubOrders) {
+        const u = touch((row.email as string) || null, null, (row.name as string) || null, "dashboard");
+        if (row.status === "paid" && row.product_slug) {
+          const prod = productList.find((p) => p.slug === row.product_slug);
+          if (prod) setAccess(u, `product:${prod.id}`, true, "Compra na dashboard");
+        }
+      }
+
+      // Liberações manuais por produto
+      for (const g of grants) {
+        const expired = g.expires_at ? new Date(String(g.expires_at)).getTime() <= Date.now() : false;
+        if (expired) continue;
+        const u = touch((g.email as string) || null, (g.username as string) || null, null, "manual");
+        setAccess(u, `product:${g.product_id}`, true, "Liberado manualmente", true);
+      }
+
+      // Bloqueios
+      for (const b of blocked) {
+        const key = keyOf(b.email as string, b.username as string);
+        const u = users.get(key);
+        if (u) u.blocked = true;
+      }
+
+      const list = Array.from(users.values()).map((u) => ({
+        ...u,
+        products: productList.map((p) => {
+          const manualEntry = u.access[`product:${p.id}`];
+          const planEntry = u.access[p.access_source];
+          const entry = manualEntry || planEntry;
+          return {
+            id: p.id,
+            slug: p.slug,
+            title: p.title,
+            unlocked: !!entry && !u.blocked,
+            manual: !!manualEntry,
+            origin: entry?.origin || null,
+          };
+        }),
+      }));
+
+      list.sort((a, b) => (a.name || a.email || a.username || "").localeCompare(b.name || b.email || b.username || ""));
+
+      return json({ success: true, products: productList, users: list, total: list.length });
+    }
+
+    /** Reenvia o acesso do cliente por email, sempre apontando para /dashboard. */
+    if (action === "admin_send_access") {
+      const email = String(body.email || "").trim().toLowerCase();
+      const username = String(body.username || "").trim();
+      const password = String(body.password || "");
+      if (!email.includes("@")) return json({ success: false, error: "Cliente sem email cadastrado" }, 400);
+      if (!password) return json({ success: false, error: "Senha não disponível para este cliente" }, 400);
+
+      const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-welcome-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          email,
+          username: username || email,
+          password,
+          daysRemaining: Number(body.daysRemaining || 0) || undefined,
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || result?.success === false) {
+        return json({ success: false, error: result?.error || "Falha ao enviar email" }, 500);
+      }
+      return json({ success: true, email });
+    }
+
+
     return json({ success: false, error: "Ação inválida" }, 400);
   } catch (e) {
     return json({ success: false, error: e instanceof Error ? e.message : "Erro inesperado" }, 500);
