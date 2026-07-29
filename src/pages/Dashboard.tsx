@@ -230,6 +230,11 @@ export default function Dashboard() {
         },
       });
       if (!data?.success) {
+        if (data?.conflict) {
+          setMergeEmail(email);
+          setMergeConflicts(Array.isArray(data.conflict_accounts) ? data.conflict_accounts : []);
+          return;
+        }
         toast({ title: data?.error || "Não foi possível salvar", variant: "destructive" });
         return;
       }
