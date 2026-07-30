@@ -197,8 +197,7 @@ const AffiliatePromoPage = () => {
 
   // Verificar disponibilidade do username na SquareCloud usando /verificar-numero
   // Regra: enviar nome e senha iguais (numero = username) e interpretar:
-  // - senhaCorrespondente === true  => já existe (não disponível)
-  // - senhaCorrespondente === false => disponível
+  // Verifica disponibilidade do usuário na API interna (mro_tool_users)
   const checkUsernameAvailability = async (usernameToCheck: string) => {
     if (usernameToCheck.length < 4) {
       setUsernameAvailable(null);
@@ -207,37 +206,22 @@ const AffiliatePromoPage = () => {
 
     setCheckingUsername(true);
     try {
-      const body = new URLSearchParams({
-        nome: usernameToCheck,
-        numero: usernameToCheck,
+      const { data, error } = await supabase.functions.invoke('mro-tool-api', {
+        body: { action: 'check_username', username: usernameToCheck },
       });
 
-      const response = await fetch(
-        'https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body,
-        }
-      );
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
+      if (error || !data || data.success !== true) {
         setUsernameAvailable(null);
         setUsernameError('Erro ao verificar disponibilidade');
         return;
       }
 
-      if (data?.senhaCorrespondente === true) {
-        setUsernameAvailable(false);
-        setUsernameError('Usuário já em uso. Utilize outro usuário');
-      } else if (data?.senhaCorrespondente === false) {
+      if (data.available === true) {
         setUsernameAvailable(true);
         setUsernameError('');
       } else {
-        setUsernameAvailable(null);
-        setUsernameError('Erro ao verificar disponibilidade');
+        setUsernameAvailable(false);
+        setUsernameError('Usuário já em uso. Utilize outro usuário');
       }
     } catch {
       setUsernameAvailable(null);
@@ -246,6 +230,7 @@ const AffiliatePromoPage = () => {
       setCheckingUsername(false);
     }
   };
+
 
   // Validar username com debounce para verificação
   const validateUsername = (value: string) => {
