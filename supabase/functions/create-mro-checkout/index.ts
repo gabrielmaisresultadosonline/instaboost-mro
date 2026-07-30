@@ -64,27 +64,30 @@ serve(async (req) => {
     const priceInCents = Math.round((amount || 397) * 100);
     const planLabel = planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : planType === "monthly" ? "MENSAL" : planType === "solo" ? "SOLO" : planType === "pro" ? "PRO" : planType === "agencia" ? "AGENCIA" : "ANUAL";
 
-    // Verificar se usuário já existe na SquareCloud
+    // Verificar se usuário já existe na API interna (mro_tool_users)
     if (checkUserExists) {
       try {
-        log("Checking if user exists in SquareCloud", { username: cleanUsername });
-        const checkUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users/${cleanUsername}`;
-        const checkResponse = await fetch(checkUrl);
-        
-        if (checkResponse.ok) {
-          const userData = await checkResponse.json();
-          if (userData && userData.username) {
-            log("User already exists in SquareCloud", { username: cleanUsername });
-            return new Response(
-              JSON.stringify({ error: "Este nome de usuário já está em uso. Escolha outro.", userExists: true }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-            );
-          }
+        log("Checking if user exists in internal API (mro_tool_users)", { username: cleanUsername });
+        const { data: existingUser, error: checkErr } = await supabase
+          .from("mro_tool_users")
+          .select("username")
+          .eq("username", cleanUsername)
+          .maybeSingle();
+
+        if (checkErr) {
+          log("Error checking user existence (continuing)", checkErr.message);
+        } else if (existingUser?.username) {
+          log("User already exists in internal API", { username: cleanUsername });
+          return new Response(
+            JSON.stringify({ error: "Este nome de usuário já está em uso. Escolha outro.", userExists: true }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
         }
       } catch (e) {
         log("Error checking user existence (continuing)", e);
       }
     }
+
 
     // Redirect URL para página de obrigado (InfiniPay adiciona parâmetros automaticamente)
     const redirectUrl = redirectTo && typeof redirectTo === "string" && redirectTo.startsWith("https://")
