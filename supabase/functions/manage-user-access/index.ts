@@ -272,57 +272,77 @@ async function createWhatsAppUser(username: string, password: string, accessType
   }
 }
 
-// Create user in Instagram API
-async function createInstagramUser(username: string, password: string, daysAccess: number, plan?: string): Promise<boolean> {
+/**
+ * Cria (ou atualiza) o acesso da Ferramenta MRO Instagram direto na NOSSA API
+ * interna (tabela mro_tool_users). A SquareCloud não é mais utilizada.
+ */
+async function createInstagramUser(
+  supabase: any,
+  username: string,
+  password: string,
+  email: string | null,
+  daysAccess: number,
+  plan?: string,
+): Promise<boolean> {
   try {
-    // Determine number of accounts and extraIgSlots based on plan
-    let accounts = 1;
-    let extraIgSlots = 0;
-    
-    if (plan === 'pro') {
-      accounts = 4;
-    } else if (plan === 'agencia') {
-      accounts = 4; // base is 4
-      extraIgSlots = 6; // + 6 = 10 total
+    const planMap: Record<string, { accounts: number; dias: number }> = {
+      solo: { accounts: 1, dias: 365 },
+      pro: { accounts: 4, dias: 365 },
+      agencia: { accounts: 12, dias: LIFETIME_DAYS },
+      trial: { accounts: 4, dias: 1 },
+      monthly: { accounts: 4, dias: 30 },
+      annual: { accounts: 4, dias: 365 },
+      lifetime: { accounts: 4, dias: LIFETIME_DAYS },
+    };
+    const cfg = planMap[String(plan || 'annual')] || planMap.annual;
+    const rawDays = Number(daysAccess) || cfg.dias;
+    const expiration = rawDays >= 9999 ? LIFETIME_DAYS : Math.max(0, Math.floor(rawDays));
+
+    const normalizedUser = String(username || '').trim().toLowerCase();
+    if (!normalizedUser) return false;
+
+    const payload: Record<string, unknown> = {
+      username: normalizedUser,
+      email: email ? String(email).trim().toLowerCase() : null,
+      password_hash: await sha256(password),
+      password_plain: password,
+      plan_accounts: cfg.accounts,
+      expiration_days: expiration,
+      is_active: true,
+    };
+
+    logStep("Creating Instagram user on internal API", { username: normalizedUser, plan, expiration });
+
+    const { data: existing } = await supabase
+      .from('mro_tool_users')
+      .select('id')
+      .eq('username', normalizedUser)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase.from('mro_tool_users').update(payload).eq('id', existing.id);
+      if (error) {
+        logStep("Internal API update failed", { error: error.message });
+        return false;
+      }
+      logStep("Internal user updated", { username: normalizedUser });
+      return true;
     }
 
-    logStep("Creating Instagram user with plan", { username, plan, accounts, extraIgSlots, daysAccess });
+    const { error } = await supabase.from('mro_tool_users').insert(payload);
+    if (error) {
+      logStep("Internal API insert failed", { error: error.message });
+      return false;
+    }
 
-    // Use specific endpoint for plan-based creation if available, else use generic one
-    const createUrl = plan && ['solo', 'pro', 'agencia'].includes(plan) 
-      ? `${INSTAGRAM_API_URL}/admin/criar-usuario-plano`
-      : `${INSTAGRAM_API_URL}/adicionar-usuario`;
-
-    const payload = plan && ['solo', 'pro', 'agencia'].includes(plan)
-      ? { username, password, plano: plan, dias: 365, igUsers: "" }
-      : { username, password, time: daysAccess, igUsers: '', accounts, extraIgSlots };
-
-    // First enable user
-    await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario: username, senha: password }),
-    }).catch(e => logStep("Instagram enable user failed (non-blocking)", e));
-
-    // Create user
-    const response = await fetch(createUrl, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'x-admin-name': 'MRO',
-        'x-admin-pass': 'Ga145523@'
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json().catch(() => ({}));
-    logStep("Instagram user creation result", result);
-    return response.ok || result.success === true;
+    logStep("Internal user created", { username: normalizedUser });
+    return true;
   } catch (error: any) {
-    logStep("Error creating Instagram user", { error: error?.message || String(error) });
+    logStep("Error creating internal Instagram user", { error: error?.message || String(error) });
     return false;
   }
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
