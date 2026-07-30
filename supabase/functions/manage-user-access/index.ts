@@ -13,7 +13,16 @@ const logStep = (step: string, details?: any) => {
 };
 
 const WHATSAPP_API_URL = 'https://mrozap.squareweb.app';
-const INSTAGRAM_API_URL = 'https://dashboardmroinstagramvini-online.squareweb.app';
+
+/** Acesso vitalício na API interna. */
+const LIFETIME_DAYS = 999999;
+
+/** SHA-256 (Web Crypto) — mesmo padrão da API interna (mro-tool-api). */
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 
 // Send email via SMTP
 async function sendAccessEmail(
