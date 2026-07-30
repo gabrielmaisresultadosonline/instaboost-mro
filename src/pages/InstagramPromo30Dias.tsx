@@ -126,7 +126,6 @@ const InstagramPromo30Dias = () => {
     if (checkingUsername) { toast.error("Aguarde a verificação do usuário"); return; }
     const availability = usernameAvailable ?? (await checkUsernameAvailability(username.toLowerCase().trim()));
     if (availability === false) { toast.error("Este nome de usuário já está em uso. Escolha outro."); return; }
-    if (availability !== true) { toast.error("Não foi possível verificar o usuário. Tente novamente."); return; }
     setLoading(true);
     try {
       const plan = PLANS[selectedPlan];
