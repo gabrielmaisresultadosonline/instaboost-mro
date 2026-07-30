@@ -161,7 +161,7 @@ async function sendAccessEmail(
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td align="center" style="padding:10px 0;">
-<a href="${memberAreaUrl}" style="display:inline-block;background:#000;color:#fff;padding:16px 40px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">🚀 ACESSAR PÁGINA OFICIAL</a>
+<a href="${memberAreaUrl}" style="display:inline-block;background:#000;color:#fff;padding:16px 40px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">🚀 ACESSAR ÁREA DE MEMBROS</a>
 </td>
 </tr>
 </table>
@@ -169,7 +169,8 @@ async function sendAccessEmail(
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:25px;">
 <tr>
 <td align="center">
-<a href="${whatsappGroupLink}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 30px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">📱 GRUPO DE AVISOS WHATSAPP</a>
+<a href="${whatsappGroupLink}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 30px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">📱 FALAR NO WHATSAPP</a>
+
 </td>
 </tr>
 </table>
