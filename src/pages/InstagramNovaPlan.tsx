@@ -108,17 +108,21 @@ const InstagramNovaPlan = ({ videoSlot, prefillEmail, prefillPhone, hideContactF
     if (usernameToCheck.length < 4) { setUsernameAvailable(null); return null; }
     setCheckingUsername(true);
     try {
-      const body = new URLSearchParams({ nome: usernameToCheck, numero: usernameToCheck });
-      const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero', {
-        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body,
+      const { data, error } = await supabase.functions.invoke('mro-tool-api', {
+        body: { action: 'check_username', username: usernameToCheck },
       });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) { setUsernameAvailable(null); return null; }
-      if (data?.senhaCorrespondente === true) { setUsernameAvailable(false); setUsernameError("Usuário já em uso. Utilize outro usuário"); return false; }
-      if (data?.senhaCorrespondente === false) { setUsernameAvailable(true); setUsernameError((prev) => prev === "Usuário já em uso. Utilize outro usuário" ? "" : prev); return true; }
-      setUsernameAvailable(null); return null;
+      if (error || !data || data.success !== true) { setUsernameAvailable(null); return null; }
+      if (data.available === true) {
+        setUsernameAvailable(true);
+        setUsernameError((prev) => prev === "Usuário já em uso. Utilize outro usuário" ? "" : prev);
+        return true;
+      }
+      setUsernameAvailable(false);
+      setUsernameError("Usuário já em uso. Utilize outro usuário");
+      return false;
     } catch { setUsernameAvailable(null); return null; } finally { setCheckingUsername(false); }
   };
+
 
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
