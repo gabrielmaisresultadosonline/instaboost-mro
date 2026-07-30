@@ -981,12 +981,13 @@ export default function AdminUsuario() {
                         className="mt-1 w-5 h-5 rounded border-gray-500 bg-gray-700 text-yellow-500 focus:ring-yellow-500"
                       />
                       <div>
-                        <span className="text-white font-medium">Criar na API (SquareCloud)</span>
+                        <span className="text-white font-medium">Criar na API interna (Ferramenta MRO)</span>
                         <p className="text-gray-400 text-xs mt-1">
                           {form.createInApi 
-                            ? '✅ Usuário será criado na API externa automaticamente'
+                            ? '✅ Usuário será criado na nossa API interna automaticamente'
                             : '⚠️ Apenas salvar no admin e enviar email (usuário já existe na API)'}
                         </p>
+
                       </div>
                     </label>
                   </div>
