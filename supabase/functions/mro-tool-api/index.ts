@@ -321,7 +321,26 @@ serve(async (req) => {
       return json({ success: true, ...(await fullPayload(user)) });
     }
 
+    /** Verifica se um nome de usuário está disponível para cadastro (formulários de compra). */
+    if (action === "check_username") {
+      const desired = String(body.username || "").trim().toLowerCase();
+      if (!desired || desired.length < 4) {
+        return json({ success: false, error: "Nome de usuário inválido", available: false });
+      }
+      if (desired.length > 255) {
+        return json({ success: false, error: "Nome de usuário inválido", available: false });
+      }
+      const { data: existing, error: checkErr } = await supabase
+        .from("mro_tool_users")
+        .select("username")
+        .eq("username", desired)
+        .maybeSingle();
+      if (checkErr) return json({ success: false, error: "Erro ao verificar usuário" }, 500);
+      return json({ success: true, username: desired, available: !existing, exists: !!existing });
+    }
+
     if (action === "verify_user") {
+
       const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
       if (!identifier) return json({ success: false, error: "Usuário ou email é obrigatório" }, 400);
       let user = await findUser(identifier);
