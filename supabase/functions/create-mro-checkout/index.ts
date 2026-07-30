@@ -80,7 +80,8 @@ serve(async (req) => {
           log("User already exists in internal API", { username: cleanUsername });
           return new Response(
             JSON.stringify({ error: "Este nome de usuário já está em uso. Escolha outro.", userExists: true }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+
           );
         }
       } catch (e) {
