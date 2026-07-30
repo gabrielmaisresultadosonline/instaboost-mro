@@ -179,7 +179,7 @@ export default function AdminUsuario() {
     serviceType: 'instagram' as 'whatsapp' | 'instagram',
     accessType: 'annual' as 'annual' | 'lifetime' | 'monthly' | 'solo' | 'pro' | 'agencia',
     notes: '',
-    createInApi: true, // Criar usuário na API (SquareCloud)
+    createInApi: true, // Criar usuário na nossa API interna (mro_tool_users)
   });
 
   useEffect(() => {
