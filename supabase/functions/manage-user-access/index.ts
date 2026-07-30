@@ -126,13 +126,14 @@ async function sendAccessEmail(
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span>
-<span style="color:#333;">Acesse nossa página oficial clicando no botão abaixo</span>
+<span style="color:#333;">Acesse a <strong>Área de Membros</strong> clicando no botão abaixo</span>
 </td>
 </tr>
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span>
-<span style="color:#333;">Clique no botão <strong>"Área de Membros"</strong></span>
+<span style="color:#333;">Faça login em <strong>maisresultadosonline.com.br/dashboard</strong></span>
+
 </td>
 </tr>
 <tr>
