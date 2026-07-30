@@ -531,30 +531,32 @@ serve(async (req) => {
 
       case "test_instagram_api": {
         try {
-          const response = await fetch(`${INSTAGRAM_API_URL}/status`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          });
-          
-          const success = response.ok;
-          logStep("Instagram API test", { status: response.status, success });
-          
-          return new Response(JSON.stringify({ 
-            success, 
-            message: success ? 'API Instagram respondendo!' : `Erro: Status ${response.status}` 
+          // Testa a NOSSA API interna (mro_tool_users), não a SquareCloud.
+          const { error, count } = await supabase
+            .from('mro_tool_users')
+            .select('id', { count: 'exact', head: true });
+
+          if (error) throw new Error(error.message);
+
+          logStep("Internal Instagram API test", { count });
+
+          return new Response(JSON.stringify({
+            success: true,
+            message: `API interna respondendo! ${count ?? 0} usuário(s) cadastrado(s).`,
           }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         } catch (error: any) {
-          logStep("Instagram API test error", { error: error?.message });
-          return new Response(JSON.stringify({ 
-            success: false, 
-            message: `Erro de conexão: ${error?.message || 'Desconhecido'}` 
+          logStep("Internal Instagram API test error", { error: error?.message });
+          return new Response(JSON.stringify({
+            success: false,
+            message: `Erro na API interna: ${error?.message || 'Desconhecido'}`,
           }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
       }
+
 
       case "test_email": {
         const { email } = data;
