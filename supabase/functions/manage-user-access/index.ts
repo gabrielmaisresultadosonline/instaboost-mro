@@ -54,9 +54,10 @@ async function sendAccessEmail(
     });
 
     const serviceName = serviceType === 'whatsapp' ? 'ZAPMRO' : 'MRO Instagram';
-    const memberAreaUrl = 'https://maisresultadosonline.com.br';
+    const memberAreaUrl = 'https://maisresultadosonline.com.br/dashboard';
 
-    const whatsappGroupLink = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
+    const whatsappGroupLink = 'https://maisresultadosonline.com.br/whatsapp';
+
 
     const htmlContent = `<!DOCTYPE html>
 <html>
