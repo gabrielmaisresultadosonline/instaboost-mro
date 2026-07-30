@@ -157,7 +157,6 @@ const PagamentoMRO = () => {
     if (checkingUsername) { toast.error("Aguarde a verificação do usuário"); return; }
     const availability = usernameAvailable ?? (await checkUsernameAvailability(username.toLowerCase().trim()));
     if (availability === false) { toast.error("Este usuário já está em uso"); return; }
-    if (availability !== true) { toast.error("Não foi possível verificar o usuário. Tente novamente."); return; }
 
     setLoading(true);
     try {
