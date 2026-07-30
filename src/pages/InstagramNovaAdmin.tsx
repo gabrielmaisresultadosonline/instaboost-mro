@@ -2318,18 +2318,16 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
 
   // Reenviar email de acesso para o cliente
   const resendAccessEmail = async (order: MROOrder) => {
-    if (!order.api_created) {
-      toast.error("Acesso ainda não foi criado. Crie o acesso primeiro.");
-      return;
-    }
-    
     setResendingEmail(order.id);
     
     try {
       // Chamar o webhook para reprocessar e reenviar email
+      // (funciona também para acessos antigos criados na SquareCloud, pois
+      //  todos já estão migrados para a API interna mro_tool_users)
       const { data, error } = await supabase.functions.invoke("mro-payment-webhook", {
         body: {
           manual_approve: true,
+          adminToken: getAdminSessionToken(),
           order_id: order.id,
           resend_email_only: true
         }

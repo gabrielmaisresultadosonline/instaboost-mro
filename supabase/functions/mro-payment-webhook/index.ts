@@ -536,14 +536,26 @@ serve(async (req) => {
         customerEmail = emailParts.slice(1).join(":");
       }
 
-      log("Resending email only", { customerEmail, username: order.username });
-      const emailSent = await sendAccessEmail(customerEmail, order.username, order.username, order.plan_type);
-      
+      // Buscar o acesso na API interna (mro_tool_users) — inclui os acessos
+      // antigos migrados da SquareCloud. Usa a senha real quando existir.
+      const normalizedUsername = String(order.username || "").trim().toLowerCase();
+      const { data: internalUser } = await supabase
+        .from("mro_tool_users")
+        .select("username, password_plain, email")
+        .eq("username", normalizedUsername)
+        .maybeSingle();
+
+      const accessPassword = internalUser?.password_plain || order.username;
+
+      log("Resending email only", { customerEmail, username: order.username, internalUserFound: !!internalUser });
+      const emailSent = await sendAccessEmail(customerEmail, order.username, accessPassword, order.plan_type);
+
       if (emailSent) {
         await supabase
           .from("mro_orders")
           .update({
             email_sent: true,
+            ...(internalUser ? { api_created: true } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("id", order.id);
