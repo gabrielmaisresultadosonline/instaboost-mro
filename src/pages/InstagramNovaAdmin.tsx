@@ -680,34 +680,37 @@ Participe também do nosso GRUPO DE AVISOS
     localStorage.setItem("mro_crm_webhook_config", JSON.stringify(webhookConfig));
   }, [webhookConfig]);
 
-  // Carregar comissões pagas da nuvem
+  // Carregar comissões pagas da nuvem (via edge function com service role)
   const loadPaidCommissions = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from('user-data')
-        .download('admin/paid-commissions.json');
-      
-      if (!error && data) {
-        const text = await data.text();
-        const commissions = JSON.parse(text);
-        setPaidCommissions(commissions);
-        console.log("[COMMISSIONS] Loaded paid commissions:", commissions);
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'load', key: 'commissions' }
+      });
+
+      if (error || !response?.success) {
+        console.error("[COMMISSIONS] Load error:", error || response?.error);
+        return;
       }
+
+      const commissions = (response.data && typeof response.data === 'object' && !Array.isArray(response.data))
+        ? response.data as Record<string, string[]>
+        : {};
+      setPaidCommissions(commissions);
+      console.log("[COMMISSIONS] Loaded paid commissions:", commissions);
     } catch (e) {
-      console.log("[COMMISSIONS] No paid commissions data yet");
+      console.error("[COMMISSIONS] Load exception:", e);
     }
   };
   
-  // Salvar comissões pagas na nuvem
+  // Salvar comissões pagas na nuvem (via edge function com service role)
   const savePaidCommissions = async (commissions: Record<string, string[]>) => {
     try {
-      const blob = new Blob([JSON.stringify(commissions)], { type: 'application/json' });
-      const { error } = await supabase.storage
-        .from('user-data')
-        .upload('admin/paid-commissions.json', blob, { upsert: true });
-      
-      if (error) {
-        console.error("[COMMISSIONS] Error saving:", error);
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'save', key: 'commissions', data: commissions }
+      });
+
+      if (error || !response?.success) {
+        console.error("[COMMISSIONS] Error saving:", error || response?.error);
         return false;
       }
       console.log("[COMMISSIONS] Saved successfully");
@@ -717,6 +720,7 @@ Participe também do nosso GRUPO DE AVISOS
       return false;
     }
   };
+
   
   // Marcar vendas selecionadas como comissão paga
   const markSelectedAsPaid = async () => {
