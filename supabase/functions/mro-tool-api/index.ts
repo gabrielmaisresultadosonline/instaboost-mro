@@ -698,25 +698,18 @@ serve(async (req) => {
       return json({ success: true });
     }
 
-    /** Admin adiciona conta ignorando o limite quando force=true. */
+    /**
+     * Admin adiciona conta manualmente.
+     * O cadastro feito pelo admin NUNCA exige contas extras nem respeita o limite
+     * do plano — extras existem apenas para o cadastro feito pelo próprio usuário.
+     */
     if (action === "admin_add_account") {
       const userId = String(body.user_id || "");
       const instagram = String(body.instagram || "").trim().toLowerCase();
       if (!userId || !instagram) return json({ success: false, error: "Usuário e conta são obrigatórios" }, 400);
 
-      const { data: user } = await supabase.from("mro_tool_users").select("*").eq("id", userId).maybeSingle();
+      const { data: user } = await supabase.from("mro_tool_users").select("id").eq("id", userId).maybeSingle();
       if (!user) return json({ success: false, error: "Usuário não encontrado" });
-
-      const accounts = await getAccounts(userId);
-      const fixedCount = accounts.filter((a) => !a.is_trial).length;
-      if (!body.force && fixedCount >= totalSlots(user as MroUserRow)) {
-        return json({
-          success: false,
-          limit_reached: true,
-          error: `Limite excedido (${totalSlots(user as MroUserRow)} conta(s)). Adicione contas extras para liberar mais.`,
-        });
-      }
-
 
       const { error } = await supabase.from("mro_tool_accounts").insert({ user_id: userId, instagram_username: instagram });
       if (error) return json({ success: false, error: error.message }, 500);

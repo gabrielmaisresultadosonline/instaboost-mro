@@ -210,10 +210,10 @@ const MroUsersPanel: React.FC = () => {
 
   /**
    * Adiciona um Instagram manualmente ao usuário.
-   * Quando `withExtra` é true, libera automaticamente 1 conta extra antes de cadastrar,
-   * permitindo passar do limite fixo do plano (ex.: mais de 4 contas).
+   * O cadastro pelo admin ignora o limite do plano e não consome/precisa de
+   * contas extras — extras valem apenas para o cadastro feito pelo usuário.
    */
-  const handleAddAccount = async (user: MroUser, withExtra = false) => {
+  const handleAddAccount = async (user: MroUser) => {
     const value = (newAccount[user.id] || '').trim();
     if (!value) {
       toast({ title: 'Informe a conta do Instagram', variant: 'destructive' });
@@ -221,8 +221,7 @@ const MroUsersPanel: React.FC = () => {
     }
     setNewAccount((prev) => ({ ...prev, [user.id]: '' }));
     try {
-      if (withExtra) await call({ action: 'set_extras', id: user.id, delta: 1 });
-      await call({ action: 'admin_add_account', user_id: user.id, instagram: value, force: withExtra });
+      await call({ action: 'admin_add_account', user_id: user.id, instagram: value });
       toast({ title: 'Conta adicionada' });
       loadUsers();
     } catch (err) {
@@ -482,19 +481,9 @@ const MroUsersPanel: React.FC = () => {
                 <Button size="sm" className="gap-1" onClick={() => void handleAddAccount(u)}>
                   <Plus className="w-3 h-3" /> Adicionar Instagram
                 </Button>
-                {full && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1"
-                    onClick={() => void handleAddAccount(u, true)}
-                    title="Libera 1 conta extra e cadastra o Instagram"
-                  >
-                    <Plus className="w-3 h-3" /> Adicionar com extra
-                  </Button>
-                )}
                 <span className="text-xs text-muted-foreground">
-                  Limite: {u.plan_accounts} do plano{extras > 0 ? ` + ${extras} extra(s)` : ''} = {totalSlots} contas.
+                  Limite do usuário: {u.plan_accounts} do plano{extras > 0 ? ` + ${extras} extra(s)` : ''} = {totalSlots} contas.
+                  Cadastro pelo admin não precisa de conta extra.
                 </span>
               </div>
 
