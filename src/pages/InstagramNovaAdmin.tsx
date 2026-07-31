@@ -680,34 +680,37 @@ Participe também do nosso GRUPO DE AVISOS
     localStorage.setItem("mro_crm_webhook_config", JSON.stringify(webhookConfig));
   }, [webhookConfig]);
 
-  // Carregar comissões pagas da nuvem
+  // Carregar comissões pagas da nuvem (via edge function com service role)
   const loadPaidCommissions = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from('user-data')
-        .download('admin/paid-commissions.json');
-      
-      if (!error && data) {
-        const text = await data.text();
-        const commissions = JSON.parse(text);
-        setPaidCommissions(commissions);
-        console.log("[COMMISSIONS] Loaded paid commissions:", commissions);
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'load', key: 'commissions' }
+      });
+
+      if (error || !response?.success) {
+        console.error("[COMMISSIONS] Load error:", error || response?.error);
+        return;
       }
+
+      const commissions = (response.data && typeof response.data === 'object' && !Array.isArray(response.data))
+        ? response.data as Record<string, string[]>
+        : {};
+      setPaidCommissions(commissions);
+      console.log("[COMMISSIONS] Loaded paid commissions:", commissions);
     } catch (e) {
-      console.log("[COMMISSIONS] No paid commissions data yet");
+      console.error("[COMMISSIONS] Load exception:", e);
     }
   };
   
-  // Salvar comissões pagas na nuvem
+  // Salvar comissões pagas na nuvem (via edge function com service role)
   const savePaidCommissions = async (commissions: Record<string, string[]>) => {
     try {
-      const blob = new Blob([JSON.stringify(commissions)], { type: 'application/json' });
-      const { error } = await supabase.storage
-        .from('user-data')
-        .upload('admin/paid-commissions.json', blob, { upsert: true });
-      
-      if (error) {
-        console.error("[COMMISSIONS] Error saving:", error);
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'save', key: 'commissions', data: commissions }
+      });
+
+      if (error || !response?.success) {
+        console.error("[COMMISSIONS] Error saving:", error || response?.error);
         return false;
       }
       console.log("[COMMISSIONS] Saved successfully");
@@ -717,6 +720,7 @@ Participe também do nosso GRUPO DE AVISOS
       return false;
     }
   };
+
   
   // Marcar vendas selecionadas como comissão paga
   const markSelectedAsPaid = async () => {
@@ -729,21 +733,19 @@ Participe também do nosso GRUPO DE AVISOS
     try {
       const updatedCommissions = { ...paidCommissions };
       
-      // Agrupar vendas selecionadas por afiliado
+      // Agrupar vendas selecionadas por afiliado (fallback: chave "_outros")
       selectedSalesForPayment.forEach(nsuOrder => {
         const order = orders.find(o => o.nsu_order === nsuOrder);
-        if (order) {
-          const affiliateMatch = affiliates.find(a => 
-            order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
-          );
-          if (affiliateMatch) {
-            if (!updatedCommissions[affiliateMatch.id]) {
-              updatedCommissions[affiliateMatch.id] = [];
-            }
-            if (!updatedCommissions[affiliateMatch.id].includes(nsuOrder)) {
-              updatedCommissions[affiliateMatch.id].push(nsuOrder);
-            }
-          }
+        const affiliateMatch = order
+          ? affiliates.find(a => order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`))
+          : undefined;
+        const bucket = affiliateMatch?.id || "_outros";
+
+        if (!updatedCommissions[bucket]) {
+          updatedCommissions[bucket] = [];
+        }
+        if (!updatedCommissions[bucket].includes(nsuOrder)) {
+          updatedCommissions[bucket].push(nsuOrder);
         }
       });
       
@@ -763,10 +765,12 @@ Participe também do nosso GRUPO DE AVISOS
     }
   };
   
-  // Verificar se comissão já foi paga
+  // Verificar se comissão já foi paga (aceita baixas registradas em qualquer chave)
   const isCommissionPaid = (affiliateId: string, nsuOrder: string) => {
-    return paidCommissions[affiliateId]?.includes(nsuOrder) || false;
+    if (paidCommissions[affiliateId]?.includes(nsuOrder)) return true;
+    return Object.values(paidCommissions).some(list => Array.isArray(list) && list.includes(nsuOrder));
   };
+
   
   // Toggle seleção de venda para pagamento
   const toggleSaleSelection = (nsuOrder: string) => {
