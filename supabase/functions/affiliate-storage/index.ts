@@ -59,8 +59,12 @@ serve(async (req) => {
 
       if (error) {
         if (error.message.includes('not found') || error.message.includes('Object not found')) {
+          const empty = key === 'settings' || key === 'commissions' ? {} : [];
           return new Response(
-            JSON.stringify({ success: true, data: key === 'settings' ? {} : [] }),
+            JSON.stringify({ success: true, data: empty }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
