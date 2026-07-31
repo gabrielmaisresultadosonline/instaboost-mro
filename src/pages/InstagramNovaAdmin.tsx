@@ -733,21 +733,19 @@ Participe também do nosso GRUPO DE AVISOS
     try {
       const updatedCommissions = { ...paidCommissions };
       
-      // Agrupar vendas selecionadas por afiliado
+      // Agrupar vendas selecionadas por afiliado (fallback: chave "_outros")
       selectedSalesForPayment.forEach(nsuOrder => {
         const order = orders.find(o => o.nsu_order === nsuOrder);
-        if (order) {
-          const affiliateMatch = affiliates.find(a => 
-            order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
-          );
-          if (affiliateMatch) {
-            if (!updatedCommissions[affiliateMatch.id]) {
-              updatedCommissions[affiliateMatch.id] = [];
-            }
-            if (!updatedCommissions[affiliateMatch.id].includes(nsuOrder)) {
-              updatedCommissions[affiliateMatch.id].push(nsuOrder);
-            }
-          }
+        const affiliateMatch = order
+          ? affiliates.find(a => order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`))
+          : undefined;
+        const bucket = affiliateMatch?.id || "_outros";
+
+        if (!updatedCommissions[bucket]) {
+          updatedCommissions[bucket] = [];
+        }
+        if (!updatedCommissions[bucket].includes(nsuOrder)) {
+          updatedCommissions[bucket].push(nsuOrder);
         }
       });
       
@@ -767,10 +765,12 @@ Participe também do nosso GRUPO DE AVISOS
     }
   };
   
-  // Verificar se comissão já foi paga
+  // Verificar se comissão já foi paga (aceita baixas registradas em qualquer chave)
   const isCommissionPaid = (affiliateId: string, nsuOrder: string) => {
-    return paidCommissions[affiliateId]?.includes(nsuOrder) || false;
+    if (paidCommissions[affiliateId]?.includes(nsuOrder)) return true;
+    return Object.values(paidCommissions).some(list => Array.isArray(list) && list.includes(nsuOrder));
   };
+
   
   // Toggle seleção de venda para pagamento
   const toggleSaleSelection = (nsuOrder: string) => {
