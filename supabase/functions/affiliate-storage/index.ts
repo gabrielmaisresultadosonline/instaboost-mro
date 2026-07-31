@@ -18,7 +18,11 @@ serve(async (req) => {
 
     const { action, data, key } = await req.json();
     
-    const filePath = key === 'settings' ? 'admin/affiliate-settings.json' : 'admin/affiliates.json';
+    const filePath = key === 'settings'
+      ? 'admin/affiliate-settings.json'
+      : key === 'commissions'
+        ? 'admin/paid-commissions.json'
+        : 'admin/affiliates.json';
     console.log(`[affiliate-storage] Action: ${action}, Key: ${key || 'affiliates'}`);
 
     if (action === 'save') {
