@@ -14,12 +14,12 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const PROJECT_PUBLIC_FIELDS =
-  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url,all_approved_at,next_step_released";
+  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url,all_approved_at,next_step_released,before_instagram_urls,before_facebook_urls,before_note";
 
 // Recalcula se todas as publicações do projeto estão aprovadas e marca a data.
 async function syncApproval(supabase: any, projectId: string) {
   const { data: rows } = await supabase
-    .from("mktcc_posts").select("status").eq("project_id", projectId);
+    .from("mktcc_posts").select("status").eq("project_id", projectId).eq("is_published", true);
   const posts = rows || [];
   const allApproved = posts.length > 0 && posts.every((p: any) => p.status === "approved");
 
@@ -69,6 +69,7 @@ serve(async (req) => {
         .from("mktcc_posts")
         .select("*")
         .eq("project_id", project.id)
+        .eq("is_published", true)
         .order("order_index", { ascending: true });
 
       const { is_active: _omit, ...publicProject } = project as Record<string, any>;
@@ -123,7 +124,7 @@ serve(async (req) => {
 
     if (action === "update_project") {
       const patch: Record<string, any> = {};
-      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "avatar_url", "access_code", "is_active", "next_step_released"]) {
+      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "avatar_url", "access_code", "is_active", "next_step_released", "before_instagram_urls", "before_facebook_urls", "before_note"]) {
         if (key in body) patch[key] = key === "access_code" ? String(body[key]).trim().toUpperCase() : body[key];
       }
       const { error } = await supabase.from("mktcc_projects").update(patch).eq("id", body.project_id);
@@ -151,6 +152,8 @@ serve(async (req) => {
         post_type: ["image", "video", "carousel"].includes(body.post_type) ? body.post_type : "image",
         media_urls: Array.isArray(body.media_urls) ? body.media_urls : [],
         caption: String(body.caption || ""),
+        aspect_ratio: ["4/5", "1/1", "9/16"].includes(body.aspect_ratio) ? body.aspect_ratio : "4/5",
+        is_published: body.is_published === true,
         order_index: (last?.order_index ?? -1) + 1,
       }).select("*").single();
       if (error) return json({ success: false, error: error.message }, 400);
@@ -160,12 +163,26 @@ serve(async (req) => {
 
     if (action === "update_post") {
       const patch: Record<string, any> = {};
-      for (const key of ["post_type", "media_urls", "caption", "order_index", "status", "client_note"]) {
+      for (const key of ["post_type", "media_urls", "caption", "order_index", "status", "client_note", "is_published", "aspect_ratio"]) {
         if (key in body) patch[key] = body[key];
       }
       const { error } = await supabase.from("mktcc_posts").update(patch).eq("id", body.post_id);
       if (error) return json({ success: false, error: error.message }, 400);
       if (body.project_id) await syncApproval(supabase, String(body.project_id));
+      return json({ success: true });
+    }
+
+    // Publica (ou volta para rascunho) uma publicação: só publicadas aparecem para o cliente.
+    if (action === "publish_post") {
+      const publish = body.is_published !== false;
+      const { data: current, error } = await supabase
+        .from("mktcc_posts")
+        .update({ is_published: publish })
+        .eq("id", String(body.post_id || ""))
+        .select("project_id")
+        .maybeSingle();
+      if (error) return json({ success: false, error: error.message }, 400);
+      if (current?.project_id) await syncApproval(supabase, current.project_id);
       return json({ success: true });
     }
 

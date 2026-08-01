@@ -11,8 +11,9 @@ import { toast } from "sonner";
 import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
-  History as HistoryIcon,
+  History as HistoryIcon, Facebook, Camera,
 } from "lucide-react";
+import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
 interface MktccPost {
   id: string;
@@ -26,6 +27,7 @@ interface MktccPost {
   previous_caption: string;
   revision_note: string;
   revision_count: number;
+  aspect_ratio: string;
 }
 
 interface MktccProject {
@@ -39,7 +41,11 @@ interface MktccProject {
   avatar_url: string;
   all_approved_at: string | null;
   next_step_released: boolean;
+  before_instagram_urls: string[];
+  before_facebook_urls: string[];
+  before_note: string;
 }
+
 
 const STORAGE_KEY = "mktcc_access_code";
 
@@ -70,7 +76,12 @@ const MktCC = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Código inválido");
-      setProject(data.project);
+      setProject({
+        ...data.project,
+        before_instagram_urls: data.project?.before_instagram_urls || [],
+        before_facebook_urls: data.project?.before_facebook_urls || [],
+        before_note: data.project?.before_note || "",
+      });
       setPosts((data.posts || []).map((p: MktccPost) => ({
         ...p,
         media_urls: p.media_urls || [],
@@ -78,6 +89,7 @@ const MktCC = () => {
         previous_caption: p.previous_caption || "",
         revision_note: p.revision_note || "",
         revision_count: p.revision_count || 0,
+        aspect_ratio: p.aspect_ratio || "4/5",
       })));
       localStorage.setItem(STORAGE_KEY, accessCode);
     } catch (err) {
@@ -214,11 +226,12 @@ const MktCC = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Tabs defaultValue="feed">
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
               { v: "feed", l: "Feed" },
               { v: "estrategia", l: "Estratégia" },
               { v: "resumo", l: "Resumo" },
+              { v: "antes", l: "Antes" },
               { v: "proximos", l: "Próximos passos" },
             ].map((t) => (
               <TabsTrigger
@@ -272,12 +285,14 @@ const MktCC = () => {
                 Nenhuma publicação cadastrada ainda. Volte em breve.
               </p>
             ) : (
+              <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+              <div>
               <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm">
                 {posts.map((post) => (
                   <button
                     key={post.id}
                     onClick={() => openPost(post)}
-                    className="mktcc-tile relative aspect-square bg-muted overflow-hidden rounded-xl border-2 border-foreground group"
+                    className="mktcc-tile relative aspect-[4/5] bg-muted overflow-hidden rounded-xl border-2 border-foreground group"
                     aria-label="Abrir publicação"
                   >
                     {post.post_type === "video" ? (
@@ -310,7 +325,78 @@ const MktCC = () => {
                   </button>
                 ))}
               </div>
+              <p className="mt-2 text-xs font-bold uppercase text-muted-foreground">
+                Formato do feed: 1080x1350 (4:5) — nada é cortado.
+              </p>
+              </div>
+              <div className="lg:sticky lg:top-6">
+                <p className="mb-2 text-xs font-black uppercase text-muted-foreground text-center">
+                  Prévia no celular
+                </p>
+                <PhoneInstagramPreview
+                  companyName={project.company_name}
+                  instagramHandle={project.instagram_handle}
+                  avatarUrl={project.avatar_url}
+                  posts={posts}
+                  onSelect={(id) => {
+                    const found = posts.find((p) => p.id === id);
+                    if (found) openPost(found);
+                  }}
+                />
+              </div>
+              </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="antes" className="mt-6 space-y-6">
+            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+              <div className="h-2 mktcc-gradient" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                  <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                    <Camera className="w-5 h-5 text-primary-foreground" />
+                  </span>
+                  Como o perfil <span className="mktcc-gradient-text">começou</span>
+                </CardTitle>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Registro do ponto de partida, para comparar com o resultado depois.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {project.before_note && (
+                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
+                    {project.before_note}
+                  </p>
+                )}
+                {[
+                  { title: "Instagram", icon: <Instagram className="w-4 h-4" />, urls: project.before_instagram_urls },
+                  { title: "Facebook", icon: <Facebook className="w-4 h-4" />, urls: project.before_facebook_urls },
+                ].map((group) => (
+                  <div key={group.title} className="space-y-2">
+                    <p className="flex items-center gap-2 text-xs font-black uppercase">
+                      {group.icon} {group.title}
+                    </p>
+                    {group.urls.length === 0 ? (
+                      <p className="text-sm font-medium text-muted-foreground">Sem registros ainda.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {group.urls.map((url, i) => (
+                          <a
+                            key={url}
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mktcc-tile block rounded-xl overflow-hidden border-2 border-foreground bg-muted"
+                          >
+                            <img src={url} alt={`${group.title} antes ${i + 1}`} loading="lazy" className="w-full h-auto" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="estrategia" className="mt-6">
@@ -410,14 +496,17 @@ const MktCC = () => {
                 </div>
               )}
 
-              <div className="relative bg-muted rounded-xl overflow-hidden border-2 border-foreground">
+              <div
+                className="relative bg-muted rounded-xl overflow-hidden border-2 border-foreground flex items-center justify-center"
+                style={{ aspectRatio: activePost.aspect_ratio?.replace("/", " / ") || "4 / 5" }}
+              >
                 {activePost.post_type === "video" ? (
-                  <video src={activePost.media_urls[0]} controls className="w-full max-h-[50vh]" />
+                  <video src={activePost.media_urls[0]} controls className="w-full h-full object-contain" />
                 ) : (
                   <img
                     src={activePost.media_urls[slide]}
                     alt={activePost.caption.slice(0, 80) || "Material da publicação"}
-                    className="w-full max-h-[50vh] object-contain"
+                    className="w-full h-full object-contain"
                   />
                 )}
                 {activePost.post_type === "carousel" && activePost.media_urls.length > 1 && (

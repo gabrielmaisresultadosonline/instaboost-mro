@@ -11,14 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
-  CheckCircle2, MessageSquareWarning, Copy, RefreshCw,
+  CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
+  Instagram, Facebook, X,
 } from "lucide-react";
+import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
 interface Project {
   id: string; company_name: string; access_code: string;
   strategy_title: string; strategy_text: string; summary_text: string;
   next_steps_text: string; instagram_handle: string; avatar_url: string;
   is_active: boolean; created_at: string;
+  before_instagram_urls: string[]; before_facebook_urls: string[]; before_note: string;
   all_approved_at: string | null; next_step_released: boolean;
 }
 
@@ -30,6 +33,7 @@ interface Post {
   reviewed_at: string | null;
   previous_media_urls: string[]; previous_caption: string;
   revision_note: string; revision_count: number; revised_at: string | null;
+  is_published: boolean; aspect_ratio: string;
 }
 
 interface RevisionDraft { note: string; media: string[] }
@@ -52,11 +56,15 @@ const MktCCAdmin = () => {
   const [newProject, setNewProject] = useState({ company_name: "", access_code: "", instagram_handle: "" });
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string }>({
-    post_type: "image", media_urls: [], caption: "",
+  const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string; aspect_ratio: string }>({
+    post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5",
   });
   const [revisions, setRevisions] = useState<Record<string, RevisionDraft>>({});
   const [revisingId, setRevisingId] = useState<string | null>(null);
+  const [dirtyIds, setDirtyIds] = useState<string[]>([]);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<string>("");
+  const beforeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -83,6 +91,8 @@ const MktCCAdmin = () => {
       previous_caption: p.previous_caption || "",
       revision_note: p.revision_note || "",
       revision_count: p.revision_count || 0,
+      aspect_ratio: p.aspect_ratio || "4/5",
+      is_published: p.is_published !== false,
     })));
   };
 
@@ -100,7 +110,7 @@ const MktCCAdmin = () => {
 
   const openProject = async (project: Project) => {
     setSelected(project);
-    setDraft({ post_type: "image", media_urls: [], caption: "" });
+    setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
     try { await loadPosts(project.id); } catch (err) { toast.error("Erro ao carregar posts"); }
   };
 
@@ -173,7 +183,7 @@ const MktCCAdmin = () => {
     if (draft.media_urls.length === 0) return toast.error("Envie pelo menos um arquivo");
     try {
       await call("create_post", { project_id: selected.id, ...draft });
-      setDraft({ post_type: "image", media_urls: [], caption: "" });
+      setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
       await loadPosts(selected.id);
       toast.success("Publicação criada!");
     } catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); }
@@ -253,6 +263,77 @@ const MktCCAdmin = () => {
     } finally { setRevisingId(null); }
   };
 
+  // Rascunho automático: qualquer legenda editada é salva sozinha após 1,2s.
+  const markDirty = (postId: string) =>
+    setDirtyIds((prev) => (prev.includes(postId) ? prev : [...prev, postId]));
+
+  useEffect(() => {
+    if (dirtyIds.length === 0) return;
+    const timer = window.setTimeout(async () => {
+      const ids = [...dirtyIds];
+      setDirtyIds([]);
+      setAutoSaving(true);
+      try {
+        for (const id of ids) {
+          const post = posts.find((p) => p.id === id);
+          if (!post) continue;
+          await call("update_post", {
+            post_id: post.id, project_id: post.project_id,
+            caption: post.caption, aspect_ratio: post.aspect_ratio,
+          });
+        }
+        setLastAutoSave(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+      } catch {
+        toast.error("Falha ao salvar rascunho");
+      } finally { setAutoSaving(false); }
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [dirtyIds, posts]);
+
+  const setPublished = async (post: Post, published: boolean) => {
+    try {
+      await call("publish_post", { post_id: post.id, is_published: published });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, is_published: published } : p)));
+      toast.success(published ? "Publicado na prévia do cliente!" : "Voltou para rascunho");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Erro ao publicar"); }
+  };
+
+  // Prints de "como o perfil estava" — ficam salvos na nuvem até o admin remover.
+  const uploadBeforeShots = async (platform: "instagram" | "facebook", files: FileList) => {
+    if (!selected) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+        const base64 = await fileToBase64(file);
+        const data = await call("upload_media", {
+          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+        });
+        urls.push(data.url);
+      }
+      const key = platform === "instagram" ? "before_instagram_urls" : "before_facebook_urls";
+      const next = [...((selected as any)[key] || []), ...urls];
+      await call("update_project", { project_id: selected.id, [key]: next });
+      setSelected({ ...selected, [key]: next } as Project);
+      toast.success(`${urls.length} print(s) salvo(s) na nuvem`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); if (beforeRef.current) beforeRef.current.value = ""; }
+  };
+
+  const removeBeforeShot = async (platform: "instagram" | "facebook", url: string) => {
+    if (!selected) return;
+    if (!window.confirm("Remover este print do histórico?")) return;
+    const key = platform === "instagram" ? "before_instagram_urls" : "before_facebook_urls";
+    const next = ((selected as any)[key] || []).filter((u: string) => u !== url);
+    try {
+      await call("update_project", { project_id: selected.id, [key]: next });
+      setSelected({ ...selected, [key]: next } as Project);
+      toast.success("Print removido");
+    } catch { toast.error("Erro ao remover"); }
+  };
+
   const toggleNextStep = async (released: boolean) => {
     if (!selected) return;
     try {
@@ -264,9 +345,9 @@ const MktCCAdmin = () => {
 
   if (!loggedIn) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center px-4">
-        <Card className="w-full max-w-sm">
-          <CardHeader><CardTitle>Admin — Marketing Completo</CardTitle></CardHeader>
+      <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 mktcc-dots">
+        <Card className="w-full max-w-sm mktcc-pop rounded-2xl">
+          <CardHeader><CardTitle className="font-black uppercase tracking-tight">Admin — <span className="mktcc-gradient-text">Marketing Completo</span></CardTitle></CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleLogin}>
               <div className="space-y-2">
@@ -289,10 +370,10 @@ const MktCCAdmin = () => {
 
   if (!selected) {
     return (
-      <main className="min-h-screen bg-background p-4 md:p-8">
+      <main className="mktcc min-h-screen bg-background text-foreground p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Projetos / Empresas</h1>
+            <h1 className="text-2xl font-black uppercase tracking-tight">Projetos / <span className="mktcc-gradient-text">Empresas</span></h1>
             <Button variant="outline" size="sm" onClick={() => loadProjects()}>
               <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
             </Button>
@@ -346,7 +427,7 @@ const MktCCAdmin = () => {
   const changes = posts.filter((p) => p.status === "changes");
 
   return (
-    <main className="min-h-screen bg-background p-4 md:p-8">
+    <main className="mktcc min-h-screen bg-background text-foreground p-4 md:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => setSelected(null)}>
@@ -357,11 +438,22 @@ const MktCCAdmin = () => {
         </div>
 
         <Tabs defaultValue="posts">
-          <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="posts">Publicações</TabsTrigger>
-            <TabsTrigger value="estrategia">Estratégia</TabsTrigger>
-            <TabsTrigger value="textos">Resumo / Passos</TabsTrigger>
-            <TabsTrigger value="aprovacoes">Aprovações</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+            {[
+              { v: "posts", l: "Publicações" },
+              { v: "antes", l: "Antes do perfil" },
+              { v: "estrategia", l: "Estratégia" },
+              { v: "textos", l: "Resumo / Passos" },
+              { v: "aprovacoes", l: "Aprovações" },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.v}
+                value={t.v}
+                className="rounded-xl font-bold uppercase text-xs text-secondary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t.l}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="posts" className="mt-6 space-y-6">
@@ -381,6 +473,17 @@ const MktCCAdmin = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
+                    <Label>Formato</Label>
+                    <Select value={draft.aspect_ratio} onValueChange={(v) => setDraft({ ...draft, aspect_ratio: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="4/5">Feed 1080x1350 (4:5)</SelectItem>
+                        <SelectItem value="1/1">Quadrado 1080x1080 (1:1)</SelectItem>
+                        <SelectItem value="9/16">Story / Reels (9:16)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Arquivos (pode selecionar vários)</Label>
                     <Input ref={fileRef} type="file" multiple accept="image/*,video/*"
                       onChange={(e) => e.target.files && uploadFiles(e.target.files)} disabled={uploading} />
@@ -390,10 +493,10 @@ const MktCCAdmin = () => {
                 {draft.media_urls.length > 0 && (
                   <div className="flex gap-2 flex-wrap">
                     {draft.media_urls.map((url, i) => (
-                      <div key={url} className="relative w-20 h-20 rounded overflow-hidden bg-muted">
+                      <div key={url} className="relative w-20 aspect-[4/5] rounded overflow-hidden bg-muted border-2 border-foreground">
                         {draft.post_type === "video"
-                          ? <video src={url} className="w-full h-full object-cover" muted />
-                          : <img src={url} alt={`Arquivo ${i + 1}`} className="w-full h-full object-cover" />}
+                          ? <video src={url} className="w-full h-full object-contain" muted />
+                          : <img src={url} alt={`Arquivo ${i + 1}`} className="w-full h-full object-contain" />}
                         <button
                           className="absolute top-0 right-0 bg-destructive text-destructive-foreground w-5 h-5 text-xs"
                           onClick={() => setDraft({ ...draft, media_urls: draft.media_urls.filter((u) => u !== url) })}
@@ -410,7 +513,7 @@ const MktCCAdmin = () => {
                 </div>
 
                 <Button onClick={createPost} disabled={uploading}>
-                  {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : <><Upload className="w-4 h-4 mr-2" /> Adicionar ao feed</>}
+                  {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : <><Upload className="w-4 h-4 mr-2" /> Salvar como rascunho</>}
                 </Button>
               </CardContent>
             </Card>
@@ -445,15 +548,16 @@ const MktCCAdmin = () => {
               )
             )}
 
+            <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
             <div className="grid gap-3">
               {posts.map((post, index) => (
                 <Card key={post.id}>
                   <CardContent className="p-4 flex gap-4 flex-col md:flex-row">
                     <div className="w-full md:w-28 shrink-0">
-                      <div className="aspect-square bg-muted rounded overflow-hidden">
+                      <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden border-2 border-foreground">
                         {post.post_type === "video"
-                          ? <video src={post.media_urls[0]} className="w-full h-full object-cover" muted />
-                          : <img src={post.media_urls[0]} alt="Prévia" className="w-full h-full object-cover" />}
+                          ? <video src={post.media_urls[0]} className="w-full h-full object-contain" muted />
+                          : <img src={post.media_urls[0]} alt="Prévia" className="w-full h-full object-contain" />}
                       </div>
                       <div className="flex gap-1 mt-2">
                         <Button size="icon" variant="outline" onClick={() => movePost(index, -1)} aria-label="Subir"><ArrowUp className="w-4 h-4" /></Button>
@@ -467,17 +571,40 @@ const MktCCAdmin = () => {
                         {post.status === "approved" && <Badge className="bg-primary text-primary-foreground">Aprovado</Badge>}
                         {post.status === "changes" && <Badge variant="destructive">Ajustar</Badge>}
                         {post.revision_count > 0 && <Badge variant="outline">Alteração nº {post.revision_count}</Badge>}
+                        {post.is_published
+                          ? <Badge className="bg-secondary text-secondary-foreground font-bold uppercase">Publicado</Badge>
+                          : <Badge variant="outline" className="font-bold uppercase">Rascunho</Badge>}
+                        <Badge variant="outline">{post.aspect_ratio}</Badge>
                       </div>
                       <Textarea rows={3} value={post.caption}
-                        onChange={(e) => setPosts(posts.map((p) => (p.id === post.id ? { ...p, caption: e.target.value } : p)))} />
+                        onChange={(e) => {
+                          setPosts(posts.map((p) => (p.id === post.id ? { ...p, caption: e.target.value } : p)));
+                          markDirty(post.id);
+                        }} />
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        {dirtyIds.includes(post.id)
+                          ? "Alterações não salvas..."
+                          : autoSaving ? "Salvando rascunho..." : lastAutoSave ? `Rascunho salvo às ${lastAutoSave}` : "Salva automático como rascunho"}
+                      </p>
                       {post.client_note && (
                         <p className="text-sm text-muted-foreground border-l-2 border-destructive pl-3 whitespace-pre-wrap">
                           <strong>Observação do cliente:</strong> {post.client_note}
                         </p>
                       )}
-                      <Button size="sm" variant="outline" onClick={() => savePost(post)}>
-                        <Save className="w-4 h-4 mr-2" /> Salvar
-                      </Button>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button size="sm" variant="outline" onClick={() => savePost(post)}>
+                          <Save className="w-4 h-4 mr-2" /> Salvar agora
+                        </Button>
+                        {post.is_published ? (
+                          <Button size="sm" variant="outline" onClick={() => setPublished(post, false)}>
+                            <EyeOff className="w-4 h-4 mr-2" /> Voltar p/ rascunho
+                          </Button>
+                        ) : (
+                          <Button size="sm" className="font-black uppercase mktcc-pop-sm" onClick={() => setPublished(post, true)}>
+                            <Send className="w-4 h-4 mr-2" /> Publicar p/ o cliente
+                          </Button>
+                        )}
+                      </div>
 
                       {post.status === "changes" && (
                         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
@@ -515,6 +642,67 @@ const MktCCAdmin = () => {
                 </Card>
               ))}
             </div>
+            <div className="lg:sticky lg:top-6 space-y-2">
+              <p className="text-xs font-black uppercase text-muted-foreground text-center">
+                Prévia do cliente (só publicados)
+              </p>
+              <PhoneInstagramPreview
+                companyName={selected.company_name}
+                instagramHandle={selected.instagram_handle}
+                avatarUrl={selected.avatar_url}
+                posts={posts.filter((p) => p.is_published)}
+              />
+            </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="antes" className="mt-6">
+            <Card className="mktcc-pop rounded-2xl overflow-hidden">
+              <div className="h-2 mktcc-gradient" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight">
+                  <Camera className="w-5 h-5" /> Como o perfil estava
+                </CardTitle>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Prints salvos na nuvem — ficam para sempre até você remover aqui.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Observação do histórico (o cliente vê)</Label>
+                  <Textarea rows={4} value={selected.before_note || ""}
+                    onChange={(e) => setSelected({ ...selected, before_note: e.target.value })} />
+                  <Button onClick={saveProject} disabled={loading}><Save className="w-4 h-4 mr-2" /> Salvar texto</Button>
+                </div>
+
+                {([
+                  { key: "instagram", label: "Instagram", icon: <Instagram className="w-4 h-4" />, urls: selected.before_instagram_urls || [] },
+                  { key: "facebook", label: "Facebook", icon: <Facebook className="w-4 h-4" />, urls: selected.before_facebook_urls || [] },
+                ] as const).map((group) => (
+                  <div key={group.key} className="space-y-3 rounded-xl border-2 border-foreground p-3">
+                    <p className="flex items-center gap-2 text-sm font-black uppercase">
+                      {group.icon} {group.label} — {group.urls.length} print(s) (sugerido 3)
+                    </p>
+                    <Input type="file" multiple accept="image/*" disabled={uploading}
+                      onChange={(e) => e.target.files?.length && uploadBeforeShots(group.key, e.target.files)} />
+                    {group.urls.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3">
+                        {group.urls.map((url, i) => (
+                          <div key={url} className="relative rounded-lg overflow-hidden border-2 border-foreground bg-muted">
+                            <img src={url} alt={`${group.label} antes ${i + 1}`} loading="lazy" className="w-full h-auto" />
+                            <button
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center"
+                              onClick={() => removeBeforeShot(group.key, url)}
+                              aria-label="Remover print"
+                            ><X className="w-3.5 h-3.5" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="estrategia" className="mt-6">
