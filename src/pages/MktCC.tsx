@@ -137,8 +137,8 @@ const MktCC = () => {
   if (!project) {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10 mktcc-dots">
-        <Card className="w-full max-w-md mktcc-pop rounded-2xl mktcc-rise">
-          <div className="h-2 mktcc-gradient rounded-t-xl" />
+        <Card className="w-full max-w-md mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+          <div className="h-2 mktcc-gradient" />
           <CardHeader className="text-center space-y-3">
             <div className="mx-auto w-14 h-14 rounded-full bg-primary flex items-center justify-center border-2 border-foreground mktcc-pulse">
               <Lock className="w-6 h-6 text-primary-foreground" />
