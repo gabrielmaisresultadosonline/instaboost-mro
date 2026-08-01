@@ -1368,6 +1368,22 @@ const MktCCAdmin = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Link do Drive de arquivos (abre em nova aba para o cliente)</Label>
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    value={selected.drive_url || ""}
+                    onChange={(e) => setSelected({ ...selected, drive_url: e.target.value })}
+                    placeholder="https://drive.google.com/drive/folders/..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Deixe em branco para esconder o botão de arquivos na área do cliente.
+                  </p>
+                </div>
+
+
+
+                <div className="space-y-2">
                   <Label>Título da estratégia</Label>
                   <Input value={selected.strategy_title} onChange={(e) => setSelected({ ...selected, strategy_title: e.target.value })} />
                 </div>
