@@ -19,6 +19,7 @@ interface Project {
   strategy_title: string; strategy_text: string; summary_text: string;
   next_steps_text: string; instagram_handle: string; avatar_url: string;
   is_active: boolean; created_at: string;
+  all_approved_at: string | null; next_step_released: boolean;
 }
 
 interface Post {
@@ -27,7 +28,11 @@ interface Post {
   media_urls: string[]; caption: string; order_index: number;
   status: "pending" | "approved" | "changes"; client_note: string;
   reviewed_at: string | null;
+  previous_media_urls: string[]; previous_caption: string;
+  revision_note: string; revision_count: number; revised_at: string | null;
 }
+
+interface RevisionDraft { note: string; media: string[] }
 
 const fileToBase64 = (file: File) =>
   new Promise<string>((resolve, reject) => {
