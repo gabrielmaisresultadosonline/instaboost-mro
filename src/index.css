@@ -398,7 +398,30 @@
 .mktcc-rise { animation: mktcc-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @keyframes mktcc-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
+/* Programação aguardando aprovação: loop de cores chamando atenção */
+.mktcc-alert-loop {
+  animation: mktcc-alert-loop 2.4s ease-in-out infinite;
+}
+@keyframes mktcc-alert-loop {
+  0%   { box-shadow: 0 0 0 0 hsl(51 100% 50% / 0.85), 4px 4px 0 hsl(0 0% 4%); border-color: hsl(51 100% 50%); }
+  33%  { box-shadow: 0 0 0 6px hsl(330 85% 55% / 0.35), 4px 4px 0 hsl(0 0% 4%); border-color: hsl(330 85% 55%); }
+  66%  { box-shadow: 0 0 0 6px hsl(25 95% 55% / 0.35), 4px 4px 0 hsl(0 0% 4%); border-color: hsl(25 95% 55%); }
+  100% { box-shadow: 0 0 0 0 hsl(51 100% 50% / 0.85), 4px 4px 0 hsl(0 0% 4%); border-color: hsl(51 100% 50%); }
+}
+
+/* Badge de aviso com cores girando */
+.mktcc-alert-badge {
+  animation: mktcc-alert-badge 2.4s ease-in-out infinite;
+}
+@keyframes mktcc-alert-badge {
+  0%   { background-color: hsl(51 100% 50%); color: hsl(0 0% 4%); transform: scale(1); }
+  33%  { background-color: hsl(330 85% 55%); color: hsl(0 0% 100%); transform: scale(1.06); }
+  66%  { background-color: hsl(25 95% 55%); color: hsl(0 0% 4%); transform: scale(1.06); }
+  100% { background-color: hsl(51 100% 50%); color: hsl(0 0% 4%); transform: scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .mktcc-gradient, .mktcc-gradient-text, .mktcc-ring, .mktcc-pulse, .mktcc-rise { animation: none; }
+  .mktcc-gradient, .mktcc-gradient-text, .mktcc-ring, .mktcc-pulse, .mktcc-rise,
+  .mktcc-alert-loop, .mktcc-alert-badge { animation: none; }
   .mktcc-pop, .mktcc-tile { transition: none; }
 }
