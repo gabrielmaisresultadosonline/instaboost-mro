@@ -11,14 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
-  CheckCircle2, MessageSquareWarning, Copy, RefreshCw,
+  CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
+  Instagram, Facebook, X,
 } from "lucide-react";
+import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
 interface Project {
   id: string; company_name: string; access_code: string;
   strategy_title: string; strategy_text: string; summary_text: string;
   next_steps_text: string; instagram_handle: string; avatar_url: string;
   is_active: boolean; created_at: string;
+  before_instagram_urls: string[]; before_facebook_urls: string[]; before_note: string;
   all_approved_at: string | null; next_step_released: boolean;
 }
 
@@ -30,6 +33,7 @@ interface Post {
   reviewed_at: string | null;
   previous_media_urls: string[]; previous_caption: string;
   revision_note: string; revision_count: number; revised_at: string | null;
+  is_published: boolean; aspect_ratio: string;
 }
 
 interface RevisionDraft { note: string; media: string[] }
@@ -52,11 +56,15 @@ const MktCCAdmin = () => {
   const [newProject, setNewProject] = useState({ company_name: "", access_code: "", instagram_handle: "" });
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string }>({
-    post_type: "image", media_urls: [], caption: "",
+  const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string; aspect_ratio: string }>({
+    post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5",
   });
   const [revisions, setRevisions] = useState<Record<string, RevisionDraft>>({});
   const [revisingId, setRevisingId] = useState<string | null>(null);
+  const [dirtyIds, setDirtyIds] = useState<string[]>([]);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<string>("");
+  const beforeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -83,6 +91,8 @@ const MktCCAdmin = () => {
       previous_caption: p.previous_caption || "",
       revision_note: p.revision_note || "",
       revision_count: p.revision_count || 0,
+      aspect_ratio: p.aspect_ratio || "4/5",
+      is_published: p.is_published !== false,
     })));
   };
 
@@ -100,7 +110,7 @@ const MktCCAdmin = () => {
 
   const openProject = async (project: Project) => {
     setSelected(project);
-    setDraft({ post_type: "image", media_urls: [], caption: "" });
+    setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
     try { await loadPosts(project.id); } catch (err) { toast.error("Erro ao carregar posts"); }
   };
 
@@ -173,7 +183,7 @@ const MktCCAdmin = () => {
     if (draft.media_urls.length === 0) return toast.error("Envie pelo menos um arquivo");
     try {
       await call("create_post", { project_id: selected.id, ...draft });
-      setDraft({ post_type: "image", media_urls: [], caption: "" });
+      setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
       await loadPosts(selected.id);
       toast.success("Publicação criada!");
     } catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); }
@@ -251,6 +261,77 @@ const MktCCAdmin = () => {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao aplicar alteração");
     } finally { setRevisingId(null); }
+  };
+
+  // Rascunho automático: qualquer legenda editada é salva sozinha após 1,2s.
+  const markDirty = (postId: string) =>
+    setDirtyIds((prev) => (prev.includes(postId) ? prev : [...prev, postId]));
+
+  useEffect(() => {
+    if (dirtyIds.length === 0) return;
+    const timer = window.setTimeout(async () => {
+      const ids = [...dirtyIds];
+      setDirtyIds([]);
+      setAutoSaving(true);
+      try {
+        for (const id of ids) {
+          const post = posts.find((p) => p.id === id);
+          if (!post) continue;
+          await call("update_post", {
+            post_id: post.id, project_id: post.project_id,
+            caption: post.caption, aspect_ratio: post.aspect_ratio,
+          });
+        }
+        setLastAutoSave(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+      } catch {
+        toast.error("Falha ao salvar rascunho");
+      } finally { setAutoSaving(false); }
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [dirtyIds, posts]);
+
+  const setPublished = async (post: Post, published: boolean) => {
+    try {
+      await call("publish_post", { post_id: post.id, is_published: published });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, is_published: published } : p)));
+      toast.success(published ? "Publicado na prévia do cliente!" : "Voltou para rascunho");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Erro ao publicar"); }
+  };
+
+  // Prints de "como o perfil estava" — ficam salvos na nuvem até o admin remover.
+  const uploadBeforeShots = async (platform: "instagram" | "facebook", files: FileList) => {
+    if (!selected) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+        const base64 = await fileToBase64(file);
+        const data = await call("upload_media", {
+          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+        });
+        urls.push(data.url);
+      }
+      const key = platform === "instagram" ? "before_instagram_urls" : "before_facebook_urls";
+      const next = [...((selected as any)[key] || []), ...urls];
+      await call("update_project", { project_id: selected.id, [key]: next });
+      setSelected({ ...selected, [key]: next } as Project);
+      toast.success(`${urls.length} print(s) salvo(s) na nuvem`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); if (beforeRef.current) beforeRef.current.value = ""; }
+  };
+
+  const removeBeforeShot = async (platform: "instagram" | "facebook", url: string) => {
+    if (!selected) return;
+    if (!window.confirm("Remover este print do histórico?")) return;
+    const key = platform === "instagram" ? "before_instagram_urls" : "before_facebook_urls";
+    const next = ((selected as any)[key] || []).filter((u: string) => u !== url);
+    try {
+      await call("update_project", { project_id: selected.id, [key]: next });
+      setSelected({ ...selected, [key]: next } as Project);
+      toast.success("Print removido");
+    } catch { toast.error("Erro ao remover"); }
   };
 
   const toggleNextStep = async (released: boolean) => {
