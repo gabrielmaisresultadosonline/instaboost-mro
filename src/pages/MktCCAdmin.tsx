@@ -415,6 +415,36 @@ const MktCCAdmin = () => {
               </CardContent>
             </Card>
 
+            {posts.length > 0 && (
+              posts.every((p) => p.status === "approved") ? (
+                <Card className="border-primary bg-primary/5">
+                  <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-semibold">Tudo aprovado ({posts.length}/{posts.length}) — próximos passos</p>
+                      <p className="text-sm text-muted-foreground">
+                        O cliente aprovou todo o feed. Preencha "Próximos passos" na aba Textos e libere para ele.
+                      </p>
+                    </div>
+                    <Button
+                      variant={selected.next_step_released ? "outline" : "default"}
+                      onClick={() => toggleNextStep(!selected.next_step_released)}
+                    >
+                      {selected.next_step_released ? "Bloquear próximo passo" : "Liberar próximo passo"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="p-4 text-sm text-muted-foreground">
+                    Aprovações: <strong>{posts.filter((p) => p.status === "approved").length}/{posts.length}</strong>
+                    {" · "}Ajustes pedidos: <strong>{posts.filter((p) => p.status === "changes").length}</strong>
+                    {" · "}Os próximos passos são liberados quando tudo estiver aprovado.
+                  </CardContent>
+                </Card>
+              )
+            )}
+
             <div className="grid gap-3">
               {posts.map((post, index) => (
                 <Card key={post.id}>
