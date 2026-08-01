@@ -130,6 +130,8 @@ const MktCC = () => {
     return { approved, changes, pending: posts.length - approved - changes, total: posts.length };
   }, [posts]);
 
+  const allApproved = progress.total > 0 && progress.approved === progress.total;
+
   if (!project) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center px-4">
