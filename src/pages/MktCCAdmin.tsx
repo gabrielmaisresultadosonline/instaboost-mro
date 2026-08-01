@@ -436,6 +436,7 @@ const MktCCAdmin = () => {
                         <Badge variant="secondary">#{index + 1} · {post.post_type}</Badge>
                         {post.status === "approved" && <Badge className="bg-primary text-primary-foreground">Aprovado</Badge>}
                         {post.status === "changes" && <Badge variant="destructive">Ajustar</Badge>}
+                        {post.revision_count > 0 && <Badge variant="outline">Alteração nº {post.revision_count}</Badge>}
                       </div>
                       <Textarea rows={3} value={post.caption}
                         onChange={(e) => setPosts(posts.map((p) => (p.id === post.id ? { ...p, caption: e.target.value } : p)))} />
@@ -447,6 +448,39 @@ const MktCCAdmin = () => {
                       <Button size="sm" variant="outline" onClick={() => savePost(post)}>
                         <Save className="w-4 h-4 mr-2" /> Salvar
                       </Button>
+
+                      {post.status === "changes" && (
+                        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
+                          <p className="text-xs font-semibold text-destructive">APLICAR ALTERAÇÃO</p>
+                          <Textarea
+                            rows={2}
+                            placeholder="O que foi alterado? (o cliente verá este recado)"
+                            value={revisions[post.id]?.note || ""}
+                            onChange={(e) => setRevision(post.id, { note: e.target.value })}
+                          />
+                          <Input
+                            type="file"
+                            multiple
+                            accept="image/*,video/*"
+                            onChange={(e) => e.target.files?.length && uploadRevisionFiles(post, e.target.files)}
+                          />
+                          {(revisions[post.id]?.media?.length || 0) > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              {revisions[post.id].media.length} novo(s) arquivo(s) prontos. Deixe vazio para manter as mídias atuais.
+                            </p>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={() => applyRevision(post)}
+                            disabled={uploading || revisingId === post.id}
+                          >
+                            {revisingId === post.id
+                              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
+                              : <><RefreshCw className="w-4 h-4 mr-2" /> Enviar nova versão p/ aprovação</>}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                     </div>
                   </CardContent>
                 </Card>
