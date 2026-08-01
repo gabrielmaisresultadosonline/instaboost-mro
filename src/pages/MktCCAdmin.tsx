@@ -1070,8 +1070,8 @@ const MktCCAdmin = () => {
                     <Input value={selected.access_code} onChange={(e) => setSelected({ ...selected, access_code: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
-                <div className="space-y-2">
                 <div
+
                   className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
                   onPaste={(e) => {
                     const file = Array.from(e.clipboardData?.items || [])
