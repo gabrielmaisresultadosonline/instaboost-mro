@@ -543,6 +543,127 @@ const MktCC = () => {
             </Card>
           </TabsContent>
 
+          {project.logo_enabled && (
+            <TabsContent value="logo" className="mt-6">
+              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+                <div className="h-2 mktcc-gradient" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                    <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                      <Images className="w-5 h-5 text-primary-foreground" />
+                    </span>
+                    Nova <span className="mktcc-gradient-text">logo</span>
+                  </CardTitle>
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    Compare o antes e o depois e aprove a nova identidade.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {project.logo_status === "approved" ? (
+                      <Badge className="rounded-full border-2 border-foreground bg-primary text-primary-foreground font-black uppercase">
+                        Logo aprovada
+                      </Badge>
+                    ) : project.logo_status === "changes" ? (
+                      <Badge className="rounded-full border-2 border-foreground bg-destructive text-destructive-foreground font-black uppercase">
+                        Ajuste solicitado
+                      </Badge>
+                    ) : (
+                      <Badge className="rounded-full border-2 border-foreground bg-card text-foreground font-black uppercase">
+                        Aguardando sua aprovação
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {[
+                      { label: "Logo atual", url: project.logo_before_url, muted: true },
+                      { label: "Nova proposta", url: project.logo_after_url, muted: false },
+                    ].map((item) => (
+                      <div key={item.label} className="space-y-2">
+                        <p className="text-xs font-black uppercase text-muted-foreground">{item.label}</p>
+                        {item.url ? (
+                          <button
+                            type="button"
+                            onClick={() => setMediaPopup({ url: item.url, type: "image" })}
+                            className="mktcc-tile relative block w-full rounded-xl overflow-hidden border-2 border-foreground bg-muted"
+                          >
+                            <img
+                              src={item.url}
+                              alt={item.label}
+                              loading="lazy"
+                              className={`w-full h-auto ${item.muted ? "opacity-70 grayscale" : ""}`}
+                            />
+                            {!item.muted && project.logo_status === "approved" && (
+                              <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 -rotate-6 bg-primary py-2 text-center text-lg font-black uppercase text-primary-foreground border-y-2 border-foreground">
+                                Aprovada
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <p className="rounded-xl border-2 border-dashed border-foreground/40 p-6 text-center text-sm font-semibold text-muted-foreground">
+                            Sem imagem ainda.
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {project.logo_reason && (
+                    <div className="rounded-2xl border-2 border-foreground bg-secondary p-4">
+                      <p className="text-xs font-black uppercase">Por que fizemos outra logo</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
+                        {project.logo_reason}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <Textarea
+                      rows={3}
+                      value={logoNote}
+                      onChange={(e) => setLogoNote(e.target.value)}
+                      placeholder="Quer algum ajuste na logo? Escreva aqui."
+                      className="rounded-xl border-2 border-foreground font-medium"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {project.logo_status === "approved" ? (
+                        <Button
+                          variant="outline"
+                          disabled={logoSaving}
+                          onClick={() => reviewLogo("pending")}
+                          className="rounded-xl border-2 border-foreground font-black uppercase"
+                        >
+                          {logoSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                          Desaprovar
+                        </Button>
+                      ) : (
+                        <Button
+                          disabled={logoSaving}
+                          onClick={() => reviewLogo("approved")}
+                          className="rounded-xl border-2 border-foreground font-black uppercase"
+                        >
+                          {logoSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                          Aprovar logo
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        disabled={logoSaving}
+                        onClick={() => reviewLogo("changes")}
+                        className="rounded-xl border-2 border-foreground font-black uppercase"
+                      >
+                        <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir ajuste
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+
+
           <TabsContent value="estrategia" className="mt-6">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 mktcc-gradient" />
