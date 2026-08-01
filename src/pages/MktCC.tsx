@@ -427,6 +427,16 @@ const MktCC = () => {
               )}
             </div>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleLogout}
+            aria-label="Sair e usar outro código de acesso"
+            className="ml-auto self-start shrink-0 rounded-xl border-2 border-foreground font-black uppercase text-xs"
+          >
+            <LogOut className="w-4 h-4 sm:mr-1.5" />
+            <span className="hidden sm:inline">Sair</span>
+          </Button>
         </div>
       </header>
 
