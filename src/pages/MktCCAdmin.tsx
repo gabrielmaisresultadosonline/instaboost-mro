@@ -375,13 +375,14 @@ const MktCCAdmin = () => {
   };
 
   // Prints de "como o perfil estava" — ficam salvos na nuvem até o admin remover.
-  const uploadBeforeShots = async (platform: "instagram" | "facebook", files: FileList) => {
+  const uploadBeforeShots = async (platform: "instagram" | "facebook", files: FileList | File[]) => {
     if (!selected) return;
     setUploading(true);
     try {
       const urls: string[] = [];
       for (const file of Array.from(files)) {
         if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+
         const base64 = await fileToBase64(file);
         const data = await call("upload_media", {
           project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
