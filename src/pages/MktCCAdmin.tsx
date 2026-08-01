@@ -739,6 +739,25 @@ const MktCCAdmin = () => {
                 </CardContent>
               </Card>
             )}
+            {cycles.length > 0 && posts.some((p) => !p.cycle_id) && (
+              <Card className="mktcc-pop-sm rounded-2xl border-dashed">
+                <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+                  <p className="text-xs font-black uppercase flex-1">
+                    {posts.filter((p) => !p.cycle_id).length} publicação(ões) antiga(s) fora de programação
+                  </p>
+                  <Select value="" onValueChange={(v) => moveOrphansToCycle(v)}>
+                    <SelectTrigger className="md:w-72">
+                      <SelectValue placeholder="Mover todas para a programação..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cycles.filter((c) => !c.is_done).map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            )}
             {!cycleLocked && (
             <Card>
               <CardHeader><CardTitle className="text-lg">Nova publicação</CardTitle></CardHeader>
