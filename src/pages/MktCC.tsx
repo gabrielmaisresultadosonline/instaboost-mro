@@ -385,9 +385,9 @@ const MktCC = () => {
       </div>
 
       <Dialog open={!!activePost} onOpenChange={(open) => !open && setActivePost(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="mktcc max-w-lg max-h-[90vh] overflow-y-auto bg-background text-foreground border-[3px] border-foreground rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
               Publicação {activePost ? posts.findIndex((p) => p.id === activePost.id) + 1 : ""}
               {activePost && statusBadge(activePost.status)}
             </DialogTitle>
