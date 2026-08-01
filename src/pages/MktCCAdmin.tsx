@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
   CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
-  Instagram, Facebook, X,
+  Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
@@ -28,12 +28,17 @@ interface Project {
 interface Post {
   id: string; project_id: string;
   post_type: "image" | "video" | "carousel";
-  media_urls: string[]; caption: string; order_index: number;
+  media_urls: string[]; caption: string; order_index: number; cycle_id: string | null;
   status: "pending" | "approved" | "changes"; client_note: string;
   reviewed_at: string | null;
   previous_media_urls: string[]; previous_caption: string;
   revision_note: string; revision_count: number; revised_at: string | null;
   is_published: boolean; aspect_ratio: string;
+}
+
+interface Cycle {
+  id: string; title: string; scheduled_date: string | null; note: string;
+  status: "open" | "done"; completed_at: string | null; order_index: number; is_done: boolean;
 }
 
 interface RevisionDraft { note: string; media: string[] }
@@ -65,6 +70,10 @@ const MktCCAdmin = () => {
   const [autoSaving, setAutoSaving] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<string>("");
   const beforeRef = useRef<HTMLInputElement>(null);
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string>("none");
+  const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "" });
+  const [tab, setTab] = useState("posts");
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -93,7 +102,14 @@ const MktCCAdmin = () => {
       revision_count: p.revision_count || 0,
       aspect_ratio: p.aspect_ratio || "4/5",
       is_published: p.is_published !== false,
+      cycle_id: p.cycle_id ?? null,
     })));
+  };
+
+  const loadCycles = async (projectId: string) => {
+    const data = await call("list_cycles", { project_id: projectId });
+    setCycles(data.cycles || []);
+    return (data.cycles || []) as Cycle[];
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -111,7 +127,12 @@ const MktCCAdmin = () => {
   const openProject = async (project: Project) => {
     setSelected(project);
     setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
-    try { await loadPosts(project.id); } catch (err) { toast.error("Erro ao carregar posts"); }
+    try {
+      const list = await loadCycles(project.id);
+      const open = list.find((c) => !c.is_done);
+      setActiveCycleId(open?.id || list[list.length - 1]?.id || "none");
+      await loadPosts(project.id);
+    } catch (err) { toast.error("Erro ao carregar dados do projeto"); }
   };
 
   const saveProject = async () => {
@@ -182,7 +203,10 @@ const MktCCAdmin = () => {
     if (!selected) return;
     if (draft.media_urls.length === 0) return toast.error("Envie pelo menos um arquivo");
     try {
-      await call("create_post", { project_id: selected.id, ...draft });
+      await call("create_post", {
+        project_id: selected.id, ...draft,
+        cycle_id: activeCycleId === "none" ? null : activeCycleId,
+      });
       setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
       await loadPosts(selected.id);
       toast.success("Publicação criada!");
@@ -395,6 +419,47 @@ const MktCCAdmin = () => {
     } catch (err) { toast.error("Erro ao atualizar"); }
   };
 
+  const createCycle = async () => {
+    if (!selected) return;
+    if (!newCycle.title.trim()) return toast.error("Informe o mês / título da programação");
+    try {
+      const data = await call("create_cycle", { project_id: selected.id, ...newCycle });
+      setNewCycle({ title: "", scheduled_date: "", note: "" });
+      await loadCycles(selected.id);
+      setActiveCycleId(data.cycle.id);
+      toast.success("Programação criada!");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Erro ao criar programação"); }
+  };
+
+  const patchCycle = async (cycle: Cycle, patch: Record<string, unknown>) => {
+    if (!selected) return;
+    try {
+      await call("update_cycle", { cycle_id: cycle.id, ...patch });
+      await loadCycles(selected.id);
+      toast.success("Programação atualizada!");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Erro ao atualizar"); }
+  };
+
+  const removeCycle = async (cycle: Cycle) => {
+    if (!selected) return;
+    if (!window.confirm("Excluir esta programação? As publicações ficam sem programação.")) return;
+    try {
+      await call("delete_cycle", { cycle_id: cycle.id });
+      await loadCycles(selected.id);
+      if (activeCycleId === cycle.id) setActiveCycleId("none");
+      await loadPosts(selected.id);
+      toast.success("Programação excluída");
+    } catch { toast.error("Erro ao excluir"); }
+  };
+
+  const assignPostCycle = async (post: Post, cycleId: string) => {
+    try {
+      await call("update_post", { post_id: post.id, project_id: post.project_id, cycle_id: cycleId === "none" ? null : cycleId });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, cycle_id: cycleId === "none" ? null : cycleId } : p)));
+      toast.success("Programação da publicação atualizada");
+    } catch { toast.error("Erro ao mover publicação"); }
+  };
+
   if (!loggedIn) {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 mktcc-dots">
@@ -477,6 +542,13 @@ const MktCCAdmin = () => {
 
   const approved = posts.filter((p) => p.status === "approved");
   const changes = posts.filter((p) => p.status === "changes");
+  const activeCycle = cycles.find((c) => c.id === activeCycleId) || null;
+  const cycleLocked = !!activeCycle?.is_done;
+  const visiblePosts = cycles.length > 0
+    ? posts.filter((p) => (p.cycle_id || "none") === activeCycleId)
+    : posts;
+  const cycleLabel = (id: string | null) =>
+    cycles.find((c) => c.id === id)?.title || "Sem programação";
 
   return (
     <main className="mktcc min-h-screen bg-background text-foreground p-4 md:p-8">
@@ -489,10 +561,11 @@ const MktCCAdmin = () => {
           <Badge variant="secondary" className="font-mono">{selected.access_code}</Badge>
         </div>
 
-        <Tabs defaultValue="posts">
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-6 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
               { v: "posts", l: "Publicações" },
+              { v: "programacoes", l: "Programações" },
               { v: "antes", l: "Antes do perfil" },
               { v: "estrategia", l: "Estratégia" },
               { v: "textos", l: "Resumo / Passos" },
@@ -509,6 +582,35 @@ const MktCCAdmin = () => {
           </TabsList>
 
           <TabsContent value="posts" className="mt-6 space-y-6">
+            {cycles.length > 0 && (
+              <Card className="mktcc-pop-sm rounded-2xl">
+                <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <CalendarDays className="w-5 h-5" />
+                    <p className="text-xs font-black uppercase">Programação em edição</p>
+                  </div>
+                  <Select value={activeCycleId} onValueChange={setActiveCycleId}>
+                    <SelectTrigger className="md:w-72"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {cycles.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.title}{c.is_done ? " · finalizada" : ""}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="none">Sem programação (antigas)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {cycleLocked ? (
+                    <Badge className="bg-secondary text-secondary-foreground font-black uppercase">
+                      <Lock className="w-3.5 h-3.5 mr-1" /> Já processada — somente leitura
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            {!cycleLocked && (
             <Card>
               <CardHeader><CardTitle className="text-lg">Nova publicação</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -569,6 +671,7 @@ const MktCCAdmin = () => {
                 </Button>
               </CardContent>
             </Card>
+            )}
 
             {posts.length > 0 && (
               posts.every((p) => p.status === "approved") ? (
@@ -602,7 +705,9 @@ const MktCCAdmin = () => {
 
             <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
             <div className="grid gap-3">
-              {posts.map((post, index) => (
+              {visiblePosts.map((post) => {
+                const index = posts.findIndex((p) => p.id === post.id);
+                return (
                 <Card key={post.id}>
                   <CardContent className="p-4 flex gap-4 flex-col md:flex-row">
                     <div className="w-full md:w-28 shrink-0">
@@ -611,11 +716,13 @@ const MktCCAdmin = () => {
                           ? <video src={post.media_urls[0]} className="w-full h-full object-contain" muted />
                           : <img src={post.media_urls[0]} alt="Prévia" className="w-full h-full object-contain" />}
                       </div>
+                      {!cycleLocked && (
                       <div className="flex gap-1 mt-2">
                         <Button size="icon" variant="outline" onClick={() => movePost(index, -1)} aria-label="Subir"><ArrowUp className="w-4 h-4" /></Button>
                         <Button size="icon" variant="outline" onClick={() => movePost(index, 1)} aria-label="Descer"><ArrowDown className="w-4 h-4" /></Button>
                         <Button size="icon" variant="destructive" onClick={() => deletePost(post)} aria-label="Excluir"><Trash2 className="w-4 h-4" /></Button>
                       </div>
+                      )}
                     </div>
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -627,14 +734,33 @@ const MktCCAdmin = () => {
                           ? <Badge className="bg-secondary text-secondary-foreground font-bold uppercase">Publicado</Badge>
                           : <Badge variant="outline" className="font-bold uppercase">Rascunho</Badge>}
                         <Badge variant="outline">{post.aspect_ratio}</Badge>
+                        {cycles.length > 0 && !cycleLocked && (
+                          <Select
+                            value={post.cycle_id || "none"}
+                            onValueChange={(v) => assignPostCycle(post, v)}
+                          >
+                            <SelectTrigger className="h-7 w-auto min-w-[10rem] text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {cycles.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                              ))}
+                              <SelectItem value="none">Sem programação</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {cycleLocked && (
+                          <Badge className="bg-secondary text-secondary-foreground font-black uppercase">
+                            {cycleLabel(post.cycle_id)} · finalizada
+                          </Badge>
+                        )}
                       </div>
-                      <Textarea rows={3} value={post.caption}
+                      <Textarea rows={3} value={post.caption} readOnly={cycleLocked}
                         onChange={(e) => {
                           setPosts(posts.map((p) => (p.id === post.id ? { ...p, caption: e.target.value } : p)));
                           markDirty(post.id);
                         }} />
                       <p className="text-xs font-semibold text-muted-foreground">
-                        {dirtyIds.includes(post.id)
+                        {cycleLocked ? "Programação finalizada — edições bloqueadas" : dirtyIds.includes(post.id)
                           ? "Alterações não salvas..."
                           : autoSaving ? "Salvando rascunho..." : lastAutoSave ? `Rascunho salvo às ${lastAutoSave}` : "Salva automático como rascunho"}
                       </p>
@@ -643,6 +769,7 @@ const MktCCAdmin = () => {
                           <strong>Observação do cliente:</strong> {post.client_note}
                         </p>
                       )}
+                      {!cycleLocked && (
                       <div className="flex gap-2 flex-wrap">
                         <Button size="sm" variant="outline" onClick={() => savePost(post)}>
                           <Save className="w-4 h-4 mr-2" /> Salvar agora
@@ -657,8 +784,9 @@ const MktCCAdmin = () => {
                           </Button>
                         )}
                       </div>
+                      )}
 
-                      {!post.is_published && (
+                      {!post.is_published && !cycleLocked && (
                         <div className="rounded-md border-2 border-foreground/20 p-3 space-y-2 mt-2">
                           <p className="text-xs font-black uppercase">Editar imagens do rascunho</p>
                           {post.media_urls.length > 0 && (
@@ -700,7 +828,7 @@ const MktCCAdmin = () => {
 
 
 
-                      {post.status === "changes" && (
+                      {post.status === "changes" && !cycleLocked && (
                         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
                           <p className="text-xs font-semibold text-destructive">APLICAR ALTERAÇÃO</p>
                           <Textarea
@@ -734,7 +862,13 @@ const MktCCAdmin = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
+              {visiblePosts.length === 0 && (
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Nenhuma publicação nesta programação ainda.
+                </p>
+              )}
             </div>
             <div className="lg:sticky lg:top-6 space-y-2">
               <p className="text-xs font-black uppercase text-muted-foreground text-center">
@@ -744,11 +878,105 @@ const MktCCAdmin = () => {
                 companyName={selected.company_name}
                 instagramHandle={selected.instagram_handle}
                 avatarUrl={selected.avatar_url}
-                posts={posts.filter((p) => p.is_published)}
+                posts={visiblePosts.filter((p) => p.is_published)}
                 onReorder={reorderFromPreview}
               />
             </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="programacoes" className="mt-6 space-y-4">
+            <Card className="mktcc-pop rounded-2xl overflow-hidden">
+              <div className="h-2 mktcc-gradient" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight">
+                  <CalendarDays className="w-5 h-5" /> Nova programação (mês)
+                </CardTitle>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Crie um ciclo por mês. Quando a data chegar ou você marcar como efetuado, o cliente vê como
+                  “já processado / finalizado” e ninguém mais edita aquelas publicações.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Mês / título</Label>
+                    <Input value={newCycle.title} placeholder="Ex: Programação Janeiro/2026"
+                      onChange={(e) => setNewCycle({ ...newCycle, title: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data em que será efetuada</Label>
+                    <Input type="date" value={newCycle.scheduled_date}
+                      onChange={(e) => setNewCycle({ ...newCycle, scheduled_date: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Observação (o cliente vê)</Label>
+                  <Textarea rows={3} value={newCycle.note}
+                    onChange={(e) => setNewCycle({ ...newCycle, note: e.target.value })} />
+                </div>
+                <Button onClick={createCycle} className="font-black uppercase mktcc-pop-sm">
+                  <Plus className="w-4 h-4 mr-2" /> Criar programação
+                </Button>
+              </CardContent>
+            </Card>
+
+            {cycles.map((cycle) => {
+              const count = posts.filter((p) => p.cycle_id === cycle.id).length;
+              return (
+                <Card key={cycle.id} className="mktcc-pop-sm rounded-2xl">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-black uppercase">{cycle.title}</p>
+                      {cycle.is_done
+                        ? <Badge className="bg-secondary text-secondary-foreground font-black uppercase"><Lock className="w-3.5 h-3.5 mr-1" /> Já processada</Badge>
+                        : <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>}
+                      <Badge variant="outline">{count} publicação(ões)</Badge>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Título</Label>
+                        <Input defaultValue={cycle.title}
+                          onBlur={(e) => e.target.value !== cycle.title && patchCycle(cycle, { title: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Data programada</Label>
+                        <Input type="date" defaultValue={cycle.scheduled_date || ""}
+                          onBlur={(e) => e.target.value !== (cycle.scheduled_date || "") && patchCycle(cycle, { scheduled_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Observação</Label>
+                      <Textarea rows={3} defaultValue={cycle.note || ""}
+                        onBlur={(e) => e.target.value !== (cycle.note || "") && patchCycle(cycle, { note: e.target.value })} />
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button size="sm" variant="outline" onClick={() => { setActiveCycleId(cycle.id); setTab("posts"); }}>
+                        <Images className="w-4 h-4 mr-2" /> Ver publicações
+                      </Button>
+                      {cycle.status === "done" ? (
+                        <Button size="sm" variant="outline" onClick={() => patchCycle(cycle, { status: "open" })}>
+                          <Unlock className="w-4 h-4 mr-2" /> Reabrir para edição
+                        </Button>
+                      ) : (
+                        <Button size="sm" className="font-black uppercase" onClick={() => patchCycle(cycle, { status: "done" })}>
+                          <CheckCircle2 className="w-4 h-4 mr-2" /> Marcar como efetuada
+                        </Button>
+                      )}
+                      <Button size="sm" variant="destructive" onClick={() => removeCycle(cycle)}>
+                        <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {cycles.length === 0 && (
+              <p className="text-sm font-semibold text-muted-foreground">
+                Nenhuma programação criada ainda — as publicações atuais ficam em “Sem programação”.
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="antes" className="mt-6">

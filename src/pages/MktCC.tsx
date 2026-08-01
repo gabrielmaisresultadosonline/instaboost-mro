@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
-  History as HistoryIcon, Facebook, Camera,
+  History as HistoryIcon, Facebook, Camera, CalendarDays,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
@@ -28,6 +28,18 @@ interface MktccPost {
   revision_note: string;
   revision_count: number;
   aspect_ratio: string;
+  cycle_id: string | null;
+}
+
+interface MktccCycle {
+  id: string;
+  title: string;
+  scheduled_date: string | null;
+  note: string;
+  status: "open" | "done";
+  completed_at: string | null;
+  order_index: number;
+  is_done: boolean;
 }
 
 interface MktccProject {
@@ -65,6 +77,8 @@ const MktCC = () => {
   const [slide, setSlide] = useState(0);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [cycles, setCycles] = useState<MktccCycle[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string>("none");
 
   useEffect(() => { document.title = "Aprovação de Conteúdo | Marketing Completo"; }, []);
 
@@ -90,7 +104,15 @@ const MktCC = () => {
         revision_note: p.revision_note || "",
         revision_count: p.revision_count || 0,
         aspect_ratio: p.aspect_ratio || "4/5",
+        cycle_id: p.cycle_id ?? null,
       })));
+      const loaded: MktccCycle[] = data.cycles || [];
+      setCycles(loaded);
+      setActiveCycleId((prev) => {
+        if (prev !== "none" && loaded.some((c) => c.id === prev)) return prev;
+        const open = loaded.find((c) => !c.is_done);
+        return open?.id || loaded[loaded.length - 1]?.id || "none";
+      });
       localStorage.setItem(STORAGE_KEY, accessCode);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao carregar";
@@ -111,6 +133,8 @@ const MktCC = () => {
     setSlide(0);
     setNote(post.client_note || "");
   };
+
+  const cycleById = (id: string | null) => cycles.find((c) => c.id === id) || null;
 
   const review = async (status: MktccPost["status"]) => {
     if (!activePost || !project) return;
@@ -145,6 +169,14 @@ const MktCC = () => {
   }, [posts]);
 
   const allApproved = progress.total > 0 && progress.approved === progress.total;
+  const activeCycle = cycles.find((c) => c.id === activeCycleId) || null;
+  const activeCycleDone = !!activeCycle?.is_done;
+  const viewPosts = cycles.length > 0
+    ? posts.filter((p) => (p.cycle_id || "none") === activeCycleId)
+    : posts;
+  const activePostLocked = !!activePost && !!cycleById(activePost.cycle_id)?.is_done;
+  const formatDate = (value: string | null) =>
+    value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : null;
 
   if (!project) {
     return (
@@ -269,6 +301,63 @@ const MktCC = () => {
                 </CardContent>
               </Card>
             )}
+            {cycles.length > 0 && (
+              <div className="mb-6 space-y-3">
+                <p className="text-xs font-black uppercase text-muted-foreground">Programações</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {cycles.map((cycle) => {
+                    const count = posts.filter((p) => p.cycle_id === cycle.id).length;
+                    const isActive = cycle.id === activeCycleId;
+                    return (
+                      <button
+                        key={cycle.id}
+                        onClick={() => setActiveCycleId(cycle.id)}
+                        className={`text-left rounded-2xl border-2 border-foreground p-4 transition-colors ${
+                          isActive ? "bg-primary text-primary-foreground mktcc-pop-sm" : "bg-card text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <CalendarDays className="w-4 h-4" />
+                          <span className="font-black uppercase">{cycle.title}</span>
+                          {cycle.is_done
+                            ? <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-card text-foreground">Já processado</Badge>
+                            : <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-card text-foreground">Em aprovação</Badge>}
+                        </div>
+                        <p className="mt-1 text-xs font-bold uppercase opacity-80">
+                          {formatDate(cycle.scheduled_date) ? `Data: ${formatDate(cycle.scheduled_date)} · ` : ""}
+                          {count} publicação(ões)
+                        </p>
+                        {cycle.note && <p className="mt-1 text-sm font-medium whitespace-pre-wrap opacity-90">{cycle.note}</p>}
+                      </button>
+                    );
+                  })}
+                  {posts.some((p) => !p.cycle_id) && (
+                    <button
+                      onClick={() => setActiveCycleId("none")}
+                      className={`text-left rounded-2xl border-2 border-foreground p-4 ${
+                        activeCycleId === "none" ? "bg-primary text-primary-foreground mktcc-pop-sm" : "bg-card text-foreground"
+                      }`}
+                    >
+                      <span className="font-black uppercase">Programação inicial</span>
+                      <p className="mt-1 text-xs font-bold uppercase opacity-80">
+                        {posts.filter((p) => !p.cycle_id).length} publicação(ões)
+                      </p>
+                    </button>
+                  )}
+                </div>
+                {activeCycleDone && (
+                  <Card className="mktcc-pop-sm rounded-2xl bg-card">
+                    <CardContent className="p-4 flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                      <p className="text-sm font-semibold">
+                        Esta programação já foi <strong>processada e finalizada</strong>. Você pode ver tudo o que foi
+                        publicado, mas não é mais possível editar ou aprovar itens deste ciclo.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
             <div className="mb-4">
               <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
                 <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
@@ -280,7 +369,7 @@ const MktCC = () => {
                 Toque em cada quadradinho para ver o material, a legenda e aprovar ou deixar uma observação.
               </p>
             </div>
-            {posts.length === 0 ? (
+            {viewPosts.length === 0 ? (
               <p className="text-sm font-semibold text-muted-foreground py-12 text-center">
                 Nenhuma publicação cadastrada ainda. Volte em breve.
               </p>
@@ -288,7 +377,7 @@ const MktCC = () => {
               <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
               <div>
               <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm">
-                {posts.map((post) => (
+                {viewPosts.map((post) => (
                   <button
                     key={post.id}
                     onClick={() => openPost(post)}
@@ -337,9 +426,9 @@ const MktCC = () => {
                   companyName={project.company_name}
                   instagramHandle={project.instagram_handle}
                   avatarUrl={project.avatar_url}
-                  posts={posts}
+                  posts={viewPosts}
                   onSelect={(id) => {
-                    const found = posts.find((p) => p.id === id);
+                    const found = viewPosts.find((p) => p.id === id);
                     if (found) openPost(found);
                   }}
                 />
@@ -475,7 +564,7 @@ const MktCC = () => {
         <DialogContent className="mktcc max-w-lg max-h-[90vh] overflow-y-auto bg-background text-foreground border-[3px] border-foreground rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
-              Publicação {activePost ? posts.findIndex((p) => p.id === activePost.id) + 1 : ""}
+              Publicação {activePost ? viewPosts.findIndex((p) => p.id === activePost.id) + 1 : ""}
               {activePost && statusBadge(activePost.status)}
             </DialogTitle>
           </DialogHeader>
@@ -571,11 +660,17 @@ const MktCC = () => {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Escreva aqui o que deseja alterar ou acrescentar..."
+                  readOnly={activePostLocked}
                   rows={4}
                   className="border-2 border-foreground rounded-xl font-medium"
                 />
               </div>
 
+              {activePostLocked ? (
+                <p className="rounded-xl border-2 border-foreground bg-card p-3 text-sm font-bold uppercase">
+                  Programação já processada e finalizada — aprovações encerradas.
+                </p>
+              ) : (
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
@@ -593,6 +688,7 @@ const MktCC = () => {
                   <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir alteração
                 </Button>
               </div>
+              )}
             </div>
           )}
         </DialogContent>

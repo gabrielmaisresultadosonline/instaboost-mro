@@ -3859,12 +3859,60 @@ export type Database = {
           },
         ]
       }
+      mktcc_cycles: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          note: string
+          order_index: number
+          project_id: string
+          scheduled_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string
+          order_index?: number
+          project_id: string
+          scheduled_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string
+          order_index?: number
+          project_id?: string
+          scheduled_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mktcc_cycles_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "mktcc_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mktcc_posts: {
         Row: {
           aspect_ratio: string
           caption: string
           client_note: string
           created_at: string
+          cycle_id: string | null
           id: string
           is_published: boolean
           media_urls: Json
@@ -3885,6 +3933,7 @@ export type Database = {
           caption?: string
           client_note?: string
           created_at?: string
+          cycle_id?: string | null
           id?: string
           is_published?: boolean
           media_urls?: Json
@@ -3905,6 +3954,7 @@ export type Database = {
           caption?: string
           client_note?: string
           created_at?: string
+          cycle_id?: string | null
           id?: string
           is_published?: boolean
           media_urls?: Json
@@ -3921,6 +3971,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "mktcc_posts_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "mktcc_cycles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mktcc_posts_project_id_fkey"
             columns: ["project_id"]
