@@ -14,7 +14,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const PROJECT_PUBLIC_FIELDS =
-  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,instagram_bio,avatar_url,all_approved_at,next_step_released,before_instagram_urls,before_facebook_urls,before_note,before_profile_full_url,logo_enabled,logo_before_url,logo_after_url,logo_reason,logo_status,logo_client_note,logo_reviewed_at";
+  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,instagram_bio,avatar_url,all_approved_at,next_step_released,before_instagram_urls,before_facebook_urls,before_note,before_profile_full_url,drive_url,logo_enabled,logo_before_url,logo_after_url,logo_reason,logo_status,logo_client_note,logo_reviewed_at";
 
 // Uma programação é considerada finalizada quando o admin marca como "done"
 // ou quando a data programada já passou.
@@ -196,7 +196,7 @@ serve(async (req) => {
 
     if (action === "update_project") {
       const patch: Record<string, any> = {};
-      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "instagram_bio", "avatar_url", "access_code", "is_active", "next_step_released", "before_instagram_urls", "before_facebook_urls", "before_note", "before_profile_full_url", "logo_enabled", "logo_before_url", "logo_after_url", "logo_reason", "logo_status", "logo_client_note"]) {
+      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "instagram_bio", "avatar_url", "access_code", "is_active", "next_step_released", "before_instagram_urls", "before_facebook_urls", "before_note", "before_profile_full_url", "drive_url", "logo_enabled", "logo_before_url", "logo_after_url", "logo_reason", "logo_status", "logo_client_note"]) {
         if (key in body) patch[key] = key === "access_code" ? String(body[key]).trim().toUpperCase() : body[key];
       }
       const { error } = await supabase.from("mktcc_projects").update(patch).eq("id", body.project_id);
