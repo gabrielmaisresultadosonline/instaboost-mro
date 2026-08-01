@@ -216,6 +216,58 @@ const MktCCAdmin = () => {
     try { await call("reorder_posts", { ids: next.map((p) => p.id) }); } catch { toast.error("Erro ao reordenar"); }
   };
 
+  // Ordem vinda do arrasto na prévia do celular (só publicados): reencaixa os
+  // publicados nas suas posições originais e mantém os rascunhos onde estavam.
+  const reorderFromPreview = async (orderedPublishedIds: string[]) => {
+    const queue = orderedPublishedIds
+      .map((id) => posts.find((p) => p.id === id))
+      .filter((p): p is Post => !!p);
+    let cursor = 0;
+    const next = posts.map((p) => (p.is_published ? queue[cursor++] ?? p : p));
+    setPosts(next);
+    try {
+      await call("reorder_posts", { ids: next.map((p) => p.id) });
+      toast.success("Nova ordem salva!");
+    } catch { toast.error("Erro ao reordenar"); }
+  };
+
+  // Envia novas mídias direto para uma publicação existente (edição de imagem).
+  const uploadPostMedia = async (post: Post, files: FileList, replace: boolean) => {
+    if (!selected) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+        const base64 = await fileToBase64(file);
+        const data = await call("upload_media", {
+          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+        });
+        urls.push(data.url);
+      }
+      if (urls.length === 0) return;
+      const media = replace ? urls : [...(post.media_urls || []), ...urls];
+      const isVideo = files[0]?.type.startsWith("video");
+      const post_type: Post["post_type"] = isVideo ? "video" : media.length > 1 ? "carousel" : "image";
+      await call("update_post", { post_id: post.id, project_id: post.project_id, media_urls: media, post_type });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, media_urls: media, post_type } : p)));
+      toast.success("Imagens atualizadas!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
+  const removePostMedia = async (post: Post, url: string) => {
+    const media = (post.media_urls || []).filter((u) => u !== url);
+    if (media.length === 0) return toast.error("A publicação precisa de pelo menos uma mídia");
+    const post_type: Post["post_type"] = post.post_type === "video" ? "video" : media.length > 1 ? "carousel" : "image";
+    try {
+      await call("update_post", { post_id: post.id, project_id: post.project_id, media_urls: media, post_type });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, media_urls: media, post_type } : p)));
+    } catch { toast.error("Erro ao remover mídia"); }
+  };
+
+
   const setRevision = (postId: string, patch: Partial<RevisionDraft>) =>
     setRevisions((prev) => ({ ...prev, [postId]: { note: "", media: [], ...prev[postId], ...patch } }));
 
@@ -606,6 +658,48 @@ const MktCCAdmin = () => {
                         )}
                       </div>
 
+                      {!post.is_published && (
+                        <div className="rounded-md border-2 border-foreground/20 p-3 space-y-2 mt-2">
+                          <p className="text-xs font-black uppercase">Editar imagens do rascunho</p>
+                          {post.media_urls.length > 0 && (
+                            <div className="flex gap-2 flex-wrap">
+                              {post.media_urls.map((url) => (
+                                <div key={url} className="relative w-16">
+                                  <div className="aspect-[4/5] rounded-md overflow-hidden border-2 border-foreground bg-muted">
+                                    {post.post_type === "video"
+                                      ? <video src={url} className="w-full h-full object-cover" muted />
+                                      : <img src={url} alt="Mídia" className="w-full h-full object-cover" />}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center"
+                                    onClick={() => removePostMedia(post, url)}
+                                    aria-label="Remover mídia"
+                                  ><X className="w-3 h-3" /></button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Adicionar mídias</Label>
+                              <Input type="file" multiple accept="image/*,video/*" disabled={uploading}
+                                onChange={(e) => e.target.files?.length && uploadPostMedia(post, e.target.files, false)} />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Substituir todas</Label>
+                              <Input type="file" multiple accept="image/*,video/*" disabled={uploading}
+                                onChange={(e) => e.target.files?.length && uploadPostMedia(post, e.target.files, true)} />
+                            </div>
+                          </div>
+                          <p className="text-xs font-semibold text-muted-foreground">
+                            As mídias salvam na hora. Depois clique em <strong>Publicar p/ o cliente</strong>.
+                          </p>
+                        </div>
+                      )}
+
+
+
                       {post.status === "changes" && (
                         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
                           <p className="text-xs font-semibold text-destructive">APLICAR ALTERAÇÃO</p>
@@ -644,13 +738,14 @@ const MktCCAdmin = () => {
             </div>
             <div className="lg:sticky lg:top-6 space-y-2">
               <p className="text-xs font-black uppercase text-muted-foreground text-center">
-                Prévia do cliente (só publicados)
+                Prévia do cliente (só publicados) · arraste para reordenar
               </p>
               <PhoneInstagramPreview
                 companyName={selected.company_name}
                 instagramHandle={selected.instagram_handle}
                 avatarUrl={selected.avatar_url}
                 posts={posts.filter((p) => p.is_published)}
+                onReorder={reorderFromPreview}
               />
             </div>
             </div>
