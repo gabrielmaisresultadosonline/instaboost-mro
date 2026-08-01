@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { MktCCTutorial, type MktccTourStep } from "@/components/mktcc/MktCCTutorial";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { toast } from "sonner";
 import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
-  History as HistoryIcon, Facebook, Camera, CalendarDays,
+  History as HistoryIcon, Facebook, Camera, CalendarDays, GraduationCap,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { MediaPopup } from "@/components/MediaPopup";
@@ -84,6 +85,8 @@ const MktCC = () => {
   const [activePost, setActivePost] = useState<MktccPost | null>(null);
   const [slide, setSlide] = useState(0);
   const [note, setNote] = useState("");
+  const [tab, setTab] = useState("feed");
+  const [tourIndex, setTourIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
@@ -208,6 +211,83 @@ const MktCC = () => {
     }
   };
 
+  // Passos do tutorial guiado. Cada passo foca um elemento e troca a aba se preciso.
+  const tourSteps = useMemo<MktccTourStep[]>(() => {
+    const steps: MktccTourStep[] = [
+      {
+        selector: '[data-tour="header"]',
+        title: "Bem-vindo(a)!",
+        text: "Aqui em cima ficam o perfil da sua empresa e o resumo: quantas publicações existem, quantas já foram aprovadas e quantas pedem ajuste.",
+      },
+      {
+        selector: '[data-tour="tabs"]',
+        title: "As abas",
+        text: "Use estas abas para navegar entre Feed, Estratégia, Resumo, Antes e Próximos passos. Vou te mostrar cada uma agora.",
+      },
+      {
+        selector: '[data-tour="feed"]',
+        title: "Feed de publicações",
+        text: "Esta é a prévia do seu feed. Clique em qualquer miniatura para abrir a publicação e ver a legenda completa.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="feed"]',
+        title: "Como aprovar",
+        text: "Ao abrir uma publicação, use o botão APROVAR. Se mudar de ideia, o mesmo botão vira DESAPROVAR — você pode alterar quando quiser. Aprovadas ganham uma tarja amarela 'Aprovada'.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="feed"]',
+        title: "Pedir alteração",
+        text: "Precisa mudar algo? Escreva o que deseja no campo de observação e clique em PEDIR AJUSTE. Sua observação é salva e chega direto para a nossa equipe.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="cycles"]',
+        title: "Programações do mês",
+        text: "Cada programação é um mês de conteúdo. As já processadas aparecem como finalizadas (não podem mais ser editadas) e as novas ficam abertas para aprovação.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="estrategia"]',
+        title: "Estratégia",
+        text: "Aqui explicamos a estratégia pensada para o seu perfil: linha de conteúdo, tom de voz e objetivos.",
+        tab: "estrategia",
+      },
+      {
+        selector: '[data-tour="resumo"]',
+        title: "Resumo",
+        text: "Um resumo direto do que foi executado no período, para você acompanhar sem se perder nos detalhes.",
+        tab: "resumo",
+      },
+      {
+        selector: '[data-tour="antes"]',
+        title: "Antes do perfil",
+        text: "Os prints de como o perfil estava antes do nosso trabalho. Clique em qualquer imagem para abrir em tela cheia com zoom.",
+        tab: "antes",
+      },
+    ];
+
+    if (project?.logo_enabled) {
+      steps.push({
+        selector: '[data-tour="logo"]',
+        title: "Nova logo",
+        text: "Compare a logo atual com a nova proposta, leia o motivo da mudança e aprove — ou peça ajuste escrevendo sua observação.",
+        tab: "logo",
+      });
+    }
+
+    steps.push({
+      selector: '[data-tour="proximos"]',
+      title: "Próximos passos",
+      text: "Depois que tudo estiver aprovado, esta aba é liberada com o que acontece a seguir. Pronto: é só aprovar e seguir. Bom trabalho!",
+      tab: "proximos",
+    });
+
+    return steps;
+  }, [project?.logo_enabled]);
+
+  const requestTab = useCallback((next: string) => setTab(next), []);
 
 
   const progress = useMemo(() => {
@@ -271,7 +351,7 @@ const MktCC = () => {
   return (
     <main className="mktcc min-h-screen bg-background text-foreground">
       <div className="h-2 mktcc-gradient" />
-      <header className="border-b-[3px] border-foreground bg-card">
+      <header className="border-b-[3px] border-foreground bg-card" data-tour="header">
         <div className="max-w-5xl mx-auto px-4 py-6 flex items-center gap-4">
           <div className="mktcc-ring shrink-0">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-background">
@@ -283,7 +363,16 @@ const MktCC = () => {
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
+              <Button
+                size="sm"
+                onClick={() => { setTab("feed"); setTourIndex(0); }}
+                className="rounded-xl border-2 border-foreground font-black uppercase text-xs animate-pulse"
+              >
+                <GraduationCap className="w-4 h-4 mr-1.5" /> Tutorial
+              </Button>
+            </div>
             <p className="text-sm font-semibold text-muted-foreground truncate">
               {project.instagram_handle ? `@${project.instagram_handle.replace("@", "")}` : "Prévia da rede social"}
             </p>
@@ -304,9 +393,17 @@ const MktCC = () => {
         </div>
       </header>
 
+      <MktCCTutorial
+        steps={tourSteps}
+        index={tourIndex}
+        onIndexChange={setTourIndex}
+        onClose={() => setTourIndex(null)}
+        onRequestTab={requestTab}
+      />
+
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <Tabs defaultValue="feed">
-          <TabsList className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
             {[
               { v: "feed", l: "Feed" },
               { v: "estrategia", l: "Estratégia" },
@@ -325,7 +422,7 @@ const MktCC = () => {
             ))}
           </TabsList>
 
-          <TabsContent value="feed" className="mt-6">
+          <TabsContent value="feed" className="mt-6" data-tour="feed-tab">
             {allApproved && (
               <Card className="mb-6 mktcc-pop rounded-2xl bg-primary mktcc-rise">
                 <CardContent className="p-5 flex items-start gap-3">
@@ -351,7 +448,7 @@ const MktCC = () => {
               </Card>
             )}
             {cycles.length > 0 && (
-              <div className="mb-6 space-y-3">
+              <div className="mb-6 space-y-3" data-tour="cycles">
                 <p className="text-xs font-black uppercase text-muted-foreground">Programações</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {cycles.map((cycle) => {
@@ -425,7 +522,7 @@ const MktCC = () => {
             ) : (
               <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
               <div>
-              <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm" data-tour="feed">
                 {viewPosts.map((post) => (
                   <button
                     key={post.id}
@@ -493,7 +590,7 @@ const MktCC = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="antes" className="mt-6 space-y-6">
+          <TabsContent value="antes" className="mt-6 space-y-6" data-tour="antes">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 mktcc-gradient" />
               <CardHeader>
@@ -544,7 +641,7 @@ const MktCC = () => {
           </TabsContent>
 
           {project.logo_enabled && (
-            <TabsContent value="logo" className="mt-6">
+            <TabsContent value="logo" className="mt-6" data-tour="logo">
               <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
                 <div className="h-2 mktcc-gradient" />
                 <CardHeader>
@@ -664,7 +761,7 @@ const MktCC = () => {
 
 
 
-          <TabsContent value="estrategia" className="mt-6">
+          <TabsContent value="estrategia" className="mt-6" data-tour="estrategia">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 mktcc-gradient" />
               <CardHeader>
@@ -683,7 +780,7 @@ const MktCC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="resumo" className="mt-6">
+          <TabsContent value="resumo" className="mt-6" data-tour="resumo">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 bg-primary" />
               <CardHeader>
@@ -697,7 +794,7 @@ const MktCC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="proximos" className="mt-6">
+          <TabsContent value="proximos" className="mt-6" data-tour="proximos">
             {!allApproved && !project.next_step_released ? (
               <Card className="rounded-2xl border-[3px] border-dashed border-foreground bg-muted mktcc-rise">
                 <CardContent className="p-10 text-center space-y-3">
