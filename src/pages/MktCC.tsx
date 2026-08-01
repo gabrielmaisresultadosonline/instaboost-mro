@@ -260,6 +260,11 @@ const MktCC = () => {
                       {post.status === "approved" && <CheckCircle2 className="w-5 h-5 text-primary drop-shadow" />}
                       {post.status === "changes" && <MessageSquareWarning className="w-5 h-5 text-destructive drop-shadow" />}
                     </div>
+                    {post.revision_count > 0 && post.status === "pending" && (
+                      <span className="absolute bottom-1.5 right-1.5 text-[10px] font-semibold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                        ATUALIZADO
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
