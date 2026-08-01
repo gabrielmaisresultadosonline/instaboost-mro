@@ -574,6 +574,20 @@ const MktCCAdmin = () => {
     } catch { toast.error("Erro ao mover publicação"); }
   };
 
+  // Move em massa as publicações antigas (sem programação) para uma programação.
+  const moveOrphansToCycle = async (cycleId: string) => {
+    const orphans = posts.filter((p) => !p.cycle_id);
+    if (orphans.length === 0) { toast.info("Nenhuma publicação fora de programação"); return; }
+    try {
+      for (const post of orphans) {
+        await call("update_post", { post_id: post.id, project_id: post.project_id, cycle_id: cycleId });
+      }
+      setPosts((prev) => prev.map((p) => (p.cycle_id ? p : { ...p, cycle_id: cycleId })));
+      setActiveCycleId(cycleId);
+      toast.success(`${orphans.length} publicação(ões) movida(s)`);
+    } catch { toast.error("Erro ao mover publicações"); }
+  };
+
   if (!loggedIn) {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 mktcc-dots">
