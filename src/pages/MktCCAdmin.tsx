@@ -1186,16 +1186,24 @@ const MktCCAdmin = () => {
 
             {cycles.map((cycle) => {
               const count = posts.filter((p) => p.cycle_id === cycle.id).length;
+              const isOpen = openCycleIds.includes(cycle.id);
               return (
-                <Card key={cycle.id} className="mktcc-pop-sm rounded-2xl">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-black uppercase">{cycle.title}</p>
-                      {cycle.is_done
-                        ? <Badge className="bg-secondary text-secondary-foreground font-black uppercase"><Lock className="w-3.5 h-3.5 mr-1" /> Já processada</Badge>
-                        : <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>}
-                      <Badge variant="outline">{count} publicação(ões)</Badge>
+                <Collapsible key={cycle.id} open={isOpen} onOpenChange={() => toggleCycleOpen(cycle.id)} className="mktcc-pop-sm rounded-2xl border border-border bg-card">
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between gap-2 p-4 cursor-pointer hover:bg-accent/50 rounded-2xl transition-colors">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black uppercase">{cycle.title}</p>
+                        {cycle.is_done
+                          ? <Badge className="bg-secondary text-secondary-foreground font-black uppercase"><Lock className="w-3.5 h-3.5 mr-1" /> Já processada</Badge>
+                          : <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>}
+                        <Badge variant="outline">{count} publicação(ões)</Badge>
+                      </div>
+                      <Button size="sm" variant="ghost" className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>
+                        <ChevronDown className="w-5 h-5" />
+                      </Button>
                     </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-4 pb-4 space-y-3">
                     <div className="grid gap-3 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label>Título</Label>
@@ -1276,8 +1284,8 @@ const MktCCAdmin = () => {
                         <Trash2 className="w-4 h-4 mr-2" /> Excluir
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </CollapsibleContent>
+                </Collapsible>
               );
             })}
 
