@@ -32,6 +32,7 @@ interface MktccPost {
   revision_note: string;
   revision_count: number;
   aspect_ratio: string;
+  poster_url?: string;
   cycle_id: string | null;
 }
 
@@ -589,7 +590,11 @@ const MktCC = () => {
                     aria-label="Abrir publicação"
                   >
                     {post.post_type === "video" ? (
-                      <video src={post.media_urls[0]} className="w-full h-full object-cover" muted playsInline />
+                      post.poster_url ? (
+                        <img src={post.poster_url} alt={post.caption.slice(0, 60) || "Miniatura do vídeo"} loading="lazy" className="w-full h-full object-cover" />
+                      ) : (
+                        <video src={post.media_urls[0]} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                      )
                     ) : (
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
                     )}
@@ -974,13 +979,28 @@ const MktCC = () => {
                 style={{ aspectRatio: activePost.aspect_ratio?.replace("/", " / ") || "4 / 5" }}
               >
                 {activePost.post_type === "video" ? (
-                  <video src={activePost.media_urls[0]} controls className="w-full h-full object-contain" />
+                  <video
+                    src={activePost.media_urls[0]}
+                    poster={activePost.poster_url || undefined}
+                    controls
+                    playsInline
+                    className="w-full h-full object-contain"
+                  />
                 ) : (
                   <img
                     src={activePost.media_urls[slide]}
                     alt={activePost.caption.slice(0, 80) || "Material da publicação"}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain cursor-zoom-in"
+                    onClick={() => setMediaPopup({ url: activePost.media_urls[slide], type: "image" })}
                   />
+                )}
+                {activePost.post_type === "video" && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute bottom-2 right-2 font-black uppercase"
+                    onClick={() => setMediaPopup({ url: activePost.media_urls[0], type: "video" })}
+                  >Tela cheia</Button>
                 )}
                 {activePost.post_type === "carousel" && activePost.media_urls.length > 1 && (
                   <>

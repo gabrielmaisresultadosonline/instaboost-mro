@@ -276,6 +276,7 @@ serve(async (req) => {
         media_urls: Array.isArray(body.media_urls) ? body.media_urls : [],
         caption: String(body.caption || ""),
         aspect_ratio: ["4/5", "1/1", "9/16"].includes(body.aspect_ratio) ? body.aspect_ratio : "4/5",
+        poster_url: String(body.poster_url || "").slice(0, 2000),
         is_published: body.is_published === true,
         cycle_id: body.cycle_id || null,
         order_index: (last?.order_index ?? -1) + 1,
@@ -287,7 +288,7 @@ serve(async (req) => {
 
     if (action === "update_post") {
       const patch: Record<string, any> = {};
-      for (const key of ["post_type", "media_urls", "caption", "order_index", "status", "client_note", "is_published", "aspect_ratio", "cycle_id"]) {
+      for (const key of ["post_type", "media_urls", "caption", "order_index", "status", "client_note", "is_published", "aspect_ratio", "cycle_id", "poster_url"]) {
         if (key in body) patch[key] = body[key];
       }
       const { error } = await supabase.from("mktcc_posts").update(patch).eq("id", body.post_id);

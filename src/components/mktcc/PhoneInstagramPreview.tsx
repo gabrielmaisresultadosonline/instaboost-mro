@@ -6,6 +6,7 @@ export interface PhonePreviewPost {
   id: string;
   post_type: "image" | "video" | "carousel";
   media_urls: string[];
+  poster_url?: string;
   caption?: string;
   aspect_ratio?: string;
 }
@@ -140,7 +141,11 @@ export const PhoneInstagramPreview = ({
                     aria-label={onReorder ? "Arrastar para reordenar" : "Ver publicação"}
                   >
                     {url && (post.post_type === "video" || isVideoUrl(url)) ? (
-                      <video src={url} className="h-full w-full object-cover" muted playsInline />
+                      post.poster_url ? (
+                        <img src={post.poster_url} alt={post.caption?.slice(0, 40) || "Miniatura do vídeo"} loading="lazy" className="pointer-events-none h-full w-full object-cover" />
+                      ) : (
+                        <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                      )
                     ) : url ? (
                       <img src={url} alt={post.caption?.slice(0, 40) || "Publicação"} loading="lazy" className="pointer-events-none h-full w-full object-cover" />
                     ) : null}
