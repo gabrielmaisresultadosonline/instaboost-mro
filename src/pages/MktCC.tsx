@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
+  History as HistoryIcon,
 } from "lucide-react";
 
 interface MktccPost {
@@ -21,6 +22,10 @@ interface MktccPost {
   order_index: number;
   status: "pending" | "approved" | "changes";
   client_note: string;
+  previous_media_urls: string[];
+  previous_caption: string;
+  revision_note: string;
+  revision_count: number;
 }
 
 interface MktccProject {
@@ -32,6 +37,8 @@ interface MktccProject {
   next_steps_text: string;
   instagram_handle: string;
   avatar_url: string;
+  all_approved_at: string | null;
+  next_step_released: boolean;
 }
 
 const STORAGE_KEY = "mktcc_access_code";
@@ -63,7 +70,14 @@ const MktCC = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Código inválido");
       setProject(data.project);
-      setPosts((data.posts || []).map((p: MktccPost) => ({ ...p, media_urls: p.media_urls || [] })));
+      setPosts((data.posts || []).map((p: MktccPost) => ({
+        ...p,
+        media_urls: p.media_urls || [],
+        previous_media_urls: p.previous_media_urls || [],
+        previous_caption: p.previous_caption || "",
+        revision_note: p.revision_note || "",
+        revision_count: p.revision_count || 0,
+      })));
       localStorage.setItem(STORAGE_KEY, accessCode);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao carregar";
@@ -102,6 +116,7 @@ const MktCC = () => {
       if (!data?.success) throw new Error(data?.error || "Erro ao salvar");
       setPosts((prev) => prev.map((p) => (p.id === activePost.id ? { ...p, status, client_note: note } : p)));
       setActivePost((prev) => (prev ? { ...prev, status, client_note: note } : prev));
+      setProject((prev) => (prev ? { ...prev, all_approved_at: data.all_approved ? new Date().toISOString() : null } : prev));
       toast.success(status === "approved" ? "Publicação aprovada!" : "Observação salva!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar");
@@ -115,6 +130,8 @@ const MktCC = () => {
     const changes = posts.filter((p) => p.status === "changes").length;
     return { approved, changes, pending: posts.length - approved - changes, total: posts.length };
   }, [posts]);
+
+  const allApproved = progress.total > 0 && progress.approved === progress.total;
 
   if (!project) {
     return (
@@ -186,6 +203,30 @@ const MktCC = () => {
           </TabsList>
 
           <TabsContent value="feed" className="mt-6">
+            {allApproved && (
+              <Card className="mb-6 border-primary/40 bg-primary/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Tudo aprovado! 🎉</p>
+                    <p className="text-sm text-muted-foreground">
+                      Todas as publicações foram aprovadas. Já liberamos a aba <strong>Próximos passos</strong> com o que acontece agora.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {progress.changes > 0 && (
+              <Card className="mb-6 border-destructive/40 bg-destructive/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <MessageSquareWarning className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    {progress.changes} publicação(ões) com alteração solicitada. Nossa equipe vai ajustar e você verá a
+                    versão anterior em cinza junto da nova versão para aprovar.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             <div className="mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <ListChecks className="w-5 h-5 text-primary" /> Prévia e aprovação de conteúdo
@@ -220,6 +261,11 @@ const MktCC = () => {
                       {post.status === "approved" && <CheckCircle2 className="w-5 h-5 text-primary drop-shadow" />}
                       {post.status === "changes" && <MessageSquareWarning className="w-5 h-5 text-destructive drop-shadow" />}
                     </div>
+                    {post.revision_count > 0 && post.status === "pending" && (
+                      <span className="absolute bottom-1.5 right-1.5 text-[10px] font-semibold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                        ATUALIZADO
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -254,18 +300,34 @@ const MktCC = () => {
           </TabsContent>
 
           <TabsContent value="proximos" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Rocket className="w-5 h-5 text-primary" /> Próximos passos após a aprovação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-                  {project.next_steps_text || "Assim que os conteúdos forem aprovados, detalharemos aqui os próximos passos."}
-                </p>
-              </CardContent>
-            </Card>
+            {!allApproved && !project.next_step_released ? (
+              <Card className="border-dashed">
+                <CardContent className="p-8 text-center space-y-3">
+                  <Lock className="w-8 h-8 text-muted-foreground mx-auto" />
+                  <p className="font-semibold">Próximo passo bloqueado</p>
+                  <p className="text-sm text-muted-foreground">
+                    Aprove todas as {progress.total} publicações do feed para liberar esta etapa.
+                    Faltam {progress.total - progress.approved}.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-primary/40">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Rocket className="w-5 h-5 text-primary" /> Próximos passos após a aprovação
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Conteúdo 100% aprovado — agora vamos para a próxima etapa.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                    {project.next_steps_text || "Nossa equipe já foi avisada e vai detalhar aqui os próximos passos."}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -281,6 +343,20 @@ const MktCC = () => {
 
           {activePost && (
             <div className="space-y-4">
+              {activePost.revision_count > 0 && (
+                <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-1">
+                  <p className="text-xs font-semibold text-primary">
+                    VERSÃO ATUALIZADA (alteração nº {activePost.revision_count})
+                  </p>
+                  {activePost.revision_note && (
+                    <p className="text-sm whitespace-pre-wrap">{activePost.revision_note}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    A versão anterior aparece abaixo em cinza, só para comparação.
+                  </p>
+                </div>
+              )}
+
               <div className="relative bg-muted rounded-md overflow-hidden">
                 {activePost.post_type === "video" ? (
                   <video src={activePost.media_urls[0]} controls className="w-full max-h-[50vh]" />
@@ -313,9 +389,39 @@ const MktCC = () => {
               </div>
 
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1">LEGENDA</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-1">
+                  {activePost.revision_count > 0 ? "LEGENDA ATUALIZADA" : "LEGENDA"}
+                </p>
                 <p className="whitespace-pre-wrap text-sm">{activePost.caption || "Sem legenda."}</p>
               </div>
+
+              {activePost.revision_count > 0 &&
+                (activePost.previous_media_urls.length > 0 || activePost.previous_caption) && (
+                <div className="rounded-md border border-border p-3 space-y-2 opacity-60">
+                  <div className="flex items-center gap-2">
+                    <HistoryIcon className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-xs font-semibold text-muted-foreground">VERSÃO ANTERIOR (substituída)</p>
+                  </div>
+                  {activePost.previous_media_urls.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {activePost.previous_media_urls.map((url, i) => (
+                        <div key={url} className="w-20 h-20 rounded overflow-hidden bg-muted grayscale">
+                          {/\.(mp4|webm|mov)(\?|$)/i.test(url) ? (
+                            <video src={url} className="w-full h-full object-cover" muted />
+                          ) : (
+                            <img src={url} alt={`Versão anterior ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {activePost.previous_caption && (
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground line-through decoration-muted-foreground/50">
+                      {activePost.previous_caption}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground">OBSERVAÇÃO / ALTERAÇÃO</p>

@@ -14,7 +14,27 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const PROJECT_PUBLIC_FIELDS =
-  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url";
+  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url,all_approved_at,next_step_released";
+
+// Recalcula se todas as publicações do projeto estão aprovadas e marca a data.
+async function syncApproval(supabase: any, projectId: string) {
+  const { data: rows } = await supabase
+    .from("mktcc_posts").select("status").eq("project_id", projectId);
+  const posts = rows || [];
+  const allApproved = posts.length > 0 && posts.every((p: any) => p.status === "approved");
+
+  const { data: project } = await supabase
+    .from("mktcc_projects").select("all_approved_at").eq("id", projectId).maybeSingle();
+
+  if (allApproved && !project?.all_approved_at) {
+    await supabase.from("mktcc_projects")
+      .update({ all_approved_at: new Date().toISOString() }).eq("id", projectId);
+  } else if (!allApproved && project?.all_approved_at) {
+    await supabase.from("mktcc_projects")
+      .update({ all_approved_at: null }).eq("id", projectId);
+  }
+  return allApproved;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -72,7 +92,8 @@ serve(async (req) => {
         .eq("id", postId)
         .eq("project_id", project.id);
       if (error) return json({ success: false, error: error.message }, 400);
-      return json({ success: true });
+      const allApproved = await syncApproval(supabase, project.id);
+      return json({ success: true, all_approved: allApproved });
     }
 
     /* ---------------- ADMIN ---------------- */
@@ -102,7 +123,7 @@ serve(async (req) => {
 
     if (action === "update_project") {
       const patch: Record<string, any> = {};
-      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "avatar_url", "access_code", "is_active"]) {
+      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "avatar_url", "access_code", "is_active", "next_step_released"]) {
         if (key in body) patch[key] = key === "access_code" ? String(body[key]).trim().toUpperCase() : body[key];
       }
       const { error } = await supabase.from("mktcc_projects").update(patch).eq("id", body.project_id);
@@ -133,6 +154,7 @@ serve(async (req) => {
         order_index: (last?.order_index ?? -1) + 1,
       }).select("*").single();
       if (error) return json({ success: false, error: error.message }, 400);
+      await syncApproval(supabase, String(body.project_id));
       return json({ success: true, post: data });
     }
 
@@ -143,6 +165,38 @@ serve(async (req) => {
       }
       const { error } = await supabase.from("mktcc_posts").update(patch).eq("id", body.post_id);
       if (error) return json({ success: false, error: error.message }, 400);
+      if (body.project_id) await syncApproval(supabase, String(body.project_id));
+      return json({ success: true });
+    }
+
+    // Aplica uma alteração: arquiva a versão atual (fica cinza para o cliente),
+    // grava a nova versão e devolve a publicação para nova aprovação.
+    if (action === "revise_post") {
+      const postId = String(body.post_id || "");
+      const { data: current } = await supabase
+        .from("mktcc_posts").select("*").eq("id", postId).maybeSingle();
+      if (!current) return json({ success: false, error: "Publicação não encontrada" }, 404);
+
+      const newMedia = Array.isArray(body.media_urls) && body.media_urls.length > 0
+        ? body.media_urls
+        : current.media_urls;
+      const newCaption = typeof body.caption === "string" ? body.caption : current.caption;
+
+      const { error } = await supabase.from("mktcc_posts").update({
+        previous_media_urls: current.media_urls || [],
+        previous_caption: current.caption || "",
+        media_urls: newMedia,
+        caption: newCaption,
+        post_type: ["image", "video", "carousel"].includes(body.post_type) ? body.post_type : current.post_type,
+        revision_note: String(body.revision_note || "").slice(0, 4000),
+        revision_count: (current.revision_count || 0) + 1,
+        revised_at: new Date().toISOString(),
+        status: "pending",
+        client_note: "",
+        reviewed_at: null,
+      }).eq("id", postId);
+      if (error) return json({ success: false, error: error.message }, 400);
+      await syncApproval(supabase, current.project_id);
       return json({ success: true });
     }
 
@@ -157,6 +211,7 @@ serve(async (req) => {
     if (action === "delete_post") {
       const { error } = await supabase.from("mktcc_posts").delete().eq("id", body.post_id);
       if (error) return json({ success: false, error: error.message }, 400);
+      if (body.project_id) await syncApproval(supabase, String(body.project_id));
       return json({ success: true });
     }
 

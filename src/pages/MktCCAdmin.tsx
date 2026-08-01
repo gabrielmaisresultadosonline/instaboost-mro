@@ -19,6 +19,7 @@ interface Project {
   strategy_title: string; strategy_text: string; summary_text: string;
   next_steps_text: string; instagram_handle: string; avatar_url: string;
   is_active: boolean; created_at: string;
+  all_approved_at: string | null; next_step_released: boolean;
 }
 
 interface Post {
@@ -27,7 +28,11 @@ interface Post {
   media_urls: string[]; caption: string; order_index: number;
   status: "pending" | "approved" | "changes"; client_note: string;
   reviewed_at: string | null;
+  previous_media_urls: string[]; previous_caption: string;
+  revision_note: string; revision_count: number; revised_at: string | null;
 }
+
+interface RevisionDraft { note: string; media: string[] }
 
 const fileToBase64 = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -50,6 +55,8 @@ const MktCCAdmin = () => {
   const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string }>({
     post_type: "image", media_urls: [], caption: "",
   });
+  const [revisions, setRevisions] = useState<Record<string, RevisionDraft>>({});
+  const [revisingId, setRevisingId] = useState<string | null>(null);
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -69,7 +76,14 @@ const MktCCAdmin = () => {
 
   const loadPosts = async (projectId: string) => {
     const data = await call("list_posts", { project_id: projectId });
-    setPosts((data.posts || []).map((p: Post) => ({ ...p, media_urls: p.media_urls || [] })));
+    setPosts((data.posts || []).map((p: Post) => ({
+      ...p,
+      media_urls: p.media_urls || [],
+      previous_media_urls: p.previous_media_urls || [],
+      previous_caption: p.previous_caption || "",
+      revision_note: p.revision_note || "",
+      revision_count: p.revision_count || 0,
+    })));
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -168,7 +182,8 @@ const MktCCAdmin = () => {
   const savePost = async (post: Post) => {
     try {
       await call("update_post", {
-        post_id: post.id, post_type: post.post_type, media_urls: post.media_urls, caption: post.caption,
+        post_id: post.id, project_id: post.project_id,
+        post_type: post.post_type, media_urls: post.media_urls, caption: post.caption,
       });
       toast.success("Publicação salva!");
     } catch (err) { toast.error("Erro ao salvar"); }
@@ -177,7 +192,7 @@ const MktCCAdmin = () => {
   const deletePost = async (post: Post) => {
     if (!window.confirm("Excluir esta publicação?")) return;
     try {
-      await call("delete_post", { post_id: post.id });
+      await call("delete_post", { post_id: post.id, project_id: post.project_id });
       if (selected) await loadPosts(selected.id);
     } catch (err) { toast.error("Erro ao excluir"); }
   };
@@ -189,6 +204,62 @@ const MktCCAdmin = () => {
     [next[index], next[target]] = [next[target], next[index]];
     setPosts(next);
     try { await call("reorder_posts", { ids: next.map((p) => p.id) }); } catch { toast.error("Erro ao reordenar"); }
+  };
+
+  const setRevision = (postId: string, patch: Partial<RevisionDraft>) =>
+    setRevisions((prev) => ({ ...prev, [postId]: { note: "", media: [], ...prev[postId], ...patch } }));
+
+  // Envia novos arquivos para substituir o material de uma publicação já publicada ao cliente.
+  const uploadRevisionFiles = async (post: Post, files: FileList) => {
+    if (!selected) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+        const base64 = await fileToBase64(file);
+        const data = await call("upload_media", {
+          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+        });
+        urls.push(data.url);
+      }
+      setRevision(post.id, { media: [...(revisions[post.id]?.media || []), ...urls] });
+      toast.success(`${urls.length} arquivo(s) enviado(s)`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
+  // Arquiva a versão atual (fica cinza no /mktcc) e reenvia a nova para aprovação.
+  const applyRevision = async (post: Post) => {
+    const rev = revisions[post.id];
+    if (!rev?.note?.trim() && (rev?.media?.length || 0) === 0 && post.caption === "") {
+      return toast.error("Descreva a alteração ou envie o novo arquivo");
+    }
+    setRevisingId(post.id);
+    try {
+      await call("revise_post", {
+        post_id: post.id,
+        caption: post.caption,
+        media_urls: rev?.media || [],
+        post_type: (rev?.media?.length || 0) > 1 ? "carousel" : post.post_type,
+        revision_note: rev?.note || "",
+      });
+      setRevisions((prev) => ({ ...prev, [post.id]: { note: "", media: [] } }));
+      if (selected) await loadPosts(selected.id);
+      toast.success("Alteração enviada para nova aprovação!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao aplicar alteração");
+    } finally { setRevisingId(null); }
+  };
+
+  const toggleNextStep = async (released: boolean) => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, next_step_released: released });
+      setSelected({ ...selected, next_step_released: released });
+      toast.success(released ? "Próximo passo liberado para o cliente" : "Próximo passo bloqueado");
+    } catch (err) { toast.error("Erro ao atualizar"); }
   };
 
   if (!loggedIn) {
@@ -344,6 +415,36 @@ const MktCCAdmin = () => {
               </CardContent>
             </Card>
 
+            {posts.length > 0 && (
+              posts.every((p) => p.status === "approved") ? (
+                <Card className="border-primary bg-primary/5">
+                  <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-semibold">Tudo aprovado ({posts.length}/{posts.length}) — próximos passos</p>
+                      <p className="text-sm text-muted-foreground">
+                        O cliente aprovou todo o feed. Preencha "Próximos passos" na aba Textos e libere para ele.
+                      </p>
+                    </div>
+                    <Button
+                      variant={selected.next_step_released ? "outline" : "default"}
+                      onClick={() => toggleNextStep(!selected.next_step_released)}
+                    >
+                      {selected.next_step_released ? "Bloquear próximo passo" : "Liberar próximo passo"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="p-4 text-sm text-muted-foreground">
+                    Aprovações: <strong>{posts.filter((p) => p.status === "approved").length}/{posts.length}</strong>
+                    {" · "}Ajustes pedidos: <strong>{posts.filter((p) => p.status === "changes").length}</strong>
+                    {" · "}Os próximos passos são liberados quando tudo estiver aprovado.
+                  </CardContent>
+                </Card>
+              )
+            )}
+
             <div className="grid gap-3">
               {posts.map((post, index) => (
                 <Card key={post.id}>
@@ -365,6 +466,7 @@ const MktCCAdmin = () => {
                         <Badge variant="secondary">#{index + 1} · {post.post_type}</Badge>
                         {post.status === "approved" && <Badge className="bg-primary text-primary-foreground">Aprovado</Badge>}
                         {post.status === "changes" && <Badge variant="destructive">Ajustar</Badge>}
+                        {post.revision_count > 0 && <Badge variant="outline">Alteração nº {post.revision_count}</Badge>}
                       </div>
                       <Textarea rows={3} value={post.caption}
                         onChange={(e) => setPosts(posts.map((p) => (p.id === post.id ? { ...p, caption: e.target.value } : p)))} />
@@ -376,6 +478,38 @@ const MktCCAdmin = () => {
                       <Button size="sm" variant="outline" onClick={() => savePost(post)}>
                         <Save className="w-4 h-4 mr-2" /> Salvar
                       </Button>
+
+                      {post.status === "changes" && (
+                        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
+                          <p className="text-xs font-semibold text-destructive">APLICAR ALTERAÇÃO</p>
+                          <Textarea
+                            rows={2}
+                            placeholder="O que foi alterado? (o cliente verá este recado)"
+                            value={revisions[post.id]?.note || ""}
+                            onChange={(e) => setRevision(post.id, { note: e.target.value })}
+                          />
+                          <Input
+                            type="file"
+                            multiple
+                            accept="image/*,video/*"
+                            onChange={(e) => e.target.files?.length && uploadRevisionFiles(post, e.target.files)}
+                          />
+                          {(revisions[post.id]?.media?.length || 0) > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              {revisions[post.id].media.length} novo(s) arquivo(s) prontos. Deixe vazio para manter as mídias atuais.
+                            </p>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={() => applyRevision(post)}
+                            disabled={uploading || revisingId === post.id}
+                          >
+                            {revisingId === post.id
+                              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
+                              : <><RefreshCw className="w-4 h-4 mr-2" /> Enviar nova versão p/ aprovação</>}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

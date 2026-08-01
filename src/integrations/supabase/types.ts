@@ -3868,8 +3868,13 @@ export type Database = {
           media_urls: Json
           order_index: number
           post_type: string
+          previous_caption: string
+          previous_media_urls: Json
           project_id: string
           reviewed_at: string | null
+          revised_at: string | null
+          revision_count: number
+          revision_note: string
           status: string
           updated_at: string
         }
@@ -3881,8 +3886,13 @@ export type Database = {
           media_urls?: Json
           order_index?: number
           post_type?: string
+          previous_caption?: string
+          previous_media_urls?: Json
           project_id: string
           reviewed_at?: string | null
+          revised_at?: string | null
+          revision_count?: number
+          revision_note?: string
           status?: string
           updated_at?: string
         }
@@ -3894,8 +3904,13 @@ export type Database = {
           media_urls?: Json
           order_index?: number
           post_type?: string
+          previous_caption?: string
+          previous_media_urls?: Json
           project_id?: string
           reviewed_at?: string | null
+          revised_at?: string | null
+          revision_count?: number
+          revision_note?: string
           status?: string
           updated_at?: string
         }
@@ -3912,12 +3927,14 @@ export type Database = {
       mktcc_projects: {
         Row: {
           access_code: string
+          all_approved_at: string | null
           avatar_url: string
           company_name: string
           created_at: string
           id: string
           instagram_handle: string
           is_active: boolean
+          next_step_released: boolean
           next_steps_text: string
           strategy_text: string
           strategy_title: string
@@ -3926,12 +3943,14 @@ export type Database = {
         }
         Insert: {
           access_code: string
+          all_approved_at?: string | null
           avatar_url?: string
           company_name: string
           created_at?: string
           id?: string
           instagram_handle?: string
           is_active?: boolean
+          next_step_released?: boolean
           next_steps_text?: string
           strategy_text?: string
           strategy_title?: string
@@ -3940,12 +3959,14 @@ export type Database = {
         }
         Update: {
           access_code?: string
+          all_approved_at?: string | null
           avatar_url?: string
           company_name?: string
           created_at?: string
           id?: string
           instagram_handle?: string
           is_active?: boolean
+          next_step_released?: boolean
           next_steps_text?: string
           strategy_text?: string
           strategy_title?: string
