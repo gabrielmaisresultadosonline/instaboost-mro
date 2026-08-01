@@ -24,6 +24,7 @@ interface Project {
   is_active: boolean; created_at: string;
   before_instagram_urls: string[]; before_facebook_urls: string[]; before_note: string;
   before_profile_full_url: string;
+  drive_url: string;
   all_approved_at: string | null; next_step_released: boolean;
   logo_enabled: boolean; logo_before_url: string; logo_after_url: string;
   logo_reason: string; logo_status: "pending" | "approved" | "changes";
