@@ -3859,6 +3859,101 @@ export type Database = {
           },
         ]
       }
+      mktcc_posts: {
+        Row: {
+          caption: string
+          client_note: string
+          created_at: string
+          id: string
+          media_urls: Json
+          order_index: number
+          post_type: string
+          project_id: string
+          reviewed_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string
+          client_note?: string
+          created_at?: string
+          id?: string
+          media_urls?: Json
+          order_index?: number
+          post_type?: string
+          project_id: string
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string
+          client_note?: string
+          created_at?: string
+          id?: string
+          media_urls?: Json
+          order_index?: number
+          post_type?: string
+          project_id?: string
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mktcc_posts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "mktcc_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mktcc_projects: {
+        Row: {
+          access_code: string
+          avatar_url: string
+          company_name: string
+          created_at: string
+          id: string
+          instagram_handle: string
+          is_active: boolean
+          next_steps_text: string
+          strategy_text: string
+          strategy_title: string
+          summary_text: string
+          updated_at: string
+        }
+        Insert: {
+          access_code: string
+          avatar_url?: string
+          company_name: string
+          created_at?: string
+          id?: string
+          instagram_handle?: string
+          is_active?: boolean
+          next_steps_text?: string
+          strategy_text?: string
+          strategy_title?: string
+          summary_text?: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string
+          avatar_url?: string
+          company_name?: string
+          created_at?: string
+          id?: string
+          instagram_handle?: string
+          is_active?: boolean
+          next_steps_text?: string
+          strategy_text?: string
+          strategy_title?: string
+          summary_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mro_direct_ai_pauses: {
         Row: {
           created_at: string
