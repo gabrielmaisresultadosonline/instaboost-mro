@@ -182,6 +182,34 @@ const MktCC = () => {
     }
   };
 
+  /** Aprova / desaprova / pede ajuste na nova logo (etapa opcional). */
+  const reviewLogo = async (status: MktccProject["logo_status"]) => {
+    if (!project) return;
+    setLogoSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mktcc-api", {
+        body: {
+          action: "client_logo_review",
+          code: localStorage.getItem(STORAGE_KEY),
+          status,
+          client_note: logoNote,
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Erro ao salvar");
+      setProject((prev) => (prev ? { ...prev, logo_status: status, logo_client_note: logoNote } : prev));
+      toast.success(
+        status === "approved" ? "Logo aprovada!" : status === "pending" ? "Aprovação removida" : "Observação enviada!"
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar");
+    } finally {
+      setLogoSaving(false);
+    }
+  };
+
+
+
   const progress = useMemo(() => {
     const approved = posts.filter((p) => p.status === "approved").length;
     const changes = posts.filter((p) => p.status === "changes").length;
