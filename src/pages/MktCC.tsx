@@ -11,8 +11,8 @@ import { toast } from "sonner";
 import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
-  History as HistoryIcon, Facebook, Camera,
-, CalendarDays } from "lucide-react";
+  History as HistoryIcon, Facebook, Camera, CalendarDays,
+} from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
 interface MktccPost {
