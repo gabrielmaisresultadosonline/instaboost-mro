@@ -49,6 +49,8 @@ interface Cycle {
   id: string; title: string; scheduled_date: string | null; note: string;
   status: "open" | "done"; completed_at: string | null; order_index: number; is_done: boolean;
   strategy_title: string; strategy_text: string; summary_text: string;
+  next_steps_text: string;
+  show_strategy: boolean; show_summary: boolean; show_before: boolean;
 }
 
 interface RevisionDraft { note: string; media: string[] }
@@ -89,7 +91,7 @@ const MktCCAdmin = () => {
   const beforeRef = useRef<HTMLInputElement>(null);
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
-  const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "" });
+  const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "", next_steps_text: "" });
   const [tab, setTab] = useState("posts");
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
@@ -596,7 +598,7 @@ const MktCCAdmin = () => {
     if (!newCycle.title.trim()) return toast.error("Informe o mês / título da programação");
     try {
       const data = await call("create_cycle", { project_id: selected.id, ...newCycle });
-      setNewCycle({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "" });
+      setNewCycle({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "", next_steps_text: "" });
       await loadCycles(selected.id);
       setActiveCycleId(data.cycle.id);
       toast.success("Programação criada!");
@@ -1160,7 +1162,12 @@ const MktCCAdmin = () => {
                     onChange={(e) => setNewCycle({ ...newCycle, strategy_text: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Resumo / próximos passos desta programação</Label>
+                  <Label>Próximos passos desta programação (após aprovação)</Label>
+                  <Textarea rows={4} value={newCycle.next_steps_text}
+                    onChange={(e) => setNewCycle({ ...newCycle, next_steps_text: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Resumo desta programação</Label>
                   <Textarea rows={4} value={newCycle.summary_text}
                     onChange={(e) => setNewCycle({ ...newCycle, summary_text: e.target.value })} />
                 </div>
@@ -1211,9 +1218,34 @@ const MktCCAdmin = () => {
                         onBlur={(e) => e.target.value !== (cycle.strategy_text || "") && patchCycle(cycle, { strategy_text: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Resumo / próximos passos desta programação</Label>
+                      <Label>Resumo desta programação</Label>
                       <Textarea rows={4} defaultValue={cycle.summary_text || ""}
                         onBlur={(e) => e.target.value !== (cycle.summary_text || "") && patchCycle(cycle, { summary_text: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Próximos passos desta programação</Label>
+                      <Textarea rows={4} defaultValue={cycle.next_steps_text || ""}
+                        onBlur={(e) => e.target.value !== (cycle.next_steps_text || "") && patchCycle(cycle, { next_steps_text: e.target.value })} />
+                    </div>
+                    <div className="space-y-2 rounded-xl border-2 border-foreground p-3">
+                      <p className="text-xs font-black uppercase">O que o cliente vê nesta programação</p>
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          { key: "show_strategy", label: "Estratégia" },
+                          { key: "show_summary", label: "Resumo" },
+                          { key: "show_before", label: "Antes do perfil" },
+                        ] as const).map((opt) => {
+                          const on = cycle[opt.key] !== false;
+                          return (
+                            <Button key={opt.key} size="sm" variant={on ? "default" : "outline"}
+                              className="font-black uppercase text-xs"
+                              onClick={() => patchCycle(cycle, { [opt.key]: !on })}>
+                              {on ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+                              {opt.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="flex gap-2 flex-wrap">

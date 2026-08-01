@@ -48,6 +48,10 @@ interface MktccCycle {
   strategy_title?: string;
   strategy_text?: string;
   summary_text?: string;
+  next_steps_text?: string;
+  show_strategy?: boolean;
+  show_summary?: boolean;
+  show_before?: boolean;
 }
 
 interface MktccProject {
@@ -333,6 +337,36 @@ const MktCC = () => {
   const formatDate = (value: string | null) =>
     value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : null;
 
+  /**
+   * Estratégia, resumo e próximos passos são SEMPRE por programação.
+   * Sem programação (posts antigos), cai no conteúdo geral do projeto.
+   */
+  const cycleStrategyTitle = activeCycle ? activeCycle.strategy_title || "" : project?.strategy_title || "";
+  const cycleStrategyText = activeCycle ? activeCycle.strategy_text || "" : project?.strategy_text || "";
+  const cycleSummaryText = activeCycle ? activeCycle.summary_text || "" : project?.summary_text || "";
+  const cycleNextSteps = activeCycle
+    ? activeCycle.next_steps_text || activeCycle.summary_text || ""
+    : project?.next_steps_text || "";
+
+  // O admin decide, por programação, o que fica visível para o cliente.
+  const showStrategy = activeCycle ? activeCycle.show_strategy !== false : true;
+  const showSummary = activeCycle ? activeCycle.show_summary !== false : true;
+  const showBefore = activeCycle ? activeCycle.show_before !== false : true;
+
+  const visibleTabs = [
+    { v: "feed", l: "Feed" },
+    ...(showStrategy ? [{ v: "estrategia", l: "Estratégia" }] : []),
+    ...(showSummary ? [{ v: "resumo", l: "Resumo" }] : []),
+    ...(showBefore ? [{ v: "antes", l: "Como iniciamos" }] : []),
+    ...(project?.logo_enabled ? [{ v: "logo", l: "Nova logo" }] : []),
+    { v: "proximos", l: "Próximos passos" },
+  ];
+  const tabsGridClass: Record<number, string> = {
+    2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4",
+    5: "md:grid-cols-5", 6: "md:grid-cols-6",
+  };
+  const safeTab = visibleTabs.some((t) => t.v === tab) ? tab : "feed";
+
   if (!project) {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10 mktcc-dots">
@@ -577,17 +611,10 @@ const MktCC = () => {
             </div>
           </div>
         ) : (
-        <Tabs value={tab} onValueChange={setTab}>
+        <Tabs value={safeTab} onValueChange={setTab}>
 
-          <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
-            {[
-              { v: "feed", l: "Feed" },
-              { v: "estrategia", l: "Estratégia" },
-              { v: "resumo", l: "Resumo" },
-              { v: "antes", l: "Como iniciamos" },
-              ...(project.logo_enabled ? [{ v: "logo", l: "Nova logo" }] : []),
-              { v: "proximos", l: "Próximos passos" },
-            ].map((t) => (
+          <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${tabsGridClass[visibleTabs.length] || "md:grid-cols-6"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
+            {visibleTabs.map((t) => (
               <TabsTrigger
                 key={t.v}
                 value={t.v}
@@ -943,72 +970,43 @@ const MktCC = () => {
 
 
           <TabsContent value="estrategia" className="mt-6 space-y-4" data-tour="estrategia">
-            {activeCycle?.strategy_text?.trim() && (
-              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
-                <div className="h-2 bg-primary" />
-                <CardHeader>
+            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+              <div className="h-2 bg-primary" />
+              <CardHeader>
+                {activeCycle && (
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge className="bg-primary text-primary-foreground font-black uppercase">{activeCycle.title}</Badge>
                     {activeCycle.is_done && (
                       <Badge className="bg-secondary text-secondary-foreground font-black uppercase">Já processada</Badge>
                     )}
                   </div>
-                  <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
-                    <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
-                      <FileText className="w-5 h-5 text-primary-foreground" />
-                    </span>
-                    {activeCycle.strategy_title || "Estratégia desta programação"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
-                    {activeCycle.strategy_text}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
-              <div className="h-2 mktcc-gradient" />
-              <CardHeader>
+                )}
                 <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
                   <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
                     <FileText className="w-5 h-5 text-primary-foreground" />
                   </span>
-                  {project.strategy_title || "Primeiro passo: Estrutura de Rede Social"}
+                  {cycleStrategyTitle || "Estratégia desta programação"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
-                  {project.strategy_text || "Estratégia em preparação."}
+                  {cycleStrategyText || "Estratégia em preparação."}
                 </p>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="resumo" className="mt-6 space-y-4" data-tour="resumo">
-            {activeCycle?.summary_text?.trim() && (
-              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
-                <div className="h-2 mktcc-gradient" />
-                <CardHeader>
-                  <CardTitle className="text-xl font-black uppercase tracking-tight">
-                    Resumo · {activeCycle.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
-                    {activeCycle.summary_text}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
-              <div className="h-2 bg-primary" />
+              <div className="h-2 mktcc-gradient" />
               <CardHeader>
-                <CardTitle className="text-xl font-black uppercase tracking-tight">Resumo</CardTitle>
+                <CardTitle className="text-xl font-black uppercase tracking-tight">
+                  Resumo{activeCycle ? ` · ${activeCycle.title}` : ""}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
-                  {project.summary_text || "Resumo em preparação."}
+                  {cycleSummaryText || "Resumo em preparação."}
                 </p>
               </CardContent>
             </Card>
@@ -1045,7 +1043,7 @@ const MktCC = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
-                    {project.next_steps_text || "Nossa equipe já foi avisada e vai detalhar aqui os próximos passos."}
+                    {cycleNextSteps || "Nossa equipe já foi avisada e vai detalhar aqui os próximos passos."}
                   </p>
                 </CardContent>
               </Card>

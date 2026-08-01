@@ -3864,10 +3864,14 @@ export type Database = {
           completed_at: string | null
           created_at: string
           id: string
+          next_steps_text: string
           note: string
           order_index: number
           project_id: string
           scheduled_date: string | null
+          show_before: boolean
+          show_strategy: boolean
+          show_summary: boolean
           status: string
           strategy_text: string
           strategy_title: string
@@ -3879,10 +3883,14 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          next_steps_text?: string
           note?: string
           order_index?: number
           project_id: string
           scheduled_date?: string | null
+          show_before?: boolean
+          show_strategy?: boolean
+          show_summary?: boolean
           status?: string
           strategy_text?: string
           strategy_title?: string
@@ -3894,10 +3902,14 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          next_steps_text?: string
           note?: string
           order_index?: number
           project_id?: string
           scheduled_date?: string | null
+          show_before?: boolean
+          show_strategy?: boolean
+          show_summary?: boolean
           status?: string
           strategy_text?: string
           strategy_title?: string
