@@ -23,6 +23,9 @@ interface Project {
   is_active: boolean; created_at: string;
   before_instagram_urls: string[]; before_facebook_urls: string[]; before_note: string;
   all_approved_at: string | null; next_step_released: boolean;
+  logo_enabled: boolean; logo_before_url: string; logo_after_url: string;
+  logo_reason: string; logo_status: "pending" | "approved" | "changes";
+  logo_client_note: string; logo_reviewed_at: string | null;
 }
 
 interface Post {
@@ -191,6 +194,55 @@ const MktCCAdmin = () => {
       setUploading(false);
     }
   };
+
+  /**
+   * Sobe a imagem da etapa de aprovação de logo (antes/depois).
+   * Aceita arquivo ou imagem colada com Ctrl + V e salva direto no projeto.
+   */
+  const uploadLogoShot = async (slot: "logo_before_url" | "logo_after_url", file: File) => {
+    if (!selected) return;
+    if (file.size > 10 * 1024 * 1024) return toast.error("Imagem maior que 10MB");
+    setUploading(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const data = await call("upload_media", {
+        project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+      });
+      setSelected({ ...selected, [slot]: data.url } as Project);
+      await call("update_project", { project_id: selected.id, [slot]: data.url });
+      toast.success("Imagem da logo salva!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  /** Ativa/desativa a etapa de aprovação de logo para o cliente. */
+  const toggleLogoStep = async (enabled: boolean) => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, logo_enabled: enabled });
+      setSelected({ ...selected, logo_enabled: enabled });
+      toast.success(enabled ? "Etapa de logo liberada para o cliente" : "Etapa de logo oculta");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar");
+    }
+  };
+
+  /** Reabre a aprovação da logo (volta para pendente). */
+  const resetLogoStatus = async () => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, logo_status: "pending", logo_client_note: "" });
+      setSelected({ ...selected, logo_status: "pending", logo_client_note: "" });
+      toast.success("Aprovação da logo reaberta");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar");
+    }
+  };
+
+
 
   const uploadFiles = async (files: FileList) => {
 
@@ -585,11 +637,12 @@ const MktCCAdmin = () => {
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-6 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-7 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
               { v: "posts", l: "Publicações" },
               { v: "programacoes", l: "Programações" },
               { v: "antes", l: "Antes do perfil" },
+              { v: "logo", l: "Logo" },
               { v: "estrategia", l: "Estratégia" },
               { v: "textos", l: "Resumo / Passos" },
               { v: "aprovacoes", l: "Aprovações" },
@@ -1074,6 +1127,106 @@ const MktCCAdmin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="logo" className="mt-6">
+            <Card className="mktcc-pop rounded-2xl overflow-hidden">
+              <div className="h-2 mktcc-gradient" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight">
+                  <Images className="w-5 h-5" /> Aprovação da nova logo
+                </CardTitle>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Etapa opcional — só aparece na área do cliente quando você liberar aqui.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-foreground p-3">
+                  <Badge className={`rounded-full border-2 border-foreground font-black uppercase ${selected.logo_enabled ? "bg-primary text-primary-foreground" : "bg-card text-foreground"}`}>
+                    {selected.logo_enabled ? "Etapa liberada" : "Etapa oculta"}
+                  </Badge>
+                  <Button size="sm" variant={selected.logo_enabled ? "outline" : "default"} onClick={() => toggleLogoStep(!selected.logo_enabled)}>
+                    {selected.logo_enabled ? <><EyeOff className="w-4 h-4 mr-2" /> Ocultar do cliente</> : <><Send className="w-4 h-4 mr-2" /> Liberar para o cliente</>}
+                  </Button>
+                  <span className="text-xs font-bold uppercase text-muted-foreground">
+                    Status do cliente:{" "}
+                    {selected.logo_status === "approved" ? "Aprovada" : selected.logo_status === "changes" ? "Pediu ajuste" : "Pendente"}
+                  </span>
+                  {selected.logo_status !== "pending" && (
+                    <Button size="sm" variant="outline" onClick={resetLogoStatus}>
+                      <RefreshCw className="w-4 h-4 mr-2" /> Reabrir aprovação
+                    </Button>
+                  )}
+                </div>
+
+                {selected.logo_client_note && (
+                  <div className="rounded-xl border-2 border-foreground bg-secondary p-3">
+                    <p className="text-xs font-black uppercase">Observação do cliente</p>
+                    <p className="whitespace-pre-wrap text-sm font-medium">{selected.logo_client_note}</p>
+                  </div>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {([
+                    { slot: "logo_before_url", label: "Logo antiga (antes)" },
+                    { slot: "logo_after_url", label: "Logo nova (depois)" },
+                  ] as const).map((item) => (
+                    <div
+                      key={item.slot}
+                      className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
+                      onPaste={(e) => {
+                        const file = Array.from(e.clipboardData?.items || [])
+                          .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+                          .map((it) => it.getAsFile())
+                          .find((f): f is File => !!f);
+                        if (!file) return;
+                        e.preventDefault();
+                        uploadLogoShot(item.slot, new File([file], file.name || `logo-${Date.now()}.png`, { type: file.type || "image/png" }));
+                      }}
+                    >
+                      <Label>{item.label}</Label>
+                      <div className="rounded-lg overflow-hidden border-2 border-foreground bg-muted aspect-square flex items-center justify-center">
+                        {selected[item.slot] ? (
+                          <img src={selected[item.slot]} alt={item.label} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-xs font-bold uppercase text-muted-foreground">Sem imagem</span>
+                        )}
+                      </div>
+                      <Input type="file" accept="image/*" disabled={uploading}
+                        onChange={(e) => e.target.files?.[0] && uploadLogoShot(item.slot, e.target.files[0])} />
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Colar ${item.label} com Ctrl + V`}
+                        className="rounded-lg border-2 border-dashed border-foreground/40 p-3 text-center text-xs font-bold uppercase text-muted-foreground cursor-text outline-none focus:border-primary focus:text-foreground"
+                      >
+                        {uploading ? "Enviando..." : "Clique aqui e cole com Ctrl + V"}
+                      </div>
+                      {selected[item.slot] && (
+                        <Button size="sm" variant="destructive" onClick={async () => {
+                          await call("update_project", { project_id: selected.id, [item.slot]: "" });
+                          setSelected({ ...selected, [item.slot]: "" } as Project);
+                        }}>
+                          <X className="w-4 h-4 mr-2" /> Remover
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Resumo: por que foi feita outra logo (o cliente vê)</Label>
+                  <Textarea rows={5} value={selected.logo_reason || ""}
+                    placeholder="Ex.: a logo anterior perdia legibilidade em telas pequenas..."
+                    onChange={(e) => setSelected({ ...selected, logo_reason: e.target.value })} />
+                  <Button onClick={saveProject} disabled={loading}>
+                    <Save className="w-4 h-4 mr-2" /> Salvar resumo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
 
           <TabsContent value="estrategia" className="mt-6">
             <Card>
