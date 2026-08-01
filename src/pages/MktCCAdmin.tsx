@@ -738,13 +738,14 @@ const MktCCAdmin = () => {
             </div>
             <div className="lg:sticky lg:top-6 space-y-2">
               <p className="text-xs font-black uppercase text-muted-foreground text-center">
-                Prévia do cliente (só publicados)
+                Prévia do cliente (só publicados) · arraste para reordenar
               </p>
               <PhoneInstagramPreview
                 companyName={selected.company_name}
                 instagramHandle={selected.instagram_handle}
                 avatarUrl={selected.avatar_url}
                 posts={posts.filter((p) => p.is_published)}
+                onReorder={reorderFromPreview}
               />
             </div>
             </div>
