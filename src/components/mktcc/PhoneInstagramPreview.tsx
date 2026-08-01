@@ -111,21 +111,37 @@ export const PhoneInstagramPreview = ({
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-[2px] p-[2px]">
-              {posts.map((post) => {
+              {posts.map((post, index) => {
                 const url = post.media_urls?.[0];
                 return (
                   <button
                     key={post.id}
                     type="button"
                     onClick={() => onSelect?.(post.id)}
-                    className="relative aspect-[4/5] overflow-hidden bg-muted"
-                    aria-label="Ver publicação"
+                    draggable={!!onReorder}
+                    onDragStart={onReorder ? () => setDragIndex(index) : undefined}
+                    onDragOver={onReorder ? (e) => { e.preventDefault(); setOverIndex(index); } : undefined}
+                    onDragLeave={onReorder ? () => setOverIndex((v) => (v === index ? null : v)) : undefined}
+                    onDrop={onReorder ? (e) => { e.preventDefault(); commitDrop(index); } : undefined}
+                    onDragEnd={onReorder ? () => { setDragIndex(null); setOverIndex(null); } : undefined}
+                    className={cn(
+                      "relative aspect-[4/5] overflow-hidden bg-muted",
+                      onReorder && "cursor-grab active:cursor-grabbing",
+                      dragIndex === index && "opacity-40",
+                      overIndex === index && dragIndex !== index && "ring-2 ring-primary",
+                    )}
+                    aria-label={onReorder ? "Arrastar para reordenar" : "Ver publicação"}
                   >
                     {url && (post.post_type === "video" || isVideoUrl(url)) ? (
                       <video src={url} className="h-full w-full object-cover" muted playsInline />
                     ) : url ? (
-                      <img src={url} alt={post.caption?.slice(0, 40) || "Publicação"} loading="lazy" className="h-full w-full object-cover" />
+                      <img src={url} alt={post.caption?.slice(0, 40) || "Publicação"} loading="lazy" className="pointer-events-none h-full w-full object-cover" />
                     ) : null}
+                    {onReorder && (
+                      <span className="absolute left-1 top-1 rounded bg-foreground/80 px-1 text-[9px] font-black text-background">
+                        {index + 1}
+                      </span>
+                    )}
                     {post.post_type === "carousel" && (
                       <Images className="absolute right-1 top-1 h-3 w-3 text-background drop-shadow" />
                     )}
@@ -136,6 +152,7 @@ export const PhoneInstagramPreview = ({
                 );
               })}
             </div>
+
           )}
 
           <div className="flex items-center justify-around border-t-2 border-foreground py-2 text-muted-foreground">
