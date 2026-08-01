@@ -51,6 +51,7 @@ interface MktccProject {
   next_steps_text: string;
   instagram_handle: string;
   avatar_url: string;
+  instagram_bio: string;
   all_approved_at: string | null;
   next_step_released: boolean;
   before_instagram_urls: string[];
@@ -434,6 +435,7 @@ const MktCC = () => {
                   companyName={project.company_name}
                   instagramHandle={project.instagram_handle}
                   avatarUrl={project.avatar_url}
+                  bio={project.instagram_bio}
                   posts={viewPosts}
                   onSelect={(id) => {
                     const found = viewPosts.find((p) => p.id === id);

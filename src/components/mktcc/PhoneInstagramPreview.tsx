@@ -14,6 +14,8 @@ interface PhoneInstagramPreviewProps {
   companyName: string;
   instagramHandle?: string;
   avatarUrl?: string;
+  /** Biografia exibida no cabecalho do perfil. */
+  bio?: string;
   posts: PhonePreviewPost[];
   onSelect?: (postId: string) => void;
   /** Quando informado, as miniaturas podem ser arrastadas para mudar a ordem. */
@@ -31,6 +33,7 @@ export const PhoneInstagramPreview = ({
   companyName,
   instagramHandle,
   avatarUrl,
+  bio,
   posts,
   onSelect,
   onReorder,
@@ -95,7 +98,11 @@ export const PhoneInstagramPreview = ({
             </div>
             <div>
               <p className="truncate text-xs font-black uppercase">{companyName}</p>
-              <p className="text-[11px] font-medium text-muted-foreground">Prévia do perfil · Marketing Completo</p>
+              {bio ? (
+                <p className="whitespace-pre-wrap text-[11px] font-medium leading-snug text-foreground">{bio}</p>
+              ) : (
+                <p className="text-[11px] font-medium text-muted-foreground">Prévia do perfil · Marketing Completo</p>
+              )}
             </div>
           </div>
 

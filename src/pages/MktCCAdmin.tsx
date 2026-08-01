@@ -19,7 +19,7 @@ import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview"
 interface Project {
   id: string; company_name: string; access_code: string;
   strategy_title: string; strategy_text: string; summary_text: string;
-  next_steps_text: string; instagram_handle: string; avatar_url: string;
+  next_steps_text: string; instagram_handle: string; instagram_bio: string; avatar_url: string;
   is_active: boolean; created_at: string;
   before_instagram_urls: string[]; before_facebook_urls: string[]; before_note: string;
   all_approved_at: string | null; next_step_released: boolean;
@@ -879,6 +879,7 @@ const MktCCAdmin = () => {
                 companyName={selected.company_name}
                 instagramHandle={selected.instagram_handle}
                 avatarUrl={selected.avatar_url}
+                bio={selected.instagram_bio}
                 posts={visiblePosts.filter((p) => p.is_published)}
                 onReorder={reorderFromPreview}
               />
