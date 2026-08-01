@@ -211,6 +211,7 @@ serve(async (req) => {
     if (action === "delete_post") {
       const { error } = await supabase.from("mktcc_posts").delete().eq("id", body.post_id);
       if (error) return json({ success: false, error: error.message }, 400);
+      if (body.project_id) await syncApproval(supabase, String(body.project_id));
       return json({ success: true });
     }
 
