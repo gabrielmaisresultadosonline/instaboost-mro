@@ -399,7 +399,7 @@ const MktCC = () => {
                 (activePost.previous_media_urls.length > 0 || activePost.previous_caption) && (
                 <div className="rounded-md border border-border p-3 space-y-2 opacity-60">
                   <div className="flex items-center gap-2">
-                    <History className="w-4 h-4 text-muted-foreground" />
+                    <HistoryIcon className="w-4 h-4 text-muted-foreground" />
                     <p className="text-xs font-semibold text-muted-foreground">VERSÃO ANTERIOR (substituída)</p>
                   </div>
                   {activePost.previous_media_urls.length > 0 && (
