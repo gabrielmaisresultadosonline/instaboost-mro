@@ -716,6 +716,14 @@ const MktCC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {mediaPopup && (
+        <MediaPopup
+          url={mediaPopup.url}
+          type={mediaPopup.type}
+          onClose={() => setMediaPopup(null)}
+        />
+      )}
     </main>
   );
 };
