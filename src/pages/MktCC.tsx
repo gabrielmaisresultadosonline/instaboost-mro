@@ -960,6 +960,7 @@ const MktCC = () => {
                   Programação já processada e finalizada — aprovações encerradas.
                 </p>
               ) : (
+              <>
               <div className="flex flex-col sm:flex-row gap-2">
                 {activePost.status === "approved" ? (
                   <Button
@@ -995,9 +996,9 @@ const MktCC = () => {
                   Com observação preenchida só é possível pedir alteração — apague o texto para aprovar.
                 </p>
               )}
-
-
+              </>
               )}
+
             </div>
           )}
         </DialogContent>
