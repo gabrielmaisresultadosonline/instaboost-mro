@@ -299,18 +299,34 @@ const MktCC = () => {
           </TabsContent>
 
           <TabsContent value="proximos" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Rocket className="w-5 h-5 text-primary" /> Próximos passos após a aprovação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-                  {project.next_steps_text || "Assim que os conteúdos forem aprovados, detalharemos aqui os próximos passos."}
-                </p>
-              </CardContent>
-            </Card>
+            {!allApproved && !project.next_step_released ? (
+              <Card className="border-dashed">
+                <CardContent className="p-8 text-center space-y-3">
+                  <Lock className="w-8 h-8 text-muted-foreground mx-auto" />
+                  <p className="font-semibold">Próximo passo bloqueado</p>
+                  <p className="text-sm text-muted-foreground">
+                    Aprove todas as {progress.total} publicações do feed para liberar esta etapa.
+                    Faltam {progress.total - progress.approved}.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-primary/40">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Rocket className="w-5 h-5 text-primary" /> Próximos passos após a aprovação
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Conteúdo 100% aprovado — agora vamos para a próxima etapa.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                    {project.next_steps_text || "Nossa equipe já foi avisada e vai detalhar aqui os próximos passos."}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
