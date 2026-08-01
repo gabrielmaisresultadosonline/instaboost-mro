@@ -182,7 +182,8 @@ const MktCCAdmin = () => {
   const savePost = async (post: Post) => {
     try {
       await call("update_post", {
-        post_id: post.id, post_type: post.post_type, media_urls: post.media_urls, caption: post.caption,
+        post_id: post.id, project_id: post.project_id,
+        post_type: post.post_type, media_urls: post.media_urls, caption: post.caption,
       });
       toast.success("Publicação salva!");
     } catch (err) { toast.error("Erro ao salvar"); }
@@ -191,7 +192,7 @@ const MktCCAdmin = () => {
   const deletePost = async (post: Post) => {
     if (!window.confirm("Excluir esta publicação?")) return;
     try {
-      await call("delete_post", { post_id: post.id });
+      await call("delete_post", { post_id: post.id, project_id: post.project_id });
       if (selected) await loadPosts(selected.id);
     } catch (err) { toast.error("Erro ao excluir"); }
   };
@@ -203,6 +204,62 @@ const MktCCAdmin = () => {
     [next[index], next[target]] = [next[target], next[index]];
     setPosts(next);
     try { await call("reorder_posts", { ids: next.map((p) => p.id) }); } catch { toast.error("Erro ao reordenar"); }
+  };
+
+  const setRevision = (postId: string, patch: Partial<RevisionDraft>) =>
+    setRevisions((prev) => ({ ...prev, [postId]: { note: "", media: [], ...prev[postId], ...patch } }));
+
+  // Envia novos arquivos para substituir o material de uma publicação já publicada ao cliente.
+  const uploadRevisionFiles = async (post: Post, files: FileList) => {
+    if (!selected) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+        const base64 = await fileToBase64(file);
+        const data = await call("upload_media", {
+          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+        });
+        urls.push(data.url);
+      }
+      setRevision(post.id, { media: [...(revisions[post.id]?.media || []), ...urls] });
+      toast.success(`${urls.length} arquivo(s) enviado(s)`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
+  // Arquiva a versão atual (fica cinza no /mktcc) e reenvia a nova para aprovação.
+  const applyRevision = async (post: Post) => {
+    const rev = revisions[post.id];
+    if (!rev?.note?.trim() && (rev?.media?.length || 0) === 0 && post.caption === "") {
+      return toast.error("Descreva a alteração ou envie o novo arquivo");
+    }
+    setRevisingId(post.id);
+    try {
+      await call("revise_post", {
+        post_id: post.id,
+        caption: post.caption,
+        media_urls: rev?.media || [],
+        post_type: (rev?.media?.length || 0) > 1 ? "carousel" : post.post_type,
+        revision_note: rev?.note || "",
+      });
+      setRevisions((prev) => ({ ...prev, [post.id]: { note: "", media: [] } }));
+      if (selected) await loadPosts(selected.id);
+      toast.success("Alteração enviada para nova aprovação!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao aplicar alteração");
+    } finally { setRevisingId(null); }
+  };
+
+  const toggleNextStep = async (released: boolean) => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, next_step_released: released });
+      setSelected({ ...selected, next_step_released: released });
+      toast.success(released ? "Próximo passo liberado para o cliente" : "Próximo passo bloqueado");
+    } catch (err) { toast.error("Erro ao atualizar"); }
   };
 
   if (!loggedIn) {
