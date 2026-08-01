@@ -628,6 +628,10 @@ const MktCCAdmin = () => {
     } catch { toast.error("Erro ao excluir"); }
   };
 
+  const toggleCycleOpen = (id: string) => {
+    setOpenCycleIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
   const assignPostCycle = async (post: Post, cycleId: string) => {
     try {
       await call("update_post", { post_id: post.id, project_id: post.project_id, cycle_id: cycleId === "none" ? null : cycleId });
