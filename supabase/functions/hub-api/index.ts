@@ -110,7 +110,7 @@ serve(async (req) => {
           .or(`username.eq.${safe},email.eq.${safe}`)
           .limit(1);
         const zap = zapRows?.[0] || null;
-        if (zap && (zap.password_hash === hash || (zap.password_plain && zap.password_plain === password))) {
+        if (passwordMatches(zap)) {
           matched = true;
           username = zap.username;
           email = zap.email;
