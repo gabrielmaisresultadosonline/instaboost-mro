@@ -13,7 +13,7 @@ import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
   History as HistoryIcon, Facebook, Camera, CalendarDays, GraduationCap,
-  FolderOpen, ExternalLink,
+  FolderOpen, ExternalLink, LogOut,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
@@ -161,6 +161,20 @@ const MktCC = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) { setCode(saved); load(saved, true); }
   }, []);
+
+  /** Encerra a sessão local e volta para a tela de código de acesso. */
+  const handleLogout = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setProject(null);
+    setPosts([]);
+    setCycles([]);
+    setActiveCycleId("none");
+    setCycleOpen(false);
+    setActivePost(null);
+    setTourIndex(null);
+    setCode("");
+    toast.success("Você saiu. Informe outro código de acesso.");
+  };
 
   const openPost = (post: MktccPost) => {
     setActivePost(post);
@@ -413,6 +427,16 @@ const MktCC = () => {
               )}
             </div>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleLogout}
+            aria-label="Sair e usar outro código de acesso"
+            className="ml-auto self-start shrink-0 rounded-xl border-2 border-foreground font-black uppercase text-xs"
+          >
+            <LogOut className="w-4 h-4 sm:mr-1.5" />
+            <span className="hidden sm:inline">Sair</span>
+          </Button>
         </div>
       </header>
 
