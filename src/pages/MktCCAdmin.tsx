@@ -884,6 +884,100 @@ const MktCCAdmin = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="programacoes" className="mt-6 space-y-4">
+            <Card className="mktcc-pop rounded-2xl overflow-hidden">
+              <div className="h-2 mktcc-gradient" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight">
+                  <CalendarDays className="w-5 h-5" /> Nova programação (mês)
+                </CardTitle>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Crie um ciclo por mês. Quando a data chegar ou você marcar como efetuado, o cliente vê como
+                  “já processado / finalizado” e ninguém mais edita aquelas publicações.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Mês / título</Label>
+                    <Input value={newCycle.title} placeholder="Ex: Programação Janeiro/2026"
+                      onChange={(e) => setNewCycle({ ...newCycle, title: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data em que será efetuada</Label>
+                    <Input type="date" value={newCycle.scheduled_date}
+                      onChange={(e) => setNewCycle({ ...newCycle, scheduled_date: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Observação (o cliente vê)</Label>
+                  <Textarea rows={3} value={newCycle.note}
+                    onChange={(e) => setNewCycle({ ...newCycle, note: e.target.value })} />
+                </div>
+                <Button onClick={createCycle} className="font-black uppercase mktcc-pop-sm">
+                  <Plus className="w-4 h-4 mr-2" /> Criar programação
+                </Button>
+              </CardContent>
+            </Card>
+
+            {cycles.map((cycle) => {
+              const count = posts.filter((p) => p.cycle_id === cycle.id).length;
+              return (
+                <Card key={cycle.id} className="mktcc-pop-sm rounded-2xl">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-black uppercase">{cycle.title}</p>
+                      {cycle.is_done
+                        ? <Badge className="bg-secondary text-secondary-foreground font-black uppercase"><Lock className="w-3.5 h-3.5 mr-1" /> Já processada</Badge>
+                        : <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>}
+                      <Badge variant="outline">{count} publicação(ões)</Badge>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Título</Label>
+                        <Input defaultValue={cycle.title}
+                          onBlur={(e) => e.target.value !== cycle.title && patchCycle(cycle, { title: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Data programada</Label>
+                        <Input type="date" defaultValue={cycle.scheduled_date || ""}
+                          onBlur={(e) => e.target.value !== (cycle.scheduled_date || "") && patchCycle(cycle, { scheduled_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Observação</Label>
+                      <Textarea rows={3} defaultValue={cycle.note || ""}
+                        onBlur={(e) => e.target.value !== (cycle.note || "") && patchCycle(cycle, { note: e.target.value })} />
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button size="sm" variant="outline" onClick={() => { setActiveCycleId(cycle.id); setTab("posts"); }}>
+                        <Images className="w-4 h-4 mr-2" /> Ver publicações
+                      </Button>
+                      {cycle.status === "done" ? (
+                        <Button size="sm" variant="outline" onClick={() => patchCycle(cycle, { status: "open" })}>
+                          <Unlock className="w-4 h-4 mr-2" /> Reabrir para edição
+                        </Button>
+                      ) : (
+                        <Button size="sm" className="font-black uppercase" onClick={() => patchCycle(cycle, { status: "done" })}>
+                          <CheckCircle2 className="w-4 h-4 mr-2" /> Marcar como efetuada
+                        </Button>
+                      )}
+                      <Button size="sm" variant="destructive" onClick={() => removeCycle(cycle)}>
+                        <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {cycles.length === 0 && (
+              <p className="text-sm font-semibold text-muted-foreground">
+                Nenhuma programação criada ainda — as publicações atuais ficam em “Sem programação”.
+              </p>
+            )}
+          </TabsContent>
+
           <TabsContent value="antes" className="mt-6">
             <Card className="mktcc-pop rounded-2xl overflow-hidden">
               <div className="h-2 mktcc-gradient" />
