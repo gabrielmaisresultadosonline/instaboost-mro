@@ -28,6 +28,18 @@ interface MktccPost {
   revision_note: string;
   revision_count: number;
   aspect_ratio: string;
+  cycle_id: string | null;
+}
+
+interface MktccCycle {
+  id: string;
+  title: string;
+  scheduled_date: string | null;
+  note: string;
+  status: "open" | "done";
+  completed_at: string | null;
+  order_index: number;
+  is_done: boolean;
 }
 
 interface MktccProject {
@@ -65,6 +77,8 @@ const MktCC = () => {
   const [slide, setSlide] = useState(0);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [cycles, setCycles] = useState<MktccCycle[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string>("none");
 
   useEffect(() => { document.title = "Aprovação de Conteúdo | Marketing Completo"; }, []);
 
@@ -90,7 +104,15 @@ const MktCC = () => {
         revision_note: p.revision_note || "",
         revision_count: p.revision_count || 0,
         aspect_ratio: p.aspect_ratio || "4/5",
+        cycle_id: p.cycle_id ?? null,
       })));
+      const loaded: MktccCycle[] = data.cycles || [];
+      setCycles(loaded);
+      setActiveCycleId((prev) => {
+        if (prev !== "none" && loaded.some((c) => c.id === prev)) return prev;
+        const open = loaded.find((c) => !c.is_done);
+        return open?.id || loaded[loaded.length - 1]?.id || "none";
+      });
       localStorage.setItem(STORAGE_KEY, accessCode);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao carregar";
@@ -111,6 +133,8 @@ const MktCC = () => {
     setSlide(0);
     setNote(post.client_note || "");
   };
+
+  const cycleById = (id: string | null) => cycles.find((c) => c.id === id) || null;
 
   const review = async (status: MktccPost["status"]) => {
     if (!activePost || !project) return;
