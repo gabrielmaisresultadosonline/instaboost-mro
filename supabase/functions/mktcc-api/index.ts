@@ -154,6 +154,7 @@ serve(async (req) => {
         order_index: (last?.order_index ?? -1) + 1,
       }).select("*").single();
       if (error) return json({ success: false, error: error.message }, 400);
+      await syncApproval(supabase, String(body.project_id));
       return json({ success: true, post: data });
     }
 
