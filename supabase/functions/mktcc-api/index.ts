@@ -14,7 +14,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const PROJECT_PUBLIC_FIELDS =
-  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,instagram_bio,avatar_url,all_approved_at,next_step_released,before_instagram_urls,before_facebook_urls,before_note";
+  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,instagram_bio,avatar_url,all_approved_at,next_step_released,before_instagram_urls,before_facebook_urls,before_note,logo_enabled,logo_before_url,logo_after_url,logo_reason,logo_status,logo_client_note,logo_reviewed_at";
 
 // Uma programação é considerada finalizada quando o admin marca como "done"
 // ou quando a data programada já passou.
