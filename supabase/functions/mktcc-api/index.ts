@@ -123,7 +123,7 @@ serve(async (req) => {
 
     if (action === "update_project") {
       const patch: Record<string, any> = {};
-      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "avatar_url", "access_code", "is_active"]) {
+      for (const key of ["company_name", "strategy_title", "strategy_text", "summary_text", "next_steps_text", "instagram_handle", "avatar_url", "access_code", "is_active", "next_step_released"]) {
         if (key in body) patch[key] = key === "access_code" ? String(body[key]).trim().toUpperCase() : body[key];
       }
       const { error } = await supabase.from("mktcc_projects").update(patch).eq("id", body.project_id);
