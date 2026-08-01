@@ -538,7 +538,7 @@ const MktCCAdmin = () => {
     if (!newCycle.title.trim()) return toast.error("Informe o mês / título da programação");
     try {
       const data = await call("create_cycle", { project_id: selected.id, ...newCycle });
-      setNewCycle({ title: "", scheduled_date: "", note: "" });
+      setNewCycle({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "" });
       await loadCycles(selected.id);
       setActiveCycleId(data.cycle.id);
       toast.success("Programação criada!");
