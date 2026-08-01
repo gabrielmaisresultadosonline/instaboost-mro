@@ -164,6 +164,38 @@ serve(async (req) => {
       }
       const { error } = await supabase.from("mktcc_posts").update(patch).eq("id", body.post_id);
       if (error) return json({ success: false, error: error.message }, 400);
+      if (body.project_id) await syncApproval(supabase, String(body.project_id));
+      return json({ success: true });
+    }
+
+    // Aplica uma alteração: arquiva a versão atual (fica cinza para o cliente),
+    // grava a nova versão e devolve a publicação para nova aprovação.
+    if (action === "revise_post") {
+      const postId = String(body.post_id || "");
+      const { data: current } = await supabase
+        .from("mktcc_posts").select("*").eq("id", postId).maybeSingle();
+      if (!current) return json({ success: false, error: "Publicação não encontrada" }, 404);
+
+      const newMedia = Array.isArray(body.media_urls) && body.media_urls.length > 0
+        ? body.media_urls
+        : current.media_urls;
+      const newCaption = typeof body.caption === "string" ? body.caption : current.caption;
+
+      const { error } = await supabase.from("mktcc_posts").update({
+        previous_media_urls: current.media_urls || [],
+        previous_caption: current.caption || "",
+        media_urls: newMedia,
+        caption: newCaption,
+        post_type: ["image", "video", "carousel"].includes(body.post_type) ? body.post_type : current.post_type,
+        revision_note: String(body.revision_note || "").slice(0, 4000),
+        revision_count: (current.revision_count || 0) + 1,
+        revised_at: new Date().toISOString(),
+        status: "pending",
+        client_note: "",
+        reviewed_at: null,
+      }).eq("id", postId);
+      if (error) return json({ success: false, error: error.message }, 400);
+      await syncApproval(supabase, current.project_id);
       return json({ success: true });
     }
 
