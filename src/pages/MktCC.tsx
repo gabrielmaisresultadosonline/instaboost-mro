@@ -44,9 +44,10 @@ interface MktccProject {
 const STORAGE_KEY = "mktcc_access_code";
 
 const statusBadge = (status: MktccPost["status"]) => {
-  if (status === "approved") return <Badge className="bg-primary text-primary-foreground">Aprovado</Badge>;
-  if (status === "changes") return <Badge variant="destructive">Ajustar</Badge>;
-  return <Badge variant="secondary">Pendente</Badge>;
+  const base = "rounded-full font-black uppercase border-2 border-foreground";
+  if (status === "approved") return <Badge className={`${base} bg-primary text-primary-foreground`}>Aprovado</Badge>;
+  if (status === "changes") return <Badge className={`${base} bg-destructive text-destructive-foreground`}>Ajustar</Badge>;
+  return <Badge className={`${base} bg-card text-foreground`}>Pendente</Badge>;
 };
 
 const MktCC = () => {
@@ -135,13 +136,16 @@ const MktCC = () => {
 
   if (!project) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-primary" />
+      <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10 mktcc-dots">
+        <Card className="w-full max-w-md mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+          <div className="h-2 mktcc-gradient" />
+          <CardHeader className="text-center space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-full bg-primary flex items-center justify-center border-2 border-foreground mktcc-pulse">
+              <Lock className="w-6 h-6 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl">Área de Aprovação</CardTitle>
+            <CardTitle className="text-3xl font-black uppercase tracking-tight">
+              Área de <span className="mktcc-gradient-text">Aprovação</span>
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
               Digite o código de acesso enviado pela nossa equipe para ver a estratégia e aprovar os conteúdos.
             </p>
@@ -155,10 +159,14 @@ const MktCC = () => {
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="CÓDIGO DE ACESSO"
-                className="text-center tracking-[0.3em] uppercase"
+                className="text-center tracking-[0.3em] uppercase font-bold border-2 border-foreground h-12 rounded-xl"
                 maxLength={20}
               />
-              <Button type="submit" className="w-full" disabled={loading || code.trim().length < 4}>
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-black uppercase mktcc-pop-sm rounded-xl"
+                disabled={loading || code.trim().length < 4}
+              >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Acessar"}
               </Button>
             </form>
@@ -169,25 +177,36 @@ const MktCC = () => {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
+    <main className="mktcc min-h-screen bg-background text-foreground">
+      <div className="h-2 mktcc-gradient" />
+      <header className="border-b-[3px] border-foreground bg-card">
         <div className="max-w-5xl mx-auto px-4 py-6 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
-            {project.avatar_url ? (
-              <img src={project.avatar_url} alt={`Perfil de ${project.company_name}`} className="w-full h-full object-cover" />
-            ) : (
-              <Instagram className="w-7 h-7 text-muted-foreground" />
-            )}
+          <div className="mktcc-ring shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-background">
+              {project.avatar_url ? (
+                <img src={project.avatar_url} alt={`Perfil de ${project.company_name}`} className="w-full h-full object-cover" />
+              ) : (
+                <Instagram className="w-7 h-7 text-muted-foreground" />
+              )}
+            </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold truncate">{project.company_name}</h1>
-            <p className="text-sm text-muted-foreground truncate">
+            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
+            <p className="text-sm font-semibold text-muted-foreground truncate">
               {project.instagram_handle ? `@${project.instagram_handle.replace("@", "")}` : "Prévia da rede social"}
             </p>
             <div className="flex gap-2 mt-2 flex-wrap">
-              <Badge variant="secondary">{progress.total} publicações</Badge>
-              <Badge className="bg-primary text-primary-foreground">{progress.approved} aprovadas</Badge>
-              {progress.changes > 0 && <Badge variant="destructive">{progress.changes} para ajustar</Badge>}
+              <Badge className="mktcc-pop-sm rounded-full bg-secondary text-secondary-foreground font-bold uppercase">
+                {progress.total} publicações
+              </Badge>
+              <Badge className="mktcc-pop-sm rounded-full bg-primary text-primary-foreground font-bold uppercase">
+                {progress.approved} aprovadas
+              </Badge>
+              {progress.changes > 0 && (
+                <Badge className="mktcc-pop-sm rounded-full bg-destructive text-destructive-foreground font-bold uppercase">
+                  {progress.changes} para ajustar
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -195,21 +214,31 @@ const MktCC = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Tabs defaultValue="feed">
-          <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="feed">Feed</TabsTrigger>
-            <TabsTrigger value="estrategia">Estratégia</TabsTrigger>
-            <TabsTrigger value="resumo">Resumo</TabsTrigger>
-            <TabsTrigger value="proximos">Próximos passos</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+            {[
+              { v: "feed", l: "Feed" },
+              { v: "estrategia", l: "Estratégia" },
+              { v: "resumo", l: "Resumo" },
+              { v: "proximos", l: "Próximos passos" },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.v}
+                value={t.v}
+                className="rounded-xl font-bold uppercase text-xs md:text-sm text-secondary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t.l}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="feed" className="mt-6">
             {allApproved && (
-              <Card className="mb-6 border-primary/40 bg-primary/5">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <Card className="mb-6 mktcc-pop rounded-2xl bg-primary mktcc-rise">
+                <CardContent className="p-5 flex items-start gap-3">
+                  <CheckCircle2 className="w-6 h-6 text-primary-foreground shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-sm">Tudo aprovado! 🎉</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-black uppercase text-primary-foreground">Tudo aprovado! 🎉</p>
+                    <p className="text-sm font-medium text-primary-foreground/80">
                       Todas as publicações foram aprovadas. Já liberamos a aba <strong>Próximos passos</strong> com o que acontece agora.
                     </p>
                   </div>
@@ -217,10 +246,10 @@ const MktCC = () => {
               </Card>
             )}
             {progress.changes > 0 && (
-              <Card className="mb-6 border-destructive/40 bg-destructive/5">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <MessageSquareWarning className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
+              <Card className="mb-6 mktcc-pop rounded-2xl bg-destructive mktcc-rise">
+                <CardContent className="p-5 flex items-start gap-3">
+                  <MessageSquareWarning className="w-6 h-6 text-destructive-foreground shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-destructive-foreground">
                     {progress.changes} publicação(ões) com alteração solicitada. Nossa equipe vai ajustar e você verá a
                     versão anterior em cinza junto da nova versão para aprovar.
                   </p>
@@ -228,24 +257,27 @@ const MktCC = () => {
               </Card>
             )}
             <div className="mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <ListChecks className="w-5 h-5 text-primary" /> Prévia e aprovação de conteúdo
+              <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                  <ListChecks className="w-5 h-5 text-primary-foreground" />
+                </span>
+                Prévia e <span className="mktcc-gradient-text">aprovação</span>
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium text-muted-foreground">
                 Toque em cada quadradinho para ver o material, a legenda e aprovar ou deixar uma observação.
               </p>
             </div>
             {posts.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-12 text-center">
+              <p className="text-sm font-semibold text-muted-foreground py-12 text-center">
                 Nenhuma publicação cadastrada ainda. Volte em breve.
               </p>
             ) : (
-              <div className="grid grid-cols-3 gap-1 md:gap-2">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm">
                 {posts.map((post) => (
                   <button
                     key={post.id}
                     onClick={() => openPost(post)}
-                    className="relative aspect-square bg-muted overflow-hidden group"
+                    className="mktcc-tile relative aspect-square bg-muted overflow-hidden rounded-xl border-2 border-foreground group"
                     aria-label="Abrir publicação"
                   >
                     {post.post_type === "video" ? (
@@ -253,16 +285,25 @@ const MktCC = () => {
                     ) : (
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
                     )}
-                    <div className="absolute top-1.5 right-1.5 text-primary-foreground">
-                      {post.post_type === "carousel" && <Images className="w-4 h-4 drop-shadow" />}
-                      {post.post_type === "video" && <Play className="w-4 h-4 drop-shadow" />}
+                    <span className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors" />
+                    <div className="absolute top-1.5 right-1.5 flex w-6 h-6 items-center justify-center rounded-md bg-card border border-foreground">
+                      {post.post_type === "carousel" && <Images className="w-3.5 h-3.5 text-foreground" />}
+                      {post.post_type === "video" && <Play className="w-3.5 h-3.5 text-foreground" />}
                     </div>
                     <div className="absolute bottom-1.5 left-1.5">
-                      {post.status === "approved" && <CheckCircle2 className="w-5 h-5 text-primary drop-shadow" />}
-                      {post.status === "changes" && <MessageSquareWarning className="w-5 h-5 text-destructive drop-shadow" />}
+                      {post.status === "approved" && (
+                        <span className="flex w-6 h-6 items-center justify-center rounded-full bg-primary border-2 border-foreground">
+                          <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
+                        </span>
+                      )}
+                      {post.status === "changes" && (
+                        <span className="flex w-6 h-6 items-center justify-center rounded-full bg-destructive border-2 border-foreground">
+                          <MessageSquareWarning className="w-4 h-4 text-destructive-foreground" />
+                        </span>
+                      )}
                     </div>
                     {post.revision_count > 0 && post.status === "pending" && (
-                      <span className="absolute bottom-1.5 right-1.5 text-[10px] font-semibold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                      <span className="absolute bottom-1.5 right-1.5 text-[10px] font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md border border-foreground">
                         ATUALIZADO
                       </span>
                     )}
@@ -273,15 +314,18 @@ const MktCC = () => {
           </TabsContent>
 
           <TabsContent value="estrategia" className="mt-6">
-            <Card>
+            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+              <div className="h-2 mktcc-gradient" />
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                  <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                    <FileText className="w-5 h-5 text-primary-foreground" />
+                  </span>
                   {project.strategy_title || "Primeiro passo: Estrutura de Rede Social"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                   {project.strategy_text || "Estratégia em preparação."}
                 </p>
               </CardContent>
@@ -289,10 +333,13 @@ const MktCC = () => {
           </TabsContent>
 
           <TabsContent value="resumo" className="mt-6">
-            <Card>
-              <CardHeader><CardTitle className="text-lg">Resumo</CardTitle></CardHeader>
+            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+              <div className="h-2 bg-primary" />
+              <CardHeader>
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Resumo</CardTitle>
+              </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                   {project.summary_text || "Resumo em preparação."}
                 </p>
               </CardContent>
@@ -301,28 +348,34 @@ const MktCC = () => {
 
           <TabsContent value="proximos" className="mt-6">
             {!allApproved && !project.next_step_released ? (
-              <Card className="border-dashed">
-                <CardContent className="p-8 text-center space-y-3">
-                  <Lock className="w-8 h-8 text-muted-foreground mx-auto" />
-                  <p className="font-semibold">Próximo passo bloqueado</p>
-                  <p className="text-sm text-muted-foreground">
+              <Card className="rounded-2xl border-[3px] border-dashed border-foreground bg-muted mktcc-rise">
+                <CardContent className="p-10 text-center space-y-3">
+                  <span className="mx-auto flex w-14 h-14 items-center justify-center rounded-full bg-card border-2 border-foreground">
+                    <Lock className="w-6 h-6 text-foreground" />
+                  </span>
+                  <p className="font-black uppercase text-lg">Próximo passo bloqueado</p>
+                  <p className="text-sm font-medium text-muted-foreground">
                     Aprove todas as {progress.total} publicações do feed para liberar esta etapa.
                     Faltam {progress.total - progress.approved}.
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border-primary/40">
+              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+                <div className="h-2 mktcc-gradient" />
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Rocket className="w-5 h-5 text-primary" /> Próximos passos após a aprovação
+                  <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                    <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground mktcc-pulse">
+                      <Rocket className="w-5 h-5 text-primary-foreground" />
+                    </span>
+                    Próximos passos
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-semibold text-muted-foreground">
                     Conteúdo 100% aprovado — agora vamos para a próxima etapa.
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                     {project.next_steps_text || "Nossa equipe já foi avisada e vai detalhar aqui os próximos passos."}
                   </p>
                 </CardContent>
@@ -333,9 +386,9 @@ const MktCC = () => {
       </div>
 
       <Dialog open={!!activePost} onOpenChange={(open) => !open && setActivePost(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="mktcc max-w-lg max-h-[90vh] overflow-y-auto bg-background text-foreground border-[3px] border-foreground rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
               Publicação {activePost ? posts.findIndex((p) => p.id === activePost.id) + 1 : ""}
               {activePost && statusBadge(activePost.status)}
             </DialogTitle>
@@ -344,20 +397,20 @@ const MktCC = () => {
           {activePost && (
             <div className="space-y-4">
               {activePost.revision_count > 0 && (
-                <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-1">
-                  <p className="text-xs font-semibold text-primary">
-                    VERSÃO ATUALIZADA (alteração nº {activePost.revision_count})
+                <div className="rounded-xl bg-primary p-3 space-y-1 mktcc-pop-sm">
+                  <p className="text-xs font-black uppercase text-primary-foreground">
+                    Versão atualizada (alteração nº {activePost.revision_count})
                   </p>
                   {activePost.revision_note && (
-                    <p className="text-sm whitespace-pre-wrap">{activePost.revision_note}</p>
+                    <p className="text-sm font-medium whitespace-pre-wrap text-primary-foreground">{activePost.revision_note}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-primary-foreground/80">
                     A versão anterior aparece abaixo em cinza, só para comparação.
                   </p>
                 </div>
               )}
 
-              <div className="relative bg-muted rounded-md overflow-hidden">
+              <div className="relative bg-muted rounded-xl overflow-hidden border-2 border-foreground">
                 {activePost.post_type === "video" ? (
                   <video src={activePost.media_urls[0]} controls className="w-full max-h-[50vh]" />
                 ) : (
@@ -389,23 +442,23 @@ const MktCC = () => {
               </div>
 
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1">
-                  {activePost.revision_count > 0 ? "LEGENDA ATUALIZADA" : "LEGENDA"}
+                <p className="text-xs font-black uppercase text-muted-foreground mb-1">
+                  {activePost.revision_count > 0 ? "Legenda atualizada" : "Legenda"}
                 </p>
-                <p className="whitespace-pre-wrap text-sm">{activePost.caption || "Sem legenda."}</p>
+                <p className="whitespace-pre-wrap text-sm font-medium">{activePost.caption || "Sem legenda."}</p>
               </div>
 
               {activePost.revision_count > 0 &&
                 (activePost.previous_media_urls.length > 0 || activePost.previous_caption) && (
-                <div className="rounded-md border border-border p-3 space-y-2 opacity-60">
+                <div className="rounded-xl border-2 border-border p-3 space-y-2 opacity-60 bg-muted">
                   <div className="flex items-center gap-2">
                     <HistoryIcon className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-xs font-semibold text-muted-foreground">VERSÃO ANTERIOR (substituída)</p>
+                    <p className="text-xs font-black uppercase text-muted-foreground">Versão anterior (substituída)</p>
                   </div>
                   {activePost.previous_media_urls.length > 0 && (
                     <div className="flex gap-2 flex-wrap">
                       {activePost.previous_media_urls.map((url, i) => (
-                        <div key={url} className="w-20 h-20 rounded overflow-hidden bg-muted grayscale">
+                        <div key={url} className="w-20 h-20 rounded-lg overflow-hidden bg-muted grayscale border border-border">
                           {/\.(mp4|webm|mov)(\?|$)/i.test(url) ? (
                             <video src={url} className="w-full h-full object-cover" muted />
                           ) : (
@@ -424,21 +477,31 @@ const MktCC = () => {
               )}
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">OBSERVAÇÃO / ALTERAÇÃO</p>
+                <p className="text-xs font-black uppercase text-muted-foreground">Observação / alteração</p>
                 <Textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Escreva aqui o que deseja alterar ou acrescentar..."
                   rows={4}
+                  className="border-2 border-foreground rounded-xl font-medium"
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Button className="flex-1" onClick={() => review("approved")} disabled={saving}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
+                  onClick={() => review("approved")}
+                  disabled={saving}
+                >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar</>}
                 </Button>
-                <Button className="flex-1" variant="outline" onClick={() => review("changes")} disabled={saving || !note.trim()}>
-                  <MessageSquareWarning className="w-4 h-4 mr-2" /> Salvar observação
+                <Button
+                  className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl bg-card hover:bg-muted"
+                  variant="outline"
+                  onClick={() => review("changes")}
+                  disabled={saving || !note.trim()}
+                >
+                  <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir alteração
                 </Button>
               </div>
             </div>
