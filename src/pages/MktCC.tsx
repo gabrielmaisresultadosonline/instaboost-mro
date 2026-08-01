@@ -947,7 +947,9 @@ const MktCC = () => {
             )}
           </TabsContent>
         </Tabs>
+        )}
       </div>
+
 
       <Dialog open={!!activePost} onOpenChange={(open) => !open && setActivePost(null)}>
         <DialogContent className="mktcc max-w-lg max-h-[90vh] overflow-y-auto bg-background text-foreground border-[3px] border-foreground rounded-2xl">
