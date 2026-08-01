@@ -422,7 +422,7 @@ const MktCC = () => {
             ))}
           </TabsList>
 
-          <TabsContent value="feed" className="mt-6">
+          <TabsContent value="feed" className="mt-6" data-tour="feed-tab">
             {allApproved && (
               <Card className="mb-6 mktcc-pop rounded-2xl bg-primary mktcc-rise">
                 <CardContent className="p-5 flex items-start gap-3">
@@ -590,7 +590,7 @@ const MktCC = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="antes" className="mt-6 space-y-6">
+          <TabsContent value="antes" className="mt-6 space-y-6" data-tour="antes">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 mktcc-gradient" />
               <CardHeader>
@@ -641,7 +641,7 @@ const MktCC = () => {
           </TabsContent>
 
           {project.logo_enabled && (
-            <TabsContent value="logo" className="mt-6">
+            <TabsContent value="logo" className="mt-6" data-tour="logo">
               <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
                 <div className="h-2 mktcc-gradient" />
                 <CardHeader>
@@ -761,7 +761,7 @@ const MktCC = () => {
 
 
 
-          <TabsContent value="estrategia" className="mt-6">
+          <TabsContent value="estrategia" className="mt-6" data-tour="estrategia">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 mktcc-gradient" />
               <CardHeader>
@@ -780,7 +780,7 @@ const MktCC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="resumo" className="mt-6">
+          <TabsContent value="resumo" className="mt-6" data-tour="resumo">
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 bg-primary" />
               <CardHeader>
@@ -794,7 +794,7 @@ const MktCC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="proximos" className="mt-6">
+          <TabsContent value="proximos" className="mt-6" data-tour="proximos">
             {!allApproved && !project.next_step_released ? (
               <Card className="rounded-2xl border-[3px] border-dashed border-foreground bg-muted mktcc-rise">
                 <CardContent className="p-10 text-center space-y-3">
