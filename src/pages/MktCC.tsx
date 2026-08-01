@@ -611,9 +611,9 @@ const MktCC = () => {
             </div>
           </div>
         ) : (
-        <Tabs value={tab} onValueChange={setTab}>
+        <Tabs value={safeTab} onValueChange={setTab}>
 
-          <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 md:grid-cols-${visibleTabs.length} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
+          <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${tabsGridClass[visibleTabs.length] || "md:grid-cols-6"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
             {visibleTabs.map((t) => (
               <TabsTrigger
                 key={t.v}
