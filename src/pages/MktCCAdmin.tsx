@@ -1136,6 +1136,11 @@ const MktCCAdmin = () => {
                       <Button size="sm" variant="outline" onClick={() => { setActiveCycleId(cycle.id); setTab("posts"); }}>
                         <Images className="w-4 h-4 mr-2" /> Ver publicações
                       </Button>
+                      {!cycle.is_done && posts.some((p) => !p.cycle_id) && (
+                        <Button size="sm" variant="outline" onClick={() => moveOrphansToCycle(cycle.id)}>
+                          Trazer {posts.filter((p) => !p.cycle_id).length} antiga(s) p/ cá
+                        </Button>
+                      )}
                       {cycle.status === "done" ? (
                         <Button size="sm" variant="outline" onClick={() => patchCycle(cycle, { status: "open" })}>
                           <Unlock className="w-4 h-4 mr-2" /> Reabrir para edição
