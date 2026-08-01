@@ -508,48 +508,35 @@ const MktCC = () => {
             )}
             {cycles.length > 0 && (
               <div className="mb-6 space-y-3" data-tour="cycles">
-                <p className="text-xs font-black uppercase text-muted-foreground">Programações</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {cycles.map((cycle) => {
-                    const count = posts.filter((p) => p.cycle_id === cycle.id).length;
-                    const isActive = cycle.id === activeCycleId;
-                    return (
-                      <button
-                        key={cycle.id}
-                        onClick={() => setActiveCycleId(cycle.id)}
-                        className={`text-left rounded-2xl border-2 border-foreground p-4 transition-colors ${
-                          isActive ? "bg-primary text-primary-foreground mktcc-pop-sm" : "bg-card text-foreground"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <CalendarDays className="w-4 h-4" />
-                          <span className="font-black uppercase">{cycle.title}</span>
-                          {cycle.is_done
-                            ? <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-card text-foreground">Já processado</Badge>
-                            : <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-card text-foreground">Em aprovação</Badge>}
-                        </div>
-                        <p className="mt-1 text-xs font-bold uppercase opacity-80">
-                          {formatDate(cycle.scheduled_date) ? `Data: ${formatDate(cycle.scheduled_date)} · ` : ""}
-                          {count} publicação(ões)
-                        </p>
-                        {cycle.note && <p className="mt-1 text-sm font-medium whitespace-pre-wrap opacity-90">{cycle.note}</p>}
-                      </button>
-                    );
-                  })}
-                  {posts.some((p) => !p.cycle_id) && (
-                    <button
-                      onClick={() => setActiveCycleId("none")}
-                      className={`text-left rounded-2xl border-2 border-foreground p-4 ${
-                        activeCycleId === "none" ? "bg-primary text-primary-foreground mktcc-pop-sm" : "bg-card text-foreground"
-                      }`}
-                    >
-                      <span className="font-black uppercase">Programação inicial</span>
-                      <p className="mt-1 text-xs font-bold uppercase opacity-80">
-                        {posts.filter((p) => !p.cycle_id).length} publicação(ões)
-                      </p>
-                    </button>
-                  )}
-                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCycleOpen(false)}
+                  className="rounded-xl border-2 border-foreground font-black uppercase text-xs"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1.5" /> Voltar para programações
+                </Button>
+                <Card className="mktcc-pop-sm rounded-2xl bg-card">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CalendarDays className="w-4 h-4" />
+                      <span className="font-black uppercase">
+                        {activeCycle?.title || "Programação inicial"}
+                      </span>
+                      {activeCycle && (
+                        <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-secondary text-secondary-foreground">
+                          {activeCycle.is_done ? "Já processado" : "Em aprovação"}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                      {formatDate(activeCycle?.scheduled_date ?? null) ? `Data: ${formatDate(activeCycle?.scheduled_date ?? null)} · ` : ""}
+                      {viewPosts.length} publicação(ões)
+                    </p>
+                    {activeCycle?.note && (
+                      <p className="mt-1 text-sm font-medium whitespace-pre-wrap">{activeCycle.note}</p>
+                    )}
+                  </CardContent>
+                </Card>
                 {activeCycleDone && (
                   <Card className="mktcc-pop-sm rounded-2xl bg-card">
                     <CardContent className="p-4 flex items-start gap-3">
@@ -563,6 +550,7 @@ const MktCC = () => {
                 )}
               </div>
             )}
+
             <div className="mb-4">
               <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
                 <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
