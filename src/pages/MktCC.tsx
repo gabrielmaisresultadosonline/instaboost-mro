@@ -202,6 +202,30 @@ const MktCC = () => {
           </TabsList>
 
           <TabsContent value="feed" className="mt-6">
+            {allApproved && (
+              <Card className="mb-6 border-primary/40 bg-primary/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Tudo aprovado! 🎉</p>
+                    <p className="text-sm text-muted-foreground">
+                      Todas as publicações foram aprovadas. Já liberamos a aba <strong>Próximos passos</strong> com o que acontece agora.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {progress.changes > 0 && (
+              <Card className="mb-6 border-destructive/40 bg-destructive/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <MessageSquareWarning className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    {progress.changes} publicação(ões) com alteração solicitada. Nossa equipe vai ajustar e você verá a
+                    versão anterior em cinza junto da nova versão para aprovar.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             <div className="mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <ListChecks className="w-5 h-5 text-primary" /> Prévia e aprovação de conteúdo
