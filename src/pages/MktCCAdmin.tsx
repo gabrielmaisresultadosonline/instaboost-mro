@@ -854,8 +854,10 @@ const MktCCAdmin = () => {
                   <div className="flex gap-2 flex-wrap">
                     {draft.media_urls.map((url, i) => (
                       <div key={url} className="relative w-20 aspect-[4/5] rounded overflow-hidden bg-muted border-2 border-foreground">
-                        {draft.post_type === "video"
-                          ? <video src={url} className="w-full h-full object-contain" muted />
+                        {isVideoUrl(url)
+                          ? (draft.poster_url
+                              ? <img src={draft.poster_url} alt={`Miniatura ${i + 1}`} className="w-full h-full object-cover" />
+                              : <video src={url} className="w-full h-full object-contain" muted playsInline preload="metadata" />)
                           : <img src={url} alt={`Arquivo ${i + 1}`} className="w-full h-full object-contain" />}
                         <button
                           className="absolute top-0 right-0 bg-destructive text-destructive-foreground w-5 h-5 text-xs"
@@ -867,10 +869,22 @@ const MktCCAdmin = () => {
                   </div>
                 )}
 
+                {draft.media_urls.some(isVideoUrl) && (
+                  <VideoThumbPicker
+                    videoUrl={draft.media_urls.find(isVideoUrl) as string}
+                    posterUrl={draft.poster_url}
+                    onCapture={setDraftPoster}
+                    disabled={uploading}
+                  />
+                )}
+
                 <div className="space-y-2">
                   <Label>Legenda</Label>
                   <Textarea rows={4} value={draft.caption} onChange={(e) => setDraft({ ...draft, caption: e.target.value })} />
                 </div>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Imagens estáticas até 45MB · vídeos MP4 até 120MB
+                </p>
 
                 <Button onClick={createPost} disabled={uploading}>
                   {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : <><Upload className="w-4 h-4 mr-2" /> Salvar como rascunho</>}
@@ -918,8 +932,10 @@ const MktCCAdmin = () => {
                   <CardContent className="p-4 flex gap-4 flex-col md:flex-row">
                     <div className="w-full md:w-28 shrink-0">
                       <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden border-2 border-foreground">
-                        {post.post_type === "video"
-                          ? <video src={post.media_urls[0]} className="w-full h-full object-contain" muted />
+                        {isVideoUrl(post.media_urls[0] || "")
+                          ? (post.poster_url
+                              ? <img src={post.poster_url} alt="Miniatura do vídeo" className="w-full h-full object-cover" />
+                              : <video src={post.media_urls[0]} className="w-full h-full object-contain" muted playsInline preload="metadata" />)
                           : <img src={post.media_urls[0]} alt="Prévia" className="w-full h-full object-contain" />}
                       </div>
                       {!cycleLocked && (
@@ -1000,8 +1016,10 @@ const MktCCAdmin = () => {
                               {post.media_urls.map((url) => (
                                 <div key={url} className="relative w-16">
                                   <div className="aspect-[4/5] rounded-md overflow-hidden border-2 border-foreground bg-muted">
-                                    {post.post_type === "video"
-                                      ? <video src={url} className="w-full h-full object-cover" muted />
+                                    {isVideoUrl(url)
+                                      ? (post.poster_url
+                                          ? <img src={post.poster_url} alt="Miniatura do vídeo" className="w-full h-full object-cover" />
+                                          : <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />)
                                       : <img src={url} alt="Mídia" className="w-full h-full object-cover" />}
                                   </div>
                                   <button
@@ -1026,8 +1044,16 @@ const MktCCAdmin = () => {
                                 onChange={(e) => e.target.files?.length && uploadPostMedia(post, e.target.files, true)} />
                             </div>
                           </div>
+                          {post.media_urls.some(isVideoUrl) && (
+                            <VideoThumbPicker
+                              videoUrl={post.media_urls.find(isVideoUrl) as string}
+                              posterUrl={post.poster_url}
+                              onCapture={(blob) => setPostPoster(post, blob)}
+                              disabled={uploading}
+                            />
+                          )}
                           <p className="text-xs font-semibold text-muted-foreground">
-                            As mídias salvam na hora. Depois clique em <strong>Publicar p/ o cliente</strong>.
+                            As mídias salvam na hora (vídeo até 120MB). Depois clique em <strong>Publicar p/ o cliente</strong>.
                           </p>
                         </div>
                       )}
