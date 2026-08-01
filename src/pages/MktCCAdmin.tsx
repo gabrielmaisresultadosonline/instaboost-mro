@@ -76,7 +76,14 @@ const MktCCAdmin = () => {
 
   const loadPosts = async (projectId: string) => {
     const data = await call("list_posts", { project_id: projectId });
-    setPosts((data.posts || []).map((p: Post) => ({ ...p, media_urls: p.media_urls || [] })));
+    setPosts((data.posts || []).map((p: Post) => ({
+      ...p,
+      media_urls: p.media_urls || [],
+      previous_media_urls: p.previous_media_urls || [],
+      previous_caption: p.previous_caption || "",
+      revision_note: p.revision_note || "",
+      revision_count: p.revision_count || 0,
+    })));
   };
 
   const handleLogin = async (e: React.FormEvent) => {
