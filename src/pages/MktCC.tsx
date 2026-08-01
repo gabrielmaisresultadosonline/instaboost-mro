@@ -14,6 +14,7 @@ import {
   History as HistoryIcon, Facebook, Camera, CalendarDays,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
+import { MediaPopup } from "@/components/MediaPopup";
 
 interface MktccPost {
   id: string;
