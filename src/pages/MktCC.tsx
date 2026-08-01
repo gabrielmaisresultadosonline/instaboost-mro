@@ -232,12 +232,12 @@ const MktCC = () => {
 
           <TabsContent value="feed" className="mt-6">
             {allApproved && (
-              <Card className="mb-6 border-primary/40 bg-primary/5">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <Card className="mb-6 mktcc-pop rounded-2xl bg-primary mktcc-rise">
+                <CardContent className="p-5 flex items-start gap-3">
+                  <CheckCircle2 className="w-6 h-6 text-primary-foreground shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-sm">Tudo aprovado! 🎉</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-black uppercase text-primary-foreground">Tudo aprovado! 🎉</p>
+                    <p className="text-sm font-medium text-primary-foreground/80">
                       Todas as publicações foram aprovadas. Já liberamos a aba <strong>Próximos passos</strong> com o que acontece agora.
                     </p>
                   </div>
@@ -245,10 +245,10 @@ const MktCC = () => {
               </Card>
             )}
             {progress.changes > 0 && (
-              <Card className="mb-6 border-destructive/40 bg-destructive/5">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <MessageSquareWarning className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
+              <Card className="mb-6 mktcc-pop rounded-2xl bg-destructive mktcc-rise">
+                <CardContent className="p-5 flex items-start gap-3">
+                  <MessageSquareWarning className="w-6 h-6 text-destructive-foreground shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-destructive-foreground">
                     {progress.changes} publicação(ões) com alteração solicitada. Nossa equipe vai ajustar e você verá a
                     versão anterior em cinza junto da nova versão para aprovar.
                   </p>
@@ -256,24 +256,27 @@ const MktCC = () => {
               </Card>
             )}
             <div className="mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <ListChecks className="w-5 h-5 text-primary" /> Prévia e aprovação de conteúdo
+              <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                  <ListChecks className="w-5 h-5 text-primary-foreground" />
+                </span>
+                Prévia e <span className="mktcc-gradient-text">aprovação</span>
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium text-muted-foreground">
                 Toque em cada quadradinho para ver o material, a legenda e aprovar ou deixar uma observação.
               </p>
             </div>
             {posts.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-12 text-center">
+              <p className="text-sm font-semibold text-muted-foreground py-12 text-center">
                 Nenhuma publicação cadastrada ainda. Volte em breve.
               </p>
             ) : (
-              <div className="grid grid-cols-3 gap-1 md:gap-2">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm">
                 {posts.map((post) => (
                   <button
                     key={post.id}
                     onClick={() => openPost(post)}
-                    className="relative aspect-square bg-muted overflow-hidden group"
+                    className="mktcc-tile relative aspect-square bg-muted overflow-hidden rounded-xl border-2 border-foreground group"
                     aria-label="Abrir publicação"
                   >
                     {post.post_type === "video" ? (
@@ -281,16 +284,25 @@ const MktCC = () => {
                     ) : (
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
                     )}
-                    <div className="absolute top-1.5 right-1.5 text-primary-foreground">
-                      {post.post_type === "carousel" && <Images className="w-4 h-4 drop-shadow" />}
-                      {post.post_type === "video" && <Play className="w-4 h-4 drop-shadow" />}
+                    <span className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors" />
+                    <div className="absolute top-1.5 right-1.5 flex w-6 h-6 items-center justify-center rounded-md bg-card border border-foreground">
+                      {post.post_type === "carousel" && <Images className="w-3.5 h-3.5 text-foreground" />}
+                      {post.post_type === "video" && <Play className="w-3.5 h-3.5 text-foreground" />}
                     </div>
                     <div className="absolute bottom-1.5 left-1.5">
-                      {post.status === "approved" && <CheckCircle2 className="w-5 h-5 text-primary drop-shadow" />}
-                      {post.status === "changes" && <MessageSquareWarning className="w-5 h-5 text-destructive drop-shadow" />}
+                      {post.status === "approved" && (
+                        <span className="flex w-6 h-6 items-center justify-center rounded-full bg-primary border-2 border-foreground">
+                          <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
+                        </span>
+                      )}
+                      {post.status === "changes" && (
+                        <span className="flex w-6 h-6 items-center justify-center rounded-full bg-destructive border-2 border-foreground">
+                          <MessageSquareWarning className="w-4 h-4 text-destructive-foreground" />
+                        </span>
+                      )}
                     </div>
                     {post.revision_count > 0 && post.status === "pending" && (
-                      <span className="absolute bottom-1.5 right-1.5 text-[10px] font-semibold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                      <span className="absolute bottom-1.5 right-1.5 text-[10px] font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md border border-foreground">
                         ATUALIZADO
                       </span>
                     )}
