@@ -306,12 +306,13 @@ const MktCC = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Tabs defaultValue="feed">
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
             {[
               { v: "feed", l: "Feed" },
               { v: "estrategia", l: "Estratégia" },
               { v: "resumo", l: "Resumo" },
               { v: "antes", l: "Antes" },
+              ...(project.logo_enabled ? [{ v: "logo", l: "Nova logo" }] : []),
               { v: "proximos", l: "Próximos passos" },
             ].map((t) => (
               <TabsTrigger
