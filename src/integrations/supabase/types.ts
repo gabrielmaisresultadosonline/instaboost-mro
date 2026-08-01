@@ -3998,6 +3998,7 @@ export type Database = {
           company_name: string
           created_at: string
           id: string
+          instagram_bio: string
           instagram_handle: string
           is_active: boolean
           next_step_released: boolean
@@ -4017,6 +4018,7 @@ export type Database = {
           company_name: string
           created_at?: string
           id?: string
+          instagram_bio?: string
           instagram_handle?: string
           is_active?: boolean
           next_step_released?: boolean
@@ -4036,6 +4038,7 @@ export type Database = {
           company_name?: string
           created_at?: string
           id?: string
+          instagram_bio?: string
           instagram_handle?: string
           is_active?: boolean
           next_step_released?: boolean
