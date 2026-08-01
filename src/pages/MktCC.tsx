@@ -313,15 +313,18 @@ const MktCC = () => {
           </TabsContent>
 
           <TabsContent value="estrategia" className="mt-6">
-            <Card>
+            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+              <div className="h-2 mktcc-gradient" />
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                  <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                    <FileText className="w-5 h-5 text-primary-foreground" />
+                  </span>
                   {project.strategy_title || "Primeiro passo: Estrutura de Rede Social"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                   {project.strategy_text || "Estratégia em preparação."}
                 </p>
               </CardContent>
@@ -329,10 +332,13 @@ const MktCC = () => {
           </TabsContent>
 
           <TabsContent value="resumo" className="mt-6">
-            <Card>
-              <CardHeader><CardTitle className="text-lg">Resumo</CardTitle></CardHeader>
+            <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+              <div className="h-2 bg-primary" />
+              <CardHeader>
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Resumo</CardTitle>
+              </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                   {project.summary_text || "Resumo em preparação."}
                 </p>
               </CardContent>
@@ -341,28 +347,34 @@ const MktCC = () => {
 
           <TabsContent value="proximos" className="mt-6">
             {!allApproved && !project.next_step_released ? (
-              <Card className="border-dashed">
-                <CardContent className="p-8 text-center space-y-3">
-                  <Lock className="w-8 h-8 text-muted-foreground mx-auto" />
-                  <p className="font-semibold">Próximo passo bloqueado</p>
-                  <p className="text-sm text-muted-foreground">
+              <Card className="rounded-2xl border-[3px] border-dashed border-foreground bg-muted mktcc-rise">
+                <CardContent className="p-10 text-center space-y-3">
+                  <span className="mx-auto flex w-14 h-14 items-center justify-center rounded-full bg-card border-2 border-foreground">
+                    <Lock className="w-6 h-6 text-foreground" />
+                  </span>
+                  <p className="font-black uppercase text-lg">Próximo passo bloqueado</p>
+                  <p className="text-sm font-medium text-muted-foreground">
                     Aprove todas as {progress.total} publicações do feed para liberar esta etapa.
                     Faltam {progress.total - progress.approved}.
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border-primary/40">
+              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+                <div className="h-2 mktcc-gradient" />
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Rocket className="w-5 h-5 text-primary" /> Próximos passos após a aprovação
+                  <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                    <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground mktcc-pulse">
+                      <Rocket className="w-5 h-5 text-primary-foreground" />
+                    </span>
+                    Próximos passos
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-semibold text-muted-foreground">
                     Conteúdo 100% aprovado — agora vamos para a próxima etapa.
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                     {project.next_steps_text || "Nossa equipe já foi avisada e vai detalhar aqui os próximos passos."}
                   </p>
                 </CardContent>
