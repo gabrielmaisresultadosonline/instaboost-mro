@@ -61,6 +61,7 @@ interface MktccProject {
   before_facebook_urls: string[];
   before_note: string;
   before_profile_full_url: string;
+  drive_url: string;
   logo_enabled: boolean;
   logo_before_url: string;
   logo_after_url: string;
@@ -93,6 +94,7 @@ const MktCC = () => {
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
   const [mediaPopup, setMediaPopup] = useState<{ url: string; type: "image" | "video" } | null>(null);
+  const [driveOpen, setDriveOpen] = useState(false);
   const [logoNote, setLogoNote] = useState("");
   const [logoSaving, setLogoSaving] = useState(false);
 
@@ -112,6 +114,7 @@ const MktCC = () => {
         before_facebook_urls: data.project?.before_facebook_urls || [],
         before_note: data.project?.before_note || "",
         before_profile_full_url: data.project?.before_profile_full_url || "",
+        drive_url: data.project?.drive_url || "",
         logo_enabled: data.project?.logo_enabled === true,
         logo_before_url: data.project?.logo_before_url || "",
         logo_after_url: data.project?.logo_after_url || "",
@@ -375,6 +378,16 @@ const MktCC = () => {
               >
                 <GraduationCap className="w-4 h-4 mr-1.5" /> Tutorial
               </Button>
+              {!!project.drive_url && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setDriveOpen(true)}
+                  className="rounded-xl border-2 border-foreground font-black uppercase text-xs"
+                >
+                  <FolderOpen className="w-4 h-4 mr-1.5" /> Arquivos no Drive
+                </Button>
+              )}
             </div>
             <p className="text-sm font-semibold text-muted-foreground truncate">
               {project.instagram_handle ? `@${project.instagram_handle.replace("@", "")}` : "Prévia da rede social"}
@@ -395,6 +408,44 @@ const MktCC = () => {
           </div>
         </div>
       </header>
+
+      <Dialog open={driveOpen} onOpenChange={setDriveOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase">Arquivos no Drive</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p>
+              Nesse link ficam todos os materiais da sua empresa: vídeos, fotos, documentos,
+              imagens, posts, logo e tudo mais que for produzido.
+            </p>
+            <div className="rounded-xl border-2 border-foreground bg-secondary/30 p-3">
+              <p className="font-bold uppercase text-xs mb-1">Observação importante</p>
+              <p>
+                Compartilhe os arquivos usando o seu e-mail pessoal do Gmail, não use e-mail
+                empresarial: o Drive só aceita esse tipo de compartilhamento.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                asChild
+                className="w-full rounded-xl border-2 border-foreground font-black uppercase"
+              >
+                <a href={project.drive_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4 mr-1.5" /> Abrir o Drive
+                </a>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setDriveOpen(false)}
+                className="w-full sm:w-auto rounded-xl border-2 border-foreground font-black uppercase"
+              >
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <MktCCTutorial
         steps={tourSteps}

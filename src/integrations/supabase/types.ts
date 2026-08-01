@@ -3998,6 +3998,7 @@ export type Database = {
           before_profile_full_url: string
           company_name: string
           created_at: string
+          drive_url: string | null
           id: string
           instagram_bio: string
           instagram_handle: string
@@ -4026,6 +4027,7 @@ export type Database = {
           before_profile_full_url?: string
           company_name: string
           created_at?: string
+          drive_url?: string | null
           id?: string
           instagram_bio?: string
           instagram_handle?: string
@@ -4054,6 +4056,7 @@ export type Database = {
           before_profile_full_url?: string
           company_name?: string
           created_at?: string
+          drive_url?: string | null
           id?: string
           instagram_bio?: string
           instagram_handle?: string
