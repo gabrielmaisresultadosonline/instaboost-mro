@@ -12,7 +12,7 @@ import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
   History as HistoryIcon, Facebook, Camera,
-} from "lucide-react";
+, CalendarDays } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
 interface MktccPost {
@@ -660,6 +660,7 @@ const MktCC = () => {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Escreva aqui o que deseja alterar ou acrescentar..."
+                  readOnly={activePostLocked}
                   rows={4}
                   className="border-2 border-foreground rounded-xl font-medium"
                 />
