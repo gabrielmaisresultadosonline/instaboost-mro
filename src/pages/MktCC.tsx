@@ -154,7 +154,9 @@ const MktCC = () => {
       setPosts((prev) => prev.map((p) => (p.id === activePost.id ? { ...p, status, client_note: note } : p)));
       setActivePost((prev) => (prev ? { ...prev, status, client_note: note } : prev));
       setProject((prev) => (prev ? { ...prev, all_approved_at: data.all_approved ? new Date().toISOString() : null } : prev));
-      toast.success(status === "approved" ? "Publicação aprovada!" : "Observação salva!");
+      toast.success(
+        status === "approved" ? "Publicação aprovada!" : status === "pending" ? "Aprovação removida" : "Observação salva!"
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
