@@ -92,7 +92,8 @@ serve(async (req) => {
         .eq("id", postId)
         .eq("project_id", project.id);
       if (error) return json({ success: false, error: error.message }, 400);
-      return json({ success: true });
+      const allApproved = await syncApproval(supabase, project.id);
+      return json({ success: true, all_approved: allApproved });
     }
 
     /* ---------------- ADMIN ---------------- */
