@@ -14,7 +14,27 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const PROJECT_PUBLIC_FIELDS =
-  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url";
+  "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url,all_approved_at,next_step_released";
+
+// Recalcula se todas as publicações do projeto estão aprovadas e marca a data.
+async function syncApproval(supabase: any, projectId: string) {
+  const { data: rows } = await supabase
+    .from("mktcc_posts").select("status").eq("project_id", projectId);
+  const posts = rows || [];
+  const allApproved = posts.length > 0 && posts.every((p: any) => p.status === "approved");
+
+  const { data: project } = await supabase
+    .from("mktcc_projects").select("all_approved_at").eq("id", projectId).maybeSingle();
+
+  if (allApproved && !project?.all_approved_at) {
+    await supabase.from("mktcc_projects")
+      .update({ all_approved_at: new Date().toISOString() }).eq("id", projectId);
+  } else if (!allApproved && project?.all_approved_at) {
+    await supabase.from("mktcc_projects")
+      .update({ all_approved_at: null }).eq("id", projectId);
+  }
+  return allApproved;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
