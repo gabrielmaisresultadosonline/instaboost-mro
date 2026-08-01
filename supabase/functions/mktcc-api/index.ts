@@ -16,6 +16,31 @@ const json = (body: unknown, status = 200) =>
 const PROJECT_PUBLIC_FIELDS =
   "id,company_name,strategy_title,strategy_text,summary_text,next_steps_text,instagram_handle,avatar_url,all_approved_at,next_step_released,before_instagram_urls,before_facebook_urls,before_note";
 
+// Uma programação é considerada finalizada quando o admin marca como "done"
+// ou quando a data programada já passou.
+function cycleIsDone(cycle: any): boolean {
+  if (!cycle) return false;
+  if (cycle.status === "done") return true;
+  if (cycle.scheduled_date) {
+    const today = new Date().toISOString().slice(0, 10);
+    return String(cycle.scheduled_date) < today;
+  }
+  return false;
+}
+
+function publicCycle(cycle: any) {
+  return {
+    id: cycle.id,
+    title: cycle.title,
+    scheduled_date: cycle.scheduled_date,
+    note: cycle.note,
+    status: cycle.status,
+    completed_at: cycle.completed_at,
+    order_index: cycle.order_index,
+    is_done: cycleIsDone(cycle),
+  };
+}
+
 // Recalcula se todas as publicações do projeto estão aprovadas e marca a data.
 async function syncApproval(supabase: any, projectId: string) {
   const { data: rows } = await supabase
@@ -72,8 +97,20 @@ serve(async (req) => {
         .eq("is_published", true)
         .order("order_index", { ascending: true });
 
+      const { data: cycles } = await supabase
+        .from("mktcc_cycles")
+        .select("*")
+        .eq("project_id", project.id)
+        .order("order_index", { ascending: true })
+        .order("created_at", { ascending: true });
+
       const { is_active: _omit, ...publicProject } = project as Record<string, any>;
-      return json({ success: true, project: publicProject, posts: posts || [] });
+      return json({
+        success: true,
+        project: publicProject,
+        posts: posts || [],
+        cycles: (cycles || []).map(publicCycle),
+      });
     }
 
     if (action === "client_review") {
@@ -86,6 +123,17 @@ serve(async (req) => {
       const { data: project } = await supabase
         .from("mktcc_projects").select("id").eq("access_code", code).eq("is_active", true).maybeSingle();
       if (!project) return json({ success: false, error: "Código não encontrado" }, 404);
+
+      // Publicações de uma programação já finalizada não podem mais ser editadas.
+      const { data: target } = await supabase
+        .from("mktcc_posts").select("cycle_id").eq("id", postId).eq("project_id", project.id).maybeSingle();
+      if (target?.cycle_id) {
+        const { data: cycle } = await supabase
+          .from("mktcc_cycles").select("*").eq("id", target.cycle_id).maybeSingle();
+        if (cycleIsDone(cycle)) {
+          return json({ success: false, error: "Esta programação já foi processada e finalizada." }, 400);
+        }
+      }
 
       const { error } = await supabase
         .from("mktcc_posts")
@@ -138,6 +186,51 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    /* ---------------- ADMIN: programações mensais ---------------- */
+
+    if (action === "list_cycles") {
+      const { data } = await supabase.from("mktcc_cycles").select("*")
+        .eq("project_id", body.project_id)
+        .order("order_index", { ascending: true })
+        .order("created_at", { ascending: true });
+      return json({ success: true, cycles: (data || []).map(publicCycle) });
+    }
+
+    if (action === "create_cycle") {
+      const { data: last } = await supabase.from("mktcc_cycles").select("order_index")
+        .eq("project_id", body.project_id).order("order_index", { ascending: false }).limit(1).maybeSingle();
+      const { data, error } = await supabase.from("mktcc_cycles").insert({
+        project_id: body.project_id,
+        title: String(body.title || "").slice(0, 200) || "Nova programação",
+        scheduled_date: body.scheduled_date || null,
+        note: String(body.note || "").slice(0, 4000),
+        order_index: (last?.order_index ?? -1) + 1,
+      }).select("*").single();
+      if (error) return json({ success: false, error: error.message }, 400);
+      return json({ success: true, cycle: publicCycle(data) });
+    }
+
+    if (action === "update_cycle") {
+      const patch: Record<string, any> = {};
+      for (const key of ["title", "scheduled_date", "note", "order_index"]) {
+        if (key in body) patch[key] = key === "scheduled_date" ? (body[key] || null) : body[key];
+      }
+      if ("status" in body) {
+        const status = body.status === "done" ? "done" : "open";
+        patch.status = status;
+        patch.completed_at = status === "done" ? new Date().toISOString() : null;
+      }
+      const { error } = await supabase.from("mktcc_cycles").update(patch).eq("id", body.cycle_id);
+      if (error) return json({ success: false, error: error.message }, 400);
+      return json({ success: true });
+    }
+
+    if (action === "delete_cycle") {
+      const { error } = await supabase.from("mktcc_cycles").delete().eq("id", body.cycle_id);
+      if (error) return json({ success: false, error: error.message }, 400);
+      return json({ success: true });
+    }
+
     if (action === "list_posts") {
       const { data } = await supabase.from("mktcc_posts").select("*")
         .eq("project_id", body.project_id).order("order_index", { ascending: true });
@@ -154,6 +247,7 @@ serve(async (req) => {
         caption: String(body.caption || ""),
         aspect_ratio: ["4/5", "1/1", "9/16"].includes(body.aspect_ratio) ? body.aspect_ratio : "4/5",
         is_published: body.is_published === true,
+        cycle_id: body.cycle_id || null,
         order_index: (last?.order_index ?? -1) + 1,
       }).select("*").single();
       if (error) return json({ success: false, error: error.message }, 400);
@@ -163,7 +257,7 @@ serve(async (req) => {
 
     if (action === "update_post") {
       const patch: Record<string, any> = {};
-      for (const key of ["post_type", "media_urls", "caption", "order_index", "status", "client_note", "is_published", "aspect_ratio"]) {
+      for (const key of ["post_type", "media_urls", "caption", "order_index", "status", "client_note", "is_published", "aspect_ratio", "cycle_id"]) {
         if (key in body) patch[key] = body[key];
       }
       const { error } = await supabase.from("mktcc_posts").update(patch).eq("id", body.post_id);
