@@ -788,8 +788,10 @@ serve(async (req) => {
      * Localiza todas as contas de ferramenta (MRO/ZAPMRO) do cliente a partir do
      * usuário e/ou e-mail informados, validando a senha antes de expor qualquer dado.
      */
-    const findAccounts = async (username: string, email: string, password: string) => {
+    const findAccounts = async (username: string, email: string, rawPassword: string) => {
+      const password = rawPassword.trim();
       const hash = await sha256(password);
+      const rawHash = await sha256(rawPassword);
       const safeUser = username.replace(/[,()"']/g, "");
       const safeEmail = email.replace(/[,()"']/g, "");
       const filters: string[] = [];
@@ -797,8 +799,15 @@ serve(async (req) => {
       if (safeEmail) filters.push(`email.eq.${safeEmail}`);
       if (!filters.length) return { mro: null, zap: null } as Record<string, Record<string, unknown> | null>;
 
-      const ok = (row: Record<string, unknown> | null) =>
-        !!row && (row.password_hash === hash || (!!row.password_plain && row.password_plain === password));
+      const ok = (row: Record<string, unknown> | null) => {
+        if (!row) return false;
+        const storedHash = row.password_hash ? String(row.password_hash) : "";
+        const storedPlain = row.password_plain ? String(row.password_plain) : "";
+        return (
+          (!!storedHash && (storedHash === hash || storedHash === rawHash)) ||
+          (!!storedPlain && (storedPlain === rawPassword || storedPlain.trim() === password))
+        );
+      };
 
       const { data: mroRows } = await supabase.from("mro_tool_users").select("*").or(filters.join(",")).limit(5);
       const { data: zapRows } = await supabase.from("zapmro_users").select("*").or(filters.join(",")).limit(5);
