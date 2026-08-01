@@ -26,6 +26,7 @@ interface MktccPost {
   previous_caption: string;
   revision_note: string;
   revision_count: number;
+  aspect_ratio: string;
 }
 
 interface MktccProject {
@@ -39,7 +40,11 @@ interface MktccProject {
   avatar_url: string;
   all_approved_at: string | null;
   next_step_released: boolean;
+  before_instagram_urls: string[];
+  before_facebook_urls: string[];
+  before_note: string;
 }
+
 
 const STORAGE_KEY = "mktcc_access_code";
 
