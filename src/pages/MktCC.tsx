@@ -81,6 +81,7 @@ const MktCC = () => {
   const [saving, setSaving] = useState(false);
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
+  const [mediaPopup, setMediaPopup] = useState<{ url: string; type: "image" | "video" } | null>(null);
 
   useEffect(() => { document.title = "Aprovação de Conteúdo | Marketing Completo"; }, []);
 
