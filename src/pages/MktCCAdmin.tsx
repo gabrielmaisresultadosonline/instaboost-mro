@@ -715,11 +715,13 @@ const MktCCAdmin = () => {
                           ? <video src={post.media_urls[0]} className="w-full h-full object-contain" muted />
                           : <img src={post.media_urls[0]} alt="Prévia" className="w-full h-full object-contain" />}
                       </div>
+                      {!cycleLocked && (
                       <div className="flex gap-1 mt-2">
                         <Button size="icon" variant="outline" onClick={() => movePost(index, -1)} aria-label="Subir"><ArrowUp className="w-4 h-4" /></Button>
                         <Button size="icon" variant="outline" onClick={() => movePost(index, 1)} aria-label="Descer"><ArrowDown className="w-4 h-4" /></Button>
                         <Button size="icon" variant="destructive" onClick={() => deletePost(post)} aria-label="Excluir"><Trash2 className="w-4 h-4" /></Button>
                       </div>
+                      )}
                     </div>
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -731,14 +733,33 @@ const MktCCAdmin = () => {
                           ? <Badge className="bg-secondary text-secondary-foreground font-bold uppercase">Publicado</Badge>
                           : <Badge variant="outline" className="font-bold uppercase">Rascunho</Badge>}
                         <Badge variant="outline">{post.aspect_ratio}</Badge>
+                        {cycles.length > 0 && !cycleLocked && (
+                          <Select
+                            value={post.cycle_id || "none"}
+                            onValueChange={(v) => assignPostCycle(post, v)}
+                          >
+                            <SelectTrigger className="h-7 w-auto min-w-[10rem] text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {cycles.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                              ))}
+                              <SelectItem value="none">Sem programação</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {cycleLocked && (
+                          <Badge className="bg-secondary text-secondary-foreground font-black uppercase">
+                            {cycleLabel(post.cycle_id)} · finalizada
+                          </Badge>
+                        )}
                       </div>
-                      <Textarea rows={3} value={post.caption}
+                      <Textarea rows={3} value={post.caption} readOnly={cycleLocked}
                         onChange={(e) => {
                           setPosts(posts.map((p) => (p.id === post.id ? { ...p, caption: e.target.value } : p)));
                           markDirty(post.id);
                         }} />
                       <p className="text-xs font-semibold text-muted-foreground">
-                        {dirtyIds.includes(post.id)
+                        {cycleLocked ? "Programação finalizada — edições bloqueadas" : dirtyIds.includes(post.id)
                           ? "Alterações não salvas..."
                           : autoSaving ? "Salvando rascunho..." : lastAutoSave ? `Rascunho salvo às ${lastAutoSave}` : "Salva automático como rascunho"}
                       </p>
@@ -747,6 +768,7 @@ const MktCCAdmin = () => {
                           <strong>Observação do cliente:</strong> {post.client_note}
                         </p>
                       )}
+                      {!cycleLocked && (
                       <div className="flex gap-2 flex-wrap">
                         <Button size="sm" variant="outline" onClick={() => savePost(post)}>
                           <Save className="w-4 h-4 mr-2" /> Salvar agora
@@ -761,8 +783,9 @@ const MktCCAdmin = () => {
                           </Button>
                         )}
                       </div>
+                      )}
 
-                      {!post.is_published && (
+                      {!post.is_published && !cycleLocked && (
                         <div className="rounded-md border-2 border-foreground/20 p-3 space-y-2 mt-2">
                           <p className="text-xs font-black uppercase">Editar imagens do rascunho</p>
                           {post.media_urls.length > 0 && (
@@ -804,7 +827,7 @@ const MktCCAdmin = () => {
 
 
 
-                      {post.status === "changes" && (
+                      {post.status === "changes" && !cycleLocked && (
                         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
                           <p className="text-xs font-semibold text-destructive">APLICAR ALTERAÇÃO</p>
                           <Textarea
