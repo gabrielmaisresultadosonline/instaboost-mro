@@ -351,7 +351,7 @@ const MktCC = () => {
   return (
     <main className="mktcc min-h-screen bg-background text-foreground">
       <div className="h-2 mktcc-gradient" />
-      <header className="border-b-[3px] border-foreground bg-card">
+      <header className="border-b-[3px] border-foreground bg-card" data-tour="header">
         <div className="max-w-5xl mx-auto px-4 py-6 flex items-center gap-4">
           <div className="mktcc-ring shrink-0">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-background">
@@ -363,7 +363,16 @@ const MktCC = () => {
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
+              <Button
+                size="sm"
+                onClick={() => { setTab("feed"); setTourIndex(0); }}
+                className="rounded-xl border-2 border-foreground font-black uppercase text-xs animate-pulse"
+              >
+                <GraduationCap className="w-4 h-4 mr-1.5" /> Tutorial
+              </Button>
+            </div>
             <p className="text-sm font-semibold text-muted-foreground truncate">
               {project.instagram_handle ? `@${project.instagram_handle.replace("@", "")}` : "Prévia da rede social"}
             </p>
@@ -384,9 +393,17 @@ const MktCC = () => {
         </div>
       </header>
 
+      <MktCCTutorial
+        steps={tourSteps}
+        index={tourIndex}
+        onIndexChange={setTourIndex}
+        onClose={() => setTourIndex(null)}
+        onRequestTab={requestTab}
+      />
+
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <Tabs defaultValue="feed">
-          <TabsList className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
             {[
               { v: "feed", l: "Feed" },
               { v: "estrategia", l: "Estratégia" },
