@@ -3861,10 +3861,12 @@ export type Database = {
       }
       mktcc_posts: {
         Row: {
+          aspect_ratio: string
           caption: string
           client_note: string
           created_at: string
           id: string
+          is_published: boolean
           media_urls: Json
           order_index: number
           post_type: string
@@ -3879,10 +3881,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aspect_ratio?: string
           caption?: string
           client_note?: string
           created_at?: string
           id?: string
+          is_published?: boolean
           media_urls?: Json
           order_index?: number
           post_type?: string
@@ -3897,10 +3901,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aspect_ratio?: string
           caption?: string
           client_note?: string
           created_at?: string
           id?: string
+          is_published?: boolean
           media_urls?: Json
           order_index?: number
           post_type?: string
@@ -3929,6 +3935,9 @@ export type Database = {
           access_code: string
           all_approved_at: string | null
           avatar_url: string
+          before_facebook_urls: string[]
+          before_instagram_urls: string[]
+          before_note: string
           company_name: string
           created_at: string
           id: string
@@ -3945,6 +3954,9 @@ export type Database = {
           access_code: string
           all_approved_at?: string | null
           avatar_url?: string
+          before_facebook_urls?: string[]
+          before_instagram_urls?: string[]
+          before_note?: string
           company_name: string
           created_at?: string
           id?: string
@@ -3961,6 +3973,9 @@ export type Database = {
           access_code?: string
           all_approved_at?: string | null
           avatar_url?: string
+          before_facebook_urls?: string[]
+          before_instagram_urls?: string[]
+          before_note?: string
           company_name?: string
           created_at?: string
           id?: string
