@@ -63,11 +63,24 @@ serve(async (req) => {
     // ================= LOGIN =================
     if (action === "login") {
       const identifier = String(body.identifier || body.username || body.email || "").trim().toLowerCase();
-      const password = String(body.password || "");
+      const rawPassword = String(body.password || "");
+      const password = rawPassword.trim();
       if (!identifier || !password) return json({ success: false, error: "Informe usuário/e-mail e senha" }, 400);
       if (identifier.length > 255 || password.length > 255) return json({ success: false, error: "Credenciais inválidas" }, 400);
 
       const hash = await sha256(password);
+      const rawHash = await sha256(rawPassword);
+      // Compara senha ignorando espaços acidentais no cadastro/digitação.
+      const passwordMatches = (row: Record<string, unknown> | null) => {
+        if (!row) return false;
+        const storedHash = row.password_hash ? String(row.password_hash) : "";
+        const storedPlain = row.password_plain ? String(row.password_plain) : "";
+        return (
+          (!!storedHash && (storedHash === hash || storedHash === rawHash)) ||
+          (!!storedPlain && (storedPlain === rawPassword || storedPlain.trim() === password))
+        );
+      };
+
       const safe = identifier.replace(/[,()"']/g, "");
 
       let username: string | null = null;
@@ -82,7 +95,7 @@ serve(async (req) => {
         .or(`username.eq.${safe},email.eq.${safe}`)
         .limit(1);
       const mro = mroRows?.[0] || null;
-      if (mro && (mro.password_hash === hash || (mro.password_plain && mro.password_plain === password))) {
+      if (passwordMatches(mro)) {
         matched = true;
         username = mro.username;
         email = mro.email;
@@ -97,7 +110,7 @@ serve(async (req) => {
           .or(`username.eq.${safe},email.eq.${safe}`)
           .limit(1);
         const zap = zapRows?.[0] || null;
-        if (zap && (zap.password_hash === hash || (zap.password_plain && zap.password_plain === password))) {
+        if (passwordMatches(zap)) {
           matched = true;
           username = zap.username;
           email = zap.email;
@@ -775,8 +788,10 @@ serve(async (req) => {
      * Localiza todas as contas de ferramenta (MRO/ZAPMRO) do cliente a partir do
      * usuário e/ou e-mail informados, validando a senha antes de expor qualquer dado.
      */
-    const findAccounts = async (username: string, email: string, password: string) => {
+    const findAccounts = async (username: string, email: string, rawPassword: string) => {
+      const password = rawPassword.trim();
       const hash = await sha256(password);
+      const rawHash = await sha256(rawPassword);
       const safeUser = username.replace(/[,()"']/g, "");
       const safeEmail = email.replace(/[,()"']/g, "");
       const filters: string[] = [];
@@ -784,8 +799,15 @@ serve(async (req) => {
       if (safeEmail) filters.push(`email.eq.${safeEmail}`);
       if (!filters.length) return { mro: null, zap: null } as Record<string, Record<string, unknown> | null>;
 
-      const ok = (row: Record<string, unknown> | null) =>
-        !!row && (row.password_hash === hash || (!!row.password_plain && row.password_plain === password));
+      const ok = (row: Record<string, unknown> | null) => {
+        if (!row) return false;
+        const storedHash = row.password_hash ? String(row.password_hash) : "";
+        const storedPlain = row.password_plain ? String(row.password_plain) : "";
+        return (
+          (!!storedHash && (storedHash === hash || storedHash === rawHash)) ||
+          (!!storedPlain && (storedPlain === rawPassword || storedPlain.trim() === password))
+        );
+      };
 
       const { data: mroRows } = await supabase.from("mro_tool_users").select("*").or(filters.join(",")).limit(5);
       const { data: zapRows } = await supabase.from("zapmro_users").select("*").or(filters.join(",")).limit(5);
