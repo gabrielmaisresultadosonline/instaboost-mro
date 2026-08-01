@@ -3869,6 +3869,9 @@ export type Database = {
           project_id: string
           scheduled_date: string | null
           status: string
+          strategy_text: string
+          strategy_title: string
+          summary_text: string
           title: string
           updated_at: string
         }
@@ -3881,6 +3884,9 @@ export type Database = {
           project_id: string
           scheduled_date?: string | null
           status?: string
+          strategy_text?: string
+          strategy_title?: string
+          summary_text?: string
           title?: string
           updated_at?: string
         }
@@ -3893,6 +3899,9 @@ export type Database = {
           project_id?: string
           scheduled_date?: string | null
           status?: string
+          strategy_text?: string
+          strategy_title?: string
+          summary_text?: string
           title?: string
           updated_at?: string
         }

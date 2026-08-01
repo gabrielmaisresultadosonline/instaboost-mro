@@ -45,6 +45,7 @@ interface Post {
 interface Cycle {
   id: string; title: string; scheduled_date: string | null; note: string;
   status: "open" | "done"; completed_at: string | null; order_index: number; is_done: boolean;
+  strategy_title: string; strategy_text: string; summary_text: string;
 }
 
 interface RevisionDraft { note: string; media: string[] }
@@ -78,7 +79,7 @@ const MktCCAdmin = () => {
   const beforeRef = useRef<HTMLInputElement>(null);
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
-  const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "" });
+  const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "" });
   const [tab, setTab] = useState("posts");
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
@@ -537,7 +538,7 @@ const MktCCAdmin = () => {
     if (!newCycle.title.trim()) return toast.error("Informe o mês / título da programação");
     try {
       const data = await call("create_cycle", { project_id: selected.id, ...newCycle });
-      setNewCycle({ title: "", scheduled_date: "", note: "" });
+      setNewCycle({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "" });
       await loadCycles(selected.id);
       setActiveCycleId(data.cycle.id);
       toast.success("Programação criada!");
@@ -1030,6 +1031,23 @@ const MktCCAdmin = () => {
                   <Textarea rows={3} value={newCycle.note}
                     onChange={(e) => setNewCycle({ ...newCycle, note: e.target.value })} />
                 </div>
+                <div className="space-y-2">
+                  <Label>Título da estratégia desta programação</Label>
+                  <Input value={newCycle.strategy_title} placeholder="Ex: Estratégia de autoridade local"
+                    onChange={(e) => setNewCycle({ ...newCycle, strategy_title: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Estratégia desta programação (o cliente vê)</Label>
+                  <Textarea rows={6} value={newCycle.strategy_text}
+                    placeholder="O que será feito neste mês, pilares de conteúdo, frequência..."
+                    onChange={(e) => setNewCycle({ ...newCycle, strategy_text: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Resumo / próximos passos desta programação</Label>
+                  <Textarea rows={4} value={newCycle.summary_text}
+                    onChange={(e) => setNewCycle({ ...newCycle, summary_text: e.target.value })} />
+                </div>
+
                 <Button onClick={createCycle} className="font-black uppercase mktcc-pop-sm">
                   <Plus className="w-4 h-4 mr-2" /> Criar programação
                 </Button>
@@ -1065,6 +1083,22 @@ const MktCCAdmin = () => {
                       <Textarea rows={3} defaultValue={cycle.note || ""}
                         onBlur={(e) => e.target.value !== (cycle.note || "") && patchCycle(cycle, { note: e.target.value })} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Título da estratégia desta programação</Label>
+                      <Input defaultValue={cycle.strategy_title || ""}
+                        onBlur={(e) => e.target.value !== (cycle.strategy_title || "") && patchCycle(cycle, { strategy_title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Estratégia desta programação</Label>
+                      <Textarea rows={6} defaultValue={cycle.strategy_text || ""}
+                        onBlur={(e) => e.target.value !== (cycle.strategy_text || "") && patchCycle(cycle, { strategy_text: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Resumo / próximos passos desta programação</Label>
+                      <Textarea rows={4} defaultValue={cycle.summary_text || ""}
+                        onBlur={(e) => e.target.value !== (cycle.summary_text || "") && patchCycle(cycle, { summary_text: e.target.value })} />
+                    </div>
+
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => { setActiveCycleId(cycle.id); setTab("posts"); }}>
                         <Images className="w-4 h-4 mr-2" /> Ver publicações

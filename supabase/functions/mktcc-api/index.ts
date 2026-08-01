@@ -37,6 +37,9 @@ function publicCycle(cycle: any) {
     status: cycle.status,
     completed_at: cycle.completed_at,
     order_index: cycle.order_index,
+    strategy_title: cycle.strategy_title ?? "",
+    strategy_text: cycle.strategy_text ?? "",
+    summary_text: cycle.summary_text ?? "",
     is_done: cycleIsDone(cycle),
   };
 }
@@ -228,6 +231,9 @@ serve(async (req) => {
         title: String(body.title || "").slice(0, 200) || "Nova programação",
         scheduled_date: body.scheduled_date || null,
         note: String(body.note || "").slice(0, 4000),
+        strategy_title: String(body.strategy_title || "").slice(0, 300),
+        strategy_text: String(body.strategy_text || "").slice(0, 20000),
+        summary_text: String(body.summary_text || "").slice(0, 20000),
         order_index: (last?.order_index ?? -1) + 1,
       }).select("*").single();
       if (error) return json({ success: false, error: error.message }, 400);
@@ -236,7 +242,7 @@ serve(async (req) => {
 
     if (action === "update_cycle") {
       const patch: Record<string, any> = {};
-      for (const key of ["title", "scheduled_date", "note", "order_index"]) {
+      for (const key of ["title", "scheduled_date", "note", "order_index", "strategy_title", "strategy_text", "summary_text"]) {
         if (key in body) patch[key] = key === "scheduled_date" ? (body[key] || null) : body[key];
       }
       if ("status" in body) {

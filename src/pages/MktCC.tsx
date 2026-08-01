@@ -44,6 +44,9 @@ interface MktccCycle {
   completed_at: string | null;
   order_index: number;
   is_done: boolean;
+  strategy_title?: string;
+  strategy_text?: string;
+  summary_text?: string;
 }
 
 interface MktccProject {
@@ -829,7 +832,31 @@ const MktCC = () => {
 
 
 
-          <TabsContent value="estrategia" className="mt-6" data-tour="estrategia">
+          <TabsContent value="estrategia" className="mt-6 space-y-4" data-tour="estrategia">
+            {activeCycle?.strategy_text?.trim() && (
+              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+                <div className="h-2 bg-primary" />
+                <CardHeader>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-primary text-primary-foreground font-black uppercase">{activeCycle.title}</Badge>
+                    {activeCycle.is_done && (
+                      <Badge className="bg-secondary text-secondary-foreground font-black uppercase">Já processada</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                    <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                      <FileText className="w-5 h-5 text-primary-foreground" />
+                    </span>
+                    {activeCycle.strategy_title || "Estratégia desta programação"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
+                    {activeCycle.strategy_text}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 mktcc-gradient" />
               <CardHeader>
@@ -848,7 +875,22 @@ const MktCC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="resumo" className="mt-6" data-tour="resumo">
+          <TabsContent value="resumo" className="mt-6 space-y-4" data-tour="resumo">
+            {activeCycle?.summary_text?.trim() && (
+              <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
+                <div className="h-2 mktcc-gradient" />
+                <CardHeader>
+                  <CardTitle className="text-xl font-black uppercase tracking-tight">
+                    Resumo · {activeCycle.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
+                    {activeCycle.summary_text}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             <Card className="mktcc-pop rounded-2xl overflow-hidden mktcc-rise">
               <div className="h-2 bg-primary" />
               <CardHeader>
@@ -861,6 +903,7 @@ const MktCC = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
 
           <TabsContent value="proximos" className="mt-6" data-tour="proximos">
             {!allApproved && !project.next_step_released ? (
