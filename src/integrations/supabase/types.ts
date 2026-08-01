@@ -3927,6 +3927,7 @@ export type Database = {
           media_urls: Json
           order_index: number
           post_type: string
+          poster_url: string
           previous_caption: string
           previous_media_urls: Json
           project_id: string
@@ -3948,6 +3949,7 @@ export type Database = {
           media_urls?: Json
           order_index?: number
           post_type?: string
+          poster_url?: string
           previous_caption?: string
           previous_media_urls?: Json
           project_id: string
@@ -3969,6 +3971,7 @@ export type Database = {
           media_urls?: Json
           order_index?: number
           post_type?: string
+          poster_url?: string
           previous_caption?: string
           previous_media_urls?: Json
           project_id?: string
