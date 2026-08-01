@@ -342,6 +342,20 @@ const MktCC = () => {
 
           {activePost && (
             <div className="space-y-4">
+              {activePost.revision_count > 0 && (
+                <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-1">
+                  <p className="text-xs font-semibold text-primary">
+                    VERSÃO ATUALIZADA (alteração nº {activePost.revision_count})
+                  </p>
+                  {activePost.revision_note && (
+                    <p className="text-sm whitespace-pre-wrap">{activePost.revision_note}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    A versão anterior aparece abaixo em cinza, só para comparação.
+                  </p>
+                </div>
+              )}
+
               <div className="relative bg-muted rounded-md overflow-hidden">
                 {activePost.post_type === "video" ? (
                   <video src={activePost.media_urls[0]} controls className="w-full max-h-[50vh]" />
@@ -374,9 +388,39 @@ const MktCC = () => {
               </div>
 
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1">LEGENDA</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-1">
+                  {activePost.revision_count > 0 ? "LEGENDA ATUALIZADA" : "LEGENDA"}
+                </p>
                 <p className="whitespace-pre-wrap text-sm">{activePost.caption || "Sem legenda."}</p>
               </div>
+
+              {activePost.revision_count > 0 &&
+                (activePost.previous_media_urls.length > 0 || activePost.previous_caption) && (
+                <div className="rounded-md border border-border p-3 space-y-2 opacity-60">
+                  <div className="flex items-center gap-2">
+                    <History className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-xs font-semibold text-muted-foreground">VERSÃO ANTERIOR (substituída)</p>
+                  </div>
+                  {activePost.previous_media_urls.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {activePost.previous_media_urls.map((url, i) => (
+                        <div key={url} className="w-20 h-20 rounded overflow-hidden bg-muted grayscale">
+                          {/\.(mp4|webm|mov)(\?|$)/i.test(url) ? (
+                            <video src={url} className="w-full h-full object-cover" muted />
+                          ) : (
+                            <img src={url} alt={`Versão anterior ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {activePost.previous_caption && (
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground line-through decoration-muted-foreground/50">
+                      {activePost.previous_caption}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground">OBSERVAÇÃO / ALTERAÇÃO</p>
