@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import {
   Loader2, Lock, CheckCircle2, MessageSquareWarning, Play, Images,
   ChevronLeft, ChevronRight, Instagram, ListChecks, FileText, Rocket,
+  History as HistoryIcon,
 } from "lucide-react";
 
 interface MktccPost {
