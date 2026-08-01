@@ -55,6 +55,8 @@ const MktCCAdmin = () => {
   const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string }>({
     post_type: "image", media_urls: [], caption: "",
   });
+  const [revisions, setRevisions] = useState<Record<string, RevisionDraft>>({});
+  const [revisingId, setRevisingId] = useState<string | null>(null);
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
