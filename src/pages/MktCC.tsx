@@ -44,9 +44,10 @@ interface MktccProject {
 const STORAGE_KEY = "mktcc_access_code";
 
 const statusBadge = (status: MktccPost["status"]) => {
-  if (status === "approved") return <Badge className="bg-primary text-primary-foreground">Aprovado</Badge>;
-  if (status === "changes") return <Badge variant="destructive">Ajustar</Badge>;
-  return <Badge variant="secondary">Pendente</Badge>;
+  const base = "rounded-full font-black uppercase border-2 border-foreground";
+  if (status === "approved") return <Badge className={`${base} bg-primary text-primary-foreground`}>Aprovado</Badge>;
+  if (status === "changes") return <Badge className={`${base} bg-destructive text-destructive-foreground`}>Ajustar</Badge>;
+  return <Badge className={`${base} bg-card text-foreground`}>Pendente</Badge>;
 };
 
 const MktCC = () => {
