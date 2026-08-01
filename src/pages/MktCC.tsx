@@ -98,6 +98,8 @@ const MktCC = () => {
   const [saving, setSaving] = useState(false);
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
+  const [cycleOpen, setCycleOpen] = useState(false);
+
   const [mediaPopup, setMediaPopup] = useState<{ url: string; type: "image" | "video" } | null>(null);
   const [driveOpen, setDriveOpen] = useState(false);
   const [logoNote, setLogoNote] = useState("");
