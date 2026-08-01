@@ -14,6 +14,7 @@ import {
   History as HistoryIcon, Facebook, Camera, CalendarDays,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
+import { MediaPopup } from "@/components/MediaPopup";
 
 interface MktccPost {
   id: string;
@@ -80,6 +81,7 @@ const MktCC = () => {
   const [saving, setSaving] = useState(false);
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
+  const [mediaPopup, setMediaPopup] = useState<{ url: string; type: "image" | "video" } | null>(null);
 
   useEffect(() => { document.title = "Aprovação de Conteúdo | Marketing Completo"; }, []);
 
@@ -478,17 +480,16 @@ const MktCC = () => {
                     {group.urls.length === 0 ? (
                       <p className="text-sm font-medium text-muted-foreground">Sem registros ainda.</p>
                     ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {group.urls.map((url, i) => (
-                          <a
+                          <button
                             key={url}
-                            href={url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mktcc-tile block rounded-xl overflow-hidden border-2 border-foreground bg-muted"
+                            type="button"
+                            onClick={() => setMediaPopup({ url, type: "image" })}
+                            className="mktcc-tile block rounded-xl overflow-hidden border-2 border-foreground bg-muted text-left"
                           >
                             <img src={url} alt={`${group.title} antes ${i + 1}`} loading="lazy" className="w-full h-auto" />
-                          </a>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -715,6 +716,14 @@ const MktCC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {mediaPopup && (
+        <MediaPopup
+          url={mediaPopup.url}
+          type={mediaPopup.type}
+          onClose={() => setMediaPopup(null)}
+        />
+      )}
     </main>
   );
 };
