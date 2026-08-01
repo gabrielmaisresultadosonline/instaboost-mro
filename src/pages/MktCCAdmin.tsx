@@ -574,6 +574,20 @@ const MktCCAdmin = () => {
     } catch { toast.error("Erro ao mover publicação"); }
   };
 
+  // Move em massa as publicações antigas (sem programação) para uma programação.
+  const moveOrphansToCycle = async (cycleId: string) => {
+    const orphans = posts.filter((p) => !p.cycle_id);
+    if (orphans.length === 0) { toast.info("Nenhuma publicação fora de programação"); return; }
+    try {
+      for (const post of orphans) {
+        await call("update_post", { post_id: post.id, project_id: post.project_id, cycle_id: cycleId });
+      }
+      setPosts((prev) => prev.map((p) => (p.cycle_id ? p : { ...p, cycle_id: cycleId })));
+      setActiveCycleId(cycleId);
+      toast.success(`${orphans.length} publicação(ões) movida(s)`);
+    } catch { toast.error("Erro ao mover publicações"); }
+  };
+
   if (!loggedIn) {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 mktcc-dots">
@@ -722,6 +736,25 @@ const MktCCAdmin = () => {
                   ) : (
                     <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>
                   )}
+                </CardContent>
+              </Card>
+            )}
+            {cycles.length > 0 && posts.some((p) => !p.cycle_id) && (
+              <Card className="mktcc-pop-sm rounded-2xl border-dashed">
+                <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+                  <p className="text-xs font-black uppercase flex-1">
+                    {posts.filter((p) => !p.cycle_id).length} publicação(ões) antiga(s) fora de programação
+                  </p>
+                  <Select value="" onValueChange={(v) => moveOrphansToCycle(v)}>
+                    <SelectTrigger className="md:w-72">
+                      <SelectValue placeholder="Mover todas para a programação..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cycles.filter((c) => !c.is_done).map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </CardContent>
               </Card>
             )}
@@ -1103,6 +1136,11 @@ const MktCCAdmin = () => {
                       <Button size="sm" variant="outline" onClick={() => { setActiveCycleId(cycle.id); setTab("posts"); }}>
                         <Images className="w-4 h-4 mr-2" /> Ver publicações
                       </Button>
+                      {!cycle.is_done && posts.some((p) => !p.cycle_id) && (
+                        <Button size="sm" variant="outline" onClick={() => moveOrphansToCycle(cycle.id)}>
+                          Trazer {posts.filter((p) => !p.cycle_id).length} antiga(s) p/ cá
+                        </Button>
+                      )}
                       {cycle.status === "done" ? (
                         <Button size="sm" variant="outline" onClick={() => patchCycle(cycle, { status: "open" })}>
                           <Unlock className="w-4 h-4 mr-2" /> Reabrir para edição
