@@ -135,13 +135,16 @@ const MktCC = () => {
 
   if (!project) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-primary" />
+      <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10 mktcc-dots">
+        <Card className="w-full max-w-md mktcc-pop rounded-2xl mktcc-rise">
+          <div className="h-2 mktcc-gradient rounded-t-xl" />
+          <CardHeader className="text-center space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-full bg-primary flex items-center justify-center border-2 border-foreground mktcc-pulse">
+              <Lock className="w-6 h-6 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl">Área de Aprovação</CardTitle>
+            <CardTitle className="text-3xl font-black uppercase tracking-tight">
+              Área de <span className="mktcc-gradient-text">Aprovação</span>
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
               Digite o código de acesso enviado pela nossa equipe para ver a estratégia e aprovar os conteúdos.
             </p>
@@ -155,10 +158,14 @@ const MktCC = () => {
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="CÓDIGO DE ACESSO"
-                className="text-center tracking-[0.3em] uppercase"
+                className="text-center tracking-[0.3em] uppercase font-bold border-2 border-foreground h-12 rounded-xl"
                 maxLength={20}
               />
-              <Button type="submit" className="w-full" disabled={loading || code.trim().length < 4}>
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-black uppercase mktcc-pop-sm rounded-xl"
+                disabled={loading || code.trim().length < 4}
+              >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Acessar"}
               </Button>
             </form>
