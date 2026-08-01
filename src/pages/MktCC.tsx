@@ -44,6 +44,9 @@ interface MktccCycle {
   completed_at: string | null;
   order_index: number;
   is_done: boolean;
+  strategy_title?: string;
+  strategy_text?: string;
+  summary_text?: string;
 }
 
 interface MktccProject {
