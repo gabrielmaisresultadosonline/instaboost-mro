@@ -145,6 +145,30 @@ serve(async (req) => {
       return json({ success: true, all_approved: allApproved });
     }
 
+    // Aprovação da nova logo (etapa opcional, só existe se o admin ativar).
+    if (action === "client_logo_review") {
+      const code = String(body.code || "").trim().toUpperCase();
+      const status = String(body.status || "");
+      const note = String(body.client_note || "").slice(0, 4000);
+      if (!["approved", "changes", "pending"].includes(status)) {
+        return json({ success: false, error: "status inválido" }, 400);
+      }
+
+      const { data: project } = await supabase
+        .from("mktcc_projects").select("id,logo_enabled")
+        .eq("access_code", code).eq("is_active", true).maybeSingle();
+      if (!project) return json({ success: false, error: "Código não encontrado" }, 404);
+      if (!project.logo_enabled) return json({ success: false, error: "Etapa de logo indisponível" }, 400);
+
+      const { error } = await supabase.from("mktcc_projects").update({
+        logo_status: status,
+        logo_client_note: note,
+        logo_reviewed_at: status === "pending" ? null : new Date().toISOString(),
+      }).eq("id", project.id);
+      if (error) return json({ success: false, error: error.message }, 400);
+      return json({ success: true });
+    }
+
     /* ---------------- ADMIN ---------------- */
 
     if (body.email !== ADMIN_EMAIL || body.password !== ADMIN_PASSWORD) {
