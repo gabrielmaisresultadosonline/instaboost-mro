@@ -69,7 +69,14 @@ const MktCC = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Código inválido");
       setProject(data.project);
-      setPosts((data.posts || []).map((p: MktccPost) => ({ ...p, media_urls: p.media_urls || [] })));
+      setPosts((data.posts || []).map((p: MktccPost) => ({
+        ...p,
+        media_urls: p.media_urls || [],
+        previous_media_urls: p.previous_media_urls || [],
+        previous_caption: p.previous_caption || "",
+        revision_note: p.revision_note || "",
+        revision_count: p.revision_count || 0,
+      })));
       localStorage.setItem(STORAGE_KEY, accessCode);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao carregar";
