@@ -4001,6 +4001,13 @@ export type Database = {
           instagram_bio: string
           instagram_handle: string
           is_active: boolean
+          logo_after_url: string
+          logo_before_url: string
+          logo_client_note: string
+          logo_enabled: boolean
+          logo_reason: string
+          logo_reviewed_at: string | null
+          logo_status: string
           next_step_released: boolean
           next_steps_text: string
           strategy_text: string
@@ -4021,6 +4028,13 @@ export type Database = {
           instagram_bio?: string
           instagram_handle?: string
           is_active?: boolean
+          logo_after_url?: string
+          logo_before_url?: string
+          logo_client_note?: string
+          logo_enabled?: boolean
+          logo_reason?: string
+          logo_reviewed_at?: string | null
+          logo_status?: string
           next_step_released?: boolean
           next_steps_text?: string
           strategy_text?: string
@@ -4041,6 +4055,13 @@ export type Database = {
           instagram_bio?: string
           instagram_handle?: string
           is_active?: boolean
+          logo_after_url?: string
+          logo_before_url?: string
+          logo_client_note?: string
+          logo_enabled?: boolean
+          logo_reason?: string
+          logo_reviewed_at?: string | null
+          logo_status?: string
           next_step_released?: boolean
           next_steps_text?: string
           strategy_text?: string
