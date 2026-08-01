@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
   CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
-  Instagram, Facebook, X,
+  Instagram, Facebook, X, CalendarDays, Lock, Unlock,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
@@ -28,12 +28,17 @@ interface Project {
 interface Post {
   id: string; project_id: string;
   post_type: "image" | "video" | "carousel";
-  media_urls: string[]; caption: string; order_index: number;
+  media_urls: string[]; caption: string; order_index: number; cycle_id: string | null;
   status: "pending" | "approved" | "changes"; client_note: string;
   reviewed_at: string | null;
   previous_media_urls: string[]; previous_caption: string;
   revision_note: string; revision_count: number; revised_at: string | null;
   is_published: boolean; aspect_ratio: string;
+}
+
+interface Cycle {
+  id: string; title: string; scheduled_date: string | null; note: string;
+  status: "open" | "done"; completed_at: string | null; order_index: number; is_done: boolean;
 }
 
 interface RevisionDraft { note: string; media: string[] }
@@ -65,6 +70,9 @@ const MktCCAdmin = () => {
   const [autoSaving, setAutoSaving] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<string>("");
   const beforeRef = useRef<HTMLInputElement>(null);
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string>("none");
+  const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "" });
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -93,7 +101,14 @@ const MktCCAdmin = () => {
       revision_count: p.revision_count || 0,
       aspect_ratio: p.aspect_ratio || "4/5",
       is_published: p.is_published !== false,
+      cycle_id: p.cycle_id ?? null,
     })));
+  };
+
+  const loadCycles = async (projectId: string) => {
+    const data = await call("list_cycles", { project_id: projectId });
+    setCycles(data.cycles || []);
+    return (data.cycles || []) as Cycle[];
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -111,7 +126,12 @@ const MktCCAdmin = () => {
   const openProject = async (project: Project) => {
     setSelected(project);
     setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
-    try { await loadPosts(project.id); } catch (err) { toast.error("Erro ao carregar posts"); }
+    try {
+      const list = await loadCycles(project.id);
+      const open = list.find((c) => !c.is_done);
+      setActiveCycleId(open?.id || list[list.length - 1]?.id || "none");
+      await loadPosts(project.id);
+    } catch (err) { toast.error("Erro ao carregar dados do projeto"); }
   };
 
   const saveProject = async () => {
@@ -182,7 +202,10 @@ const MktCCAdmin = () => {
     if (!selected) return;
     if (draft.media_urls.length === 0) return toast.error("Envie pelo menos um arquivo");
     try {
-      await call("create_post", { project_id: selected.id, ...draft });
+      await call("create_post", {
+        project_id: selected.id, ...draft,
+        cycle_id: activeCycleId === "none" ? null : activeCycleId,
+      });
       setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
       await loadPosts(selected.id);
       toast.success("Publicação criada!");
@@ -393,6 +416,47 @@ const MktCCAdmin = () => {
       setSelected({ ...selected, next_step_released: released });
       toast.success(released ? "Próximo passo liberado para o cliente" : "Próximo passo bloqueado");
     } catch (err) { toast.error("Erro ao atualizar"); }
+  };
+
+  const createCycle = async () => {
+    if (!selected) return;
+    if (!newCycle.title.trim()) return toast.error("Informe o mês / título da programação");
+    try {
+      const data = await call("create_cycle", { project_id: selected.id, ...newCycle });
+      setNewCycle({ title: "", scheduled_date: "", note: "" });
+      await loadCycles(selected.id);
+      setActiveCycleId(data.cycle.id);
+      toast.success("Programação criada!");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Erro ao criar programação"); }
+  };
+
+  const patchCycle = async (cycle: Cycle, patch: Record<string, unknown>) => {
+    if (!selected) return;
+    try {
+      await call("update_cycle", { cycle_id: cycle.id, ...patch });
+      await loadCycles(selected.id);
+      toast.success("Programação atualizada!");
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Erro ao atualizar"); }
+  };
+
+  const removeCycle = async (cycle: Cycle) => {
+    if (!selected) return;
+    if (!window.confirm("Excluir esta programação? As publicações ficam sem programação.")) return;
+    try {
+      await call("delete_cycle", { cycle_id: cycle.id });
+      await loadCycles(selected.id);
+      if (activeCycleId === cycle.id) setActiveCycleId("none");
+      await loadPosts(selected.id);
+      toast.success("Programação excluída");
+    } catch { toast.error("Erro ao excluir"); }
+  };
+
+  const assignPostCycle = async (post: Post, cycleId: string) => {
+    try {
+      await call("update_post", { post_id: post.id, project_id: post.project_id, cycle_id: cycleId === "none" ? null : cycleId });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, cycle_id: cycleId === "none" ? null : cycleId } : p)));
+      toast.success("Programação da publicação atualizada");
+    } catch { toast.error("Erro ao mover publicação"); }
   };
 
   if (!loggedIn) {
