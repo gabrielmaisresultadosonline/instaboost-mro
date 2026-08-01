@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
   CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
-  Instagram, Facebook, X, CalendarDays, Lock, Unlock,
+  Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 
@@ -73,6 +73,7 @@ const MktCCAdmin = () => {
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
   const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "" });
+  const [tab, setTab] = useState("posts");
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -560,7 +561,7 @@ const MktCCAdmin = () => {
           <Badge variant="secondary" className="font-mono">{selected.access_code}</Badge>
         </div>
 
-        <Tabs defaultValue="posts">
+        <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="w-full grid grid-cols-2 md:grid-cols-6 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
               { v: "posts", l: "Publicações" },
