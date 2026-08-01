@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Grid3X3, Heart, Images, Instagram, MessageCircle, Play, Send, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,8 @@ interface PhoneInstagramPreviewProps {
   avatarUrl?: string;
   posts: PhonePreviewPost[];
   onSelect?: (postId: string) => void;
+  /** Quando informado, as miniaturas podem ser arrastadas para mudar a ordem. */
+  onReorder?: (orderedIds: string[]) => void;
   className?: string;
 }
 
@@ -30,9 +33,28 @@ export const PhoneInstagramPreview = ({
   avatarUrl,
   posts,
   onSelect,
+  onReorder,
   className,
 }: PhoneInstagramPreviewProps) => {
   const handle = (instagramHandle || companyName || "perfil").replace("@", "").toLowerCase();
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  // Reordena a lista localmente e devolve a nova ordem de ids para persistência.
+  const commitDrop = (target: number) => {
+    if (dragIndex === null || dragIndex === target) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    const next = [...posts];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(target, 0, moved);
+    setDragIndex(null);
+    setOverIndex(null);
+    onReorder?.(next.map((p) => p.id));
+  };
+
 
   return (
     <div className={cn("mx-auto w-full max-w-[320px]", className)}>
