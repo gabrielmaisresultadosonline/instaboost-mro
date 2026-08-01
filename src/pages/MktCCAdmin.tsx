@@ -171,7 +171,29 @@ const MktCCAdmin = () => {
     } catch (err) { toast.error("Erro ao excluir"); }
   };
 
+  // Sobe a logo/foto de perfil (arquivo ou colada com Ctrl + V) e salva no projeto.
+  const uploadAvatar = async (file: File) => {
+    if (!selected) return;
+    if (file.size > 10 * 1024 * 1024) return toast.error("Imagem maior que 10MB");
+    setUploading(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const data = await call("upload_media", {
+        project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+      });
+      setSelected({ ...selected, avatar_url: data.url });
+      await call("update_project", { project_id: selected.id, avatar_url: data.url });
+      await loadProjects();
+      toast.success("Logo atualizada!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const uploadFiles = async (files: FileList) => {
+
     if (!selected) return;
     setUploading(true);
     try {
