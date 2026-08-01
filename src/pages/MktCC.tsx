@@ -176,25 +176,36 @@ const MktCC = () => {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
+    <main className="mktcc min-h-screen bg-background text-foreground">
+      <div className="h-2 mktcc-gradient" />
+      <header className="border-b-[3px] border-foreground bg-card">
         <div className="max-w-5xl mx-auto px-4 py-6 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
-            {project.avatar_url ? (
-              <img src={project.avatar_url} alt={`Perfil de ${project.company_name}`} className="w-full h-full object-cover" />
-            ) : (
-              <Instagram className="w-7 h-7 text-muted-foreground" />
-            )}
+          <div className="mktcc-ring shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-background">
+              {project.avatar_url ? (
+                <img src={project.avatar_url} alt={`Perfil de ${project.company_name}`} className="w-full h-full object-cover" />
+              ) : (
+                <Instagram className="w-7 h-7 text-muted-foreground" />
+              )}
+            </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold truncate">{project.company_name}</h1>
-            <p className="text-sm text-muted-foreground truncate">
+            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
+            <p className="text-sm font-semibold text-muted-foreground truncate">
               {project.instagram_handle ? `@${project.instagram_handle.replace("@", "")}` : "Prévia da rede social"}
             </p>
             <div className="flex gap-2 mt-2 flex-wrap">
-              <Badge variant="secondary">{progress.total} publicações</Badge>
-              <Badge className="bg-primary text-primary-foreground">{progress.approved} aprovadas</Badge>
-              {progress.changes > 0 && <Badge variant="destructive">{progress.changes} para ajustar</Badge>}
+              <Badge className="mktcc-pop-sm rounded-full bg-secondary text-secondary-foreground font-bold uppercase">
+                {progress.total} publicações
+              </Badge>
+              <Badge className="mktcc-pop-sm rounded-full bg-primary text-primary-foreground font-bold uppercase">
+                {progress.approved} aprovadas
+              </Badge>
+              {progress.changes > 0 && (
+                <Badge className="mktcc-pop-sm rounded-full bg-destructive text-destructive-foreground font-bold uppercase">
+                  {progress.changes} para ajustar
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -202,11 +213,21 @@ const MktCC = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Tabs defaultValue="feed">
-          <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="feed">Feed</TabsTrigger>
-            <TabsTrigger value="estrategia">Estratégia</TabsTrigger>
-            <TabsTrigger value="resumo">Resumo</TabsTrigger>
-            <TabsTrigger value="proximos">Próximos passos</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+            {[
+              { v: "feed", l: "Feed" },
+              { v: "estrategia", l: "Estratégia" },
+              { v: "resumo", l: "Resumo" },
+              { v: "proximos", l: "Próximos passos" },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.v}
+                value={t.v}
+                className="rounded-xl font-bold uppercase text-xs md:text-sm text-secondary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t.l}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="feed" className="mt-6">
