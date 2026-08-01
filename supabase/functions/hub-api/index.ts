@@ -95,7 +95,7 @@ serve(async (req) => {
         .or(`username.eq.${safe},email.eq.${safe}`)
         .limit(1);
       const mro = mroRows?.[0] || null;
-      if (mro && (mro.password_hash === hash || (mro.password_plain && mro.password_plain === password))) {
+      if (passwordMatches(mro)) {
         matched = true;
         username = mro.username;
         email = mro.email;
