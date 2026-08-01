@@ -58,6 +58,12 @@ interface MktccProject {
   before_instagram_urls: string[];
   before_facebook_urls: string[];
   before_note: string;
+  logo_enabled: boolean;
+  logo_before_url: string;
+  logo_after_url: string;
+  logo_reason: string;
+  logo_status: "pending" | "approved" | "changes";
+  logo_client_note: string;
 }
 
 
