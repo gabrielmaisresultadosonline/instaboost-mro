@@ -15,6 +15,7 @@ import {
   Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
+import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
 
 interface Project {
   id: string; company_name: string; access_code: string;
@@ -22,6 +23,7 @@ interface Project {
   next_steps_text: string; instagram_handle: string; instagram_bio: string; avatar_url: string;
   is_active: boolean; created_at: string;
   before_instagram_urls: string[]; before_facebook_urls: string[]; before_note: string;
+  before_profile_full_url: string;
   all_approved_at: string | null; next_step_released: boolean;
   logo_enabled: boolean; logo_before_url: string; logo_after_url: string;
   logo_reason: string; logo_status: "pending" | "approved" | "changes";
@@ -215,6 +217,41 @@ const MktCCAdmin = () => {
       toast.error(err instanceof Error ? err.message : "Erro no upload");
     } finally {
       setUploading(false);
+    }
+  };
+
+  /**
+   * Sobe o print vertical do perfil completo (antes) usado na comparação
+   * antes/depois. Aceita arquivo ou imagem colada com Ctrl + V.
+   */
+  const uploadProfileFullShot = async (file: File) => {
+    if (!selected) return;
+    if (file.size > 15 * 1024 * 1024) return toast.error("Imagem maior que 15MB");
+    setUploading(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const data = await call("upload_media", {
+        project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+      });
+      setSelected({ ...selected, before_profile_full_url: data.url });
+      await call("update_project", { project_id: selected.id, before_profile_full_url: data.url });
+      toast.success("Print do perfil completo salvo!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  /** Remove o print do perfil completo. */
+  const removeProfileFullShot = async () => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, before_profile_full_url: "" });
+      setSelected({ ...selected, before_profile_full_url: "" });
+      toast.success("Print removido");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao remover");
     }
   };
 
@@ -1068,6 +1105,48 @@ const MktCCAdmin = () => {
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div
+                  className="space-y-3 rounded-xl border-2 border-foreground p-3"
+                  onPaste={(e) => {
+                    const item = Array.from(e.clipboardData?.items || [])
+                      .find((it) => it.kind === "file" && it.type.startsWith("image/"));
+                    const file = item?.getAsFile();
+                    if (!file) return;
+                    e.preventDefault();
+                    uploadProfileFullShot(new File([file], file.name || `perfil-antes-${Date.now()}.png`, { type: file.type || "image/png" }));
+                  }}
+                >
+                  <p className="text-sm font-black uppercase">Perfil completo (print vertical) — antes x depois</p>
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    Suba o print vertical do perfil inteiro mostrando os posts antigos. A prévia do lado mostra como vai ficar com as publicações atuais.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input type="file" accept="image/*" disabled={uploading} className="max-w-xs"
+                      onChange={(e) => e.target.files?.[0] && uploadProfileFullShot(e.target.files[0])} />
+                    {selected.before_profile_full_url && (
+                      <Button size="sm" variant="destructive" onClick={removeProfileFullShot}>
+                        <X className="w-4 h-4 mr-2" /> Remover print
+                      </Button>
+                    )}
+                  </div>
+                  <div
+                    tabIndex={0}
+                    role="button"
+                    aria-label="Colar print do perfil completo com Ctrl + V"
+                    className="rounded-lg border-2 border-dashed border-foreground/40 p-3 text-center text-xs font-bold uppercase text-muted-foreground cursor-text outline-none focus:border-primary focus:text-foreground"
+                  >
+                    {uploading ? "Enviando..." : "Clique aqui e cole com Ctrl + V"}
+                  </div>
+                  <ProfileBeforeAfter
+                    beforeUrl={selected.before_profile_full_url}
+                    companyName={selected.company_name}
+                    instagramHandle={selected.instagram_handle}
+                    avatarUrl={selected.avatar_url}
+                    bio={selected.instagram_bio}
+                    posts={visiblePosts.filter((p) => p.is_published)}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label>Observação do histórico (o cliente vê)</Label>
                   <Textarea rows={4} value={selected.before_note || ""}

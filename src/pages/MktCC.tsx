@@ -15,6 +15,7 @@ import {
   History as HistoryIcon, Facebook, Camera, CalendarDays, GraduationCap,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
+import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
 import { MediaPopup } from "@/components/MediaPopup";
 
 interface MktccPost {
@@ -59,6 +60,7 @@ interface MktccProject {
   before_instagram_urls: string[];
   before_facebook_urls: string[];
   before_note: string;
+  before_profile_full_url: string;
   logo_enabled: boolean;
   logo_before_url: string;
   logo_after_url: string;
@@ -109,6 +111,7 @@ const MktCC = () => {
         before_instagram_urls: data.project?.before_instagram_urls || [],
         before_facebook_urls: data.project?.before_facebook_urls || [],
         before_note: data.project?.before_note || "",
+        before_profile_full_url: data.project?.before_profile_full_url || "",
         logo_enabled: data.project?.logo_enabled === true,
         logo_before_url: data.project?.logo_before_url || "",
         logo_after_url: data.project?.logo_after_url || "",
@@ -222,7 +225,7 @@ const MktCC = () => {
       {
         selector: '[data-tour="tabs"]',
         title: "As abas",
-        text: "Use estas abas para navegar entre Feed, Estratégia, Resumo, Antes e Próximos passos. Vou te mostrar cada uma agora.",
+        text: "Use estas abas para navegar entre Feed, Estratégia, Resumo, Como iniciamos e Próximos passos. Vou te mostrar cada uma agora.",
       },
       {
         selector: '[data-tour="feed"]',
@@ -262,7 +265,7 @@ const MktCC = () => {
       },
       {
         selector: '[data-tour="antes"]',
-        title: "Antes do perfil",
+        title: "Como iniciamos",
         text: "Os prints de como o perfil estava antes do nosso trabalho. Clique em qualquer imagem para abrir em tela cheia com zoom.",
         tab: "antes",
       },
@@ -408,7 +411,7 @@ const MktCC = () => {
               { v: "feed", l: "Feed" },
               { v: "estrategia", l: "Estratégia" },
               { v: "resumo", l: "Resumo" },
-              { v: "antes", l: "Antes" },
+              { v: "antes", l: "Como iniciamos" },
               ...(project.logo_enabled ? [{ v: "logo", l: "Nova logo" }] : []),
               { v: "proximos", l: "Próximos passos" },
             ].map((t) => (
@@ -605,6 +608,19 @@ const MktCC = () => {
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
+                <ProfileBeforeAfter
+                  beforeUrl={project.before_profile_full_url}
+                  companyName={project.company_name}
+                  instagramHandle={project.instagram_handle}
+                  avatarUrl={project.avatar_url}
+                  bio={project.instagram_bio}
+                  posts={viewPosts}
+                  onOpenBefore={(url) => setMediaPopup({ url, type: "image" })}
+                  onSelectPost={(id) => {
+                    const found = viewPosts.find((p) => p.id === id);
+                    if (found) openPost(found);
+                  }}
+                />
                 {project.before_note && (
                   <p className="whitespace-pre-wrap text-sm md:text-base font-medium leading-relaxed text-foreground/80">
                     {project.before_note}
