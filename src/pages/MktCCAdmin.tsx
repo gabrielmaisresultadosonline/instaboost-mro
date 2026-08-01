@@ -8,11 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
   CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
-  Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images,
+  Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images, ChevronDown,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
