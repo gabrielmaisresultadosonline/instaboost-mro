@@ -3995,6 +3995,7 @@ export type Database = {
           before_facebook_urls: string[]
           before_instagram_urls: string[]
           before_note: string
+          before_profile_full_url: string
           company_name: string
           created_at: string
           id: string
@@ -4022,6 +4023,7 @@ export type Database = {
           before_facebook_urls?: string[]
           before_instagram_urls?: string[]
           before_note?: string
+          before_profile_full_url?: string
           company_name: string
           created_at?: string
           id?: string
@@ -4049,6 +4051,7 @@ export type Database = {
           before_facebook_urls?: string[]
           before_instagram_urls?: string[]
           before_note?: string
+          before_profile_full_url?: string
           company_name?: string
           created_at?: string
           id?: string
