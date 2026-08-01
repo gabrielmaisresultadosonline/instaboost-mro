@@ -637,11 +637,12 @@ const MktCCAdmin = () => {
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-6 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-7 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
               { v: "posts", l: "Publicações" },
               { v: "programacoes", l: "Programações" },
               { v: "antes", l: "Antes do perfil" },
+              { v: "logo", l: "Logo" },
               { v: "estrategia", l: "Estratégia" },
               { v: "textos", l: "Resumo / Passos" },
               { v: "aprovacoes", l: "Aprovações" },
