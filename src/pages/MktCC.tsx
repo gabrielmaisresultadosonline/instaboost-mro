@@ -210,6 +210,83 @@ const MktCC = () => {
     }
   };
 
+  // Passos do tutorial guiado. Cada passo foca um elemento e troca a aba se preciso.
+  const tourSteps = useMemo<MktccTourStep[]>(() => {
+    const steps: MktccTourStep[] = [
+      {
+        selector: '[data-tour="header"]',
+        title: "Bem-vindo(a)!",
+        text: "Aqui em cima ficam o perfil da sua empresa e o resumo: quantas publicações existem, quantas já foram aprovadas e quantas pedem ajuste.",
+      },
+      {
+        selector: '[data-tour="tabs"]',
+        title: "As abas",
+        text: "Use estas abas para navegar entre Feed, Estratégia, Resumo, Antes e Próximos passos. Vou te mostrar cada uma agora.",
+      },
+      {
+        selector: '[data-tour="feed"]',
+        title: "Feed de publicações",
+        text: "Esta é a prévia do seu feed. Clique em qualquer miniatura para abrir a publicação e ver a legenda completa.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="feed"]',
+        title: "Como aprovar",
+        text: "Ao abrir uma publicação, use o botão APROVAR. Se mudar de ideia, o mesmo botão vira DESAPROVAR — você pode alterar quando quiser. Aprovadas ganham uma tarja amarela 'Aprovada'.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="feed"]',
+        title: "Pedir alteração",
+        text: "Precisa mudar algo? Escreva o que deseja no campo de observação e clique em PEDIR AJUSTE. Sua observação é salva e chega direto para a nossa equipe.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="cycles"]',
+        title: "Programações do mês",
+        text: "Cada programação é um mês de conteúdo. As já processadas aparecem como finalizadas (não podem mais ser editadas) e as novas ficam abertas para aprovação.",
+        tab: "feed",
+      },
+      {
+        selector: '[data-tour="estrategia"]',
+        title: "Estratégia",
+        text: "Aqui explicamos a estratégia pensada para o seu perfil: linha de conteúdo, tom de voz e objetivos.",
+        tab: "estrategia",
+      },
+      {
+        selector: '[data-tour="resumo"]',
+        title: "Resumo",
+        text: "Um resumo direto do que foi executado no período, para você acompanhar sem se perder nos detalhes.",
+        tab: "resumo",
+      },
+      {
+        selector: '[data-tour="antes"]',
+        title: "Antes do perfil",
+        text: "Os prints de como o perfil estava antes do nosso trabalho. Clique em qualquer imagem para abrir em tela cheia com zoom.",
+        tab: "antes",
+      },
+    ];
+
+    if (project?.logo_enabled) {
+      steps.push({
+        selector: '[data-tour="logo"]',
+        title: "Nova logo",
+        text: "Compare a logo atual com a nova proposta, leia o motivo da mudança e aprove — ou peça ajuste escrevendo sua observação.",
+        tab: "logo",
+      });
+    }
+
+    steps.push({
+      selector: '[data-tour="proximos"]',
+      title: "Próximos passos",
+      text: "Depois que tudo estiver aprovado, esta aba é liberada com o que acontece a seguir. Pronto: é só aprovar e seguir. Bom trabalho!",
+      tab: "proximos",
+    });
+
+    return steps;
+  }, [project?.logo_enabled]);
+
+  const requestTab = useCallback((next: string) => setTab(next), []);
 
 
   const progress = useMemo(() => {
