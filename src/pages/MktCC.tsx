@@ -84,6 +84,8 @@ const MktCC = () => {
   const [activePost, setActivePost] = useState<MktccPost | null>(null);
   const [slide, setSlide] = useState(0);
   const [note, setNote] = useState("");
+  const [tab, setTab] = useState("feed");
+  const [tourIndex, setTourIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
