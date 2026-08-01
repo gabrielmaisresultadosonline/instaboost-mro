@@ -21,6 +21,10 @@ interface MktccPost {
   order_index: number;
   status: "pending" | "approved" | "changes";
   client_note: string;
+  previous_media_urls: string[];
+  previous_caption: string;
+  revision_note: string;
+  revision_count: number;
 }
 
 interface MktccProject {
@@ -32,6 +36,8 @@ interface MktccProject {
   next_steps_text: string;
   instagram_handle: string;
   avatar_url: string;
+  all_approved_at: string | null;
+  next_step_released: boolean;
 }
 
 const STORAGE_KEY = "mktcc_access_code";
