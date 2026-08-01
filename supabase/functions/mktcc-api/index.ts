@@ -37,8 +37,10 @@ function publicCycle(cycle: any) {
     status: cycle.status,
     completed_at: cycle.completed_at,
     order_index: cycle.order_index,
+    strategy_title: cycle.strategy_title ?? "",
+    strategy_text: cycle.strategy_text ?? "",
+    summary_text: cycle.summary_text ?? "",
     is_done: cycleIsDone(cycle),
-  };
 }
 
 // Recalcula se todas as publicações do projeto estão aprovadas e marca a data.
