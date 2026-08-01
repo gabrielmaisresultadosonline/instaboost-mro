@@ -678,13 +678,24 @@ const MktCC = () => {
                 </p>
               ) : (
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
-                  onClick={() => review("approved")}
-                  disabled={saving}
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar</>}
-                </Button>
+                {activePost.status === "approved" ? (
+                  <Button
+                    className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl bg-card hover:bg-muted"
+                    variant="outline"
+                    onClick={() => review("pending")}
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Desaprovar</>}
+                  </Button>
+                ) : (
+                  <Button
+                    className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
+                    onClick={() => review("approved")}
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar</>}
+                  </Button>
+                )}
                 <Button
                   className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl bg-card hover:bg-muted"
                   variant="outline"
@@ -694,6 +705,7 @@ const MktCC = () => {
                   <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir alteração
                 </Button>
               </div>
+
               )}
             </div>
           )}
