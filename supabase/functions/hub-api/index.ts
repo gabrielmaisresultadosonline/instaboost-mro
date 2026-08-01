@@ -63,11 +63,24 @@ serve(async (req) => {
     // ================= LOGIN =================
     if (action === "login") {
       const identifier = String(body.identifier || body.username || body.email || "").trim().toLowerCase();
-      const password = String(body.password || "");
+      const rawPassword = String(body.password || "");
+      const password = rawPassword.trim();
       if (!identifier || !password) return json({ success: false, error: "Informe usuário/e-mail e senha" }, 400);
       if (identifier.length > 255 || password.length > 255) return json({ success: false, error: "Credenciais inválidas" }, 400);
 
       const hash = await sha256(password);
+      const rawHash = await sha256(rawPassword);
+      // Compara senha ignorando espaços acidentais no cadastro/digitação.
+      const passwordMatches = (row: Record<string, unknown> | null) => {
+        if (!row) return false;
+        const storedHash = row.password_hash ? String(row.password_hash) : "";
+        const storedPlain = row.password_plain ? String(row.password_plain) : "";
+        return (
+          (!!storedHash && (storedHash === hash || storedHash === rawHash)) ||
+          (!!storedPlain && (storedPlain === rawPassword || storedPlain.trim() === password))
+        );
+      };
+
       const safe = identifier.replace(/[,()"']/g, "");
 
       let username: string | null = null;
