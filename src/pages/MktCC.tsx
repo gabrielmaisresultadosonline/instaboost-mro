@@ -380,7 +380,7 @@ const MktCC = () => {
               <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
               <Button
                 size="sm"
-                onClick={() => { setTab("feed"); setTourIndex(0); }}
+                onClick={() => { setTab("feed"); setCycleOpen(true); setTourIndex(0); }}
                 className="rounded-xl border-2 border-foreground font-black uppercase text-xs animate-pulse"
               >
                 <GraduationCap className="w-4 h-4 mr-1.5" /> Tutorial
