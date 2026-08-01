@@ -1083,6 +1083,22 @@ const MktCCAdmin = () => {
                       <Textarea rows={3} defaultValue={cycle.note || ""}
                         onBlur={(e) => e.target.value !== (cycle.note || "") && patchCycle(cycle, { note: e.target.value })} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Título da estratégia desta programação</Label>
+                      <Input defaultValue={cycle.strategy_title || ""}
+                        onBlur={(e) => e.target.value !== (cycle.strategy_title || "") && patchCycle(cycle, { strategy_title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Estratégia desta programação</Label>
+                      <Textarea rows={6} defaultValue={cycle.strategy_text || ""}
+                        onBlur={(e) => e.target.value !== (cycle.strategy_text || "") && patchCycle(cycle, { strategy_text: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Resumo / próximos passos desta programação</Label>
+                      <Textarea rows={4} defaultValue={cycle.summary_text || ""}
+                        onBlur={(e) => e.target.value !== (cycle.summary_text || "") && patchCycle(cycle, { summary_text: e.target.value })} />
+                    </div>
+
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => { setActiveCycleId(cycle.id); setTab("posts"); }}>
                         <Images className="w-4 h-4 mr-2" /> Ver publicações
