@@ -1128,6 +1128,106 @@ const MktCCAdmin = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="logo" className="mt-6">
+            <Card className="mktcc-pop rounded-2xl overflow-hidden">
+              <div className="h-2 mktcc-gradient" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-black uppercase tracking-tight">
+                  <Images className="w-5 h-5" /> Aprovação da nova logo
+                </CardTitle>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Etapa opcional — só aparece na área do cliente quando você liberar aqui.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-foreground p-3">
+                  <Badge className={`rounded-full border-2 border-foreground font-black uppercase ${selected.logo_enabled ? "bg-primary text-primary-foreground" : "bg-card text-foreground"}`}>
+                    {selected.logo_enabled ? "Etapa liberada" : "Etapa oculta"}
+                  </Badge>
+                  <Button size="sm" variant={selected.logo_enabled ? "outline" : "default"} onClick={() => toggleLogoStep(!selected.logo_enabled)}>
+                    {selected.logo_enabled ? <><EyeOff className="w-4 h-4 mr-2" /> Ocultar do cliente</> : <><Send className="w-4 h-4 mr-2" /> Liberar para o cliente</>}
+                  </Button>
+                  <span className="text-xs font-bold uppercase text-muted-foreground">
+                    Status do cliente:{" "}
+                    {selected.logo_status === "approved" ? "Aprovada" : selected.logo_status === "changes" ? "Pediu ajuste" : "Pendente"}
+                  </span>
+                  {selected.logo_status !== "pending" && (
+                    <Button size="sm" variant="outline" onClick={resetLogoStatus}>
+                      <RefreshCw className="w-4 h-4 mr-2" /> Reabrir aprovação
+                    </Button>
+                  )}
+                </div>
+
+                {selected.logo_client_note && (
+                  <div className="rounded-xl border-2 border-foreground bg-secondary p-3">
+                    <p className="text-xs font-black uppercase">Observação do cliente</p>
+                    <p className="whitespace-pre-wrap text-sm font-medium">{selected.logo_client_note}</p>
+                  </div>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {([
+                    { slot: "logo_before_url", label: "Logo antiga (antes)" },
+                    { slot: "logo_after_url", label: "Logo nova (depois)" },
+                  ] as const).map((item) => (
+                    <div
+                      key={item.slot}
+                      className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
+                      onPaste={(e) => {
+                        const file = Array.from(e.clipboardData?.items || [])
+                          .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+                          .map((it) => it.getAsFile())
+                          .find((f): f is File => !!f);
+                        if (!file) return;
+                        e.preventDefault();
+                        uploadLogoShot(item.slot, new File([file], file.name || `logo-${Date.now()}.png`, { type: file.type || "image/png" }));
+                      }}
+                    >
+                      <Label>{item.label}</Label>
+                      <div className="rounded-lg overflow-hidden border-2 border-foreground bg-muted aspect-square flex items-center justify-center">
+                        {selected[item.slot] ? (
+                          <img src={selected[item.slot]} alt={item.label} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-xs font-bold uppercase text-muted-foreground">Sem imagem</span>
+                        )}
+                      </div>
+                      <Input type="file" accept="image/*" disabled={uploading}
+                        onChange={(e) => e.target.files?.[0] && uploadLogoShot(item.slot, e.target.files[0])} />
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Colar ${item.label} com Ctrl + V`}
+                        className="rounded-lg border-2 border-dashed border-foreground/40 p-3 text-center text-xs font-bold uppercase text-muted-foreground cursor-text outline-none focus:border-primary focus:text-foreground"
+                      >
+                        {uploading ? "Enviando..." : "Clique aqui e cole com Ctrl + V"}
+                      </div>
+                      {selected[item.slot] && (
+                        <Button size="sm" variant="destructive" onClick={async () => {
+                          await call("update_project", { project_id: selected.id, [item.slot]: "" });
+                          setSelected({ ...selected, [item.slot]: "" } as Project);
+                        }}>
+                          <X className="w-4 h-4 mr-2" /> Remover
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Resumo: por que foi feita outra logo (o cliente vê)</Label>
+                  <Textarea rows={5} value={selected.logo_reason || ""}
+                    placeholder="Ex.: a logo anterior perdia legibilidade em telas pequenas..."
+                    onChange={(e) => setSelected({ ...selected, logo_reason: e.target.value })} />
+                  <Button onClick={saveProject} disabled={loading}>
+                    <Save className="w-4 h-4 mr-2" /> Salvar resumo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
+
           <TabsContent value="estrategia" className="mt-6">
             <Card>
               <CardContent className="p-4 space-y-4">
