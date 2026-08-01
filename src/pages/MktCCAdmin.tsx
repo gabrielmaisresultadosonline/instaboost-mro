@@ -216,6 +216,58 @@ const MktCCAdmin = () => {
     try { await call("reorder_posts", { ids: next.map((p) => p.id) }); } catch { toast.error("Erro ao reordenar"); }
   };
 
+  // Ordem vinda do arrasto na prévia do celular (só publicados): reencaixa os
+  // publicados nas suas posições originais e mantém os rascunhos onde estavam.
+  const reorderFromPreview = async (orderedPublishedIds: string[]) => {
+    const queue = orderedPublishedIds
+      .map((id) => posts.find((p) => p.id === id))
+      .filter((p): p is Post => !!p);
+    let cursor = 0;
+    const next = posts.map((p) => (p.is_published ? queue[cursor++] ?? p : p));
+    setPosts(next);
+    try {
+      await call("reorder_posts", { ids: next.map((p) => p.id) });
+      toast.success("Nova ordem salva!");
+    } catch { toast.error("Erro ao reordenar"); }
+  };
+
+  // Envia novas mídias direto para uma publicação existente (edição de imagem).
+  const uploadPostMedia = async (post: Post, files: FileList, replace: boolean) => {
+    if (!selected) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+        const base64 = await fileToBase64(file);
+        const data = await call("upload_media", {
+          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+        });
+        urls.push(data.url);
+      }
+      if (urls.length === 0) return;
+      const media = replace ? urls : [...(post.media_urls || []), ...urls];
+      const isVideo = files[0]?.type.startsWith("video");
+      const post_type: Post["post_type"] = isVideo ? "video" : media.length > 1 ? "carousel" : "image";
+      await call("update_post", { post_id: post.id, project_id: post.project_id, media_urls: media, post_type });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, media_urls: media, post_type } : p)));
+      toast.success("Imagens atualizadas!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
+  const removePostMedia = async (post: Post, url: string) => {
+    const media = (post.media_urls || []).filter((u) => u !== url);
+    if (media.length === 0) return toast.error("A publicação precisa de pelo menos uma mídia");
+    const post_type: Post["post_type"] = post.post_type === "video" ? "video" : media.length > 1 ? "carousel" : "image";
+    try {
+      await call("update_post", { post_id: post.id, project_id: post.project_id, media_urls: media, post_type });
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, media_urls: media, post_type } : p)));
+    } catch { toast.error("Erro ao remover mídia"); }
+  };
+
+
   const setRevision = (postId: string, patch: Partial<RevisionDraft>) =>
     setRevisions((prev) => ({ ...prev, [postId]: { note: "", media: [], ...prev[postId], ...patch } }));
 
