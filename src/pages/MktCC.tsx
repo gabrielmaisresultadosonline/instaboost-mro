@@ -960,6 +960,7 @@ const MktCC = () => {
                   Programação já processada e finalizada — aprovações encerradas.
                 </p>
               ) : (
+              <>
               <div className="flex flex-col sm:flex-row gap-2">
                 {activePost.status === "approved" ? (
                   <Button
@@ -972,13 +973,15 @@ const MktCC = () => {
                   </Button>
                 ) : (
                   <Button
-                    className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
+                    className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl disabled:opacity-100 disabled:bg-muted disabled:text-muted-foreground"
                     onClick={() => review("approved")}
-                    disabled={saving}
+                    disabled={saving || !!note.trim()}
+                    title={note.trim() ? "Você está pedindo alteração — limpe a observação para aprovar" : undefined}
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar</>}
                   </Button>
                 )}
+
                 <Button
                   className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl bg-card hover:bg-muted"
                   variant="outline"
@@ -988,8 +991,14 @@ const MktCC = () => {
                   <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir alteração
                 </Button>
               </div>
-
+              {note.trim() && activePost.status !== "approved" && (
+                <p className="text-xs font-bold uppercase text-muted-foreground">
+                  Com observação preenchida só é possível pedir alteração — apague o texto para aprovar.
+                </p>
               )}
+              </>
+              )}
+
             </div>
           )}
         </DialogContent>
