@@ -375,13 +375,14 @@ const MktCCAdmin = () => {
   };
 
   // Prints de "como o perfil estava" — ficam salvos na nuvem até o admin remover.
-  const uploadBeforeShots = async (platform: "instagram" | "facebook", files: FileList) => {
+  const uploadBeforeShots = async (platform: "instagram" | "facebook", files: FileList | File[]) => {
     if (!selected) return;
     setUploading(true);
     try {
       const urls: string[] = [];
       for (const file of Array.from(files)) {
         if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
+
         const base64 = await fileToBase64(file);
         const data = await call("upload_media", {
           project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
@@ -1002,12 +1003,35 @@ const MktCCAdmin = () => {
                   { key: "instagram", label: "Instagram", icon: <Instagram className="w-4 h-4" />, urls: selected.before_instagram_urls || [] },
                   { key: "facebook", label: "Facebook", icon: <Facebook className="w-4 h-4" />, urls: selected.before_facebook_urls || [] },
                 ] as const).map((group) => (
-                  <div key={group.key} className="space-y-3 rounded-xl border-2 border-foreground p-3">
+                  <div
+                    key={group.key}
+                    className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
+                    onPaste={(e) => {
+                      const items = Array.from(e.clipboardData?.items || []);
+                      const files = items
+                        .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+                        .map((it) => it.getAsFile())
+                        .filter((f): f is File => !!f)
+                        .map((f, i) => new File([f], f.name || `print-${Date.now()}-${i}.png`, { type: f.type || "image/png" }));
+                      if (files.length === 0) return;
+                      e.preventDefault();
+                      uploadBeforeShots(group.key, files);
+                    }}
+                  >
                     <p className="flex items-center gap-2 text-sm font-black uppercase">
                       {group.icon} {group.label} — {group.urls.length} print(s) (sugerido 3)
                     </p>
                     <Input type="file" multiple accept="image/*" disabled={uploading}
                       onChange={(e) => e.target.files?.length && uploadBeforeShots(group.key, e.target.files)} />
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Colar print do ${group.label} com Ctrl + V`}
+                      className="rounded-lg border-2 border-dashed border-foreground/40 p-3 text-center text-xs font-bold uppercase text-muted-foreground cursor-text outline-none focus:border-primary focus:text-foreground"
+                    >
+                      {uploading ? "Enviando..." : "Clique aqui e cole com Ctrl + V"}
+                    </div>
+
                     {group.urls.length > 0 && (
                       <div className="grid grid-cols-3 gap-3">
                         {group.urls.map((url, i) => (
