@@ -461,7 +461,66 @@ const MktCC = () => {
       />
 
       <div className="max-w-5xl mx-auto px-4 py-6">
+        {cycles.length > 0 && !cycleOpen ? (
+          <div className="space-y-4" data-tour="cycles">
+            <div>
+              <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                  <CalendarDays className="w-5 h-5 text-primary-foreground" />
+                </span>
+                Suas <span className="mktcc-gradient-text">programações</span>
+              </h2>
+              <p className="text-sm font-medium text-muted-foreground">
+                Toque em uma programação para ver a prévia, a estratégia, o resumo e aprovar os conteúdos dela.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {cycles.map((cycle) => {
+                const cyclePosts = posts.filter((p) => p.cycle_id === cycle.id);
+                const approved = cyclePosts.filter((p) => p.status === "approved").length;
+                return (
+                  <button
+                    key={cycle.id}
+                    onClick={() => { setActiveCycleId(cycle.id); setCycleOpen(true); setTab("feed"); }}
+                    className="text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CalendarDays className="w-4 h-4" />
+                      <span className="font-black uppercase">{cycle.title}</span>
+                      <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-secondary text-secondary-foreground">
+                        {cycle.is_done ? "Já processado" : "Em aprovação"}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                      {formatDate(cycle.scheduled_date) ? `Data: ${formatDate(cycle.scheduled_date)} · ` : ""}
+                      {cyclePosts.length} publicação(ões) · {approved} aprovada(s)
+                    </p>
+                    {cycle.note && <p className="mt-1 text-sm font-medium whitespace-pre-wrap">{cycle.note}</p>}
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase">
+                      Abrir programação <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </button>
+                );
+              })}
+              {posts.some((p) => !p.cycle_id) && (
+                <button
+                  onClick={() => { setActiveCycleId("none"); setCycleOpen(true); setTab("feed"); }}
+                  className="text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors"
+                >
+                  <span className="font-black uppercase">Programação inicial</span>
+                  <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                    {posts.filter((p) => !p.cycle_id).length} publicação(ões)
+                  </p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase">
+                    Abrir programação <ChevronRight className="w-4 h-4" />
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
         <Tabs value={tab} onValueChange={setTab}>
+
           <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
             {[
               { v: "feed", l: "Feed" },
