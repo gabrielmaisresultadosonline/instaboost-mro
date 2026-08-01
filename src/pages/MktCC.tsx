@@ -104,7 +104,14 @@ const MktCC = () => {
         before_instagram_urls: data.project?.before_instagram_urls || [],
         before_facebook_urls: data.project?.before_facebook_urls || [],
         before_note: data.project?.before_note || "",
+        logo_enabled: data.project?.logo_enabled === true,
+        logo_before_url: data.project?.logo_before_url || "",
+        logo_after_url: data.project?.logo_after_url || "",
+        logo_reason: data.project?.logo_reason || "",
+        logo_status: data.project?.logo_status || "pending",
+        logo_client_note: data.project?.logo_client_note || "",
       });
+      setLogoNote(data.project?.logo_client_note || "");
       setPosts((data.posts || []).map((p: MktccPost) => ({
         ...p,
         media_urls: p.media_urls || [],
