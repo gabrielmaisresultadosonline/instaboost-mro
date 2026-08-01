@@ -504,17 +504,35 @@ const MktCC = () => {
               {cycles.map((cycle) => {
                 const cyclePosts = posts.filter((p) => p.cycle_id === cycle.id);
                 const approved = cyclePosts.filter((p) => p.status === "approved").length;
+                // Precisa aprovação enquanto houver publicações não aprovadas e o ciclo não estiver finalizado
+                const needsApproval = !cycle.is_done && cyclePosts.length > 0 && approved < cyclePosts.length;
+                const inProgress = !cycle.is_done && cyclePosts.length > 0 && approved === cyclePosts.length;
+                const statusLabel = cycle.is_done
+                  ? "Finalizada"
+                  : needsApproval
+                    ? "Precisa da sua aprovação"
+                    : inProgress
+                      ? "Em andamento"
+                      : "Em preparação";
                 return (
                   <button
                     key={cycle.id}
                     onClick={() => { setActiveCycleId(cycle.id); setCycleOpen(true); setTab("feed"); }}
-                    className="text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors"
+                    className={`text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors ${needsApproval ? "mktcc-alert-loop" : ""}`}
                   >
                     <div className="flex items-center gap-2 flex-wrap">
                       <CalendarDays className="w-4 h-4" />
                       <span className="font-black uppercase">{cycle.title}</span>
-                      <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-secondary text-secondary-foreground">
-                        {cycle.is_done ? "Já processado" : "Em aprovação"}
+                      <Badge
+                        className={`rounded-full font-black uppercase border-2 border-foreground ${
+                          needsApproval
+                            ? "mktcc-alert-badge"
+                            : inProgress
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-secondary-foreground"
+                        }`}
+                      >
+                        {statusLabel}
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
@@ -523,25 +541,39 @@ const MktCC = () => {
                     </p>
                     {cycle.note && <p className="mt-1 text-sm font-medium whitespace-pre-wrap">{cycle.note}</p>}
                     <span className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase">
-                      Abrir programação <ChevronRight className="w-4 h-4" />
+                      {needsApproval ? "Aprovar agora" : "Abrir programação"} <ChevronRight className="w-4 h-4" />
                     </span>
                   </button>
                 );
               })}
-              {posts.some((p) => !p.cycle_id) && (
+              {posts.some((p) => !p.cycle_id) && (() => {
+                const orphan = posts.filter((p) => !p.cycle_id);
+                const orphanApproved = orphan.filter((p) => p.status === "approved").length;
+                const orphanNeeds = orphanApproved < orphan.length;
+                return (
                 <button
                   onClick={() => { setActiveCycleId("none"); setCycleOpen(true); setTab("feed"); }}
-                  className="text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors"
+                  className={`text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors ${orphanNeeds ? "mktcc-alert-loop" : ""}`}
                 >
-                  <span className="font-black uppercase">Programação inicial</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-black uppercase">Programação inicial</span>
+                    <Badge
+                      className={`rounded-full font-black uppercase border-2 border-foreground ${
+                        orphanNeeds ? "mktcc-alert-badge" : "bg-primary text-primary-foreground"
+                      }`}
+                    >
+                      {orphanNeeds ? "Precisa da sua aprovação" : "Em andamento"}
+                    </Badge>
+                  </div>
                   <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
-                    {posts.filter((p) => !p.cycle_id).length} publicação(ões)
+                    {orphan.length} publicação(ões) · {orphanApproved} aprovada(s)
                   </p>
                   <span className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase">
-                    Abrir programação <ChevronRight className="w-4 h-4" />
+                    {orphanNeeds ? "Aprovar agora" : "Abrir programação"} <ChevronRight className="w-4 h-4" />
                   </span>
                 </button>
-              )}
+                );
+              })()}
             </div>
           </div>
         ) : (
