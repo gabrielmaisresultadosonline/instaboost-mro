@@ -185,6 +185,8 @@ import CreatorDevAdmin from "./pages/CreatorDevAdmin";
 import ComercialAAF from "./pages/ComercialAAF";
 import ComercialAAFAdmin from "./pages/ComercialAAFAdmin";
 import MktCompleto from "./pages/MktCompleto";
+import MktCC from "./pages/MktCC";
+import MktCCAdmin from "./pages/MktCCAdmin";
 import FerramentaMROPromo from "./pages/FerramentaMROPromo";
 import FerramentaMROPromoAdmin from "./pages/FerramentaMROPromoAdmin";
 import PagamentoMRO from "./pages/PagamentoMRO";
