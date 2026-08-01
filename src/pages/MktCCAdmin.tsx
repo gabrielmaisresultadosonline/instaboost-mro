@@ -1071,9 +1071,47 @@ const MktCCAdmin = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>URL da foto de perfil</Label>
-                  <Input value={selected.avatar_url} onChange={(e) => setSelected({ ...selected, avatar_url: e.target.value })} placeholder="https://..." />
+                <div
+                  className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
+                  onPaste={(e) => {
+                    const file = Array.from(e.clipboardData?.items || [])
+                      .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+                      .map((it) => it.getAsFile())
+                      .find((f): f is File => !!f);
+                    if (!file) return;
+                    e.preventDefault();
+                    uploadAvatar(new File([file], file.name || `logo-${Date.now()}.png`, { type: file.type || "image/png" }));
+                  }}
+                >
+                  <Label>Logo / foto de perfil do Instagram</Label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 shrink-0 rounded-full overflow-hidden border-2 border-foreground bg-muted">
+                      {selected.avatar_url && (
+                        <img src={selected.avatar_url} alt="Logo do perfil" className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Input type="file" accept="image/*" disabled={uploading}
+                        onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
+                      <Input value={selected.avatar_url} onChange={(e) => setSelected({ ...selected, avatar_url: e.target.value })} placeholder="https://..." />
+                    </div>
+                  </div>
+                  <div
+                    tabIndex={0}
+                    role="button"
+                    aria-label="Colar logo do Instagram com Ctrl + V"
+                    className="rounded-lg border-2 border-dashed border-foreground/40 p-3 text-center text-xs font-bold uppercase text-muted-foreground cursor-text outline-none focus:border-primary focus:text-foreground"
+                  >
+                    {uploading ? "Enviando..." : "Clique aqui e cole a logo com Ctrl + V"}
+                  </div>
                 </div>
+                <div className="space-y-2">
+                  <Label>Bio do Instagram (aparece na prévia)</Label>
+                  <Textarea rows={4} value={selected.instagram_bio || ""}
+                    onChange={(e) => setSelected({ ...selected, instagram_bio: e.target.value })}
+                    placeholder={"Endereço fiscal e comercial\nHigienópolis · São Paulo\nlink.bio"} />
+                </div>
+
                 <div className="space-y-2">
                   <Label>Título da estratégia</Label>
                   <Input value={selected.strategy_title} onChange={(e) => setSelected({ ...selected, strategy_title: e.target.value })} />
