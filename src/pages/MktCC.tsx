@@ -448,7 +448,7 @@ const MktCC = () => {
               </Card>
             )}
             {cycles.length > 0 && (
-              <div className="mb-6 space-y-3">
+              <div className="mb-6 space-y-3" data-tour="cycles">
                 <p className="text-xs font-black uppercase text-muted-foreground">Programações</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {cycles.map((cycle) => {
@@ -522,7 +522,7 @@ const MktCC = () => {
             ) : (
               <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
               <div>
-              <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-3 p-2 md:p-3 rounded-2xl bg-card mktcc-pop-sm" data-tour="feed">
                 {viewPosts.map((post) => (
                   <button
                     key={post.id}
