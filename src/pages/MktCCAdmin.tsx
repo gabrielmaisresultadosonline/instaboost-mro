@@ -195,6 +195,55 @@ const MktCCAdmin = () => {
     }
   };
 
+  /**
+   * Sobe a imagem da etapa de aprovação de logo (antes/depois).
+   * Aceita arquivo ou imagem colada com Ctrl + V e salva direto no projeto.
+   */
+  const uploadLogoShot = async (slot: "logo_before_url" | "logo_after_url", file: File) => {
+    if (!selected) return;
+    if (file.size > 10 * 1024 * 1024) return toast.error("Imagem maior que 10MB");
+    setUploading(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const data = await call("upload_media", {
+        project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
+      });
+      setSelected({ ...selected, [slot]: data.url } as Project);
+      await call("update_project", { project_id: selected.id, [slot]: data.url });
+      toast.success("Imagem da logo salva!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  /** Ativa/desativa a etapa de aprovação de logo para o cliente. */
+  const toggleLogoStep = async (enabled: boolean) => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, logo_enabled: enabled });
+      setSelected({ ...selected, logo_enabled: enabled });
+      toast.success(enabled ? "Etapa de logo liberada para o cliente" : "Etapa de logo oculta");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar");
+    }
+  };
+
+  /** Reabre a aprovação da logo (volta para pendente). */
+  const resetLogoStatus = async () => {
+    if (!selected) return;
+    try {
+      await call("update_project", { project_id: selected.id, logo_status: "pending", logo_client_note: "" });
+      setSelected({ ...selected, logo_status: "pending", logo_client_note: "" });
+      toast.success("Aprovação da logo reaberta");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar");
+    }
+  };
+
+
+
   const uploadFiles = async (files: FileList) => {
 
     if (!selected) return;
