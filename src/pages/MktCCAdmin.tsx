@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
+import { VideoThumbPicker } from "@/components/mktcc/VideoThumbPicker";
 
 interface Project {
   id: string; company_name: string; access_code: string;
@@ -40,6 +41,8 @@ interface Post {
   previous_media_urls: string[]; previous_caption: string;
   revision_note: string; revision_count: number; revised_at: string | null;
   is_published: boolean; aspect_ratio: string;
+  /** Miniatura (capa) usada quando o post é um vídeo. */
+  poster_url: string;
 }
 
 interface Cycle {
@@ -58,6 +61,13 @@ const fileToBase64 = (file: File) =>
     reader.readAsDataURL(file);
   });
 
+const MAX_VIDEO_BYTES = 120 * 1024 * 1024; // vídeos até 120MB
+const MAX_IMAGE_BYTES = 45 * 1024 * 1024;
+const DIRECT_UPLOAD_THRESHOLD = 4 * 1024 * 1024; // acima disso vai direto ao storage
+
+const isVideoFile = (file: File) => file.type.startsWith("video") || /\.(mp4|webm|mov)$/i.test(file.name);
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url || "");
+
 const MktCCAdmin = () => {
   const [creds, setCreds] = useState({ email: "", password: "" });
   const [loggedIn, setLoggedIn] = useState(false);
@@ -68,8 +78,8 @@ const MktCCAdmin = () => {
   const [newProject, setNewProject] = useState({ company_name: "", access_code: "", instagram_handle: "" });
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string; aspect_ratio: string }>({
-    post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5",
+  const [draft, setDraft] = useState<{ post_type: Post["post_type"]; media_urls: string[]; caption: string; aspect_ratio: string; poster_url: string }>({
+    post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5", poster_url: "",
   });
   const [revisions, setRevisions] = useState<Record<string, RevisionDraft>>({});
   const [revisingId, setRevisingId] = useState<string | null>(null);
@@ -110,6 +120,7 @@ const MktCCAdmin = () => {
       aspect_ratio: p.aspect_ratio || "4/5",
       is_published: p.is_published !== false,
       cycle_id: p.cycle_id ?? null,
+      poster_url: p.poster_url || "",
     })));
   };
 
@@ -133,7 +144,7 @@ const MktCCAdmin = () => {
 
   const openProject = async (project: Project) => {
     setSelected(project);
-    setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
+    setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5", poster_url: "" });
     try {
       const list = await loadCycles(project.id);
       const open = list.find((c) => !c.is_done);
@@ -283,6 +294,56 @@ const MktCCAdmin = () => {
 
 
 
+  /**
+   * Envia um arquivo e devolve a URL pública.
+   * Imagens pequenas seguem pela edge function (base64); vídeos e arquivos
+   * grandes vão direto ao storage para suportar até 120MB.
+   */
+  const uploadOne = async (projectId: string, file: File): Promise<string> => {
+    const video = isVideoFile(file);
+    const limit = video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > limit) {
+      throw new Error(`${file.name} passa do limite de ${video ? "120MB (vídeo)" : "45MB (imagem)"}`);
+    }
+    if (video || file.size > DIRECT_UPLOAD_THRESHOLD) {
+      const safeName = file.name.replace(/[^\w.\-]/g, "_") || `arquivo-${Date.now()}`;
+      const path = `mktcc/${projectId}/${Date.now()}-${safeName}`;
+      const { error } = await supabase.storage.from("assets").upload(path, file, {
+        contentType: file.type || undefined,
+        upsert: true,
+      });
+      if (error) throw new Error(error.message);
+      return supabase.storage.from("assets").getPublicUrl(path).data.publicUrl;
+    }
+    const base64 = await fileToBase64(file);
+    const data = await call("upload_media", {
+      project_id: projectId, filename: file.name, file_base64: base64, content_type: file.type,
+    });
+    return data.url as string;
+  };
+
+  /** Sobe o frame capturado do vídeo e devolve a URL da miniatura. */
+  const uploadPoster = async (projectId: string, blob: Blob) => {
+    const file = new File([blob], `miniatura-${Date.now()}.jpg`, { type: "image/jpeg" });
+    return uploadOne(projectId, file);
+  };
+
+  /** Salva a miniatura escolhida no rascunho da nova publicação. */
+  const setDraftPoster = async (blob: Blob) => {
+    if (!selected) return;
+    const url = await uploadPoster(selected.id, blob);
+    setDraft((prev) => ({ ...prev, poster_url: url }));
+    toast.success("Miniatura do vídeo salva!");
+  };
+
+  /** Salva a miniatura escolhida em uma publicação existente. */
+  const setPostPoster = async (post: Post, blob: Blob) => {
+    const url = await uploadPoster(post.project_id, blob);
+    await call("update_post", { post_id: post.id, project_id: post.project_id, poster_url: url });
+    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, poster_url: url } : p)));
+    toast.success("Miniatura do vídeo salva!");
+  };
+
   const uploadFiles = async (files: FileList) => {
 
     if (!selected) return;
@@ -290,12 +351,11 @@ const MktCCAdmin = () => {
     try {
       const urls: string[] = [];
       for (const file of Array.from(files)) {
-        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
-        const base64 = await fileToBase64(file);
-        const data = await call("upload_media", {
-          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
-        });
-        urls.push(data.url);
+        try {
+          urls.push(await uploadOne(selected.id, file));
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : `Erro ao enviar ${file.name}`);
+        }
       }
       setDraft((prev) => {
         const media = [...prev.media_urls, ...urls];
@@ -320,7 +380,7 @@ const MktCCAdmin = () => {
         project_id: selected.id, ...draft,
         cycle_id: activeCycleId === "none" ? null : activeCycleId,
       });
-      setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5" });
+      setDraft({ post_type: "image", media_urls: [], caption: "", aspect_ratio: "4/5", poster_url: "" });
       await loadPosts(selected.id);
       toast.success("Publicação criada!");
     } catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); }
@@ -375,12 +435,11 @@ const MktCCAdmin = () => {
     try {
       const urls: string[] = [];
       for (const file of Array.from(files)) {
-        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
-        const base64 = await fileToBase64(file);
-        const data = await call("upload_media", {
-          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
-        });
-        urls.push(data.url);
+        try {
+          urls.push(await uploadOne(selected.id, file));
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : `Erro ao enviar ${file.name}`);
+        }
       }
       if (urls.length === 0) return;
       const media = replace ? urls : [...(post.media_urls || []), ...urls];
@@ -415,12 +474,11 @@ const MktCCAdmin = () => {
     try {
       const urls: string[] = [];
       for (const file of Array.from(files)) {
-        if (file.size > 45 * 1024 * 1024) { toast.error(`${file.name} é maior que 45MB`); continue; }
-        const base64 = await fileToBase64(file);
-        const data = await call("upload_media", {
-          project_id: selected.id, filename: file.name, file_base64: base64, content_type: file.type,
-        });
-        urls.push(data.url);
+        try {
+          urls.push(await uploadOne(selected.id, file));
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : `Erro ao enviar ${file.name}`);
+        }
       }
       setRevision(post.id, { media: [...(revisions[post.id]?.media || []), ...urls] });
       toast.success(`${urls.length} arquivo(s) enviado(s)`);
