@@ -396,20 +396,20 @@ const MktCC = () => {
           {activePost && (
             <div className="space-y-4">
               {activePost.revision_count > 0 && (
-                <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-1">
-                  <p className="text-xs font-semibold text-primary">
-                    VERSÃO ATUALIZADA (alteração nº {activePost.revision_count})
+                <div className="rounded-xl bg-primary p-3 space-y-1 mktcc-pop-sm">
+                  <p className="text-xs font-black uppercase text-primary-foreground">
+                    Versão atualizada (alteração nº {activePost.revision_count})
                   </p>
                   {activePost.revision_note && (
-                    <p className="text-sm whitespace-pre-wrap">{activePost.revision_note}</p>
+                    <p className="text-sm font-medium whitespace-pre-wrap text-primary-foreground">{activePost.revision_note}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-primary-foreground/80">
                     A versão anterior aparece abaixo em cinza, só para comparação.
                   </p>
                 </div>
               )}
 
-              <div className="relative bg-muted rounded-md overflow-hidden">
+              <div className="relative bg-muted rounded-xl overflow-hidden border-2 border-foreground">
                 {activePost.post_type === "video" ? (
                   <video src={activePost.media_urls[0]} controls className="w-full max-h-[50vh]" />
                 ) : (
