@@ -98,6 +98,8 @@ const MktCC = () => {
   const [saving, setSaving] = useState(false);
   const [cycles, setCycles] = useState<MktccCycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
+  const [cycleOpen, setCycleOpen] = useState(false);
+
   const [mediaPopup, setMediaPopup] = useState<{ url: string; type: "image" | "video" } | null>(null);
   const [driveOpen, setDriveOpen] = useState(false);
   const [logoNote, setLogoNote] = useState("");
@@ -378,7 +380,7 @@ const MktCC = () => {
               <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight truncate">{project.company_name}</h1>
               <Button
                 size="sm"
-                onClick={() => { setTab("feed"); setTourIndex(0); }}
+                onClick={() => { setTab("feed"); setCycleOpen(true); setTourIndex(0); }}
                 className="rounded-xl border-2 border-foreground font-black uppercase text-xs animate-pulse"
               >
                 <GraduationCap className="w-4 h-4 mr-1.5" /> Tutorial
@@ -461,7 +463,66 @@ const MktCC = () => {
       />
 
       <div className="max-w-5xl mx-auto px-4 py-6">
+        {cycles.length > 0 && !cycleOpen ? (
+          <div className="space-y-4" data-tour="cycles">
+            <div>
+              <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
+                  <CalendarDays className="w-5 h-5 text-primary-foreground" />
+                </span>
+                Suas <span className="mktcc-gradient-text">programações</span>
+              </h2>
+              <p className="text-sm font-medium text-muted-foreground">
+                Toque em uma programação para ver a prévia, a estratégia, o resumo e aprovar os conteúdos dela.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {cycles.map((cycle) => {
+                const cyclePosts = posts.filter((p) => p.cycle_id === cycle.id);
+                const approved = cyclePosts.filter((p) => p.status === "approved").length;
+                return (
+                  <button
+                    key={cycle.id}
+                    onClick={() => { setActiveCycleId(cycle.id); setCycleOpen(true); setTab("feed"); }}
+                    className="text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CalendarDays className="w-4 h-4" />
+                      <span className="font-black uppercase">{cycle.title}</span>
+                      <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-secondary text-secondary-foreground">
+                        {cycle.is_done ? "Já processado" : "Em aprovação"}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                      {formatDate(cycle.scheduled_date) ? `Data: ${formatDate(cycle.scheduled_date)} · ` : ""}
+                      {cyclePosts.length} publicação(ões) · {approved} aprovada(s)
+                    </p>
+                    {cycle.note && <p className="mt-1 text-sm font-medium whitespace-pre-wrap">{cycle.note}</p>}
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase">
+                      Abrir programação <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </button>
+                );
+              })}
+              {posts.some((p) => !p.cycle_id) && (
+                <button
+                  onClick={() => { setActiveCycleId("none"); setCycleOpen(true); setTab("feed"); }}
+                  className="text-left rounded-2xl border-2 border-foreground bg-card p-4 mktcc-pop-sm hover:bg-muted transition-colors"
+                >
+                  <span className="font-black uppercase">Programação inicial</span>
+                  <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                    {posts.filter((p) => !p.cycle_id).length} publicação(ões)
+                  </p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase">
+                    Abrir programação <ChevronRight className="w-4 h-4" />
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
         <Tabs value={tab} onValueChange={setTab}>
+
           <TabsList data-tour="tabs" className={`w-full grid grid-cols-2 ${project.logo_enabled ? "md:grid-cols-6" : "md:grid-cols-5"} h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm`}>
             {[
               { v: "feed", l: "Feed" },
@@ -508,48 +569,35 @@ const MktCC = () => {
             )}
             {cycles.length > 0 && (
               <div className="mb-6 space-y-3" data-tour="cycles">
-                <p className="text-xs font-black uppercase text-muted-foreground">Programações</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {cycles.map((cycle) => {
-                    const count = posts.filter((p) => p.cycle_id === cycle.id).length;
-                    const isActive = cycle.id === activeCycleId;
-                    return (
-                      <button
-                        key={cycle.id}
-                        onClick={() => setActiveCycleId(cycle.id)}
-                        className={`text-left rounded-2xl border-2 border-foreground p-4 transition-colors ${
-                          isActive ? "bg-primary text-primary-foreground mktcc-pop-sm" : "bg-card text-foreground"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <CalendarDays className="w-4 h-4" />
-                          <span className="font-black uppercase">{cycle.title}</span>
-                          {cycle.is_done
-                            ? <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-card text-foreground">Já processado</Badge>
-                            : <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-card text-foreground">Em aprovação</Badge>}
-                        </div>
-                        <p className="mt-1 text-xs font-bold uppercase opacity-80">
-                          {formatDate(cycle.scheduled_date) ? `Data: ${formatDate(cycle.scheduled_date)} · ` : ""}
-                          {count} publicação(ões)
-                        </p>
-                        {cycle.note && <p className="mt-1 text-sm font-medium whitespace-pre-wrap opacity-90">{cycle.note}</p>}
-                      </button>
-                    );
-                  })}
-                  {posts.some((p) => !p.cycle_id) && (
-                    <button
-                      onClick={() => setActiveCycleId("none")}
-                      className={`text-left rounded-2xl border-2 border-foreground p-4 ${
-                        activeCycleId === "none" ? "bg-primary text-primary-foreground mktcc-pop-sm" : "bg-card text-foreground"
-                      }`}
-                    >
-                      <span className="font-black uppercase">Programação inicial</span>
-                      <p className="mt-1 text-xs font-bold uppercase opacity-80">
-                        {posts.filter((p) => !p.cycle_id).length} publicação(ões)
-                      </p>
-                    </button>
-                  )}
-                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCycleOpen(false)}
+                  className="rounded-xl border-2 border-foreground font-black uppercase text-xs"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1.5" /> Voltar para programações
+                </Button>
+                <Card className="mktcc-pop-sm rounded-2xl bg-card">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CalendarDays className="w-4 h-4" />
+                      <span className="font-black uppercase">
+                        {activeCycle?.title || "Programação inicial"}
+                      </span>
+                      {activeCycle && (
+                        <Badge className="rounded-full font-black uppercase border-2 border-foreground bg-secondary text-secondary-foreground">
+                          {activeCycle.is_done ? "Já processado" : "Em aprovação"}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">
+                      {formatDate(activeCycle?.scheduled_date ?? null) ? `Data: ${formatDate(activeCycle?.scheduled_date ?? null)} · ` : ""}
+                      {viewPosts.length} publicação(ões)
+                    </p>
+                    {activeCycle?.note && (
+                      <p className="mt-1 text-sm font-medium whitespace-pre-wrap">{activeCycle.note}</p>
+                    )}
+                  </CardContent>
+                </Card>
                 {activeCycleDone && (
                   <Card className="mktcc-pop-sm rounded-2xl bg-card">
                     <CardContent className="p-4 flex items-start gap-3">
@@ -563,6 +611,7 @@ const MktCC = () => {
                 )}
               </div>
             )}
+
             <div className="mb-4">
               <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
                 <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-primary border-2 border-foreground">
@@ -947,7 +996,9 @@ const MktCC = () => {
             )}
           </TabsContent>
         </Tabs>
+        )}
       </div>
+
 
       <Dialog open={!!activePost} onOpenChange={(open) => !open && setActivePost(null)}>
         <DialogContent className="mktcc max-w-lg max-h-[90vh] overflow-y-auto bg-background text-foreground border-[3px] border-foreground rounded-2xl">
