@@ -990,6 +990,12 @@ const MktCC = () => {
                   <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir alteração
                 </Button>
               </div>
+              {note.trim() && activePost.status !== "approved" && (
+                <p className="text-xs font-bold uppercase text-muted-foreground">
+                  Com observação preenchida só é possível pedir alteração — apague o texto para aprovar.
+                </p>
+              )}
+
 
               )}
             </div>
