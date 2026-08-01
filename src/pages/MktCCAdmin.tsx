@@ -481,7 +481,6 @@ const MktCCAdmin = () => {
                         </div>
                       )}
                     </div>
-                    </div>
                   </CardContent>
                 </Card>
               ))}
