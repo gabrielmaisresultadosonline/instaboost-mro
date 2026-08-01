@@ -1031,6 +1031,23 @@ const MktCCAdmin = () => {
                   <Textarea rows={3} value={newCycle.note}
                     onChange={(e) => setNewCycle({ ...newCycle, note: e.target.value })} />
                 </div>
+                <div className="space-y-2">
+                  <Label>Título da estratégia desta programação</Label>
+                  <Input value={newCycle.strategy_title} placeholder="Ex: Estratégia de autoridade local"
+                    onChange={(e) => setNewCycle({ ...newCycle, strategy_title: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Estratégia desta programação (o cliente vê)</Label>
+                  <Textarea rows={6} value={newCycle.strategy_text}
+                    placeholder="O que será feito neste mês, pilares de conteúdo, frequência..."
+                    onChange={(e) => setNewCycle({ ...newCycle, strategy_text: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Resumo / próximos passos desta programação</Label>
+                  <Textarea rows={4} value={newCycle.summary_text}
+                    onChange={(e) => setNewCycle({ ...newCycle, summary_text: e.target.value })} />
+                </div>
+
                 <Button onClick={createCycle} className="font-black uppercase mktcc-pop-sm">
                   <Plus className="w-4 h-4 mr-2" /> Criar programação
                 </Button>
