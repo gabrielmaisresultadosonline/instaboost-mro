@@ -390,6 +390,11 @@ const MktCC = () => {
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
                     )}
                     <span className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors" />
+                    {post.status === "approved" && (
+                      <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 rotate-[-8deg] bg-primary text-primary-foreground border-y-2 border-foreground py-1 md:py-2 text-center text-[11px] md:text-base font-black uppercase tracking-wider">
+                        Aprovada
+                      </span>
+                    )}
                     <div className="absolute top-1.5 right-1.5 flex w-6 h-6 items-center justify-center rounded-md bg-card border border-foreground">
                       {post.post_type === "carousel" && <Images className="w-3.5 h-3.5 text-foreground" />}
                       {post.post_type === "video" && <Play className="w-3.5 h-3.5 text-foreground" />}
@@ -406,6 +411,7 @@ const MktCC = () => {
                         </span>
                       )}
                     </div>
+
                     {post.revision_count > 0 && post.status === "pending" && (
                       <span className="absolute bottom-1.5 right-1.5 text-[10px] font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md border border-foreground">
                         ATUALIZADO
