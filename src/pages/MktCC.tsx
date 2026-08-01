@@ -337,6 +337,36 @@ const MktCC = () => {
   const formatDate = (value: string | null) =>
     value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : null;
 
+  /**
+   * Estratégia, resumo e próximos passos são SEMPRE por programação.
+   * Sem programação (posts antigos), cai no conteúdo geral do projeto.
+   */
+  const cycleStrategyTitle = activeCycle ? activeCycle.strategy_title || "" : project?.strategy_title || "";
+  const cycleStrategyText = activeCycle ? activeCycle.strategy_text || "" : project?.strategy_text || "";
+  const cycleSummaryText = activeCycle ? activeCycle.summary_text || "" : project?.summary_text || "";
+  const cycleNextSteps = activeCycle
+    ? activeCycle.next_steps_text || activeCycle.summary_text || ""
+    : project?.next_steps_text || "";
+
+  // O admin decide, por programação, o que fica visível para o cliente.
+  const showStrategy = activeCycle ? activeCycle.show_strategy !== false : true;
+  const showSummary = activeCycle ? activeCycle.show_summary !== false : true;
+  const showBefore = activeCycle ? activeCycle.show_before !== false : true;
+
+  const visibleTabs = [
+    { v: "feed", l: "Feed" },
+    ...(showStrategy ? [{ v: "estrategia", l: "Estratégia" }] : []),
+    ...(showSummary ? [{ v: "resumo", l: "Resumo" }] : []),
+    ...(showBefore ? [{ v: "antes", l: "Como iniciamos" }] : []),
+    ...(project?.logo_enabled ? [{ v: "logo", l: "Nova logo" }] : []),
+    { v: "proximos", l: "Próximos passos" },
+  ];
+  const tabsGridClass: Record<number, string> = {
+    2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4",
+    5: "md:grid-cols-5", 6: "md:grid-cols-6",
+  };
+  const safeTab = visibleTabs.some((t) => t.v === tab) ? tab : "feed";
+
   if (!project) {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10 mktcc-dots">
