@@ -541,6 +541,13 @@ const MktCCAdmin = () => {
 
   const approved = posts.filter((p) => p.status === "approved");
   const changes = posts.filter((p) => p.status === "changes");
+  const activeCycle = cycles.find((c) => c.id === activeCycleId) || null;
+  const cycleLocked = !!activeCycle?.is_done;
+  const visiblePosts = cycles.length > 0
+    ? posts.filter((p) => (p.cycle_id || "none") === activeCycleId)
+    : posts;
+  const cycleLabel = (id: string | null) =>
+    cycles.find((c) => c.id === id)?.title || "Sem programação";
 
   return (
     <main className="mktcc min-h-screen bg-background text-foreground p-4 md:p-8">
@@ -554,9 +561,10 @@ const MktCCAdmin = () => {
         </div>
 
         <Tabs defaultValue="posts">
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-6 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
               { v: "posts", l: "Publicações" },
+              { v: "programacoes", l: "Programações" },
               { v: "antes", l: "Antes do perfil" },
               { v: "estrategia", l: "Estratégia" },
               { v: "textos", l: "Resumo / Passos" },
@@ -573,6 +581,35 @@ const MktCCAdmin = () => {
           </TabsList>
 
           <TabsContent value="posts" className="mt-6 space-y-6">
+            {cycles.length > 0 && (
+              <Card className="mktcc-pop-sm rounded-2xl">
+                <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <CalendarDays className="w-5 h-5" />
+                    <p className="text-xs font-black uppercase">Programação em edição</p>
+                  </div>
+                  <Select value={activeCycleId} onValueChange={setActiveCycleId}>
+                    <SelectTrigger className="md:w-72"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {cycles.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.title}{c.is_done ? " · finalizada" : ""}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="none">Sem programação (antigas)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {cycleLocked ? (
+                    <Badge className="bg-secondary text-secondary-foreground font-black uppercase">
+                      <Lock className="w-3.5 h-3.5 mr-1" /> Já processada — somente leitura
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-primary text-primary-foreground font-black uppercase">Em andamento</Badge>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            {!cycleLocked && (
             <Card>
               <CardHeader><CardTitle className="text-lg">Nova publicação</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -633,6 +670,7 @@ const MktCCAdmin = () => {
                 </Button>
               </CardContent>
             </Card>
+            )}
 
             {posts.length > 0 && (
               posts.every((p) => p.status === "approved") ? (
@@ -666,7 +704,9 @@ const MktCCAdmin = () => {
 
             <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
             <div className="grid gap-3">
-              {posts.map((post, index) => (
+              {visiblePosts.map((post) => {
+                const index = posts.findIndex((p) => p.id === post.id);
+                return (
                 <Card key={post.id}>
                   <CardContent className="p-4 flex gap-4 flex-col md:flex-row">
                     <div className="w-full md:w-28 shrink-0">
@@ -798,7 +838,13 @@ const MktCCAdmin = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
+              {visiblePosts.length === 0 && (
+                <p className="text-sm font-semibold text-muted-foreground">
+                  Nenhuma publicação nesta programação ainda.
+                </p>
+              )}
             </div>
             <div className="lg:sticky lg:top-6 space-y-2">
               <p className="text-xs font-black uppercase text-muted-foreground text-center">
@@ -808,7 +854,7 @@ const MktCCAdmin = () => {
                 companyName={selected.company_name}
                 instagramHandle={selected.instagram_handle}
                 avatarUrl={selected.avatar_url}
-                posts={posts.filter((p) => p.is_published)}
+                posts={visiblePosts.filter((p) => p.is_published)}
                 onReorder={reorderFromPreview}
               />
             </div>
