@@ -94,6 +94,7 @@ const MktCCAdmin = () => {
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
   const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "", next_steps_text: "" });
   const [tab, setTab] = useState("posts");
+  const [openCycleIds, setOpenCycleIds] = useState<string[]>([]);
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
