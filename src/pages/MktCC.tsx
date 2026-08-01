@@ -154,7 +154,9 @@ const MktCC = () => {
       setPosts((prev) => prev.map((p) => (p.id === activePost.id ? { ...p, status, client_note: note } : p)));
       setActivePost((prev) => (prev ? { ...prev, status, client_note: note } : prev));
       setProject((prev) => (prev ? { ...prev, all_approved_at: data.all_approved ? new Date().toISOString() : null } : prev));
-      toast.success(status === "approved" ? "Publicação aprovada!" : "Observação salva!");
+      toast.success(
+        status === "approved" ? "Publicação aprovada!" : status === "pending" ? "Aprovação removida" : "Observação salva!"
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
@@ -390,6 +392,11 @@ const MktCC = () => {
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
                     )}
                     <span className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors" />
+                    {post.status === "approved" && (
+                      <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 rotate-[-8deg] bg-primary text-primary-foreground border-y-2 border-foreground py-1 md:py-2 text-center text-[11px] md:text-base font-black uppercase tracking-wider">
+                        Aprovada
+                      </span>
+                    )}
                     <div className="absolute top-1.5 right-1.5 flex w-6 h-6 items-center justify-center rounded-md bg-card border border-foreground">
                       {post.post_type === "carousel" && <Images className="w-3.5 h-3.5 text-foreground" />}
                       {post.post_type === "video" && <Play className="w-3.5 h-3.5 text-foreground" />}
@@ -406,6 +413,7 @@ const MktCC = () => {
                         </span>
                       )}
                     </div>
+
                     {post.revision_count > 0 && post.status === "pending" && (
                       <span className="absolute bottom-1.5 right-1.5 text-[10px] font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md border border-foreground">
                         ATUALIZADO
@@ -672,13 +680,24 @@ const MktCC = () => {
                 </p>
               ) : (
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
-                  onClick={() => review("approved")}
-                  disabled={saving}
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar</>}
-                </Button>
+                {activePost.status === "approved" ? (
+                  <Button
+                    className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl bg-card hover:bg-muted"
+                    variant="outline"
+                    onClick={() => review("pending")}
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Desaprovar</>}
+                  </Button>
+                ) : (
+                  <Button
+                    className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl"
+                    onClick={() => review("approved")}
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar</>}
+                  </Button>
+                )}
                 <Button
                   className="flex-1 h-12 font-black uppercase mktcc-pop-sm rounded-xl bg-card hover:bg-muted"
                   variant="outline"
@@ -688,6 +707,7 @@ const MktCC = () => {
                   <MessageSquareWarning className="w-4 h-4 mr-2" /> Pedir alteração
                 </Button>
               </div>
+
               )}
             </div>
           )}
