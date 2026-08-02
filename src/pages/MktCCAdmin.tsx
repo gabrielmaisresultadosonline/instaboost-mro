@@ -1615,36 +1615,19 @@ const MktCCAdmin = () => {
           </TabsContent>
 
           <TabsContent value="aprovacoes" className="mt-6 space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
-              <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Aprovados</p><p className="text-2xl font-bold">{approved.length}</p></CardContent></Card>
-              <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Para ajustar</p><p className="text-2xl font-bold">{changes.length}</p></CardContent></Card>
-              <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Pendentes</p><p className="text-2xl font-bold">{posts.length - approved.length - changes.length}</p></CardContent></Card>
-            </div>
-
-            {changes.map((post) => (
-              <Card key={post.id}>
-                <CardContent className="p-4 flex gap-3">
-                  <MessageSquareWarning className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-sm">#{posts.findIndex((p) => p.id === post.id) + 1} — pediu alteração</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.client_note}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {approved.map((post) => (
-              <Card key={post.id}>
-                <CardContent className="p-4 flex gap-3 items-center">
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                  <p className="text-sm">
-                    #{posts.findIndex((p) => p.id === post.id) + 1} — aprovado
-                    {post.client_note && <span className="text-muted-foreground"> · {post.client_note}</span>}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+            <ApprovalsBoard
+              posts={posts}
+              cycles={cycles}
+              revisions={revisions}
+              revisingId={revisingId}
+              uploading={uploading}
+              onRevisionNote={(postId, note) => setRevision(postId, { note })}
+              onRevisionFiles={(post, files) => uploadRevisionFiles(post as Post, files)}
+              onApplyRevision={(post) => applyRevision(post as Post)}
+              onOpenCycle={(cycleId) => { setActiveCycleId(cycleId); setTab("posts"); }}
+            />
           </TabsContent>
+
         </Tabs>
       </div>
     </main>
