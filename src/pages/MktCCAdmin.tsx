@@ -18,6 +18,7 @@ import {
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
 import { VideoThumbPicker } from "@/components/mktcc/VideoThumbPicker";
+import { ApprovalsBoard } from "@/components/mktcc/ApprovalsBoard";
 
 interface Project {
   id: string; company_name: string; access_code: string;
