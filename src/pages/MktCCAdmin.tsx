@@ -1541,13 +1541,20 @@ const MktCCAdmin = () => {
                   <div className="flex items-center gap-3">
                     <Facebook className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-bold text-sm">Meta App Config</p>
-                      <p className="text-xs text-muted-foreground">Configure as credenciais do App da Meta (App ID e Secret).</p>
+                      <p className="font-bold text-sm">Conexão com Redes Sociais</p>
+                      <p className="text-xs text-muted-foreground">
+                        {selected.fb_page_id ? `Conectado à página: ${selected.fb_page_id}` : "Vincule a página do Facebook e Instagram para automação."}
+                      </p>
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => setTab("config")} className="rounded-lg">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configurar
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      toast.info("Buscando páginas disponíveis no seu Facebook...");
+                    }} 
+                    className="rounded-lg font-black uppercase bg-yellow-400 text-black hover:bg-yellow-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    {selected.fb_page_id ? "Trocar Página" : "Conectar Página"}
                   </Button>
                 </div>
 
