@@ -189,6 +189,7 @@ import MktCC from "./pages/MktCC";
 import MktCCAdmin from "./pages/MktCCAdmin";
 import FerramentaMROPromo from "./pages/FerramentaMROPromo";
 import FerramentaMROPromoAdmin from "./pages/FerramentaMROPromoAdmin";
+import Dloar from "./pages/Dloar";
 import PagamentoMRO from "./pages/PagamentoMRO";
 import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
 import AgenteMRO from "./pages/AgenteMRO";
@@ -268,6 +269,7 @@ const App = () => (
           <Route path="/afiliadosx/resumo" element={<AfiliadosXResumo />} />
           <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
           <Route path="/ferramentamropromo" element={<Ferramentammmr />} />
+          <Route path="/dloar" element={<Dloar />} />
           <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagramm-nova" element={<InstagramNovaPlan />} />
           <Route path="/instagrammnew" element={<InstagrammNew />} />

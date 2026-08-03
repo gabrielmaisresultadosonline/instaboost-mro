@@ -44,7 +44,7 @@ function track(event_type: string, extra?: Record<string, unknown>) {
   } catch {}
 }
 
-export default function FerramentaMROPromo() {
+export default function Dloar() {
   const [cfg, setCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({
     video_url: null,
     hls_url: null,
