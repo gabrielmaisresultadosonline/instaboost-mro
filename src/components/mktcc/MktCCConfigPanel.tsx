@@ -159,9 +159,11 @@ export const MktCCConfigPanel = ({ creds, projects }: MktCCConfigPanelProps) => 
                       </Badge>
                     )}
                   </div>
-                  <Button size="sm" variant={conn ? "outline" : "default"} onClick={() => startFBLogin(project.id)}>
-                    {conn ? "Reconectar" : "Conectar Facebook"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant={conn ? "outline" : "default"} onClick={() => startFBLogin(project.id)}>
+                      {conn ? "Reconectar" : "Conectar Facebook"}
+                    </Button>
+                  </div>
                 </div>
               );
             })}
