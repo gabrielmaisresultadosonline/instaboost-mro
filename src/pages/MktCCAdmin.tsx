@@ -779,10 +779,6 @@ const MktCCAdmin = () => {
                 {t.l}
               </TabsTrigger>
             ))}
-                    <TabsTrigger value="config" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Configurações
-                    </TabsTrigger>
                   </TabsList>
 
           <TabsContent value="posts" className="mt-6 space-y-6">
