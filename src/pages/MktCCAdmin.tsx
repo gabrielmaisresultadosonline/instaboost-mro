@@ -1536,8 +1536,22 @@ const MktCCAdmin = () => {
                     <Input value={selected.access_code} onChange={(e) => setSelected({ ...selected, access_code: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
-                <div
 
+                <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20 mt-4">
+                  <div className="flex items-center gap-3">
+                    <Facebook className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-bold text-sm">Conexão com Redes Sociais</p>
+                      <p className="text-xs text-muted-foreground">Vincule as páginas do Facebook e Instagram para automação.</p>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={() => setTab("config")} className="rounded-lg">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configurar
+                  </Button>
+                </div>
+
+                <div
                   className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
                   onPaste={(e) => {
                     const file = Array.from(e.clipboardData?.items || [])
