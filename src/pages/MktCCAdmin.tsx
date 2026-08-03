@@ -1537,31 +1537,6 @@ const MktCCAdmin = () => {
                     <Input value={selected.access_code} onChange={(e) => setSelected({ ...selected, access_code: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-5 h-12 rounded-xl bg-muted/30 p-1 mb-6">
-                    <button onClick={() => setTab("posts")} className={cn("rounded-lg flex items-center justify-center text-sm font-medium transition-all", tab === "posts" ? "bg-background shadow-sm" : "text-muted-foreground")}>
-                      <Images className="w-4 h-4 mr-2" /> Publicações
-                    </button>
-                    <button onClick={() => setTab("cycles")} className={cn("rounded-lg flex items-center justify-center text-sm font-medium transition-all", tab === "cycles" ? "bg-background shadow-sm" : "text-muted-foreground")}>
-                      <CalendarDays className="w-4 h-4 mr-2" /> Programações
-                    </button>
-                    <button onClick={() => setTab("approvals")} className={cn("rounded-lg flex items-center justify-center text-sm font-medium transition-all", tab === "approvals" ? "bg-background shadow-sm" : "text-muted-foreground")}>
-                      <CheckCircle2 className="w-4 h-4 mr-2" /> Aprovações
-                    </button>
-                    <button onClick={() => setTab("project")} className={cn("rounded-lg flex items-center justify-center text-sm font-medium transition-all", tab === "project" ? "bg-background shadow-sm" : "text-muted-foreground")}>
-                      <Instagram className="w-4 h-4 mr-2" /> Perfil
-                    </button>
-                    <button onClick={() => setTab("config")} className={cn("rounded-lg flex items-center justify-center text-sm font-medium transition-all", tab === "config" ? "bg-background shadow-sm" : "text-muted-foreground")}>
-                      <Settings className="w-4 h-4 mr-2" /> Config
-                    </button>
-                  </div>
-
-                  {tab === "posts" && (
-                    <div className="space-y-6">
-                      {/* Conteúdo de posts... vou restaurar os blocos originais abaixo */}
-                    </div>
-                  )}
-                </div>
                 <div
 
                   className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
