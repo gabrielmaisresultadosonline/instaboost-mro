@@ -776,7 +776,7 @@ const MktCCAdmin = () => {
                 value={t.v}
                 className="rounded-xl font-bold uppercase text-[10px] text-secondary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2"
               >
-                {t.icon}{t.l}
+                {t.l}
               </TabsTrigger>
             ))}
           </TabsList>
