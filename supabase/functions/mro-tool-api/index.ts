@@ -427,18 +427,57 @@ serve(async (req) => {
       }
 
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
-      if (fixedCount >= totalSlots(user)) {
+      const fixedCount = accounts.filter((a) => !a.is_trial).length;
+      const total = totalSlots(user);
+      
+      if (fixedCount >= total) {
+        await supabase.from("mro_tool_logs").insert({
+          user_id: user.id,
+          action_type: "limit_reached",
+          details: { instagram, fixed_count: fixedCount, total_slots: total }
+        });
         return json({
           success: false,
           limit_reached: true,
-          error: `Você não pode cadastrar mais nenhum perfil: o limite de ${totalSlots(user)} conta(s) já foi excedido. Entre em contato com o administrador para liberar contas extras.`,
+          error: `Você não pode cadastrar mais nenhum perfil: o limite de ${total} conta(s) já foi excedido.`,
         });
       }
 
+      // Se estiver usando vaga extra (acima de plan_accounts)
+      if (fixedCount >= user.plan_accounts) {
+        const extra = Math.max(0, Number(user.extra_accounts) || 0);
+        if (extra > 0) {
+          await supabase.from("mro_tool_users").update({ extra_accounts: extra - 1 }).eq("id", user.id);
+          await supabase.from("mro_tool_logs").insert({
+            user_id: user.id,
+            action_type: "extra_consumed",
+            details: { instagram, previous_extra: extra, new_extra: extra - 1 }
+          });
+        }
+      }
 
       await supabase.from("mro_tool_accounts").insert({ user_id: user.id, instagram_username: instagram });
+      await supabase.from("mro_tool_logs").insert({
+        user_id: user.id,
+        action_type: "account_added",
+        details: { instagram, is_admin: false }
+      });
       return json({ success: true, ...(await fullPayload(user)) });
     }
+
+    if (action === "get_user_logs") {
+      const id = String(body.id || "");
+      if (!id) return json({ success: false, error: "ID é obrigatório" }, 400);
+      const { data: logs, error } = await supabase
+        .from("mro_tool_logs")
+        .select("*")
+        .eq("user_id", id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) return json({ success: false, error: error.message }, 500);
+      return json({ success: true, logs });
+    }
+
 
     // ---------------- ADMIN ----------------
     if (action === "list_users") {
@@ -713,8 +752,16 @@ serve(async (req) => {
 
       const { error } = await supabase.from("mro_tool_accounts").insert({ user_id: userId, instagram_username: instagram });
       if (error) return json({ success: false, error: error.message }, 500);
+      
+      await supabase.from("mro_tool_logs").insert({
+        user_id: userId,
+        action_type: "account_added",
+        details: { instagram, is_admin: true }
+      });
+      
       return json({ success: true });
     }
+
 
     /**
      * Remove uma conta do Instagram.
