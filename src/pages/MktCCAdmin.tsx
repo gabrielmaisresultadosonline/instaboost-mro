@@ -1541,8 +1541,8 @@ const MktCCAdmin = () => {
                   <div className="flex items-center gap-3">
                     <Facebook className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-bold text-sm">Conexão com Redes Sociais</p>
-                      <p className="text-xs text-muted-foreground">Vincule as páginas do Facebook e Instagram para automação.</p>
+                      <p className="font-bold text-sm">Meta App Config</p>
+                      <p className="text-xs text-muted-foreground">Configure as credenciais do App da Meta (App ID e Secret).</p>
                     </div>
                   </div>
                   <Button size="sm" onClick={() => setTab("config")} className="rounded-lg">
