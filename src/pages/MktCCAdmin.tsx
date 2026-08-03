@@ -760,16 +760,16 @@ const MktCCAdmin = () => {
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
-              { v: "posts", l: "Publicações", icon: <Images className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "programacoes", l: "Programações", icon: <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "aprovacoes", l: "Aprovações", icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "estrategia", l: "Perfil", icon: <Instagram className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "antes", l: "Antes", icon: <Camera className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "logo", l: "Logo", icon: <Images className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "textos", l: "Resumo", icon: <Copy className="w-3.5 h-3.5 mr-1.5" /> },
-              { v: "config", l: "Config", icon: <Settings className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "posts", l: "Publicações" },
+              { v: "programacoes", l: "Programações" },
+              { v: "aprovacoes", l: "Aprovações" },
+              { v: "estrategia", l: "Perfil" },
+              { v: "antes", l: "Antes" },
+              { v: "logo", l: "Logo" },
+              { v: "textos", l: "Resumo" },
+              { v: "config", l: "Config" },
             ].map((t) => (
               <TabsTrigger
                 key={t.v}
