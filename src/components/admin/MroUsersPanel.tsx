@@ -11,9 +11,12 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Users, Loader2, RefreshCw, Search, Trash2, Save, Plus, X, Instagram, RotateCcw, Infinity as InfinityIcon, ImageOff,
-  Copy, Eye, EyeOff, Mail, Minus,
+  Copy, Eye, EyeOff, Mail, Minus, History, Clock, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { copyAccessToClipboard } from '@/lib/accessClipboard';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
 
 export interface MroAccount {
   id: string;
@@ -76,6 +79,10 @@ const MroUsersPanel: React.FC = () => {
   const [newAccount, setNewAccount] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<{ url: string; username: string } | null>(null);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [userLogs, setUserLogs] = useState<Record<string, any[]>>({});
+  const [loadingLogs, setLoadingLogs] = useState<Record<string, boolean>>({});
+  const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({});
+
 
   const handleCopyAccess = async (u: MroUser) => {
     const ok = await copyAccessToClipboard({ username: u.username, password: u.password_plain, email: u.email });
@@ -145,6 +152,25 @@ const MroUsersPanel: React.FC = () => {
       });
     } finally {
       setSendingId(null);
+    }
+  };
+  const loadLogs = async (userId: string) => {
+    setLoadingLogs(prev => ({ ...prev, [userId]: true }));
+    try {
+      const data = await call({ action: 'get_user_logs', id: userId });
+      setUserLogs(prev => ({ ...prev, [userId]: data.logs || [] }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingLogs(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const toggleLogs = (userId: string) => {
+    const isNowOpen = !expandedLogs[userId];
+    setExpandedLogs(prev => ({ ...prev, [userId]: isNowOpen }));
+    if (isNowOpen && !userLogs[userId]) {
+      loadLogs(userId);
     }
   };
 
@@ -414,10 +440,63 @@ const MroUsersPanel: React.FC = () => {
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => runAction({ action: 'reset_trials', id: u.id }, 'Testes reiniciados')}>
                   <RotateCcw className="w-3 h-3" /> Testes
                 </Button>
-                <Button size="sm" variant="destructive" onClick={() => runAction({ action: 'delete_user', id: u.id }, 'Usuário removido')}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+                  <Button size="sm" variant="destructive" onClick={() => runAction({ action: 'delete_user', id: u.id }, 'Usuário removido')}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Aba de Logs do Usuário */}
+                <div className="mt-3 border-t border-border pt-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => toggleLogs(u.id)}
+                  >
+                    <History className="w-3 h-3" />
+                    Histórico de Movimentações
+                    {expandedLogs[u.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
+
+                  {expandedLogs[u.id] && (
+                    <div className="mt-2 space-y-1.5 pl-2 max-h-48 overflow-y-auto custom-scrollbar">
+                      {loadingLogs[u.id] ? (
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground py-2">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Carregando logs...
+                        </div>
+                      ) : (userLogs[u.id] || []).length === 0 ? (
+                        <div className="text-[10px] text-muted-foreground py-2">Nenhuma movimentação registrada.</div>
+                      ) : (
+                        (userLogs[u.id] || []).map((log: any) => (
+                          <div key={log.id} className="flex items-start gap-2 text-[10px] py-1 border-b border-border/50 last:border-0">
+                            <Clock className="w-3 h-3 mt-0.5 text-muted-foreground shrink-0" />
+                            <div className="flex-1">
+                              <span className="font-semibold text-muted-foreground">
+                                {format(new Date(log.created_at), 'dd/MM HH:mm', { locale: ptBR })}:
+                              </span>
+                              <span className={cn(
+                                "ml-1 font-medium",
+                                log.action_type === 'extra_consumed' && "text-red-400",
+                                log.action_type === 'limit_reached' && "text-amber-400",
+                                log.action_type === 'account_added' && "text-green-400"
+                              )}>
+                                {log.action_type === 'account_added' && `Conta @${log.details?.instagram} cadastrada${log.details?.is_admin ? ' (via Admin)' : ''}`}
+                                {log.action_type === 'extra_consumed' && `EXTRA CONSUMIDO: @${log.details?.instagram} (Restantes: ${log.details?.new_extra})`}
+                                {log.action_type === 'limit_reached' && `LIMITE ESGOTADO: Tentou cadastrar @${log.details?.instagram}`}
+                                {log.action_type === 'account_removed' && `Conta removida`}
+                                {log.action_type === 'trial_used' && `Teste usado: @${log.details?.instagram}`}
+                              </span>
+                            </div>
+                            {log.action_type === 'extra_consumed' && (
+                              <Badge className="h-4 px-1 text-[8px] bg-red-500/10 text-red-500 border-red-500/20">EXTRA</Badge>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+
 
               {/* Cascata de contas do Instagram — sempre visível */}
               <div className="mt-3 pl-3 border-l-2 border-border space-y-1">

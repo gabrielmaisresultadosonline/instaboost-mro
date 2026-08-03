@@ -4622,6 +4622,38 @@ export type Database = {
           },
         ]
       }
+      mro_tool_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mro_tool_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mro_tool_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mro_tool_users: {
         Row: {
           created_at: string
