@@ -4,14 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type PlanKey = "trial" | "solo" | "pro" | "lifetime";
+type PlanKey = "pro";
 const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
-  trial: { name: "Teste 1 Dia", price: 97, installment: "8", accounts: 4, durationLabel: "1 dia · liberação imediata", badge: "COMECE AQUI", icon: Zap },
-  solo: { name: "Anual Solo", price: 247, installment: "25", accounts: 1, durationLabel: "1 ano de acesso", icon: Crown },
-  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "1 ano de acesso", badge: "MAIS VENDIDO", icon: Sparkles },
-  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Pagamento único · Vitalício", badge: "MELHOR CUSTO", icon: InfinityIcon },
+  pro: { name: "Anual Pro", price: 300, installment: "30", accounts: 4, durationLabel: "1 ano de acesso", badge: "OFERTA EXCLUSIVA", icon: Sparkles },
 };
-const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+const formatUSD = (v: number) => `$ ${v.toFixed(2)}`;
+
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 
@@ -320,26 +318,20 @@ export default function Dloar() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="flex justify-center gap-5">
               {(Object.keys(PLANS) as PlanKey[]).map((key) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
                 const themes: Record<PlanKey, string> = {
-                  trial: "border-emerald-500/60 ring-emerald-500/20 from-emerald-500/10",
-                  solo: "border-sky-500/60 ring-sky-500/20 from-sky-500/10",
-                  pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
-                  lifetime: "border-violet-500/60 ring-violet-500/20 from-violet-500/10",
+                  pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 scale-[1.05]",
                 };
                 const btns: Record<PlanKey, string> = {
-                  trial: "bg-emerald-500 hover:bg-emerald-400 text-white",
-                  solo: "bg-sky-500 hover:bg-sky-400 text-white",
                   pro: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
-                  lifetime: "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white",
                 };
                 return (
                   <div
                     key={key}
-                    className={`relative rounded-2xl border-2 bg-gradient-to-b to-zinc-950/60 p-5 ring-4 ${themes[key]} shadow-xl`}
+                    className={`relative rounded-2xl border-2 bg-gradient-to-b to-zinc-950/60 p-5 ring-4 ${themes[key]} shadow-xl max-w-sm w-full`}
                   >
                     {p.badge && (
                       <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-3 py-1 rounded-full bg-amber-500 text-black tracking-wider shadow-md">
@@ -351,9 +343,9 @@ export default function Dloar() {
                     </div>
                     <div className="font-bold text-lg">{p.name}</div>
                     <div className="text-[11px] text-white/60 mb-3">{p.durationLabel}</div>
-                    <div className="text-3xl font-black">{formatBRL(p.price)}</div>
+                    <div className="text-3xl font-black">{formatUSD(p.price)}</div>
                     <div className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md mt-1 mb-4">
-                      12x de R$ {p.installment}
+                      12x de $ {p.installment}
                     </div>
                     <div className="space-y-2 text-sm text-white/80 border-t border-white/10 pt-3">
                       <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /><span><strong>{p.accounts}</strong> {p.accounts === 1 ? "conta" : "contas"} Instagram</span></div>
@@ -361,17 +353,18 @@ export default function Dloar() {
                       <div className="flex items-center gap-2"><Bot className="w-4 h-4 text-emerald-400 shrink-0" />Inteligência Artificial</div>
                       <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />Área VIP + Suporte</div>
                     </div>
-                    <Link
-                      to="/pagamentomro"
+                    <a
+                      href="https://pay.kiwify.com/VMkKkrC"
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
                       Aproveitar agora →
-                    </Link>
+                    </a>
                   </div>
                 );
               })}
             </div>
+
 
             <div className="mt-8 max-w-2xl mx-auto flex items-center justify-center gap-3 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4">
               <Shield className="w-6 h-6 text-emerald-400 shrink-0" />
