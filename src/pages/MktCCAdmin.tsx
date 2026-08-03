@@ -761,22 +761,23 @@ const MktCCAdmin = () => {
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-7 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 h-auto gap-1 p-1.5 rounded-2xl bg-secondary mktcc-pop-sm">
             {[
-              { v: "posts", l: "Publicações" },
-              { v: "programacoes", l: "Programações" },
-              { v: "antes", l: "Antes do perfil" },
-              { v: "logo", l: "Logo" },
-              { v: "estrategia", l: "Estratégia" },
-              { v: "textos", l: "Resumo / Passos" },
-              { v: "aprovacoes", l: "Aprovações" },
+              { v: "posts", l: "Publicações", icon: <Images className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "programacoes", l: "Programações", icon: <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "aprovacoes", l: "Aprovações", icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "estrategia", l: "Perfil", icon: <Instagram className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "antes", l: "Antes", icon: <Camera className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "logo", l: "Logo", icon: <Images className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "textos", l: "Resumo", icon: <Copy className="w-3.5 h-3.5 mr-1.5" /> },
+              { v: "config", l: "Config", icon: <Settings className="w-3.5 h-3.5 mr-1.5" /> },
             ].map((t) => (
               <TabsTrigger
                 key={t.v}
                 value={t.v}
-                className="rounded-xl font-bold uppercase text-xs text-secondary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="rounded-xl font-bold uppercase text-[10px] text-secondary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2"
               >
-                {t.l}
+                {t.icon}{t.l}
               </TabsTrigger>
             ))}
           </TabsList>
