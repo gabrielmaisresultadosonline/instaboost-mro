@@ -1663,7 +1663,7 @@ const MktCCAdmin = () => {
             <MktCCConfigPanel creds={creds} projects={configProjects} />
           </TabsContent>
 
-        </Tabs>
+                </Tabs>
       </div>
     </main>
   );
