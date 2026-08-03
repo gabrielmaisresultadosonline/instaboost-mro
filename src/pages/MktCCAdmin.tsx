@@ -13,12 +13,13 @@ import { toast } from "sonner";
 import {
   Loader2, Plus, Save, Trash2, Upload, ArrowLeft, ArrowUp, ArrowDown,
   CheckCircle2, MessageSquareWarning, Copy, RefreshCw, Send, EyeOff, Camera,
-  Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images, ChevronDown,
+  Instagram, Facebook, X, CalendarDays, Lock, Unlock, Images, ChevronDown, Settings,
 } from "lucide-react";
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
 import { VideoThumbPicker } from "@/components/mktcc/VideoThumbPicker";
 import { ApprovalsBoard } from "@/components/mktcc/ApprovalsBoard";
+import { MktCCConfigPanel } from "@/components/mktcc/MktCCConfigPanel";
 
 interface Project {
   id: string; company_name: string; access_code: string;
@@ -95,6 +96,7 @@ const MktCCAdmin = () => {
   const [activeCycleId, setActiveCycleId] = useState<string>("none");
   const [newCycle, setNewCycle] = useState({ title: "", scheduled_date: "", note: "", strategy_title: "", strategy_text: "", summary_text: "", next_steps_text: "" });
   const [tab, setTab] = useState("posts");
+  const [configProjects, setConfigProjects] = useState<Project[]>([]);
   const [openCycleIds, setOpenCycleIds] = useState<string[]>([]);
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
@@ -111,6 +113,7 @@ const MktCCAdmin = () => {
   const loadProjects = async () => {
     const data = await call("list_projects");
     setProjects(data.projects || []);
+    setConfigProjects(data.projects || []);
   };
 
   const loadPosts = async (projectId: string) => {
@@ -1125,6 +1128,10 @@ const MktCCAdmin = () => {
               />
             </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="config" className="space-y-6 outline-none">
+            <MktCCConfigPanel creds={creds} projects={configProjects} />
           </TabsContent>
 
           <TabsContent value="programacoes" className="mt-6 space-y-4">
