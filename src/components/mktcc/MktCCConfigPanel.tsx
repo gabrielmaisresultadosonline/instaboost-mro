@@ -114,15 +114,15 @@ export const MktCCConfigPanel = ({ creds, projects }: MktCCConfigPanelProps) => 
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Facebook App ID</Label>
-              <Input value={appId} onChange={e => setAppId(e.target.value)} placeholder="Ex: 123456789" />
+              <Label className="text-xs font-black uppercase">Facebook App ID</Label>
+              <Input value={appId} onChange={e => setAppId(e.target.value)} placeholder="Ex: 123456789" className="rounded-xl border-foreground/20" />
             </div>
             <div className="space-y-2">
-              <Label>App Secret</Label>
-              <Input type="password" value={appSecret} onChange={e => setAppSecret(e.target.value)} placeholder="••••••••" />
+              <Label className="text-xs font-black uppercase">App Secret</Label>
+              <Input type="password" value={appSecret} onChange={e => setAppSecret(e.target.value)} placeholder="••••••••" className="rounded-xl border-foreground/20" />
             </div>
           </div>
-          <Button onClick={saveFBConfig} disabled={saving} className="w-full md:w-auto">
+          <Button onClick={saveFBConfig} disabled={saving} className="w-full md:w-auto rounded-xl font-black uppercase bg-yellow-400 text-black hover:bg-yellow-500 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Salvar Credenciais do App
           </Button>
@@ -159,9 +159,11 @@ export const MktCCConfigPanel = ({ creds, projects }: MktCCConfigPanelProps) => 
                       </Badge>
                     )}
                   </div>
-                  <Button size="sm" variant={conn ? "outline" : "default"} onClick={() => startFBLogin(project.id)}>
+                  <div className="flex gap-2">
+                  <Button size="sm" variant={conn ? "outline" : "default"} onClick={() => startFBLogin(project.id)} className="rounded-xl font-black uppercase bg-yellow-400 text-black hover:bg-yellow-500 border-2 border-black">
                     {conn ? "Reconectar" : "Conectar Facebook"}
                   </Button>
+                  </div>
                 </div>
               );
             })}
