@@ -688,11 +688,17 @@ const MktCCAdmin = () => {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
             <h1 className="text-2xl font-black uppercase tracking-tight">Projetos / <span className="mktcc-gradient-text">Empresas</span></h1>
-            <Button variant="outline" size="sm" onClick={() => loadProjects()}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={startFBLoginGlobal} variant="outline" className="rounded-xl font-black uppercase border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-blue-600 text-white hover:bg-blue-700">
+                <Facebook className="w-4 h-4 mr-2" />
+                Conectar Facebook (Admin)
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => loadProjects()}>
+                <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+              </Button>
+            </div>
           </div>
 
           <Card>
