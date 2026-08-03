@@ -33,6 +33,7 @@ interface Project {
   logo_enabled: boolean; logo_before_url: string; logo_after_url: string;
   logo_reason: string; logo_status: "pending" | "approved" | "changes";
   logo_client_note: string; logo_reviewed_at: string | null;
+  fb_page_id?: string;
 }
 
 interface Post {
