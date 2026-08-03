@@ -1652,7 +1652,15 @@ const MktCCAdmin = () => {
           </TabsContent>
 
           <TabsContent value="config" className="mt-6 space-y-4">
-            <MktCCConfigPanel creds={creds} projects={configProjects} />
+            <div className="max-w-4xl mx-auto space-y-6">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" onClick={() => setTab("posts")}>
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Voltar para publicações
+                </Button>
+                <h2 className="text-xl font-black uppercase italic">Configurações Meta Business</h2>
+              </div>
+              <MktCCConfigPanel creds={creds} projects={configProjects} />
+            </div>
           </TabsContent>
 
         </Tabs>
