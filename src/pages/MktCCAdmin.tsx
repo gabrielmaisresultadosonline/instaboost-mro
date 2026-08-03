@@ -739,6 +739,11 @@ const MktCCAdmin = () => {
     );
   }
 
+  const startFBLoginGlobal = () => {
+    toast.info("Iniciando fluxo de login Meta Business Suite...");
+    window.alert("Aqui o admin faria o login com o Facebook pessoal (gestor) para ter acesso às páginas.");
+  };
+
   const approved = posts.filter((p) => p.status === "approved");
   const changes = posts.filter((p) => p.status === "changes");
   const activeCycle = cycles.find((c) => c.id === activeCycleId) || null;
