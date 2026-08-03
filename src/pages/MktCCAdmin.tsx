@@ -1535,6 +1535,29 @@ const MktCCAdmin = () => {
                     <Input value={selected.access_code} onChange={(e) => setSelected({ ...selected, access_code: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
+                <Tabs value={tab} onValueChange={setTab} className="mt-8">
+                  <TabsList className="grid grid-cols-5 h-12 rounded-xl bg-muted/30 p-1 mb-6">
+                    <TabsTrigger value="posts" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <Images className="w-4 h-4 mr-2" />
+                      Publicações
+                    </TabsTrigger>
+                    <TabsTrigger value="cycles" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <CalendarDays className="w-4 h-4 mr-2" />
+                      Programações
+                    </TabsTrigger>
+                    <TabsTrigger value="approvals" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Aprovações
+                    </TabsTrigger>
+                    <TabsTrigger value="project" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <Instagram className="w-4 h-4 mr-2" />
+                      Perfil
+                    </TabsTrigger>
+                    <TabsTrigger value="config" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Configurações
+                    </TabsTrigger>
+                  </TabsList>
                 <div
 
                   className="space-y-3 rounded-xl border-2 border-foreground p-3 focus-within:ring-2 focus-within:ring-primary"
