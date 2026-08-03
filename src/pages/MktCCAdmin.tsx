@@ -33,6 +33,7 @@ interface Project {
   logo_enabled: boolean; logo_before_url: string; logo_after_url: string;
   logo_reason: string; logo_status: "pending" | "approved" | "changes";
   logo_client_note: string; logo_reviewed_at: string | null;
+  fb_page_id?: string;
 }
 
 interface Post {
@@ -98,6 +99,11 @@ const MktCCAdmin = () => {
   const [tab, setTab] = useState("posts");
   const [configProjects, setConfigProjects] = useState<Project[]>([]);
   const [openCycleIds, setOpenCycleIds] = useState<string[]>([]);
+  
+  const startFBLoginGlobal = () => {
+    toast.info("Iniciando fluxo de login Meta Business Suite...");
+    window.alert("Aqui o admin faria o login com o Facebook pessoal (gestor) para ter acesso às páginas.");
+  };
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
@@ -687,11 +693,17 @@ const MktCCAdmin = () => {
     return (
       <main className="mktcc min-h-screen bg-background text-foreground p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
             <h1 className="text-2xl font-black uppercase tracking-tight">Projetos / <span className="mktcc-gradient-text">Empresas</span></h1>
-            <Button variant="outline" size="sm" onClick={() => loadProjects()}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={startFBLoginGlobal} variant="outline" className="rounded-xl font-black uppercase border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-blue-600 text-white hover:bg-blue-700">
+                <Facebook className="w-4 h-4 mr-2" />
+                Conectar Facebook (Admin)
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => loadProjects()}>
+                <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+              </Button>
+            </div>
           </div>
 
           <Card>
@@ -737,6 +749,7 @@ const MktCCAdmin = () => {
       </main>
     );
   }
+
 
   const approved = posts.filter((p) => p.status === "approved");
   const changes = posts.filter((p) => p.status === "changes");
@@ -1541,13 +1554,20 @@ const MktCCAdmin = () => {
                   <div className="flex items-center gap-3">
                     <Facebook className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-bold text-sm">Meta App Config</p>
-                      <p className="text-xs text-muted-foreground">Configure as credenciais do App da Meta (App ID e Secret).</p>
+                      <p className="font-bold text-sm">Conexão com Redes Sociais</p>
+                      <p className="text-xs text-muted-foreground">
+                        {selected.fb_page_id ? `Conectado à página: ${selected.fb_page_id}` : "Vincule a página do Facebook e Instagram para automação."}
+                      </p>
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => setTab("config")} className="rounded-lg">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configurar
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      toast.info("Buscando páginas disponíveis no seu Facebook...");
+                    }} 
+                    className="rounded-lg font-black uppercase bg-yellow-400 text-black hover:bg-yellow-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    {selected.fb_page_id ? "Trocar Página" : "Conectar Página"}
                   </Button>
                 </div>
 

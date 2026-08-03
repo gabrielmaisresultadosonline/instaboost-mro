@@ -126,9 +126,15 @@ export const MktCCConfigPanel = ({ creds, projects }: MktCCConfigPanelProps) => 
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Salvar Credenciais do App
           </Button>
-          <p className="text-[10px] text-muted-foreground uppercase font-bold">
-            Estas credenciais são usadas para autenticar com a Meta Graph API e permitir postagem automática.
-          </p>
+          <div className="mt-4 p-3 bg-muted rounded-xl border border-foreground/10">
+            <p className="text-[10px] text-foreground uppercase font-black mb-1">Configuração de Redirecionamento (Meta Developer Portal):</p>
+            <code className="text-[10px] bg-black text-green-400 p-1 block rounded border border-white/20 break-all">
+              {window.location.origin}/auth/callback
+            </code>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold mt-2">
+              Permissões necessárias: <span className="text-primary">pages_manage_posts, instagram_basic, instagram_content_publish, pages_read_engagement</span>.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
