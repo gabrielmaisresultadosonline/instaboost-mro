@@ -1622,7 +1622,7 @@ const MktCCAdmin = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="aprovacoes" className="mt-6 space-y-4">
+          <TabsContent value="approvals" className="mt-6 space-y-4">
             <ApprovalsBoard
               posts={posts}
               cycles={cycles}
@@ -1634,6 +1634,10 @@ const MktCCAdmin = () => {
               onApplyRevision={(post) => applyRevision(post as Post)}
               onOpenCycle={(cycleId) => { setActiveCycleId(cycleId); setTab("posts"); }}
             />
+          </TabsContent>
+
+          <TabsContent value="config" className="mt-6 space-y-4">
+            <MktCCConfigPanel creds={creds} projects={configProjects} />
           </TabsContent>
 
         </Tabs>
