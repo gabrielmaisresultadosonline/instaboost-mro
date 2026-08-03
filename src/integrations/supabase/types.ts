@@ -3859,8 +3859,54 @@ export type Database = {
           },
         ]
       }
+      mktcc_automation_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          post_id: string | null
+          project_id: string | null
+          status: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          post_id?: string | null
+          project_id?: string | null
+          status: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          post_id?: string | null
+          project_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mktcc_automation_logs_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "mktcc_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mktcc_automation_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "mktcc_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mktcc_cycles: {
         Row: {
+          auto_publish_on_approval: boolean | null
           completed_at: string | null
           created_at: string
           id: string
@@ -3868,6 +3914,7 @@ export type Database = {
           note: string
           order_index: number
           project_id: string
+          publish_interval_days: number | null
           scheduled_date: string | null
           show_before: boolean
           show_strategy: boolean
@@ -3880,6 +3927,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_publish_on_approval?: boolean | null
           completed_at?: string | null
           created_at?: string
           id?: string
@@ -3887,6 +3935,7 @@ export type Database = {
           note?: string
           order_index?: number
           project_id: string
+          publish_interval_days?: number | null
           scheduled_date?: string | null
           show_before?: boolean
           show_strategy?: boolean
@@ -3899,6 +3948,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_publish_on_approval?: boolean | null
           completed_at?: string | null
           created_at?: string
           id?: string
@@ -3906,6 +3956,7 @@ export type Database = {
           note?: string
           order_index?: number
           project_id?: string
+          publish_interval_days?: number | null
           scheduled_date?: string | null
           show_before?: boolean
           show_strategy?: boolean
@@ -3927,6 +3978,33 @@ export type Database = {
           },
         ]
       }
+      mktcc_fb_configs: {
+        Row: {
+          app_id: string
+          app_secret: string
+          client_token: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          app_id: string
+          app_secret: string
+          client_token?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          app_id?: string
+          app_secret?: string
+          client_token?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mktcc_posts: {
         Row: {
           aspect_ratio: string
@@ -3943,10 +4021,14 @@ export type Database = {
           previous_caption: string
           previous_media_urls: Json
           project_id: string
+          publish_error: string | null
+          publish_status: string | null
+          published_at: string | null
           reviewed_at: string | null
           revised_at: string | null
           revision_count: number
           revision_note: string
+          scheduled_at: string | null
           status: string
           updated_at: string
         }
@@ -3965,10 +4047,14 @@ export type Database = {
           previous_caption?: string
           previous_media_urls?: Json
           project_id: string
+          publish_error?: string | null
+          publish_status?: string | null
+          published_at?: string | null
           reviewed_at?: string | null
           revised_at?: string | null
           revision_count?: number
           revision_note?: string
+          scheduled_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -3987,10 +4073,14 @@ export type Database = {
           previous_caption?: string
           previous_media_urls?: Json
           project_id?: string
+          publish_error?: string | null
+          publish_status?: string | null
+          published_at?: string | null
           reviewed_at?: string | null
           revised_at?: string | null
           revision_count?: number
           revision_note?: string
+          scheduled_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -4006,6 +4096,50 @@ export type Database = {
             foreignKeyName: "mktcc_posts_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "mktcc_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mktcc_project_connections: {
+        Row: {
+          connected_as_name: string | null
+          created_at: string | null
+          fb_page_access_token: string | null
+          fb_page_id: string | null
+          id: string
+          ig_business_id: string | null
+          project_id: string
+          updated_at: string | null
+          user_access_token: string | null
+        }
+        Insert: {
+          connected_as_name?: string | null
+          created_at?: string | null
+          fb_page_access_token?: string | null
+          fb_page_id?: string | null
+          id?: string
+          ig_business_id?: string | null
+          project_id: string
+          updated_at?: string | null
+          user_access_token?: string | null
+        }
+        Update: {
+          connected_as_name?: string | null
+          created_at?: string | null
+          fb_page_access_token?: string | null
+          fb_page_id?: string | null
+          id?: string
+          ig_business_id?: string | null
+          project_id?: string
+          updated_at?: string | null
+          user_access_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mktcc_project_connections_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
             referencedRelation: "mktcc_projects"
             referencedColumns: ["id"]
           },
