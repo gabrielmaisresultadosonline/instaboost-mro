@@ -99,6 +99,11 @@ const MktCCAdmin = () => {
   const [tab, setTab] = useState("posts");
   const [configProjects, setConfigProjects] = useState<Project[]>([]);
   const [openCycleIds, setOpenCycleIds] = useState<string[]>([]);
+  
+  const startFBLoginGlobal = () => {
+    toast.info("Iniciando fluxo de login Meta Business Suite...");
+    window.alert("Aqui o admin faria o login com o Facebook pessoal (gestor) para ter acesso às páginas.");
+  };
 
   useEffect(() => { document.title = "Admin | Marketing Completo"; }, []);
 
