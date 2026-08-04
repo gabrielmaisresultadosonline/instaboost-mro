@@ -445,6 +445,8 @@ const App = () => (
           <Route path="/mktcc/admin" element={<MktCCAdmin />} />
           <Route path="/ferramentamropromo2" element={<FerramentaMROPromo />} />
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
+          <Route path="/eleitoral" element={<Eleitoral />} />
+          <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
