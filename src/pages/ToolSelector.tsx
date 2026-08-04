@@ -229,23 +229,23 @@ const ToolSelector = () => {
                   topBar: 'from-transparent via-black/30 to-transparent',
                 },
                 eleitoral: {
-                  bg: 'bg-gradient-to-br from-blue-700 via-blue-600 to-green-600',
-                  border: 'border-yellow-400/50',
-                  hoverBorder: 'hover:border-yellow-300',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(37,99,235,0.45)]',
+                  bg: 'bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900',
+                  border: 'border-zinc-700/50',
+                  hoverBorder: 'hover:border-yellow-500',
+                  shadow: 'shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)]',
                   title: 'text-white',
-                  body: 'text-white/80',
-                  subtitle: 'text-yellow-300',
-                  iconBg: 'bg-yellow-400',
-                  iconText: 'text-blue-900',
-                  iconBorder: 'border-yellow-300/30',
-                  badge: 'bg-yellow-400',
-                  badgeText: 'text-blue-900',
-                  line: 'bg-yellow-400',
+                  body: 'text-zinc-400',
+                  subtitle: 'text-yellow-500',
+                  iconBg: 'bg-zinc-800',
+                  iconText: 'text-yellow-500',
+                  iconBorder: 'border-zinc-700',
+                  badge: 'bg-yellow-500',
+                  badgeText: 'text-black',
+                  line: 'bg-yellow-500',
                   cta: 'text-white',
-                  watermark: 'text-white/[0.08]',
-                  shine: 'via-white/20',
-                  topBar: 'from-transparent via-yellow-400/40 to-transparent',
+                  watermark: 'text-white/[0.03]',
+                  shine: 'via-white/5',
+                  topBar: 'from-transparent via-yellow-500/20 to-transparent',
                 },
                 'zapmro-promo': {
                   bg: 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-green-700',
@@ -367,8 +367,11 @@ const ToolSelector = () => {
                     >
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className={`text-xs md:text-sm uppercase tracking-[0.3em] font-bold ${t.subtitle}`}>
+                    <span className={`text-xs md:text-sm uppercase tracking-[0.3em] font-bold ${t.subtitle} flex items-center gap-2`}>
                       {tool.subtitle}
+                      {tool.id === 'eleitoral' && (
+                        <span className="text-lg" role="img" aria-label="Bandeira do Brasil">🇧🇷</span>
+                      )}
                     </span>
                   </div>
 
