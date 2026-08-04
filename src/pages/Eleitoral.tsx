@@ -137,9 +137,10 @@ const Eleitoral = () => {
       {/* Background Decor */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div 
-          className="absolute inset-0 bg-cover bg-top bg-no-repeat transition-opacity duration-1000"
+          className="absolute inset-0 bg-cover bg-no-repeat transition-opacity duration-1000"
           style={{ 
             backgroundImage: `url(${backgroundPresident.url})`,
+            backgroundPosition: 'center 15%', // Sobe a imagem (era top/center)
             opacity: step === 0 ? 0.4 : 0.2
           }}
         />
@@ -148,7 +149,7 @@ const Eleitoral = () => {
         <div className="absolute inset-0 bg-zinc-950/30" />
       </div>
 
-      <div className="w-full max-w-xl relative z-10">
+      <div className="w-full max-w-xl relative z-10 mt-20 md:mt-32">
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div
