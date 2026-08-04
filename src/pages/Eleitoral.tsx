@@ -102,7 +102,7 @@ const Eleitoral = () => {
     setIsSubmitting(true);
     try {
       // Save to database
-      const { error } = await supabase.from('eleitoral_leads').insert([answers]);
+      const { error } = await supabase.from('eleitoral_leads' as any).insert([answers]);
       
       if (error) throw error;
 
