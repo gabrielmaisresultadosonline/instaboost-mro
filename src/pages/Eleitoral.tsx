@@ -8,7 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle2, ChevronRight, MessageSquare, User, Phone, Mail, Instagram, Target, BarChart3, Rocket, HelpCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView } from '@/lib/facebookTracking';
-import backgroundPresident from "@/assets/background-president.png.asset.json";
+// Removed local import of asset JSON to use public URL for compatibility
+const backgroundPresidentUrl = "/background-president.png";
 
 
 const QUESTIONS = [
@@ -139,7 +140,7 @@ const Eleitoral = () => {
         <div 
           className="absolute inset-0 bg-cover bg-no-repeat transition-opacity duration-1000"
           style={{ 
-            backgroundImage: `url(${backgroundPresident.url})`,
+            backgroundImage: `url(${backgroundPresidentUrl})`,
             backgroundPosition: 'center 15%', // Sobe a imagem (era top/center)
             opacity: step === 0 ? 0.4 : 0.2
           }}
