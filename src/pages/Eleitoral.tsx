@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle2, ChevronRight, MessageSquare, User, Phone, Mail, Instagram, Target, BarChart3, Rocket, HelpCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView } from '@/lib/facebookTracking';
+import backgroundPresident from "@/assets/background-president.png.asset.json";
+
 
 const QUESTIONS = [
   {
@@ -133,9 +135,17 @@ const Eleitoral = () => {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-4 bg-zinc-950">
       {/* Background Decor */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale mix-blend-overlay" />
-        <div className="absolute inset-0 bg-gradient-to-b from-green-600/20 via-yellow-400/10 to-blue-600/20" />
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div 
+          className="absolute inset-0 bg-cover bg-top bg-no-repeat transition-opacity duration-1000"
+          style={{ 
+            backgroundImage: `url(${backgroundPresident.url})`,
+            opacity: step === 0 ? 0.4 : 0.2
+          }}
+        />
+        {/* Overlays to darken and transition the image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-zinc-950/30" />
       </div>
 
       <div className="w-full max-w-xl relative z-10">
@@ -149,11 +159,12 @@ const Eleitoral = () => {
               className="text-center space-y-8"
             >
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                  Vamos avaliar sua <span className="text-yellow-400">campanha digital</span>
+                <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase italic leading-tight">
+                  Vamos avaliar sua <br />
+                  <span className="text-yellow-400 bg-black px-2 not-italic">campanha eleitoral</span>
                 </h1>
-                <p className="text-lg text-zinc-400">
-                  Descubra gratuitamente qual é o melhor plano de marketing para sua candidatura em 2026.
+                <p className="text-lg text-zinc-300 font-medium max-w-md mx-auto">
+                  Descubra gratuitamente qual é o melhor plano de marketing para sua candidatura digital em 2026.
                 </p>
               </div>
 
