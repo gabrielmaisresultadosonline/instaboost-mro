@@ -113,6 +113,9 @@ import LocalVpp from "./pages/LocalVpp";
 import LocalVppObrigado from "./pages/LocalVppObrigado";
 import LocalVppAdmin from "./pages/LocalVppAdmin";
 
+import Eleitoral from "./pages/Eleitoral";
+import EleitoralAdmin from "./pages/EleitoralAdmin";
+
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
@@ -442,6 +445,8 @@ const App = () => (
           <Route path="/mktcc/admin" element={<MktCCAdmin />} />
           <Route path="/ferramentamropromo2" element={<FerramentaMROPromo />} />
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
+          <Route path="/eleitoral" element={<Eleitoral />} />
+          <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
