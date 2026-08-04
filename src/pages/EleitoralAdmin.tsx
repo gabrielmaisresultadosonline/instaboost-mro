@@ -41,7 +41,7 @@ const EleitoralAdmin = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLeads(data || []);
+      setLeads((data as any) || []);
     } catch (err) {
       console.error('Error fetching leads:', err);
     } finally {
