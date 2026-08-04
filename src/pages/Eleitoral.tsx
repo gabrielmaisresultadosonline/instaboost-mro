@@ -35,8 +35,8 @@ const QUESTIONS = [
     id: 'instagram',
     question: 'Qual é seu Instagram?',
     type: 'text',
-    placeholder: '@seuusuario',
-    optional: true,
+    placeholder: '@seuusuario ou link do Facebook (ou "Ainda não tenho redes")',
+    optional: false,
     icon: Instagram,
   },
   {
