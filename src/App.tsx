@@ -113,6 +113,9 @@ import LocalVpp from "./pages/LocalVpp";
 import LocalVppObrigado from "./pages/LocalVppObrigado";
 import LocalVppAdmin from "./pages/LocalVppAdmin";
 
+import Eleitoral from "./pages/Eleitoral";
+import EleitoralAdmin from "./pages/EleitoralAdmin";
+
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
