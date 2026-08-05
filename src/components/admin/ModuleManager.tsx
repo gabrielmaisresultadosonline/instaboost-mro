@@ -1524,6 +1524,16 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                       <LayoutList className="w-4 h-4 mr-1" />
                       Adicionar Seção
                     </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowAddContent({ moduleId: module.id, type: 'product_ad' })}
+                      className="cursor-pointer border-indigo-500/50 text-indigo-400 hover:bg-indigo-500/10"
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      Adicionar Propaganda
+                    </Button>
                   </div>
 
                   {/* Add Video Form */}
@@ -1789,6 +1799,44 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                         <Button type="button" onClick={() => handleAddSection(module.id)} className="cursor-pointer">
                           <Check className="w-4 h-4 mr-1" />
                           Adicionar
+                        </Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add Product Ad Form */}
+                  {showAddContent?.moduleId === module.id && showAddContent.type === 'product_ad' && (
+                    <div className="p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/30 mb-4 space-y-3">
+                      <h4 className="font-medium text-indigo-400">Nova Propaganda de Produto</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Exibe um card de produto do Hub para fazer propaganda dentro da área de membros
+                      </p>
+                      <Input
+                        placeholder="Texto acima do produto (ex: Conheça a Ferramenta MRO)"
+                        value={newProductAd.title}
+                        onChange={(e) => setNewProductAd(prev => ({ ...prev, title: e.target.value }))}
+                        className="bg-secondary/50"
+                      />
+                      <div className="space-y-2">
+                        <Label className="text-sm">Selecione o Produto</Label>
+                        <select
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                          value={newProductAd.productId}
+                          onChange={(e) => setNewProductAd(prev => ({ ...prev, productId: e.target.value }))}
+                        >
+                          <option value="">Selecione um produto...</option>
+                          {availableProducts.map(p => (
+                            <option key={p.id} value={p.id}>{p.title} (/{p.slug})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="button" onClick={() => handleAddProductAd(module.id)} className="cursor-pointer bg-indigo-600 hover:bg-indigo-700">
+                          <Check className="w-4 h-4 mr-1" />
+                          Adicionar Propaganda
                         </Button>
                         <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
                           <X className="w-4 h-4" />
