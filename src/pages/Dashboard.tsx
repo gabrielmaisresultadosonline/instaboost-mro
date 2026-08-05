@@ -148,9 +148,11 @@ export default function Dashboard() {
         const sorted = [...list].sort((a, b) => {
           if (a.is_pinned && !b.is_pinned) return -1;
           if (!a.is_pinned && b.is_pinned) return 1;
+          
           const orderA = a.order_index ?? 0;
           const orderB = b.order_index ?? 0;
           if (orderA !== orderB) return orderA - orderB;
+          
           return a.title.localeCompare(b.title);
         });
         setProducts(sorted);
@@ -646,13 +648,17 @@ export default function Dashboard() {
               >
                 <div className="relative aspect-video bg-muted">
                   {product.is_pinned && (
-                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-0.5 rounded-full z-10 uppercase tracking-tighter shadow-sm border border-primary-foreground/20">
-                      Fixado
+                    <div className="absolute top-2 left-2 z-10">
+                      <Badge className="bg-blue-600 hover:bg-blue-700 text-white border-none px-2 py-0.5 shadow-lg font-black text-[10px] uppercase tracking-tighter">
+                        FIXADO
+                      </Badge>
                     </div>
                   )}
                   {product.new_until && new Date(product.new_until) > new Date() && (
-                    <div className="absolute top-2 left-2 bg-[#facc15] text-black text-[10px] font-black px-2 py-0.5 rounded-full z-10 uppercase tracking-tighter shadow-sm border border-black/10">
-                      Novo
+                    <div className="absolute top-2 right-2 z-10">
+                      <Badge className="bg-[#facc15] hover:bg-[#eab308] text-black border-none px-2 py-0.5 shadow-lg font-black text-[10px] uppercase tracking-tighter animate-pulse">
+                        NOVO
+                      </Badge>
                     </div>
                   )}
                   {product.thumb_url ? (
