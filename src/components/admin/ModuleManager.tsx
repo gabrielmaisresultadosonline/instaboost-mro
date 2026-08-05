@@ -2225,7 +2225,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
           <div className="bg-card border border-border rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Edit2 className="w-5 h-5" />
-              Editar {editingContent.content.type === 'video' ? 'Vídeo' : editingContent.content.type === 'button' ? 'Botão/Link' : 'Texto'}
+              Editar {editingContent.content.type === 'video' ? 'Vídeo' : editingContent.content.type === 'button' ? 'Botão/Link' : editingContent.content.type === 'product_ad' ? 'Propaganda' : 'Texto'}
             </h3>
             
             <div className="space-y-4">
@@ -2352,6 +2352,50 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                     />
                   </div>
                 </>
+              )}
+
+              {editingContent.content.type === 'product_ad' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Texto de propaganda</Label>
+                    <Input
+                      value={editingContent.content.title}
+                      onChange={(e) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, title: e.target.value }
+                      })}
+                      className="bg-secondary/50 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Produto</Label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
+                      value={(editingContent.content as ModuleProductAd).productId}
+                      onChange={(e) => {
+                        const prod = availableProducts.find(p => p.id === e.target.value);
+                        if (prod) {
+                          setEditingContent({
+                            ...editingContent,
+                            content: { 
+                              ...editingContent.content, 
+                              productId: prod.id,
+                              productSlug: prod.slug,
+                              productTitle: prod.title,
+                              productDescription: prod.description,
+                              productThumb: prod.thumb_url,
+                              productSalesUrl: prod.sales_page_url
+                            } as ModuleProductAd
+                          });
+                        }
+                      }}
+                    >
+                      {availableProducts.map(p => (
+                        <option key={p.id} value={p.id}>{p.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               )}
 
               <div className="flex items-center gap-3">
