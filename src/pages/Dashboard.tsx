@@ -724,14 +724,14 @@ export default function Dashboard() {
       </main>
 
       <Dialog open={!!lockedProduct} onOpenChange={(open) => !open && setLockedProduct(null)}>
-        <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] p-0 overflow-hidden border-0 bg-white shadow-2xl">
-          <div className="bg-[#10b981] py-3 px-4 text-center">
+        <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] p-0 overflow-hidden border-0 bg-white shadow-2xl max-h-[90vh] flex flex-col">
+          <div className="bg-[#10b981] py-3 px-4 text-center shrink-0">
              <p className="text-white font-black text-sm uppercase tracking-wider animate-pulse">
                 🔓 COMPRE PARA DESBLOQUEAR !
              </p>
           </div>
           
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar">
             <DialogHeader className="space-y-2 text-left">
               <DialogTitle className="text-2xl font-black text-black leading-tight tracking-tight uppercase">
                 {lockedProduct?.title}
