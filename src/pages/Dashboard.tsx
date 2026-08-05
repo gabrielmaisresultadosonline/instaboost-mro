@@ -695,40 +695,74 @@ export default function Dashboard() {
       </main>
 
       <Dialog open={!!lockedProduct} onOpenChange={(open) => !open && setLockedProduct(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{lockedProduct?.title}</DialogTitle>
-            <DialogDescription>
-              {lockedProduct?.description || "Este produto ainda não está liberado no seu acesso."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="buy-name">Nome completo</Label>
-              <Input id="buy-name" value={buyName} onChange={(e) => setBuyName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="buy-email">E-mail</Label>
-              <Input id="buy-email" type="email" value={buyEmail} onChange={(e) => setBuyEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="buy-phone">WhatsApp (DDD + número)</Label>
-              <Input id="buy-phone" value={buyPhone} onChange={(e) => setBuyPhone(e.target.value)} placeholder="11999999999" />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <Button className="flex-1" onClick={handleBuy} disabled={buying}>
-                {buying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
-                Comprar {lockedProduct?.price ? `R$ ${Number(lockedProduct.price).toFixed(0)}` : ""}
-              </Button>
-              {lockedProduct?.sales_page_url && (
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => window.open(lockedProduct.sales_page_url as string, "_blank")}
+        <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] p-0 overflow-hidden border-0 bg-white shadow-2xl">
+          <div className="bg-[#10b981] py-3 px-4 text-center">
+             <p className="text-white font-black text-sm uppercase tracking-wider animate-pulse">
+                🔓 COMPRE PARA DESBLOQUEAR !
+             </p>
+          </div>
+          
+          <div className="p-6 space-y-5">
+            <DialogHeader className="space-y-2 text-left">
+              <DialogTitle className="text-2xl font-black text-black leading-tight tracking-tight uppercase">
+                {lockedProduct?.title}
+              </DialogTitle>
+              <DialogDescription className="text-zinc-600 font-medium text-sm leading-relaxed">
+                {lockedProduct?.description || "Este produto ainda não está liberado no seu acesso."}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="buy-name" className="text-zinc-900 font-bold text-xs uppercase ml-1">Nome completo</Label>
+                <Input 
+                  id="buy-name" 
+                  value={buyName} 
+                  onChange={(e) => setBuyName(e.target.value)}
+                  className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="buy-email" className="text-zinc-900 font-bold text-xs uppercase ml-1">E-mail</Label>
+                <Input 
+                  id="buy-email" 
+                  type="email" 
+                  value={buyEmail} 
+                  onChange={(e) => setBuyEmail(e.target.value)}
+                  className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="buy-phone" className="text-zinc-900 font-bold text-xs uppercase ml-1">WhatsApp (DDD + número)</Label>
+                <Input 
+                  id="buy-phone" 
+                  value={buyPhone} 
+                  onChange={(e) => setBuyPhone(e.target.value)} 
+                  placeholder="11999999999"
+                  className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
+                />
+              </div>
+              
+              <div className="flex flex-col gap-3 pt-4">
+                <Button 
+                  className="w-full h-14 bg-[#059669] hover:bg-[#047857] text-white font-black text-lg uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2" 
+                  onClick={handleBuy} 
+                  disabled={buying}
                 >
-                  <Eye className="h-4 w-4" /> Ver mais
+                  {buying ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShoppingCart className="h-5 w-5" />}
+                  Comprar {lockedProduct?.price ? `R$ ${Number(lockedProduct.price).toFixed(0)}` : ""}
                 </Button>
-              )}
+                
+                {lockedProduct?.sales_page_url && (
+                  <Button
+                    variant="ghost"
+                    className="w-full h-12 text-zinc-500 hover:text-black hover:bg-zinc-100 font-bold text-sm uppercase rounded-xl transition-colors flex items-center justify-center gap-2"
+                    onClick={() => window.open(lockedProduct.sales_page_url as string, "_blank")}
+                  >
+                    <Eye className="h-4 w-4" /> Ver mais detalhes
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </DialogContent>
