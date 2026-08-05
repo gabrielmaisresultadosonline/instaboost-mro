@@ -615,9 +615,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     if (!file) return;
     
     // Validate file size (100MB max)
-    const maxSize = 100 * 1024 * 1024;
+    const maxSize = 300 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({ title: "Erro", description: "Arquivo muito grande. Máximo 100MB.", variant: "destructive" });
+      toast({ title: "Erro", description: "Arquivo muito grande. Máximo 300MB.", variant: "destructive" });
       return;
     }
     
@@ -806,9 +806,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const handleSectionVideoFileUpload = async (file: File) => {
     if (!file) return;
     
-    const maxSize = 100 * 1024 * 1024;
+    const maxSize = 300 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({ title: "Erro", description: "Arquivo muito grande. Máximo 100MB.", variant: "destructive" });
+      toast({ title: "Erro", description: "Arquivo muito grande. Máximo 300MB.", variant: "destructive" });
       return;
     }
     
@@ -1551,7 +1551,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                                       <div className="flex flex-col items-center gap-1">
                                         <Upload className="w-6 h-6 text-muted-foreground" />
                                         <span className="text-sm text-muted-foreground">Clique para enviar MP4</span>
-                                        <span className="text-xs text-muted-foreground">Máximo 100MB</span>
+                                        <span className="text-xs text-muted-foreground">Máximo 300MB</span>
                                       </div>
                                     )}
                                     <input
