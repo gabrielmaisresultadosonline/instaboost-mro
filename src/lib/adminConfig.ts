@@ -97,7 +97,7 @@ export interface AdminSettings {
 }
 
 // Content types for modules
-export type ModuleContentType = 'video' | 'text' | 'button' | 'section';
+export type ModuleContentType = 'video' | 'text' | 'button' | 'section' | 'product_ad';
 
 export interface ModuleVideo {
   id: string;
@@ -136,6 +136,21 @@ export interface ModuleButton {
   createdAt: string;
 }
 
+export interface ModuleProductAd {
+  id: string;
+  type: 'product_ad';
+  title: string;
+  productId: string; // ID of the product from hub_products
+  productSlug: string;
+  productTitle: string;
+  productDescription?: string;
+  productThumb?: string;
+  productSalesUrl?: string;
+  showTitle: boolean;
+  order: number;
+  createdAt: string;
+}
+
 // Section content types (what goes inside a section)
 export type SectionContentType = 'video' | 'text' | 'button';
 export type SectionContent = ModuleVideo | ModuleText | ModuleButton;
@@ -153,7 +168,7 @@ export interface ModuleSection {
   contents: SectionContent[]; // Section's own videos, texts, buttons
 }
 
-export type ModuleContent = ModuleVideo | ModuleText | ModuleButton | ModuleSection;
+export type ModuleContent = ModuleVideo | ModuleText | ModuleButton | ModuleSection | ModuleProductAd;
 
 // Module color themes
 export type ModuleColor = 'default' | 'green' | 'blue' | 'purple' | 'orange' | 'pink' | 'red' | 'cyan';
