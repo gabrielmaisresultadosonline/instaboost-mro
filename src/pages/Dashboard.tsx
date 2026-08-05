@@ -451,6 +451,15 @@ export default function Dashboard() {
   };
 
   const handleCardClick = (product: HubProduct) => {
+    if (product.status === 'construction') {
+      toast({ 
+        title: "Em Construção 🚧", 
+        description: "Este produto está sendo finalizado e estará disponível em breve.",
+        variant: "default"
+      });
+      return;
+    }
+
     if (product.unlocked) {
       // Produtos com rota própria abrem direto a ferramenta já logada.
       if (product.app_route) void openProduct(product);
@@ -616,7 +625,10 @@ export default function Dashboard() {
             {products.map((product) => (
               <Card
                 key={product.id}
-                className="overflow-hidden cursor-pointer transition-shadow hover:shadow-lg"
+                className={cn(
+                  "overflow-hidden transition-all duration-300",
+                  product.status === 'construction' ? "opacity-75 grayscale-[0.3]" : "cursor-pointer hover:shadow-lg"
+                )}
                 onClick={() => handleCardClick(product)}
               >
                 <div className="relative aspect-video bg-muted">
@@ -627,17 +639,25 @@ export default function Dashboard() {
                       <Package className="h-10 w-10 text-muted-foreground" />
                     </div>
                   )}
-                  {!product.unlocked && (
+                  {!product.unlocked && product.status !== 'construction' && (
                     <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex items-center justify-center">
                       <Lock className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  {product.status === 'construction' && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <Settings className="h-8 w-8 text-white mx-auto mb-2 animate-spin-slow" />
+                        <p className="text-white font-black text-xs uppercase tracking-tighter">Em Construção</p>
+                      </div>
                     </div>
                   )}
                 </div>
                 <CardContent className="pt-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="font-semibold text-foreground">{product.title}</h2>
-                    <Badge variant={product.unlocked ? "default" : "secondary"}>
-                      {product.unlocked ? "Liberado" : "Bloqueado"}
+                    <Badge variant={product.status === 'construction' ? "destructive" : (product.unlocked ? "default" : "secondary")}>
+                      {product.status === 'construction' ? "Em Construção" : (product.unlocked ? "Liberado" : "Bloqueado")}
                     </Badge>
                   </div>
                   {product.description && (
@@ -645,8 +665,8 @@ export default function Dashboard() {
                   )}
                   <Button
                     className="w-full mt-2"
-                    variant={product.unlocked ? "default" : "secondary"}
-                    disabled={opening === product.id}
+                    variant={product.status === 'construction' ? "outline" : (product.unlocked ? "default" : "secondary")}
+                    disabled={opening === product.id || product.status === 'construction'}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (product.unlocked) openProduct(product);
@@ -655,6 +675,8 @@ export default function Dashboard() {
                   >
                     {opening === product.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : product.status === 'construction' ? (
+                      "Em breve"
                     ) : product.unlocked ? (
                       <>
                         Acessar <ArrowRight className="h-4 w-4" />
