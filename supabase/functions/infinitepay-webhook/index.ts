@@ -697,6 +697,29 @@ serve(async (req) => {
 
 
 
+    // TRAFEGOPAGOVISITAS orders
+    if (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("HUB_TRAFEGOPAGO")) {
+      log("Processing as TRAFEGOPAGOVISITAS order", { order_nsu, email });
+      // Logic to grant access in hub_access table
+      try {
+        const slug = "trafego-pago-visitas";
+        const { data: product } = await supabase.from("hub_products").select("id").eq("slug", slug).maybeSingle();
+        if (product) {
+          const { data: access } = await supabase.from("hub_access").select("*").eq("email", email).eq("product_id", product.id).maybeSingle();
+          if (!access) {
+            await supabase.from("hub_access").insert({
+              email: email,
+              product_id: product.id,
+              status: 'active',
+              expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+            });
+            log("Access granted for Trafego Pago Visitas", { email });
+          }
+        }
+        // Send welcome email logic here if needed or through standard flow
+      } catch (e) { log("Error granting access", e); }
+    }
+
     // Default payment orders
     let order = null;
     if (order_nsu) {

@@ -197,6 +197,8 @@ import PagamentoMRO from "./pages/PagamentoMRO";
 import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
 import AgenteMRO from "./pages/AgenteMRO";
 import AgenteMROPainel from "./pages/AgenteMROPainel";
+import TrafegoPagoVisitas from "./pages/TrafegoPagoVisitas";
+import TrafegoPagoObrigado from "./pages/TrafegoPagoObrigado";
 
 
 
@@ -447,6 +449,8 @@ const App = () => (
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           <Route path="/eleitoral" element={<Eleitoral />} />
           <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
+          <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
+          <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
