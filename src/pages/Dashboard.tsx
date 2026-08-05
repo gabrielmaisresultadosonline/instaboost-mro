@@ -645,6 +645,16 @@ export default function Dashboard() {
                 onClick={() => handleCardClick(product)}
               >
                 <div className="relative aspect-video bg-muted">
+                  {product.is_pinned && (
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-0.5 rounded-full z-10 uppercase tracking-tighter shadow-sm border border-primary-foreground/20">
+                      Fixado
+                    </div>
+                  )}
+                  {product.new_until && new Date(product.new_until) > new Date() && (
+                    <div className="absolute top-2 left-2 bg-[#facc15] text-black text-[10px] font-black px-2 py-0.5 rounded-full z-10 uppercase tracking-tighter shadow-sm border border-black/10">
+                      Novo
+                    </div>
+                  )}
                   {product.thumb_url ? (
                     <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
