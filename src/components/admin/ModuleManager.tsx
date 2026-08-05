@@ -1923,6 +1923,14 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                                 {(content as ModuleSection).contents?.length || 0} itens
                               </span>
                             </div>
+                          ) : content.type === 'product_ad' ? (
+                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-indigo-500/10 border-2 border-indigo-500/50 flex flex-col items-center justify-center relative">
+                              <Sparkles className="w-10 h-10 text-indigo-500" />
+                              <span className="text-[10px] text-indigo-400 font-bold mt-2 uppercase tracking-tighter">PROPAGANDA</span>
+                              <span className="text-[9px] text-indigo-300 mt-1 truncate max-w-full px-2">
+                                {(content as any).productTitle}
+                              </span>
+                            </div>
                           ) : (
                             <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
                               <Type className="w-10 h-10 text-muted-foreground" />
@@ -1935,7 +1943,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                             <p className="text-sm font-medium mt-2 truncate">{content.title}</p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : content.type === 'section' ? 'Seção' : 'Texto'}
+                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : content.type === 'section' ? 'Seção' : content.type === 'product_ad' ? 'Propaganda' : 'Texto'}
                           </p>
                           
                           {/* Action buttons overlay */}
