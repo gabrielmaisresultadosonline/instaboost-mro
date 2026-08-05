@@ -328,8 +328,8 @@ serve(async (req) => {
     });
 
     // DASHBOARD (hub de produtos) - Handled below in the unified HUB logic
-    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && order_nsu.startsWith("HUB"))) {
-      // Logic moved to the TRAFEGOPAGOVISITAS/HUB section to avoid duplication
+    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO")))) {
+      // Logic handled at the end of the script to ensure all flags are set
     }
 
     // VENDER NA INTERNET orders
