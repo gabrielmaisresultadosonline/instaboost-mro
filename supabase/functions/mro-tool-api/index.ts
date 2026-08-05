@@ -427,7 +427,6 @@ serve(async (req) => {
       }
 
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
-      const fixedCount = accounts.filter((a) => !a.is_trial).length;
       const total = totalSlots(user);
       
       if (fixedCount >= total) {
