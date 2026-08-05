@@ -168,18 +168,29 @@ export default function TrafegoPagoVisitas() {
             >
               <div className="absolute inset-0 bg-blue-600/20 blur-[80px] rounded-full" />
               <div className="relative p-1 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-900 shadow-2xl overflow-hidden">
-                <div className="bg-black/90 p-8 rounded-[22px] space-y-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-                      <Star className="text-white w-6 h-6 fill-current" />
+                <div className="bg-black/90 p-8 rounded-[22px] space-y-6 text-center">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                    <Target className="text-blue-500 w-10 h-10" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm text-blue-400 font-bold tracking-widest uppercase">Estratégia Diária</p>
+                    <h4 className="text-3xl font-black text-white">Investimento: R$ 7,00</h4>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 py-4">
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                      <p className="text-2xl font-black text-blue-500">427</p>
+                      <p className="text-xs text-gray-400 uppercase">Visitas</p>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-xl">MRO Estratégias</h4>
-                      <p className="text-blue-400 text-sm">Método Validado 2026</p>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                      <p className="text-2xl font-black text-blue-500">42</p>
+                      <p className="text-xs text-gray-400 uppercase">Seguidores</p>
                     </div>
                   </div>
+
                   <p className="text-gray-400 leading-relaxed italic">
-                    "Ao final, mostramos como analisar os resultados, interpretar as principais métricas e identificar oportunidades de otimização para melhorar continuamente o desempenho das campanhas."
+                    "O módulo focado em visitas no perfil permite resultados reais com baixo investimento diário."
                   </p>
                   <div className="pt-6 border-t border-white/10 flex justify-between items-center">
                     <div>
