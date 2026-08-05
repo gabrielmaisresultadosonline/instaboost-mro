@@ -81,8 +81,8 @@ export default function TrafegoPagoVisitas() {
             transition={{ delay: 0.2 }}
             className="text-gray-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
           >
-            Você aprenderá a criar campanhas de Visitas ao Perfil utilizando o novo modelo do Meta Business. 
-            Passo a passo, do criativo de alta conversão até a otimização final. 📈
+            Este é um módulo de 4 aulas completo focado em visitas no perfil. 
+            Aprenda como investir R$ 7 por dia e ter 427 visitas, 42 seguidores e 2 conversas iniciadas. 📈
           </motion.p>
 
           <motion.div
