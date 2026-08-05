@@ -112,7 +112,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent; sectionId?: string } | null>(null);
-  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section'; sectionId?: string } | null>(null);
+  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section' | 'product_ad'; sectionId?: string } | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -301,6 +301,24 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     coverUrl: '',
     showTitle: true
   });
+  
+  const [newProductAd, setNewProductAd] = useState({
+    title: '',
+    productId: '',
+    showTitle: true
+  });
+  
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data } = await supabase.functions.invoke("hub-api", { body: { action: "admin_list_products" } });
+      if (data?.success) {
+        setAvailableProducts(data.products || []);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const [newSection, setNewSection] = useState({
     title: '',
@@ -736,6 +754,39 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     setShowAddContent(null);
     refreshData();
     toast({ title: "Botão adicionado!" });
+  };
+
+  const handleAddProductAd = (moduleId: string) => {
+    if (!newProductAd.productId) {
+      toast({ title: "Erro", description: "Selecione um produto", variant: "destructive" });
+      return;
+    }
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    const prod = availableProducts.find(p => p.id === newProductAd.productId);
+    
+    if (module && prod) {
+      const newAd: ModuleProductAd = {
+        id: `ad_${Date.now()}`,
+        type: 'product_ad',
+        title: newProductAd.title,
+        productId: prod.id,
+        productSlug: prod.slug,
+        productTitle: prod.title,
+        productDescription: prod.description,
+        productThumb: prod.thumb_url,
+        productSalesUrl: prod.sales_page_url,
+        showTitle: newProductAd.showTitle,
+        order: module.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      module.contents.push(newAd);
+      saveLocalData(data);
+    }
+    setNewProductAd({ title: '', productId: '', showTitle: true });
+    setShowAddContent(null);
+    refreshData();
+    toast({ title: "Propaganda de produto adicionada!" });
   };
 
   const handleAddSection = (moduleId: string) => {
