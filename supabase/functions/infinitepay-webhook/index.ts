@@ -327,46 +327,9 @@ serve(async (req) => {
       paid_amount
     });
 
-    // DASHBOARD (hub de produtos)
-    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && order_nsu.startsWith("HUB"))) {
-      log("Processing as HUB order", { order_nsu, email, hubSlug });
-
-      let hubOrder: Record<string, unknown> | null = null;
-      if (order_nsu) {
-        const r = await supabase.from("hub_orders").select("*").eq("nsu_order", order_nsu).maybeSingle();
-        hubOrder = r.data;
-      }
-      if (!hubOrder && email) {
-        const r = await supabase
-          .from("hub_orders")
-          .select("*")
-          .eq("email", email)
-          .eq("status", "pending")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        hubOrder = r.data;
-      }
-
-      if (hubOrder) {
-        await supabase
-          .from("hub_orders")
-          .update({ status: "paid", paid_at: new Date().toISOString() })
-          .eq("id", hubOrder.id as string);
-
-        if (hubOrder.product_id) {
-          await supabase.from("hub_access").insert({
-            product_id: hubOrder.product_id as string,
-            email: (hubOrder.email as string) || email,
-            source: "purchase",
-          });
-        }
-        log("HUB order paid + access granted", { id: hubOrder.id });
-      } else {
-        log("HUB order not found", { order_nsu, email });
-      }
-
-      return new Response(JSON.stringify({ success: true, message: "HUB confirmed" }), { status: 200, headers: corsHeaders });
+    // DASHBOARD (hub de produtos) - Handled below in the unified HUB logic
+    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO")))) {
+      // Logic handled at the end of the script to ensure all flags are set
     }
 
     // VENDER NA INTERNET orders
@@ -698,26 +661,61 @@ serve(async (req) => {
 
 
     // TRAFEGOPAGOVISITAS orders
-    if (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("HUB_TRAFEGOPAGO")) {
-      log("Processing as TRAFEGOPAGOVISITAS order", { order_nsu, email });
-      // Logic to grant access in hub_access table
-      try {
-        const slug = "trafego-pago-visitas";
-        const { data: product } = await supabase.from("hub_products").select("id").eq("slug", slug).maybeSingle();
-        if (product) {
-          const { data: access } = await supabase.from("hub_access").select("*").eq("email", email).eq("product_id", product.id).maybeSingle();
-          if (!access) {
-            await supabase.from("hub_access").insert({
-              email: email,
-              product_id: product.id,
-              status: 'active',
-              expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-            });
-            log("Access granted for Trafego Pago Visitas", { email });
-          }
+    if (isHubOrder || (order_nsu && typeof order_nsu === 'string' && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO")))) {
+      log("Processing as HUB order", { order_nsu, email, hubSlug });
+
+      let hubOrder: Record<string, unknown> | null = null;
+      if (order_nsu) {
+        const r = await supabase.from("hub_orders").select("*").eq("nsu_order", order_nsu).maybeSingle();
+        hubOrder = r.data;
+      }
+      if (!hubOrder && email) {
+        const r = await supabase
+          .from("hub_orders")
+          .select("*")
+          .eq("email", email)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        hubOrder = r.data;
+      }
+
+      if (hubOrder) {
+        const slug = (hubOrder.product_slug as string) || hubSlug;
+        
+        await supabase
+          .from("hub_orders")
+          .update({ status: "paid", paid_at: new Date().toISOString() })
+          .eq("id", hubOrder.id as string);
+
+        if (hubOrder.product_id) {
+          // Garante acesso por 1 ano
+          await supabase.from("hub_access").insert({
+            product_id: hubOrder.product_id as string,
+            email: (hubOrder.email as string) || email,
+            source: "purchase",
+            status: 'active',
+            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+          });
         }
-        // Send welcome email logic here if needed or through standard flow
-      } catch (e) { log("Error granting access", e); }
+        
+        // Dispara e-mail de boas-vindas com link para criar senha e acessar o dashboard
+        try {
+          await supabase.functions.invoke("delivery-email", {
+            body: { 
+              email: (hubOrder.email as string) || email,
+              name: (hubOrder.name as string) || "Cliente",
+              product_title: "Tráfego Pago (Visitas no Perfil)",
+              dashboard_url: "https://maisresultadosonline.com.br/dashboard",
+              type: "welcome_hub"
+            }
+          });
+        } catch (e) { log("Error sending welcome email", e); }
+
+        log("HUB order paid + access granted + email triggered", { id: hubOrder.id });
+        return new Response(JSON.stringify({ success: true, message: "HUB confirmed" }), { status: 200, headers: corsHeaders });
+      }
     }
 
     // Default payment orders
