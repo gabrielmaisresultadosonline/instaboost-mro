@@ -26,6 +26,8 @@ interface HubProductRow {
   order_index: number;
   is_active: boolean;
   status: 'active' | 'construction';
+  is_pinned?: boolean;
+  new_until?: string | null;
 }
 
 const emptyProduct = (): HubProductRow => ({
@@ -40,6 +42,8 @@ const emptyProduct = (): HubProductRow => ({
   order_index: 0,
   is_active: true,
   status: 'active',
+  is_pinned: false,
+  new_until: null,
 });
 
 
@@ -335,12 +339,43 @@ export default function HubProductsPanel() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Ordem</Label>
+                <Label>Ordem (Índice)</Label>
                 <Input
                   type="number"
                   value={editing.order_index}
                   onChange={(e) => setEditing({ ...editing, order_index: Number(e.target.value) })}
                 />
+              </div>
+              <div className="flex items-center gap-2 pt-8">
+                <input
+                  type="checkbox"
+                  id="is_pinned"
+                  checked={editing.is_pinned}
+                  onChange={(e) => setEditing({ ...editing, is_pinned: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label htmlFor="is_pinned" className="cursor-pointer">Fixar no topo</Label>
+              </div>
+              <div className="space-y-2">
+                <Label>Marcar como "Novo" até</Label>
+                <Input
+                  type="date"
+                  value={editing.new_until ? editing.new_until.split('T')[0] : ""}
+                  onChange={(e) => setEditing({ ...editing, new_until: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                />
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs"
+                  onClick={() => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + 15);
+                    setEditing({ ...editing, new_until: date.toISOString() });
+                  }}
+                >
+                  +15 dias
+                </Button>
               </div>
             </div>
             <div className="flex gap-2">
@@ -389,6 +424,16 @@ export default function HubProductsPanel() {
                     {hasMembers && (
                       <Badge variant="outline" className="gap-1">
                         <LayoutList className="h-3 w-3" /> Área de membros ativa
+                      </Badge>
+                    )}
+                    {product.is_pinned && (
+                      <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        Fixado
+                      </Badge>
+                    )}
+                    {product.new_until && new Date(product.new_until) > new Date() && (
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20">
+                        Novo (até {new Date(product.new_until).toLocaleDateString()})
                       </Badge>
                     )}
                     {product.app_route && (

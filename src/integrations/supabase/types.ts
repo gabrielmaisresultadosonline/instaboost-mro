@@ -2591,6 +2591,8 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_pinned: boolean | null
+          new_until: string | null
           order_index: number
           price: number
           sales_page_url: string | null
@@ -2607,6 +2609,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_pinned?: boolean | null
+          new_until?: string | null
           order_index?: number
           price?: number
           sales_page_url?: string | null
@@ -2623,6 +2627,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_pinned?: boolean | null
+          new_until?: string | null
           order_index?: number
           price?: number
           sales_page_url?: string | null

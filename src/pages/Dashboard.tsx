@@ -34,6 +34,9 @@ export interface HubProduct {
   access_source: string;
   unlocked: boolean;
   status?: 'active' | 'construction';
+  order_index?: number;
+  is_pinned?: boolean;
+  new_until?: string | null;
 }
 
 export function getDashboardSession(): DashboardSession | null {
@@ -140,7 +143,17 @@ export default function Dashboard() {
         body: { action: "products", username: current.username || "", email: current.email || "" },
       });
       if (data?.success) {
-        setProducts(data.products as HubProduct[]);
+        const list = data.products as HubProduct[];
+        // Sort products: pinned first, then by order_index, then by title
+        const sorted = [...list].sort((a, b) => {
+          if (a.is_pinned && !b.is_pinned) return -1;
+          if (!a.is_pinned && b.is_pinned) return 1;
+          const orderA = a.order_index ?? 0;
+          const orderB = b.order_index ?? 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return a.title.localeCompare(b.title);
+        });
+        setProducts(sorted);
         // O backend resolve a identidade completa (e-mail vinculado ao usuário etc).
         // Guardamos isso na sessão para conseguir logar automaticamente nas ferramentas.
         const identity = data.identity as { email?: string | null; username?: string | null } | undefined;
@@ -632,6 +645,16 @@ export default function Dashboard() {
                 onClick={() => handleCardClick(product)}
               >
                 <div className="relative aspect-video bg-muted">
+                  {product.is_pinned && (
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-0.5 rounded-full z-10 uppercase tracking-tighter shadow-sm border border-primary-foreground/20">
+                      Fixado
+                    </div>
+                  )}
+                  {product.new_until && new Date(product.new_until) > new Date() && (
+                    <div className="absolute top-2 left-2 bg-[#facc15] text-black text-[10px] font-black px-2 py-0.5 rounded-full z-10 uppercase tracking-tighter shadow-sm border border-black/10">
+                      Novo
+                    </div>
+                  )}
                   {product.thumb_url ? (
                     <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
