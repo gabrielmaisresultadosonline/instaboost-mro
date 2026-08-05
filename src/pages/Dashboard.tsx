@@ -33,6 +33,7 @@ export interface HubProduct {
   price: number;
   access_source: string;
   unlocked: boolean;
+  status?: 'active' | 'construction';
 }
 
 export function getDashboardSession(): DashboardSession | null {

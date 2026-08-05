@@ -25,6 +25,7 @@ interface HubProductRow {
   access_source: string;
   order_index: number;
   is_active: boolean;
+  status: 'active' | 'construction';
 }
 
 const emptyProduct = (): HubProductRow => ({
@@ -38,6 +39,7 @@ const emptyProduct = (): HubProductRow => ({
   access_source: "manual",
   order_index: 0,
   is_active: true,
+  status: 'active',
 });
 
 
@@ -322,6 +324,17 @@ export default function HubProductsPanel() {
                 </select>
               </div>
               <div className="space-y-2">
+                <Label>Disponibilidade</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={editing.status}
+                  onChange={(e) => setEditing({ ...editing, status: e.target.value as 'active' | 'construction' })}
+                >
+                  <option value="active">Ativo (Liberado)</option>
+                  <option value="construction">Em Construção (Bloqueado)</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <Label>Ordem</Label>
                 <Input
                   type="number"
@@ -368,6 +381,11 @@ export default function HubProductsPanel() {
                     <Badge variant={product.is_active ? "default" : "secondary"}>
                       {product.is_active ? "Ativo" : "Inativo"}
                     </Badge>
+                    {product.status === 'construction' && (
+                      <Badge variant="destructive" className="animate-pulse">
+                        Em Construção
+                      </Badge>
+                    )}
                     {hasMembers && (
                       <Badge variant="outline" className="gap-1">
                         <LayoutList className="h-3 w-3" /> Área de membros ativa
