@@ -4,7 +4,7 @@ import {
   addVideoToModule, addTextToModule, addButtonToModule, addSectionToModule, deleteContent, updateContent,
   addVideoToSection, addButtonToSection, deleteSectionContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail,
-  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData, getModulesStorageKey
+  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData, getModulesStorageKey, ModuleProductAd
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
