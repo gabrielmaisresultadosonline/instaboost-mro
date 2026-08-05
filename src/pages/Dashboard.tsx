@@ -148,9 +148,11 @@ export default function Dashboard() {
         const sorted = [...list].sort((a, b) => {
           if (a.is_pinned && !b.is_pinned) return -1;
           if (!a.is_pinned && b.is_pinned) return 1;
+          
           const orderA = a.order_index ?? 0;
           const orderB = b.order_index ?? 0;
           if (orderA !== orderB) return orderA - orderB;
+          
           return a.title.localeCompare(b.title);
         });
         setProducts(sorted);

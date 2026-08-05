@@ -407,6 +407,9 @@ serve(async (req) => {
         access_source: String(p.access_source || "manual"),
         order_index: Number(p.order_index || 0),
         is_active: p.is_active !== false,
+        status: String(p.status || 'active'),
+        is_pinned: !!p.is_pinned,
+        new_until: p.new_until ? String(p.new_until) : null,
       };
       if (p.id) {
         const { error } = await supabase.from("hub_products").update(payload).eq("id", String(p.id));
