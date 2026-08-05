@@ -327,46 +327,9 @@ serve(async (req) => {
       paid_amount
     });
 
-    // DASHBOARD (hub de produtos)
+    // DASHBOARD (hub de produtos) - Handled below in the unified HUB logic
     if (isHubOrder || (order_nsu && typeof order_nsu === "string" && order_nsu.startsWith("HUB"))) {
-      log("Processing as HUB order", { order_nsu, email, hubSlug });
-
-      let hubOrder: Record<string, unknown> | null = null;
-      if (order_nsu) {
-        const r = await supabase.from("hub_orders").select("*").eq("nsu_order", order_nsu).maybeSingle();
-        hubOrder = r.data;
-      }
-      if (!hubOrder && email) {
-        const r = await supabase
-          .from("hub_orders")
-          .select("*")
-          .eq("email", email)
-          .eq("status", "pending")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        hubOrder = r.data;
-      }
-
-      if (hubOrder) {
-        await supabase
-          .from("hub_orders")
-          .update({ status: "paid", paid_at: new Date().toISOString() })
-          .eq("id", hubOrder.id as string);
-
-        if (hubOrder.product_id) {
-          await supabase.from("hub_access").insert({
-            product_id: hubOrder.product_id as string,
-            email: (hubOrder.email as string) || email,
-            source: "purchase",
-          });
-        }
-        log("HUB order paid + access granted", { id: hubOrder.id });
-      } else {
-        log("HUB order not found", { order_nsu, email });
-      }
-
-      return new Response(JSON.stringify({ success: true, message: "HUB confirmed" }), { status: 200, headers: corsHeaders });
+      // Logic moved to the TRAFEGOPAGOVISITAS/HUB section to avoid duplication
     }
 
     // VENDER NA INTERNET orders
