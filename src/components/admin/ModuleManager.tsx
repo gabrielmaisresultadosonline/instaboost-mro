@@ -1344,6 +1344,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                   <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
                     <span>{getVideoCount(module)} vídeos</span>
                     <span>{module.contents.filter(c => c.type === 'text').length} textos</span>
+                    <span>{module.contents.filter(c => c.type === 'product_ad').length} propagandas</span>
                   </div>
                 </div>
 
