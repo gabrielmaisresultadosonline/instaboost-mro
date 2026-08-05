@@ -38,8 +38,9 @@ const getYoutubeEmbedUrl = (url: string): string => {
 const separateContents = (contents: ModuleContent[] = []) => {
   const sorted = [...contents].sort((a, b) => a.order - b.order);
   return {
-    regularContents: sorted.filter((c) => c.type !== 'section'),
+    regularContents: sorted.filter((c) => c.type !== 'section' && c.type !== 'product_ad'),
     sections: sorted.filter((c) => c.type === 'section') as ModuleSection[],
+    productAds: sorted.filter((c) => c.type === 'product_ad') as any[],
   };
 };
 
@@ -221,7 +222,7 @@ const MembersModulesView = ({ modules, isLoading = false, emptyMessage }: Member
         .map((module) => {
           const colorTheme = moduleColorClasses[module.color || 'default'];
           const isCollapsed = module.collapsedByDefault && !expandedModules.has(module.id);
-          const { regularContents, sections } = separateContents(module.contents);
+          const { regularContents, sections, productAds } = separateContents(module.contents);
 
           const toggleExpand = () =>
             setExpandedModules((prev) => {
@@ -299,6 +300,41 @@ const MembersModulesView = ({ modules, isLoading = false, emptyMessage }: Member
                         </div>
                       )}
                       <ContentSection contents={section.contents || []} onContentClick={handleClick} />
+                    </div>
+                  ))}
+                  {productAds.map((ad) => (
+                    <div key={ad.id} className="mt-8 mb-4">
+                      {ad.title && (
+                        <h4 className="text-center text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">
+                          {ad.title}
+                        </h4>
+                      )}
+                      <div className="max-w-md mx-auto bg-card border-2 border-primary/20 rounded-2xl p-4 flex items-center gap-4 shadow-xl hover:border-primary/40 transition-colors">
+                        <div className="h-20 w-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden shadow-inner">
+                          {ad.productThumb ? (
+                            <img src={ad.productThumb} alt={ad.productTitle} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center">
+                              <Play className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-bold text-foreground truncate">{ad.productTitle}</h5>
+                          {ad.productDescription && (
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                              {ad.productDescription}
+                            </p>
+                          )}
+                          <Button 
+                            size="sm" 
+                            className="mt-3 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs"
+                            onClick={() => window.location.href = ad.productSalesUrl || `/dashboard/produto/${ad.productSlug}`}
+                          >
+                            ACESSAR AGORA
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

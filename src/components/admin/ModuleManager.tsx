@@ -4,7 +4,7 @@ import {
   addVideoToModule, addTextToModule, addButtonToModule, addSectionToModule, deleteContent, updateContent,
   addVideoToSection, addButtonToSection, deleteSectionContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail,
-  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData, getModulesStorageKey
+  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData, getModulesStorageKey, ModuleProductAd
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import {
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
   Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList, Database, Download,
-  ArrowUp, ArrowDown
+  ArrowUp, ArrowDown, Sparkles
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -112,7 +112,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent; sectionId?: string } | null>(null);
-  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section'; sectionId?: string } | null>(null);
+  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section' | 'product_ad'; sectionId?: string } | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -301,6 +301,24 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     coverUrl: '',
     showTitle: true
   });
+  
+  const [newProductAd, setNewProductAd] = useState({
+    title: '',
+    productId: '',
+    showTitle: true
+  });
+  
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data } = await supabase.functions.invoke("hub-api", { body: { action: "admin_list_products" } });
+      if (data?.success) {
+        setAvailableProducts(data.products || []);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const [newSection, setNewSection] = useState({
     title: '',
@@ -736,6 +754,39 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     setShowAddContent(null);
     refreshData();
     toast({ title: "Botão adicionado!" });
+  };
+
+  const handleAddProductAd = (moduleId: string) => {
+    if (!newProductAd.productId) {
+      toast({ title: "Erro", description: "Selecione um produto", variant: "destructive" });
+      return;
+    }
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    const prod = availableProducts.find(p => p.id === newProductAd.productId);
+    
+    if (module && prod) {
+      const newAd: ModuleProductAd = {
+        id: `ad_${Date.now()}`,
+        type: 'product_ad',
+        title: newProductAd.title,
+        productId: prod.id,
+        productSlug: prod.slug,
+        productTitle: prod.title,
+        productDescription: prod.description,
+        productThumb: prod.thumb_url,
+        productSalesUrl: prod.sales_page_url,
+        showTitle: newProductAd.showTitle,
+        order: module.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      module.contents.push(newAd);
+      saveLocalData(data);
+    }
+    setNewProductAd({ title: '', productId: '', showTitle: true });
+    setShowAddContent(null);
+    refreshData();
+    toast({ title: "Propaganda de produto adicionada!" });
   };
 
   const handleAddSection = (moduleId: string) => {
@@ -1293,6 +1344,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                   <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
                     <span>{getVideoCount(module)} vídeos</span>
                     <span>{module.contents.filter(c => c.type === 'text').length} textos</span>
+                    <span>{module.contents.filter(c => c.type === 'product_ad').length} propagandas</span>
                   </div>
                 </div>
 
@@ -1472,6 +1524,16 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                     >
                       <LayoutList className="w-4 h-4 mr-1" />
                       Adicionar Seção
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowAddContent({ moduleId: module.id, type: 'product_ad' })}
+                      className="cursor-pointer border-indigo-500/50 text-indigo-400 hover:bg-indigo-500/10"
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      Adicionar Propaganda
                     </Button>
                   </div>
 
@@ -1746,6 +1808,44 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                     </div>
                   )}
 
+                  {/* Add Product Ad Form */}
+                  {showAddContent?.moduleId === module.id && showAddContent.type === 'product_ad' && (
+                    <div className="p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/30 mb-4 space-y-3">
+                      <h4 className="font-medium text-indigo-400">Nova Propaganda de Produto</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Exibe um card de produto do Hub para fazer propaganda dentro da área de membros
+                      </p>
+                      <Input
+                        placeholder="Texto acima do produto (ex: Conheça a Ferramenta MRO)"
+                        value={newProductAd.title}
+                        onChange={(e) => setNewProductAd(prev => ({ ...prev, title: e.target.value }))}
+                        className="bg-secondary/50"
+                      />
+                      <div className="space-y-2">
+                        <Label className="text-sm">Selecione o Produto</Label>
+                        <select
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                          value={newProductAd.productId}
+                          onChange={(e) => setNewProductAd(prev => ({ ...prev, productId: e.target.value }))}
+                        >
+                          <option value="">Selecione um produto...</option>
+                          {availableProducts.map(p => (
+                            <option key={p.id} value={p.id}>{p.title} (/{p.slug})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="button" onClick={() => handleAddProductAd(module.id)} className="cursor-pointer bg-indigo-600 hover:bg-indigo-700">
+                          <Check className="w-4 h-4 mr-1" />
+                          Adicionar Propaganda
+                        </Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Content List - Aspect ratio 1080x1350 = 4:5 */}
                   {module.contents.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
@@ -1824,6 +1924,14 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                                 {(content as ModuleSection).contents?.length || 0} itens
                               </span>
                             </div>
+                          ) : content.type === 'product_ad' ? (
+                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-indigo-500/10 border-2 border-indigo-500/50 flex flex-col items-center justify-center relative">
+                              <Sparkles className="w-10 h-10 text-indigo-500" />
+                              <span className="text-[10px] text-indigo-400 font-bold mt-2 uppercase tracking-tighter">PROPAGANDA</span>
+                              <span className="text-[9px] text-indigo-300 mt-1 truncate max-w-full px-2">
+                                {(content as any).productTitle}
+                              </span>
+                            </div>
                           ) : (
                             <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
                               <Type className="w-10 h-10 text-muted-foreground" />
@@ -1836,7 +1944,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                             <p className="text-sm font-medium mt-2 truncate">{content.title}</p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : content.type === 'section' ? 'Seção' : 'Texto'}
+                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : content.type === 'section' ? 'Seção' : content.type === 'product_ad' ? 'Propaganda' : 'Texto'}
                           </p>
                           
                           {/* Action buttons overlay */}
@@ -2117,7 +2225,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
           <div className="bg-card border border-border rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Edit2 className="w-5 h-5" />
-              Editar {editingContent.content.type === 'video' ? 'Vídeo' : editingContent.content.type === 'button' ? 'Botão/Link' : 'Texto'}
+              Editar {editingContent.content.type === 'video' ? 'Vídeo' : editingContent.content.type === 'button' ? 'Botão/Link' : editingContent.content.type === 'product_ad' ? 'Propaganda' : 'Texto'}
             </h3>
             
             <div className="space-y-4">
@@ -2244,6 +2352,50 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                     />
                   </div>
                 </>
+              )}
+
+              {editingContent.content.type === 'product_ad' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Texto de propaganda</Label>
+                    <Input
+                      value={editingContent.content.title}
+                      onChange={(e) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, title: e.target.value }
+                      })}
+                      className="bg-secondary/50 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Produto</Label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
+                      value={(editingContent.content as ModuleProductAd).productId}
+                      onChange={(e) => {
+                        const prod = availableProducts.find(p => p.id === e.target.value);
+                        if (prod) {
+                          setEditingContent({
+                            ...editingContent,
+                            content: { 
+                              ...editingContent.content, 
+                              productId: prod.id,
+                              productSlug: prod.slug,
+                              productTitle: prod.title,
+                              productDescription: prod.description,
+                              productThumb: prod.thumb_url,
+                              productSalesUrl: prod.sales_page_url
+                            } as ModuleProductAd
+                          });
+                        }
+                      }}
+                    >
+                      {availableProducts.map(p => (
+                        <option key={p.id} value={p.id}>{p.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               )}
 
               <div className="flex items-center gap-3">
