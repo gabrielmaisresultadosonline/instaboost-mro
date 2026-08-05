@@ -1,28 +1,9 @@
--- Reset policies for assets bucket
-DO $$ 
-BEGIN
-    DROP POLICY IF EXISTS "Assets are public" ON storage.objects;
-    DROP POLICY IF EXISTS "Anyone can upload assets" ON storage.objects;
-    DROP POLICY IF EXISTS "Anyone can update assets" ON storage.objects;
-    DROP POLICY IF EXISTS "Anyone can delete assets" ON storage.objects;
-END $$;
+-- Adiciona colunas para ordem manual e tarja "New"
+ALTER TABLE public.hub_products ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
+ALTER TABLE public.hub_products ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT false;
+ALTER TABLE public.hub_products ADD COLUMN IF NOT EXISTS new_until TIMESTAMPTZ;
 
-CREATE POLICY "Assets are public" 
-ON storage.objects FOR SELECT 
-TO public
-USING (bucket_id = 'assets');
-
-CREATE POLICY "Anyone can upload assets" 
-ON storage.objects FOR INSERT 
-TO public
-WITH CHECK (bucket_id = 'assets');
-
-CREATE POLICY "Anyone can update assets" 
-ON storage.objects FOR UPDATE 
-TO public
-USING (bucket_id = 'assets');
-
-CREATE POLICY "Anyone can delete assets" 
-ON storage.objects FOR DELETE 
-TO public
-USING (bucket_id = 'assets');
+-- Atualiza grants
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.hub_products TO authenticated;
+GRANT SELECT ON public.hub_products TO anon;
+GRANT ALL ON public.hub_products TO service_role;
