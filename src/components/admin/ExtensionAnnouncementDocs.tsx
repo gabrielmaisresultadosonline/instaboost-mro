@@ -230,9 +230,12 @@ interface ExtensionAnnouncement {
   buttonText?: string;           // Texto do botão CTA
   buttonUrl?: string;            // URL do botão CTA
   isActive: boolean;             // Se o aviso está ativo
+  forceNotClose: boolean;        // Se verdadeiro, oculta o botão de fechar
   
-  // ⏱️ Configurações de delay
+  // ⏱️ Configurações de leitura e delay
   delaySeconds: number;          // Segundos para aguardar antes de mostrar
+  forceRead: boolean;            // Se deve forçar a leitura (contador no botão)
+  forceReadSeconds: number;      // Segundos de espera obrigatória
   
   // 🔄 Configurações de frequência
   frequencyType: 'once' | 'times_per_day' | 'times_per_hours';

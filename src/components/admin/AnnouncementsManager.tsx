@@ -23,6 +23,7 @@ export interface Announcement {
   isActive: boolean;
   forceRead: boolean;
   forceReadSeconds: number;
+  forceNotClose: boolean;
   maxViews: number;
   createdAt: string;
   updatedAt: string;
@@ -71,6 +72,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
     isActive: true,
     forceRead: false,
     forceReadSeconds: 5,
+    forceNotClose: false,
     maxViews: 1,
     targetArea: filterArea || 'all',
     delaySeconds: 0,
@@ -145,6 +147,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 targetArea: extKey,
                 forceRead: a.forceRead ?? false,
                 forceReadSeconds: a.forceReadSeconds ?? 5,
+                forceNotClose: a.forceNotClose ?? false,
                 maxViews: a.maxViews ?? 1,
                 viewCount: a.viewCount ?? 0
               }));
@@ -241,6 +244,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             updatedAt: a.updatedAt,
             forceRead: a.forceRead,
             forceReadSeconds: a.forceReadSeconds,
+            forceNotClose: a.forceNotClose,
             maxViews: a.maxViews,
             viewCount: a.viewCount
           })),
@@ -353,6 +357,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       isActive: true,
       forceRead: false,
       forceReadSeconds: 5,
+      forceNotClose: false,
       maxViews: 1,
       targetArea: filterArea || 'all',
       delaySeconds: 0,
@@ -375,6 +380,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       isActive: announcement.isActive,
       forceRead: announcement.forceRead,
       forceReadSeconds: announcement.forceReadSeconds || 5,
+      forceNotClose: announcement.forceNotClose ?? false,
       maxViews: announcement.maxViews,
       targetArea: announcement.targetArea || 'all',
       delaySeconds: announcement.delaySeconds || 0,
@@ -419,6 +425,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         isActive: formData.isActive ?? true,
         forceRead: formData.forceRead ?? false,
         forceReadSeconds: formData.forceReadSeconds ?? 5,
+        forceNotClose: formData.forceNotClose ?? false,
         maxViews: formData.maxViews ?? 1,
         targetArea: finalTargetArea,
         delaySeconds: formData.delaySeconds || 0,
@@ -444,6 +451,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
               isActive: formData.isActive ?? true,
               forceRead: formData.forceRead ?? false,
               forceReadSeconds: formData.forceReadSeconds ?? 5,
+              forceNotClose: formData.forceNotClose ?? false,
               maxViews: formData.maxViews ?? 1,
               targetArea: finalTargetArea,
               delaySeconds: formData.delaySeconds || 0,
@@ -832,6 +840,49 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   <p className="text-xs text-muted-foreground mt-1">
                     Aguarda X segundos após a página carregar para exibir o aviso
                   </p>
+                </div>
+
+                {/* Forçar Leitura e Não Fechar */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-purple-500/20">
+                  <div className="flex items-center justify-between gap-2 bg-purple-500/5 p-3 rounded-md border border-purple-500/20">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-bold flex items-center gap-2">
+                        <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                        Forçar Leitura
+                      </Label>
+                      <p className="text-[10px] text-muted-foreground">Exige espera de X segundos</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {formData.forceRead && (
+                        <Input
+                          type="number"
+                          min={1}
+                          max={60}
+                          value={formData.forceReadSeconds || 5}
+                          onChange={(e) => setFormData({ ...formData, forceReadSeconds: Math.max(1, Number(e.target.value)) })}
+                          className="w-14 h-8 text-xs bg-secondary"
+                        />
+                      )}
+                      <Switch
+                        checked={formData.forceRead || false}
+                        onCheckedChange={(checked) => setFormData({ ...formData, forceRead: checked })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 bg-red-500/5 p-3 rounded-md border border-red-500/20">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-bold flex items-center gap-2">
+                        <X className="w-3.5 h-3.5 text-red-400" />
+                        Forçar Não Fechar
+                      </Label>
+                      <p className="text-[10px] text-muted-foreground">Oculta botão de fechar</p>
+                    </div>
+                    <Switch
+                      checked={formData.forceNotClose || false}
+                      onCheckedChange={(checked) => setFormData({ ...formData, forceNotClose: checked })}
+                    />
+                  </div>
                 </div>
 
                 {/* Frequency settings */}
