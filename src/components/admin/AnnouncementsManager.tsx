@@ -10,7 +10,7 @@ import {
   Bell, Plus, Trash2, Save, Eye, EyeOff, 
   Upload, X, AlertTriangle, Image as ImageIcon,
   Link as LinkIcon, Users, Clock, RefreshCw, Youtube,
-  Chrome, FileText, ExternalLink
+  Chrome, FileText, ExternalLink, Zap
 } from 'lucide-react';
 import ExtensionAnnouncementDocs from './ExtensionAnnouncementDocs';
 
