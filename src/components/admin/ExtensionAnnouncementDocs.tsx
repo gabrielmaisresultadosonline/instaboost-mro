@@ -144,7 +144,7 @@ if (window.location.hostname.includes('instagram.com')) {
   initExtensionAnnouncements();
 }`;
 
-  const popupCode = `// 🎨 Criar popup do aviso
+  const popupCode = \`// 🎨 Criar popup do aviso
 function displayAnnouncementPopup(announcement) {
   // Remover popup existente se houver
   const existing = document.getElementById('mro-extension-popup');
@@ -152,7 +152,7 @@ function displayAnnouncementPopup(announcement) {
   
   const popup = document.createElement('div');
   popup.id = 'mro-extension-popup';
-  popup.innerHTML = \`
+  popup.innerHTML = \\\`
     <div style="
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -172,20 +172,20 @@ function displayAnnouncementPopup(announcement) {
         box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         border: 1px solid rgba(255,255,255,0.1);
       ">
-        \${announcement.thumbnailUrl ? \`
-          <img src="\${announcement.thumbnailUrl}" style="width: 100%; max-height: 300px; object-fit: cover;" />
-        \` : ''}
+        \\\\\\\${announcement.thumbnailUrl ? \\\`
+          <img src="\\\\\\\${announcement.thumbnailUrl}" style="width: 100%; max-height: 300px; object-fit: cover;" />
+        \\\` : ''}
         
         <div style="padding: 24px;">
           <h2 style="color: #fff; font-size: 20px; font-weight: bold; margin-bottom: 12px;">
-            \${announcement.title}
+            \\\\\\\${announcement.title}
           </h2>
           <p style="color: #a0aec0; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">
-            \${announcement.content}
+            \\\\\\\${announcement.content}
           </p>
           
-          \${announcement.buttonUrl ? \`
-            <a href="\${announcement.buttonUrl}" target="_blank" style="
+          \\\\\\\${announcement.buttonUrl ? \\\`
+            <a href="\\\\\\\${announcement.buttonUrl}" target="_blank" style="
               display: inline-block;
               margin-top: 16px;
               padding: 12px 24px;
@@ -194,32 +194,74 @@ function displayAnnouncementPopup(announcement) {
               text-decoration: none;
               border-radius: 8px;
               font-weight: 600;
-            ">
-              \${announcement.buttonText || 'Saiba Mais'}
+              transition: transform 0.2s;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              \\\\\\\${announcement.buttonText || 'Saiba Mais'}
             </a>
-          \` : ''}
+          \\\` : ''}
           
-          <button onclick="this.closest('#mro-extension-popup').remove()" style="
-            display: block;
-            width: 100%;
-            margin-top: 16px;
-            padding: 12px;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #a0aec0;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-          ">
-            Fechar
-          </button>
+          \\\\\\\${!announcement.forceNotClose ? \\\`
+            <button onclick="this.closest('#mro-extension-popup').remove()" style="
+              display: block;
+              width: 100%;
+              margin-top: 16px;
+              padding: 12px;
+              background: transparent;
+              border: 1px solid rgba(255,255,255,0.2);
+              color: #a0aec0;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 14px;
+              transition: all 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#fff'" onmouseout="this.style.background='transparent'; this.style.color='#a0aec0'">
+              Fechar
+            </button>
+          \\\` : \\\`
+            <div style="
+              margin-top: 16px;
+              padding: 12px;
+              text-align: center;
+              color: #ff4d4d;
+              font-size: 12px;
+              font-weight: 600;
+              border: 1px dashed rgba(255,77,77,0.3);
+              border-radius: 8px;
+              background: rgba(255,77,77,0.05);
+            ">
+              ⚠️ Este aviso é obrigatório e não pode ser fechado.
+            </div>
+          \\\`}
         </div>
       </div>
     </div>
-  \`;
+  \\\`;
   
+  // Lógica de "Forçar Leitura" (trava o botão/exibe contador se necessário)
+  if (announcement.forceRead) {
+    const closeBtn = popup.querySelector('button');
+    if (closeBtn) {
+      const originalText = closeBtn.innerText;
+      let seconds = announcement.forceReadSeconds || 5;
+      closeBtn.disabled = true;
+      closeBtn.style.opacity = '0.5';
+      closeBtn.style.cursor = 'not-allowed';
+      
+      const timer = setInterval(() => {
+        seconds--;
+        closeBtn.innerText = \\\`Aguarde (\\\\\\\${seconds}s)\\\`;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          closeBtn.disabled = false;
+          closeBtn.style.opacity = '1';
+          closeBtn.style.cursor = 'pointer';
+          closeBtn.innerText = originalText;
+        }
+      }, 1000);
+    }
+  }
+
   document.body.appendChild(popup);
-}`;
+}\`;
 
   const dataStructure = `// 📦 Estrutura de dados do aviso
 interface ExtensionAnnouncement {
