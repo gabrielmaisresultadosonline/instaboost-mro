@@ -82,11 +82,17 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
                     if (file) {
                       const ext = file.name.split('.').pop() || 'png';
                       const path = `ebooks/covers/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-                      const { error } = await supabase.storage.from('assets').upload(path, file);
+                      const { error } = await supabase.storage.from('assets').upload(path, file, {
+                        cacheControl: '3600',
+                        upsert: true,
+                        contentType: file.type
+                      });
                       if (!error) {
                         const { data } = supabase.storage.from('assets').getPublicUrl(path);
                         setEditing(prev => prev ? {...prev, cover_url: data.publicUrl} : null);
                         toast({ title: "Capa atualizada via colagem" });
+                      } else {
+                        toast({ title: "Erro no upload via colagem", description: error.message, variant: "destructive" });
                       }
                     }
                   }
@@ -102,8 +108,12 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       const ext = file.name.split('.').pop() || 'png';
-                      const path = `ebooks/covers/${Date.now()}-${file.name}`;
-                      const { error } = await supabase.storage.from('assets').upload(path, file);
+                      const path = `ebooks/covers/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                      const { error } = await supabase.storage.from('assets').upload(path, file, {
+                        cacheControl: '3600',
+                        upsert: true,
+                        contentType: file.type
+                      });
                       if (!error) {
                         const { data } = supabase.storage.from('assets').getPublicUrl(path);
                         setEditing(prev => prev ? {...prev, cover_url: data.publicUrl} : null);
@@ -147,11 +157,18 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const path = `ebooks/audio/${Date.now()}-${file.name}`;
-                        const { error } = await supabase.storage.from('assets').upload(path, file);
+                        const path = `ebooks/audio/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                        const { error } = await supabase.storage.from('assets').upload(path, file, {
+                          cacheControl: '3600',
+                          upsert: true,
+                          contentType: file.type
+                        });
                         if (!error) {
                           const { data } = supabase.storage.from('assets').getPublicUrl(path);
                           setEditing(prev => prev ? {...prev, audio_url: data.publicUrl} : null);
+                          toast({ title: "Áudio enviado" });
+                        } else {
+                          toast({ title: "Erro no upload do áudio", description: error.message, variant: "destructive" });
                         }
                       }
                     }}
@@ -177,11 +194,18 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const path = `ebooks/files/${Date.now()}-${file.name}`;
-                        const { error } = await supabase.storage.from('assets').upload(path, file);
+                        const path = `ebooks/files/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                        const { error } = await supabase.storage.from('assets').upload(path, file, {
+                          cacheControl: '3600',
+                          upsert: true,
+                          contentType: file.type
+                        });
                         if (!error) {
                           const { data } = supabase.storage.from('assets').getPublicUrl(path);
                           setEditing(prev => prev ? {...prev, ebook_url: data.publicUrl} : null);
+                          toast({ title: "PDF enviado" });
+                        } else {
+                          toast({ title: "Erro no upload do PDF", description: error.message, variant: "destructive" });
                         }
                       }
                     }}
