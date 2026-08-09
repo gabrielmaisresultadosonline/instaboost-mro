@@ -68,6 +68,7 @@ export default function Dashboard() {
   const [opening, setOpening] = useState<string | null>(null);
 
   const [lockedProduct, setLockedProduct] = useState<HubProduct | null>(null);
+  const [showBuyForm, setShowBuyForm] = useState(false);
   const [buyName, setBuyName] = useState("");
   const [buyEmail, setBuyEmail] = useState("");
   const [buyPhone, setBuyPhone] = useState("");
@@ -734,7 +735,12 @@ export default function Dashboard() {
         )}
       </main>
 
-      <Dialog open={!!lockedProduct} onOpenChange={(open) => !open && setLockedProduct(null)}>
+      <Dialog open={!!lockedProduct} onOpenChange={(open) => {
+        if (!open) {
+          setLockedProduct(null);
+          setShowBuyForm(false);
+        }
+      }}>
         <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] p-0 overflow-hidden border-0 bg-white shadow-2xl max-h-[90vh] flex flex-col">
           <div className="bg-[#10b981] py-3 px-4 text-center shrink-0">
              <p className="text-white font-black text-sm uppercase tracking-wider animate-pulse">
