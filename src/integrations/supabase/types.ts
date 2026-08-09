@@ -2533,6 +2533,53 @@ export type Database = {
           },
         ]
       }
+      hub_product_ebooks: {
+        Row: {
+          audio_url: string | null
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          ebook_url: string | null
+          id: string
+          order_index: number | null
+          product_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          ebook_url?: string | null
+          id?: string
+          order_index?: number | null
+          product_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          ebook_url?: string | null
+          id?: string
+          order_index?: number | null
+          product_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_product_ebooks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "hub_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hub_product_tutorials: {
         Row: {
           cover_url: string | null
@@ -2587,10 +2634,12 @@ export type Database = {
         Row: {
           access_source: string
           app_route: string | null
+          badge_text: string | null
           created_at: string
           description: string | null
           id: string
           is_active: boolean
+          is_ebook_hub: boolean | null
           is_pinned: boolean | null
           new_until: string | null
           order_index: number
@@ -2605,10 +2654,12 @@ export type Database = {
         Insert: {
           access_source?: string
           app_route?: string | null
+          badge_text?: string | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
+          is_ebook_hub?: boolean | null
           is_pinned?: boolean | null
           new_until?: string | null
           order_index?: number
@@ -2623,10 +2674,12 @@ export type Database = {
         Update: {
           access_source?: string
           app_route?: string | null
+          badge_text?: string | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
+          is_ebook_hub?: boolean | null
           is_pinned?: boolean | null
           new_until?: string | null
           order_index?: number
