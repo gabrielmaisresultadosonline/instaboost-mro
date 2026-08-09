@@ -661,6 +661,13 @@ export default function Dashboard() {
                       </Badge>
                     </div>
                   )}
+                  {product.badge_text && (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-yellow-400 hover:bg-yellow-500 text-black border-none px-2 py-0.5 shadow-lg font-black text-[10px] uppercase tracking-tighter">
+                        {product.badge_text}
+                      </Badge>
+                    </div>
+
                   {product.thumb_url ? (
                     <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
