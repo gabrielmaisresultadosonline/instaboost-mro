@@ -10,7 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Plus, Save, Trash2, Package, LayoutList, ExternalLink, Users, Upload, Image as ImageIcon } from "lucide-react";
 import ModuleManager from "@/components/admin/ModuleManager";
+import EbookAudiobookManager from "@/components/admin/EbookAudiobookManager";
 import HubUsersPanel from "@/components/admin/HubUsersPanel";
+
 import { loadModulesFromCloud, type ModulePlatform } from "@/lib/adminConfig";
 
 interface HubProductRow {
@@ -459,25 +461,32 @@ export default function HubProductsPanel() {
                   </div>
                 </div>
 
-                {membersFor === product.slug && product.slug && (
-                  <div className="border-t border-border pt-4">
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Monte a área de membros deste produto (módulos, vídeos MP4/YouTube, capas 1080x1920, seções e
-                      botões) — mesmo padrão da área do ZAPMRO.
-                    </p>
-                    <ModuleManager
-                      key={`hub-${product.slug}`}
-                      platform={`hub-${product.slug}` as ModulePlatform}
-                      downloadLink={hubDownloadLinks[product.slug] || ""}
-                      onDownloadLinkChange={(link) =>
-                        setHubDownloadLinks((prev) => ({ ...prev, [product.slug]: link }))
-                      }
-                      onSaveSettings={() => {
-                        toast({ title: "Configurações salvas" });
-                      }}
-                    />
-                  </div>
-                )}
+
+                  {membersFor === product.slug && product.slug && (
+                    <div className="border-t border-border pt-4">
+                      {product.title === "O SEGREDO PARA VENDER MAIS !" ? (
+                        <EbookAudiobookManager productId={product.id!} />
+                      ) : (
+                        <>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            Monte a área de membros deste produto...
+                          </p>
+                          <ModuleManager
+                            key={`hub-${product.slug}`}
+                            platform={`hub-${product.slug}` as ModulePlatform}
+                            downloadLink={hubDownloadLinks[product.slug] || ""}
+                            onDownloadLinkChange={(link) =>
+                              setHubDownloadLinks((prev) => ({ ...prev, [product.slug]: link }))
+                            }
+                            onSaveSettings={() => {
+                              toast({ title: "Configurações salvas" });
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
+                  )}
+
 
               </CardContent>
             </Card>

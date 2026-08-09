@@ -37,7 +37,10 @@ export interface HubProduct {
   order_index?: number;
   is_pinned?: boolean;
   new_until?: string | null;
+  badge_text?: string | null;
+  is_ebook_hub?: boolean;
 }
+
 
 export function getDashboardSession(): DashboardSession | null {
   try {
@@ -661,6 +664,13 @@ export default function Dashboard() {
                       </Badge>
                     </div>
                   )}
+                  {product.badge_text && (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-yellow-400 hover:bg-yellow-500 text-black border-none px-2 py-0.5 shadow-lg font-black text-[10px] uppercase tracking-tighter">
+                        {product.badge_text}
+                      </Badge>
+                    </div>
+                  )}
                   {product.thumb_url ? (
                     <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
@@ -668,6 +678,7 @@ export default function Dashboard() {
                       <Package className="h-10 w-10 text-muted-foreground" />
                     </div>
                   )}
+
                   {!product.unlocked && product.status !== 'construction' && (
                     <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex items-center justify-center">
                       <Lock className="h-8 w-8 text-muted-foreground" />

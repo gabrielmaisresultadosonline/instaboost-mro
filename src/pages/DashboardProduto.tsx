@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { markHubReturn } from "@/lib/hubReturn";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, ArrowLeft, Download, Play, ExternalLink, Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, ArrowLeft, Download, Play, ExternalLink, Package, FileText, Music, BookOpen } from "lucide-react";
 import { getDashboardSession, type HubProduct } from "./Dashboard";
 import MembersModulesView from "@/components/members/MembersModulesView";
 import { loadModulesFromCloud, type TutorialModule, type ModulePlatform } from "@/lib/adminConfig";
@@ -18,6 +19,15 @@ interface HubTutorial {
   download_url: string | null;
 }
 
+interface EbookItem {
+  id: string;
+  title: string;
+  description: string;
+  cover_url: string;
+  audio_url: string;
+  ebook_url: string;
+}
+
 export default function DashboardProduto() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -29,22 +39,34 @@ export default function DashboardProduto() {
   const [modules, setModules] = useState<TutorialModule[]>([]);
   const [modulesLoading, setModulesLoading] = useState(true);
   const [downloadLink, setDownloadLink] = useState("");
+  
+  const [ebooks, setEbooks] = useState<EbookItem[]>([]);
+  const [viewingFile, setViewingFile] = useState<{ type: 'pdf' | 'audio', url: string, title: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await supabase.functions.invoke("hub-api", { body: { action: "product", slug } });
       if (data?.success) {
-        setProduct(data.product as HubProduct);
+        const prod = data.product as HubProduct;
+        setProduct(prod);
         setTutorials((data.tutorials || []) as HubTutorial[]);
         setActive((data.tutorials || [])[0] || null);
+
+        if ((prod as any).is_ebook_hub) {
+          const { data: ebookData } = await supabase
+            .from('hub_product_ebooks' as any)
+            .select('*')
+            .eq('product_id', prod.id)
+            .order('order_index');
+          if (ebookData) setEbooks(ebookData as unknown as EbookItem[]);
+        }
       }
     } finally {
       setLoading(false);
     }
   }, [slug]);
 
-  // Carrega a área de membros (módulos) publicada para este produto
   const loadMembersArea = useCallback(async () => {
     if (!slug) return;
     setModulesLoading(true);
@@ -59,7 +81,6 @@ export default function DashboardProduto() {
       setModulesLoading(false);
     }
   }, [slug]);
-
 
   useEffect(() => {
     if (!getDashboardSession()) {
@@ -83,6 +104,94 @@ export default function DashboardProduto() {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Produto não encontrado.</p>
         <Button onClick={() => navigate("/dashboard")}>Voltar para os produtos</Button>
+      </div>
+    );
+  }
+
+  if ((product as any).is_ebook_hub) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white">
+        <header className="border-b border-zinc-900 bg-zinc-950/50 backdrop-blur-xl sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="text-zinc-400 hover:text-white">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="font-black uppercase tracking-tighter italic text-lg">{product.title}</h1>
+            </div>
+            <Badge className="bg-yellow-400 text-black font-black uppercase text-[10px]">Hub Premium</Badge>
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {ebooks.map((item) => (
+              <Card key={item.id} className="bg-zinc-900 border-zinc-800 overflow-hidden group hover:border-yellow-400/50 transition-all duration-300">
+                <div className="aspect-[3/4] relative overflow-hidden bg-zinc-800">
+                  {item.cover_url ? (
+                    <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <BookOpen className="w-12 h-12 text-zinc-700" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="font-bold text-lg uppercase italic leading-tight">{item.title}</h3>
+                  </div>
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex gap-2">
+                    {item.ebook_url && (
+                      <Button 
+                        className="flex-1 bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase"
+                        onClick={() => setViewingFile({ type: 'pdf', url: item.ebook_url, title: item.title })}
+                      >
+                        <FileText className="w-3 h-3 mr-1" /> Ler Ebook
+                      </Button>
+                    )}
+                    {item.audio_url && (
+                      <Button 
+                        className="flex-1 bg-yellow-400 text-black hover:bg-yellow-500 font-bold text-xs uppercase"
+                        onClick={() => setViewingFile({ type: 'audio', url: item.audio_url, title: item.title })}
+                      >
+                        <Music className="w-3 h-3 mr-1" /> Ouvir
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
+
+        {viewingFile && (
+          <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+            <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-4 shrink-0">
+              <h2 className="font-bold uppercase italic text-zinc-400">{viewingFile.title}</h2>
+              <Button variant="ghost" onClick={() => setViewingFile(null)} className="text-zinc-400 hover:text-white">
+                Fechar
+              </Button>
+            </header>
+            <div className="flex-1 overflow-hidden bg-zinc-900">
+              {viewingFile.type === 'pdf' ? (
+                <iframe src={`${viewingFile.url}#toolbar=0`} className="w-full h-full border-0" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center p-8">
+                  <div className="max-w-md w-full space-y-8 text-center">
+                    <div className="w-32 h-32 bg-yellow-400/10 rounded-full flex items-center justify-center mx-auto text-yellow-400">
+                      <Music className="w-16 h-16 animate-pulse" />
+                    </div>
+                    <audio controls className="w-full h-12" controlsList="nodownload">
+                      <source src={viewingFile.url} type="audio/mpeg" />
+                    </audio>
+                    <p className="text-zinc-500 font-medium italic">Modo de escuta ativa ativado.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -120,12 +229,9 @@ export default function DashboardProduto() {
           </Button>
         )}
 
-        {/* Área de membros montada no /admin (mesmo padrão do ZAPMRO) */}
         {(modulesLoading || modules.length > 0) && (
           <MembersModulesView modules={modules} isLoading={modulesLoading} />
         )}
-
-
 
         {active?.video_url && (
           <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted">
