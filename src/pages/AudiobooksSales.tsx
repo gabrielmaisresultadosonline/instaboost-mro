@@ -100,13 +100,14 @@ const AudiobooksSales = () => {
         </div>
       </section>
 
-      <VisitasCheckoutModal 
-        isOpen={showCheckout} 
-        onClose={() => setShowCheckout(false)} 
-        productSlug="audiibooks"
-        productTitle="O SEGREDO PARA VENDER MAIS !"
-        productPrice={37}
-      />
+      {showCheckout && (
+        <VisitasCheckoutModal 
+          onClose={() => setShowCheckout(false)} 
+          plan="Anual Hub"
+          amount={37}
+        />
+      )}
+
     </div>
   );
 };
