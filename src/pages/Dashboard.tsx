@@ -37,7 +37,10 @@ export interface HubProduct {
   order_index?: number;
   is_pinned?: boolean;
   new_until?: string | null;
+  badge_text?: string | null;
+  is_ebook_hub?: boolean;
 }
+
 
 export function getDashboardSession(): DashboardSession | null {
   try {
