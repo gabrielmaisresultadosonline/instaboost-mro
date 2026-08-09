@@ -667,8 +667,8 @@ export default function Dashboard() {
                         {product.badge_text}
                       </Badge>
                     </div>
+                  )}
 
-                  {product.thumb_url ? (
                     <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center">
