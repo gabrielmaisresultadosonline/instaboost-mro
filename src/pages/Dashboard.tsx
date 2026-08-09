@@ -668,13 +668,14 @@ export default function Dashboard() {
                       </Badge>
                     </div>
                   )}
-
+                  {product.thumb_url ? (
                     <img src={product.thumb_url} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center">
                       <Package className="h-10 w-10 text-muted-foreground" />
                     </div>
                   )}
+
                   {!product.unlocked && product.status !== 'construction' && (
                     <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex items-center justify-center">
                       <Lock className="h-8 w-8 text-muted-foreground" />
