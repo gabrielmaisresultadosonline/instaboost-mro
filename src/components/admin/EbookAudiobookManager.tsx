@@ -25,12 +25,12 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
 
   const loadItems = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('hub_product_ebooks')
       .select('*')
       .eq('product_id', productId)
       .order('order_index');
-    if (data) setItems(data);
+    if (data) setItems(data as EbookAudioBook[]);
     setLoading(false);
   };
 
