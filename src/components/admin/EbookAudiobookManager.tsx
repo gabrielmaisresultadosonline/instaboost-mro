@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Music, BookOpen, Plus, Trash2, Upload, Save, Image as ImageIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface EbookAudioBook {
   id: string;
@@ -20,18 +20,15 @@ interface EbookAudioBook {
 const EbookAudiobookManager = ({ productId }: { productId: string }) => {
   const { toast } = useToast();
   const [items, setItems] = useState<EbookAudioBook[]>([]);
-  const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<EbookAudioBook | null>(null);
 
   const loadItems = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('hub_product_ebooks')
+    // Cast to any to bypass strict Table names not yet in types.ts
+    const { data } = await (supabase.from('hub_product_ebooks' as any)
       .select('*')
       .eq('product_id', productId)
-      .order('order_index');
+      .order('order_index') as any);
     if (data) setItems(data as EbookAudioBook[]);
-    setLoading(false);
   };
 
   React.useEffect(() => { loadItems(); }, [productId]);
@@ -39,7 +36,7 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
   const saveItem = async () => {
     if (!editing) return;
     const { error } = await supabase
-      .from('hub_product_ebooks')
+      .from('hub_product_ebooks' as any)
       .upsert({ ...editing, product_id: productId });
     
     if (error) {

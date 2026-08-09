@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Music, BookOpen, Lock, ShoppingCart, CheckCircle2, Star, ShieldCheck, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { VisitasCheckoutModal } from '@/components/VisitasCheckoutModal';
+import VisitasCheckoutModal from '@/components/trafego-pago/VisitasCheckoutModal';
 
 const AudiobooksSales = () => {
   const navigate = useNavigate();
