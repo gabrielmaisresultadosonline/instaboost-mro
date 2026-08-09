@@ -30,6 +30,8 @@ interface HubProductRow {
   status: 'active' | 'construction';
   is_pinned?: boolean;
   new_until?: string | null;
+  is_ebook_hub?: boolean;
+  badge_text?: string | null;
 }
 
 const emptyProduct = (): HubProductRow => ({
@@ -46,6 +48,8 @@ const emptyProduct = (): HubProductRow => ({
   status: 'active',
   is_pinned: false,
   new_until: null,
+  is_ebook_hub: false,
+  badge_text: "",
 });
 
 
@@ -379,7 +383,32 @@ export default function HubProductsPanel() {
                   +15 dias
                 </Button>
               </div>
+              <div className="flex items-center gap-2 pt-8">
+                <input
+                  type="checkbox"
+                  id="is_ebook_hub"
+                  checked={editing.is_ebook_hub}
+                  onChange={(e) => setEditing({ ...editing, is_ebook_hub: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label htmlFor="is_ebook_hub" className="cursor-pointer">É Hub de Ebook/Audiobook</Label>
+              </div>
+              <div className="space-y-2">
+                <Label>Texto da Tarja (Badge)</Label>
+                <Input 
+                  placeholder="Ex: EBOOK/AUDIOBOOK" 
+                  value={editing.badge_text || ""} 
+                  onChange={(e) => setEditing({ ...editing, badge_text: e.target.value })} 
+                />
+              </div>
             </div>
+            
+            {editing.id && editing.is_ebook_hub && (
+              <div className="mt-6 border-t pt-6">
+                <EbookAudiobookManager productId={editing.id} />
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Button onClick={saveProduct} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
