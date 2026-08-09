@@ -59,7 +59,7 @@ export default function DashboardProduto() {
             .select('*')
             .eq('product_id', prod.id)
             .order('order_index');
-          if (ebookData) setEbooks(ebookData as EbookItem[]);
+          if (ebookData) setEbooks(ebookData as unknown as EbookItem[]);
         }
       }
     } finally {
