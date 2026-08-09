@@ -758,58 +758,86 @@ export default function Dashboard() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="buy-name" className="text-zinc-900 font-bold text-xs uppercase ml-1">Nome completo</Label>
-                <Input 
-                  id="buy-name" 
-                  value={buyName} 
-                  onChange={(e) => setBuyName(e.target.value)}
-                  className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="buy-email" className="text-zinc-900 font-bold text-xs uppercase ml-1">E-mail</Label>
-                <Input 
-                  id="buy-email" 
-                  type="email" 
-                  value={buyEmail} 
-                  onChange={(e) => setBuyEmail(e.target.value)}
-                  className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="buy-phone" className="text-zinc-900 font-bold text-xs uppercase ml-1">WhatsApp (DDD + número)</Label>
-                <Input 
-                  id="buy-phone" 
-                  value={buyPhone} 
-                  onChange={(e) => setBuyPhone(e.target.value)} 
-                  placeholder="11999999999"
-                  className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
-                />
-              </div>
-              
-              <div className="flex flex-col gap-3 pt-4">
+            {!showBuyForm ? (
+              <div className="flex flex-col gap-4 py-2">
                 <Button 
-                  className="w-full h-14 bg-[#059669] hover:bg-[#047857] text-white font-black text-lg uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2" 
-                  onClick={handleBuy} 
-                  disabled={buying}
+                  className="w-full h-16 bg-[#059669] hover:bg-[#047857] text-white font-black text-xl uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center" 
+                  onClick={() => setShowBuyForm(true)}
                 >
-                  {buying ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShoppingCart className="h-5 w-5" />}
-                  Comprar {lockedProduct?.price ? `R$ ${Number(lockedProduct.price).toFixed(0)}` : ""}
+                  <span className="text-[10px] opacity-80 font-bold mb-0.5">QUERO DESBLOQUEAR AGORA</span>
+                  <div className="flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    Comprar {lockedProduct?.price ? `R$ ${Number(lockedProduct.price).toFixed(0)}` : ""}
+                  </div>
                 </Button>
-                
+
                 {lockedProduct?.sales_page_url && (
                   <Button
-                    variant="ghost"
-                    className="w-full h-12 text-zinc-500 hover:text-black hover:bg-zinc-100 font-bold text-sm uppercase rounded-xl transition-colors flex items-center justify-center gap-2"
+                    variant="outline"
+                    className="w-full h-14 border-zinc-200 text-zinc-700 hover:text-black hover:bg-zinc-50 font-black text-base uppercase rounded-xl transition-all active:scale-95 flex flex-col items-center justify-center"
                     onClick={() => window.open(lockedProduct.sales_page_url as string, "_blank")}
                   >
-                    <Eye className="h-4 w-4" /> Ver mais detalhes
+                    <span className="text-[10px] opacity-60 font-bold mb-0.5">QUERO SABER MAIS</span>
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" /> Conhecer primeiro
+                    </div>
                   </Button>
                 )}
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1.5">
+                  <Label htmlFor="buy-name" className="text-zinc-900 font-bold text-xs uppercase ml-1">Nome completo</Label>
+                  <Input 
+                    id="buy-name" 
+                    value={buyName} 
+                    onChange={(e) => setBuyName(e.target.value)}
+                    className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
+                    placeholder="Seu nome"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="buy-email" className="text-zinc-900 font-bold text-xs uppercase ml-1">E-mail</Label>
+                  <Input 
+                    id="buy-email" 
+                    type="email" 
+                    value={buyEmail} 
+                    onChange={(e) => setBuyEmail(e.target.value)}
+                    className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="buy-phone" className="text-zinc-900 font-bold text-xs uppercase ml-1">WhatsApp (DDD + número)</Label>
+                  <Input 
+                    id="buy-phone" 
+                    value={buyPhone} 
+                    onChange={(e) => setBuyPhone(e.target.value)} 
+                    placeholder="11999999999"
+                    className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-3 pt-4">
+                  <Button 
+                    className="w-full h-14 bg-[#059669] hover:bg-[#047857] text-white font-black text-lg uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2" 
+                    onClick={handleBuy} 
+                    disabled={buying}
+                  >
+                    {buying ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShoppingCart className="h-5 w-5" />}
+                    Pagar agora
+                  </Button>
+
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-zinc-400 font-bold text-xs uppercase"
+                    onClick={() => setShowBuyForm(false)}
+                  >
+                    Voltar
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
