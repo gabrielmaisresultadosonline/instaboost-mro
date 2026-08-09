@@ -72,9 +72,9 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
             </div>
 
             <div className="space-y-2">
-              <Label>Capa (Arraste ou cole aqui)</Label>
+              <Label>Capa (Arraste, cole ou clique para selecionar)</Label>
               <div 
-                className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                className="relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
                 onPaste={async (e) => {
                   const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith("image/"));
                   if (item) {
@@ -86,21 +86,47 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
                       if (!error) {
                         const { data } = supabase.storage.from('assets').getPublicUrl(path);
                         setEditing(prev => prev ? {...prev, cover_url: data.publicUrl} : null);
+                        toast({ title: "Capa atualizada via colagem" });
                       }
                     }
                   }
                 }}
+                onClick={() => document.getElementById('cover-upload')?.click()}
               >
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  id="cover-upload"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const ext = file.name.split('.').pop() || 'png';
+                      const path = `ebooks/covers/${Date.now()}-${file.name}`;
+                      const { error } = await supabase.storage.from('assets').upload(path, file);
+                      if (!error) {
+                        const { data } = supabase.storage.from('assets').getPublicUrl(path);
+                        setEditing(prev => prev ? {...prev, cover_url: data.publicUrl} : null);
+                        toast({ title: "Capa enviada com sucesso" });
+                      } else {
+                        toast({ title: "Erro no upload", description: error.message, variant: "destructive" });
+                      }
+                    }
+                  }}
+                />
                 {editing.cover_url ? (
                   <img src={editing.cover_url} alt="Preview" className="mx-auto h-32 object-contain mb-2" />
                 ) : (
                   <div className="py-4 text-muted-foreground">Clique para selecionar ou cole a imagem</div>
                 )}
-                <Input 
-                  placeholder="Ou cole a URL da Capa" 
-                  value={editing.cover_url} 
-                  onChange={e => setEditing({...editing, cover_url: e.target.value})} 
-                />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Input 
+                    placeholder="Ou cole a URL da Capa" 
+                    value={editing.cover_url} 
+                    onChange={e => setEditing({...editing, cover_url: e.target.value})} 
+                    className="mt-2"
+                  />
+                </div>
               </div>
             </div>
 
