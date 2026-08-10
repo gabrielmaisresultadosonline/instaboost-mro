@@ -89,7 +89,7 @@ serve(async (req) => {
     }
 
     // Redirect URL para página de obrigado
-    const redirectUrl = `https://maisresultadosonline.com.br/obrigadozapmro`;
+    const redirectUrl = `https://maisresultadosonline.com.br/zapmro/vendas/obrigado`;
     
     // Webhook URL para receber notificação automática de pagamento
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;

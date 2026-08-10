@@ -114,6 +114,7 @@ import LocalVpp from "./pages/LocalVpp";
 import LocalVppObrigado from "./pages/LocalVppObrigado";
 import LocalVppAdmin from "./pages/LocalVppAdmin";
 
+import ZapMROVendasObrigado from "./pages/ZapMROVendasObrigado";
 import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
 
@@ -257,6 +258,7 @@ const App = () => (
           <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
           <Route path="/zapmro/vendas/prom" element={<ZapMROVendasProm />} />
           <Route path="/zapmro/vendas/admin" element={<ZapmroVendasAdmin />} />
+          <Route path="/zapmro/vendas/obrigado" element={<ZapMROVendasObrigado />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/mro-ferramenta" element={<HubEntryGate allowEmbed><MROFerramenta /></HubEntryGate>} />
