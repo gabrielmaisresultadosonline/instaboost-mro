@@ -59,8 +59,8 @@ const AudiobooksSales = () => {
       </section>
 
       {/* Main Content Sections */}
-      <section className="py-24 bg-zinc-900/40 border-y border-zinc-800/50">
-        <div className="max-w-5xl mx-auto px-4 space-y-24">
+      <section className="py-12 md:py-24 bg-zinc-900/40 border-y border-zinc-800/50">
+        <div className="max-w-5xl mx-auto px-4 space-y-16 md:space-y-24">
           
           {/* Ebook 1 */}
           <div className="grid md:grid-cols-2 gap-12 items-center">
