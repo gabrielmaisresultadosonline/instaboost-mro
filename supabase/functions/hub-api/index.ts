@@ -366,7 +366,7 @@ serve(async (req) => {
         description += `_BUMPS:${orderBumps.lifetime ? 'L' : ''}${orderBumps.analysis ? 'A' : ''}`;
       }
 
-      const items = [{ description, quantity: 1, price: priceCents }];
+      const items = [{ name: description, quantity: 1, price: priceCents }];
       const phoneWithCC = cleanPhone ? `55${cleanPhone}` : undefined;
 
       const payload = {
