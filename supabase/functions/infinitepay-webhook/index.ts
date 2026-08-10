@@ -317,6 +317,20 @@ serve(async (req) => {
             email = parts.slice(2).join("_").toLowerCase().trim();
           }
           log("Parsed ZAPMRO Upgrade Fee order", { username, email });
+          
+          // Se tivermos um email, tentamos encontrar um usuario com esse email 
+          // caso o username não bata exatamente.
+          if (email && !username) {
+             const { data: userData } = await supabase
+               .from("zapmro_users")
+               .select("username")
+               .eq("email", email)
+               .maybeSingle();
+             if (userData) {
+               username = userData.username.toLowerCase().trim();
+               log("Inferred username from email", { username });
+             }
+          }
           break;
         }
 
