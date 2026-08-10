@@ -180,6 +180,13 @@ const ZapMRO = () => {
   useEffect(() => {
     if (isAuthenticated && username) {
       checkFeeStatus(username);
+      
+      // Timer de 3 segundos para garantir que o bloqueio já esteja processado e evitar flash do botão
+      const readyTimer = setTimeout(() => {
+        setIsReadyToShowContent(true);
+      }, 3000);
+      
+      return () => clearTimeout(readyTimer);
     }
   }, [isAuthenticated, username]);
 
