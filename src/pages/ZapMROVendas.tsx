@@ -192,7 +192,7 @@ const ZapMROVendas = () => {
     },
     {
       q: 'Qual é a duração do acesso ao sistema?',
-      a: 'Oferecemos um plano de assinatura anual. Seu acesso será válido por 365 dias a partir da confirmação do pagamento.'
+      a: 'Oferecemos planos de 30 dias (Mensal) e 1 ano (Anual). O pagamento é único e você só renova se quiser continuar utilizando.'
     },
     {
       q: 'É possível enviar áudios pré-gravados como se fossem em tempo real?',
