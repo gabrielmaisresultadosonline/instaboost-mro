@@ -31,13 +31,13 @@ const AudiobooksSales = () => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-yellow-500/10 via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
-          <Badge className="bg-yellow-400 text-black hover:bg-yellow-500 font-black px-4 py-1.5 text-xs uppercase tracking-widest rounded-full">
+          <Badge className="bg-green-500 text-white hover:bg-green-600 font-black px-4 py-1.5 text-xs uppercase tracking-widest rounded-full">
             🚀 O SEGREDO PARA VENDER MAIS!
           </Badge>
           
           <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] italic">
             DOMINE AS VENDAS <br />
-            <span className="text-yellow-400 not-italic">COM ESTRATÉGIA</span>
+            <span className="text-green-500 not-italic">COM ESTRATÉGIA</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-zinc-400 font-medium max-w-3xl mx-auto leading-relaxed">
@@ -65,18 +65,18 @@ const AudiobooksSales = () => {
           {/* Ebook 1 */}
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+              <div className="w-16 h-16 bg-green-500 text-white rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-green-500/20">
                 01
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-none">
                 📚 48 LEIS DO PODER <br />
-                <span className="text-yellow-400">DO MARKETING DIGITAL</span>
+                <span className="text-green-500">DO MARKETING DIGITAL</span>
               </h2>
               <p className="text-lg text-zinc-400 leading-relaxed">
                 Aprenda estratégias e princípios para se posicionar melhor, criar autoridade, atrair atenção e entender como fortalecer sua presença no marketing digital.
               </p>
               <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                <Music className="text-yellow-400 w-6 h-6" />
+                <Music className="text-green-500 w-6 h-6" />
                 <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: escute todo o conteúdo onde estiver e transforme seu tempo livre em aprendizado.</p>
               </div>
             </div>
@@ -106,18 +106,18 @@ const AudiobooksSales = () => {
                </div>
             </div>
             <div className="order-1 md:order-2 space-y-6">
-              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+              <div className="w-16 h-16 bg-green-500 text-white rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-green-500/20">
                 02
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-none">
                 🎨 PSICOLOGIA <br />
-                <span className="text-yellow-400">DAS CORES</span>
+                <span className="text-green-500">DAS CORES</span>
               </h2>
               <p className="text-lg text-zinc-400 leading-relaxed">
                 Descubra como as cores podem influenciar emoções, percepção e decisões, ajudando você a criar conteúdos, marcas e campanhas mais impactantes.
               </p>
               <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                <Music className="text-yellow-400 w-6 h-6" />
+                <Music className="text-green-500 w-6 h-6" />
                 <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: aprenda sobre o poder das cores de forma prática e fácil, mesmo enquanto trabalha ou realiza outras atividades.</p>
               </div>
             </div>
@@ -131,7 +131,7 @@ const AudiobooksSales = () => {
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-none">
                 🧠 30 TRUQUES DE <br />
-                <span className="text-yellow-400">MANIPULAÇÃO NO MKT</span>
+                <span className="text-green-500">MANIPULAÇÃO NO MKT</span>
               </h2>
               <p className="text-lg text-zinc-400 leading-relaxed">
                 Conheça técnicas de persuasão, influência e comportamento do consumidor para criar comunicações mais estratégicas e aumentar o poder das suas ofertas.
@@ -172,7 +172,7 @@ const AudiobooksSales = () => {
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-none">
                 ⚡ NÃO SEJA UM <br />
-                <span className="text-yellow-400">PROCRASTINADOR</span>
+                <span className="text-green-500">PROCRASTINADOR</span>
               </h2>
               <p className="text-lg text-zinc-400 leading-relaxed">
                 Aprenda como vencer o hábito de adiar tarefas, aumentar seu foco, desenvolver disciplina e agir com mais consistência para conquistar seus objetivos.
