@@ -310,8 +310,8 @@ serve(async (req) => {
           // ZAPTAXA_{USERNAME}_{EMAIL}
           const parts = itemName.split("_");
           if (parts.length >= 3) {
-            username = parts[1];
-            email = parts.slice(2).join("_").toLowerCase();
+            username = parts[1].toLowerCase().trim();
+            email = parts.slice(2).join("_").toLowerCase().trim();
           }
           log("Parsed ZAPMRO Upgrade Fee order", { username, email });
           break;
