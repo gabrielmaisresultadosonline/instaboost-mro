@@ -205,6 +205,7 @@ serve(async (req) => {
     let isSalaoBelOrder = false;
     let isDeliveryOrder = false;
     let isLocalVppOrder = false;
+    let isZapMROUpgradeFee = false;
     let isHubOrder = false;
     let hubSlug: string | null = null;
     if (items && Array.isArray(items)) {
@@ -301,6 +302,18 @@ serve(async (req) => {
             email = parts.slice(3).join("_").toLowerCase();
           }
           log("Parsed ZAPMRO order", { username, email });
+          break;
+        }
+
+        if (itemName.startsWith("ZAPTAXA_")) {
+          isZapMROUpgradeFee = true;
+          // ZAPTAXA_{USERNAME}_{EMAIL}
+          const parts = itemName.split("_");
+          if (parts.length >= 3) {
+            username = parts[1];
+            email = parts.slice(2).join("_").toLowerCase();
+          }
+          log("Parsed ZAPMRO Upgrade Fee order", { username, email });
           break;
         }
 
@@ -818,6 +831,43 @@ serve(async (req) => {
         );
 
         return new Response(JSON.stringify({ success: true, message: "ZAPMRO confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+    // ZAPMRO Upgrade Fee orders (taxa de atualização)
+    if (isZapMROUpgradeFee || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("ZAPTAXA"))) {
+      log("Processing as ZAPMRO Upgrade Fee order", { order_nsu, email, username });
+      
+      let feeOrder: any = null;
+      if (order_nsu) {
+        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").eq("nsu_order", order_nsu).maybeSingle();
+        feeOrder = data;
+      }
+      
+      if (!feeOrder && username) {
+        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").eq("username", username).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        feeOrder = data;
+      }
+
+      if (feeOrder) {
+        // Mark as paid
+        await supabase.from("zapmro_upgrade_fees").update({ 
+          status: "paid", 
+          paid_at: new Date().toISOString() 
+        }).eq("id", feeOrder.id);
+
+        log("ZAPMRO Upgrade Fee confirmed", { orderNsu: order_nsu, username: feeOrder.username });
+        
+        // Meta Tracking
+        await sendMetaPurchaseEvent(
+          feeOrder.email || email || "",
+          Number(feeOrder.amount) || 67,
+          "ZAPMRO Taxa de Atualização",
+          feeOrder.nsu_order || order_nsu,
+          "https://maisresultadosonline.com.br/zapmro"
+        );
+
+        return new Response(JSON.stringify({ success: true, message: "ZAPMRO Upgrade Fee confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
 
