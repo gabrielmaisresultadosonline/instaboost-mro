@@ -27,7 +27,7 @@ const AudiobooksSales = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-yellow-400 selection:text-black font-sans">
       {/* Hero Section */}
-      <section className="relative pt-24 pb-20 px-4 overflow-hidden">
+      <section className="relative pt-16 md:pt-24 pb-12 md:pb-20 px-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-yellow-500/10 via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
@@ -35,7 +35,7 @@ const AudiobooksSales = () => {
             🚀 O SEGREDO PARA VENDER MAIS!
           </Badge>
           
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] italic">
+          <h1 className="text-4xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] italic">
             DOMINE AS VENDAS <br />
             <span className="text-yellow-400 not-italic">COM ESTRATÉGIA</span>
           </h1>
@@ -47,9 +47,9 @@ const AudiobooksSales = () => {
           <div className="pt-8 flex flex-col items-center gap-4">
             <Button 
               onClick={handleCTA}
-              className="h-24 px-16 bg-green-500 hover:bg-green-600 text-white font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_60px_rgba(34,197,94,0.4)] transition-all hover:scale-105 active:scale-95 group"
+              className="h-auto py-6 px-8 md:px-16 bg-green-500 hover:bg-green-600 text-white font-black text-xl md:text-3xl uppercase italic rounded-2xl md:rounded-3xl shadow-[0_0_60px_rgba(34,197,94,0.4)] transition-all hover:scale-105 active:scale-95 group"
             >
-              QUERO ACESSO AGORA <ArrowRight className="ml-4 w-8 h-8 group-hover:translate-x-2 transition-transform" />
+              QUERO ACESSO AGORA <ArrowRight className="ml-4 w-6 h-6 md:w-8 md:h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
             <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.2em] flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-yellow-400" /> Acesso vitalício • Pagamento Único • R$ 37
