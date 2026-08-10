@@ -125,7 +125,13 @@ if (!user.is_active) {
 
 // O plano vem diretamente da API no campo plan_type:
 // 'vitalicio', 'anual', 'semestral' ou 'mensal'
+// A API retorna success: false e needs_renewal: true se o acesso expirar.
 const plano = user.plan_type; 
+
+if (user.days_remaining <= 0 && user.plan_type !== 'vitalicio') {
+  exibirAviso("Seu acesso expirou!");
+  deslogar();
+}
 
 const saudacao = \`Seja bem vindo, \${user.name || user.username}!\`;
 const status = user.plan_type === 'vitalicio' 
