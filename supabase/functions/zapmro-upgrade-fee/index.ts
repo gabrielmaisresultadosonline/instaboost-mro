@@ -162,12 +162,16 @@ serve(async (req) => {
 
       for (const order of pending || []) {
         const slug = extractLenc(order.infinitepay_link);
+        log("Checking pending payment realtime", { orderNsu: order.nsu_order, slug });
+        
         const verification = await checkInfinitePay(order.nsu_order, undefined, slug);
         if (verification.paid) {
+          log("Payment confirmed by API! Updating DB...", { orderId: order.id });
           const { error: updateError } = await supabase
             .from("zapmro_upgrade_fees")
             .update({ status: "paid", paid_at: new Date().toISOString() })
             .eq("id", order.id);
+          
           if (updateError) {
             log("status update failed", { orderId: order.id, error: updateError.message });
             continue;
