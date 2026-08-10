@@ -783,29 +783,53 @@ const ZapMRO = () => {
               {!feePaid && isLegacyUser ? (
                 <div className="w-full max-w-lg bg-orange-500/10 border border-orange-500/20 rounded-3xl p-8 flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl">
                   <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center">
-                    <Lock className="w-8 h-8 text-orange-500" />
+                    {isWaitingPayment ? (
+                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                    ) : (
+                      <Lock className="w-8 h-8 text-orange-500" />
+                    )}
                   </div>
                   <div className="text-center space-y-2">
-                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Download Bloqueado</h3>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">
+                      {isWaitingPayment ? "Aguardando Pagamento..." : "Download Bloqueado"}
+                    </h3>
                     <p className="text-green-200/70 max-w-md mx-auto leading-relaxed">
-                      Sua conta requer uma <span className="text-orange-400 font-bold underline underline-offset-4">taxa única de atualização (R$ 67,00)</span> para liberar a nova versão estável do ZAPMRO.
+                      {isWaitingPayment 
+                        ? "Verificando seu pagamento em tempo real. Assim que for confirmado, o botão de download será liberado automaticamente."
+                        : <>Sua conta requer uma <span className="text-orange-400 font-bold underline underline-offset-4">taxa única de atualização (R$ 67,00)</span> para liberar a nova versão estável do ZAPMRO.</>}
                     </p>
                   </div>
                   
-                  <Button 
-                    onClick={handlePayFee}
-                    disabled={isCreatingFee || !email || !isEmailLocked}
-                    className="w-full h-16 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black text-lg rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-orange-600/20 border-b-4 border-orange-800"
-                  >
-                    {isCreatingFee ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <>
-                        <Sparkles className="w-6 h-6 mr-2" />
-                        PAGAR TAXA E LIBERAR (R$ 67)
-                      </>
-                    )}
-                  </Button>
+                  {isWaitingPayment ? (
+                    <div className="w-full flex flex-col gap-4">
+                      <div className="flex items-center justify-center gap-2 bg-green-600/20 border border-green-500/30 text-green-400 py-4 px-6 rounded-2xl font-bold animate-pulse">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        PAGAMENTO EM ANÁLISE...
+                      </div>
+                      <Button 
+                        variant="link" 
+                        className="text-white/50 hover:text-white underline text-sm"
+                        onClick={() => feeLink && window.open(feeLink, '_blank')}
+                      >
+                        Abrir link de pagamento novamente
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={handlePayFee}
+                      disabled={isCreatingFee || !email || !isEmailLocked}
+                      className="w-full h-16 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black text-lg rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-orange-600/20 border-b-4 border-orange-800"
+                    >
+                      {isCreatingFee ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles className="w-6 h-6 mr-2" />
+                          PAGAR TAXA E LIBERAR (R$ 67)
+                        </>
+                      )}
+                    </Button>
+                  )}
                   
                   {(!email || !isEmailLocked) ? (
                     <div className="flex items-center gap-2 text-amber-400 font-medium bg-amber-500/5 px-4 py-2 rounded-full border border-amber-500/10">
