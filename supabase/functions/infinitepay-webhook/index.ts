@@ -879,22 +879,29 @@ serve(async (req) => {
       if (feeOrder) {
         log("Found ZAPTAXA order to confirm", { feeId: feeOrder.id, currentStatus: feeOrder.status });
         
-        // O webhook é a notificação oficial de pagamento. Verificamos se o payload contém 'paid: true'.
-        const isPaidInWebhook = body.paid === true || nestedBody.paid === true || body.status === 'paid' || nestedBody.status === 'paid';
+        // O formato do webhook varia e nem sempre inclui `paid: true`. Confirme
+        // pela API oficial usando os identificadores recebidos antes de liberar.
+        const paidFlag = body.paid === true || nestedBody.paid === true || body.status === 'paid' || nestedBody.status === 'paid';
+        const paymentVerification = await verifyPaymentWithAPI(
+          feeOrder.nsu_order,
+          transaction_nsu,
+          invoice_slug,
+        );
+        const isPaidInWebhook = paidFlag || paymentVerification.paid;
         
         if (!isPaidInWebhook) {
           log("Webhook notification received but status is not paid, ignoring update", { 
             orderNsu: order_nsu, 
             bodyStatus: body.status,
-            paidFlag: body.paid
+            paidFlag: body.paid,
+            verification: paymentVerification.data,
           });
           return new Response(JSON.stringify({ success: true, message: "Webhook ignored (not paid)" }), { status: 200, headers: corsHeaders });
         }
 
         const { error: feeUpdateError } = await supabase.from("zapmro_upgrade_fees").update({ 
           status: "paid", 
-          paid_at: new Date().toISOString(),
-          payload: body 
+          paid_at: new Date().toISOString()
         }).eq("id", feeOrder.id);
 
         if (feeUpdateError) {

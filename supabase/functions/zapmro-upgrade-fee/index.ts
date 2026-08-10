@@ -215,8 +215,10 @@ serve(async (req) => {
       const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
       const description = `ZAPTAXA_${username}_${email}`;
 
-      // A API /links associa corretamente order_nsu e webhook quando o item usa "name".
-      const lineItems = [{ name: description, quantity: 1, price: priceCents }];
+      // A API /links exige `description` para criar um checkout rastreável.
+      // Usar apenas `name` fazia a criação falhar silenciosamente e cair no link
+      // manual, que não devolve `lenc` nem associa o `order_nsu` ao pagamento.
+      const lineItems = [{ description, quantity: 1, price: priceCents }];
       let paymentLink: string | null = null;
 
       try {
@@ -233,14 +235,23 @@ serve(async (req) => {
             customer: { email },
           }),
         });
-        const data = await resp.json();
+        const raw = await resp.text();
+        let data: Record<string, unknown> = {};
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          data = { raw };
+        }
         log("InfiniPay links response", {
           status: resp.status,
           orderNsu,
           hasPaymentLink: Boolean(data.url || data.checkout_url || data.link),
           responseKeys: data && typeof data === "object" ? Object.keys(data) : [],
         });
-        if (resp.ok) paymentLink = data.url || data.checkout_url || data.link || null;
+        if (resp.ok) {
+          const candidate = data.url || data.checkout_url || data.link;
+          paymentLink = typeof candidate === "string" ? candidate : null;
+        }
       } catch (e) {
         log("InfiniPay links error", { error: String(e) });
       }
