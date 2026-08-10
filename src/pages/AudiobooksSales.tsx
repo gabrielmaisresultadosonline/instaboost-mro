@@ -47,7 +47,7 @@ const AudiobooksSales = () => {
           <div className="pt-8 flex flex-col items-center gap-4">
             <Button 
               onClick={handleCTA}
-              className="h-24 px-16 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_60px_rgba(250,204,21,0.4)] transition-all hover:scale-105 active:scale-95 group"
+              className="h-24 px-16 bg-green-500 hover:bg-green-600 text-white font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_60px_rgba(34,197,94,0.4)] transition-all hover:scale-105 active:scale-95 group"
             >
               QUERO ACESSO AGORA <ArrowRight className="ml-4 w-8 h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
@@ -81,9 +81,9 @@ const AudiobooksSales = () => {
               </div>
             </div>
             <div className="relative group">
-               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
-               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
-                  <BookOpen className="w-24 h-24 text-zinc-600" />
+               <div className="absolute -inset-4 bg-green-500/20 rounded-[2rem] blur-2xl group-hover:bg-green-500/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 overflow-hidden shadow-2xl">
+                  <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ebooks/covers/1786318391838-capa_48_leis.png" alt="48 Leis do Poder" className="w-full h-full object-cover" />
                </div>
             </div>
           </div>
@@ -91,7 +91,7 @@ const AudiobooksSales = () => {
           <div className="flex justify-center">
             <Button 
               onClick={handleCTA}
-              className="h-16 px-10 bg-zinc-100 hover:bg-white text-black font-black text-xl uppercase italic rounded-2xl transition-all"
+              className="h-16 px-10 bg-green-500 hover:bg-green-600 text-white font-black text-xl uppercase italic rounded-2xl transition-all shadow-lg shadow-green-500/20"
             >
               LIBERAR ACESSO AGORA <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
@@ -100,9 +100,9 @@ const AudiobooksSales = () => {
           {/* Ebook 2 */}
           <div className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
             <div className="order-2 md:order-1 relative group">
-               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
-               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
-                  <Zap className="w-24 h-24 text-zinc-600" />
+               <div className="absolute -inset-4 bg-green-500/20 rounded-[2rem] blur-2xl group-hover:bg-green-500/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 overflow-hidden shadow-2xl">
+                  <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ebooks/covers/1786322106706-capa_psicologia_cores.png" alt="Psicologia das Cores" className="w-full h-full object-cover" />
                </div>
             </div>
             <div className="order-1 md:order-2 space-y-6">
@@ -142,9 +142,9 @@ const AudiobooksSales = () => {
               </div>
             </div>
             <div className="relative group">
-               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
-               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
-                  <CheckCircle2 className="w-24 h-24 text-zinc-600" />
+               <div className="absolute -inset-4 bg-green-500/20 rounded-[2rem] blur-2xl group-hover:bg-green-500/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 overflow-hidden shadow-2xl">
+                  <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ebooks/covers/1786322145292-CAPALIVRO.jpg" alt="30 Truques de Manipulação" className="w-full h-full object-cover" />
                </div>
             </div>
           </div>
@@ -152,7 +152,7 @@ const AudiobooksSales = () => {
           <div className="flex justify-center">
             <Button 
               onClick={handleCTA}
-              className="h-20 px-12 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-2xl uppercase italic rounded-2xl shadow-xl transition-all"
+              className="h-20 px-12 bg-green-500 hover:bg-green-600 text-white font-black text-2xl uppercase italic rounded-2xl shadow-xl transition-all shadow-green-500/20"
             >
               GARANTIR MEU ACESSO R$ 37
             </Button>
@@ -161,9 +161,9 @@ const AudiobooksSales = () => {
           {/* Ebook 4 */}
           <div className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
             <div className="order-2 md:order-1 relative group">
-               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
-               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
-                  <ShieldCheck className="w-24 h-24 text-zinc-600" />
+               <div className="absolute -inset-4 bg-green-500/20 rounded-[2rem] blur-2xl group-hover:bg-green-500/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 overflow-hidden shadow-2xl">
+                  <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ebooks/covers/1786322238735-capa_nao_seja_procrastinador.png" alt="Não seja um Procrastinador" className="w-full h-full object-cover" />
                </div>
             </div>
             <div className="order-1 md:order-2 space-y-6">
@@ -209,7 +209,7 @@ const AudiobooksSales = () => {
 
           <Button 
             onClick={handleCTA}
-            className="h-24 px-20 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_50px_rgba(250,204,21,0.3)] transition-all hover:scale-105 active:scale-95"
+            className="h-24 px-20 bg-green-500 hover:bg-green-600 text-white font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_50px_rgba(34,197,94,0.3)] transition-all hover:scale-105 active:scale-95"
           >
             QUERO O PACOTE COMPLETO
           </Button>

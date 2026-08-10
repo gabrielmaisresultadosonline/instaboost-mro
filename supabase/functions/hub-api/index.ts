@@ -376,11 +376,24 @@ serve(async (req) => {
         name: cleanName,
         email: cleanEmail,
         whatsapp: cleanPhone,
-        amount,
+        amount: finalAmount,
         nsu_order: nsu,
         infinitepay_link: paymentLink,
         status: "pending",
       });
+
+      // Salva na tabela específica de audiobooks para o admin
+      if (slug === "audiibooks") {
+        await supabase.from("audiobooks_orders").insert({
+          email: cleanEmail,
+          name: cleanName,
+          whatsapp: cleanPhone,
+          amount: finalAmount,
+          order_nsu: nsu,
+          has_bump_lifetime: !!orderBumps.lifetime,
+          has_bump_profile_analysis: !!orderBumps.analysis
+        });
+      }
 
       return json({ success: true, nsu, payment_link: paymentLink });
     }
