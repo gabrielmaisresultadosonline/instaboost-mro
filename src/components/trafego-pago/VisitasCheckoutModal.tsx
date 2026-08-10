@@ -11,19 +11,20 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [orderBumpLifetime, setOrderBumpLifetime] = useState(false);
+  const [orderBumpAnalysis, setOrderBumpAnalysis] = useState(false);
+
+  const totalAmount = amount + (orderBumpLifetime ? 9 : 0) + (orderBumpAnalysis ? 19 : 0);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-        const orderBumpLifetime = (e.target as any).orderBumpLifetime?.checked;
-        const orderBumpAnalysis = (e.target as any).orderBumpAnalysis?.checked;
-
         // Facebook Pixel Lead event
         if (typeof (window as any).fbq === 'function') {
           (window as any).fbq('track', 'Lead', {
             content_name: productSlug,
-            value: amount,
+            value: totalAmount,
             currency: 'BRL'
           });
         }
@@ -74,7 +75,13 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
             <div className="relative p-3 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-yellow-400/50 transition-colors group">
               <label className="flex items-start gap-3 cursor-pointer">
                 <div className="pt-1">
-                  <input type="checkbox" name="orderBumpLifetime" className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-yellow-400 focus:ring-yellow-400" />
+                  <input 
+                    type="checkbox" 
+                    name="orderBumpLifetime" 
+                    checked={orderBumpLifetime}
+                    onChange={(e) => setOrderBumpLifetime(e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-yellow-400 focus:ring-yellow-400" 
+                  />
                 </div>
                 <div className="flex-1 space-y-1">
                   <p className="text-xs font-bold leading-none">Atualizações Vitalícias</p>
@@ -86,7 +93,13 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
             <div className="relative p-3 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-yellow-400/50 transition-colors group">
               <label className="flex items-start gap-3 cursor-pointer">
                 <div className="pt-1">
-                  <input type="checkbox" name="orderBumpAnalysis" className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-yellow-400 focus:ring-yellow-400" />
+                  <input 
+                    type="checkbox" 
+                    name="orderBumpAnalysis" 
+                    checked={orderBumpAnalysis}
+                    onChange={(e) => setOrderBumpAnalysis(e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-yellow-400 focus:ring-yellow-400" 
+                  />
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-1">
@@ -100,8 +113,8 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
           </div>
         )}
 
-        <Button className="w-full bg-yellow-400 hover:bg-yellow-500 h-14 text-lg font-black mt-6 text-black shadow-lg shadow-yellow-500/20" disabled={loading}>
-          {loading ? <Loader2 className="animate-spin" /> : "CONTINUAR PARA PAGAMENTO 🚀"}
+        <Button className="w-full bg-yellow-400 hover:bg-yellow-500 h-14 text-[13px] font-black mt-6 text-black shadow-lg shadow-yellow-500/20 uppercase" disabled={loading}>
+          {loading ? <Loader2 className="animate-spin" /> : `CONTINUAR PARA PAGAMENTO R$ ${totalAmount.toFixed(2).replace('.', ',')} 🚀`}
         </Button>
         <button type="button" className="w-full text-zinc-500 text-sm font-bold hover:text-zinc-300 py-2" onClick={onClose}>
           Voltar e Revisar
