@@ -437,6 +437,24 @@ serve(async (req) => {
       return json({ success: true, updated, passwords, total: (allUsers || []).length });
     }
 
+    /**
+     * Torna todos os usuários atuais vitalícios (999999 dias e limite ilimitado).
+     */
+    if (action === "make_all_lifetime") {
+      const { error } = await supabase
+        .from("zapmro_users")
+        .update({ 
+          days_remaining: 999999,
+          whatsapp_limit: -1 
+        })
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Filtro dummy para garantir execução
+
+      if (error) return json({ success: false, error: error.message }, 500);
+
+      return json({ success: true });
+    }
+
+
     /** Reenvia o acesso do cliente por email (template oficial de boas-vindas). */
     if (action === "send_access") {
       const id = String(body.id || "");
