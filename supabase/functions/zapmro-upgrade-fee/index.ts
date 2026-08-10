@@ -7,8 +7,36 @@ const corsHeaders = {
 };
 
 const INFINITEPAY_HANDLE = "paguemro";
-const FEE_AMOUNT = 97;
+const FEE_AMOUNT = 67;
 const REDIRECT_URL = "https://maisresultadosonline.com.br/zapmro";
+
+// Lista de usuários vitalícios legados que DEVEM pagar a taxa de atualização
+const LEGACY_LIFETIME_USERS = [
+  "charlesdeivisonvip",
+  "marcosoliveiravip",
+  "guilhermerocha",
+  "hudsonvip",
+  "guerrerovip",
+  "vagnertomasivip",
+  "gah",
+  "degisvip",
+  "marlonwhats",
+  "d01e07e8-8674-4b21-99ba-45efa15d4bf8", // ilannavip (pode vir como UUID ou username dependendo do fluxo, mas a lista retornada tinha usernames)
+  "ilannavip",
+  "osdileidezap",
+  "renatovipfull",
+  "grazivipfull",
+  "rittervip",
+  "gomesdanielvip",
+  "nichollsvip",
+  "hielenvipp1",
+  "pereiravipfull",
+  "kamaravipfull",
+  "jacintovipfull",
+  "jeanvip1",
+  "rodrigovip1"
+];
+
 
 const log = (step: string, details?: unknown) => {
   const d = details ? ` - ${JSON.stringify(details)}` : "";
@@ -68,6 +96,12 @@ serve(async (req) => {
     if (action === "status") {
       if (!username) return json({ success: false, error: "username obrigatório" }, 400);
 
+      // Se NÃO está na lista de legados, considera como pago (não cobra taxa)
+      const isLegacy = LEGACY_LIFETIME_USERS.includes(username);
+      if (!isLegacy) {
+        return json({ success: true, paid: true, is_new_user: true });
+      }
+
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
@@ -99,6 +133,7 @@ serve(async (req) => {
 
       return json({ success: true, paid: false, pending: (pending || []).length > 0 });
     }
+
 
     // ---------- CREATE CHECKOUT ----------
     if (action === "create_checkout") {
