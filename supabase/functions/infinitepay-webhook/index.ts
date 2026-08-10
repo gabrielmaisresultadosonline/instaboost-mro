@@ -869,12 +869,10 @@ serve(async (req) => {
         feeOrder = data;
       }
       
-      if (!feeOrder && (username || email)) {
-        const orFilter = email 
-          ? `username.eq.${username},email.eq.${email},email.eq.${username},username.eq.${email}`
-          : `username.eq.${username},email.eq.${username}`;
-          
-        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").or(orFilter).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (!feeOrder && username) {
+        // Fallback somente pelo usuário do item. Nunca pelo e-mail, pois contas
+        // distintas podem compartilhar o mesmo endereço.
+        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").eq("username", username).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
         feeOrder = data;
       }
 

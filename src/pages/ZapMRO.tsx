@@ -163,15 +163,11 @@ const ZapMRO = () => {
     if (!user) return false;
     if (!silent) setIsCheckingFee(true);
     try {
-      // Usamos tanto username quanto email na busca para garantir que se um for aprovado,
-      // a liberação ocorra independente de qual identificador o webhook usou.
       const { data } = await supabase.functions.invoke('zapmro-upgrade-fee', {
         body: { action: 'status', username: user, email: userEmail }
       });
       const paid = data?.success && data?.paid === true;
-      if (paid) {
-        setFeePaid(true);
-      }
+      setFeePaid(paid);
       return paid;
     } catch (error) {
       console.error('[ZapMRO] Error checking fee:', error);
@@ -183,6 +179,9 @@ const ZapMRO = () => {
 
   useEffect(() => {
     if (isAuthenticated && username) {
+      setFeePaid(false);
+      setIsCheckingFee(true);
+      setIsReadyToShowContent(false);
       checkFeeStatus(username, email);
       
       // Timer de 3 segundos para garantir que o bloqueio já esteja processado e evitar flash do botão
@@ -192,7 +191,7 @@ const ZapMRO = () => {
       
       return () => clearTimeout(readyTimer);
     }
-  }, [isAuthenticated, username]);
+  }, [isAuthenticated, username, email]);
 
   // Polling em tempo real enquanto o pagamento está em aberto
   useEffect(() => {
@@ -214,6 +213,7 @@ const ZapMRO = () => {
       console.log(`[ZapMRO] Polling payment status... (${pollCount}/${maxPolls})`);
       const paid = await checkFeeStatus(username, email, true); // silent polling
       
+      setFeePaid(paid);
       if (paid) {
         console.log('[ZapMRO] Payment confirmed! Unlocking download...');
         setIsWaitingPayment(false);
@@ -432,8 +432,8 @@ const ZapMRO = () => {
     setPassword('');
     setEmail('');
     setIsEmailLocked(false);
+    setFeePaid(false);
   };
-
   const formatDays = (days: number) => {
     if (days > 365) return 'Vitalício';
     return `${days} dias`;
