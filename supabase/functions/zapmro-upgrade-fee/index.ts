@@ -96,16 +96,9 @@ serve(async (req) => {
     if (action === "status") {
       if (!username) return json({ success: false, error: "username obrigatório" }, 400);
 
-      // Aplica a taxa para TODOS os usuários vitalícios (dias >= 3650 ou "vip" no nome)
-      // O frontend já filtra isVitalicio, aqui garantimos a resposta de bloqueio
-      const isLegacy = LEGACY_LIFETIME_USERS.includes(username) || username.includes('vip');
+      // Removida a verificação da lista LEGACY_LIFETIME_USERS para que o bloqueio seja universal
+      // para todos os usuários vitalícios conforme identificado pelo frontend.
       
-      // Se for vitalício, precisamos checar o banco se já pagou.
-      // Se não for vitalício, liberamos direto.
-      // Nota: O frontend decide quem é Vitalício. A API aqui valida se quem ela considera 'legacy' pagou.
-      // Para forçar o bloqueio em todos que o frontend mandar, vamos simplificar:
-      // Apenas retornamos paid: true se realmente houver um registro de pagamento.
-
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
