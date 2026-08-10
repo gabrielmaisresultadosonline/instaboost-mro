@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download, ShieldAlert, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download, ShieldAlert, Sparkles, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +46,7 @@ const ZapMRO = () => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [showAnnouncements, setShowAnnouncements] = useState(true);
   const [expiredUserPlan, setExpiredUserPlan] = useState<string | null>(null);
+  const [showNumbers, setShowNumbers] = useState(false);
 
   // Taxa de atualização (R$67) para liberar o download
   const [feePaid, setFeePaid] = useState(false);
@@ -676,28 +678,43 @@ const ZapMRO = () => {
             {/* WhatsApp Status Card */}
             <div className="max-w-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-green-800/30 backdrop-blur-sm border border-green-600/30 rounded-2xl p-4 text-left">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <MessageCircle className="w-4 h-4 text-green-400" />
+                <div 
+                  className="flex items-center justify-between mb-3 cursor-pointer group"
+                  onClick={() => setShowNumbers(!showNumbers)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                      <MessageCircle className="w-4 h-4 text-green-400" />
+                    </div>
+                    <h4 className="text-white font-bold text-sm">Números Registrados</h4>
                   </div>
-                  <h4 className="text-white font-bold text-sm">Números Registrados</h4>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-400 group-hover:bg-green-500/10">
+                    <ChevronDown className={cn("w-4 h-4 transition-transform duration-300", showNumbers && "rotate-180")} />
+                  </Button>
                 </div>
-                {whatsappNumbers.length > 0 ? (
-                  <div className="space-y-2">
-                    {whatsappNumbers.map((num, i) => (
-                      <div key={i} className="flex items-center justify-between bg-green-900/40 p-2 rounded-lg border border-green-700/30">
-                        <span className="text-green-300 text-sm">{num}</span>
-                        <CheckCircle className="w-3 h-3 text-emerald-400" />
-                      </div>
-                    ))}
-                    <p className="text-[10px] text-green-400/50 mt-2 text-center italic">
-                      Para remover um número, entre em contato com o administrador.
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-green-400/60 text-sm italic">Nenhum número vinculado ainda.</p>
-                )}
-                <div className="mt-4 pt-3 border-t border-green-700/30 flex justify-between items-center">
+                
+                <div className={cn(
+                  "overflow-hidden transition-all duration-300 ease-in-out",
+                  showNumbers ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                )}>
+                  {whatsappNumbers.length > 0 ? (
+                    <div className="space-y-2 pb-2">
+                      {whatsappNumbers.map((num, i) => (
+                        <div key={i} className="flex items-center justify-between bg-green-900/40 p-2 rounded-lg border border-green-700/30">
+                          <span className="text-green-300 text-sm">{num}</span>
+                          <CheckCircle className="w-3 h-3 text-emerald-400" />
+                        </div>
+                      ))}
+                      <p className="text-[10px] text-green-400/50 mt-2 text-center italic">
+                        Para remover um número, entre em contato com o administrador.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-green-400/60 text-sm italic mb-2">Nenhum número vinculado ainda.</p>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-green-700/30 flex justify-between items-center">
                   <span className="text-xs text-green-300">Limite:</span>
                   <span className="text-xs font-bold text-white">
                     {whatsappLimit === -1 ? 'Ilimitado' : `${whatsappNumbers.length} / ${whatsappLimit}`}
