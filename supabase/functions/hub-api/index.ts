@@ -305,19 +305,17 @@ serve(async (req) => {
       const amount = Number(product.price || 0);
       if (amount <= 0) return json({ success: false, error: "Produto sem preço configurado" }, 400);
 
-      const priceCents = Math.round(amount * 100);
       const nsu = genNSU();
-      const redirectUrl = `https://maisresultadosonline.com.br/dashboard?paid=1&nsu=${nsu}`;
-      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
-      const description = slug === "audiibooks" ? `AUDIIBOOKS_${cleanEmail}` : `HUB_${slug}_${cleanEmail}`;
       const orderBumps = (body.orderBumps || {}) as { lifetime?: boolean; analysis?: boolean };
       let finalAmount = amount;
       if (orderBumps.lifetime) finalAmount += 9;
       if (orderBumps.analysis) finalAmount += 19;
 
       const priceCents = Math.round(finalAmount * 100);
-      const nsu = genNSU();
-      const redirectUrl = `https://maisresultadosonline.com.br/audiobooks/obrigado?paid=1&nsu=${nsu}`;
+      const redirectUrl = slug === "audiibooks" 
+        ? `https://maisresultadosonline.com.br/audiobooks/obrigado?paid=1&nsu=${nsu}`
+        : `https://maisresultadosonline.com.br/dashboard?paid=1&nsu=${nsu}`;
+      
       const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
       
       let description = slug === "audiibooks" ? `AUDIIBOOKS_${cleanEmail}` : `HUB_${slug}_${cleanEmail}`;
