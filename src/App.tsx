@@ -200,6 +200,7 @@ import AgenteMROPainel from "./pages/AgenteMROPainel";
 import TrafegoPagoVisitas from "./pages/TrafegoPagoVisitas";
 import TrafegoPagoObrigado from "./pages/TrafegoPagoObrigado";
 import AudiobooksSales from "./pages/AudiobooksSales";
+import AudiobooksAdmin from "./pages/AudiobooksAdmin";
 
 
 
