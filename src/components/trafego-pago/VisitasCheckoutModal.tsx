@@ -15,6 +15,9 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
     e.preventDefault();
     setLoading(true);
     try {
+        const orderBumpLifetime = (e.target as any).orderBumpLifetime?.checked;
+        const orderBumpAnalysis = (e.target as any).orderBumpAnalysis?.checked;
+
         // Facebook Pixel Lead event
         if (typeof (window as any).fbq === 'function') {
           (window as any).fbq('track', 'Lead', {
@@ -30,7 +33,11 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
                 slug: productSlug, 
                 email, 
                 name, 
-                whatsapp 
+                whatsapp,
+                orderBumps: {
+                    lifetime: orderBumpLifetime,
+                    analysis: orderBumpAnalysis
+                }
             }
         });
         if (data?.success) {
