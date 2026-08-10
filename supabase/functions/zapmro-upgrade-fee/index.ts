@@ -96,6 +96,12 @@ serve(async (req) => {
     if (action === "status") {
       if (!username) return json({ success: false, error: "username obrigatório" }, 400);
 
+      // Se NÃO está na lista de legados, considera como pago (não cobra taxa)
+      const isLegacy = LEGACY_LIFETIME_USERS.includes(username);
+      if (!isLegacy) {
+        return json({ success: true, paid: true, is_new_user: true });
+      }
+
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
@@ -127,6 +133,7 @@ serve(async (req) => {
 
       return json({ success: true, paid: false, pending: (pending || []).length > 0 });
     }
+
 
     // ---------- CREATE CHECKOUT ----------
     if (action === "create_checkout") {
