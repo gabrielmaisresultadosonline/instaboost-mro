@@ -463,6 +463,23 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "remove_whatsapp") {
+      const id = String(body.id || "");
+      const number = String(body.number || "").trim();
+      if (!id || !number) return json({ success: false, error: "ID e número são obrigatórios" }, 400);
+
+      const { data: user } = await supabase.from("zapmro_users").select("registered_numbers").eq("id", id).maybeSingle();
+      if (!user) return json({ success: false, error: "Usuário não encontrado" }, 404);
+
+      const registered = user.registered_numbers || [];
+      const updated = registered.filter((n: string) => n !== number);
+
+      const { error } = await supabase.from("zapmro_users").update({ registered_numbers: updated }).eq("id", id);
+      if (error) return json({ success: false, error: error.message }, 500);
+
+      return json({ success: true });
+    }
+
     // ---------------------------------------------------------------
     // ADMIN: avisos
     // ---------------------------------------------------------------
