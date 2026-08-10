@@ -47,6 +47,7 @@ const ZapMRO = () => {
   const [showAnnouncements, setShowAnnouncements] = useState(true);
   const [expiredUserPlan, setExpiredUserPlan] = useState<string | null>(null);
   const [showNumbers, setShowNumbers] = useState(false);
+  const [isReadyToShowContent, setIsReadyToShowContent] = useState(false);
 
   // Taxa de atualização (R$67) para liberar o download
   const [feePaid, setFeePaid] = useState(false);
