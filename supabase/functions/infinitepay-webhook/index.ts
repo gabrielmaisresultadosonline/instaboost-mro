@@ -317,6 +317,20 @@ serve(async (req) => {
             email = parts.slice(2).join("_").toLowerCase().trim();
           }
           log("Parsed ZAPMRO Upgrade Fee order", { username, email });
+          
+          // Se tivermos um email, tentamos encontrar um usuario com esse email 
+          // caso o username não bata exatamente.
+          if (email && !username) {
+             const { data: userData } = await supabase
+               .from("zapmro_users")
+               .select("username")
+               .eq("email", email)
+               .maybeSingle();
+             if (userData) {
+               username = userData.username.toLowerCase().trim();
+               log("Inferred username from email", { username });
+             }
+          }
           break;
         }
 
@@ -855,8 +869,12 @@ serve(async (req) => {
         feeOrder = data;
       }
       
-      if (!feeOrder && username) {
-        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").or(`username.eq.${username},email.eq.${username}`).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (!feeOrder && (username || email)) {
+        const orFilter = email 
+          ? `username.eq.${username},email.eq.${email},email.eq.${username},username.eq.${email}`
+          : `username.eq.${username},email.eq.${username}`;
+          
+        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").or(orFilter).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
         feeOrder = data;
       }
 
