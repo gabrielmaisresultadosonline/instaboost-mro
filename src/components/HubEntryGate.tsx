@@ -37,9 +37,13 @@ export function HubEntryGate({ children, allowEmbed = false }: HubEntryGateProps
   // navegação, ou seja: URL digitada, link externo ou F5 na própria página.
   const isDirectEntry = location.key === "default";
   const embedded = allowEmbed && isEmbedded(location.search);
+  const isZapMRO = location.pathname === "/zapmro";
 
-  // Entrada direta (URL digitada ou F5) sempre volta ao hub, mesmo que a sessão
-  // já tenha a marcação de retorno ao Dashboard.
+  // Se for ZapMRO, permitimos a entrada direta para não quebrar o fluxo de login/bloqueio
+  if (isZapMRO) {
+    return <>{children}</>;
+  }
+
   if (isDirectEntry && !embedded) {
     return <Navigate to={HUB_DASHBOARD_ROUTE} replace />;
   }
