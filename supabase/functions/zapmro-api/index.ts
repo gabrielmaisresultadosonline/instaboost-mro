@@ -60,8 +60,9 @@ function publicUser(user: ZapmroUserRow) {
   // Determinando o tipo de plano baseado nos dias restantes
   let planType = 'mensal';
   const days = user.days_remaining ?? 0;
+  const isVitalicio = days >= 3650 || (!user.expires_at && days > 3650);
   
-  if (days >= 9999 || (!user.expires_at && days > 3650)) {
+  if (isVitalicio) {
     planType = 'vitalicio';
   } else if (days > 185) {
     planType = 'anual';
@@ -583,7 +584,9 @@ serve(async (req) => {
       const { active, reason } = computeAccess(user);
       if (!active) return json({ success: false, error: reason }, 200);
 
-      const limit = user.whatsapp_limit ?? 1;
+      const days = user.days_remaining ?? 0;
+      const isVitalicio = days >= 3650 || (!user.expires_at && days > 3650);
+      const limit = isVitalicio ? -1 : (user.whatsapp_limit ?? 1);
       const registered = user.registered_numbers || [];
 
       if (registered.includes(number)) {
