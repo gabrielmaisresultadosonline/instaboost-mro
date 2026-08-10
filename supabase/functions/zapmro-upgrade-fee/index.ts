@@ -60,6 +60,7 @@ async function checkInfinitePay(
   orderNsu: string,
   transactionNsu?: string,
   slug?: string,
+  productName?: string,
 ): Promise<InfinitePayCheckResult> {
   try {
     const resp = await fetch("https://api.checkout.infinitepay.io/payment_check", {
@@ -86,7 +87,36 @@ async function checkInfinitePay(
       httpStatus: resp.status,
       response: data,
     });
-    return { paid: resp.ok && data.paid === true, data };
+    if (resp.ok && data.paid === true) return { paid: true, data };
+
+    // Checkouts antigos caíram no link manual e não associaram o order_nsu.
+    // O nome contém usuário + e-mail, portanto identifica com segurança a taxa
+    // única daquela conta sem cruzar usuários que compartilham um e-mail.
+    if (productName) {
+      const fallbackResp = await fetch("https://api.checkout.infinitepay.io/payment_check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handle: INFINITEPAY_HANDLE, product_name: productName }),
+      });
+      const fallbackRaw = await fallbackResp.text();
+      let fallbackData: Record<string, unknown> = {};
+      try {
+        fallbackData = fallbackRaw ? JSON.parse(fallbackRaw) : {};
+      } catch {
+        fallbackData = { raw: fallbackRaw };
+      }
+      log("payment_check product fallback response", {
+        orderNsu,
+        productName,
+        httpStatus: fallbackResp.status,
+        response: fallbackData,
+      });
+      if (fallbackResp.ok && fallbackData.paid === true) {
+        return { paid: true, data: fallbackData };
+      }
+    }
+
+    return { paid: false, data };
   } catch (e) {
     log("payment_check error", { orderNsu, error: String(e) });
     return { paid: false, data: { error: String(e) } };
@@ -134,7 +164,6 @@ serve(async (req) => {
 
     const action = String(body.action || "webhook");
     const username = body.username ? String(body.username).toLowerCase().trim() : "";
-    const emailFromReq = body.email ? String(body.email).toLowerCase().trim() : "";
 
     // ---------- STATUS: verifica se o usuário já pagou a taxa ----------
     if (action === "status") {
@@ -145,7 +174,7 @@ serve(async (req) => {
       const { data: paidData } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
+        .eq("username", username)
         .eq("status", "paid")
         .order("created_at", { ascending: false })
         .limit(1);
@@ -158,7 +187,7 @@ serve(async (req) => {
       const { data: pending } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
+        .eq("username", username)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -168,7 +197,8 @@ serve(async (req) => {
         log("Checking pending payment realtime", { orderNsu: order.nsu_order, slug });
         
         // A verificação via API no checkInfinitePay já garante que o pagamento é real.
-        const verification = await checkInfinitePay(order.nsu_order, undefined, slug);
+        const productName = `ZAPTAXA_${order.username}_${order.email}`;
+        const verification = await checkInfinitePay(order.nsu_order, undefined, slug, productName);
         if (verification.paid) {
           log("Payment confirmed by API! Updating DB...", { orderId: order.id });
           const { error: updateError } = await supabase
@@ -201,7 +231,7 @@ serve(async (req) => {
       const { data: alreadyPaid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
+        .eq("username", username)
         .eq("status", "paid")
         .order("created_at", { ascending: false })
         .limit(1)
@@ -215,8 +245,10 @@ serve(async (req) => {
       const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
       const description = `ZAPTAXA_${username}_${email}`;
 
-      // A API /links associa corretamente order_nsu e webhook quando o item usa "name".
-      const lineItems = [{ name: description, quantity: 1, price: priceCents }];
+      // A API /links exige `description` para criar um checkout rastreável.
+      // Usar apenas `name` fazia a criação falhar silenciosamente e cair no link
+      // manual, que não devolve `lenc` nem associa o `order_nsu` ao pagamento.
+      const lineItems = [{ description, quantity: 1, price: priceCents }];
       let paymentLink: string | null = null;
 
       try {
@@ -233,14 +265,23 @@ serve(async (req) => {
             customer: { email },
           }),
         });
-        const data = await resp.json();
+        const raw = await resp.text();
+        let data: Record<string, unknown> = {};
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          data = { raw };
+        }
         log("InfiniPay links response", {
           status: resp.status,
           orderNsu,
           hasPaymentLink: Boolean(data.url || data.checkout_url || data.link),
           responseKeys: data && typeof data === "object" ? Object.keys(data) : [],
         });
-        if (resp.ok) paymentLink = data.url || data.checkout_url || data.link || null;
+        if (resp.ok) {
+          const candidate = data.url || data.checkout_url || data.link;
+          paymentLink = typeof candidate === "string" ? candidate : null;
+        }
       } catch (e) {
         log("InfiniPay links error", { error: String(e) });
       }
