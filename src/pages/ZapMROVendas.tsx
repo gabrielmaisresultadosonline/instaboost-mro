@@ -613,10 +613,10 @@ const ZapMROVendas = () => {
                 {PLANS[selectedPlan].name} - R$ {PLANS[selectedPlan].price.toFixed(2)}
               </p>
               {selectedPlan === "annual" && (
-                <p className="text-xs text-gray-500 mt-1">ou 12x de R$30</p>
+                <p className="text-xs text-gray-500 mt-1">ou 12x de R$30 - Duração de 1 Ano</p>
               )}
               {selectedPlan === "monthly" && (
-                <p className="text-xs text-gray-500 mt-1">cobrança recorrente a cada 30 dias</p>
+                <p className="text-xs text-gray-500 mt-1">Pagamento único - Duração de 30 dias</p>
               )}
             </div>
 
