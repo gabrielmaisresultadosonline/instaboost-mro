@@ -127,7 +127,9 @@ const ZapMRO = () => {
     "rodrigovip1"
   ];
 
-  const isLegacyUser = isAuthenticated && LEGACY_LIFETIME_USERS.includes(username.toLowerCase().trim());
+  const isVitalicio = daysRemaining >= 3650;
+  const isLegacyUser = isAuthenticated && isVitalicio && LEGACY_LIFETIME_USERS.includes(username.toLowerCase().trim());
+
 
 
   // Load ZAPMRO modules from cloud
