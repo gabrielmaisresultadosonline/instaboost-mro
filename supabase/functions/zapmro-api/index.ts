@@ -35,8 +35,12 @@ interface ZapmroUserRow {
   expires_at: string | null;
   password_hash: string | null;
   last_access: string | null;
+  whatsapp: string | null;
+  whatsapp_limit: number | null;
+  registered_numbers: string[] | null;
   created_at: string;
 }
+
 
 /** Computes whether a user still has valid access. */
 function computeAccess(user: ZapmroUserRow): { active: boolean; reason: string | null } {
@@ -76,9 +80,13 @@ function publicUser(user: ZapmroUserRow) {
     plan_type: planType,
     expires_at: user.expires_at,
     last_access: user.last_access,
+    whatsapp: user.whatsapp,
+    whatsapp_limit: user.whatsapp_limit ?? 1,
+    registered_numbers: user.registered_numbers || [],
     created_at: user.created_at,
   };
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -272,7 +280,10 @@ serve(async (req) => {
         username,
         email: body.email ? String(body.email).trim().toLowerCase() : null,
         name: body.name ? String(body.name).trim() : null,
+        whatsapp: body.whatsapp ? String(body.whatsapp).trim() : null,
+        whatsapp_limit: body.whatsapp_limit !== undefined ? Number(body.whatsapp_limit) : 1,
       };
+
       if (body.is_active !== undefined) payload.is_active = !!body.is_active;
       if (body.days_remaining !== undefined && body.days_remaining !== null && body.days_remaining !== "") {
         payload.days_remaining = Number(body.days_remaining);
@@ -531,6 +542,51 @@ serve(async (req) => {
       const { active, reason } = computeAccess(user);
       return json({ success: active, error: reason, user: publicUser(user) });
     }
+
+    // ---------------------------------------------------------------
+    // PUBLIC: register_whatsapp (vincula um número à conta respeitando o limite)
+    // ---------------------------------------------------------------
+    if (action === "register_whatsapp") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      const number = String(body.number || "").trim().replace(/\D/g, "");
+
+      if (!identifier || !number) {
+        return json({ success: false, error: "Usuário e número são obrigatórios" }, 400);
+      }
+
+      const { data: users } = await supabase
+        .from("zapmro_users")
+        .select("*")
+        .or(`username.eq.${identifier},email.eq.${identifier}`)
+        .limit(1);
+
+      const user = (users?.[0] || null) as ZapmroUserRow | null;
+      if (!user) return json({ success: false, error: "Usuário não encontrado" }, 200);
+
+      const { active, reason } = computeAccess(user);
+      if (!active) return json({ success: false, error: reason }, 200);
+
+      const limit = user.whatsapp_limit ?? 1;
+      const registered = user.registered_numbers || [];
+
+      if (registered.includes(number)) {
+        return json({ success: true, message: "Número já registrado", user: publicUser(user) });
+      }
+
+      if (limit !== -1 && registered.length >= limit) {
+        return json({ success: false, error: "Limite de números atingido", limit }, 200);
+      }
+
+      const { error } = await supabase
+        .from("zapmro_users")
+        .update({ registered_numbers: [...registered, number] })
+        .eq("id", user.id);
+
+      if (error) return json({ success: false, error: error.message }, 500);
+
+      return json({ success: true, message: "Número registrado com sucesso", user: publicUser({...user, registered_numbers: [...registered, number]}) });
+    }
+
 
     // ---------------------------------------------------------------
     // ADMIN: sessões / IPs

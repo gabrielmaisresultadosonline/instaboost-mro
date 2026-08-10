@@ -39,7 +39,11 @@ export interface ZapmroUser {
   created_at: string;
   has_password: boolean;
   password_plain?: string | null;
+  whatsapp?: string | null;
+  whatsapp_limit?: number | null;
+  registered_numbers?: string[] | null;
 }
+
 
 export interface ZapmroAnnouncement {
   id: string;
@@ -62,7 +66,10 @@ type UserForm = {
   password: string;
   days_remaining: string;
   is_active: boolean;
+  whatsapp: string;
+  whatsapp_limit: string;
 };
+
 
 const EMPTY_USER: UserForm = {
   username: '',
@@ -71,7 +78,10 @@ const EMPTY_USER: UserForm = {
   password: '',
   days_remaining: '365',
   is_active: true,
+  whatsapp: '',
+  whatsapp_limit: '1',
 };
+
 
 type AnnouncementForm = {
   id?: string;
@@ -190,8 +200,11 @@ export const ZapmroUsersTab: React.FC = () => {
           password: form.password || undefined,
           days_remaining: form.days_remaining,
           is_active: form.is_active,
+          whatsapp: form.whatsapp,
+          whatsapp_limit: form.whatsapp_limit,
         },
       });
+
       if (data?.success) {
         toast({ title: 'Usuário salvo!' });
         setForm(EMPTY_USER);
@@ -295,7 +308,26 @@ export const ZapmroUsersTab: React.FC = () => {
               onChange={(e) => setForm((p) => ({ ...p, days_remaining: e.target.value }))}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="zap-whatsapp">WhatsApp (Admin)</Label>
+            <Input
+              id="zap-whatsapp"
+              value={form.whatsapp}
+              onChange={(e) => setForm((p) => ({ ...p, whatsapp: e.target.value }))}
+              placeholder="Ex: 5511999999999"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="zap-whatsapp-limit">Limite de Números (-1 = Ilimitado)</Label>
+            <Input
+              id="zap-whatsapp-limit"
+              type="number"
+              value={form.whatsapp_limit}
+              onChange={(e) => setForm((p) => ({ ...p, whatsapp_limit: e.target.value }))}
+            />
+          </div>
           <div className="flex items-center gap-3 pt-6">
+
             <Switch
               checked={form.is_active}
               onCheckedChange={(checked) => setForm((p) => ({ ...p, is_active: checked }))}
@@ -363,7 +395,10 @@ export const ZapmroUsersTab: React.FC = () => {
                   (user.days_remaining ?? 0) > 180 ? 'Anual' :
                   (user.days_remaining ?? 0) > 31 ? 'Semestral' : 'Mensal'
                 } ({user.days_remaining ?? 0} dias)</p>
+                <p>WhatsApp: {user.whatsapp || '—'}</p>
+                <p>Limite WhatsApp: {user.whatsapp_limit === -1 ? 'Ilimitado' : user.whatsapp_limit} ({user.registered_numbers?.length || 0} reg.)</p>
                 <p className="flex items-center gap-1">
+
                   Senha:{' '}
                   <span className="font-mono text-foreground">
                     {user.password_plain
@@ -400,8 +435,11 @@ export const ZapmroUsersTab: React.FC = () => {
                       password: user.password_plain || '',
                       days_remaining: String(user.days_remaining ?? 365),
                       is_active: user.is_active !== false,
+                      whatsapp: user.whatsapp || '',
+                      whatsapp_limit: String(user.whatsapp_limit ?? 1),
                     })
                   }
+
                 >
                   Editar
                 </Button>

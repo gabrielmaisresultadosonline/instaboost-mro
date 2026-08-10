@@ -31,8 +31,11 @@ const ENDPOINTS: EndpointDoc[] = [
         name: 'Nome do Cliente',
         is_active: true,
         days_remaining: 300,
+        whatsapp_limit: 1,
+        registered_numbers: ['5511999999999'],
         expires_at: null,
       },
+
     },
   },
   {
@@ -43,8 +46,16 @@ const ENDPOINTS: EndpointDoc[] = [
     body: { action: 'verify_user', username: 'usuario_ou_email' },
     response: {
       success: true,
-      user: { username: 'usuario', is_active: true, days_remaining: 300, access_denied_reason: null },
+      user: { 
+        username: 'usuario', 
+        is_active: true, 
+        days_remaining: 300, 
+        whatsapp_limit: 1,
+        registered_numbers: [],
+        access_denied_reason: null 
+      },
     },
+
   },
   {
     name: 'Avisos ativos',
@@ -81,8 +92,9 @@ const PLANS: PlanDoc[] = [
     label: 'Vitalício',
     description:
       'Sem data de expiração. Cadastre o usuário sem "expires_at" e com days_remaining alto (ex.: 9999). Acesso liberado enquanto is_active for true.',
-    example: { is_active: true, expires_at: null, days_remaining: 9999, plan_type: 'vitalicio' },
+    example: { is_active: true, expires_at: null, days_remaining: 9999, plan_type: 'vitalicio', whatsapp_limit: -1 },
   },
+
   {
     label: 'Anual',
     description:
@@ -121,7 +133,9 @@ const status = user.plan_type === 'vitalicio'
   : \`Dias restantes: \${user.days_remaining}\`;
 
 exibirInfo(saudacao, status);
-liberarAcesso(plano);`;
+liberarAcesso(plano);
+exibirLimite(user.whatsapp_limit); // -1 para ilimitado`;
+
 
 
 const ZapmroAPIDocumentation: React.FC = () => {
