@@ -19,6 +19,7 @@ const PLANS = {
 };
 
 const ZapMROVendas = () => {
+  const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showBonusVideo, setShowBonusVideo] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
