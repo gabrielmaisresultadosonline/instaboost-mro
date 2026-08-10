@@ -102,6 +102,34 @@ const ZapMRO = () => {
     checkAuth();
   }, []);
 
+  const LEGACY_LIFETIME_USERS = [
+    "charlesdeivisonvip",
+    "marcosoliveiravip",
+    "guilhermerocha",
+    "hudsonvip",
+    "guerrerovip",
+    "vagnertomasivip",
+    "gah",
+    "degisvip",
+    "marlonwhats",
+    "ilannavip",
+    "osdileidezap",
+    "renatovipfull",
+    "grazivipfull",
+    "rittervip",
+    "gomesdanielvip",
+    "nichollsvip",
+    "hielenvipp1",
+    "pereiravipfull",
+    "kamaravipfull",
+    "jacintovipfull",
+    "jeanvip1",
+    "rodrigovip1"
+  ];
+
+  const isLegacyUser = isAuthenticated && LEGACY_LIFETIME_USERS.includes(username.toLowerCase().trim());
+
+
   // Load ZAPMRO modules from cloud
   useEffect(() => {
     const loadZapmroModules = async () => {
@@ -747,69 +775,88 @@ const ZapMRO = () => {
             </div>
           </div>
 
-          {/* Download Link (exige e-mail cadastrado) */}
+          {/* Download Button Section */}
           {settings?.downloadLink && (
-            <div className="flex flex-col items-center gap-3 mb-8">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isEmailLocked ? (feePaid ? 'bg-emerald-500/15 border-emerald-400/40' : 'bg-amber-500/15 border-amber-400/40') : 'bg-amber-500/15 border-amber-400/40'}`}>
-                {isEmailLocked ? (
-                  feePaid ? (
-                    <>
-                      <Sparkles className="w-4 h-4 text-emerald-300" />
-                      <span className="text-emerald-200 text-sm font-semibold">
-                        Download liberado! Faça download da versão atualizada.
-                      </span>
-                    </>
+            <div className="flex flex-col items-center gap-6 mt-8 mb-12">
+              {!feePaid && isLegacyUser ? (
+                <div className="w-full max-w-lg bg-orange-500/10 border border-orange-500/20 rounded-3xl p-8 flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl">
+                  <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center">
+                    <Lock className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Download Bloqueado</h3>
+                    <p className="text-green-200/70 max-w-md mx-auto leading-relaxed">
+                      Sua conta requer uma <span className="text-orange-400 font-bold underline underline-offset-4">taxa única de atualização (R$ 67,00)</span> para liberar a nova versão estável do ZAPMRO.
+                    </p>
+                  </div>
+                  
+                  <Button 
+                    onClick={handlePayFee}
+                    disabled={isCreatingFee || !email || !isEmailLocked}
+                    className="w-full h-16 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black text-lg rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-orange-600/20 border-b-4 border-orange-800"
+                  >
+                    {isCreatingFee ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-6 h-6 mr-2" />
+                        PAGAR TAXA E LIBERAR (R$ 67)
+                      </>
+                    )}
+                  </Button>
+                  
+                  {(!email || !isEmailLocked) ? (
+                    <div className="flex items-center gap-2 text-amber-400 font-medium bg-amber-500/5 px-4 py-2 rounded-full border border-amber-500/10">
+                      <ShieldAlert className="w-4 h-4" />
+                      <span className="text-xs uppercase tracking-widest font-bold">Cadastre seu e-mail acima para pagar</span>
+                    </div>
                   ) : (
-                    <>
-                      <ShieldAlert className="w-4 h-4 text-amber-300" />
-                      <span className="text-amber-200 text-sm font-semibold">
-                        Taxa de atualização necessária para liberar o download.
-                      </span>
-                    </>
-                  )
-                ) : (
-                  <>
-                    <ShieldAlert className="w-4 h-4 text-amber-300" />
-                    <span className="text-amber-200 text-sm font-semibold">
-                      Cadastre seu e-mail acima para liberar o download.
-                    </span>
-                  </>
-                )}
-              </div>
-
-
-              <Button
-                onClick={() => {
-                  if (!isEmailLocked) {
-                    toast({
-                      title: 'Cadastre seu e-mail primeiro',
-                      description: 'É obrigatório cadastrar um e-mail válido para baixar o ZAPMRO.',
-                      variant: 'destructive',
-                    });
-                    return;
-                  }
+                    <div className="flex items-center gap-2 text-green-400/60 text-xs">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>E-mail vinculado: {email}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {feePaid && isLegacyUser && (
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold bg-emerald-500/10 px-6 py-3 rounded-full border border-emerald-500/30 mb-2 animate-in fade-in zoom-in duration-700 shadow-inner">
+                      <Sparkles className="w-5 h-5 animate-pulse" />
+                      <span className="uppercase tracking-wide text-sm">Download liberado com sucesso!</span>
+                    </div>
+                  )}
                   
-                  if (!feePaid && !isCheckingFee) {
-                    setShowFeeModal(true);
-                    return;
-                  }
-                  
-                  window.open(settings.downloadLink, '_blank');
-                }}
-                disabled={!isEmailLocked}
-                className={cn(
-                  "h-16 px-10 text-xl font-black rounded-2xl transition-all duration-300 gap-3 shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-pulse",
-                  "bg-red-600 hover:bg-red-500 text-white border-2 border-red-400/30",
-                  "disabled:opacity-60 disabled:cursor-not-allowed disabled:animate-none disabled:shadow-none"
-                )}
-              >
-                {isEmailLocked ? (
-                  feePaid ? <Download className="w-6 h-6" /> : <Lock className="w-6 h-6" />
-                ) : (
-                  <Lock className="w-6 h-6" />
-                )}
-                Download ZAPMRO
-              </Button>
+                  <Button 
+                    onClick={() => settings?.downloadLink && window.open(settings.downloadLink, '_blank')}
+                    disabled={!settings?.downloadLink}
+                    className={cn(
+                      "relative group w-full max-w-lg h-24 text-3xl font-black uppercase tracking-tighter rounded-3xl transition-all duration-500",
+                      "bg-red-600 hover:bg-red-500 text-white border-b-8 border-red-800 active:border-b-2 active:translate-y-1",
+                      "shadow-[0_20px_50px_rgba(220,38,38,0.4)] hover:shadow-[0_25px_60px_rgba(220,38,38,0.6)]",
+                      "hover:scale-[1.03] active:scale-[0.98]",
+                      "overflow-hidden flex flex-col justify-center items-center"
+                    )}
+                  >
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+                    
+                    <div className="flex items-center justify-center gap-4 relative z-10">
+                      <div className="p-2 bg-white/20 rounded-2xl group-hover:bg-white/30 transition-colors shadow-inner">
+                        <Download className="w-10 h-10 group-hover:animate-bounce" />
+                      </div>
+                      <div className="flex flex-col items-start leading-none">
+                        <span>Download</span>
+                        <span className="text-lg opacity-80 font-bold">ZAPMRO v2026</span>
+                      </div>
+                    </div>
+                    
+                    {/* Pulsing ring */}
+                    <div className="absolute inset-0 rounded-3xl border-4 border-red-400/50 animate-ping opacity-20 pointer-events-none" />
+                  </Button>
+
+                  <p className="text-green-400/40 text-xs font-medium uppercase tracking-[0.2em]">Versão Estável • Suporte Prioritário</p>
+                </>
+              )}
             </div>
           )}
 
