@@ -88,10 +88,10 @@ const AudiobooksSales = () => {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full">
             <Button 
               onClick={handleCTA}
-              className="h-16 px-10 bg-green-500 hover:bg-green-600 text-white font-black text-xl uppercase italic rounded-2xl transition-all shadow-lg shadow-green-500/20"
+              className="h-auto py-4 px-6 md:px-10 bg-green-500 hover:bg-green-600 text-white font-black text-lg md:text-xl uppercase italic rounded-2xl transition-all shadow-lg shadow-green-500/20 w-full md:w-auto"
             >
               LIBERAR ACESSO AGORA <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
@@ -149,10 +149,10 @@ const AudiobooksSales = () => {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full">
             <Button 
               onClick={handleCTA}
-              className="h-20 px-12 bg-green-500 hover:bg-green-600 text-white font-black text-2xl uppercase italic rounded-2xl shadow-xl transition-all shadow-green-500/20"
+              className="h-auto py-5 px-6 md:px-12 bg-green-500 hover:bg-green-600 text-white font-black text-lg md:text-2xl uppercase italic rounded-2xl shadow-xl transition-all shadow-green-500/20 w-full md:w-auto"
             >
               GARANTIR MEU ACESSO R$ 37
             </Button>
@@ -209,7 +209,7 @@ const AudiobooksSales = () => {
 
           <Button 
             onClick={handleCTA}
-            className="h-24 px-20 bg-green-500 hover:bg-green-600 text-white font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_50px_rgba(34,197,94,0.3)] transition-all hover:scale-105 active:scale-95"
+            className="h-auto py-6 px-8 md:px-20 bg-green-500 hover:bg-green-600 text-white font-black text-xl md:text-3xl uppercase italic rounded-2xl md:rounded-3xl shadow-[0_0_50px_rgba(34,197,94,0.3)] transition-all hover:scale-105 active:scale-95 w-full md:w-auto"
           >
             QUERO O PACOTE COMPLETO
           </Button>
