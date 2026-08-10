@@ -661,14 +661,23 @@ const ZapMRO = () => {
           {/* Download Link (exige e-mail cadastrado) */}
           {settings?.downloadLink && (
             <div className="flex flex-col items-center gap-3 mb-8">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isEmailLocked ? 'bg-emerald-500/15 border-emerald-400/40' : 'bg-amber-500/15 border-amber-400/40'}`}>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isEmailLocked ? (feePaid ? 'bg-emerald-500/15 border-emerald-400/40' : 'bg-amber-500/15 border-amber-400/40') : 'bg-amber-500/15 border-amber-400/40'}`}>
                 {isEmailLocked ? (
-                  <>
-                    <Sparkles className="w-4 h-4 text-emerald-300" />
-                    <span className="text-emerald-200 text-sm font-semibold">
-                      Download liberado! Faça download da versão atualizada.
-                    </span>
-                  </>
+                  feePaid ? (
+                    <>
+                      <Sparkles className="w-4 h-4 text-emerald-300" />
+                      <span className="text-emerald-200 text-sm font-semibold">
+                        Download liberado! Faça download da versão atualizada.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldAlert className="w-4 h-4 text-amber-300" />
+                      <span className="text-amber-200 text-sm font-semibold">
+                        Taxa de atualização necessária para liberar o download.
+                      </span>
+                    </>
+                  )
                 ) : (
                   <>
                     <ShieldAlert className="w-4 h-4 text-amber-300" />
@@ -678,6 +687,7 @@ const ZapMRO = () => {
                   </>
                 )}
               </div>
+
 
               <Button
                 onClick={() => {
