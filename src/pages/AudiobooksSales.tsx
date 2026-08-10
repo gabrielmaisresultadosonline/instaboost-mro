@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Music, BookOpen, ShieldCheck, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Music, BookOpen, ShieldCheck, Zap, ArrowRight, CheckCircle2, Lock } from 'lucide-react';
 import VisitasCheckoutModal from '@/components/trafego-pago/VisitasCheckoutModal';
 
 const AudiobooksSales = () => {
