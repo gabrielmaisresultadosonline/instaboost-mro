@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download, ShieldAlert, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download, ShieldAlert, Sparkles, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +46,7 @@ const ZapMRO = () => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [showAnnouncements, setShowAnnouncements] = useState(true);
   const [expiredUserPlan, setExpiredUserPlan] = useState<string | null>(null);
+  const [showNumbers, setShowNumbers] = useState(false);
 
   // Taxa de atualização (R$67) para liberar o download
   const [feePaid, setFeePaid] = useState(false);
