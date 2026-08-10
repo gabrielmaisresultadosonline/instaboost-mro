@@ -454,15 +454,21 @@ const ZapMROVendas = () => {
           <div className="text-center mb-6 md:mb-10">
             <span className="text-green-400 font-bold text-base md:text-lg">PLANOS DISPONÍVEIS</span>
             <h2 className="text-3xl md:text-5xl font-bold mt-2">Escolha seu Acesso</h2>
+            <div className="mt-4 inline-block bg-green-500/20 border border-green-500/40 rounded-lg px-6 py-3">
+              <p className="text-green-400 font-black text-lg md:text-xl">
+                NÃO É ASSINATURA, PAGUE E USE O TEMPO DO PLANO, SÓ RENOVE SE QUISER!
+              </p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 md:gap-8">
             {/* Mensal */}
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-green-500/10 flex flex-col h-full">
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-green-500/10 flex flex-col h-full hover:border-emerald-400 transition-colors duration-500">
               <div className="text-center mb-6">
+                <div className="inline-block bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full mb-2">DURAÇÃO DE 30 DIAS</div>
                 <h3 className="text-2xl font-bold mb-2">MENSAL</h3>
                 <div className="text-5xl font-black text-green-400 mb-1">R$67</div>
-                <p className="text-gray-400">por mês</p>
+                <p className="text-gray-400">Pagamento Único</p>
               </div>
               <div className="space-y-4 mb-8 flex-grow">
                 {['ATÉ 2 WHATSAPP', 'TUDO ILIMITADO', 'ENVIOS ILIMITADOS', 'FLUXOS & DISPAROS', 'AGENDAMENTOS'].map((feature, i) => (
@@ -476,26 +482,27 @@ const ZapMROVendas = () => {
               </div>
               <Button 
                 size="lg"
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 rounded-xl transition-all hover:scale-105"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 rounded-xl transition-all hover:scale-105 shadow-lg shadow-green-500/20"
                 onClick={() => openCheckout("monthly")}
               >
-                ASSINAR MENSAL
+                COMPRAR POR 30 DIAS
               </Button>
             </div>
 
             {/* Anual */}
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-green-500/20 flex flex-col h-full relative overflow-hidden">
-              <div className="absolute top-4 right-[-35px] bg-green-500 text-white text-[10px] font-bold py-1 px-10 rotate-45">OFERTA</div>
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-amber-500/50 rounded-2xl md:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-amber-500/10 flex flex-col h-full relative overflow-hidden hover:border-amber-400 transition-colors duration-500">
+              <div className="absolute top-4 right-[-35px] bg-amber-500 text-white text-[10px] font-bold py-1 px-10 rotate-45">OFERTA</div>
               <div className="text-center mb-6">
+                <div className="inline-block bg-amber-500/10 text-amber-400 text-xs font-bold px-3 py-1 rounded-full mb-2">DURAÇÃO DE 1 ANO</div>
                 <h3 className="text-2xl font-bold mb-2">ANUAL</h3>
-                <div className="text-5xl font-black text-green-400 mb-1">R$300</div>
-                <p className="text-gray-400">acesso por 1 ano</p>
-                <p className="text-green-500 text-sm font-bold mt-1">12x de R$30</p>
+                <div className="text-5xl font-black text-amber-400 mb-1">R$300</div>
+                <p className="text-gray-400">Pagamento Único</p>
+                <p className="text-amber-500 text-sm font-bold mt-1">12x de R$30</p>
               </div>
               <div className="space-y-4 mb-8 flex-grow">
                 {['ATÉ 2 WHATSAPP', 'TUDO ILIMITADO', 'MAIS ECONOMIA', 'SUPORTE PRIORITÁRIO', 'TODOS OS RECURSOS'].map((feature, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
                       <Check className="w-3 h-3 text-white" />
                     </div>
                     <span className="text-gray-300 text-sm">{feature}</span>
@@ -504,10 +511,10 @@ const ZapMROVendas = () => {
               </div>
               <Button 
                 size="lg"
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 rounded-xl transition-all hover:scale-105"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-6 rounded-xl transition-all hover:scale-105 shadow-lg shadow-amber-500/20"
                 onClick={() => openCheckout("annual")}
               >
-                ASSINAR ANUAL
+                COMPRAR POR 1 ANO
               </Button>
             </div>
           </div>
@@ -517,9 +524,11 @@ const ZapMROVendas = () => {
               <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
               Pagamento 100% seguro via InfiniPay
             </p>
-            <p className="text-green-400 font-medium text-sm md:text-base mt-4">
-              ⚡ Acesso imediato via e-mail após confirmação
-            </p>
+            <div className="inline-block mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+              <p className="text-blue-400 font-black text-sm md:text-base">
+                ⚡ Acesso imediato via e-mail após confirmação do seu plano
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -604,10 +613,10 @@ const ZapMROVendas = () => {
                 {PLANS[selectedPlan].name} - R$ {PLANS[selectedPlan].price.toFixed(2)}
               </p>
               {selectedPlan === "annual" && (
-                <p className="text-xs text-gray-500 mt-1">ou 12x de R$30</p>
+                <p className="text-xs text-gray-500 mt-1">ou 12x de R$30 - Duração de 1 Ano</p>
               )}
               {selectedPlan === "monthly" && (
-                <p className="text-xs text-gray-500 mt-1">cobrança recorrente a cada 30 dias</p>
+                <p className="text-xs text-gray-500 mt-1">Pagamento único - Duração de 30 dias</p>
               )}
             </div>
 
