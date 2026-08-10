@@ -187,8 +187,8 @@ const AudiobooksSales = () => {
       </section>
 
       {/* Summary Section */}
-      <section className="py-24 px-4 bg-zinc-950">
-        <div className="max-w-4xl mx-auto text-center space-y-12">
+      <section className="py-16 md:py-24 px-4 bg-zinc-950">
+        <div className="max-w-4xl mx-auto text-center space-y-8 md:space-y-12">
           <div className="inline-block p-2 rounded-2xl bg-zinc-900 border border-zinc-800">
              <div className="px-6 py-4 bg-yellow-400/10 rounded-xl border border-yellow-400/20">
                 <h3 className="text-2xl font-black text-yellow-400 uppercase italic">🔥 UM PACOTE COMPLETO PARA QUEM QUER EVOLUIR!</h3>
