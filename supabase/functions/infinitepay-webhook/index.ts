@@ -722,8 +722,16 @@ serve(async (req) => {
             }
           });
         } catch (e) { log("Error sending welcome email", e); }
+        
+        // Track Meta Purchase Event for HUB orders
+        await sendMetaPurchaseEvent(
+          (hubOrder.email as string) || email || "",
+          Number(hubOrder.amount) || 37,
+          slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : "Produto Hub",
+          hubOrder.nsu_order as string
+        );
 
-        log("HUB order paid + access granted + email triggered", { id: hubOrder.id });
+        log("HUB order paid + access granted + email triggered + Meta tracked", { id: hubOrder.id });
         return new Response(JSON.stringify({ success: true, message: "HUB confirmed" }), { status: 200, headers: corsHeaders });
       }
     }

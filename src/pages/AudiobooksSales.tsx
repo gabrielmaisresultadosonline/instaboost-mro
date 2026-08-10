@@ -1,102 +1,232 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Music, BookOpen, Lock, ShoppingCart, CheckCircle2, Star, ShieldCheck, Zap } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Music, BookOpen, ShieldCheck, Zap, ArrowRight, CheckCircle2, Lock } from 'lucide-react';
 import VisitasCheckoutModal from '@/components/trafego-pago/VisitasCheckoutModal';
 
 const AudiobooksSales = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [showCheckout, setShowCheckout] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const product = {
-    title: "O SEGREDO PARA VENDER MAIS !",
-    price: 37,
-    slug: "audiibooks"
+  useEffect(() => {
+    // Facebook Pixel PageView event
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'PageView');
+    }
+  }, []);
+
+  const handleCTA = () => {
+    // Facebook Pixel InitiateCheckout event
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'InitiateCheckout');
+    }
+    setShowCheckout(true);
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-zinc-950 text-white selection:bg-yellow-400 selection:text-black font-sans">
       {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-4 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none" />
+      <section className="relative pt-24 pb-20 px-4 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-yellow-500/10 via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
-          <Badge className="bg-yellow-400 text-black hover:bg-yellow-500 font-black px-4 py-1 text-xs uppercase tracking-widest">
-            EBOOK / AUDIOBOOK HUB
+          <Badge className="bg-yellow-400 text-black hover:bg-yellow-500 font-black px-4 py-1.5 text-xs uppercase tracking-widest rounded-full">
+            🚀 O SEGREDO PARA VENDER MAIS!
           </Badge>
           
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">
-            O SEGREDO PARA <br />
-            <span className="text-yellow-400 not-italic">VENDER MAIS !</span>
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] italic">
+            DOMINE AS VENDAS <br />
+            <span className="text-yellow-400 not-italic">COM ESTRATÉGIA</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-zinc-400 font-medium max-w-2xl mx-auto leading-relaxed">
-            Tenha acesso instantâneo aos 4 pilares fundamentais que transformam qualquer negócio em uma máquina de vendas imparável.
+          <p className="text-xl md:text-2xl text-zinc-400 font-medium max-w-3xl mx-auto leading-relaxed">
+            Tenha acesso a 4 eBooks completos + seus respectivos audiobooks, criados para ajudar você a desenvolver estratégias, comunicação, influência e disciplina para alcançar melhores resultados no marketing e nas vendas.
           </p>
 
-          <div className="pt-8">
+          <div className="pt-8 flex flex-col items-center gap-4">
             <Button 
-              onClick={() => setShowCheckout(true)}
-              className="h-20 px-12 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-2xl uppercase italic rounded-2xl shadow-[0_0_50px_rgba(250,204,21,0.3)] transition-all hover:scale-105 active:scale-95"
+              onClick={handleCTA}
+              className="h-24 px-16 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_60px_rgba(250,204,21,0.4)] transition-all hover:scale-105 active:scale-95 group"
             >
-              Quero Acesso Agora - R$ 37
+              QUERO ACESSO AGORA <ArrowRight className="ml-4 w-8 h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
-            <p className="mt-4 text-zinc-500 text-sm font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-              <ShieldCheck className="w-4 h-4" /> Acesso vitalício & imediato
+            <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-yellow-400" /> Acesso vitalício • Pagamento Único • R$ 37
             </p>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-20 bg-zinc-900/50 border-y border-zinc-800">
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 hover:border-yellow-400/50 transition-colors">
-            <div className="w-12 h-12 bg-yellow-400/10 rounded-2xl flex items-center justify-center text-yellow-400">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold uppercase italic">Ebooks Completos</h3>
-            <p className="text-zinc-500 font-medium">Material didático aprofundado com estratégias testadas e validadas no campo de batalha.</p>
-          </div>
+      {/* Main Content Sections */}
+      <section className="py-24 bg-zinc-900/40 border-y border-zinc-800/50">
+        <div className="max-w-5xl mx-auto px-4 space-y-24">
           
-          <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 hover:border-yellow-400/50 transition-colors">
-            <div className="w-12 h-12 bg-yellow-400/10 rounded-2xl flex items-center justify-center text-yellow-400">
-              <Music className="w-6 h-6" />
+          {/* Ebook 1 */}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+                01
+              </div>
+              <h2 className="text-4xl font-black uppercase italic leading-none">
+                📚 48 LEIS DO PODER <br />
+                <span className="text-yellow-400">DO MARKETING DIGITAL</span>
+              </h2>
+              <p className="text-lg text-zinc-400 leading-relaxed">
+                Aprenda estratégias e princípios para se posicionar melhor, criar autoridade, atrair atenção e entender como fortalecer sua presença no marketing digital.
+              </p>
+              <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
+                <Music className="text-yellow-400 w-6 h-6" />
+                <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: escute todo o conteúdo onde estiver e transforme seu tempo livre em aprendizado.</p>
+              </div>
             </div>
-            <h3 className="text-xl font-bold uppercase italic">Versão Audiobook</h3>
-            <p className="text-zinc-500 font-medium">Aprenda enquanto dirige, treina ou viaja. Conteúdo otimizado para consumo rápido e prático.</p>
+            <div className="relative group">
+               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
+                  <BookOpen className="w-24 h-24 text-zinc-600" />
+               </div>
+            </div>
           </div>
 
-          <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 hover:border-yellow-400/50 transition-colors">
-            <div className="w-12 h-12 bg-yellow-400/10 rounded-2xl flex items-center justify-center text-yellow-400">
-              <Zap className="w-6 h-6" />
+          <div className="flex justify-center">
+            <Button 
+              onClick={handleCTA}
+              className="h-16 px-10 bg-zinc-100 hover:bg-white text-black font-black text-xl uppercase italic rounded-2xl transition-all"
+            >
+              LIBERAR ACESSO AGORA <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Ebook 2 */}
+          <div className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
+            <div className="order-2 md:order-1 relative group">
+               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
+                  <Zap className="w-24 h-24 text-zinc-600" />
+               </div>
             </div>
-            <h3 className="text-xl font-bold uppercase italic">4 Módulos de Impacto</h3>
-            <p className="text-zinc-500 font-medium">Focado exclusivamente no que traz resultado financeiro real para o seu negócio.</p>
+            <div className="order-1 md:order-2 space-y-6">
+              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+                02
+              </div>
+              <h2 className="text-4xl font-black uppercase italic leading-none">
+                🎨 PSICOLOGIA <br />
+                <span className="text-yellow-400">DAS CORES</span>
+              </h2>
+              <p className="text-lg text-zinc-400 leading-relaxed">
+                Descubra como as cores podem influenciar emoções, percepção e decisões, ajudando você a criar conteúdos, marcas e campanhas mais impactantes.
+              </p>
+              <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
+                <Music className="text-yellow-400 w-6 h-6" />
+                <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: aprenda sobre o poder das cores de forma prática e fácil, mesmo enquanto trabalha ou realiza outras atividades.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Ebook 3 */}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+                03
+              </div>
+              <h2 className="text-4xl font-black uppercase italic leading-none">
+                🧠 30 TRUQUES DE <br />
+                <span className="text-yellow-400">MANIPULAÇÃO NO MKT</span>
+              </h2>
+              <p className="text-lg text-zinc-400 leading-relaxed">
+                Conheça técnicas de persuasão, influência e comportamento do consumidor para criar comunicações mais estratégicas e aumentar o poder das suas ofertas.
+              </p>
+              <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
+                <Music className="text-yellow-400 w-6 h-6" />
+                <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: escute as estratégias e aprenda como aplicá-las em suas campanhas e vendas.</p>
+              </div>
+            </div>
+            <div className="relative group">
+               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
+                  <CheckCircle2 className="w-24 h-24 text-zinc-600" />
+               </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <Button 
+              onClick={handleCTA}
+              className="h-20 px-12 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-2xl uppercase italic rounded-2xl shadow-xl transition-all"
+            >
+              GARANTIR MEU ACESSO R$ 37
+            </Button>
+          </div>
+
+          {/* Ebook 4 */}
+          <div className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
+            <div className="order-2 md:order-1 relative group">
+               <div className="absolute -inset-4 bg-yellow-400/20 rounded-[2rem] blur-2xl group-hover:bg-yellow-400/30 transition-colors" />
+               <div className="relative aspect-[3/4] bg-zinc-800 rounded-3xl border border-zinc-700 flex items-center justify-center overflow-hidden">
+                  <ShieldCheck className="w-24 h-24 text-zinc-600" />
+               </div>
+            </div>
+            <div className="order-1 md:order-2 space-y-6">
+              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+                04
+              </div>
+              <h2 className="text-4xl font-black uppercase italic leading-none">
+                ⚡ NÃO SEJA UM <br />
+                <span className="text-yellow-400">PROCRASTINADOR</span>
+              </h2>
+              <p className="text-lg text-zinc-400 leading-relaxed">
+                Aprenda como vencer o hábito de adiar tarefas, aumentar seu foco, desenvolver disciplina e agir com mais consistência para conquistar seus objetivos.
+              </p>
+              <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
+                <Music className="text-yellow-400 w-6 h-6" />
+                <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: transforme momentos do seu dia em aprendizado e mantenha sua mente focada no crescimento.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer CTA */}
-      <section className="py-20 px-4 text-center">
-        <div className="max-w-2xl mx-auto space-y-8">
-          <h2 className="text-3xl font-black uppercase italic">Pare de perder tempo com o que não funciona.</h2>
-          <p className="text-zinc-500">
-            Junte-se a centenas de empreendedores que já destravaram seus resultados.
-          </p>
+      {/* Summary Section */}
+      <section className="py-24 px-4 bg-zinc-950">
+        <div className="max-w-4xl mx-auto text-center space-y-12">
+          <div className="inline-block p-2 rounded-2xl bg-zinc-900 border border-zinc-800">
+             <div className="px-6 py-4 bg-yellow-400/10 rounded-xl border border-yellow-400/20">
+                <h3 className="text-2xl font-black text-yellow-400 uppercase italic">🔥 UM PACOTE COMPLETO PARA QUEM QUER EVOLUIR!</h3>
+             </div>
+          </div>
+          
+          <div className="text-xl md:text-2xl text-zinc-300 leading-relaxed space-y-6 max-w-3xl mx-auto">
+            <p>
+              Com os 4 eBooks completos + 4 audiobooks, você terá conteúdos sobre estratégia, persuasão, comportamento, comunicação, produtividade e vendas.
+            </p>
+            <p className="font-bold text-white">
+              👉 Leia, escute, aprenda e coloque em prática.
+            </p>
+            <p className="text-zinc-500 italic">
+              O conhecimento pode ser o primeiro passo para você vender mais, comunicar melhor e conquistar resultados cada vez maiores!
+            </p>
+          </div>
+
           <Button 
-            onClick={() => setShowCheckout(true)}
-            variant="outline"
-            className="h-14 px-8 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 font-bold rounded-xl"
+            onClick={handleCTA}
+            className="h-24 px-20 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-3xl uppercase italic rounded-3xl shadow-[0_0_50px_rgba(250,204,21,0.3)] transition-all hover:scale-105 active:scale-95"
           >
-            Acessar Área de Membros
+            QUERO O PACOTE COMPLETO
           </Button>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12">
+            {[
+              { label: "Acesso Vitalício", icon: ShieldCheck },
+              { label: "Entrega Imediata", icon: Zap },
+              { label: "100% Seguro", icon: Lock },
+              { label: "4 Audiobooks", icon: Music }
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <item.icon className="w-8 h-8 text-zinc-600" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -106,10 +236,8 @@ const AudiobooksSales = () => {
           plan="Acesso Vitalício"
           amount={37}
           productSlug="audiibooks"
-
         />
       )}
-
     </div>
   );
 };
