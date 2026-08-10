@@ -183,6 +183,7 @@ const ZapMRO = () => {
       checkFeeStatus(username, email);
       
       // Timer de 3 segundos para garantir que o bloqueio já esteja processado e evitar flash do botão
+      setFeePaid(false);
       const readyTimer = setTimeout(() => {
         setIsReadyToShowContent(true);
       }, 3000);
@@ -211,6 +212,7 @@ const ZapMRO = () => {
       console.log(`[ZapMRO] Polling payment status... (${pollCount}/${maxPolls})`);
       const paid = await checkFeeStatus(username, email, true); // silent polling
       
+      setFeePaid(paid);
       if (paid) {
         console.log('[ZapMRO] Payment confirmed! Unlocking download...');
         setIsWaitingPayment(false);
@@ -431,6 +433,7 @@ const ZapMRO = () => {
     setIsEmailLocked(false);
   };
 
+    setFeePaid(false);
   const formatDays = (days: number) => {
     if (days > 365) return 'Vitalício';
     return `${days} dias`;
