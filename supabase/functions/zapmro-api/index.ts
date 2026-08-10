@@ -239,6 +239,17 @@ serve(async (req) => {
       const user = (users?.[0] || null) as ZapmroUserRow | null;
       if (!user) return json({ success: false, error: "Usuário não encontrado" }, 200);
 
+      const { active, reason } = computeAccess(user);
+      if (!active) {
+        // Se o acesso expirou durante a verificação, desloga o usuário revogando sessões
+        await supabase
+          .from("zapmro_user_sessions")
+          .update({ is_active: false, revoked_at: new Date().toISOString() })
+          .eq("user_id", user.id);
+          
+        return json({ success: false, error: reason, needs_renewal: true, user: publicUser(user) }, 200);
+      }
+
       return json({ success: true, user: publicUser(user) });
     }
 
