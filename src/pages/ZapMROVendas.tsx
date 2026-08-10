@@ -167,7 +167,7 @@ const ZapMROVendas = () => {
 
   const planFeatures = [
     'Licença ativa por 365 dias',
-    'Multiusuário: ilimitados números de WhatsApp',
+    'Multiusuário: até 2 números de WhatsApp',
     'Envios ilimitados',
     'Suporte via WhatsApp',
     'Área de Membros VIP',
