@@ -200,6 +200,7 @@ import AgenteMROPainel from "./pages/AgenteMROPainel";
 import TrafegoPagoVisitas from "./pages/TrafegoPagoVisitas";
 import TrafegoPagoObrigado from "./pages/TrafegoPagoObrigado";
 import AudiobooksSales from "./pages/AudiobooksSales";
+import AudiobooksAdmin from "./pages/AudiobooksAdmin";
 
 
 
@@ -454,6 +455,7 @@ const App = () => (
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
+          <Route path="/audiobooks/admin" element={<AudiobooksAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />

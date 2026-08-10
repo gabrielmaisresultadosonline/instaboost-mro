@@ -310,6 +310,21 @@ serve(async (req) => {
       const redirectUrl = `https://maisresultadosonline.com.br/dashboard?paid=1&nsu=${nsu}`;
       const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
       const description = slug === "audiibooks" ? `AUDIIBOOKS_${cleanEmail}` : `HUB_${slug}_${cleanEmail}`;
+      const orderBumps = (body.orderBumps || {}) as { lifetime?: boolean; analysis?: boolean };
+      let finalAmount = amount;
+      if (orderBumps.lifetime) finalAmount += 9;
+      if (orderBumps.analysis) finalAmount += 19;
+
+      const priceCents = Math.round(finalAmount * 100);
+      const nsu = genNSU();
+      const redirectUrl = `https://maisresultadosonline.com.br/dashboard?paid=1&nsu=${nsu}`;
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
+      
+      let description = slug === "audiibooks" ? `AUDIIBOOKS_${cleanEmail}` : `HUB_${slug}_${cleanEmail}`;
+      if (orderBumps.lifetime || orderBumps.analysis) {
+        description += `_BUMPS:${orderBumps.lifetime ? 'L' : ''}${orderBumps.analysis ? 'A' : ''}`;
+      }
+
       const items = [{ description, quantity: 1, price: priceCents }];
       const phoneWithCC = cleanPhone ? `55${cleanPhone}` : undefined;
 
@@ -361,11 +376,24 @@ serve(async (req) => {
         name: cleanName,
         email: cleanEmail,
         whatsapp: cleanPhone,
-        amount,
+        amount: finalAmount,
         nsu_order: nsu,
         infinitepay_link: paymentLink,
         status: "pending",
       });
+
+      // Salva na tabela específica de audiobooks para o admin
+      if (slug === "audiibooks") {
+        await supabase.from("audiobooks_orders").insert({
+          email: cleanEmail,
+          name: cleanName,
+          whatsapp: cleanPhone,
+          amount: finalAmount,
+          order_nsu: nsu,
+          has_bump_lifetime: !!orderBumps.lifetime,
+          has_bump_profile_analysis: !!orderBumps.analysis
+        });
+      }
 
       return json({ success: true, nsu, payment_link: paymentLink });
     }

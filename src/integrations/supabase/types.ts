@@ -453,6 +453,48 @@ export type Database = {
         }
         Relationships: []
       }
+      audiobooks_orders: {
+        Row: {
+          amount: number
+          created_at: string | null
+          email: string
+          has_bump_lifetime: boolean | null
+          has_bump_profile_analysis: boolean | null
+          id: string
+          name: string | null
+          order_nsu: string | null
+          status: string | null
+          updated_at: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          email: string
+          has_bump_lifetime?: boolean | null
+          has_bump_profile_analysis?: boolean | null
+          id?: string
+          name?: string | null
+          order_nsu?: string | null
+          status?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          email?: string
+          has_bump_lifetime?: boolean | null
+          has_bump_profile_analysis?: boolean | null
+          id?: string
+          name?: string | null
+          order_nsu?: string | null
+          status?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       broadcast_email_logs: {
         Row: {
           body: string
