@@ -35,16 +35,33 @@ const EbookAudiobookManager = ({ productId }: { productId: string }) => {
 
   const saveItem = async () => {
     if (!editing) return;
-    const { error } = await supabase
-      .from('hub_product_ebooks' as any)
-      .upsert({ ...editing, product_id: productId });
     
-    if (error) {
-      toast({ title: "Erro ao salvar", variant: "destructive" });
-    } else {
-      toast({ title: "Salvo com sucesso!" });
-      setEditing(null);
-      loadItems();
+    try {
+      // Usar a Edge Function para evitar problemas de CORS/RLS no frontend
+      const { data, error } = await supabase.functions.invoke('hub-api', {
+        body: { 
+          action: 'admin_save_ebook', 
+          ebook: {
+            ...editing,
+            product_id: productId
+          }
+        }
+      });
+      
+      if (error || !data?.success) {
+        toast({ 
+          title: "Erro ao salvar", 
+          description: error?.message || data?.error || "Erro desconhecido", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ title: "Salvo com sucesso!" });
+        setEditing(null);
+        loadItems();
+      }
+    } catch (err) {
+      console.error("Erro ao salvar ebook:", err);
+      toast({ title: "Erro na comunicação com a API", variant: "destructive" });
     }
   };
 

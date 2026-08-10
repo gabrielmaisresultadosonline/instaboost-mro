@@ -483,6 +483,30 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "admin_save_ebook") {
+      const e = (body.ebook || {}) as Record<string, unknown>;
+      if (!e.product_id || !String(e.title || "").trim()) {
+        return json({ success: false, error: "Produto e título são obrigatórios" }, 400);
+      }
+      const payload = {
+        product_id: String(e.product_id),
+        title: String(e.title),
+        description: e.description ? String(e.description) : null,
+        cover_url: e.cover_url ? String(e.cover_url) : null,
+        audio_url: e.audio_url ? String(e.audio_url) : null,
+        ebook_url: e.ebook_url ? String(e.ebook_url) : null,
+        order_index: Number(e.order_index || 0),
+      };
+      if (e.id) {
+        const { error } = await supabase.from("hub_product_ebooks").update(payload).eq("id", String(e.id));
+        if (error) return json({ success: false, error: error.message }, 400);
+      } else {
+        const { error } = await supabase.from("hub_product_ebooks").insert(payload);
+        if (error) return json({ success: false, error: error.message }, 400);
+      }
+      return json({ success: true });
+    }
+
     if (action === "admin_delete_tutorial") {
       const id = String(body.id || "");
       if (!id) return json({ success: false, error: "ID obrigatório" }, 400);
