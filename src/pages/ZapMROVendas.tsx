@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   MessageCircle, Check, Shield, Zap, Users, Clock, Send, 
   Gift, Play, ChevronDown, Star, Phone, Bot, AudioLines,
@@ -18,6 +19,7 @@ const PLANS = {
 };
 
 const ZapMROVendas = () => {
+  const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showBonusVideo, setShowBonusVideo] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
@@ -142,8 +144,7 @@ const ZapMROVendas = () => {
   };
 
   const openCheckout = (plan: "monthly" | "annual") => {
-    setSelectedPlan(plan);
-    setShowCheckoutModal(true);
+    navigate(`/zapmro/vendas/checkout?plan=${plan}`);
   };
 
   const features = [

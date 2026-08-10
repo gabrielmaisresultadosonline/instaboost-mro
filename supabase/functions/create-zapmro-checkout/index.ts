@@ -41,7 +41,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, username, phone, planType, amount, checkUserExists } = body;
+    const { email, username, phone, planType, amount, checkUserExists, orderBumps } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -105,7 +105,10 @@ serve(async (req) => {
 
     // Descrição do produto inclui email e username para identificação
     // Formato: ZAPMRO_PLANO_username_email
-    const productDescription = `ZAPMRO_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`;
+    let productDescription = `ZAPMRO_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`;
+    if (orderBumps && Array.isArray(orderBumps) && orderBumps.length > 0) {
+      productDescription += `_BUMPS:${orderBumps.join('+')}`;
+    }
 
     // Criar checkout via API oficial
     const lineItems = [{

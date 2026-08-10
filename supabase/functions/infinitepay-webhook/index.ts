@@ -298,11 +298,11 @@ serve(async (req) => {
         
         if (itemName.startsWith("ZAPMRO_")) {
           isZapMROOrder = true;
-          // ZAPMRO_{PLAN}_{USERNAME}_{EMAIL}
+          // ZAPMRO_{PLAN}_{USERNAME}_{EMAIL} ou ZAPMRO_{PLAN}_{USERNAME}_{EMAIL}_BUMPS:{BUMPS}
           const parts = itemName.split("_");
           if (parts.length >= 4) {
             username = parts[2];
-            email = parts.slice(3).join("_").toLowerCase();
+            email = parts[3].toLowerCase();
           }
           log("Parsed ZAPMRO order", { username, email });
           break;
@@ -827,6 +827,38 @@ serve(async (req) => {
           status: "paid", 
           paid_at: new Date().toISOString() 
         }).eq("id", zapOrder.id);
+
+        // Process order bumps for ZAPMRO
+        const itemName = items?.[0]?.description || items?.[0]?.name || "";
+        if (itemName.includes("_BUMPS:")) {
+          const bumpsPart = itemName.split("_BUMPS:")[1];
+          const bumps = bumpsPart.split("+");
+          
+          for (const bumpSlug of bumps) {
+            log(`Processing bump: ${bumpSlug} for ${uEmail}`);
+            const { data: prod } = await supabase.from("hub_products").select("id").eq("slug", bumpSlug).maybeSingle();
+            if (prod) {
+              await supabase.from("hub_access").insert({
+                product_id: prod.id,
+                email: uEmail,
+                source: "order_bump",
+                status: 'active',
+                expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+              });
+              
+              if (bumpSlug === 'audiibooks') {
+                await supabase.from("audiobooks_orders").insert({
+                  email: uEmail,
+                  name: uName,
+                  whatsapp: zapOrder.phone || "",
+                  amount: 0, // Inclusivo no total do ZAPMRO
+                  order_nsu: zapOrder.nsu_order,
+                  has_bump_lifetime: true
+                });
+              }
+            }
+          }
+        }
 
         // Send Welcome Email via zapmro-api action
         try {
