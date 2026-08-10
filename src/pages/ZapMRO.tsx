@@ -1128,6 +1128,33 @@ const ZapMRO = () => {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
+            {expiredUserPlan && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-center">
+                <p className="text-red-700 font-bold mb-1">
+                  Seu acesso {expiredUserPlan === 'vitalicio' ? 'Vitalício' : expiredUserPlan === 'anual' ? 'Anual' : 'Mensal'} expirou!
+                </p>
+                <p className="text-red-600 text-xs mb-3">
+                  Para continuar utilizando a ferramenta, realize a renovação do seu plano.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    type="button"
+                    onClick={() => window.open('/zapmro/vendas', '_self')}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-10 text-sm"
+                  >
+                    Pagar Novamente ({expiredUserPlan.toUpperCase()})
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/zapmro/vendas')}
+                    className="w-full border-red-200 text-red-700 hover:bg-red-50 h-10 text-sm"
+                  >
+                    Ver outros planos
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
