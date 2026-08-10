@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Mail, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const AudiobooksObrigado = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPaid = searchParams.get('paid') === '1';
+
+  useEffect(() => {
+    if (isPaid && typeof (window as any).fbq === 'function') {
+      console.log("Meta Pixel: Tracking Purchase event on /audiobooks/obrigado");
+      (window as any).fbq('track', 'Purchase', {
+        value: 37.00,
+        currency: 'BRL',
+        content_name: 'O Segredo Para Vender Mais - Ebook Hub'
+      });
+    }
+  }, [isPaid]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 font-sans">
