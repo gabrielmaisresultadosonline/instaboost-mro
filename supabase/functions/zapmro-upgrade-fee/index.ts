@@ -145,7 +145,7 @@ serve(async (req) => {
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .eq("username", username)
+        .or(`username.eq.${username},email.eq.${username}`)
         .eq("status", "paid")
         .maybeSingle();
 
@@ -155,7 +155,7 @@ serve(async (req) => {
       const { data: pending } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .eq("username", username)
+        .or(`username.eq.${username},email.eq.${username}`)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -197,7 +197,7 @@ serve(async (req) => {
       const { data: alreadyPaid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .eq("username", username)
+        .or(`username.eq.${username},email.eq.${username}`)
         .eq("status", "paid")
         .maybeSingle();
       if (alreadyPaid) return json({ success: true, paid: true, order: alreadyPaid });
