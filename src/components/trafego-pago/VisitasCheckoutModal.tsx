@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight, RefreshCw, UserCheck } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function VisitasCheckoutModal({ plan, amount, onClose, productSlug = "trafego-pago-visitas" }: { plan: string, amount: number, onClose: () => void, productSlug?: string }) {
   const [email, setEmail] = useState("");
