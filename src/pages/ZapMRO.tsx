@@ -803,8 +803,13 @@ const ZapMRO = () => {
 
           {/* Download Button Section */}
           {settings?.downloadLink && (
-            <div className="flex flex-col items-center gap-6 mt-8 mb-12">
-              {!feePaid && isLegacyUser ? (
+            <div className="flex flex-col items-center gap-6 mt-8 mb-12 min-h-[150px] justify-center">
+              {!isReadyToShowContent ? (
+                <div className="flex flex-col items-center gap-3 animate-pulse">
+                  <Loader2 className="w-10 h-10 text-green-400/50 animate-spin" />
+                  <p className="text-green-400/30 text-xs font-bold uppercase tracking-widest">Verificando segurança...</p>
+                </div>
+              ) : !feePaid && isLegacyUser ? (
                 <div className="w-full max-w-lg bg-orange-500/10 border border-orange-500/20 rounded-3xl p-8 flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl">
                   <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center">
                     {isWaitingPayment ? (
