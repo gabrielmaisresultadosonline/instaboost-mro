@@ -143,10 +143,14 @@ serve(async (req) => {
       // Removida a verificação da lista LEGACY_LIFETIME_USERS para que o bloqueio seja universal
       // para todos os usuários vitalícios conforme identificado pelo frontend.
       
+      const orFilter = emailFromReq 
+        ? `or(username.eq.${username},email.eq.${emailFromReq},email.eq.${username},username.eq.${emailFromReq})`
+        : `or(username.eq.${username},email.eq.${username})`;
+        
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
+        .or(orFilter)
         .eq("status", "paid")
         .maybeSingle();
 
@@ -156,7 +160,7 @@ serve(async (req) => {
       const { data: pending } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
+        .or(orFilter)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -198,7 +202,7 @@ serve(async (req) => {
       const { data: alreadyPaid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
+        .or(email ? `or(username.eq.${username},email.eq.${email},email.eq.${username},username.eq.${email})` : `or(username.eq.${username},email.eq.${username})`)
         .eq("status", "paid")
         .maybeSingle();
       if (alreadyPaid) return json({ success: true, paid: true, order: alreadyPaid });
