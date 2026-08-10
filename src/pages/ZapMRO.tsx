@@ -29,6 +29,8 @@ const ZapMRO = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [daysRemaining, setDaysRemaining] = useState<number>(365);
+  const [whatsappNumbers, setWhatsappNumbers] = useState<string[]>([]);
+  const [whatsappLimit, setWhatsappLimit] = useState<number>(1);
   
   // Email registration state
   const [email, setEmail] = useState('');
@@ -66,19 +68,26 @@ const ZapMRO = () => {
         setUsername(zapUsername);
         if (zapPassword) setPassword(zapPassword);
         
-        // Load user data from cloud
+        // Load user data from cloud using zapmro-api
         try {
-          const { data } = await supabase.functions.invoke('zapmro-user-storage', {
-            body: { action: 'load', username: zapUsername }
+          const { data } = await supabase.functions.invoke('zapmro-api', {
+            body: { action: 'verify_user', identifier: zapUsername }
           });
           
-          if (data?.success && data?.data) {
-            if (data.data.email) {
-              setEmail(data.data.email);
-              setIsEmailLocked(data.data.email_locked || false);
+          if (data?.success && data?.user) {
+            const user = data.user;
+            if (user.email) {
+              setEmail(user.email);
+              setIsEmailLocked(true); // Se tem e-mail no banco novo, consideramos bloqueado
             }
-            if (data.data.days_remaining) {
-              setDaysRemaining(data.data.days_remaining);
+            if (user.days_remaining !== undefined) {
+              setDaysRemaining(user.days_remaining);
+            }
+            if (user.registered_numbers) {
+              setWhatsappNumbers(user.registered_numbers);
+            }
+            if (user.whatsapp_limit !== undefined) {
+              setWhatsappLimit(user.whatsapp_limit);
             }
           }
         } catch (error) {
@@ -217,43 +226,29 @@ const ZapMRO = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://mrozap.squareweb.app/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
+      const { data } = await supabase.functions.invoke('zapmro-api', {
+        body: { action: 'login', identifier: username, password }
       });
 
-      const data = await response.json();
-
-      if (data.authenticated) {
+      if (data?.success && data?.user) {
         localStorage.setItem('zapmro_authenticated', 'true');
         localStorage.setItem('zapmro_username', username);
         localStorage.setItem('zapmro_password', password);
         
-        const userDays = data.daysRemaining || 365;
+        const user = data.user;
+        const userDays = user.days_remaining ?? 0;
         setDaysRemaining(userDays);
         setIsAuthenticated(true);
         
-        // Save/update user in database
-        try {
-          const { data: userData } = await supabase.functions.invoke('zapmro-user-storage', {
-            body: { 
-              action: 'save', 
-              username,
-              daysRemaining: userDays
-            }
-          });
-          
-          if (userData?.success && userData?.data) {
-            if (userData.data.email) {
-              setEmail(userData.data.email);
-              setIsEmailLocked(userData.data.email_locked || false);
-            }
-          }
-        } catch (error) {
-          console.error('Error saving user:', error);
+        if (user.email) {
+          setEmail(user.email);
+          setIsEmailLocked(true);
+        }
+        if (user.registered_numbers) {
+          setWhatsappNumbers(user.registered_numbers);
+        }
+        if (user.whatsapp_limit !== undefined) {
+          setWhatsappLimit(user.whatsapp_limit);
         }
         
         toast({
@@ -263,7 +258,7 @@ const ZapMRO = () => {
       } else {
         toast({
           title: 'Credenciais inválidas',
-          description: data.message || 'Verifique usuário e senha',
+          description: data?.error || 'Verifique usuário e senha',
           variant: 'destructive'
         });
       }
@@ -645,7 +640,7 @@ const ZapMRO = () => {
             </div>
           )}
 
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold mb-4">
               <MessageCircle className="w-4 h-4" />
               ZAPMRO
@@ -653,9 +648,65 @@ const ZapMRO = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Bem-vindo à <span className="text-green-400">Área VIP</span>
             </h2>
-            <p className="text-green-200/80 text-lg max-w-2xl mx-auto">
+            <p className="text-green-200/80 text-lg max-w-2xl mx-auto mb-6">
               Acesse todas as ferramentas de automação para WhatsApp
             </p>
+
+            {/* WhatsApp Status Card */}
+            <div className="max-w-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-green-800/30 backdrop-blur-sm border border-green-600/30 rounded-2xl p-4 text-left">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-green-400" />
+                  </div>
+                  <h4 className="text-white font-bold text-sm">Números Registrados</h4>
+                </div>
+                {whatsappNumbers.length > 0 ? (
+                  <div className="space-y-2">
+                    {whatsappNumbers.map((num, i) => (
+                      <div key={i} className="flex items-center justify-between bg-green-900/40 p-2 rounded-lg border border-green-700/30">
+                        <span className="text-green-300 text-sm">{num}</span>
+                        <CheckCircle className="w-3 h-3 text-emerald-400" />
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-green-400/50 mt-2 text-center italic">
+                      Para remover um número, entre em contato com o administrador.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-green-400/60 text-sm italic">Nenhum número vinculado ainda.</p>
+                )}
+                <div className="mt-4 pt-3 border-t border-green-700/30 flex justify-between items-center">
+                  <span className="text-xs text-green-300">Limite:</span>
+                  <span className="text-xs font-bold text-white">
+                    {whatsappLimit === -1 ? 'Ilimitado' : `${whatsappNumbers.length} / ${whatsappLimit}`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-green-800/30 backdrop-blur-sm border border-green-600/30 rounded-2xl p-4 text-left">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-green-400" />
+                  </div>
+                  <h4 className="text-white font-bold text-sm">Status do Acesso</h4>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-green-300">Tempo restante:</span>
+                    <span className="text-sm font-bold text-white px-3 py-1 bg-green-700/50 rounded-lg">
+                      {formatDays(daysRemaining)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-green-300">Tipo de Plano:</span>
+                    <span className="text-xs font-medium text-emerald-400 uppercase tracking-wider">
+                      {daysRemaining >= 3650 ? 'Vitalício' : daysRemaining > 185 ? 'Anual' : 'Regular'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Download Link (exige e-mail cadastrado) */}
