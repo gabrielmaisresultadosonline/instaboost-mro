@@ -44,6 +44,7 @@ const ZapMRO = () => {
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [showAnnouncements, setShowAnnouncements] = useState(true);
+  const [expiredUserPlan, setExpiredUserPlan] = useState<string | null>(null);
 
   // Taxa de atualização (R$67) para liberar o download
   const [feePaid, setFeePaid] = useState(false);
@@ -256,6 +257,26 @@ const ZapMRO = () => {
           description: 'Bem-vindo à área ZAPMRO'
         });
       } else {
+        // Se o erro indicar que o acesso expirou, tratamos a exibição do plano para renovação
+        if (data?.needs_renewal) {
+          const user = data.user;
+          const planLabel = user?.plan_type === 'vitalicio' ? 'Vitalício' : 
+                           user?.plan_type === 'anual' ? 'Anual' : 
+                           user?.plan_type === 'semestral' ? 'Semestral' : 'Mensal';
+          
+          toast({
+            title: 'Acesso Expirado',
+            description: `Seu plano ${planLabel} expirou. Pague novamente para continuar acessando.`,
+            variant: 'destructive'
+          });
+          
+          // Podemos setar um estado para mostrar o botão de renovação ou redirecionar
+          // O usuário solicitou que aparecesse a informação e o botão
+          setIsAuthenticated(false);
+          setExpiredUserPlan(user?.plan_type);
+          return;
+        }
+
         toast({
           title: 'Credenciais inválidas',
           description: data?.error || 'Verifique usuário e senha',
@@ -830,7 +851,7 @@ const ZapMRO = () => {
                   ) : (
                     <>
                       <ExternalLink className="w-4 h-4" />
-                      Pagar R$97 e liberar download
+                      Pagar R$67 e liberar download
                     </>
                   )}
                 </Button>
@@ -1107,6 +1128,33 @@ const ZapMRO = () => {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
+            {expiredUserPlan && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-center">
+                <p className="text-red-700 font-bold mb-1">
+                  Seu acesso {expiredUserPlan === 'vitalicio' ? 'Vitalício' : expiredUserPlan === 'anual' ? 'Anual' : 'Mensal'} expirou!
+                </p>
+                <p className="text-red-600 text-xs mb-3">
+                  Para continuar utilizando a ferramenta, realize a renovação do seu plano.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    type="button"
+                    onClick={() => window.open('/zapmro/vendas', '_self')}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-10 text-sm"
+                  >
+                    Pagar Novamente ({expiredUserPlan.toUpperCase()})
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/zapmro/vendas')}
+                    className="w-full border-red-200 text-red-700 hover:bg-red-50 h-10 text-sm"
+                  >
+                    Ver outros planos
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
