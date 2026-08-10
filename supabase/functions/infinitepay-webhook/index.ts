@@ -224,6 +224,15 @@ serve(async (req) => {
           break;
         }
 
+        // Caso específico para o produto de audiobooks
+        if (itemName.startsWith("AUDIIBOOKS_")) {
+          isHubOrder = true;
+          hubSlug = "audiibooks";
+          email = itemName.replace("AUDIIBOOKS_", "").toLowerCase();
+          log("Parsed AUDIIBOOKS order", { hubSlug, email });
+          break;
+        }
+
         if (itemName.startsWith("LOCALVPP_")) {
 
           isLocalVppOrder = true;
@@ -660,8 +669,8 @@ serve(async (req) => {
 
 
 
-    // TRAFEGOPAGOVISITAS orders
-    if (isHubOrder || (order_nsu && typeof order_nsu === 'string' && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO")))) {
+    // TRAFEGOPAGOVISITAS / HUB orders
+    if (isHubOrder || (order_nsu && typeof order_nsu === 'string' && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO") || order_nsu.startsWith("AUDIIBOOKS")))) {
       log("Processing as HUB order", { order_nsu, email, hubSlug });
 
       let hubOrder: Record<string, unknown> | null = null;
@@ -706,7 +715,8 @@ serve(async (req) => {
             body: { 
               email: (hubOrder.email as string) || email,
               name: (hubOrder.name as string) || "Cliente",
-              product_title: "Tráfego Pago (Visitas no Perfil)",
+              product_title: slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : "Tráfego Pago (Visitas no Perfil)",
+
               dashboard_url: "https://maisresultadosonline.com.br/dashboard",
               type: "welcome_hub"
             }

@@ -309,7 +309,7 @@ serve(async (req) => {
       const nsu = genNSU();
       const redirectUrl = `https://maisresultadosonline.com.br/dashboard?paid=1&nsu=${nsu}`;
       const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
-      const description = `HUB_${slug}_${cleanEmail}`;
+      const description = slug === "audiibooks" ? `AUDIIBOOKS_${cleanEmail}` : `HUB_${slug}_${cleanEmail}`;
       const items = [{ description, quantity: 1, price: priceCents }];
       const phoneWithCC = cleanPhone ? `55${cleanPhone}` : undefined;
 

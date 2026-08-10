@@ -103,8 +103,10 @@ const AudiobooksSales = () => {
       {showCheckout && (
         <VisitasCheckoutModal 
           onClose={() => setShowCheckout(false)} 
-          plan="Anual Hub"
+          plan="Acesso Vitalício"
           amount={37}
+          productSlug="audiibooks"
+
         />
       )}
 
