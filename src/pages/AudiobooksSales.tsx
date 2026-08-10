@@ -52,7 +52,7 @@ const AudiobooksSales = () => {
               QUERO ACESSO AGORA <ArrowRight className="ml-4 w-8 h-8 group-hover:translate-x-2 transition-transform" />
             </Button>
             <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-yellow-400" /> Acesso vitalício • Pagamento Único • R$ 37
+              <ShieldCheck className="w-5 h-5 text-green-500" /> Acesso vitalício • Pagamento Único • R$ 37
             </p>
           </div>
         </div>
@@ -126,7 +126,7 @@ const AudiobooksSales = () => {
           {/* Ebook 3 */}
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+              <div className="w-16 h-16 bg-green-500 text-white rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-green-500/20">
                 03
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-none">
@@ -137,7 +137,7 @@ const AudiobooksSales = () => {
                 Conheça técnicas de persuasão, influência e comportamento do consumidor para criar comunicações mais estratégicas e aumentar o poder das suas ofertas.
               </p>
               <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                <Music className="text-yellow-400 w-6 h-6" />
+                <Music className="text-green-500 w-6 h-6" />
                 <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: escute as estratégias e aprenda como aplicá-las em suas campanhas e vendas.</p>
               </div>
             </div>
@@ -167,7 +167,7 @@ const AudiobooksSales = () => {
                </div>
             </div>
             <div className="order-1 md:order-2 space-y-6">
-              <div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-yellow-400/20">
+              <div className="w-16 h-16 bg-green-500 text-white rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-lg shadow-green-500/20">
                 04
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-none">
@@ -178,7 +178,7 @@ const AudiobooksSales = () => {
                 Aprenda como vencer o hábito de adiar tarefas, aumentar seu foco, desenvolver disciplina e agir com mais consistência para conquistar seus objetivos.
               </p>
               <div className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                <Music className="text-yellow-400 w-6 h-6" />
+                <Music className="text-green-500 w-6 h-6" />
                 <p className="text-sm font-bold text-zinc-300">🎧 Audiobook incluso: transforme momentos do seu dia em aprendizado e mantenha sua mente focada no crescimento.</p>
               </div>
             </div>
@@ -191,7 +191,7 @@ const AudiobooksSales = () => {
         <div className="max-w-4xl mx-auto text-center space-y-12">
           <div className="inline-block p-2 rounded-2xl bg-zinc-900 border border-zinc-800">
              <div className="px-6 py-4 bg-yellow-400/10 rounded-xl border border-yellow-400/20">
-                <h3 className="text-2xl font-black text-yellow-400 uppercase italic">🔥 UM PACOTE COMPLETO PARA QUEM QUER EVOLUIR!</h3>
+                <h3 className="text-2xl font-black text-green-500 uppercase italic">🔥 UM PACOTE COMPLETO PARA QUEM QUER EVOLUIR!</h3>
              </div>
           </div>
           
