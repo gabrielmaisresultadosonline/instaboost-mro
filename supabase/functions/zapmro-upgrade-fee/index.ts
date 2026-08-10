@@ -164,7 +164,6 @@ serve(async (req) => {
 
     const action = String(body.action || "webhook");
     const username = body.username ? String(body.username).toLowerCase().trim() : "";
-    const emailFromReq = body.email ? String(body.email).toLowerCase().trim() : "";
 
     // ---------- STATUS: verifica se o usuário já pagou a taxa ----------
     if (action === "status") {
