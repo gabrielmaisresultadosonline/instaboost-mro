@@ -142,8 +142,7 @@ const ZapMROVendas = () => {
   };
 
   const openCheckout = (plan: "monthly" | "annual") => {
-    setSelectedPlan(plan);
-    setShowCheckoutModal(true);
+    navigate(`/zapmro/vendas/checkout?plan=${plan}`);
   };
 
   const features = [
