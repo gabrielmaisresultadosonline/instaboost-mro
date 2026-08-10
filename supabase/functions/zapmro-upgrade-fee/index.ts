@@ -214,6 +214,26 @@ serve(async (req) => {
       return json({ success: true, fees: data || [] });
     }
 
+    // ---------- APPROVE MANUAL (admin) ----------
+    if (action === "approve_manual") {
+      const id = String(body.id || "");
+      if (!id) return json({ success: false, error: "ID obrigatório" }, 400);
+
+      const { error } = await supabase
+        .from("zapmro_upgrade_fees")
+        .update({ 
+          status: "paid", 
+          paid_at: new Date().toISOString(),
+          manual_approval: true 
+        })
+        .eq("id", id);
+
+      if (error) return json({ success: false, error: error.message }, 500);
+      
+      log("Manual approval successful", { id });
+      return json({ success: true });
+    }
+
     // ---------- WEBHOOK InfinitePay ----------
     const orderNsu =
       (body.order_nsu as string) ||

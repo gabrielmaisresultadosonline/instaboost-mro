@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, RefreshCw, CheckCircle, Clock, Search } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle, Clock, Search, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +38,23 @@ const ZapmroFeesPanel = () => {
       toast({ title: 'Erro ao carregar taxas', variant: 'destructive' });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApproveManual = async (id: string) => {
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-upgrade-fee', {
+        body: { action: 'approve_manual', id },
+      });
+      if (data?.success) {
+        toast({ title: 'Taxa aprovada manualmente!' });
+        loadFees();
+      } else {
+        toast({ title: 'Erro ao aprovar', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('[ZapmroFees] approve error', error);
+      toast({ title: 'Erro na aprovação', variant: 'destructive' });
     }
   };
 
@@ -117,6 +134,7 @@ const ZapmroFeesPanel = () => {
                 <th className="p-3">Status</th>
                 <th className="p-3">Pago em</th>
                 <th className="p-3">Criado em</th>
+                <th className="p-3">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -140,6 +158,19 @@ const ZapmroFeesPanel = () => {
                   </td>
                   <td className="p-3 text-muted-foreground">{formatDate(fee.paid_at)}</td>
                   <td className="p-3 text-muted-foreground">{formatDate(fee.created_at)}</td>
+                  <td className="p-3">
+                    {fee.status !== 'paid' && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 font-bold"
+                        onClick={() => handleApproveManual(fee.id)}
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Aprovar Manual
+                      </Button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
