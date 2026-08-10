@@ -174,6 +174,7 @@ serve(async (req) => {
         const slug = extractLenc(order.infinitepay_link);
         log("Checking pending payment realtime", { orderNsu: order.nsu_order, slug });
         
+        // A verificação via API no checkInfinitePay já garante que o pagamento é real.
         const verification = await checkInfinitePay(order.nsu_order, undefined, slug);
         if (verification.paid) {
           log("Payment confirmed by API! Updating DB...", { orderId: order.id });

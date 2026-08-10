@@ -212,11 +212,12 @@ const ZapMRO = () => {
       }
 
       console.log(`[ZapMRO] Polling payment status... (${pollCount}/${maxPolls})`);
-      const paid = await checkFeeStatus(username, email);
+      const paid = await checkFeeStatus(username, email, true); // silent polling
       
       if (paid) {
         console.log('[ZapMRO] Payment confirmed! Unlocking download...');
         setIsWaitingPayment(false);
+        setFeePaid(true); // Ensure state is updated locally
         setShowFeeModal(false);
         toast({
           title: 'Pagamento confirmado! ✅',
