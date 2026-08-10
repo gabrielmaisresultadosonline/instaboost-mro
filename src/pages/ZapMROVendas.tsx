@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   MessageCircle, Check, Shield, Zap, Users, Clock, Send, 
   Gift, Play, ChevronDown, Star, Phone, Bot, AudioLines,
