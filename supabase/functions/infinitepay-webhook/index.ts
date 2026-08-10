@@ -179,16 +179,19 @@ serve(async (req) => {
     });
 
     const body = verification.body;
-    log("Webhook payload", body);
+    const nestedBody = body.data && typeof body.data === "object"
+      ? body.data as Record<string, unknown>
+      : {};
+    log("Webhook payload", { body, nestedBody });
 
-    const order_nsu = body.order_nsu as string | undefined;
-    const transaction_nsu = body.transaction_nsu as string | undefined;
-    const invoice_slug = body.invoice_slug as string | undefined;
-    const amount = body.amount as number | undefined;
-    const paid_amount = body.paid_amount as number | undefined;
+    const order_nsu = (body.order_nsu || body.orderNsu || nestedBody.order_nsu || nestedBody.orderNsu) as string | undefined;
+    const transaction_nsu = (body.transaction_nsu || body.transactionNsu || nestedBody.transaction_nsu || nestedBody.transactionNsu) as string | undefined;
+    const invoice_slug = (body.invoice_slug || body.invoiceSlug || body.slug || nestedBody.invoice_slug || nestedBody.invoiceSlug || nestedBody.slug) as string | undefined;
+    const amount = (body.amount || nestedBody.amount) as number | undefined;
+    const paid_amount = (body.paid_amount || body.paidAmount || nestedBody.paid_amount || nestedBody.paidAmount) as number | undefined;
     const capture_method = body.capture_method as string | undefined;
     const receipt_url = body.receipt_url as string | undefined;
-    const items = body.items as Array<{ description?: string; name?: string }> | undefined;
+    const items = (body.items || body.itens || nestedBody.items || nestedBody.itens) as Array<{ description?: string; name?: string }> | undefined;
 
     let email: string | null = null;
     let emailWithAffiliate: string | null = null;
@@ -836,7 +839,15 @@ serve(async (req) => {
 
     // ZAPMRO Upgrade Fee orders (taxa de atualização)
     if (isZapMROUpgradeFee || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("ZAPTAXA"))) {
-      log("Processing as ZAPMRO Upgrade Fee order", { order_nsu, email, username });
+      log("Processing as ZAPMRO Upgrade Fee order", {
+        order_nsu,
+        transaction_nsu,
+        invoice_slug,
+        email,
+        username,
+        amount,
+        paid_amount,
+      });
       
       let feeOrder: any = null;
       if (order_nsu) {
@@ -850,13 +861,32 @@ serve(async (req) => {
       }
 
       if (feeOrder) {
-        // Mark as paid
-        await supabase.from("zapmro_upgrade_fees").update({ 
+        // O webhook é a notificação oficial de pagamento. O registro é atualizado
+        // pelo NSU único e o resultado é validado antes de responder sucesso.
+        const { error: feeUpdateError } = await supabase.from("zapmro_upgrade_fees").update({ 
           status: "paid", 
           paid_at: new Date().toISOString() 
         }).eq("id", feeOrder.id);
 
-        log("ZAPMRO Upgrade Fee confirmed", { orderNsu: order_nsu, username: feeOrder.username });
+        if (feeUpdateError) {
+          log("ZAPMRO Upgrade Fee update failed", {
+            orderNsu: order_nsu,
+            feeId: feeOrder.id,
+            error: feeUpdateError.message,
+          });
+          return new Response(
+            JSON.stringify({ success: false, error: "Failed to update ZAPMRO fee" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        log("ZAPMRO Upgrade Fee confirmed", {
+          orderNsu: order_nsu,
+          transactionNsu: transaction_nsu,
+          invoiceSlug: invoice_slug,
+          username: feeOrder.username,
+          feeId: feeOrder.id,
+        });
         
         // Meta Tracking
         await sendMetaPurchaseEvent(
@@ -867,8 +897,13 @@ serve(async (req) => {
           "https://maisresultadosonline.com.br/zapmro"
         );
 
-        return new Response(JSON.stringify({ success: true, message: "ZAPMRO Upgrade Fee confirmed" }), { status: 200, headers: corsHeaders });
+        return new Response(
+          JSON.stringify({ success: true, message: "ZAPMRO Upgrade Fee confirmed" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
+
+      log("ZAPMRO Upgrade Fee order not found", { order_nsu, username, email });
     }
 
     // Default payment orders
