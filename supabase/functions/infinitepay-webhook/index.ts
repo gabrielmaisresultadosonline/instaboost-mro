@@ -305,6 +305,18 @@ serve(async (req) => {
           break;
         }
 
+        if (itemName.startsWith("ZAPTAXA_")) {
+          isZapMROUpgradeFee = true;
+          // ZAPTAXA_{USERNAME}_{EMAIL}
+          const parts = itemName.split("_");
+          if (parts.length >= 3) {
+            username = parts[1];
+            email = parts.slice(2).join("_").toLowerCase();
+          }
+          log("Parsed ZAPMRO Upgrade Fee order", { username, email });
+          break;
+        }
+
         if (itemName.startsWith("MROIG_")) {
           isMROOrder = true;
           const parts = itemName.split("_");
