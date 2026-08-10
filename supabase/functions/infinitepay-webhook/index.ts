@@ -817,7 +817,7 @@ serve(async (req) => {
           password_plain: passwordPlain,
           days_remaining: days,
           is_active: true,
-          whatsapp_limit: planType === 'lifetime' ? -1 : 1
+          whatsapp_limit: planType === 'lifetime' || planType === 'vitalicio' ? -1 : 2
         }, { onConflict: 'username' }).select().single();
 
         if (userErr) log("Error creating ZAPMRO user", userErr);
