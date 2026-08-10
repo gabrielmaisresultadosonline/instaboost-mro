@@ -109,6 +109,9 @@ serve(async (req) => {
       return json({ success: false, error: "Corpo da requisição inválido" }, 400);
     }
 
+    // Executa a sincronização de dias antes de qualquer ação
+    await supabase.rpc('sync_zapmro_days');
+
     const action = String(body.action || "");
     log("Request", { action });
 
