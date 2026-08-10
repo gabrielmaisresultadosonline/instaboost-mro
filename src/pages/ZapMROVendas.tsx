@@ -180,7 +180,7 @@ const ZapMROVendas = () => {
   const faqs = [
     {
       q: 'Posso utilizar em quantos números de WhatsApp?',
-      a: 'Nossa solução não impõe limites quanto ao número de contas do WhatsApp que podem ser utilizadas. Você pode integrar quantos números desejar à plataforma.'
+      a: 'Você pode utilizar em até 2 números de WhatsApp simultaneamente por licença.'
     },
     {
       q: 'Funciona em dispositivos móveis?',
