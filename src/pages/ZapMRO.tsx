@@ -44,6 +44,7 @@ const ZapMRO = () => {
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [showAnnouncements, setShowAnnouncements] = useState(true);
+  const [expiredUserPlan, setExpiredUserPlan] = useState<string | null>(null);
 
   // Taxa de atualização (R$67) para liberar o download
   const [feePaid, setFeePaid] = useState(false);
@@ -256,6 +257,26 @@ const ZapMRO = () => {
           description: 'Bem-vindo à área ZAPMRO'
         });
       } else {
+        // Se o erro indicar que o acesso expirou, tratamos a exibição do plano para renovação
+        if (data?.needs_renewal) {
+          const user = data.user;
+          const planLabel = user?.plan_type === 'vitalicio' ? 'Vitalício' : 
+                           user?.plan_type === 'anual' ? 'Anual' : 
+                           user?.plan_type === 'semestral' ? 'Semestral' : 'Mensal';
+          
+          toast({
+            title: 'Acesso Expirado',
+            description: `Seu plano ${planLabel} expirou. Pague novamente para continuar acessando.`,
+            variant: 'destructive'
+          });
+          
+          // Podemos setar um estado para mostrar o botão de renovação ou redirecionar
+          // O usuário solicitou que aparecesse a informação e o botão
+          setIsAuthenticated(false);
+          setExpiredUserPlan(user?.plan_type);
+          return;
+        }
+
         toast({
           title: 'Credenciais inválidas',
           description: data?.error || 'Verifique usuário e senha',
@@ -830,7 +851,7 @@ const ZapMRO = () => {
                   ) : (
                     <>
                       <ExternalLink className="w-4 h-4" />
-                      Pagar R$97 e liberar download
+                      Pagar R$67 e liberar download
                     </>
                   )}
                 </Button>
