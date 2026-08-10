@@ -49,21 +49,64 @@ const generateNSU = () => {
   return `ZAPTAXA${t}${r}`.toUpperCase();
 };
 
-// Consulta a API da InfinitePay para saber se o pedido foi pago
-async function checkInfinitePay(orderNsu: string): Promise<boolean> {
+interface InfinitePayCheckResult {
+  paid: boolean;
+  data: Record<string, unknown>;
+}
+
+// Consulta a API da InfinitePay com todos os identificadores disponíveis.
+// A InfinitePay nem sempre localiza links novos somente pelo order_nsu.
+async function checkInfinitePay(
+  orderNsu: string,
+  transactionNsu?: string,
+  slug?: string,
+): Promise<InfinitePayCheckResult> {
   try {
     const resp = await fetch("https://api.checkout.infinitepay.io/payment_check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handle: INFINITEPAY_HANDLE, order_nsu: orderNsu }),
+      body: JSON.stringify({
+        handle: INFINITEPAY_HANDLE,
+        order_nsu: orderNsu,
+        ...(transactionNsu ? { transaction_nsu: transactionNsu } : {}),
+        ...(slug ? { slug } : {}),
+      }),
     });
-    if (!resp.ok) return false;
-    const data = await resp.json();
-    log("payment_check", { orderNsu, paid: data?.paid });
-    return data?.paid === true;
+    const raw = await resp.text();
+    let data: Record<string, unknown> = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
+      data = { raw };
+    }
+    log("payment_check response", {
+      orderNsu,
+      transactionNsu: transactionNsu || null,
+      hasSlug: Boolean(slug),
+      httpStatus: resp.status,
+      response: data,
+    });
+    return { paid: resp.ok && data.paid === true, data };
   } catch (e) {
-    log("payment_check error", { error: String(e) });
-    return false;
+    log("payment_check error", { orderNsu, error: String(e) });
+    return { paid: false, data: { error: String(e) } };
+  }
+}
+
+function readString(source: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function extractLenc(paymentLink: unknown): string | undefined {
+  if (typeof paymentLink !== "string" || !paymentLink) return undefined;
+  try {
+    return new URL(paymentLink).searchParams.get("lenc") || undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -118,12 +161,18 @@ serve(async (req) => {
         .limit(3);
 
       for (const order of pending || []) {
-        const isPaid = await checkInfinitePay(order.nsu_order);
-        if (isPaid) {
-          await supabase
+        const slug = extractLenc(order.infinitepay_link);
+        const verification = await checkInfinitePay(order.nsu_order, undefined, slug);
+        if (verification.paid) {
+          const { error: updateError } = await supabase
             .from("zapmro_upgrade_fees")
             .update({ status: "paid", paid_at: new Date().toISOString() })
             .eq("id", order.id);
+          if (updateError) {
+            log("status update failed", { orderId: order.id, error: updateError.message });
+            continue;
+          }
+          log("Fee marked as paid by realtime check", { orderNsu: order.nsu_order, username });
           return json({ success: true, paid: true, order: { ...order, status: "paid" } });
         }
       }
@@ -151,10 +200,13 @@ serve(async (req) => {
 
       const orderNsu = generateNSU();
       const priceCents = FEE_AMOUNT * 100;
-      const webhookUrl = `${supabaseUrl}/functions/v1/zapmro-upgrade-fee`;
+      // Todas as vendas usam o processador unificado, que já possui validação,
+      // auditoria e tratamento das diferentes variações do payload da InfinitePay.
+      const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
       const description = `ZAPTAXA_${username}_${email}`;
 
-      const lineItems = [{ description, quantity: 1, price: priceCents }];
+      // A API /links associa corretamente order_nsu e webhook quando o item usa "name".
+      const lineItems = [{ name: description, quantity: 1, price: priceCents }];
       let paymentLink: string | null = null;
 
       try {
@@ -172,7 +224,12 @@ serve(async (req) => {
           }),
         });
         const data = await resp.json();
-        log("InfiniPay links response", { status: resp.status });
+        log("InfiniPay links response", {
+          status: resp.status,
+          orderNsu,
+          hasPaymentLink: Boolean(data.url || data.checkout_url || data.link),
+          responseKeys: data && typeof data === "object" ? Object.keys(data) : [],
+        });
         if (resp.ok) paymentLink = data.url || data.checkout_url || data.link || null;
       } catch (e) {
         log("InfiniPay links error", { error: String(e) });
@@ -235,13 +292,23 @@ serve(async (req) => {
     }
 
     // ---------- WEBHOOK InfinitePay ----------
-    const orderNsu =
-      (body.order_nsu as string) ||
-      (body.orderNsu as string) ||
-      ((body.data as Record<string, unknown>)?.order_nsu as string) ||
-      "";
+    const nestedData = body.data && typeof body.data === "object"
+      ? body.data as Record<string, unknown>
+      : {};
+    const orderNsu = readString(body, ["order_nsu", "orderNsu"]) ||
+      readString(nestedData, ["order_nsu", "orderNsu"]);
+    const transactionNsu = readString(body, ["transaction_nsu", "transactionNsu", "transaction_id"]) ||
+      readString(nestedData, ["transaction_nsu", "transactionNsu", "transaction_id"]);
+    const invoiceSlug = readString(body, ["invoice_slug", "invoiceSlug", "slug"]) ||
+      readString(nestedData, ["invoice_slug", "invoiceSlug", "slug"]);
 
-    log("Webhook received", { orderNsu, keys: Object.keys(body) });
+    log("Webhook received", {
+      orderNsu,
+      transactionNsu: transactionNsu || null,
+      invoiceSlug: invoiceSlug || null,
+      keys: Object.keys(body),
+      nestedKeys: Object.keys(nestedData),
+    });
 
     if (!orderNsu) return json({ success: true, ignored: true });
 
@@ -251,16 +318,31 @@ serve(async (req) => {
       .eq("nsu_order", orderNsu)
       .maybeSingle();
 
-    if (!order) return json({ success: true, ignored: true });
+    if (!order) {
+      log("Webhook order not found", { orderNsu });
+      return json({ success: true, ignored: true });
+    }
 
     // Confirma com a API antes de liberar
-    const confirmed = await checkInfinitePay(orderNsu);
-    if (!confirmed) return json({ success: true, paid: false });
+    const verification = await checkInfinitePay(
+      orderNsu,
+      transactionNsu || undefined,
+      invoiceSlug || extractLenc(order.infinitepay_link),
+    );
+    if (!verification.paid) {
+      log("Webhook payment not confirmed", { orderNsu, response: verification.data });
+      return json({ success: true, paid: false });
+    }
 
-    await supabase
+    const { error: updateError } = await supabase
       .from("zapmro_upgrade_fees")
       .update({ status: "paid", paid_at: new Date().toISOString() })
       .eq("id", order.id);
+
+    if (updateError) {
+      log("Webhook status update failed", { orderNsu, error: updateError.message });
+      return json({ success: false, error: "Falha ao confirmar pagamento" }, 500);
+    }
 
     log("Fee marked as paid", { orderNsu, username: order.username });
     return json({ success: true, paid: true });
