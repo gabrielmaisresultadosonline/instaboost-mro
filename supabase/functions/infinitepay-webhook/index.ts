@@ -198,6 +198,7 @@ serve(async (req) => {
     let isPromptsOrder = false;
     let isRendaExtOrder = false;
     let isVenderOrder = false;
+    let isZapMROOrder = false;
     
     let isPostsComIAOrder = false;
     let isRendaSaoVivoOrder = false;
@@ -291,6 +292,18 @@ serve(async (req) => {
         }
 
         
+        if (itemName.startsWith("ZAPMRO_")) {
+          isZapMROOrder = true;
+          // ZAPMRO_{PLAN}_{USERNAME}_{EMAIL}
+          const parts = itemName.split("_");
+          if (parts.length >= 4) {
+            username = parts[2];
+            email = parts.slice(3).join("_").toLowerCase();
+          }
+          log("Parsed ZAPMRO order", { username, email });
+          break;
+        }
+
         if (itemName.startsWith("MROIG_")) {
           isMROOrder = true;
           const parts = itemName.split("_");
@@ -734,6 +747,77 @@ serve(async (req) => {
 
         log("HUB order paid + access granted + email triggered + Meta tracked", { id: hubOrder.id });
         return new Response(JSON.stringify({ success: true, message: "HUB confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+    // ZAPMRO orders
+    if (isZapMROOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("ZAPMRO"))) {
+      log("Processing as ZAPMRO order", { order_nsu, email, username });
+      
+      let zapOrder: any = null;
+      if (order_nsu) {
+        const { data } = await supabase.from("zapmro_orders").select("*").eq("nsu_order", order_nsu).maybeSingle();
+        zapOrder = data;
+      }
+      
+      if (!zapOrder && email) {
+        const { data } = await supabase.from("zapmro_orders").select("*").eq("email", email.toLowerCase()).eq("status", "pending").maybeSingle();
+        zapOrder = data;
+      }
+
+      if (zapOrder) {
+        const uEmail = (zapOrder.email || email || "").toLowerCase();
+        const uName = zapOrder.username || username || uEmail.split('@')[0];
+        const planType = zapOrder.plan_type || "annual";
+        const passwordPlain = Math.random().toString(36).substring(2, 10);
+        
+        // Hash for internal DB
+        const data = new TextEncoder().encode(passwordPlain);
+        const digest = await crypto.subtle.digest("SHA-256", data);
+        const passwordHash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+        const days = planType === 'lifetime' ? 999999 : 365;
+        
+        // Create user in zapmro_users (admin panel DB)
+        const { data: newUser, error: userErr } = await supabase.from("zapmro_users").upsert({
+          username: uName,
+          email: uEmail,
+          password_hash: passwordHash,
+          password_plain: passwordPlain,
+          days_remaining: days,
+          is_active: true,
+          whatsapp_limit: planType === 'lifetime' ? -1 : 1
+        }, { onConflict: 'username' }).select().single();
+
+        if (userErr) log("Error creating ZAPMRO user", userErr);
+
+        // Update order status
+        await supabase.from("zapmro_orders").update({ 
+          status: "paid", 
+          paid_at: new Date().toISOString() 
+        }).eq("id", zapOrder.id);
+
+        // Send Welcome Email via zapmro-api action
+        try {
+          await supabase.functions.invoke("zapmro-api", {
+            body: {
+              action: "send_access",
+              id: newUser?.id
+            }
+          });
+          log("ZAPMRO welcome email triggered");
+        } catch (e) { log("Error triggering ZAPMRO email", e); }
+
+        // Meta Tracking
+        await sendMetaPurchaseEvent(
+          uEmail,
+          Number(zapOrder.amount) || 397,
+          `ZAPMRO ${planType}`,
+          zapOrder.nsu_order,
+          "https://maisresultadosonline.com.br/zapmro/vendas/obrigado"
+        );
+
+        return new Response(JSON.stringify({ success: true, message: "ZAPMRO confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
 
