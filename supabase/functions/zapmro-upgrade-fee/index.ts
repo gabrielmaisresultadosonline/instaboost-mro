@@ -142,6 +142,8 @@ serve(async (req) => {
 
       // Removida a verificação da lista LEGACY_LIFETIME_USERS para que o bloqueio seja universal
       // para todos os usuários vitalícios conforme identificado pelo frontend.
+      // No entanto, garantimos que se o usuário estiver na lista, o status seja verificado.
+      const isLegacyFromList = LEGACY_LIFETIME_USERS.includes(username);
       
       const orFilter = emailFromReq 
         ? `or(username.eq.${username},email.eq.${emailFromReq},email.eq.${username},username.eq.${emailFromReq})`
