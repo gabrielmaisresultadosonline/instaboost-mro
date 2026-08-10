@@ -277,7 +277,28 @@ serve(async (req) => {
     // ================= PRODUTO + TUTORIAIS =================
     if (action === "product") {
       const slug = String(body.slug || "").trim();
-      const { data: product } = await supabase.from("hub_products").select("*").eq("slug", slug).maybeSingle();
+      let product = null;
+      if (slug === "audiibooks") {
+        const { data: p } = await supabase.from("hub_products").select("*").eq("slug", slug).maybeSingle();
+        product = p;
+        if (!product) {
+          const { data: newP } = await supabase.from("hub_products").insert({
+            slug: "audiibooks",
+            title: "O SEGREDO PARA VENDER MAIS !",
+            description: "4 eBooks + 4 Audiobooks estratégicos",
+            price: 37,
+            access_source: "audiibooks",
+            is_active: true,
+            order_index: 99,
+            status: 'active'
+          }).select().single();
+          product = newP;
+        }
+      } else {
+        const { data: p } = await supabase.from("hub_products").select("*").eq("slug", slug).maybeSingle();
+        product = p;
+      }
+      
       if (!product) return json({ success: false, error: "Produto não encontrado" }, 200);
       const { data: tutorials } = await supabase
         .from("hub_product_tutorials")
