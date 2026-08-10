@@ -152,6 +152,8 @@ serve(async (req) => {
         .select("*")
         .or(orFilter)
         .eq("status", "paid")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (paid) return json({ success: true, paid: true, order: paid });
