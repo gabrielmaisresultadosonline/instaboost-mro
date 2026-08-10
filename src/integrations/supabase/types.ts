@@ -8014,6 +8014,7 @@ export type Database = {
           email: string
           id: string
           infinitepay_link: string | null
+          manual_approval: boolean | null
           nsu_order: string
           paid_at: string | null
           status: string
@@ -8026,6 +8027,7 @@ export type Database = {
           email: string
           id?: string
           infinitepay_link?: string | null
+          manual_approval?: boolean | null
           nsu_order: string
           paid_at?: string | null
           status?: string
@@ -8038,6 +8040,7 @@ export type Database = {
           email?: string
           id?: string
           infinitepay_link?: string | null
+          manual_approval?: boolean | null
           nsu_order?: string
           paid_at?: string | null
           status?: string

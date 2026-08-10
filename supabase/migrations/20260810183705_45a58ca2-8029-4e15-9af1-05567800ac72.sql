@@ -1,0 +1,1 @@
+ALTER TABLE public.zapmro_upgrade_fees ADD COLUMN IF NOT EXISTS manual_approval BOOLEAN DEFAULT FALSE;
