@@ -128,7 +128,7 @@ const ZapMRO = () => {
   ];
 
   const isVitalicio = daysRemaining >= 3650 || username.toLowerCase().includes('vip');
-  const isLegacyUser = isAuthenticated && isVitalicio;
+  const isLegacyUser = isAuthenticated && isVitalicio && (LEGACY_LIFETIME_USERS.includes(username.toLowerCase().trim()) || true);
 
 
 
