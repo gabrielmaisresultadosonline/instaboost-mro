@@ -116,7 +116,9 @@ export const ZapmroUsersTab: React.FC = () => {
   const [form, setForm] = useState<UserForm>(EMPTY_USER);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [syncing, setSyncing] = useState(false);
+  const [isMakingLifetime, setIsMakingLifetime] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
+
 
   /** Vincula emails e senhas já cadastrados nos acessos criados. */
   const handleSyncCredentials = async () => {
@@ -246,6 +248,26 @@ export const ZapmroUsersTab: React.FC = () => {
       toast({ title: 'Erro ao remover número', variant: 'destructive' });
     }
   };
+
+  const handleMakeAllLifetime = async () => {
+    if (!window.confirm('Tem certeza que deseja tornar TODOS os usuários atuais vitalícios? Esta ação não pode ser desfeita.')) return;
+    
+    setIsMakingLifetime(true);
+    try {
+      const { data } = await supabase.functions.invoke('zapmro-api', {
+        body: { action: 'make_all_lifetime' },
+      });
+      if (data?.success) {
+        toast({ title: 'Sucesso!', description: 'Todos os usuários agora são vitalícios.' });
+        void load();
+      } else {
+        toast({ title: data?.error || 'Erro ao atualizar usuários', variant: 'destructive' });
+      }
+    } finally {
+      setIsMakingLifetime(false);
+    }
+  };
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -381,7 +403,12 @@ export const ZapmroUsersTab: React.FC = () => {
           Atualizar ({users.length})
         </Button>
 
+        <Button variant="destructive" onClick={() => void handleMakeAllLifetime()} disabled={isMakingLifetime}>
+          {isMakingLifetime ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+          Tornar todos Vitalícios
+        </Button>
       </div>
+
 
       {isLoading ? (
         <div className="flex justify-center py-12">
