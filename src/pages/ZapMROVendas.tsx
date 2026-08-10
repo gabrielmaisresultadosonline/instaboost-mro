@@ -13,8 +13,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const PLANS = {
-  annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
+  monthly: { name: "Mensal", price: 67.00, days: 30, description: "Acesso por 30 dias" },
+  annual: { name: "Anual", price: 300.00, days: 365, description: "Acesso por 1 ano" },
 };
 
 const ZapMROVendas = () => {
@@ -26,7 +26,7 @@ const ZapMROVendas = () => {
 
   // Checkout modal state
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("monthly");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -141,7 +141,7 @@ const ZapMROVendas = () => {
     }
   };
 
-  const openCheckout = (plan: "annual" | "lifetime") => {
+  const openCheckout = (plan: "monthly" | "annual") => {
     setSelectedPlan(plan);
     setShowCheckoutModal(true);
   };
@@ -222,7 +222,7 @@ const ZapMROVendas = () => {
             onClick={scrollToPricing}
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold"
           >
-            Garantir Acesso
+            Começar R$67
           </Button>
         </div>
       </header>
@@ -273,7 +273,7 @@ const ZapMROVendas = () => {
             size="lg"
             className="mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-10 py-7 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
           >
-            Quero Começar Agora <ArrowRight className="ml-2 w-5 h-5" />
+            Quero Começar por R$67 <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </section>
@@ -452,57 +452,74 @@ const ZapMROVendas = () => {
           </div>
 
           <div className="text-center mb-6 md:mb-10">
-            <span className="text-green-400 font-bold text-base md:text-lg">PLANO ÚNICO</span>
-            <h2 className="text-3xl md:text-5xl font-bold mt-2">PLANO ANUAL</h2>
+            <span className="text-green-400 font-bold text-base md:text-lg">PLANOS DISPONÍVEIS</span>
+            <h2 className="text-3xl md:text-5xl font-bold mt-2">Escolha seu Acesso</h2>
           </div>
 
-          {/* Price Card - Responsivo */}
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-5 sm:p-8 md:p-12 shadow-2xl shadow-green-500/20">
-            <div className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8">
-              {/* Features - aparece primeiro no mobile */}
-              <div className="space-y-3 md:space-y-4 order-2 md:order-1">
-                {planFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-2 md:gap-3">
-                    <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 md:w-4 md:h-4 text-white" />
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+            {/* Mensal */}
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-green-500/10 flex flex-col h-full">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">MENSAL</h3>
+                <div className="text-5xl font-black text-green-400 mb-1">R$67</div>
+                <p className="text-gray-400">por mês</p>
+              </div>
+              <div className="space-y-4 mb-8 flex-grow">
+                {['ATÉ 2 WHATSAPP', 'TUDO ILIMITADO', 'ENVIOS ILIMITADOS', 'FLUXOS & DISPAROS', 'AGENDAMENTOS'].map((feature, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-white" />
                     </div>
-                    <span className="text-gray-300 text-sm md:text-base">{feature}</span>
+                    <span className="text-gray-300 text-sm">{feature}</span>
                   </div>
                 ))}
               </div>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 rounded-xl transition-all hover:scale-105"
+                onClick={() => openCheckout("monthly")}
+              >
+                ASSINAR MENSAL
+              </Button>
+            </div>
 
-              {/* Preço - aparece segundo no mobile */}
-              <div className="flex flex-col items-center justify-center text-center order-1 md:order-2">
-                <p className="text-gray-500 text-xs sm:text-sm mb-2 md:mb-4">ou R$397 à vista</p>
-                
-                <div className="mb-1 md:mb-2">
-                  <span className="text-lg sm:text-2xl text-gray-400">12x de</span>
-                </div>
-                <div className="text-5xl sm:text-7xl md:text-8xl font-black text-green-400 mb-1">
-                  R$41
-                </div>
-                <p className="text-base sm:text-xl text-gray-300 font-medium mb-4 md:mb-6">por mês</p>
-
-                <Button 
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-xl py-5 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-                  onClick={() => openCheckout("annual")}
-                >
-                  GARANTIR MEU ACESSO AGORA
-                </Button>
-
-                <p className="text-xs sm:text-sm text-gray-500 mt-3 md:mt-4 flex items-center gap-2">
-                  <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Pagamento 100% seguro
-                </p>
+            {/* Anual */}
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-green-500/20 flex flex-col h-full relative overflow-hidden">
+              <div className="absolute top-4 right-[-35px] bg-green-500 text-white text-[10px] font-bold py-1 px-10 rotate-45">OFERTA</div>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">ANUAL</h3>
+                <div className="text-5xl font-black text-green-400 mb-1">R$300</div>
+                <p className="text-gray-400">acesso por 1 ano</p>
+                <p className="text-green-500 text-sm font-bold mt-1">12x de R$30</p>
               </div>
+              <div className="space-y-4 mb-8 flex-grow">
+                {['ATÉ 2 WHATSAPP', 'TUDO ILIMITADO', 'MAIS ECONOMIA', 'SUPORTE PRIORITÁRIO', 'TODOS OS RECURSOS'].map((feature, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-gray-300 text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 rounded-xl transition-all hover:scale-105"
+                onClick={() => openCheckout("annual")}
+              >
+                ASSINAR ANUAL
+              </Button>
             </div>
+          </div>
 
-            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-700 text-center">
-              <p className="text-green-400 font-medium text-sm md:text-base">
-                ⚡ Acesso imediato: após o pagamento, você recebe seu acesso automaticamente no e-mail
-              </p>
-            </div>
+          <div className="mt-8 text-center">
+            <p className="text-xs sm:text-sm text-gray-500 flex items-center justify-center gap-2">
+              <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
+              Pagamento 100% seguro via InfiniPay
+            </p>
+            <p className="text-green-400 font-medium text-sm md:text-base mt-4">
+              ⚡ Acesso imediato via e-mail após confirmação
+            </p>
           </div>
         </div>
       </section>
@@ -550,9 +567,9 @@ const ZapMROVendas = () => {
           <Button 
             size="lg"
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-            onClick={() => openCheckout("annual")}
+            onClick={scrollToPricing}
           >
-            GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
+            GARANTIR ACESSO POR R$67 <ArrowRight className="ml-2 w-6 h-6" />
           </Button>
         </div>
       </section>
@@ -586,7 +603,12 @@ const ZapMROVendas = () => {
               <p className="text-xl sm:text-2xl font-bold text-green-400">
                 {PLANS[selectedPlan].name} - R$ {PLANS[selectedPlan].price.toFixed(2)}
               </p>
-              <p className="text-xs text-gray-500 mt-1">ou 12x de R${(PLANS[selectedPlan].price / 12).toFixed(0)}</p>
+              {selectedPlan === "annual" && (
+                <p className="text-xs text-gray-500 mt-1">ou 12x de R$30</p>
+              )}
+              {selectedPlan === "monthly" && (
+                <p className="text-xs text-gray-500 mt-1">cobrança recorrente a cada 30 dias</p>
+              )}
             </div>
 
             <div className="space-y-2 sm:space-y-3">

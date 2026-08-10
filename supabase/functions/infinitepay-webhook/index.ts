@@ -798,15 +798,16 @@ serve(async (req) => {
       if (zapOrder) {
         const uEmail = (zapOrder.email || email || "").toLowerCase();
         const uName = zapOrder.username || username || uEmail.split('@')[0];
-        const planType = zapOrder.plan_type || "annual";
-        const passwordPlain = Math.random().toString(36).substring(2, 10);
+        const planType = (zapOrder.plan_type || "annual").toLowerCase();
+        const passwordPlain = uName.toLowerCase(); // Usuário é o mesmo que a senha, minúsculo
+
         
         // Hash for internal DB
         const data = new TextEncoder().encode(passwordPlain);
         const digest = await crypto.subtle.digest("SHA-256", data);
         const passwordHash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 
-        const days = planType === 'lifetime' ? 999999 : 365;
+        const days = planType === 'lifetime' || planType === 'vitalicio' ? 999999 : (planType === 'monthly' || planType === 'mensal' ? 30 : 365);
         
         // Create user in zapmro_users (admin panel DB)
         const { data: newUser, error: userErr } = await supabase.from("zapmro_users").upsert({
@@ -816,7 +817,7 @@ serve(async (req) => {
           password_plain: passwordPlain,
           days_remaining: days,
           is_active: true,
-          whatsapp_limit: planType === 'lifetime' ? -1 : 1
+          whatsapp_limit: planType === 'lifetime' || planType === 'vitalicio' ? -1 : 2
         }, { onConflict: 'username' }).select().single();
 
         if (userErr) log("Error creating ZAPMRO user", userErr);

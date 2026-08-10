@@ -105,7 +105,7 @@ serve(async (req) => {
 
     // Descrição do produto inclui email e username para identificação
     // Formato: ZAPMRO_PLANO_username_email
-    const productDescription = `ZAPMRO_${planType === "lifetime" ? "VITALICIO" : "ANUAL"}_${cleanUsername}_${cleanEmail}`;
+    const productDescription = `ZAPMRO_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`;
 
     // Criar checkout via API oficial
     const lineItems = [{
