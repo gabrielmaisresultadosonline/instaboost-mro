@@ -159,15 +159,19 @@ const ZapMRO = () => {
   }, [isAuthenticated]);
 
   // Verifica se a taxa de atualização (R$67) já foi paga
-  const checkFeeStatus = async (user: string, silent = true) => {
+  const checkFeeStatus = async (user: string, userEmail?: string, silent = true) => {
     if (!user) return false;
     if (!silent) setIsCheckingFee(true);
     try {
+      // Usamos tanto username quanto email na busca para garantir que se um for aprovado,
+      // a liberação ocorra independente de qual identificador o webhook usou.
       const { data } = await supabase.functions.invoke('zapmro-upgrade-fee', {
-        body: { action: 'status', username: user }
+        body: { action: 'status', username: user, email: userEmail }
       });
       const paid = data?.success && data?.paid === true;
-      setFeePaid(paid);
+      if (paid) {
+        setFeePaid(true);
+      }
       return paid;
     } catch (error) {
       console.error('[ZapMRO] Error checking fee:', error);
@@ -179,7 +183,7 @@ const ZapMRO = () => {
 
   useEffect(() => {
     if (isAuthenticated && username) {
-      checkFeeStatus(username);
+      checkFeeStatus(username, email);
       
       // Timer de 3 segundos para garantir que o bloqueio já esteja processado e evitar flash do botão
       const readyTimer = setTimeout(() => {
@@ -208,7 +212,7 @@ const ZapMRO = () => {
       }
 
       console.log(`[ZapMRO] Polling payment status... (${pollCount}/${maxPolls})`);
-      const paid = await checkFeeStatus(username);
+      const paid = await checkFeeStatus(username, email);
       
       if (paid) {
         console.log('[ZapMRO] Payment confirmed! Unlocking download...');

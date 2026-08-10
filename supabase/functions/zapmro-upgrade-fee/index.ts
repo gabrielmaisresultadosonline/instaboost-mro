@@ -134,6 +134,7 @@ serve(async (req) => {
 
     const action = String(body.action || "webhook");
     const username = body.username ? String(body.username).toLowerCase().trim() : "";
+    const emailFromReq = body.email ? String(body.email).toLowerCase().trim() : "";
 
     // ---------- STATUS: verifica se o usuário já pagou a taxa ----------
     if (action === "status") {
@@ -145,7 +146,7 @@ serve(async (req) => {
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username},email.eq.${username}`)
+        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
         .eq("status", "paid")
         .maybeSingle();
 
@@ -155,7 +156,7 @@ serve(async (req) => {
       const { data: pending } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username},email.eq.${username}`)
+        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -197,7 +198,7 @@ serve(async (req) => {
       const { data: alreadyPaid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(`username.eq.${username},email.eq.${username}`)
+        .or(`username.eq.${username}${emailFromReq ? `,email.eq.${emailFromReq}` : ""}`)
         .eq("status", "paid")
         .maybeSingle();
       if (alreadyPaid) return json({ success: true, paid: true, order: alreadyPaid });
