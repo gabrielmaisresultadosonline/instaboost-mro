@@ -163,15 +163,12 @@ const ZapMRO = () => {
     if (!user) return false;
     if (!silent) setIsCheckingFee(true);
     try {
-      // Usamos tanto username quanto email na busca para garantir que se um for aprovado,
-      // a liberação ocorra independente de qual identificador o webhook usou.
       const { data } = await supabase.functions.invoke('zapmro-upgrade-fee', {
         body: { action: 'status', username: user, email: userEmail }
       });
       const paid = data?.success && data?.paid === true;
-      if (paid) {
-        setFeePaid(true);
-      }
+      // A resposta atual sempre prevalece sobre qualquer estado anterior em memória.
+      setFeePaid(paid);
       return paid;
     } catch (error) {
       console.error('[ZapMRO] Error checking fee:', error);
@@ -192,7 +189,7 @@ const ZapMRO = () => {
       
       return () => clearTimeout(readyTimer);
     }
-  }, [isAuthenticated, username]);
+  }, [isAuthenticated, username, email]);
 
   // Polling em tempo real enquanto o pagamento está em aberto
   useEffect(() => {

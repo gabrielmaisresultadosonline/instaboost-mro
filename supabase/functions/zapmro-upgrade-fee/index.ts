@@ -140,19 +140,12 @@ serve(async (req) => {
     if (action === "status") {
       if (!username) return json({ success: false, error: "username obrigatório" }, 400);
 
-      // Removida a verificação da lista LEGACY_LIFETIME_USERS para que o bloqueio seja universal
-      // para todos os usuários vitalícios conforme identificado pelo frontend.
-      // No entanto, garantimos que se o usuário estiver na lista, o status seja verificado.
-      const isLegacyFromList = LEGACY_LIFETIME_USERS.includes(username);
-      
-      const orFilter = emailFromReq 
-        ? `or(username.eq.${username},email.eq.${emailFromReq},email.eq.${username},username.eq.${emailFromReq})`
-        : `or(username.eq.${username},email.eq.${username})`;
-        
+      // A taxa pertence ao usuário que iniciou o checkout. O e-mail não pode
+      // liberar outras contas, pois usuários diferentes podem compartilhar e-mail.
       const { data: paidData } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(orFilter)
+        .eq("username", username)
         .eq("status", "paid")
         .order("created_at", { ascending: false })
         .limit(1);
@@ -165,7 +158,7 @@ serve(async (req) => {
       const { data: pending } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(orFilter)
+        .eq("username", username)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -208,8 +201,10 @@ serve(async (req) => {
       const { data: alreadyPaid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .or(email ? `or(username.eq.${username},email.eq.${email},email.eq.${username},username.eq.${email})` : `or(username.eq.${username},email.eq.${username})`)
+        .eq("username", username)
         .eq("status", "paid")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (alreadyPaid) return json({ success: true, paid: true, order: alreadyPaid });
 
