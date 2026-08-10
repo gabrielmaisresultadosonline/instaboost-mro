@@ -167,7 +167,6 @@ const ZapMRO = () => {
         body: { action: 'status', username: user, email: userEmail }
       });
       const paid = data?.success && data?.paid === true;
-      // A resposta atual sempre prevalece sobre qualquer estado anterior em memória.
       setFeePaid(paid);
       return paid;
     } catch (error) {
@@ -180,10 +179,10 @@ const ZapMRO = () => {
 
   useEffect(() => {
     if (isAuthenticated && username) {
+      setFeePaid(false);
       checkFeeStatus(username, email);
       
       // Timer de 3 segundos para garantir que o bloqueio já esteja processado e evitar flash do botão
-      setFeePaid(false);
       const readyTimer = setTimeout(() => {
         setIsReadyToShowContent(true);
       }, 3000);
@@ -431,9 +430,8 @@ const ZapMRO = () => {
     setPassword('');
     setEmail('');
     setIsEmailLocked(false);
-  };
-
     setFeePaid(false);
+  };
   const formatDays = (days: number) => {
     if (days > 365) return 'Vitalício';
     return `${days} dias`;
