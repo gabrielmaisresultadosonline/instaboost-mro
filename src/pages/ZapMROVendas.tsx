@@ -222,7 +222,7 @@ const ZapMROVendas = () => {
             onClick={scrollToPricing}
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold"
           >
-            Garantir Acesso
+            Começar R$67
           </Button>
         </div>
       </header>
@@ -273,7 +273,7 @@ const ZapMROVendas = () => {
             size="lg"
             className="mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-10 py-7 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
           >
-            Quero Começar Agora <ArrowRight className="ml-2 w-5 h-5" />
+            Quero Começar por R$67 <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </section>
@@ -567,9 +567,9 @@ const ZapMROVendas = () => {
           <Button 
             size="lg"
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-            onClick={() => openCheckout("annual")}
+            onClick={scrollToPricing}
           >
-            GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
+            GARANTIR ACESSO POR R$67 <ArrowRight className="ml-2 w-6 h-6" />
           </Button>
         </div>
       </section>
