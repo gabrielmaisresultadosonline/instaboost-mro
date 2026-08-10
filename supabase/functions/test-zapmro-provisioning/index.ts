@@ -24,7 +24,7 @@ async function testProvisioning() {
   log("Starting provisioning test for", { testUser, testEmail });
 
   // 1. Create order
-  const { data: order } = await supabase.from("zapmro_orders").insert({
+  const { data: order, error: orderErr } = await supabase.from("zapmro_orders").insert({
     username: testUser,
     email: testEmail,
     plan_type: "monthly",
@@ -33,19 +33,51 @@ async function testProvisioning() {
     nsu_order: "TEST_" + Date.now()
   }).select().single();
 
+  if (orderErr) {
+    log("Error creating order", orderErr);
+    return new Response(JSON.stringify({ success: false, error: orderErr }), { status: 500 });
+  }
+
   log("Test order created", order);
 
-  // 2. Mock payment confirmation (this would normally happen via webhook)
-  // We'll update the order status
-  const { error: updateError } = await supabase.from("zapmro_orders").update({
+  // 2. Mock payment confirmation via webhook logic
+  // We'll call the webhook directly (simulating the POST from InfiniPay)
+  const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
+  const webhookPayload = {
+    order_nsu: order.nsu_order,
+    paid: true,
     status: "paid",
-    paid_at: new Date().toISOString()
-  }).eq("id", order.id);
+    amount: 67,
+    items: [{
+      description: `ZAPMRO_MENSAL_${testUser}_${testEmail}`
+    }]
+  };
 
-  if (updateError) log("Error updating order", updateError);
-  else log("Order marked as paid");
+  log("Simulating webhook call", webhookPayload);
+  
+  const webhookResp = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(webhookPayload)
+  });
 
-  return new Response(JSON.stringify({ success: true, user: testUser }), {
+  const webhookResult = await webhookResp.text();
+  log("Webhook response", webhookResult);
+
+  // 3. Verify user was created with correct credentials
+  const { data: zapUser } = await supabase
+    .from("zapmro_users")
+    .select("*")
+    .eq("username", testUser)
+    .single();
+
+  log("Verified user in DB", zapUser);
+
+  return new Response(JSON.stringify({ 
+    success: true, 
+    user: zapUser, 
+    password_expected: testUser 
+  }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" }
   });
 }
