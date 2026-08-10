@@ -299,7 +299,29 @@ serve(async (req) => {
       if (!cleanEmail.includes("@")) return json({ success: false, error: "E-mail inválido" }, 400);
       if (!cleanName) return json({ success: false, error: "Nome obrigatório" }, 400);
 
-      const { data: product } = await supabase.from("hub_products").select("*").eq("slug", slug).maybeSingle();
+      let product = null;
+      if (slug === "audiibooks") {
+        const { data: p } = await supabase.from("hub_products").select("*").eq("slug", slug).maybeSingle();
+        product = p;
+        if (!product) {
+          // Auto-provision product if missing
+          const { data: newP, error: insErr } = await supabase.from("hub_products").insert({
+            slug: "audiibooks",
+            title: "O SEGREDO PARA VENDER MAIS !",
+            description: "4 eBooks + 4 Audiobooks estratégicos",
+            price: 37,
+            access_source: "audiibooks",
+            is_active: true,
+            order_index: 99,
+            status: 'active'
+          }).select().single();
+          if (!insErr) product = newP;
+        }
+      } else {
+        const { data: p } = await supabase.from("hub_products").select("*").eq("slug", slug).maybeSingle();
+        product = p;
+      }
+
       if (!product) return json({ success: false, error: "Produto não encontrado" }, 404);
 
       const amount = Number(product.price || 0);
