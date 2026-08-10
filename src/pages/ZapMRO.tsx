@@ -797,12 +797,16 @@ const ZapMRO = () => {
                   window.open(settings.downloadLink, '_blank');
                 }}
                 disabled={!isEmailLocked}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className={cn(
+                  "h-16 px-10 text-xl font-black rounded-2xl transition-all duration-300 gap-3 shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-pulse",
+                  "bg-red-600 hover:bg-red-500 text-white border-2 border-red-400/30",
+                  "disabled:opacity-60 disabled:cursor-not-allowed disabled:animate-none disabled:shadow-none"
+                )}
               >
                 {isEmailLocked ? (
-                  feePaid ? <Download className="w-5 h-5" /> : <Lock className="w-5 h-5" />
+                  feePaid ? <Download className="w-6 h-6" /> : <Lock className="w-6 h-6" />
                 ) : (
-                  <Lock className="w-5 h-5" />
+                  <Lock className="w-6 h-6" />
                 )}
                 Download ZAPMRO
               </Button>
