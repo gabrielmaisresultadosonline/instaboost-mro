@@ -96,12 +96,9 @@ serve(async (req) => {
     if (action === "status") {
       if (!username) return json({ success: false, error: "username obrigatório" }, 400);
 
-      // Se NÃO está na lista de legados, considera como pago (não cobra taxa)
-      const isLegacy = LEGACY_LIFETIME_USERS.includes(username);
-      if (!isLegacy) {
-        return json({ success: true, paid: true, is_new_user: true });
-      }
-
+      // Removida a verificação da lista LEGACY_LIFETIME_USERS para que o bloqueio seja universal
+      // para todos os usuários vitalícios conforme identificado pelo frontend.
+      
       const { data: paid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
