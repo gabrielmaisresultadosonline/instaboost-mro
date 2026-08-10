@@ -167,7 +167,7 @@ const ZapMROVendas = () => {
 
   const planFeatures = [
     'Licença ativa por 365 dias',
-    'Multiusuário: ilimitados números de WhatsApp',
+    'Multiusuário: até 2 números de WhatsApp',
     'Envios ilimitados',
     'Suporte via WhatsApp',
     'Área de Membros VIP',
@@ -180,7 +180,7 @@ const ZapMROVendas = () => {
   const faqs = [
     {
       q: 'Posso utilizar em quantos números de WhatsApp?',
-      a: 'Nossa solução não impõe limites quanto ao número de contas do WhatsApp que podem ser utilizadas. Você pode integrar quantos números desejar à plataforma.'
+      a: 'Você pode utilizar em até 2 números de WhatsApp simultaneamente por licença.'
     },
     {
       q: 'Funciona em dispositivos móveis?',
@@ -192,7 +192,7 @@ const ZapMROVendas = () => {
     },
     {
       q: 'Qual é a duração do acesso ao sistema?',
-      a: 'Oferecemos um plano de assinatura anual. Seu acesso será válido por 365 dias a partir da confirmação do pagamento.'
+      a: 'Oferecemos planos de 30 dias (Mensal) e 1 ano (Anual). O pagamento é único e você só renova se quiser continuar utilizando.'
     },
     {
       q: 'É possível enviar áudios pré-gravados como se fossem em tempo real?',
