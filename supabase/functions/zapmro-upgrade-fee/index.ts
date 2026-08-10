@@ -134,6 +134,7 @@ serve(async (req) => {
 
     const action = String(body.action || "webhook");
     const username = body.username ? String(body.username).toLowerCase().trim() : "";
+    const emailFromReq = body.email ? String(body.email).toLowerCase().trim() : "";
 
     // ---------- STATUS: verifica se o usuário já pagou a taxa ----------
     if (action === "status") {
@@ -142,12 +143,19 @@ serve(async (req) => {
       // Removida a verificação da lista LEGACY_LIFETIME_USERS para que o bloqueio seja universal
       // para todos os usuários vitalícios conforme identificado pelo frontend.
       
-      const { data: paid } = await supabase
+      const orFilter = emailFromReq 
+        ? `or(username.eq.${username},email.eq.${emailFromReq},email.eq.${username},username.eq.${emailFromReq})`
+        : `or(username.eq.${username},email.eq.${username})`;
+        
+      const { data: paidData } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .eq("username", username)
+        .or(orFilter)
         .eq("status", "paid")
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+        
+      const paid = paidData && paidData.length > 0 ? paidData[0] : null;
 
       if (paid) return json({ success: true, paid: true, order: paid });
 
@@ -155,7 +163,7 @@ serve(async (req) => {
       const { data: pending } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .eq("username", username)
+        .or(orFilter)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -197,7 +205,7 @@ serve(async (req) => {
       const { data: alreadyPaid } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
-        .eq("username", username)
+        .or(email ? `or(username.eq.${username},email.eq.${email},email.eq.${username},username.eq.${email})` : `or(username.eq.${username},email.eq.${username})`)
         .eq("status", "paid")
         .maybeSingle();
       if (alreadyPaid) return json({ success: true, paid: true, order: alreadyPaid });

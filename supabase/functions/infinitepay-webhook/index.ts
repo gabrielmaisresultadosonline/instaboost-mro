@@ -856,7 +856,7 @@ serve(async (req) => {
       }
       
       if (!feeOrder && username) {
-        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").eq("username", username).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        const { data } = await supabase.from("zapmro_upgrade_fees").select("*").or(`username.eq.${username},email.eq.${username}`).eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
         feeOrder = data;
       }
 
