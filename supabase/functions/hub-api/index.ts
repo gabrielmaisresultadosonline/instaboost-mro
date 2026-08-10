@@ -317,7 +317,7 @@ serve(async (req) => {
 
       const priceCents = Math.round(finalAmount * 100);
       const nsu = genNSU();
-      const redirectUrl = `https://maisresultadosonline.com.br/dashboard?paid=1&nsu=${nsu}`;
+      const redirectUrl = `https://maisresultadosonline.com.br/audiobooks/obrigado?paid=1&nsu=${nsu}`;
       const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/infinitepay-webhook`;
       
       let description = slug === "audiibooks" ? `AUDIIBOOKS_${cleanEmail}` : `HUB_${slug}_${cleanEmail}`;

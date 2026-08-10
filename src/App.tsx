@@ -98,6 +98,7 @@ import PostsPromptsVend from "./pages/PostsPromptsVend";
 import PostsComIA from "./pages/PostsComIA";
 import PostsComIAAdmin from "./pages/PostsComIAAdmin";
 import PostsComIALogin from "./pages/PostsComIALogin";
+import AudiobooksObrigado from './pages/AudiobooksObrigado';
 import PostsComIAMembros from "./pages/PostsComIAMembros";
 import PostsComIAObrigado from "./pages/PostsComIAObrigado";
 import RendaSaoVivo from "./pages/RendaSaoVivo";
@@ -456,6 +457,7 @@ const App = () => (
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
           <Route path="/audiobooks/admin" element={<AudiobooksAdmin />} />
+          <Route path="/audiobooks/obrigado" element={<AudiobooksObrigado />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
