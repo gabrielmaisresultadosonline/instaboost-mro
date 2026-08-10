@@ -109,6 +109,7 @@ const formatDate = (value: string | null) =>
 export const ZapmroUsersTab: React.FC = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<ZapmroUser[]>([]);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [search, setSearch] = useState('');
@@ -230,6 +231,19 @@ export const ZapmroUsersTab: React.FC = () => {
       void load();
     } else {
       toast({ title: 'Erro ao remover usuário', variant: 'destructive' });
+    }
+  };
+
+  const handleRemoveWhatsapp = async (userId: string, number: string) => {
+    if (!window.confirm(`Remover o número ${number} deste usuário?`)) return;
+    const { data } = await supabase.functions.invoke('zapmro-api', {
+      body: { action: 'remove_whatsapp', id: userId, number },
+    });
+    if (data?.success) {
+      toast({ title: 'Número removido' });
+      void load();
+    } else {
+      toast({ title: 'Erro ao remover número', variant: 'destructive' });
     }
   };
 
@@ -397,7 +411,38 @@ export const ZapmroUsersTab: React.FC = () => {
                 } ({user.days_remaining ?? 0} dias)</p>
                 <p>WhatsApp: {user.whatsapp || '—'}</p>
                 <p>Limite WhatsApp: {user.whatsapp_limit === -1 ? 'Ilimitado' : user.whatsapp_limit} ({user.registered_numbers?.length || 0} reg.)</p>
-                <p className="flex items-center gap-1">
+                
+                {user.registered_numbers && user.registered_numbers.length > 0 && (
+                  <div className="mt-2 space-y-1 bg-muted/50 p-2 rounded-md">
+                    <p className="font-semibold text-[10px] uppercase tracking-wider flex items-center justify-between">
+                      Números Registrados
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-4 p-0 text-[10px]" 
+                        onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
+                      >
+                        {expandedUser === user.id ? 'Ocultar' : 'Ver todos'}
+                      </Button>
+                    </p>
+                    {user.registered_numbers.slice(0, expandedUser === user.id ? undefined : 2).map((num) => (
+                      <div key={num} className="flex items-center justify-between group">
+                        <span className="text-[11px] font-mono">{num}</span>
+                        <button 
+                          onClick={() => handleRemoveWhatsapp(user.id, num)}
+                          className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive/80 transition-opacity"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {user.registered_numbers.length > 2 && expandedUser !== user.id && (
+                      <p className="text-[10px] text-center pt-1">+ {user.registered_numbers.length - 2} números</p>
+                    )}
+                  </div>
+                )}
+
+                <p className="flex items-center gap-1 pt-1">
 
                   Senha:{' '}
                   <span className="font-mono text-foreground">
