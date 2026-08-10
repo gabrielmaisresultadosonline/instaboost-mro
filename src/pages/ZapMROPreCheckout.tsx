@@ -7,29 +7,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ArrowRight, RefreshCw, UserCheck, Check, ShieldCheck, Zap, Lock, Music } from "lucide-react";
 import { trackInitiateCheckout } from '@/lib/facebookTracking';
 
-const PRODUCTS = [
-  {
-    slug: "audiibooks",
-    title: "O SEGREDO PARA VENDER MAIS !",
-    price: 37,
-    description: "4 eBooks + 4 Audiobooks estratégicos",
-    image: "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ebooks/covers/1786318391838-capa_48_leis.png"
-  },
-  {
-    slug: "trafego-pago-visitas",
-    title: "Tráfego Pago (Visitas no Perfil)",
-    price: 47,
-    description: "Aumente as visitas no seu perfil do Instagram",
-    image: "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/products/trafego_visitas.png"
-  },
-  {
-    slug: "prompts-mro",
-    title: "Prompts MRO PRO",
-    price: 67,
-    description: "Melhores prompts para IA e marketing",
-    image: "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/products/prompts_mro.png"
-  }
-];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("hub_products")
+          .select("*")
+          .eq("is_active", true)
+          .order("order_index", { ascending: true });
+        
+        if (error) throw error;
+        setProducts(data || []);
+      } catch (err) {
+        console.error("Erro ao carregar produtos:", err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
 export default function ZapMROPreCheckout() {
   const [searchParams] = useSearchParams();
@@ -45,8 +44,8 @@ export default function ZapMROPreCheckout() {
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
 
   const totalAmount = baseAmount + selectedBumps.reduce((acc, slug) => {
-    const prod = PRODUCTS.find(p => p.slug === slug);
-    return acc + (prod?.price || 0);
+    const prod = products.find(p => p.slug === slug);
+    return acc + (Number(prod?.price) || 0);
   }, 0);
 
   const toggleBump = (slug: string) => {
@@ -178,7 +177,11 @@ export default function ZapMROPreCheckout() {
             </div>
 
             <div className="space-y-4">
-              {PRODUCTS.map((prod) => (
+              {loadingProducts ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="animate-spin text-yellow-400" />
+                </div>
+              ) : products.filter(p => p.slug !== 'zapmro').map((prod) => (
                 <div 
                   key={prod.slug}
                   onClick={() => toggleBump(prod.slug)}
@@ -190,7 +193,7 @@ export default function ZapMROPreCheckout() {
                 >
                   <div className="flex gap-4">
                     <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700">
-                      <img src={prod.image} alt={prod.title} className="w-full h-full object-cover" />
+                      <img src={prod.thumb_url || prod.image} alt={prod.title} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex justify-between items-start">
@@ -203,7 +206,7 @@ export default function ZapMROPreCheckout() {
                       </div>
                       <p className="text-[11px] text-zinc-400 line-clamp-2">{prod.description}</p>
                       <p className="text-yellow-400 font-black text-sm pt-1">
-                        + R$ {prod.price.toFixed(2).replace('.', ',')}
+                        + R$ {Number(prod.price).toFixed(2).replace('.', ',')}
                       </p>
                     </div>
                   </div>
