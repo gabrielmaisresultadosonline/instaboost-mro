@@ -8115,9 +8115,11 @@ export type Database = {
           name: string | null
           password_hash: string | null
           password_plain: string | null
+          registered_numbers: string[] | null
           updated_at: string
           username: string
           whatsapp: string | null
+          whatsapp_limit: number | null
         }
         Insert: {
           created_at?: string
@@ -8131,9 +8133,11 @@ export type Database = {
           name?: string | null
           password_hash?: string | null
           password_plain?: string | null
+          registered_numbers?: string[] | null
           updated_at?: string
           username: string
           whatsapp?: string | null
+          whatsapp_limit?: number | null
         }
         Update: {
           created_at?: string
@@ -8147,9 +8151,11 @@ export type Database = {
           name?: string | null
           password_hash?: string | null
           password_plain?: string | null
+          registered_numbers?: string[] | null
           updated_at?: string
           username?: string
           whatsapp?: string | null
+          whatsapp_limit?: number | null
         }
         Relationships: []
       }
