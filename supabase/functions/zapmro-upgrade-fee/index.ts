@@ -147,14 +147,15 @@ serve(async (req) => {
         ? `or(username.eq.${username},email.eq.${emailFromReq},email.eq.${username},username.eq.${emailFromReq})`
         : `or(username.eq.${username},email.eq.${username})`;
         
-      const { data: paid } = await supabase
+      const { data: paidData } = await supabase
         .from("zapmro_upgrade_fees")
         .select("*")
         .or(orFilter)
         .eq("status", "paid")
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+        
+      const paid = paidData && paidData.length > 0 ? paidData[0] : null;
 
       if (paid) return json({ success: true, paid: true, order: paid });
 
