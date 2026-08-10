@@ -81,23 +81,29 @@ const PLANS: PlanDoc[] = [
     label: 'Vitalício',
     description:
       'Sem data de expiração. Cadastre o usuário sem "expires_at" e com days_remaining alto (ex.: 9999). Acesso liberado enquanto is_active for true.',
-    example: { is_active: true, expires_at: null, days_remaining: 9999 },
+    example: { is_active: true, expires_at: null, days_remaining: 9999, plan_type: 'vitalicio' },
   },
   {
     label: 'Anual',
     description:
       'Expira em 365 dias. Cadastre "expires_at" com a data de vencimento e days_remaining com os dias restantes.',
-    example: { is_active: true, expires_at: '2027-07-29T00:00:00.000Z', days_remaining: 365 },
+    example: { is_active: true, expires_at: '2027-07-29T00:00:00.000Z', days_remaining: 365, plan_type: 'anual' },
+  },
+  {
+    label: 'Semestral',
+    description:
+      'Expira em 180 dias. Cadastre a data de vencimento e os dias restantes correspondentes.',
+    example: { is_active: true, expires_at: '2027-02-06T00:00:00.000Z', days_remaining: 180, plan_type: 'semestral' },
   },
   {
     label: 'Mensal',
     description:
-      'Expira em 30 dias. Mesmo formato do anual, apenas com a data mais curta. Ao expirar, a API retorna success:false com "Acesso expirado".',
-    example: { is_active: true, expires_at: '2026-08-28T00:00:00.000Z', days_remaining: 30 },
+      'Expira em 30 dias. Ao expirar, a API retorna success:false com "Acesso expirado".',
+    example: { is_active: true, expires_at: '2026-09-09T00:00:00.000Z', days_remaining: 30, plan_type: 'mensal' },
   },
 ];
 
-const planSnippet = `// resposta do action "login" ou "verify_user"
+const planSnippet = `// Resposta do action "login" ou "verify_user"
 const { user } = await res.json();
 
 if (!user.is_active) {
@@ -105,11 +111,16 @@ if (!user.is_active) {
   return bloquear(user.access_denied_reason);
 }
 
-const plano =
-  !user.expires_at && user.days_remaining >= 3650 ? 'vitalicio'
-  : user.days_remaining > 31 ? 'anual'
-  : 'mensal';
+// O plano vem diretamente da API no campo plan_type:
+// 'vitalicio', 'anual', 'semestral' ou 'mensal'
+const plano = user.plan_type; 
 
+const saudacao = \`Seja bem vindo, \${user.name || user.username}!\`;
+const status = user.plan_type === 'vitalicio' 
+  ? 'Acesso Vitalício' 
+  : \`Dias restantes: \${user.days_remaining}\`;
+
+exibirInfo(saudacao, status);
 liberarAcesso(plano);`;
 
 

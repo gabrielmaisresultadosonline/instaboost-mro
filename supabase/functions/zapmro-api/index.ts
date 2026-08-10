@@ -52,6 +52,19 @@ function computeAccess(user: ZapmroUserRow): { active: boolean; reason: string |
 
 function publicUser(user: ZapmroUserRow) {
   const { active, reason } = computeAccess(user);
+  
+  // Determinando o tipo de plano baseado nos dias restantes
+  let planType = 'mensal';
+  const days = user.days_remaining ?? 0;
+  
+  if (days >= 9999 || (!user.expires_at && days > 3650)) {
+    planType = 'vitalicio';
+  } else if (days > 185) {
+    planType = 'anual';
+  } else if (days > 31) {
+    planType = 'semestral';
+  }
+
   return {
     id: user.id,
     username: user.username,
@@ -60,6 +73,7 @@ function publicUser(user: ZapmroUserRow) {
     is_active: active,
     access_denied_reason: reason,
     days_remaining: user.days_remaining ?? 0,
+    plan_type: planType,
     expires_at: user.expires_at,
     last_access: user.last_access,
     created_at: user.created_at,

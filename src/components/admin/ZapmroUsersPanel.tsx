@@ -358,7 +358,11 @@ export const ZapmroUsersTab: React.FC = () => {
               </div>
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>Nome: {user.name || '—'}</p>
-                <p>Dias restantes: {user.days_remaining ?? 0}</p>
+                <p>Acesso: {
+                  (user.days_remaining ?? 0) >= 9999 ? 'Vitalício' : 
+                  (user.days_remaining ?? 0) > 180 ? 'Anual' :
+                  (user.days_remaining ?? 0) > 31 ? 'Semestral' : 'Mensal'
+                } ({user.days_remaining ?? 0} dias)</p>
                 <p className="flex items-center gap-1">
                   Senha:{' '}
                   <span className="font-mono text-foreground">
