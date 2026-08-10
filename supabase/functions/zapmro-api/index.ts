@@ -200,6 +200,12 @@ serve(async (req) => {
 
       const { active, reason } = computeAccess(user);
       if (!active) {
+        // Se o acesso expirou, revoga todas as sessões ativas do usuário
+        await supabase
+          .from("zapmro_user_sessions")
+          .update({ is_active: false, revoked_at: new Date().toISOString() })
+          .eq("user_id", user.id);
+        
         return json({ success: false, error: reason, needs_renewal: true }, 200);
       }
 
