@@ -861,11 +861,14 @@ serve(async (req) => {
       }
 
       if (feeOrder) {
+        log("Found ZAPTAXA order to confirm", { feeId: feeOrder.id, currentStatus: feeOrder.status });
+        
         // O webhook é a notificação oficial de pagamento. O registro é atualizado
         // pelo NSU único e o resultado é validado antes de responder sucesso.
         const { error: feeUpdateError } = await supabase.from("zapmro_upgrade_fees").update({ 
           status: "paid", 
-          paid_at: new Date().toISOString() 
+          paid_at: new Date().toISOString(),
+          payload: body // Salva o payload completo para auditoria
         }).eq("id", feeOrder.id);
 
         if (feeUpdateError) {

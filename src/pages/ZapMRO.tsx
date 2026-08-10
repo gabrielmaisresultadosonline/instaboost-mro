@@ -186,17 +186,33 @@ const ZapMRO = () => {
   useEffect(() => {
     if (!isWaitingPayment || feePaid || !username) return;
 
+    console.log('[ZapMRO] Starting realtime payment polling for:', username);
+    let pollCount = 0;
+    const maxPolls = 150; // ~15 minutos (150 * 6s)
+
     const interval = setInterval(async () => {
+      pollCount++;
+      if (pollCount > maxPolls) {
+        console.log('[ZapMRO] Polling timeout (15min reached)');
+        setIsWaitingPayment(false);
+        clearInterval(interval);
+        return;
+      }
+
+      console.log(`[ZapMRO] Polling payment status... (${pollCount}/${maxPolls})`);
       const paid = await checkFeeStatus(username);
+      
       if (paid) {
+        console.log('[ZapMRO] Payment confirmed! Unlocking download...');
         setIsWaitingPayment(false);
         setShowFeeModal(false);
         toast({
           title: 'Pagamento confirmado! ✅',
           description: 'Sua versão atualizada foi liberada. Faça o download!'
         });
+        clearInterval(interval);
       }
-    }, 5000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [isWaitingPayment, feePaid, username]);
