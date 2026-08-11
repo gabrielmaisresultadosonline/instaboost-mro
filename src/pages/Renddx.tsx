@@ -242,7 +242,7 @@ const Renddx = () => {
                 
                 <Button 
                   onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-black font-black px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all hover:scale-105 active:scale-95 group"
+                  className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
                 >
                   QUERO COMEÇAR AGORA
                   <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
