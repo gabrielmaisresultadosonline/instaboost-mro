@@ -49,6 +49,10 @@ const Renddx = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Estados para a animação de entrada
+  const [step, setStep] = useState<'initial' | 'opportunity' | 'ready'>('initial');
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
   // Novos estados para order bumps
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -182,8 +186,62 @@ const Renddx = () => {
     setSelectedBumps(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]);
   };
 
+  const handleInitialClick = () => {
+    setIsFadingOut(true);
+    setTimeout(() => {
+      setStep('opportunity');
+      setIsFadingOut(false);
+      
+      // Segunda transição automática após 2 segundos
+      setTimeout(() => {
+        setIsFadingOut(true);
+        setTimeout(() => {
+          setStep('ready');
+          setIsFadingOut(false);
+        }, 1000);
+      }, 2000);
+    }, 1000);
+  };
+
+  if (step !== 'ready') {
+    return (
+      <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4 transition-opacity duration-1000 overflow-hidden" style={{ opacity: isFadingOut ? 0 : 1 }}>
+        <style>{`
+          .dissolve-text {
+            animation: dissolve 3s forwards;
+          }
+          @keyframes dissolve {
+            0% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+            20% { opacity: 1; filter: blur(0); transform: scale(1); }
+            80% { opacity: 1; filter: blur(0); transform: scale(1); }
+            100% { opacity: 0; filter: blur(20px); transform: scale(1.1); }
+          }
+        `}</style>
+        {step === 'initial' ? (
+          <div className="text-center max-w-xl animate-in fade-in zoom-in duration-700">
+            <h1 className="text-3xl md:text-5xl font-black mb-12 text-white leading-tight">
+              Você gostaria de uma renda extra real?
+            </h1>
+            <Button 
+              onClick={handleInitialClick}
+              className="bg-green-500 hover:bg-green-600 text-black text-4xl md:text-6xl font-black py-10 px-20 rounded-3xl transition-transform hover:scale-105 active:scale-95 shadow-[0_0_50px_rgba(34,197,94,0.4)]"
+            >
+              SIM
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center max-w-2xl dissolve-text px-6">
+            <h2 className="text-2xl md:text-4xl font-bold text-white tracking-widest uppercase">
+              Preste atenção nessa oportunidade
+            </h2>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden">
+    <div className="min-h-screen bg-black text-white overflow-x-hidden animate-in fade-in duration-1000">
       <style>{`
         .btn-pulse-yellow { background: linear-gradient(to right, #facc15, #eab308) !important; border: none; color: black !important; font-weight: 900 !important; animation: pulse-yellow 2s infinite; }
         @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); } }
@@ -304,7 +362,7 @@ const Renddx = () => {
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
-          <h3 className="text-2xl font-bold mb-4">Quem pode me ajudar?</h3>
+          <h3 className="text-2xl font-bold mb-4">Plano Mensal</h3>
           <div className="text-5xl font-black mb-2 text-green-400">R$47</div>
           <p className="text-zinc-400 mb-6">Acesso 30 Dias</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
