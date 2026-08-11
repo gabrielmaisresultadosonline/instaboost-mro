@@ -14,7 +14,7 @@ interface Props {
  * Reproduz o vídeo hospedado no servidor (mesmo da /renda-extrass)
  * e dispara tracking de acesso + milestones 25/50/75/100% para o backend.
  */
-export default memo(DiscountVideoPlayer);
+const DiscountVideoPlayer = ({ email, nome }: Props) => {
   const [cfg, setCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({
     video_url: null,
     hls_url: null,
@@ -207,4 +207,6 @@ export default memo(DiscountVideoPlayer);
       )}
     </div>
   );
-}
+};
+
+export default memo(DiscountVideoPlayer);
