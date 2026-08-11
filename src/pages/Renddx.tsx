@@ -201,7 +201,7 @@ const Renddx = () => {
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">Aguarde um próximo desconto para alunos renda extra.</p>
               <p className="text-red-400 font-bold text-sm sm:text-base">Consulte os administradores para mais informações.</p>
             </div>
-            <Button onClick={() => window.location.href = '/instagram-nova'} className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-bold text-lg py-5 rounded-xl border border-gray-600">
+            <Button onClick={() => window.location.href = '/instagram-nova'} className="w-full btn-pulse-yellow text-lg py-5 rounded-xl border border-gray-600">
               Página Oficial <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             {isDiscountActive && <button onClick={() => setShowDiscountEndedPopup(false)} className="mt-4 text-gray-400 hover:text-white text-sm underline">Continuar na página mesmo assim</button>}
