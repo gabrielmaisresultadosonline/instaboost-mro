@@ -14,6 +14,7 @@ const ZapMROPreCheckout = () => {
   const planName = planType === 'annual' ? 'Plano Anual' : 'Plano Mensal';
   const planAmount = planType === 'annual' ? 300 : 67;
   const planSlug = planType === 'annual' ? 'zapmro-anual' : 'zapmro-mensal';
+  const planLabel = planType === 'annual' ? 'Anual' : 'Mensal';
 
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -212,7 +213,7 @@ const ZapMROPreCheckout = () => {
                 <span className="text-sm font-black text-white flex items-center gap-2">
                   R$ {planAmount.toFixed(2).replace('.', ',')}
                   <span className="text-[9px] text-red-500 font-bold uppercase px-1.5 py-0.5 bg-red-500/10 rounded">
-                    {planType === 'annual' ? 'Anual' : 'Mensal'}
+                    {planLabel}
                   </span>
                 </span>
               </div>
