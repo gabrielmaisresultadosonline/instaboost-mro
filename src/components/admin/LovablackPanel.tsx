@@ -167,6 +167,7 @@ export default function LovablackPanel() {
           </h2>
           <p className="text-muted-foreground text-sm">Gerencie acessos Mensais, Vitalícios e Testes de 20 minutos.</p>
         </div>
+
         <div className="flex gap-2">
           <Button onClick={() => setIsGlobalSettingsOpen(true)} variant="outline" size="sm" className="gap-2 border-primary/30 hover:bg-primary/5">
             <MessageSquare className="h-4 w-4" /> Avisos Globais
@@ -308,17 +309,50 @@ export default function LovablackPanel() {
               </pre>
             </div>
 
-            <div className="bg-destructive/10 p-3 rounded-md border border-destructive/20">
-              <h5 className="font-bold text-xs mb-2 text-destructive">Bloqueios e Mensagens</h5>
-              <ul className="text-[10px] space-y-1.5 text-muted-foreground list-disc pl-4">
-                <li><b className="text-foreground">blocked: true</b> → A extensão deve impedir o uso imediatamente e exibir mensagem de erro.</li>
-                <li><b className="text-foreground">is_expired: true</b> → Tempo de teste esgotado ou plano vencido.</li>
-                <li><b className="text-foreground">min_version</b> → Se a versão da extensão for menor que este valor, forçar atualização e bloquear uso.</li>
-                <li><b className="text-foreground">custom_message / global_announcement</b> → Se não estiverem vazios, a extensão deve exibir em um pop-up/alerta ao usuário.</li>
-                <li><b className="text-foreground">Bloqueio Multi-Login</b> → Se <code>multi_login_block</code> estiver ativo, o usuário só pode logar em um <code>session_id</code> por vez. Se tentar logar em outro, receberá erro 403 com <code>code: "MULTI_LOGIN"</code>.</li>
-                <li><b className="text-foreground">Bloqueio por Versão</b> → A lógica deve comparar a versão atual da extensão com o campo <code>min_version</code> retornado.</li>
-              </ul>
+            <div className="bg-destructive/10 p-4 rounded-md border border-destructive/20 space-y-3">
+              <h5 className="font-bold text-sm text-destructive flex items-center gap-2">
+                <ShieldBan className="h-4 w-4" /> Regras de Negócio, Bloqueios e Segurança
+              </h5>
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-bold text-foreground">1. Bloqueio de Acesso (blocked)</p>
+                  <p className="text-[10px] text-muted-foreground">Se <code>blocked: true</code>, a extensão deve encerrar a sessão imediatamente, limpar dados sensíveis e exibir tela de bloqueio administrativo.</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-bold text-foreground">2. Expiração de Plano (is_expired)</p>
+                  <p className="text-[10px] text-muted-foreground">Retorna <code>true</code> se o tempo de teste (20min) acabou ou se a assinatura mensal expirou. A extensão deve redirecionar para a página de checkout <code>/lovablack</code>.</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-bold text-foreground">3. Controle de Versão (min_version)</p>
+                  <p className="text-[10px] text-muted-foreground">A extensão deve comparar sua versão local (manifest) com <code>min_version</code>. Se for inferior, o uso deve ser bloqueado com link para download da nova versão.</p>
+                </div>
+
+                <div className="space-y-1 border-t border-destructive/10 pt-2">
+                  <p className="text-[11px] font-bold text-destructive flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5" /> 4. BLOQUEIO MULTI-LOGIN (CRÍTICO)
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Quando o bloqueio está ativo (Configurações Globais), o sistema valida o <code>session_id</code>.
+                    <br />• O primeiro login vincula o <code>session_id</code> (HWID ou ID único da máquina) ao usuário.
+                    <br />• Tentativas de login com um <code>session_id</code> diferente retornarão <b>Status 403</b> com <code>code: "MULTI_LOGIN"</code>.
+                    <br />• <b>Implementação:</b> Armazene o <code>session_id</code> localmente e envie em todas as requisições de validação.
+                  </p>
+                </div>
+
+                <div className="space-y-1 border-t border-destructive/10 pt-2">
+                  <p className="text-[11px] font-bold text-foreground">5. Mensagens e Alertas</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    • <code>global_announcement</code>: Aviso para toda a base (ex: manutenção).
+                    <br />• <code>custom_message</code>: Aviso específico para o usuário logado.
+                    <br />• <b>Ação:</b> Se não estiverem vazios, exibir em destaque (Toast ou Modal) na primeira carga da extensão.
+                  </p>
+                </div>
+              </div>
             </div>
+
           </div>
         </DialogContent>
       </Dialog>
