@@ -541,7 +541,7 @@ Content-Type: application/json
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreateUser}>Criar Acesso</Button>
+            <Button onClick={handleCreateUser} className="bg-green-600 hover:bg-green-700 text-white">Criar Acesso</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
