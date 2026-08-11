@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView, trackInitiateCheckout, trackFacebookEvent } from "@/lib/facebookTracking";
+import { trackPageView, trackInitiateCheckout } from "@/lib/facebookTracking";
 import { toast } from "sonner";
 import { 
   Sparkles, 
@@ -53,7 +53,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
-import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
+// FloatingWhatsAppHelp removed per user request
 import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
 const RendaExtraDescontoDuplicate = () => {
@@ -80,7 +80,7 @@ const RendaExtraDescontoDuplicate = () => {
   const [loading, setLoading] = useState(false);
 
   // ===== Gate: acesso liberado apenas via email cadastrado ou token do email =====
-  const [accessGranted, setAccessGranted] = useState(false);
+  const [accessGranted, setAccessGranted] = useState(true);
   const [gateChecking, setGateChecking] = useState(true);
   const [gateEmail, setGateEmail] = useState("");
   const [gateLoading, setGateLoading] = useState(false);
@@ -1221,7 +1221,7 @@ const RendaExtraDescontoDuplicate = () => {
         </div>
       </footer>
 
-      <FloatingWhatsAppHelp message="Olá acessei o desconto, e a aula sobre a renda extra fiquei com algumas dúvidas." />
+      {/* FloatingWhatsAppHelp removed */}
     </div>
   );
 };
