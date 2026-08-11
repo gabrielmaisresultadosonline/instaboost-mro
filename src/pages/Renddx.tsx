@@ -186,6 +186,49 @@ const Renddx = () => {
     setSelectedBumps(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]);
   };
 
+  const handleInitialClick = () => {
+    setIsFadingOut(true);
+    setTimeout(() => {
+      setStep('opportunity');
+      setIsFadingOut(false);
+      
+      // Segunda transição automática após 2 segundos
+      setTimeout(() => {
+        setIsFadingOut(true);
+        setTimeout(() => {
+          setStep('ready');
+          setIsFadingOut(false);
+        }, 1000);
+      }, 2000);
+    }, 1000);
+  };
+
+  if (step !== 'ready') {
+    return (
+      <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4 transition-opacity duration-1000" style={{ opacity: isFadingOut ? 0 : 1 }}>
+        {step === 'initial' ? (
+          <div className="text-center max-w-xl animate-in fade-in zoom-in duration-700">
+            <h1 className="text-3xl md:text-5xl font-black mb-12 text-white leading-tight">
+              Você gostaria de uma renda extra real?
+            </h1>
+            <Button 
+              onClick={handleInitialClick}
+              className="bg-green-500 hover:bg-green-600 text-black text-4xl md:text-6xl font-black py-10 px-20 rounded-3xl transition-transform hover:scale-105 active:scale-95 shadow-[0_0_50px_rgba(34,197,94,0.4)]"
+            >
+              SIM
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center max-w-2xl animate-in fade-in zoom-in duration-700">
+            <h2 className="text-2xl md:text-4xl font-bold text-white tracking-widest uppercase">
+              Preste atenção nessa oportunidade
+            </h2>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
