@@ -3626,6 +3626,7 @@ export type Database = {
           name: string
           password: string
           plan_type: Database["public"]["Enums"]["lovablack_plan_type"]
+          session_id: string | null
           trial_expires_at: string | null
           updated_at: string | null
           whatsapp: string | null
@@ -3640,6 +3641,7 @@ export type Database = {
           name: string
           password: string
           plan_type?: Database["public"]["Enums"]["lovablack_plan_type"]
+          session_id?: string | null
           trial_expires_at?: string | null
           updated_at?: string | null
           whatsapp?: string | null
@@ -3654,6 +3656,7 @@ export type Database = {
           name?: string
           password?: string
           plan_type?: Database["public"]["Enums"]["lovablack_plan_type"]
+          session_id?: string | null
           trial_expires_at?: string | null
           updated_at?: string | null
           whatsapp?: string | null
