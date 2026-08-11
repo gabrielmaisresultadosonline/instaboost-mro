@@ -387,8 +387,8 @@ const Renddx = () => {
                 ))}
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-7 text-lg rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-                {loading ? <Loader2 className="animate-spin w-6 h-6" /> : `PAGAR AGORA R$ ${totalAmount.toFixed(2).replace('.', ',')}`}
+              <Button type="submit" disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-7 text-lg rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.3)] btn-checkout-green">
+                {loading ? <Loader2 className="animate-spin w-6 h-6" /> : `COMPRAR AGORA`}
               </Button>
             </form>
           </div>
