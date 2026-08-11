@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ArrowRight, RefreshCw, UserCheck, Check, ShieldCheck, Zap, Lock, Music } from "lucide-react";
 import { trackInitiateCheckout } from '@/lib/facebookTracking';
 
+const ZapMROPreCheckout = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+
 
   useEffect(() => {
     const fetchProducts = async () => {
