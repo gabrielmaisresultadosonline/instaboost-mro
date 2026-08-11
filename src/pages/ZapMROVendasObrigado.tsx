@@ -7,7 +7,15 @@ import { trackPageView, trackPurchase } from "@/lib/facebookTracking";
 const ZapMROVendasObrigado = () => {
   useEffect(() => {
     trackPageView('Thank You Page - ZAPMRO Vendas');
-    trackPurchase(397, 'ZAPMRO Purchase');
+    
+    // Tenta recuperar o valor total da compra para o pixel
+    const storedAmount = localStorage.getItem('zapmro_checkout_amount');
+    const purchaseAmount = storedAmount ? Number(storedAmount) : 67; // Fallback para o plano mensal mínimo
+    
+    trackPurchase(purchaseAmount, 'ZAPMRO Purchase');
+    
+    // Opcional: Limpar após o rastreio para evitar duplicação em refresh (embora Purchase já tenha deduplicação por ID se configurado)
+    // localStorage.removeItem('zapmro_checkout_amount');
   }, []);
 
   return (
