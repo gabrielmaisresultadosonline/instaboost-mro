@@ -137,6 +137,21 @@ export default function LovablackPanel() {
     }
   };
 
+  const handleSaveGlobalSettings = async () => {
+    try {
+      for (const [key, value] of Object.entries(globalSettings)) {
+        const { error } = await (supabase as any)
+          .from('lovablack_settings')
+          .upsert({ key, value });
+        if (error) throw error;
+      }
+      toast({ title: "Configurações globais salvas!" });
+      setIsGlobalSettingsOpen(false);
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     (u.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
