@@ -1142,6 +1142,9 @@ const Admin = () => {
         {activeTab === 'userlist' && (
           <UsersListPanel />
         )}
+        {activeTab === 'lovablack' && (
+          <LovablackPanel />
+        )}
           </main>
         </SidebarInset>
       </div>
