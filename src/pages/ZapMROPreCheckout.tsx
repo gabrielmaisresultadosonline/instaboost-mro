@@ -25,6 +25,7 @@ const ZapMROPreCheckout = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      console.log("ZapMROPreCheckout: Iniciando busca de produtos...");
       try {
         const { data, error } = await supabase
           .from("hub_products")
@@ -35,10 +36,15 @@ const ZapMROPreCheckout = () => {
           .neq("slug", "zapmro-anual")
           .order("order_index", { ascending: true });
         
-        if (error) throw error;
+        if (error) {
+          console.error("ZapMROPreCheckout: Erro Supabase:", error);
+          throw error;
+        }
+        
+        console.log("ZapMROPreCheckout: Produtos encontrados:", data?.length, data);
         setProducts(data || []);
       } catch (err) {
-        console.error("Erro ao carregar produtos:", err);
+        console.error("ZapMROPreCheckout: Erro ao carregar produtos:", err);
       } finally {
         setLoadingProducts(false);
       }
@@ -169,6 +175,25 @@ const ZapMROPreCheckout = () => {
                 <p className="text-xs text-zinc-500 uppercase font-black tracking-tighter">Subtotal</p>
                 <p className="font-black text-yellow-400 text-2xl">R$ {totalAmount.toFixed(2).replace('.', ',')}</p>
               </div>
+            </div>
+
+            <div className="space-y-3 py-2 border-b border-zinc-800/50">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-zinc-300">{planName} (ZAPMRO)</span>
+                <span className="text-sm font-black text-white">R$ {planAmount.toFixed(2).replace('.', ',')}</span>
+              </div>
+              {selectedBumps.map(slug => {
+                const prod = products.find(p => p.slug === slug);
+                if (!prod) return null;
+                return (
+                  <div key={slug} className="flex justify-between items-center animate-in fade-in slide-in-from-right-2 duration-300">
+                    <span className="text-xs text-zinc-400 flex items-center gap-1">
+                      <Check className="w-3 h-3 text-yellow-400" /> {prod.title}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-300">+ R$ {Number(prod.price).toFixed(2).replace('.', ',')}</span>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="space-y-4">
