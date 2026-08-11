@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
 
 const PLANS = {
   monthly: { name: "Mensal", price: 67.00, days: 30, description: "Acesso por 30 dias" },
