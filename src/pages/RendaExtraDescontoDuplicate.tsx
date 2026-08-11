@@ -116,7 +116,7 @@ const RendaExtraDescontoDuplicate = () => {
         toast.error("Erro ao cadastrar. Tente novamente.");
         return;
       }
-      localStorage.setItem("est4_discount_email", email);
+      localStorage.setItem("renddx_email", email);
       setGrantedEmail(email);
       setGrantedNome(nome);
       setShowRegisterForm(false);
@@ -145,13 +145,13 @@ const RendaExtraDescontoDuplicate = () => {
     (async () => {
       try {
         await supabase.functions.invoke("estrutura4-discount", {
-          body: { action: "track_visit", page: "/descontoalunosrendaextrasss" },
+          body: { action: "track_visit", page: "/renddx" },
         });
       } catch {}
 
       const url = new URL(window.location.href);
       const token = url.searchParams.get("token");
-      const savedEmail = localStorage.getItem("est4_discount_email");
+      const savedEmail = localStorage.getItem("renddx_email");
 
       if (token) {
         try {
@@ -159,7 +159,7 @@ const RendaExtraDescontoDuplicate = () => {
             body: { action: "verify_token", token },
           });
           if (data?.valid) {
-            localStorage.setItem("est4_discount_email", data.email);
+            localStorage.setItem("renddx_email", data.email);
             setGrantedEmail(data.email);
             setGrantedNome(data.nome || "");
             setAccessGranted(true);
@@ -184,7 +184,7 @@ const RendaExtraDescontoDuplicate = () => {
           }
           if (data?.expired) {
             setGateExpired(true);
-            localStorage.removeItem("est4_discount_email");
+            localStorage.removeItem("renddx_email");
           }
         } catch {}
       }
@@ -209,7 +209,7 @@ const RendaExtraDescontoDuplicate = () => {
         body: { action: "verify_email", email },
       });
       if (data?.valid) {
-        localStorage.setItem("est4_discount_email", email);
+        localStorage.setItem("renddx_email", email);
         setGrantedEmail(email);
         setGrantedNome(data.nome || "");
         setAccessGranted(true);

@@ -64,15 +64,15 @@ const Renddx = () => {
   // Access gate: requires registered email with >=50% video watched on /rendaextra/desconto
   const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied'>('checking');
   const [accessName, setAccessName] = useState<string>('');
-  const [accessDenyReason, setAccessDenyReason] = useState<string>('Voce precisa assistir pelo menos 60% do video em /rendaextra/desconto para liberar essa pagina.');
+  const [accessDenyReason, setAccessDenyReason] = useState<string>('Voce precisa assistir pelo menos 60% do video em /renddx para liberar essa pagina.');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailFromUrl = (params.get('email') || '').trim().toLowerCase();
-    const emailFromStorage = (() => { try { return localStorage.getItem('rendaextra-desconto:email') || ''; } catch { return ''; } })();
+    const emailFromStorage = (() => { try { return localStorage.getItem('renddx-desconto:email') || ''; } catch { return ''; } })();
     const email = emailFromUrl || emailFromStorage;
     if (!email) {
-      setAccessDenyReason('Acesso restrito. Verifique seu email em /rendaextra/desconto para liberar esta pagina.');
+      setAccessDenyReason('Acesso restrito. Verifique seu email em /renddx para liberar esta pagina.');
       setAccessState('denied');
       return;
     }
@@ -85,14 +85,14 @@ const Renddx = () => {
         return;
       }
       if (!data.allowed) {
-        setAccessDenyReason('Voce ainda nao assistiu 60% do video. Acesse /rendaextra/desconto para liberar.');
+        setAccessDenyReason('Voce ainda nao assistiu 60% do video. Acesse /renddx para liberar.');
         setAccessState('denied');
         return;
       }
       setAccessName(data.name || '');
       try {
-        localStorage.setItem('rendaextra-desconto:email', data.email);
-        if (data.name) localStorage.setItem('rendaextra-desconto:name', data.name);
+        localStorage.setItem('renddx-desconto:email', data.email);
+        if (data.name) localStorage.setItem('renddx-desconto:name', data.name);
       } catch {}
       setAccessState('allowed');
     }).catch(() => {
@@ -100,154 +100,8 @@ const Renddx = () => {
       setAccessState('denied');
     });
   }, []);
-  
-  // Popup de desconto encerrado - agora controlado pelo banco de dados
-  const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
-  
-  // Countdown para promoção - 8 horas a partir do primeiro acesso
-  const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
-  const pricingRef = useRef<HTMLDivElement>(null);
-  
-  // Modal de cadastro
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
-  const [usernameError, setUsernameError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const planConfig = {
-    label: '12x R$30 (R$300 à vista)',
-    amount: 300,
-    planType: 'annual',
-    priceDisplay: 'R$300',
-    durationDisplay: '1 ano completo',
-  };
-
-
-  // Validar username: apenas letras minúsculas, sem espaços, sem números
-  const validateUsername = (value: string) => {
-    const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
-    setUsername(cleaned);
-    
-    if (value !== cleaned) {
-      setUsernameError("Apenas letras minúsculas, sem espaços ou números");
-    } else if (cleaned.length < 4) {
-      setUsernameError("Mínimo de 4 caracteres");
-    } else if (cleaned.length > 20) {
-      setUsernameError("Máximo de 20 caracteres");
-    } else {
-      setUsernameError("");
-    }
-  };
-
-  // Criar checkout e abrir pagamento
-  const handleCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !email.includes("@")) {
-      toast.error("Por favor, insira um email válido");
-      return;
-    }
-
-    if (!phone || phone.replace(/\D/g, "").length < 10) {
-      toast.error("Por favor, insira um celular válido com DDD");
-      return;
-    }
-
-    if (!username || username.length < 4) {
-      toast.error("Nome de usuário deve ter no mínimo 4 caracteres");
-      return;
-    }
-
-    if (usernameError) {
-      toast.error(usernameError);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const plan = planConfig;
-      const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
-        body: { 
-          email: email.toLowerCase().trim(),
-          username: username.toLowerCase().trim(),
-          phone: phone.replace(/\D/g, "").trim(),
-          planType: plan.planType,
-          amount: plan.amount,
-          checkUserExists: true
-        }
-      });
-
-
-      if (checkError) {
-        console.error("Error creating checkout:", checkError);
-        toast.error("Erro ao criar link de pagamento. Tente novamente.");
-        return;
-      }
-
-      if (checkData.userExists) {
-        toast.error("Este nome de usuário já está em uso. Escolha outro.");
-        setUsernameError("Usuário já existe, escolha outro");
-        return;
-      }
-
-      if (!checkData.success) {
-        toast.error(checkData.error || "Erro ao criar pagamento");
-        return;
-      }
-
-      // Track InitiateCheckout when redirecting to payment
-      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig.label}`, planConfig.amount);
-      
-      // Redirecionar diretamente para o checkout (funciona melhor no mobile)
-      window.location.href = checkData.payment_link;
-      
-      // Resetar form
-      setEmail("");
-      setUsername("");
-      setPhone("");
-
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Erro ao processar. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Track PageView on mount and fetch settings
-  useEffect(() => {
-    trackPageView('Sales Page - Instagram MRO Promo 2');
-    
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("desconto_alunos_settings")
-          .select("is_active")
-          .single();
-        
-        if (!error && data) {
-          setIsDiscountActive(data.is_active);
-          if (!data.is_active) {
-            setShowDiscountEndedPopup(true);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching settings:", err);
-      } finally {
-        setIsSettingsLoading(false);
-      }
-    };
-    
-    fetchSettings();
-  }, []);
-
-  // Countdown de 7 horas - persiste no localStorage e expira de verdade
-  useEffect(() => {
-    const PROMO_DURATION = 7 * 60 * 60 * 1000; // 7 horas em milissegundos
-    const STORAGE_KEY = 'rendaextra-desconto-promo:end-time';
+...
+    const STORAGE_KEY = 'renddx-promo:end-time';
 
     let promoEndTime: number;
     try {
