@@ -222,12 +222,37 @@ const Renddx = () => {
             <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Renda extra <span className="text-green-300 font-semibold">automática e real</span>. Com apenas 1 computador, instale a ferramenta MRO e comece a faturar.</p>
           </div>
 
-          {/* Vídeo Principal (mesmo da /rendaextra/desconto) */}
-          <div className="max-w-4xl mx-auto mb-10 sm:mb-16">
-            <DiscountVideoPlayer email="public@renddx.com" nome="Visitante Renddx" />
+          {/* Vídeo Principal e CTA R$47 */}
+          <div className="max-w-4xl mx-auto mb-10 sm:mb-16 space-y-8">
+            <div className="bg-zinc-900/40 border border-green-500/20 rounded-3xl p-4 sm:p-6 backdrop-blur-sm">
+              <DiscountVideoPlayer email="public@renddx.com" nome="Visitante Renddx" />
+              
+              <div className="mt-8 flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center">
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">Acesso imediato por apenas</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-green-500">R$</span>
+                    <span className="text-6xl font-black text-green-500">47</span>
+                    <span className="text-zinc-400 text-sm font-bold">/mês</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+                  className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-black font-black px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all hover:scale-105 active:scale-95 group"
+                >
+                  QUERO COMEÇAR AGORA
+                  <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                
+                <p className="text-zinc-500 text-xs font-medium flex items-center gap-2">
+                  <Shield className="w-3 h-3" /> Pagamento 100% seguro via InfinitePay
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5 mt-7">
+          <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5">
             <Laptop className="w-4 h-4 text-green-300" />
             <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">20 MIN ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
             <Rocket className="w-4 h-4 text-green-300" />
