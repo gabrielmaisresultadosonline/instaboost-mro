@@ -133,6 +133,8 @@ const Renddx = () => {
     if (!phone || phone.replace(/\D/g, "").length < 10) { toast.error("Por favor, insira um celular válido com DDD"); return; }
     if (!username || username.length < 4) { toast.error("Nome de usuário deve ter no mínimo 4 caracteres"); return; }
     if (usernameError) { toast.error(usernameError); return; }
+    // Lead: cadastro válido preenchido (intenção de compra confirmada)
+    trackLead("Renddx - Cadastro Checkout");
     setLoading(true);
     try {
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
