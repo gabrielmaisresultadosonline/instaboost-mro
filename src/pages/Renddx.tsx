@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import PromoToolVideoSection from "@/components/PromoToolVideoSection";
+import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
+
 
 const Renddx = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -214,11 +216,17 @@ const Renddx = () => {
             <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" /></span>
             <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-green-300 uppercase">Oferta liberada • Vagas limitadas</span>
           </div>
-          <div className="relative">
+          <div className="relative mb-8 sm:mb-12">
             <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white">FATURE MAIS DE <span className="text-yellow-300">R$5.000</span></h1>
             <h2 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-5 leading-tight text-green-400">TRABALHANDO DE CASA!</h2>
             <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Renda extra <span className="text-green-300 font-semibold">automática e real</span>. Com apenas 1 computador, instale a ferramenta MRO e comece a faturar.</p>
           </div>
+
+          {/* Vídeo Principal (mesmo da /rendaextra/desconto) */}
+          <div className="max-w-4xl mx-auto mb-10 sm:mb-16">
+            <DiscountVideoPlayer email="public@renddx.com" nome="Visitante Renddx" />
+          </div>
+
           <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5 mt-7">
             <Laptop className="w-4 h-4 text-green-300" />
             <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">20 MIN ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
@@ -227,7 +235,12 @@ const Renddx = () => {
         </div>
       </section>
 
+      {/* Título para o vídeo de funcionamento */}
+      <div className="text-center pt-8">
+        <h3 className="text-xl sm:text-2xl font-bold text-zinc-400 uppercase tracking-widest">Veja a ferramenta em funcionamento</h3>
+      </div>
       <PromoToolVideoSection />
+
 
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-5xl mx-auto text-center mb-10">
