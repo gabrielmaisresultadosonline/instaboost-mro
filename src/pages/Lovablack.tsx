@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { trackPageView, trackLead, trackInitiateCheckout } from "@/lib/facebookTracking";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { 
   ArrowRight,
   Shield,
@@ -19,7 +22,8 @@ import {
   Laptop,
   Flame,
   Star,
-  Download
+  Download,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logoMro from "@/assets/logo-mro.png";
