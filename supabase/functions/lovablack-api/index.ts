@@ -1,162 +1,125 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3.23.8";
+import { createAdminSessionToken, verifyAdminSessionToken } from "../_shared/admin-session.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...corsHeaders, "Content-Type": "application/json" },
+});
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+const LoginSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(1).max(255),
+  session_id: z.string().trim().max(255).optional(),
+});
+
+const UserSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  email: z.string().trim().email().max(255).transform((value) => value.toLowerCase()),
+  password: z.string().min(1).max(255),
+  whatsapp: z.string().trim().max(30).optional().nullable(),
+  plan_type: z.enum(["trial", "monthly", "lifetime"]).default("monthly"),
+});
+
+const UpdateSchema = z.object({
+  blocked: z.boolean().optional(),
+  custom_message: z.string().max(1000).nullable().optional(),
+}).strict();
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ success: false, error: "Método não permitido" }, 405);
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { action, email, password, session_id } = await req.json()
-
-    if (action === 'login') {
-      if (!email || !password) {
-        return new Response(JSON.stringify({ success: false, error: 'Email e senha obrigatórios' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
-        })
-      }
-
-      const { data: user, error } = await supabaseClient
-        .from('lovablack_users')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single()
-
-      if (error || !user) {
-        return new Response(JSON.stringify({ success: false, error: 'Credenciais inválidas' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401
-        })
-      }
-
-      // Fetch global settings
-      const { data: settingsData } = await supabaseClient
-        .from('lovablack_settings')
-        .select('*');
-      
-      const settings: any = {};
-      settingsData?.forEach((s: any) => {
-        settings[s.key] = s.value;
-      });
-
-      // Check for multi-login block
-      if (settings.multi_login_block === 'true' && user.session_id && session_id && user.session_id !== session_id) {
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: 'Já existe uma sessão ativa em outro dispositivo. Deslogue lá para entrar aqui.',
-          code: 'MULTI_LOGIN'
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 403
-        })
-      }
-
-      // Update last access and session_id
-      const updateData: any = { last_access: new Date().toISOString() };
-      if (session_id) {
-        updateData.session_id = session_id;
-      }
-
-      await supabaseClient
-        .from('lovablack_users')
-        .update(updateData)
-        .eq('id', user.id);
-
-      if (user.blocked) {
-        return new Response(JSON.stringify({ success: false, error: 'Usuário bloqueado' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 403
-        })
-      }
-
-      // Check trial expiration
-      let is_expired = false;
-      let expires_at = null;
-      if (user.plan_type === 'trial') {
-        expires_at = user.trial_expires_at;
-        const expires = new Date(user.trial_expires_at)
-        if (expires < new Date()) {
-          is_expired = true;
-        }
-      }
-
-      return new Response(JSON.stringify({
-        success: true,
-        user: {
-          name: user.name,
-          email: user.email,
-          plan_type: user.plan_type,
-          is_active: !is_expired && !user.blocked,
-          is_expired: is_expired,
-          blocked: user.blocked,
-          expires_at: expires_at,
-          last_access: user.last_access,
-          custom_message: user.custom_message,
-          global_announcement: settings.global_announcement || "",
-          min_version: settings.min_extension_version || "1.0.0"
-        }
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      })
+    const url = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const adminEmail = Deno.env.get("MRO_ADMIN_EMAIL");
+    const adminPassword = Deno.env.get("MRO_ADMIN_PASSWORD");
+    const sessionSecret = Deno.env.get("MRO_ADMIN_SESSION_SECRET");
+    if (!url || !serviceKey || !adminEmail || !adminPassword || !sessionSecret) {
+      return json({ success: false, error: "Configuração do servidor incompleta" }, 500);
     }
 
-    if (action === 'create_user') {
-      const { name, email, password, plan_type, whatsapp } = await req.json()
-      
-      if (!email || !password || !name) {
-        return new Response(JSON.stringify({ success: false, error: 'Dados incompletos' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
-        })
-      }
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body.action !== "string") return json({ success: false, error: "Requisição inválida" }, 400);
+    const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-      const { data, error } = await supabaseClient
-        .from('lovablack_users')
-        .insert([{
-          name,
-          email,
-          password,
-          plan_type: plan_type || 'monthly',
-          whatsapp
-        }])
-        .select()
-        .single()
-
-      if (error) {
-        return new Response(JSON.stringify({ success: false, error: error.message }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
-        })
-      }
-
-      return new Response(JSON.stringify({ success: true, user: data }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      })
+    if (body.action === "admin_login") {
+      const parsed = LoginSchema.safeParse(body);
+      if (!parsed.success) return json({ success: false, error: "Credenciais inválidas" }, 400);
+      const valid = parsed.data.email.toLowerCase() === adminEmail.toLowerCase() && parsed.data.password === adminPassword;
+      if (!valid) return json({ success: false, error: "Credenciais inválidas" }, 401);
+      const expiresAt = Date.now() + 12 * 60 * 60 * 1000;
+      const token = await createAdminSessionToken({ email: adminEmail, scope: "mro-main-admin", exp: expiresAt }, sessionSecret);
+      return json({ success: true, token, expires_at: expiresAt });
     }
 
-    return new Response(JSON.stringify({ success: false, error: 'Ação inválida' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400
-    })
+    if (body.action === "login") {
+      const parsed = LoginSchema.safeParse(body);
+      if (!parsed.success) return json({ success: false, error: "Email e senha são obrigatórios" }, 400);
+      const { data: user, error } = await db.from("lovablack_users").select("*")
+        .eq("email", parsed.data.email.toLowerCase()).eq("password", parsed.data.password).maybeSingle();
+      if (error || !user) return json({ success: false, error: "Credenciais inválidas" }, 401);
+      const { data: settingsRows } = await db.from("lovablack_settings").select("key,value");
+      const settings = Object.fromEntries((settingsRows ?? []).map((row) => [row.key, row.value]));
+      if (settings.multi_login_block === "true" && user.session_id && parsed.data.session_id && user.session_id !== parsed.data.session_id) {
+        return json({ success: false, error: "Já existe uma sessão ativa em outro dispositivo.", code: "MULTI_LOGIN" }, 403);
+      }
+      const updates: Record<string, unknown> = { last_access: new Date().toISOString() };
+      if (parsed.data.session_id) updates.session_id = parsed.data.session_id;
+      await db.from("lovablack_users").update(updates).eq("id", user.id);
+      const expired = user.plan_type === "trial" && user.trial_expires_at && new Date(user.trial_expires_at) < new Date();
+      return json({ success: true, user: {
+        name: user.name, email: user.email, plan_type: user.plan_type,
+        is_active: !expired && !user.blocked, is_expired: Boolean(expired), blocked: user.blocked,
+        expires_at: user.plan_type === "trial" ? user.trial_expires_at : null,
+        last_access: user.last_access, custom_message: user.custom_message,
+        global_announcement: settings.global_announcement || "", min_version: settings.min_extension_version || "1.0.0",
+      }});
+    }
 
+    const bearer = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
+    const isServiceRequest = bearer === serviceKey;
+    const admin = await verifyAdminSessionToken(body.admin_token, sessionSecret, "mro-main-admin");
+    if (!admin && !isServiceRequest) return json({ success: false, error: "Sessão administrativa inválida ou expirada" }, 401);
+
+    if (body.action === "admin_list_users") {
+      const { data, error } = await db.from("lovablack_users").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return json({ success: true, users: data ?? [] });
+    }
+    if (body.action === "admin_get_settings") {
+      const { data, error } = await db.from("lovablack_settings").select("*");
+      if (error) throw error;
+      return json({ success: true, settings: data ?? [] });
+    }
+    if (body.action === "admin_create_user" || body.action === "create_user") {
+      const parsed = UserSchema.safeParse(body.user ?? body);
+      if (!parsed.success) return json({ success: false, error: "Dados do usuário inválidos" }, 400);
+      const { data, error } = await db.from("lovablack_users").insert(parsed.data).select().single();
+      if (error) return json({ success: false, error: error.code === "23505" ? "Este e-mail já está cadastrado" : error.message }, 400);
+      return json({ success: true, user: data });
+    }
+    if (body.action === "admin_update_user") {
+      const id = z.string().uuid().safeParse(body.id);
+      const updates = UpdateSchema.safeParse(body.updates);
+      if (!id.success || !updates.success) return json({ success: false, error: "Atualização inválida" }, 400);
+      const { error } = await db.from("lovablack_users").update(updates.data).eq("id", id.data);
+      if (error) throw error;
+      return json({ success: true });
+    }
+    if (body.action === "admin_update_settings") {
+      const settings = z.record(z.string().max(2000)).safeParse(body.settings);
+      if (!settings.success) return json({ success: false, error: "Configurações inválidas" }, 400);
+      const rows = Object.entries(settings.data).map(([key, value]) => ({ key, value }));
+      const { error } = await db.from("lovablack_settings").upsert(rows, { onConflict: "key" });
+      if (error) throw error;
+      return json({ success: true });
+    }
+    return json({ success: false, error: "Ação inválida" }, 400);
   } catch (error) {
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500
-    })
+    console.error("[lovablack-api]", error);
+    return json({ success: false, error: "Erro interno do servidor" }, 500);
   }
-})
+});

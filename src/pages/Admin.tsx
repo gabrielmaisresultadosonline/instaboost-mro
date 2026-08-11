@@ -962,9 +962,6 @@ const Admin = () => {
 
         {/* Dashboard Produtos Tab */}
         {activeTab === 'hub' && <HubProductsPanel />}
-        {activeTab === 'lovablack' && <LovablackPanel />}
-
-
         {/* Unificações de Acesso (logs + desfazer) */}
         {activeTab === 'merges' && <MergeLogsPanel />}
 
