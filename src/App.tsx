@@ -116,6 +116,7 @@ import LocalVppAdmin from "./pages/LocalVppAdmin";
 
 import ZapMROVendasObrigado from "./pages/ZapMROVendasObrigado";
 import ZapMROPreCheckout from "./pages/ZapMROPreCheckout";
+import AudiobooksPreCheckout from "./pages/AudiobooksPreCheckout";
 import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
 
@@ -460,6 +461,7 @@ const App = () => (
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
+          <Route path="/audiobooks/checkout" element={<AudiobooksPreCheckout />} />
           <Route path="/audiobooks/admin" element={<AudiobooksAdmin />} />
           <Route path="/audiobooks/obrigado" element={<AudiobooksObrigado />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

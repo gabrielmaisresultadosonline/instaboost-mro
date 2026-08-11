@@ -19,9 +19,13 @@ const AudiobooksSales = () => {
   const handleCTA = () => {
     // Facebook Pixel InitiateCheckout event
     if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'InitiateCheckout');
+      (window as any).fbq('track', 'InitiateCheckout', {
+        content_name: 'Audiobooks Hub',
+        value: 37,
+        currency: 'BRL'
+      });
     }
-    setShowCheckout(true);
+    navigate('/audiobooks/checkout');
   };
 
   return (
