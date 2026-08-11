@@ -303,7 +303,7 @@ const Renddx = () => {
           <p className="text-zinc-400 mb-6">Acesso 30 Dias</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-green-500" /> Ferramenta Completa</li>
-            <li className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" /> 4 Contas Simultâneas</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo para conseguir faturar!</li>
             <li className="flex items-center gap-2"><Target className="w-4 h-4 text-green-500" /> Suporte VIP</li>
           </ul>
           <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.4)]">COMPRAR AGORA</Button>
