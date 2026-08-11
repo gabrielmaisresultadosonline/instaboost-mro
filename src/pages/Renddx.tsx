@@ -25,7 +25,9 @@ import {
   Laptop,
   Rocket,
   X,
-  Monitor
+  Monitor,
+  Check,
+  MousePointer2
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import PromoToolVideoSection from "@/components/PromoToolVideoSection";
@@ -35,9 +37,6 @@ const Renddx = () => {
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isDiscountActive, setIsDiscountActive] = useState(true);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
-  const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied'>('checking');
-  const [accessName, setAccessName] = useState<string>('');
-  const [accessDenyReason, setAccessDenyReason] = useState<string>('Voce precisa assistir pelo menos 60% do video em /renddx para liberar essa pagina.');
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
   const pricingRef = useRef<HTMLDivElement>(null);
@@ -48,48 +47,74 @@ const Renddx = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Novos estados para order bumps
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
+
   const planConfig = {
-    label: '12x R$30 (R$300 à vista)',
-    amount: 300,
+    label: 'Renda Extra MRO',
+    amount: 47,
     planType: 'annual',
-    priceDisplay: 'R$300',
+    priceDisplay: 'R$47',
     durationDisplay: '1 ano completo',
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const emailFromUrl = (params.get('email') || '').trim().toLowerCase();
-    const emailFromStorage = (() => { try { return localStorage.getItem('renddx-desconto:email') || ''; } catch { return ''; } })();
-    const email = emailFromUrl || emailFromStorage;
-    if (!email) {
-      setAccessDenyReason('Acesso restrito. Verifique seu email em /renddx para liberar esta pagina.');
-      setAccessState('denied');
-      return;
-    }
-    supabase.functions.invoke('rendaextra-desconto-access', {
-      body: { action: 'check_access', email },
-    }).then(({ data, error }) => {
-      if (error || !data?.success) {
-        setAccessDenyReason('Email nao encontrado. Cadastre-se em /rendaextra primeiro.');
-        setAccessState('denied');
-        return;
-      }
-      if (!data.allowed) {
-        setAccessDenyReason('Voce ainda nao assistiu 60% do video. Acesse /renddx para liberar.');
-        setAccessState('denied');
-        return;
-      }
-      setAccessName(data.name || '');
+    trackPageView('Sales Page - Renddx Promo');
+    const fetchSettings = async () => {
       try {
-        localStorage.setItem('renddx-desconto:email', data.email);
-        if (data.name) localStorage.setItem('renddx-desconto:name', data.name);
-      } catch {}
-      setAccessState('allowed');
-    }).catch(() => {
-      setAccessDenyReason('Erro ao verificar acesso. Tente novamente.');
-      setAccessState('denied');
-    });
+        const { data, error } = await supabase.from("desconto_alunos_settings").select("is_active").single();
+        if (!error && data) { setIsDiscountActive(data.is_active); if (!data.is_active) setShowDiscountEndedPopup(true); }
+      } catch (err) { console.error("Error fetching settings:", err); } finally { setIsSettingsLoading(false); }
+    };
+    fetchSettings();
   }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await supabase
+          .from("hub_products")
+          .select("*")
+          .eq("is_active", true)
+          .order("order_index", { ascending: true });
+        
+        const hubProducts = data || [];
+        
+        // Mapear produtos do HUB e adicionar o bump de Suporte
+        const allProducts = [
+          {
+            id: "suporte-wa",
+            slug: "suporte-whatsapp",
+            title: "Suporte exclusivo Whatsapp",
+            description: "Acesso direto ao time de especialistas",
+            price: 19,
+            plan_type: "mensal"
+          },
+          ...hubProducts
+            .filter(p => p.slug === 'segredo-vender-mais' || p.slug === 'postscomia')
+            .map(p => ({
+              ...p,
+              title: p.slug === 'segredo-vender-mais' ? 'O SEGREDO PARA VENDER MAIS !' : p.title,
+              description: p.slug === 'segredo-vender-mais' ? 'Liberado - Acesso exclusivo aos 4 Audibooks que vão transformar seus resultados.' : p.description
+            }))
+        ];
+        
+        setProducts(allProducts);
+      } catch (err) {
+        console.error("Error loading products:", err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const totalAmount = planConfig.amount + selectedBumps.reduce((acc, slug) => {
+    const prod = products.find(p => p.slug === slug);
+    return acc + (Number(prod?.price) || 0);
+  }, 0);
 
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
@@ -108,29 +133,24 @@ const Renddx = () => {
     if (usernameError) { toast.error(usernameError); return; }
     setLoading(true);
     try {
-      const plan = planConfig;
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
-        body: { email: email.toLowerCase().trim(), username: username.toLowerCase().trim(), phone: phone.replace(/\D/g, "").trim(), planType: plan.planType, amount: plan.amount, checkUserExists: true }
+        body: { 
+          email: email.toLowerCase().trim(), 
+          username: username.toLowerCase().trim(), 
+          phone: phone.replace(/\D/g, "").trim(), 
+          planType: planConfig.planType, 
+          amount: totalAmount, 
+          checkUserExists: true,
+          selectedBumps: selectedBumps 
+        }
       });
       if (checkError) { toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
-      trackInitiateCheckout(`MRO Renda Extra Desconto - ${planConfig.label}`, planConfig.amount);
+      trackInitiateCheckout(`MRO Renda Extra - R$47`, totalAmount);
       window.location.href = checkData.payment_link;
-      setEmail(""); setUsername(""); setPhone("");
     } catch (error) { toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
-
-  useEffect(() => {
-    trackPageView('Sales Page - Renddx Promo');
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase.from("desconto_alunos_settings").select("is_active").single();
-        if (!error && data) { setIsDiscountActive(data.is_active); if (!data.is_active) setShowDiscountEndedPopup(true); }
-      } catch (err) { console.error("Error fetching settings:", err); } finally { setIsSettingsLoading(false); }
-    };
-    fetchSettings();
-  }, []);
 
   useEffect(() => {
     const PROMO_DURATION = 7 * 60 * 60 * 1000;
@@ -154,34 +174,9 @@ const Renddx = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (accessState === 'checking') {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-green-400" />
-          <p className="text-white/60 text-sm">Verificando seu acesso...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (accessState === 'denied') {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-zinc-900/80 border border-amber-500/30 rounded-3xl p-7 md:p-9 text-center shadow-2xl">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/15 text-amber-400 mb-4">
-            <AlertTriangle className="w-7 h-7" />
-          </div>
-          <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-2">Acesso restrito</h2>
-          <p className="text-white/60 text-sm md:text-base mb-6">{accessDenyReason}</p>
-          <a href="/renddx" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm transition-all">
-            Liberar acesso <ArrowRight className="w-4 h-4" />
-          </a>
-          <p className="text-white/40 text-xs mt-5">Ainda nao cadastrou? <a href="/rendaextra" className="text-amber-400 underline">Cadastre-se em /rendaextra</a></p>
-        </div>
-      </div>
-    );
-  }
+  const toggleBump = (slug: string) => {
+    setSelectedBumps(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]);
+  };
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
@@ -250,12 +245,19 @@ const Renddx = () => {
         </div>
       </section>
 
+      {/* CTA Adicional Superior */}
+      <section className="py-10 text-center">
+         <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-green-500 hover:bg-green-600 text-black font-black px-10 py-8 rounded-2xl text-xl animate-pulse">
+            QUERO COMEÇAR POR APENAS R$47 <ArrowRight className="ml-2 w-6 h-6" />
+         </Button>
+      </section>
+
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
           <h3 className="text-2xl font-bold mb-4">Plano Anual</h3>
-          <div className="text-5xl font-black mb-2">R$300</div>
-          <p className="text-zinc-400 mb-6">ou 12x de R$30</p>
+          <div className="text-5xl font-black mb-2 text-green-400">R$47</div>
+          <p className="text-zinc-400 mb-6">Pagamento Único (Acesso 1 Ano)</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-green-500" /> Ferramenta Completa</li>
             <li className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" /> 4 Contas Simultâneas</li>
@@ -265,17 +267,86 @@ const Renddx = () => {
         </div>
       </section>
 
+      {/* CTA Adicional Inferior */}
+      <section className="pb-20 text-center">
+         <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-green-500 hover:bg-green-600 text-black font-black px-10 py-8 rounded-2xl text-xl">
+            LIBERAR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
+         </Button>
+      </section>
+
       {showCheckoutModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 p-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-md w-full relative">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-lg w-full relative max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onClick={() => setShowCheckoutModal(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-6 h-6" /></button>
-            <h3 className="text-xl font-bold mb-4 text-center">Finalize seu Cadastro</h3>
-            <form onSubmit={handleCheckout} className="space-y-4">
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" className="bg-zinc-900 border-zinc-800" required />
-              <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="WhatsApp" className="bg-zinc-900 border-zinc-800" required />
-              <Input type="text" value={username} onChange={(e) => validateUsername(e.target.value)} placeholder="Usuário (login)" className="bg-zinc-900 border-zinc-800" required />
-              {usernameError && <p className="text-red-400 text-xs">{usernameError}</p>}
-              <Button type="submit" disabled={loading} className="w-full bg-green-500 text-black font-bold py-6">{loading ? <Loader2 className="animate-spin" /> : "PAGAR AGORA"}</Button>
+            
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold mb-2">Finalize seu Cadastro</h3>
+              <p className="text-zinc-400 text-sm">Resumo do pedido: <span className="text-green-400 font-bold">R$ {totalAmount.toFixed(2).replace('.', ',')}</span></p>
+            </div>
+
+            <form onSubmit={handleCheckout} className="space-y-6">
+              <div className="space-y-4">
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" className="bg-zinc-900 border-zinc-800 h-12" required />
+                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="WhatsApp" className="bg-zinc-900 border-zinc-800 h-12" required />
+                <Input type="text" value={username} onChange={(e) => validateUsername(e.target.value)} placeholder="Usuário (login)" className="bg-zinc-900 border-zinc-800 h-12" required />
+                {usernameError && <p className="text-red-400 text-xs">{usernameError}</p>}
+              </div>
+
+              {/* Order Bumps Section */}
+              <div className="space-y-4 pt-4 border-t border-zinc-800">
+                <h4 className="text-xs font-black text-zinc-200 uppercase tracking-widest flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-yellow-400 animate-pulse" />
+                  Aproveite as ofertas
+                </h4>
+                
+                {loadingProducts ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-zinc-700" />
+                  </div>
+                ) : products.map((prod) => (
+                  <div 
+                    key={prod.id}
+                    onClick={() => toggleBump(prod.slug)}
+                    className={`group relative overflow-hidden rounded-xl border-2 transition-all cursor-pointer p-3 ${
+                      selectedBumps.includes(prod.slug) 
+                        ? 'border-green-500 bg-green-500/5' 
+                        : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'
+                    }`}
+                  >
+                    <div className="flex gap-3 items-center">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between items-start">
+                          <h5 className="font-bold text-sm leading-tight">{prod.title}</h5>
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors relative ${
+                            selectedBumps.includes(prod.slug) ? 'bg-green-500 border-green-500' : 'border-zinc-700'
+                          }`}>
+                            {selectedBumps.includes(prod.slug) ? (
+                              <Check className="w-3 h-3 text-black font-bold" />
+                            ) : (
+                              <div className="absolute -left-6 top-1/2 -translate-y-1/2">
+                                <MousePointer2 className="w-4 h-4 text-green-400 animate-pulse opacity-50" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 leading-tight">{prod.description}</p>
+                        <div className="flex items-center gap-2 pt-1">
+                          <p className="text-green-400 font-black text-xs">
+                            + R$ {Number(prod.price).toFixed(2).replace('.', ',')}
+                          </p>
+                          <span className="text-[8px] text-red-500 font-bold uppercase px-1 py-0.5 bg-red-500/10 rounded">
+                            {prod.plan_type === 'anual' ? 'Anual' : prod.plan_type === 'mensal' ? 'Mensal' : 'Vitalício'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button type="submit" disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-7 text-lg rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                {loading ? <Loader2 className="animate-spin w-6 h-6" /> : `PAGAR AGORA R$ ${totalAmount.toFixed(2).replace('.', ',')}`}
+              </Button>
             </form>
           </div>
         </div>
