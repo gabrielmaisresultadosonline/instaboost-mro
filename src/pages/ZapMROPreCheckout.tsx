@@ -227,7 +227,7 @@ const ZapMROPreCheckout = () => {
                     <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">
                       + R$ {Number(prod.price).toFixed(2).replace('.', ',')}
                       <span className="text-[9px] text-red-500 font-bold uppercase px-1.5 py-0.5 bg-red-500/10 rounded">
-                        Vitalício
+                        {prod.plan_type === 'anual' ? 'Anual' : prod.plan_type === 'mensal' ? 'Mensal' : 'Vitalício'}
                       </span>
                     </span>
                   </div>
@@ -293,7 +293,7 @@ const ZapMROPreCheckout = () => {
                           + R$ {Number(prod.price).toFixed(2).replace('.', ',')}
                         </p>
                         <span className="text-[9px] text-red-500 font-bold uppercase px-1.5 py-0.5 bg-red-500/10 rounded">
-                          Vitalício
+                          {prod.plan_type === 'anual' ? 'Anual' : prod.plan_type === 'mensal' ? 'Mensal' : 'Vitalício'}
                         </span>
                       </div>
                     </div>
