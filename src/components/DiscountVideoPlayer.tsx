@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
+import { useEffect, useRef, useState, memo } from "react";
+import Hls from "hls.js/dist/hls.light.min.js";
 import { supabase } from "@/integrations/supabase/client";
 import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 
@@ -14,7 +14,7 @@ interface Props {
  * Reproduz o vídeo hospedado no servidor (mesmo da /renda-extrass)
  * e dispara tracking de acesso + milestones 25/50/75/100% para o backend.
  */
-export default function DiscountVideoPlayer({ email, nome }: Props) {
+export default memo(DiscountVideoPlayer);
   const [cfg, setCfg] = useState<{ video_url: string | null; hls_url: string | null; video_title: string | null }>({
     video_url: null,
     hls_url: null,
