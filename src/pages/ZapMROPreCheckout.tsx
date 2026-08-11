@@ -227,4 +227,7 @@ export default function ZapMROPreCheckout() {
       </div>
     </div>
   );
-}
+};
+
+export default ZapMROPreCheckout;
+
