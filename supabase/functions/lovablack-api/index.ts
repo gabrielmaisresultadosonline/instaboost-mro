@@ -113,6 +113,41 @@ serve(async (req) => {
       })
     }
 
+    if (action === 'create_user') {
+      const { name, email, password, plan_type, whatsapp } = await req.json()
+      
+      if (!email || !password || !name) {
+        return new Response(JSON.stringify({ success: false, error: 'Dados incompletos' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        })
+      }
+
+      const { data, error } = await supabaseClient
+        .from('lovablack_users')
+        .insert([{
+          name,
+          email,
+          password,
+          plan_type: plan_type || 'monthly',
+          whatsapp
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        })
+      }
+
+      return new Response(JSON.stringify({ success: true, user: data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      })
+    }
+
     return new Response(JSON.stringify({ success: false, error: 'Ação inválida' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400
