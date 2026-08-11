@@ -332,7 +332,7 @@ const RendaExtraDescontoDuplicate = () => {
     setIsSettingsLoading(false);
   }, []);
 
-  // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
+  // Inutilizado para /renddx que é acesso direto
   useEffect(() => {
     // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
     const PROMO_DURATION = 7 * 60 * 60 * 1000; // 7 horas em milissegundos
