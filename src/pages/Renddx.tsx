@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView, trackInitiateCheckout } from "@/lib/facebookTracking";
+import { trackPageView, trackInitiateCheckout, trackLead } from "@/lib/facebookTracking";
 import { toast } from "sonner";
 import { 
   ArrowRight,
