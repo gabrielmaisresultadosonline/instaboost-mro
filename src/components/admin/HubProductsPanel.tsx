@@ -51,6 +51,7 @@ const emptyProduct = (): HubProductRow => ({
   new_until: null,
   is_ebook_hub: false,
   badge_text: "",
+  plan_type: "vitalicio",
 });
 
 
