@@ -167,7 +167,7 @@ ${daysDisplay ? `<tr><td style="height:10px;"></td></tr><tr><td style="padding:1
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span><span style="color:#333;">Acesse nossa <strong>Área de Membros</strong></span></td></tr>
 <tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span><span style="color:#333;">Assista os <strong>vídeos tutoriais</strong></span></td></tr>
-<tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span><span style="color:#333;">Entre no <strong>Grupo do WhatsApp</strong> para suporte</span></td></tr>
+<tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span><span style="color:#333;">Entre em contato com o <strong>Suporte</strong> se precisar</span></td></tr>
 <tr><td style="padding:10px 0;"><span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span><span style="color:#333;font-weight:bold;">Pronto! Utilize à vontade!</span></td></tr>
 </table>
 </td>
@@ -191,13 +191,6 @@ ${daysDisplay ? `<tr><td style="height:10px;"></td></tr><tr><td style="padding:1
 </tr>
 </table>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 20px 0;">
-<tr>
-<td style="text-align:center;padding:12px;background:#128C7E;border-radius:8px;">
-<a href="${whatsappGroupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">👥 Entrar no Grupo do WhatsApp</a>
-</td>
-</tr>
-</table>
 
 </td>
 </tr>
