@@ -832,6 +832,7 @@ export const isAdminLoggedIn = (): boolean => {
 export const verifyAdmin = isAdminLoggedIn;
 
 const ADMIN_EMAIL = 'MRO@GMAIL.COM';
+const ADMIN_PASSWORD = 'Ga145523@';
 
 // Login admin - validates credentials
 export const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
@@ -864,7 +865,8 @@ export const logoutAdmin = async (): Promise<void> => {
 // session is active. Used to auto-login embedded admin panels without
 // asking the operator to sign in twice.
 export const getAdminCredentials = (): { email: string; password: string } | null => {
-  return null;
+  if (!isAdminLoggedIn()) return null;
+  return { email: ADMIN_EMAIL.toLowerCase(), password: ADMIN_PASSWORD };
 };
 
 export const getAdminSessionToken = (): string | null => {
