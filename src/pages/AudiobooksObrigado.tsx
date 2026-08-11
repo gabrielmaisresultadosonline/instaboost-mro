@@ -11,12 +11,18 @@ const AudiobooksObrigado = () => {
 
   useEffect(() => {
     if (isPaid && typeof (window as any).fbq === 'function') {
-      console.log("Meta Pixel: Tracking Purchase event on /audiobooks/obrigado");
+      const storedAmount = localStorage.getItem('audiobooks_checkout_amount');
+      const finalAmount = storedAmount ? parseFloat(storedAmount) : 37.00;
+      
+      console.log("Meta Pixel: Tracking Purchase event on /audiobooks/obrigado", finalAmount);
       (window as any).fbq('track', 'Purchase', {
-        value: 37.00,
+        value: finalAmount,
         currency: 'BRL',
         content_name: 'O Segredo Para Vender Mais - Ebook Hub'
       });
+      
+      // Limpa após trackear
+      localStorage.removeItem('audiobooks_checkout_amount');
     }
   }, [isPaid]);
 

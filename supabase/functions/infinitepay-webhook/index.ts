@@ -772,7 +772,9 @@ serve(async (req) => {
           Number(hubOrder.amount) || 37,
           slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : "Produto Hub",
           hubOrder.nsu_order as string,
-          `https://maisresultadosonline.com.br/audiobooks/obrigado?paid=1`
+          slug === "audiibooks" 
+            ? `https://maisresultadosonline.com.br/audiobooks/obrigado?paid=1`
+            : `https://maisresultadosonline.com.br/zapmro/vendas/obrigado?paid=1`
         );
 
         log("HUB order paid + access granted + email triggered + Meta tracked", { id: hubOrder.id });
