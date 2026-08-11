@@ -41,6 +41,16 @@ serve(async (req) => {
         })
       }
 
+      // Fetch global settings
+      const { data: settingsData } = await supabaseClient
+        .from('lovablack_settings')
+        .select('*');
+      
+      const settings: any = {};
+      settingsData?.forEach((s: any) => {
+        settings[s.key] = s.value;
+      });
+
       // Update last access
       await supabaseClient
         .from('lovablack_users')
@@ -71,11 +81,14 @@ serve(async (req) => {
           name: user.name,
           email: user.email,
           plan_type: user.plan_type,
-          is_active: !is_expired,
+          is_active: !is_expired && !user.blocked,
           is_expired: is_expired,
+          blocked: user.blocked,
           expires_at: expires_at,
           last_access: user.last_access,
-          custom_message: user.custom_message
+          custom_message: user.custom_message,
+          global_announcement: settings.global_announcement || "",
+          min_version: settings.min_extension_version || "1.0.0"
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -32,6 +32,11 @@ export default function LovablackPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [isGlobalSettingsOpen, setIsGlobalSettingsOpen] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState({
+    global_announcement: "",
+    min_extension_version: "1.0.0"
+  });
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -43,7 +48,6 @@ export default function LovablackPanel() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Usando query direta com casting para evitar erros de tipo se a tabela for nova
       const { data, error } = await (supabase as any)
         .from('lovablack_users')
         .select('*')
@@ -59,8 +63,27 @@ export default function LovablackPanel() {
     }
   };
 
+  const fetchGlobalSettings = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('lovablack_settings')
+        .select('*');
+      
+      if (error) throw error;
+      
+      const settings: any = {};
+      data?.forEach((s: any) => {
+        settings[s.key] = s.value;
+      });
+      setGlobalSettings(prev => ({ ...prev, ...settings }));
+    } catch (error) {
+      console.error("Erro ao buscar settings:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchGlobalSettings();
   }, []);
 
   const handleCreateUser = async () => {
@@ -114,6 +137,21 @@ export default function LovablackPanel() {
     }
   };
 
+  const handleSaveGlobalSettings = async () => {
+    try {
+      for (const [key, value] of Object.entries(globalSettings)) {
+        const { error } = await (supabase as any)
+          .from('lovablack_settings')
+          .upsert({ key, value });
+        if (error) throw error;
+      }
+      toast({ title: "Configurações globais salvas!" });
+      setIsGlobalSettingsOpen(false);
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     (u.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -129,6 +167,9 @@ export default function LovablackPanel() {
           <p className="text-muted-foreground text-sm">Gerencie acessos Mensais, Vitalícios e Testes de 20 minutos.</p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setIsGlobalSettingsOpen(true)} variant="outline" size="sm" className="gap-2 border-primary/30 hover:bg-primary/5">
+            <MessageSquare className="h-4 w-4" /> Avisos Globais
+          </Button>
           <Button onClick={() => setIsDocsOpen(true)} variant="outline" size="sm" className="gap-2">
             <FileText className="h-4 w-4" /> Documentação API
           </Button>
@@ -249,30 +290,69 @@ export default function LovablackPanel() {
             </div>
 
             <div className="bg-muted/50 p-3 rounded-md border border-border">
-              <h5 className="font-bold text-xs mb-2">Estrutura de Resposta</h5>
+              <h5 className="font-bold text-xs mb-2">Estrutura de Resposta (Sucesso)</h5>
               <pre className="text-[10px] text-blue-400 bg-black/90 p-2 rounded overflow-x-auto">
 {`{
   "success": true,
   "user": {
     "name": "João Silva",
-    "email": "joao@email.com",
-    "plan_type": "lifetime",
     "is_active": true,
     "is_expired": false,
-    "expires_at": null,
-    "last_access": "2026-08-11T20:30:00Z",
-    "custom_message": "Seu acesso expira em 2 dias. Renove agora!"
+    "blocked": false,
+    "custom_message": "Aviso individual aqui",
+    "global_announcement": "Aviso para todos!",
+    "min_version": "1.0.0"
   }
 }`}
               </pre>
             </div>
 
-            <div className="p-3 rounded-md bg-amber-500/10 border border-amber-500/20">
-              <p className="text-[10px] text-amber-600 font-medium">
-                * Usuários do tipo "Teste" retornam false se os 20 minutos expirarem ou se forem bloqueados manualmente.
-              </p>
+            <div className="bg-destructive/10 p-3 rounded-md border border-destructive/20">
+              <h5 className="font-bold text-xs mb-2 text-destructive">Bloqueios e Mensagens</h5>
+              <ul className="text-[10px] space-y-1.5 text-muted-foreground list-disc pl-4">
+                <li><b className="text-foreground">blocked: true</b> → A extensão deve impedir o uso imediatamente.</li>
+                <li><b className="text-foreground">is_expired: true</b> → Tempo de teste esgotado.</li>
+                <li><b className="text-foreground">min_version</b> → Se a versão da extensão for menor, forçar atualização.</li>
+                <li><b className="text-foreground">custom_message / global_announcement</b> → Exibir em pop-up se não estiverem vazios.</li>
+              </ul>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Global Settings Dialog */}
+      <Dialog open={isGlobalSettingsOpen} onOpenChange={setIsGlobalSettingsOpen}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" /> Configurações e Avisos Globais
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Aviso Global (Todos os usuários)</label>
+              <Input 
+                value={globalSettings.global_announcement} 
+                onChange={e => setGlobalSettings({...globalSettings, global_announcement: e.target.value})} 
+                placeholder="Ex: Manutenção agendada para às 22h..." 
+                className="bg-muted/30"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Versão Mínima da Extensão</label>
+              <Input 
+                value={globalSettings.min_extension_version} 
+                onChange={e => setGlobalSettings({...globalSettings, min_extension_version: e.target.value})} 
+                placeholder="1.0.0" 
+                className="bg-muted/30"
+              />
+              <p className="text-[10px] text-muted-foreground">Usuários com versão inferior serão bloqueados até atualizarem.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsGlobalSettingsOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveGlobalSettings}>Salvar Alterações</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
