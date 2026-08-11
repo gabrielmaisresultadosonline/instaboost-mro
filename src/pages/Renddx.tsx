@@ -288,9 +288,9 @@ const Renddx = () => {
 
       {/* CTA Adicional Superior */}
       <section className="py-10 text-center">
-         <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-green-500 hover:bg-green-600 text-black font-black px-10 py-8 rounded-2xl text-xl animate-pulse">
+          <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
             QUERO COMEÇAR POR APENAS R$47 <ArrowRight className="ml-2 w-6 h-6" />
-         </Button>
+          </Button>
       </section>
 
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
