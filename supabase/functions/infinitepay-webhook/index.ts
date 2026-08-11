@@ -871,13 +871,17 @@ serve(async (req) => {
           log("ZAPMRO welcome email triggered");
         } catch (e) { log("Error triggering ZAPMRO email", e); }
 
-        // Meta Tracking
+        // Meta Tracking (Server-side CAPI)
         await sendMetaPurchaseEvent(
           uEmail,
-          Number(zapOrder.amount) || 397,
+          Number(zapOrder.amount) || 67,
           `ZAPMRO ${planType}`,
           zapOrder.nsu_order,
-          "https://maisresultadosonline.com.br/zapmro/vendas/obrigado"
+          "https://maisresultadosonline.com.br/zapmro/vendas/obrigado",
+          { 
+            user_agent: zapOrder.user_agent || null,
+            client_ip: zapOrder.client_ip || null
+          }
         );
 
         return new Response(JSON.stringify({ success: true, message: "ZAPMRO confirmed" }), { status: 200, headers: corsHeaders });

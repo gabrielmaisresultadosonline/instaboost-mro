@@ -111,6 +111,9 @@ const ZapMROPreCheckout = () => {
     }
     setLoading(true);
     try {
+      // Salva o valor total para o pixel na página de obrigado
+      localStorage.setItem('zapmro_checkout_amount', totalAmount.toString());
+      
       const { data, error } = await supabase.functions.invoke("create-zapmro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
@@ -122,6 +125,7 @@ const ZapMROPreCheckout = () => {
         }
       });
       if (error) throw error;
+      
       trackInitiateCheckout('ZapMRO Checkout', totalAmount);
       window.location.href = data.payment_link;
     } catch (err) {
