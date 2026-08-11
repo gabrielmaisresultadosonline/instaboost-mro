@@ -44,7 +44,7 @@ export default function LovablackPanel() {
     email: "",
     password: "",
     whatsapp: "",
-    plan_type: "trial"
+    plan_type: "trial" as "trial" | "monthly" | "lifetime"
   });
 
   const fetchUsers = async () => {
