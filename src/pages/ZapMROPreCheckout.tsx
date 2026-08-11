@@ -53,7 +53,8 @@ const ZapMROPreCheckout = () => {
               title: "MRO Ferramenta",
               description: "Automação completa para Instagram",
               price: 397,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             },
             {
               id: "fb-2",
@@ -61,7 +62,8 @@ const ZapMROPreCheckout = () => {
               title: "Posts com IA",
               description: "Criação de conteúdo inteligente",
               price: 67,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             },
             {
               id: "fb-3",
@@ -69,7 +71,8 @@ const ZapMROPreCheckout = () => {
               title: "Tráfego Pago (Visitas)",
               description: "Aumente suas visitas no perfil",
               price: 47,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             },
             {
               id: "fb-4",
@@ -77,7 +80,8 @@ const ZapMROPreCheckout = () => {
               title: "O SEGREDO PARA VENDER MAIS !",
               description: "Ebook + Audiobook estratégico",
               price: 39,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             }
           ];
           setProducts(fallbackProducts);
