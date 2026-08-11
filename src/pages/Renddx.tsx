@@ -185,7 +185,9 @@ const Renddx = () => {
       <style>{`
         .btn-pulse-yellow { background: linear-gradient(to right, #facc15, #eab308) !important; border: none; color: black !important; font-weight: 900 !important; animation: pulse-yellow 2s infinite; }
         @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); } }
-        .btn-pulse-green { animation: pulse-green 2s infinite; }
+        .btn-pulse-green { position: relative; overflow: hidden; animation: pulse-green 2s infinite; transition: all 0.3s ease; }
+        .btn-pulse-green::after { content: ""; position: absolute; top: -50%; left: -60%; width: 20%; height: 200%; background: rgba(255, 255, 255, 0.4); transform: rotate(30deg); animation: light-sweep 3s infinite; filter: blur(5px); }
+        @keyframes light-sweep { 0% { left: -60%; } 30% { left: 150%; } 100% { left: 150%; } }
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
         @keyframes bounceArrowRight { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
         .arrow-bounce-right { animation: bounceArrowRight 1s ease-in-out infinite; }
