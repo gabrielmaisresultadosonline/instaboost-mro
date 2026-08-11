@@ -2685,6 +2685,7 @@ export type Database = {
           is_pinned: boolean | null
           new_until: string | null
           order_index: number
+          plan_type: string | null
           price: number
           sales_page_url: string | null
           slug: string
@@ -2705,6 +2706,7 @@ export type Database = {
           is_pinned?: boolean | null
           new_until?: string | null
           order_index?: number
+          plan_type?: string | null
           price?: number
           sales_page_url?: string | null
           slug: string
@@ -2725,6 +2727,7 @@ export type Database = {
           is_pinned?: boolean | null
           new_until?: string | null
           order_index?: number
+          plan_type?: string | null
           price?: number
           sales_page_url?: string | null
           slug?: string
