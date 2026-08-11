@@ -219,8 +219,8 @@ const Renddx = () => {
         `}</style>
         {step === 'initial' ? (
           <div className="text-center max-w-xl animate-in fade-in zoom-in duration-700">
-            <h1 className="text-3xl md:text-5xl font-black mb-12 text-white leading-tight">
-              pode me ajudar?
+            <h1 className="text-xl md:text-3xl font-black mb-12 text-white leading-tight">
+              Gostaria de saber mais sobre a renda extra com a MRO ?
             </h1>
             <Button 
               onClick={handleInitialClick}
