@@ -3595,8 +3595,10 @@ export type Database = {
         Row: {
           blocked: boolean | null
           created_at: string | null
+          custom_message: string | null
           email: string
           id: string
+          last_access: string | null
           name: string
           password: string
           plan_type: Database["public"]["Enums"]["lovablack_plan_type"]
@@ -3607,8 +3609,10 @@ export type Database = {
         Insert: {
           blocked?: boolean | null
           created_at?: string | null
+          custom_message?: string | null
           email: string
           id?: string
+          last_access?: string | null
           name: string
           password: string
           plan_type?: Database["public"]["Enums"]["lovablack_plan_type"]
@@ -3619,8 +3623,10 @@ export type Database = {
         Update: {
           blocked?: boolean | null
           created_at?: string | null
+          custom_message?: string | null
           email?: string
           id?: string
+          last_access?: string | null
           name?: string
           password?: string
           plan_type?: Database["public"]["Enums"]["lovablack_plan_type"]

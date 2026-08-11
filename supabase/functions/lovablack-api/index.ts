@@ -41,6 +41,12 @@ serve(async (req) => {
         })
       }
 
+      // Update last access
+      await supabaseClient
+        .from('lovablack_users')
+        .update({ last_access: new Date().toISOString() })
+        .eq('id', user.id);
+
       if (user.blocked) {
         return new Response(JSON.stringify({ success: false, error: 'Usuário bloqueado' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -49,13 +55,13 @@ serve(async (req) => {
       }
 
       // Check trial expiration
+      let is_expired = false;
+      let expires_at = null;
       if (user.plan_type === 'trial') {
+        expires_at = user.trial_expires_at;
         const expires = new Date(user.trial_expires_at)
         if (expires < new Date()) {
-          return new Response(JSON.stringify({ success: false, error: 'Período de teste expirado' }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 403
-          })
+          is_expired = true;
         }
       }
 
@@ -65,8 +71,11 @@ serve(async (req) => {
           name: user.name,
           email: user.email,
           plan_type: user.plan_type,
-          is_active: true,
-          expires_at: user.plan_type === 'trial' ? user.trial_expires_at : null
+          is_active: !is_expired,
+          is_expired: is_expired,
+          expires_at: expires_at,
+          last_access: user.last_access,
+          custom_message: user.custom_message
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
