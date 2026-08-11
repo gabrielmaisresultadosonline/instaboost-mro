@@ -334,24 +334,7 @@ const RendaExtraDescontoDuplicate = () => {
 
   // Inutilizado para /renddx que é acesso direto
   useEffect(() => {
-    // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
-    const PROMO_DURATION = 7 * 60 * 60 * 1000; // 7 horas em milissegundos
-    const promoEndTime = Date.now() + PROMO_DURATION;
-    
-    const updateCountdown = () => {
-      setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
-    };
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setPromoTimeLeft({ hours, minutes, seconds, expired: false });
-    };
-    
-    updateCountdown();
-    const timer = setInterval(updateCountdown, 1000);
-    return () => clearInterval(timer);
+    setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
   }, []);
 
   const scrollToPricing = () => {
