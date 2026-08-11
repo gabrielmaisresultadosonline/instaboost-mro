@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, email, password } = await req.json()
+    const { action, email, password, session_id } = await req.json()
 
     if (action === 'login') {
       if (!email || !password) {
@@ -51,10 +51,27 @@ serve(async (req) => {
         settings[s.key] = s.value;
       });
 
-      // Update last access
+      // Check for multi-login block
+      if (settings.multi_login_block === 'true' && user.session_id && session_id && user.session_id !== session_id) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Já existe uma sessão ativa em outro dispositivo. Deslogue lá para entrar aqui.',
+          code: 'MULTI_LOGIN'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403
+        })
+      }
+
+      // Update last access and session_id
+      const updateData: any = { last_access: new Date().toISOString() };
+      if (session_id) {
+        updateData.session_id = session_id;
+      }
+
       await supabaseClient
         .from('lovablack_users')
-        .update({ last_access: new Date().toISOString() })
+        .update(updateData)
         .eq('id', user.id);
 
       if (user.blocked) {

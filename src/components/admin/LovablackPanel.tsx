@@ -35,7 +35,8 @@ export default function LovablackPanel() {
   const [isGlobalSettingsOpen, setIsGlobalSettingsOpen] = useState(false);
   const [globalSettings, setGlobalSettings] = useState({
     global_announcement: "",
-    min_extension_version: "1.0.0"
+    min_extension_version: "1.0.0",
+    multi_login_block: "false"
   });
   const [newUser, setNewUser] = useState({
     name: "",
@@ -285,7 +286,7 @@ export default function LovablackPanel() {
                 Login (Extensão)
               </h5>
               <code className="text-[10px] block bg-black/90 text-green-400 p-2 rounded overflow-x-auto whitespace-pre">
-                {`URL: /functions/v1/lovablack-api\nContent-Type: application/json\n\n{\n  "action": "login",\n  "email": "usuario@exemplo.com",\n  "password": "senha_do_usuario"\n}`}
+                {`URL: /functions/v1/lovablack-api\nContent-Type: application/json\n\n{\n  "action": "login",\n  "email": "usuario@exemplo.com",\n  "password": "senha_do_usuario",\n  "session_id": "id_unico_da_maquina" // OPCIONAL para bloqueio multi-login\n}`}
               </code>
             </div>
 
@@ -314,6 +315,7 @@ export default function LovablackPanel() {
                 <li><b className="text-foreground">is_expired: true</b> → Tempo de teste esgotado ou plano vencido.</li>
                 <li><b className="text-foreground">min_version</b> → Se a versão da extensão for menor que este valor, forçar atualização e bloquear uso.</li>
                 <li><b className="text-foreground">custom_message / global_announcement</b> → Se não estiverem vazios, a extensão deve exibir em um pop-up/alerta ao usuário.</li>
+                <li><b className="text-foreground">Bloqueio Multi-Login</b> → Se <code>multi_login_block</code> estiver ativo, o usuário só pode logar em um <code>session_id</code> por vez. Se tentar logar em outro, receberá erro 403 com <code>code: "MULTI_LOGIN"</code>.</li>
                 <li><b className="text-foreground">Bloqueio por Versão</b> → A lógica deve comparar a versão atual da extensão com o campo <code>min_version</code> retornado.</li>
               </ul>
             </div>
@@ -348,6 +350,24 @@ export default function LovablackPanel() {
                 className="bg-muted/30"
               />
               <p className="text-[10px] text-muted-foreground">Usuários com versão inferior serão bloqueados até atualizarem.</p>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+              <div>
+                <label className="text-xs font-bold uppercase text-foreground block">Bloquear Multi-Login</label>
+                <p className="text-[10px] text-muted-foreground">Impede que o mesmo usuário use em duas máquinas simultâneas.</p>
+              </div>
+              <Select 
+                value={globalSettings.multi_login_block} 
+                onValueChange={val => setGlobalSettings({...globalSettings, multi_login_block: val})}
+              >
+                <SelectTrigger className="w-32 h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Ativado</SelectItem>
+                  <SelectItem value="false">Desativado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
