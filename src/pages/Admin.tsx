@@ -32,6 +32,7 @@ import HubProductsPanel from '@/components/admin/HubProductsPanel';
 import MergeLogsPanel from '@/components/admin/MergeLogsPanel';
 
 import MroToolPanel from '@/components/admin/MroToolPanel';
+import LovablackPanel from '@/components/admin/LovablackPanel';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -62,7 +63,7 @@ import { cn } from "@/lib/utils";
 
 const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -231,6 +232,7 @@ const Admin = () => {
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
+    { id: 'lovablack', label: 'LOVABLACK', icon: <ShieldCheck className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
@@ -959,6 +961,7 @@ const Admin = () => {
         {activeTab === 'zapmro_taxas' && <ZapmroFeesPanel />}
 
         {/* Dashboard Produtos Tab */}
+        {activeTab === 'lovablack' && <LovablackPanel />}
         {activeTab === 'hub' && <HubProductsPanel />}
 
         {/* Unificações de Acesso (logs + desfazer) */}
