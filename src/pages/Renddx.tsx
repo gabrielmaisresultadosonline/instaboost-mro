@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,9 +29,9 @@ import {
   Check,
   MousePointer2
 } from "lucide-react";
+const DiscountVideoPlayer = lazy(() => import("@/components/DiscountVideoPlayer"));
+const PromoToolVideoSection = lazy(() => import("@/components/PromoToolVideoSection"));
 import logoMro from "@/assets/logo-mro.png";
-import PromoToolVideoSection from "@/components/PromoToolVideoSection";
-import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
 
 const Renddx = () => {
@@ -213,7 +213,7 @@ const Renddx = () => {
 
       <section className="relative pt-8 sm:pt-14 pb-12 sm:pb-20 px-3 sm:px-4 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-0">
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-green-500/10 blur-[120px] rounded-full" />
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] bg-green-500/5 blur-[80px] sm:blur-[120px] rounded-full" />
         </div>
         <div className="relative max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain drop-shadow-[0_0_30px_rgba(34,197,94,0.35)]" />
@@ -230,7 +230,9 @@ const Renddx = () => {
           {/* Vídeo Principal e CTA R$47 */}
           <div className="max-w-4xl mx-auto mb-10 sm:mb-16 space-y-8">
             <div className="bg-zinc-900/40 border border-green-500/20 rounded-3xl p-4 sm:p-6 backdrop-blur-sm">
-              <DiscountVideoPlayer email="public@renddx.com" nome="Visitante Renddx" />
+              <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
+                <DiscountVideoPlayer email="public@renddx.com" nome="Visitante Renddx" />
+              </Suspense>
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
@@ -269,7 +271,9 @@ const Renddx = () => {
       <div className="text-center pt-8">
         <h3 className="text-xl sm:text-2xl font-bold text-zinc-400 uppercase tracking-widest">Veja a ferramenta em funcionamento</h3>
       </div>
-      <PromoToolVideoSection />
+      <Suspense fallback={<div className="py-20 bg-black h-96 w-full animate-pulse" />}>
+        <PromoToolVideoSection />
+      </Suspense>
 
 
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
