@@ -304,7 +304,7 @@ const Renddx = () => {
             <li className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" /> 4 Contas Simultâneas</li>
             <li className="flex items-center gap-2"><Target className="w-4 h-4 text-green-500" /> Suporte VIP</li>
           </ul>
-          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg">QUERO ESSE DESCONTO</Button>
+          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.4)]">QUERO ESSE DESCONTO</Button>
         </div>
       </section>
 
