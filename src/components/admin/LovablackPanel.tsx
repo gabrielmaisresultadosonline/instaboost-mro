@@ -32,6 +32,7 @@ export default function LovablackPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [isExternalDocsOpen, setIsExternalDocsOpen] = useState(false);
   const [isGlobalSettingsOpen, setIsGlobalSettingsOpen] = useState(false);
   const [globalSettings, setGlobalSettings] = useState({
     global_announcement: "",
@@ -174,6 +175,9 @@ export default function LovablackPanel() {
           </Button>
           <Button onClick={() => setIsDocsOpen(true)} variant="outline" size="sm" className="gap-2">
             <FileText className="h-4 w-4" /> Documentação API
+          </Button>
+          <Button onClick={() => setIsExternalDocsOpen(true)} variant="outline" size="sm" className="gap-2 border-blue-500/30 hover:bg-blue-500/5">
+            <FileText className="h-4 w-4" /> Integração Externa (Checkout)
           </Button>
           <Button onClick={() => setIsCreateOpen(true)} size="sm" className="gap-2">
             <Plus className="h-4 w-4" /> Novo Usuário
@@ -353,6 +357,67 @@ export default function LovablackPanel() {
               </div>
             </div>
 
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* External Site Docs Dialog */}
+      <Dialog open={isExternalDocsOpen} onOpenChange={setIsExternalDocsOpen}>
+        <DialogContent className="max-w-2xl bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-500">
+              <Plus className="h-5 w-5" /> Integração de Checkout Externo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[70vh] overflow-auto pr-2">
+            <div className="space-y-2">
+              <h5 className="font-bold text-sm text-foreground">Visão Geral</h5>
+              <p className="text-xs text-muted-foreground">
+                Utilize este guia para integrar o Lovablack em sites de vendas externos. Isso permite que pagamentos processados fora (ex: Hotmart, Kiwify, site próprio) criem automaticamente o acesso no banco de dados.
+              </p>
+            </div>
+
+            <div className="bg-muted/50 p-3 rounded-md border border-border">
+              <h5 className="font-bold text-xs mb-2 flex items-center gap-1.5">
+                <Badge className="bg-blue-600 text-[9px] px-1">PASSO 1</Badge>
+                Criação de Usuário via API (Webhook)
+              </h5>
+              <p className="text-[10px] text-muted-foreground mb-2">
+                Envie um POST para criar o acesso após a confirmação do pagamento.
+              </p>
+              <code className="text-[10px] block bg-black/90 text-blue-400 p-2 rounded overflow-x-auto whitespace-pre">
+{`URL: https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/lovablack-api
+Content-Type: application/json
+
+{
+  "action": "create_user",
+  "name": "Nome do Cliente",
+  "email": "email@cliente.com",
+  "password": "senha_gerada_ou_fixa",
+  "plan_type": "monthly", // monthly, lifetime, trial
+  "whatsapp": "5511999999999"
+}`}
+              </code>
+            </div>
+
+            <div className="bg-muted/50 p-3 rounded-md border border-border">
+              <h5 className="font-bold text-xs mb-2 flex items-center gap-1.5 text-green-500">
+                <ShieldCheck className="h-3.5 w-3.5" /> Segurança da Requisição
+              </h5>
+              <p className="text-[10px] text-muted-foreground">
+                Para chamadas de servidor (backend), utilize a Service Role Key no cabeçalho <code>Authorization: Bearer [KEY]</code> para bypassar RLS e criar o registro diretamente.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border">
+              <h5 className="font-bold text-sm text-foreground">Lógica Sugerida para o Site de Vendas</h5>
+              <ol className="text-xs text-muted-foreground space-y-2 list-decimal ml-4">
+                <li>O cliente realiza o pagamento no seu site externo.</li>
+                <li>Seu servidor recebe o Webhook de aprovação.</li>
+                <li>Seu servidor chama o endpoint acima do Lovablack.</li>
+                <li>O usuário é criado instantaneamente e pode logar na extensão.</li>
+              </ol>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
