@@ -119,6 +119,7 @@ import ZapMROPreCheckout from "./pages/ZapMROPreCheckout";
 import AudiobooksPreCheckout from "./pages/AudiobooksPreCheckout";
 import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
+import Renddx from "./pages/Renddx";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
@@ -458,6 +459,7 @@ const App = () => (
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           <Route path="/eleitoral" element={<Eleitoral />} />
           <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
+          <Route path="/renddx" element={<Renddx />} />
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
