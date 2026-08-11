@@ -403,6 +403,18 @@ export default function HubProductsPanel() {
                   onChange={(e) => setEditing({ ...editing, badge_text: e.target.value })} 
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Tipo de Plano (Exibido no Checkout)</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={editing.plan_type || "vitalicio"}
+                  onChange={(e) => setEditing({ ...editing, plan_type: e.target.value as 'mensal' | 'anual' | 'vitalicio' })}
+                >
+                  <option value="mensal">Mensal</option>
+                  <option value="anual">Anual</option>
+                  <option value="vitalicio">Vitalício</option>
+                </select>
+              </div>
             </div>
             
             {editing.id && editing.is_ebook_hub && (
