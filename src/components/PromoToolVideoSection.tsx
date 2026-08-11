@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
+import { useEffect, useRef, useState, memo } from "react";
+import Hls from "hls.js/dist/hls.light.min.js";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -164,4 +164,4 @@ const PromoToolVideoSection = () => {
 };
 
 
-export default PromoToolVideoSection;
+export default memo(PromoToolVideoSection);
