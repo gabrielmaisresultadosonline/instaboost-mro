@@ -1073,7 +1073,7 @@ const RendaExtraDescontoDuplicate = () => {
                 toast.error("Promoção expirada!");
                 return;
               }
-              setShowCheckoutModal(true);
+              navigate("/renddx/promo");
             }}
             disabled={promoTimeLeft.expired}
             className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
