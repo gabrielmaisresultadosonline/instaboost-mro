@@ -8,9 +8,19 @@ import { Loader2, ArrowRight, RefreshCw, UserCheck, Check, ShieldCheck, Zap, Loc
 import { trackInitiateCheckout } from '@/lib/facebookTracking';
 
 const ZapMROPreCheckout = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const planType = searchParams.get('plan') || 'monthly';
+  const planName = planType === 'annual' ? 'Plano Anual' : 'Plano Mensal';
+  const baseAmount = planType === 'annual' ? 300 : 67;
+
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -32,41 +42,17 @@ const ZapMROPreCheckout = () => {
     fetchProducts();
   }, []);
 
-export default function ZapMROPreCheckout() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const planType = searchParams.get('plan') || 'monthly';
-  const planName = planType === 'annual' ? 'Plano Anual' : 'Plano Mensal';
-  const baseAmount = planType === 'annual' ? 300 : 67;
-
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
-
   const totalAmount = baseAmount + selectedBumps.reduce((acc, slug) => {
     const prod = products.find(p => p.slug === slug);
     return acc + (Number(prod?.price) || 0);
   }, 0);
 
-  const toggleBump = (slug: string) => {
-    setSelectedBumps(prev => 
-      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
-    );
-  };
-
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) {
-      toast.error("Por favor, insira um email válido");
+    if (!email || !username || !phone) {
+      toast.error("Preencha todos os campos");
       return;
     }
-    if (!username || username.length < 4) {
-      toast.error("Nome de usuário deve ter no mínimo 4 caracteres");
-      return;
-    }
-
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-zapmro-checkout", {
@@ -76,126 +62,135 @@ export default function ZapMROPreCheckout() {
           phone: phone.replace(/\D/g, "").trim(),
           planType,
           amount: totalAmount,
-          orderBumps: selectedBumps,
-          checkUserExists: true
+          selectedBumps
         }
       });
-
-      if (error || !data.success) {
-        toast.error(data?.error || "Erro ao criar checkout");
-        return;
-      }
-
-      if (data.userExists) {
-        toast.error("Este nome de usuário já está em uso.");
-        return;
-      }
-
-      trackInitiateCheckout(`ZAPMRO ${planName} + Bumps`, totalAmount);
+      if (error) throw error;
+      trackInitiateCheckout('ZapMRO Checkout', totalAmount);
       window.location.href = data.payment_link;
     } catch (err) {
-      toast.error("Erro ao processar o pagamento");
+      console.error(err);
+      toast.error("Erro ao processar pagamento");
     } finally {
       setLoading(false);
     }
   };
 
+  const toggleBump = (slug: string) => {
+    setSelectedBumps(prev => 
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl md:text-5xl font-black text-green-400 uppercase italic">
-            Finalizar Seu Acesso
-          </h1>
-          <p className="text-zinc-400 text-lg">
-            Você escolheu o <span className="text-white font-bold">{planName}</span>. 
-            Preencha seus dados e aproveite as ofertas exclusivas abaixo!
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Form Side */}
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 space-y-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <ShieldCheck className="text-green-400 w-6 h-6" /> Seus Dados de Acesso
-            </h2>
-            
-            <form onSubmit={handleCheckout} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-400">E-mail para receber o acesso</label>
-                <Input 
-                  type="email" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                  required 
-                  placeholder="seu@email.com"
-                  className="bg-zinc-950 border-zinc-800 h-12"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Nome de Usuário (será sua senha)</label>
-                <Input 
-                  value={username} 
-                  onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))} 
-                  required 
-                  placeholder="usuario"
-                  className="bg-zinc-950 border-zinc-800 h-12"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-400">WhatsApp</label>
-                <Input 
-                  value={phone} 
-                  onChange={e => setPhone(e.target.value)} 
-                  placeholder="(00) 00000-0000"
-                  className="bg-zinc-950 border-zinc-800 h-12"
-                />
-              </div>
-
-              <div className="pt-4">
-                <Button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-black text-xl py-8 rounded-2xl shadow-lg shadow-green-500/20 uppercase transition-all hover:scale-[1.02]"
-                >
-                  {loading ? <Loader2 className="animate-spin" /> : `PAGAR R$ ${totalAmount.toFixed(2).replace('.', ',')} 🚀`}
-                </Button>
-                <p className="text-center text-zinc-500 text-xs mt-4 flex items-center justify-center gap-2">
-                  <Lock className="w-3 h-3" /> Pagamento Seguro & Acesso Imediato
-                </p>
-              </div>
-            </form>
+    <div className="min-h-screen bg-black text-white p-4 md:p-8">
+      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-start">
+        {/* Lado Esquerdo: Checkout */}
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Finalize seu Acesso
+            </h1>
+            <p className="text-zinc-400">Insira seus dados para liberar a ferramenta agora.</p>
           </div>
 
-          {/* Order Bumps Side */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-yellow-400 uppercase italic">
-                Aproveite Também!
-              </h2>
-              <span className="bg-yellow-400/10 text-yellow-400 text-[10px] font-bold px-3 py-1 rounded-full border border-yellow-400/20">
-                OFERTAS ÚNICAS
-              </span>
+          <form onSubmit={handleCheckout} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-zinc-500 ml-1">E-MAIL</label>
+              <Input 
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="bg-zinc-900 border-zinc-800 h-12 rounded-xl focus:ring-yellow-400"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-zinc-500 ml-1">USUÁRIO (Login)</label>
+              <Input 
+                value={username}
+                onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))}
+                placeholder="ex: joaosilva"
+                className="bg-zinc-900 border-zinc-800 h-12 rounded-xl focus:ring-yellow-400"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-zinc-500 ml-1">WHATSAPP (DDD)</label>
+              <Input 
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="(00) 00000-0000"
+                className="bg-zinc-900 border-zinc-800 h-12 rounded-xl focus:ring-yellow-400"
+              />
+            </div>
+
+            <div className="pt-4">
+              <Button 
+                disabled={loading}
+                className="w-full h-16 bg-yellow-400 hover:bg-yellow-500 text-black font-black text-lg rounded-2xl shadow-xl shadow-yellow-400/20 group transition-all"
+              >
+                {loading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    PAGAR R$ {totalAmount.toFixed(2).replace('.', ',')}
+                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+
+          <div className="flex flex-wrap gap-4 justify-center md:justify-start pt-4">
+            <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+              <ShieldCheck className="w-4 h-4 text-green-500" /> Compra Segura
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+              <Zap className="w-4 h-4 text-yellow-500" /> Acesso Imediato
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+              <Lock className="w-4 h-4 text-blue-500" /> Dados Protegidos
+            </div>
+          </div>
+        </div>
+
+        {/* Lado Direito: Order Bumps */}
+        <div className="space-y-6">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 md:p-8 space-y-6 sticky top-8">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div>
+                <h2 className="font-black text-xl">Pedido</h2>
+                <p className="text-zinc-500 text-sm">Resumo da compra</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-zinc-500 uppercase font-black tracking-tighter">Subtotal</p>
+                <p className="font-black text-yellow-400 text-2xl">R$ {totalAmount.toFixed(2).replace('.', ',')}</p>
+              </div>
             </div>
 
             <div className="space-y-4">
+              <h3 className="text-xs font-black text-zinc-600 uppercase tracking-widest">Turbine seu Acesso (Order Bump)</h3>
+              
               {loadingProducts ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="animate-spin text-yellow-400" />
+                  <Loader2 className="w-8 h-8 animate-spin text-zinc-700" />
                 </div>
-              ) : products.filter(p => p.slug !== 'zapmro').map((prod) => (
+              ) : products.map((prod) => (
                 <div 
-                  key={prod.slug}
+                  key={prod.id}
                   onClick={() => toggleBump(prod.slug)}
-                  className={`relative p-4 rounded-2xl border-2 transition-all cursor-pointer group ${
+                  className={`group relative overflow-hidden rounded-2xl border-2 transition-all cursor-pointer p-4 ${
                     selectedBumps.includes(prod.slug) 
-                    ? 'border-yellow-400 bg-yellow-400/5' 
-                    : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'
+                      ? 'border-yellow-400 bg-yellow-400/5' 
+                      : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'
                   }`}
                 >
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700">
-                      <img src={prod.thumb_url || prod.image} alt={prod.title} className="w-full h-full object-cover" />
+                  <div className="flex gap-4 items-center">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0">
+                      <img 
+                        src={prod.thumb_url || prod.image} 
+                        alt={prod.title} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex justify-between items-start">
@@ -230,4 +225,3 @@ export default function ZapMROPreCheckout() {
 };
 
 export default ZapMROPreCheckout;
-
