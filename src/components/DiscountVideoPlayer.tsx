@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, memo } from "react";
-import Hls from "hls.js/dist/hls.light.min.js";
+import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
 import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 
