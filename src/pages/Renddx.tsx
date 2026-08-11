@@ -205,7 +205,18 @@ const Renddx = () => {
 
   if (step !== 'ready') {
     return (
-      <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4 transition-opacity duration-1000" style={{ opacity: isFadingOut ? 0 : 1 }}>
+      <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4 transition-opacity duration-1000 overflow-hidden" style={{ opacity: isFadingOut ? 0 : 1 }}>
+        <style>{`
+          .dissolve-text {
+            animation: dissolve 3s forwards;
+          }
+          @keyframes dissolve {
+            0% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+            20% { opacity: 1; filter: blur(0); transform: scale(1); }
+            80% { opacity: 1; filter: blur(0); transform: scale(1); }
+            100% { opacity: 0; filter: blur(20px); transform: scale(1.1); }
+          }
+        `}</style>
         {step === 'initial' ? (
           <div className="text-center max-w-xl animate-in fade-in zoom-in duration-700">
             <h1 className="text-3xl md:text-5xl font-black mb-12 text-white leading-tight">
@@ -219,7 +230,7 @@ const Renddx = () => {
             </Button>
           </div>
         ) : (
-          <div className="text-center max-w-2xl animate-in fade-in zoom-in duration-700">
+          <div className="text-center max-w-2xl dissolve-text px-6">
             <h2 className="text-2xl md:text-4xl font-bold text-white tracking-widest uppercase">
               Preste atenção nessa oportunidade
             </h2>
@@ -230,7 +241,7 @@ const Renddx = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden">
+    <div className="min-h-screen bg-black text-white overflow-x-hidden animate-in fade-in duration-1000">
       <style>{`
         .btn-pulse-yellow { background: linear-gradient(to right, #facc15, #eab308) !important; border: none; color: black !important; font-weight: 900 !important; animation: pulse-yellow 2s infinite; }
         @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); } }
