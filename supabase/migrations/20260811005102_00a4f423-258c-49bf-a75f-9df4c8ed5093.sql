@@ -1,0 +1,1 @@
+ALTER TABLE public.hub_products ADD COLUMN IF NOT EXISTS plan_type TEXT DEFAULT 'vitalicio' CHECK (plan_type IN ('mensal', 'anual', 'vitalicio'));

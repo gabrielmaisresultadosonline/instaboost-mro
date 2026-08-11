@@ -32,6 +32,7 @@ interface HubProductRow {
   new_until?: string | null;
   is_ebook_hub?: boolean;
   badge_text?: string | null;
+  plan_type?: 'mensal' | 'anual' | 'vitalicio';
 }
 
 const emptyProduct = (): HubProductRow => ({
@@ -50,6 +51,7 @@ const emptyProduct = (): HubProductRow => ({
   new_until: null,
   is_ebook_hub: false,
   badge_text: "",
+  plan_type: "vitalicio",
 });
 
 
@@ -400,6 +402,18 @@ export default function HubProductsPanel() {
                   value={editing.badge_text || ""} 
                   onChange={(e) => setEditing({ ...editing, badge_text: e.target.value })} 
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Plano (Exibido no Checkout)</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={editing.plan_type || "vitalicio"}
+                  onChange={(e) => setEditing({ ...editing, plan_type: e.target.value as 'mensal' | 'anual' | 'vitalicio' })}
+                >
+                  <option value="mensal">Mensal</option>
+                  <option value="anual">Anual</option>
+                  <option value="vitalicio">Vitalício</option>
+                </select>
               </div>
             </div>
             

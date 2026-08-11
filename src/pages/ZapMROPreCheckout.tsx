@@ -53,7 +53,8 @@ const ZapMROPreCheckout = () => {
               title: "MRO Ferramenta",
               description: "Automação completa para Instagram",
               price: 397,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             },
             {
               id: "fb-2",
@@ -61,7 +62,8 @@ const ZapMROPreCheckout = () => {
               title: "Posts com IA",
               description: "Criação de conteúdo inteligente",
               price: 67,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             },
             {
               id: "fb-3",
@@ -69,7 +71,8 @@ const ZapMROPreCheckout = () => {
               title: "Tráfego Pago (Visitas)",
               description: "Aumente suas visitas no perfil",
               price: 47,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             },
             {
               id: "fb-4",
@@ -77,7 +80,8 @@ const ZapMROPreCheckout = () => {
               title: "O SEGREDO PARA VENDER MAIS !",
               description: "Ebook + Audiobook estratégico",
               price: 39,
-              is_active: true
+              is_active: true,
+              plan_type: "vitalicio"
             }
           ];
           setProducts(fallbackProducts);
@@ -223,7 +227,7 @@ const ZapMROPreCheckout = () => {
                     <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">
                       + R$ {Number(prod.price).toFixed(2).replace('.', ',')}
                       <span className="text-[9px] text-red-500 font-bold uppercase px-1.5 py-0.5 bg-red-500/10 rounded">
-                        Vitalício
+                        {prod.plan_type === 'anual' ? 'Anual' : prod.plan_type === 'mensal' ? 'Mensal' : 'Vitalício'}
                       </span>
                     </span>
                   </div>
@@ -289,7 +293,7 @@ const ZapMROPreCheckout = () => {
                           + R$ {Number(prod.price).toFixed(2).replace('.', ',')}
                         </p>
                         <span className="text-[9px] text-red-500 font-bold uppercase px-1.5 py-0.5 bg-red-500/10 rounded">
-                          Vitalício
+                          {prod.plan_type === 'anual' ? 'Anual' : prod.plan_type === 'mensal' ? 'Mensal' : 'Vitalício'}
                         </span>
                       </div>
                     </div>
