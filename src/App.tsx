@@ -90,6 +90,7 @@ import RendaExtraLeadWaRedirect from "./pages/RendaExtraLeadWaRedirect";
 import RendaExtraLeadAdmin from "./pages/RendaExtraLeadAdmin";
 import RendaExtraDescontoPage from "./pages/RendaExtraDescontoPage";
 import RendaExtraDescontoPromoPage from "./pages/RendaExtraDescontoPromoPage";
+import RendaExtraDescontoDuplicate from "./pages/RendaExtraDescontoDuplicate";
 import Empresas from "./pages/Empresas";
 import EmpresasAdmin from "./pages/EmpresasAdmin";
 import PostsPrompts from "./pages/PostsPrompts";
@@ -119,6 +120,7 @@ import ZapMROPreCheckout from "./pages/ZapMROPreCheckout";
 import AudiobooksPreCheckout from "./pages/AudiobooksPreCheckout";
 import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
+import Renddx from "./pages/Renddx";
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
@@ -338,6 +340,8 @@ const App = () => (
           <Route path="/rendaextra/desconto" element={<RendaExtraDescontoPage />} />
           <Route path="/rendaextra-desconto" element={<RendaExtraDescontoPage />} />
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
+          <Route path="/renddx/promo" element={<Renddx />} />
+          <Route path="/renddx" element={<RendaExtraDescontoDuplicate />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
           <Route path="/r/rxl-wa" element={<RendaExtraLeadWaRedirect />} />
@@ -458,6 +462,7 @@ const App = () => (
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           <Route path="/eleitoral" element={<Eleitoral />} />
           <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
+          <Route path="/renddx" element={<Renddx />} />
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
