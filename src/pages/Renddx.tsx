@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView, trackInitiateCheckout } from "@/lib/facebookTracking";
+import { trackPageView, trackInitiateCheckout, trackLead } from "@/lib/facebookTracking";
 import { toast } from "sonner";
 import { 
   ArrowRight,
@@ -133,6 +133,8 @@ const Renddx = () => {
     if (!phone || phone.replace(/\D/g, "").length < 10) { toast.error("Por favor, insira um celular válido com DDD"); return; }
     if (!username || username.length < 4) { toast.error("Nome de usuário deve ter no mínimo 4 caracteres"); return; }
     if (usernameError) { toast.error(usernameError); return; }
+    // Lead: cadastro válido preenchido (intenção de compra confirmada)
+    trackLead("Renddx - Cadastro Checkout");
     setLoading(true);
     try {
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
