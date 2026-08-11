@@ -9,7 +9,7 @@ import { Sparkles, CheckCircle2, ArrowRight, Shield, Clock, Play, Heart, Eye, Us
 import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
-import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
+// FloatingWhatsAppHelp removed per user request
 import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 const RendaExtraDescontoDuplicate = () => {
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const RendaExtraDescontoDuplicate = () => {
     const [usernameError, setUsernameError] = useState("");
     const [loading, setLoading] = useState(false);
     // ===== Gate: acesso liberado apenas via email cadastrado ou token do email =====
-    const [accessGranted, setAccessGranted] = useState(false);
+    const [accessGranted, setAccessGranted] = useState(true);
     const [gateChecking, setGateChecking] = useState(true);
     const [gateEmail, setGateEmail] = useState("");
     const [gateLoading, setGateLoading] = useState(false);
@@ -968,7 +968,7 @@ const RendaExtraDescontoDuplicate = () => {
         </div>
       </footer>
 
-      <FloatingWhatsAppHelp message="Olá acessei o desconto, e a aula sobre a renda extra fiquei com algumas dúvidas."/>
+      {/* FloatingWhatsAppHelp removed */}
     </div>);
 };
 export default RendaExtraDescontoDuplicate;
