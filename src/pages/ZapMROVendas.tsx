@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -8,11 +9,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
 
 const PLANS = {
   monthly: { name: "Mensal", price: 67.00, days: 30, description: "Acesso por 30 dias" },
