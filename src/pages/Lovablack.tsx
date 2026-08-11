@@ -347,33 +347,5 @@ const Lovablack = () => {
   );
 };
 
-const X = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-  </svg>
-);
-
-const CardHeader = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-6", className)}>{children}</div>
-);
-
-const CardTitle = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <h3 className={cn("text-2xl font-semibold leading-none tracking-tight", className)}>{children}</h3>
-);
-
-const CardDescription = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <p className={cn("text-sm text-muted-foreground", className)}>{children}</p>
-);
 
 export default Lovablack;
