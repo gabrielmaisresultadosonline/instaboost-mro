@@ -961,8 +961,9 @@ const Admin = () => {
         {activeTab === 'zapmro_taxas' && <ZapmroFeesPanel />}
 
         {/* Dashboard Produtos Tab */}
-        {activeTab === 'lovablack' && <LovablackPanel />}
         {activeTab === 'hub' && <HubProductsPanel />}
+        {activeTab === 'lovablack' && <LovablackPanel />}
+
 
         {/* Unificações de Acesso (logs + desfazer) */}
         {activeTab === 'merges' && <MergeLogsPanel />}
