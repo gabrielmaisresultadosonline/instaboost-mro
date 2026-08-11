@@ -340,8 +340,8 @@ const App = () => (
           <Route path="/rendaextra/desconto" element={<RendaExtraDescontoPage />} />
           <Route path="/rendaextra-desconto" element={<RendaExtraDescontoPage />} />
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
-          <Route path="/renddx/promo" element={<Renddx />} />
-          <Route path="/renddx" element={<RendaExtraDescontoDuplicate />} />
+          <Route path="/renddx" element={<Renddx />} />
+          <Route path="/renddx/access" element={<RendaExtraDescontoDuplicate />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
           <Route path="/r/rxl-wa" element={<RendaExtraLeadWaRedirect />} />
