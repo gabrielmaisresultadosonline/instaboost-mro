@@ -287,7 +287,7 @@ export default function LovablackPanel() {
                 Login (Extensão)
               </h5>
               <code className="text-[10px] block bg-black/90 text-green-400 p-2 rounded overflow-x-auto whitespace-pre">
-                {`URL: /functions/v1/lovablack-api\nContent-Type: application/json\n\n{\n  "action": "login",\n  "email": "usuario@exemplo.com",\n  "password": "senha_do_usuario",\n  "session_id": "id_unico_da_maquina" // OPCIONAL para bloqueio multi-login\n}`}
+                {`URL: https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/lovablack-api\nContent-Type: application/json\n\n{\n  "action": "login",\n  "email": "usuario@exemplo.com",\n  "password": "senha_do_usuario",\n  "session_id": "id_unico_da_maquina" // OPCIONAL para bloqueio multi-login\n}`}
               </code>
             </div>
 
