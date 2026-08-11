@@ -128,7 +128,7 @@ const Lovablack = () => {
           </div>
 
           <h1 className="text-4xl md:text-7xl font-black mb-6 leading-tight">
-            USE O <span className="text-primary">LOVABLE</span> SEM PAGAR CRÉDITOS!
+            EXTENSÃO PARA USAR <span className="text-primary">LOVABLE</span> SEM PAGAR CRÉDITOS!
           </h1>
           
           <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-10">
@@ -137,7 +137,7 @@ const Lovablack = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Button 
-              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => handleOpenCheckout("monthly")}
               className="w-full sm:w-auto btn-pulse-green bg-green-500 hover:bg-green-600 text-black font-black text-xl px-12 py-8 rounded-2xl"
             >
               TESTE GRÁTIS AGORA
@@ -227,11 +227,11 @@ const Lovablack = () => {
               </div>
               <CardHeader className="text-center pb-2">
                 <Badge className="w-fit mx-auto mb-4 bg-primary text-white border-none">VITALÍCIO</Badge>
-                <CardTitle className="text-3xl font-black text-white">ÚNICO</CardTitle>
+                <CardTitle className="text-3xl font-black text-white">ILIMITADO</CardTitle>
                 <div className="mt-4 flex items-baseline justify-center gap-1">
                   <span className="text-2xl font-bold text-primary">R$</span>
                   <span className="text-6xl font-black text-white">147</span>
-                  <span className="text-zinc-500 font-bold">sem mensalidade</span>
+                  <span className="text-zinc-500 font-bold">VITALÍCIO</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
