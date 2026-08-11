@@ -3591,6 +3591,45 @@ export type Database = {
         }
         Relationships: []
       }
+      lovablack_users: {
+        Row: {
+          blocked: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          password: string
+          plan_type: Database["public"]["Enums"]["lovablack_plan_type"]
+          trial_expires_at: string | null
+          updated_at: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          password: string
+          plan_type?: Database["public"]["Enums"]["lovablack_plan_type"]
+          trial_expires_at?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          password?: string
+          plan_type?: Database["public"]["Enums"]["lovablack_plan_type"]
+          trial_expires_at?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       lovable_extension_users: {
         Row: {
           created_at: string
@@ -8238,6 +8277,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      lovablack_plan_type: "trial" | "monthly" | "lifetime"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -8366,6 +8406,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      lovablack_plan_type: ["trial", "monthly", "lifetime"],
     },
   },
 } as const
