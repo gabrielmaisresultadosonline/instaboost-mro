@@ -220,7 +220,7 @@ const Renddx = () => {
         {step === 'initial' ? (
           <div className="text-center max-w-xl animate-in fade-in zoom-in duration-700">
             <h1 className="text-3xl md:text-5xl font-black mb-12 text-white leading-tight">
-              ppode me ajudar?
+              pode me ajudar?
             </h1>
             <Button 
               onClick={handleInitialClick}
