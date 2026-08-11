@@ -753,18 +753,32 @@ serve(async (req) => {
           });
         }
         
-        // Dispara e-mail de boas-vindas com link para criar senha e acessar o dashboard
+        // Dispara e-mail de boas-vindas
         try {
-          await supabase.functions.invoke("delivery-email", {
-            body: { 
-              email: (hubOrder.email as string) || email,
-              name: (hubOrder.name as string) || "Cliente",
-              product_title: slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : "Tráfego Pago (Visitas no Perfil)",
+          if (slug === "renddx") {
+            const { data: userData } = await supabase
+              .from("zapmro_users")
+              .select("username, password_plain")
+              .eq("email", (hubOrder.email as string) || email)
+              .maybeSingle();
 
-              dashboard_url: "https://maisresultadosonline.com.br/dashboard",
-              type: "welcome_hub"
-            }
-          });
+            await sendRenddxWelcomeEmail(
+              (hubOrder.email as string) || email || "",
+              (hubOrder.name as string) || "Cliente",
+              userData?.username || (hubOrder.name as string)?.toLowerCase().replace(/\s/g, "") || "usuario",
+              userData?.password_plain || "mro123"
+            );
+          } else {
+            await supabase.functions.invoke("delivery-email", {
+              body: { 
+                email: (hubOrder.email as string) || email,
+                name: (hubOrder.name as string) || "Cliente",
+                product_title: slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : "Tráfego Pago (Visitas no Perfil)",
+                dashboard_url: "https://maisresultadosonline.com.br/dashboard",
+                type: "welcome_hub"
+              }
+            });
+          }
         } catch (e) { log("Error sending welcome email", e); }
         
         // Track Meta Purchase Event for HUB orders
