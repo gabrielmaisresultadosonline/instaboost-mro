@@ -27,6 +27,29 @@ const UpdateSchema = z.object({
   custom_message: z.string().max(1000).nullable().optional(),
 }).strict();
 
+const createServiceClient = (url: string, serviceKey: string) => {
+  const isOpaqueKey = serviceKey.startsWith("sb_secret_");
+
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: isOpaqueKey ? {
+      fetch: (input, init = {}) => {
+        const headers = new Headers(init.headers);
+        const authorization = headers.get("Authorization");
+
+        // Opaque secret keys identify the privileged backend through `apikey`.
+        // Sending the same opaque value as a Bearer token makes PostgREST treat
+        // the request as anonymous and incorrectly apply RLS.
+        if (authorization === `Bearer ${serviceKey}`) {
+          headers.delete("Authorization");
+        }
+
+        return fetch(input, { ...init, headers });
+      },
+    } : undefined,
+  });
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "Método não permitido" }, 405);
@@ -43,7 +66,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body.action !== "string") return json({ success: false, error: "Requisição inválida" }, 400);
-    const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const db = createServiceClient(url, serviceKey);
 
     if (body.action === "admin_login") {
       const parsed = LoginSchema.safeParse(body);
