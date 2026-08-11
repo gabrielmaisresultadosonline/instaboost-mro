@@ -255,9 +255,9 @@ const Renddx = () => {
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
-          <h3 className="text-2xl font-bold mb-4">Plano Anual</h3>
+          <h3 className="text-2xl font-bold mb-4">Plano Mensal</h3>
           <div className="text-5xl font-black mb-2 text-green-400">R$47</div>
-          <p className="text-zinc-400 mb-6">Pagamento Único (Acesso 1 Ano)</p>
+          <p className="text-zinc-400 mb-6">Acesso 30 Dias</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-green-500" /> Ferramenta Completa</li>
             <li className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" /> 4 Contas Simultâneas</li>
