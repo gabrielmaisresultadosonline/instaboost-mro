@@ -191,13 +191,6 @@ ${daysDisplay ? `<tr><td style="height:10px;"></td></tr><tr><td style="padding:1
 </tr>
 </table>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 20px 0;">
-<tr>
-<td style="text-align:center;padding:12px;background:#128C7E;border-radius:8px;">
-<a href="${whatsappGroupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">👥 Entrar no Grupo do WhatsApp</a>
-</td>
-</tr>
-</table>
 
 </td>
 </tr>
