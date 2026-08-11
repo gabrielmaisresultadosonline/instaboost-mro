@@ -110,7 +110,7 @@ const RendaExtraDescontoDuplicate = () => {
     setRegLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("estrutura4-discount", {
-        body: { action: "create_lead", nome, email, whatsapp, source: "rendaextradesconto" },
+        body: { action: "create_lead", nome, email, whatsapp, source: "renddx" },
       });
       if (error || !data?.success) {
         toast.error("Erro ao cadastrar. Tente novamente.");
