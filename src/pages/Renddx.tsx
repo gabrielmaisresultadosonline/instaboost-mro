@@ -183,7 +183,10 @@ const Renddx = () => {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
-        .btn-pulse-color { background: linear-gradient(to right, #facc15, #eab308) !important; border: none; }
+        .btn-pulse-yellow { background: linear-gradient(to right, #facc15, #eab308) !important; border: none; color: black !important; font-weight: 900 !important; animation: pulse-yellow 2s infinite; }
+        @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); } }
+        .btn-pulse-green { animation: pulse-green 2s infinite; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
         @keyframes bounceArrowRight { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
         .arrow-bounce-right { animation: bounceArrowRight 1s ease-in-out infinite; }
       `}</style>
@@ -198,7 +201,7 @@ const Renddx = () => {
               <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">Aguarde um próximo desconto para alunos renda extra.</p>
               <p className="text-red-400 font-bold text-sm sm:text-base">Consulte os administradores para mais informações.</p>
             </div>
-            <Button onClick={() => window.location.href = '/instagram-nova'} className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-bold text-lg py-5 rounded-xl border border-gray-600">
+            <Button onClick={() => window.location.href = '/instagram-nova'} className="w-full btn-pulse-yellow text-lg py-5 rounded-xl border border-gray-600">
               Página Oficial <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             {isDiscountActive && <button onClick={() => setShowDiscountEndedPopup(false)} className="mt-4 text-gray-400 hover:text-white text-sm underline">Continuar na página mesmo assim</button>}
@@ -239,7 +242,7 @@ const Renddx = () => {
                 
                 <Button 
                   onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-black font-black px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all hover:scale-105 active:scale-95 group"
+                  className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
                 >
                   QUERO COMEÇAR AGORA
                   <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
@@ -285,9 +288,9 @@ const Renddx = () => {
 
       {/* CTA Adicional Superior */}
       <section className="py-10 text-center">
-         <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-green-500 hover:bg-green-600 text-black font-black px-10 py-8 rounded-2xl text-xl animate-pulse">
+          <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
             QUERO COMEÇAR POR APENAS R$47 <ArrowRight className="ml-2 w-6 h-6" />
-         </Button>
+          </Button>
       </section>
 
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
@@ -301,15 +304,15 @@ const Renddx = () => {
             <li className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" /> 4 Contas Simultâneas</li>
             <li className="flex items-center gap-2"><Target className="w-4 h-4 text-green-500" /> Suporte VIP</li>
           </ul>
-          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg">QUERO ESSE DESCONTO</Button>
+          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.4)]">QUERO ESSE DESCONTO</Button>
         </div>
       </section>
 
       {/* CTA Adicional Inferior */}
       <section className="pb-20 text-center">
-         <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-green-500 hover:bg-green-600 text-black font-black px-10 py-8 rounded-2xl text-xl">
+          <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
             LIBERAR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
-         </Button>
+          </Button>
       </section>
 
       {showCheckoutModal && (
