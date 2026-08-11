@@ -481,6 +481,7 @@ serve(async (req) => {
         new_until: p.new_until ? String(p.new_until) : null,
         is_ebook_hub: !!p.is_ebook_hub,
         badge_text: p.badge_text ? String(p.badge_text) : null,
+        plan_type: p.plan_type ? String(p.plan_type) : 'vitalicio',
       };
       if (p.id) {
         const { error } = await supabase.from("hub_products").update(payload).eq("id", String(p.id));
