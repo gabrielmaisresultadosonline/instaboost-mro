@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { getAdminSessionToken } from "@/lib/adminConfig";
 import { 
   Users, Plus, FileText, Search, Loader2, 
   ShieldBan, ShieldCheck, Mail, Phone, Clock, MessageSquare
@@ -47,16 +48,22 @@ export default function LovablackPanel() {
     plan_type: "trial" as "trial" | "monthly" | "lifetime"
   });
 
+  const invokeAdmin = async (action: string, payload: Record<string, unknown> = {}) => {
+    const token = getAdminSessionToken();
+    if (!token) throw new Error("Sessão administrativa expirada. Entre novamente.");
+    const { data, error } = await supabase.functions.invoke('lovablack-api', {
+      body: { action, admin_token: token, ...payload },
+    });
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || "Falha na operação administrativa");
+    return data;
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
-        .from('lovablack_users')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setUsers(data || []);
+      const data = await invokeAdmin('admin_list_users');
+      setUsers(data.users || []);
     } catch (error: any) {
       console.error(error);
       toast({ title: "Erro ao buscar usuários", description: error.message, variant: "destructive" });
@@ -67,14 +74,9 @@ export default function LovablackPanel() {
 
   const fetchGlobalSettings = async () => {
     try {
-      const { data, error } = await (supabase as any)
-        .from('lovablack_settings')
-        .select('*');
-      
-      if (error) throw error;
-      
+      const response = await invokeAdmin('admin_get_settings');
       const settings: any = {};
-      data?.forEach((s: any) => {
+      response.settings?.forEach((s: any) => {
         settings[s.key] = s.value;
       });
       setGlobalSettings(prev => ({ ...prev, ...settings }));
@@ -95,12 +97,7 @@ export default function LovablackPanel() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('lovablack_users')
-        .insert([newUser])
-        .select();
-
-      if (error) throw error;
+      await invokeAdmin('admin_create_user', { user: newUser });
 
       toast({ title: "Usuário criado com sucesso!" });
       setIsCreateOpen(false);
@@ -113,12 +110,7 @@ export default function LovablackPanel() {
 
   const toggleBlock = async (user: any) => {
     try {
-      const { error } = await (supabase as any)
-        .from('lovablack_users')
-        .update({ blocked: !user.blocked })
-        .eq('id', user.id);
-
-      if (error) throw error;
+      await invokeAdmin('admin_update_user', { id: user.id, updates: { blocked: !user.blocked } });
       fetchUsers();
     } catch (error: any) {
       toast({ title: "Erro ao alterar status", description: error.message, variant: "destructive" });
@@ -127,12 +119,7 @@ export default function LovablackPanel() {
 
   const updateMessage = async (userId: string, message: string) => {
     try {
-      const { error } = await (supabase as any)
-        .from('lovablack_users')
-        .update({ custom_message: message })
-        .eq('id', userId);
-
-      if (error) throw error;
+      await invokeAdmin('admin_update_user', { id: userId, updates: { custom_message: message } });
       toast({ title: "Mensagem atualizada!" });
       fetchUsers();
     } catch (error: any) {
@@ -142,12 +129,7 @@ export default function LovablackPanel() {
 
   const handleSaveGlobalSettings = async () => {
     try {
-      for (const [key, value] of Object.entries(globalSettings)) {
-        const { error } = await (supabase as any)
-          .from('lovablack_settings')
-          .upsert({ key, value });
-        if (error) throw error;
-      }
+      await invokeAdmin('admin_update_settings', { settings: globalSettings });
       toast({ title: "Configurações globais salvas!" });
       setIsGlobalSettingsOpen(false);
     } catch (error: any) {

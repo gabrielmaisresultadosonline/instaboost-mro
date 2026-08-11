@@ -821,7 +821,7 @@ export const isAdminLoggedIn = (): boolean => {
     if (!stored) return false;
     
     const session = JSON.parse(stored);
-    return session.email?.toUpperCase() === 'MRO@GMAIL.COM';
+    return session.email?.toUpperCase() === 'MRO@GMAIL.COM' && typeof session.token === 'string' && session.token.length > 0;
   } catch (error) {
     console.error('Error verifying admin status:', error);
     return false;
@@ -831,24 +831,25 @@ export const isAdminLoggedIn = (): boolean => {
 // Verify admin - alias for isAdminLoggedIn
 export const verifyAdmin = isAdminLoggedIn;
 
-// Admin credentials - stored securely
 const ADMIN_EMAIL = 'MRO@GMAIL.COM';
 const ADMIN_PASSWORD = 'Ga145523@';
 
 // Login admin - validates credentials
 export const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    // Check admin credentials
-    if (email.toUpperCase() === ADMIN_EMAIL.toUpperCase() && password === ADMIN_PASSWORD) {
-      // Store admin session in localStorage
-      localStorage.setItem('mro_admin_session', JSON.stringify({
-        email: ADMIN_EMAIL,
-        loginAt: new Date().toISOString()
-      }));
-      return { success: true };
+    const { data, error } = await supabase.functions.invoke('lovablack-api', {
+      body: { action: 'admin_login', email: email.trim(), password },
+    });
+    if (error || !data?.success || !data?.token) {
+      return { success: false, error: data?.error || 'Credenciais inválidas' };
     }
-
-    return { success: false, error: 'Credenciais inválidas' };
+    localStorage.setItem('mro_admin_session', JSON.stringify({
+      email: ADMIN_EMAIL,
+      token: data.token,
+      expiresAt: data.expires_at,
+      loginAt: new Date().toISOString(),
+    }));
+    return { success: true };
   } catch (error) {
     console.error('Admin login error:', error);
     return { success: false, error: 'Erro ao fazer login' };
@@ -866,4 +867,17 @@ export const logoutAdmin = async (): Promise<void> => {
 export const getAdminCredentials = (): { email: string; password: string } | null => {
   if (!isAdminLoggedIn()) return null;
   return { email: ADMIN_EMAIL.toLowerCase(), password: ADMIN_PASSWORD };
+};
+
+export const getAdminSessionToken = (): string | null => {
+  try {
+    const stored = localStorage.getItem('mro_admin_session');
+    if (!stored) return null;
+    const session = JSON.parse(stored) as { token?: unknown; expiresAt?: unknown };
+    if (typeof session.token !== 'string') return null;
+    if (typeof session.expiresAt === 'number' && session.expiresAt < Date.now()) return null;
+    return session.token;
+  } catch {
+    return null;
+  }
 };
