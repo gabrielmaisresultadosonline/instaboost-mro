@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, Plus, FileText, Search, Loader2, 
-  ShieldBan, ShieldCheck, Mail, Phone
+  ShieldBan, ShieldCheck, Mail, Phone, Clock, MessageSquare
 } from "lucide-react";
 import {
   Dialog,
@@ -99,6 +99,21 @@ export default function LovablackPanel() {
     }
   };
 
+  const updateMessage = async (userId: string, message: string) => {
+    try {
+      const { error } = await (supabase as any)
+        .from('lovablack_users')
+        .update({ custom_message: message })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast({ title: "Mensagem atualizada!" });
+      fetchUsers();
+    } catch (error: any) {
+      toast({ title: "Erro ao atualizar mensagem", description: error.message, variant: "destructive" });
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     (u.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -156,7 +171,14 @@ export default function LovablackPanel() {
                     <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1">
                       <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {user.email}</span>
                       {user.whatsapp && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {user.whatsapp}</span>}
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Acesso: {user.last_access ? new Date(user.last_access).toLocaleString() : 'Nunca'}</span>
                     </div>
+                    {user.custom_message && (
+                      <div className="mt-2 p-1.5 rounded bg-primary/5 border border-primary/10 text-[10px] flex items-center gap-1.5 max-w-md">
+                        <MessageSquare className="h-3 w-3 text-primary shrink-0" />
+                        <span className="italic truncate">{user.custom_message}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -164,10 +186,25 @@ export default function LovablackPanel() {
                   {user.plan_type === 'trial' && (
                     <div className="text-[10px] text-right mr-2 leading-tight">
                       <span className="text-muted-foreground block">Expira em:</span>
-                      <span className="font-mono text-primary font-bold">{new Date(user.trial_expires_at).toLocaleString()}</span>
+                      <span className={new Date(user.trial_expires_at) < new Date() ? "text-destructive font-bold" : "font-mono text-primary font-bold"}>
+                        {new Date(user.trial_expires_at).toLocaleString()}
+                        {new Date(user.trial_expires_at) < new Date() && " (EXPIRADO)"}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-center gap-1 border-l pl-3">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-primary"
+                      onClick={() => {
+                        const msg = prompt("Mensagem de aviso para o usuário (Pop-up na extensão):", user.custom_message || "");
+                        if (msg !== null) updateMessage(user.id, msg);
+                      }}
+                      title="Definir Mensagem/Aviso"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="icon" 
@@ -221,7 +258,10 @@ export default function LovablackPanel() {
     "email": "joao@email.com",
     "plan_type": "lifetime",
     "is_active": true,
-    "expires_at": null
+    "is_expired": false,
+    "expires_at": null,
+    "last_access": "2026-08-11T20:30:00Z",
+    "custom_message": "Seu acesso expira em 2 dias. Renove agora!"
   }
 }`}
               </pre>
