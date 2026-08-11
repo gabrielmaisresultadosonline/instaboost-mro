@@ -310,10 +310,11 @@ export default function LovablackPanel() {
             <div className="bg-destructive/10 p-3 rounded-md border border-destructive/20">
               <h5 className="font-bold text-xs mb-2 text-destructive">Bloqueios e Mensagens</h5>
               <ul className="text-[10px] space-y-1.5 text-muted-foreground list-disc pl-4">
-                <li><b className="text-foreground">blocked: true</b> → A extensão deve impedir o uso imediatamente.</li>
-                <li><b className="text-foreground">is_expired: true</b> → Tempo de teste esgotado.</li>
-                <li><b className="text-foreground">min_version</b> → Se a versão da extensão for menor, forçar atualização.</li>
-                <li><b className="text-foreground">custom_message / global_announcement</b> → Exibir em pop-up se não estiverem vazios.</li>
+                <li><b className="text-foreground">blocked: true</b> → A extensão deve impedir o uso imediatamente e exibir mensagem de erro.</li>
+                <li><b className="text-foreground">is_expired: true</b> → Tempo de teste esgotado ou plano vencido.</li>
+                <li><b className="text-foreground">min_version</b> → Se a versão da extensão for menor que este valor, forçar atualização e bloquear uso.</li>
+                <li><b className="text-foreground">custom_message / global_announcement</b> → Se não estiverem vazios, a extensão deve exibir em um pop-up/alerta ao usuário.</li>
+                <li><b className="text-foreground">Bloqueio por Versão</b> → A lógica deve comparar a versão atual da extensão com o campo <code>min_version</code> retornado.</li>
               </ul>
             </div>
           </div>
