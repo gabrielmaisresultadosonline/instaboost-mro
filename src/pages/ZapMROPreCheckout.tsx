@@ -41,8 +41,49 @@ const ZapMROPreCheckout = () => {
           throw error;
         }
         
-        console.log("ZapMROPreCheckout: Produtos encontrados:", data?.length, data);
-        setProducts(data || []);
+        console.log("ZapMROPreCheckout: Produtos encontrados no DB:", data?.length, data);
+        
+        // Fallback robusto se o banco estiver vazio
+        if (!data || data.length === 0) {
+          console.log("ZapMROPreCheckout: Usando produtos fallback (DB vazio)");
+          const fallbackProducts = [
+            {
+              id: "fb-1",
+              slug: "mro-ferramenta",
+              title: "MRO Ferramenta",
+              description: "Automação completa para Instagram",
+              price: 397,
+              is_active: true
+            },
+            {
+              id: "fb-2",
+              slug: "postscomia",
+              title: "Posts com IA",
+              description: "Criação de conteúdo inteligente",
+              price: 67,
+              is_active: true
+            },
+            {
+              id: "fb-3",
+              slug: "trafego-pago",
+              title: "Tráfego Pago (Visitas)",
+              description: "Aumente suas visitas no perfil",
+              price: 47,
+              is_active: true
+            },
+            {
+              id: "fb-4",
+              slug: "segredo-vender-mais",
+              title: "O SEGREDO PARA VENDER MAIS !",
+              description: "Ebook + Audiobook estratégico",
+              price: 39,
+              is_active: true
+            }
+          ];
+          setProducts(fallbackProducts);
+        } else {
+          setProducts(data);
+        }
       } catch (err) {
         console.error("ZapMROPreCheckout: Erro ao carregar produtos:", err);
       } finally {
