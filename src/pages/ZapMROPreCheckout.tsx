@@ -12,7 +12,8 @@ const ZapMROPreCheckout = () => {
   const navigate = useNavigate();
   const planType = searchParams.get('plan') || 'monthly';
   const planName = planType === 'annual' ? 'Plano Anual' : 'Plano Mensal';
-  const baseAmount = planType === 'annual' ? 300 : 67;
+  const planAmount = planType === 'annual' ? 300 : 67;
+  const planSlug = planType === 'annual' ? 'zapmro-anual' : 'zapmro-mensal';
 
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -29,6 +30,9 @@ const ZapMROPreCheckout = () => {
           .from("hub_products")
           .select("*")
           .eq("is_active", true)
+          .neq("slug", "zapmro")
+          .neq("slug", "zapmro-mensal")
+          .neq("slug", "zapmro-anual")
           .order("order_index", { ascending: true });
         
         if (error) throw error;
@@ -42,7 +46,7 @@ const ZapMROPreCheckout = () => {
     fetchProducts();
   }, []);
 
-  const totalAmount = baseAmount + selectedBumps.reduce((acc, slug) => {
+  const totalAmount = planAmount + selectedBumps.reduce((acc, slug) => {
     const prod = products.find(p => p.slug === slug);
     return acc + (Number(prod?.price) || 0);
   }, 0);
@@ -62,7 +66,7 @@ const ZapMROPreCheckout = () => {
           phone: phone.replace(/\D/g, "").trim(),
           planType,
           amount: totalAmount,
-          selectedBumps
+          selectedBumps: [planSlug, ...selectedBumps]
         }
       });
       if (error) throw error;

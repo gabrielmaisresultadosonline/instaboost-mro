@@ -15,8 +15,20 @@ import { supabase } from '@/integrations/supabase/client';
 
 
 const PLANS = {
-  monthly: { name: "Mensal", price: 67.00, days: 30, description: "Acesso por 30 dias" },
-  annual: { name: "Anual", price: 300.00, days: 365, description: "Acesso por 1 ano" },
+  monthly: { 
+    name: "Mensal", 
+    price: 67.00, 
+    days: 30, 
+    description: "Acesso por 30 dias",
+    slug: "zapmro-mensal"
+  },
+  annual: { 
+    name: "Anual", 
+    price: 300.00, 
+    days: 365, 
+    description: "Acesso por 1 ano",
+    slug: "zapmro-anual"
+  },
 };
 
 const ZapMROVendas = () => {
