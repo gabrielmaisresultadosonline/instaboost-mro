@@ -339,14 +339,8 @@ const RendaExtraDescontoDuplicate = () => {
     const promoEndTime = Date.now() + PROMO_DURATION;
     
     const updateCountdown = () => {
-      const currentTime = Date.now();
-      const diff = promoEndTime - currentTime;
-      
-      // Nunca expira - se chegar a 0, mostra 0:0:0 mas não marca como expirado
-      if (diff <= 0) {
-        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
-        return;
-      }
+      setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
+    };
       
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
