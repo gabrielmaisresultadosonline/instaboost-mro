@@ -95,9 +95,10 @@ export default function LovablackPanel() {
     }
 
     try {
-      const { error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('lovablack_users')
-        .insert([newUser]);
+        .insert([newUser])
+        .select();
 
       if (error) throw error;
 
