@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowRight, RefreshCw, UserCheck, Check, ShieldCheck, Zap, Lock, Music } from "lucide-react";
+import { Loader2, ArrowRight, RefreshCw, UserCheck, Check, ShieldCheck, Zap, Lock, Music, MousePointer2 } from "lucide-react";
 import { trackInitiateCheckout } from '@/lib/facebookTracking';
 
 const ZapMROPreCheckout = () => {
