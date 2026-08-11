@@ -55,9 +55,9 @@ const Renddx = () => {
   const planConfig = {
     label: 'Renda Extra MRO',
     amount: 47,
-    planType: 'annual',
+    planType: 'monthly',
     priceDisplay: 'R$47',
-    durationDisplay: '1 ano completo',
+    durationDisplay: '30 dias de acesso',
   };
 
   useEffect(() => {
