@@ -54,7 +54,7 @@ import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 import PromoToolVideoSection from "@/components/PromoToolVideoSection";
 
-const RendaExtraDescontoPromoPage = () => {
+const Renddx = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -352,7 +352,7 @@ const RendaExtraDescontoPromoPage = () => {
           <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-2">Acesso restrito</h2>
           <p className="text-white/60 text-sm md:text-base mb-6">{accessDenyReason}</p>
           <a
-            href="/rendaextra/desconto"
+            href="/renddx"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm transition-all"
           >
             Liberar acesso <ArrowRight className="w-4 h-4" />
@@ -952,4 +952,4 @@ const RendaExtraDescontoPromoPage = () => {
   );
 };
 
-export default RendaExtraDescontoPromoPage;
+export default Renddx;

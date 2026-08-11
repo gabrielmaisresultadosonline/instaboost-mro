@@ -56,7 +56,7 @@ import ActiveClientsSection from "@/components/ActiveClientsSection";
 import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 import DiscountVideoPlayer from "@/components/DiscountVideoPlayer";
 
-const RendaExtraDesconto = () => {
+const RendaExtraDescontoDuplicate = () => {
   const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
@@ -1226,4 +1226,4 @@ const RendaExtraDesconto = () => {
   );
 };
 
-export default RendaExtraDesconto;
+export default RendaExtraDescontoDuplicate;
