@@ -213,7 +213,7 @@ const Renddx = () => {
 
       <section className="relative pt-8 sm:pt-14 pb-12 sm:pb-20 px-3 sm:px-4 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-0">
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-green-500/10 blur-[120px] rounded-full" />
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] bg-green-500/5 blur-[80px] sm:blur-[120px] rounded-full" />
         </div>
         <div className="relative max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain drop-shadow-[0_0_30px_rgba(34,197,94,0.35)]" />
