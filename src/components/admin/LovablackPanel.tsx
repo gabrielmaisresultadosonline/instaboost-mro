@@ -44,7 +44,7 @@ export default function LovablackPanel() {
     email: "",
     password: "",
     whatsapp: "",
-    plan_type: "trial"
+    plan_type: "trial" as "trial" | "monthly" | "lifetime"
   });
 
   const fetchUsers = async () => {
@@ -95,9 +95,10 @@ export default function LovablackPanel() {
     }
 
     try {
-      const { error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('lovablack_users')
-        .insert([newUser]);
+        .insert([newUser])
+        .select();
 
       if (error) throw error;
 
@@ -526,7 +527,7 @@ Content-Type: application/json
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tipo de Plano</label>
-                <Select value={newUser.plan_type} onValueChange={v => setNewUser({...newUser, plan_type: v})}>
+                <Select value={newUser.plan_type} onValueChange={v => setNewUser({...newUser, plan_type: v as "trial" | "monthly" | "lifetime"})}>
                   <SelectTrigger className="bg-muted/30">
                     <SelectValue />
                   </SelectTrigger>
