@@ -32,6 +32,7 @@ interface HubProductRow {
   new_until?: string | null;
   is_ebook_hub?: boolean;
   badge_text?: string | null;
+  plan_type?: 'mensal' | 'anual' | 'vitalicio';
 }
 
 const emptyProduct = (): HubProductRow => ({
