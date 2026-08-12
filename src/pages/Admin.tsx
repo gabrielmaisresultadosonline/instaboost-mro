@@ -64,7 +64,7 @@ import { cn } from "@/lib/utils";
 
 const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -234,6 +234,7 @@ const Admin = () => {
     { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
     { id: 'lovablack', label: 'LOVABLACK', icon: <ShieldCheck className="w-4 h-4" /> },
+    { id: 'renddx_leads', label: 'Leads Renddx', icon: <Users className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
