@@ -61,6 +61,16 @@ const ToolSelector = () => {
       index: '03',
     },
     {
+      id: 'zapmro-extensao',
+      name: 'WhatsApp ZAPMRO Extensão',
+      subtitle: 'Ferramenta semi automático',
+      description: 'Automação semi automática via extensão do WhatsApp com o melhor custo benefício. Prática, leve e acessível para escalar suas vendas.',
+      icon: MessageCircle,
+      badge: 'ECONÔMICO',
+      salesPath: 'https://maisresultadosonline.com.br/zapmro/vendas',
+      index: '04',
+    },
+    {
       id: 'postscomia',
       name: 'Curso Completo de I.A',
       subtitle: 'Crie imagens e posts o mês todo',
