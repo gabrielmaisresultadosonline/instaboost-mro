@@ -156,11 +156,13 @@ export const trackPageView = (pageName?: string) => {
 /**
  * Track Lead - when user shows purchase intent (e.g., clicks WhatsApp)
  */
-export const trackLead = (leadSource?: string) => {
+export const trackLead = (leadSource?: string, userData?: { email?: string; phone?: string; content_name?: string }) => {
   trackFacebookEvent('Lead', {
-    content_name: leadSource || 'WhatsApp Contact',
+    content_name: userData?.content_name || leadSource || 'WhatsApp Contact',
     content_category: 'Lead',
-    currency: 'BRL'
+    currency: 'BRL',
+    email: userData?.email,
+    phone: userData?.phone
   });
 };
 
