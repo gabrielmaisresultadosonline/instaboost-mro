@@ -814,19 +814,30 @@ export const deleteVideo = (stepId: string, videoId: string): void => {
   }
 };
 
-// Check if admin is logged in - checks localStorage session
+// Check if admin is logged in - requires a valid (non-expired) session token.
+// Legacy sessions saved before the token-based auth are discarded so the
+// operator is asked to sign in again and receives a real session token.
 export const isAdminLoggedIn = (): boolean => {
   try {
     const stored = localStorage.getItem('mro_admin_session');
     if (!stored) return false;
-    
-    const session = JSON.parse(stored);
-    return session.email?.toUpperCase() === 'MRO@GMAIL.COM' && typeof session.token === 'string' && session.token.length > 0;
+
+    const session = JSON.parse(stored) as { email?: unknown; token?: unknown; expiresAt?: unknown };
+    const emailOk = typeof session.email === 'string' && session.email.toUpperCase() === 'MRO@GMAIL.COM';
+    const tokenOk = typeof session.token === 'string' && session.token.length > 0;
+    const notExpired = !(typeof session.expiresAt === 'number' && session.expiresAt < Date.now());
+
+    if (!emailOk || !tokenOk || !notExpired) {
+      localStorage.removeItem('mro_admin_session');
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error('Error verifying admin status:', error);
     return false;
   }
 };
+
 
 // Verify admin - alias for isAdminLoggedIn
 export const verifyAdmin = isAdminLoggedIn;
