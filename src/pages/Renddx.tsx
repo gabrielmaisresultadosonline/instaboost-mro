@@ -401,7 +401,19 @@ const Renddx = () => {
         </div>
       )}
 
-      <footer className="py-8 text-center text-zinc-600 text-xs border-t border-zinc-900"><p>© 2025 MRO - Mais Resultados Online. Todos os direitos reservados.</p></footer>
+      <footer className="py-12 px-4 text-center text-zinc-600 text-[10px] sm:text-xs border-t border-zinc-900 space-y-4">
+        <p>© 2025 MRO - Mais Resultados Online. Todos os direitos reservados.</p>
+        <div className="max-w-4xl mx-auto leading-relaxed opacity-50">
+          <p>
+            ESTE SITE NÃO É DO FACEBOOK: Este site não faz parte do site do Facebook ou do Facebook Inc. 
+            Além disso, este site NÃO é endossado pelo Facebook de forma alguma. FACEBOOK é uma marca comercial da FACEBOOK, Inc.
+          </p>
+          <p className="mt-2">
+            Os resultados podem variar e não são garantidos. As informações fornecidas nesta página são apenas para fins educacionais. 
+            Não garantimos ganhos financeiros e qualquer investimento é de inteira responsabilidade do usuário.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
