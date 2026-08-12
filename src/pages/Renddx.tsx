@@ -71,6 +71,15 @@ const Renddx = () => {
 
   useEffect(() => {
     trackPageView('Sales Page - Renddx Promo');
+    
+    // Check if user already submitted lead
+    const leadSubmitted = localStorage.getItem('renddx_lead_submitted');
+    if (!leadSubmitted) {
+      setShowLeadQuiz(true);
+    } else {
+      setIsLeadSaved(true);
+    }
+
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase.from("desconto_alunos_settings").select("is_active").single();
@@ -79,6 +88,38 @@ const Renddx = () => {
     };
     fetchSettings();
   }, []);
+
+  const handleLeadSubmit = async () => {
+    if (!leadName || !leadEmail || !leadWhatsApp) {
+      toast.error("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('renddx_leads').insert([
+        { 
+          name: leadName, 
+          email: leadEmail, 
+          whatsapp: leadWhatsApp,
+          user_agent: navigator.userAgent
+        }
+      ]);
+
+      if (error) throw error;
+
+      trackLead("Renddx - Quiz Registration");
+      localStorage.setItem('renddx_lead_submitted', 'true');
+      setIsLeadSaved(true);
+      setShowLeadQuiz(false);
+      toast.success("Cadastro realizado com sucesso!");
+    } catch (err) {
+      console.error("Error saving lead:", err);
+      toast.error("Erro ao salvar cadastro. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
