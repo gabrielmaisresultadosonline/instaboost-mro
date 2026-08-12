@@ -97,7 +97,7 @@ const ToolSelector = () => {
       subtitle: 'Desenvolvimento sob medida',
       description: 'Desenvolvemos o sistema que sua empresa precisa. Soluções técnicas exclusivas para criadores e empresas.',
       icon: Code2,
-      badge: '06',
+      badge: '07',
       salesPath: '/creatordev',
       index: '07',
     },
