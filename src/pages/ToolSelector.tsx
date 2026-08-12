@@ -78,7 +78,7 @@ const ToolSelector = () => {
       icon: Sparkles,
       badge: 'MRO',
       salesPath: '/postscomia',
-      index: '04',
+      index: '05',
     },
     {
       id: 'mktcompleto',
