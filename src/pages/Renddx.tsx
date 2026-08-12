@@ -35,6 +35,13 @@ import logoMro from "@/assets/logo-mro.png";
 
 
 const Renddx = () => {
+  const [showLeadQuiz, setShowLeadQuiz] = useState(false);
+  const [quizStep, setQuizStep] = useState(0); // 0: Start, 1: Name, 2: Email, 3: WhatsApp
+  const [leadName, setLeadName] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadWhatsApp, setLeadWhatsApp] = useState("");
+  const [isLeadSaved, setIsLeadSaved] = useState(false);
+
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isDiscountActive, setIsDiscountActive] = useState(true);
