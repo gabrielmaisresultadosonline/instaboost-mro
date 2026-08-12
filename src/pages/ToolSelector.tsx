@@ -88,7 +88,7 @@ const ToolSelector = () => {
       icon: Megaphone,
       badge: 'HOT',
       salesPath: '/mktcompleto',
-      index: '05',
+      index: '06',
       highlight: true,
     },
     {
