@@ -1,12 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, X, Users, Camera, Code2, Megaphone, Sparkles, Zap, ArrowRight } from 'lucide-react';
+import { MessageCircle, X, Users, Camera, Code2, Megaphone, Sparkles, Zap, ArrowRight, ArrowUpRight, ShieldCheck, LogIn } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 const InstagramIcon = (LucideIcons as any).Instagram || Camera;
 
-
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 import WhatsAppFloatingWidget from '@/components/WhatsAppFloatingWidget';
+
+/**
+ * Paleta institucional (agência de marketing — clean / editorial)
+ * cream #F7F1EB · ink #1A1B1A · deep #080808 · gray #4F4E4D
+ * yellow #F2B705 · yellowHot #FFD21F · gold #A66A00 · shadow #D8D0C8
+ */
+const C = {
+  cream: '#F7F1EB',
+  ink: '#1A1B1A',
+  deep: '#080808',
+  gray: '#4F4E4D',
+  yellow: '#F2B705',
+  yellowHot: '#FFD21F',
+  gold: '#A66A00',
+  shadow: '#D8D0C8',
+} as const;
 
 interface ToolOption {
   id: string;
@@ -20,10 +35,11 @@ interface ToolOption {
   highlight?: boolean;
 }
 
+const heading = { fontFamily: "'Archivo Black', 'Inter', sans-serif" } as const;
+
 const ToolSelector = () => {
   const navigate = useNavigate();
   const [showMembersModal, setShowMembersModal] = useState(false);
-  const [mouse, setMouse] = useState({ x: 50, y: 50 });
 
   useEffect(() => {
     trackPageView('Tool Selector - Homepage');
@@ -116,428 +132,382 @@ const ToolSelector = () => {
     navigate('/dashboard');
   };
 
-  const handleMove = (e: React.MouseEvent) => {
-    const x = (e.clientX / window.innerWidth) * 100;
-    const y = (e.clientY / window.innerHeight) * 100;
-    setMouse({ x, y });
-  };
-
   return (
     <div
-      onMouseMove={handleMove}
-      className="relative min-h-screen w-full bg-black overflow-hidden selection:bg-yellow-400 selection:text-black"
-      style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      className="relative min-h-screen w-full overflow-x-hidden"
+      style={{ background: C.cream, color: C.ink, fontFamily: "'Inter', system-ui, sans-serif" }}
     >
-      {/* Cursor spotlight — electric yellow */}
+      {/* Textura suave */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.5]"
         style={{
-          background: `radial-gradient(700px circle at ${mouse.x}% ${mouse.y}%, rgba(250,204,21,0.12), transparent 45%)`,
+          backgroundImage: `linear-gradient(${C.shadow} 1px, transparent 1px), linear-gradient(90deg, ${C.shadow} 1px, transparent 1px)`,
+          backgroundSize: '72px 72px',
+          maskImage: 'radial-gradient(ellipse at 50% 0%, black 10%, transparent 70%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at 50% 0%, black 10%, transparent 70%)',
         }}
       />
 
-      {/* Fine grid */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.04] z-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(250,204,21,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(250,204,21,.6) 1px, transparent 1px)',
-          backgroundSize: '56px 56px',
-          maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
-        }}
-      />
-
-      {/* Diagonal scanlines */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.03] z-0"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(45deg, rgba(255,255,255,.4) 0 1px, transparent 1px 8px)',
-        }}
-      />
-
-      {/* Glow orbs — animated */}
-      <div className="pointer-events-none absolute -top-40 -right-40 w-[560px] h-[560px] bg-yellow-400/20 rounded-full blur-[160px] z-0 animate-pulse-slow" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 w-[520px] h-[520px] bg-yellow-300/10 rounded-full blur-[160px] z-0 animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
-
-
-      <div className="relative z-10 min-h-[calc(100vh-40px)] w-full flex items-center justify-center p-6 md:p-12">
-        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          {/* Left column */}
-          <div className="lg:col-span-5 flex flex-col space-y-10 lg:space-y-12 lg:sticky lg:top-16">
-            <div className="flex flex-col space-y-6 md:space-y-8 animate-fade-in">
-              <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 border border-yellow-400/30 bg-yellow-400/5 backdrop-blur-sm">
-                <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                <span className="text-[10px] uppercase tracking-[0.3em] text-yellow-400 font-bold">
-                  Inteligência que vende
-                </span>
+      {/* NAVBAR */}
+      <header
+        className="sticky top-0 z-30 backdrop-blur-md border-b"
+        style={{ background: 'rgba(247,241,235,0.85)', borderColor: C.shadow }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-16 md:h-20 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: C.ink, boxShadow: `0 8px 20px -8px ${C.gray}` }}
+            >
+              <Zap className="w-4 h-4 md:w-5 md:h-5" style={{ color: C.yellowHot, fill: C.yellowHot }} />
+            </div>
+            <div className="min-w-0 leading-tight">
+              <div className="text-[9px] md:text-[10px] uppercase tracking-[0.28em] font-bold" style={{ color: C.gold }}>
+                Agência
               </div>
-
-              <h1
-                className="text-5xl md:text-6xl lg:text-7xl leading-[1.02] text-white uppercase tracking-tighter font-black"
-                style={{ fontFamily: "'Archivo Black', 'Inter', sans-serif" }}
-              >
-                Soluções{' '}
-                <span className="relative inline-block">
-                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 animate-gradient-shift" style={{ backgroundSize: '200% auto' }}>
-                    inteligentes
-                  </span>
-                  <span className="absolute -bottom-2 left-0 right-0 h-3 bg-yellow-400/20 blur-lg" />
-                </span>{' '}
-                para o seu negócio
-              </h1>
-
-              <p className="text-white/60 text-lg md:text-xl max-w-md leading-relaxed">
-                Tecnologia de ponta e automação com I.A para elevar o seu negócio ao próximo nível. Escolha a ferramenta ideal para a sua jornada.
-              </p>
-
-              {/* Metrics strip */}
-              <div className="grid grid-cols-3 gap-4 pt-2">
-                {[
-                  { n: '+1.8k', l: 'Empresas' },
-                  { n: '24/7', l: 'Suporte' },
-                  { n: '100%', l: 'Automático' },
-                ].map((m) => (
-                  <div key={m.l} className="border-l-2 border-yellow-400 pl-3">
-                    <div className="text-2xl md:text-3xl font-black text-white" style={{ fontFamily: "'Archivo Black', sans-serif" }}>{m.n}</div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-white/40 mt-1">{m.l}</div>
-                  </div>
-                ))}
+              <div className="text-sm md:text-base truncate" style={{ ...heading }}>
+                Mais Resultados Online
               </div>
             </div>
-
-            <div className="hidden lg:block h-px" />
           </div>
 
-          {/* Right column — staggered tool cards */}
-          <div className="lg:col-span-7 grid grid-cols-1 gap-6 md:gap-8">
-            {tools.map((tool, i) => {
-              const Icon = tool.icon;
-              const isLeft = i % 2 === 0;
-
-              const theme: Record<string, { bg: string; border: string; hoverBorder: string; shadow: string; title: string; body: string; subtitle: string; iconBg: string; iconText: string; iconBorder: string; badge: string; badgeText: string; line: string; cta: string; watermark: string; shine: string; topBar: string }> = {
-                instagram: {
-                  bg: 'bg-gradient-to-br from-yellow-400 via-yellow-300 to-yellow-500',
-                  border: 'border-yellow-500/60',
-                  hoverBorder: 'hover:border-yellow-600',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(250,204,21,0.55)]',
-                  title: 'text-black',
-                  body: 'text-black/70',
-                  subtitle: 'text-black/80',
-                  iconBg: 'bg-black',
-                  iconText: 'text-yellow-400',
-                  iconBorder: 'border-black/20',
-                  badge: 'bg-black',
-                  badgeText: 'text-yellow-400',
-                  line: 'bg-black',
-                  cta: 'text-black',
-                  watermark: 'text-black/[0.06]',
-                  shine: 'via-white/40',
-                  topBar: 'from-transparent via-black/30 to-transparent',
-                },
-                eleitoral: {
-                  bg: 'bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900',
-                  border: 'border-zinc-700/50',
-                  hoverBorder: 'hover:border-yellow-500',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)]',
-                  title: 'text-white',
-                  body: 'text-zinc-400',
-                  subtitle: 'text-yellow-500',
-                  iconBg: 'bg-zinc-800',
-                  iconText: 'text-yellow-500',
-                  iconBorder: 'border-zinc-700',
-                  badge: 'bg-yellow-500',
-                  badgeText: 'text-black',
-                  line: 'bg-yellow-500',
-                  cta: 'text-white',
-                  watermark: 'text-white/[0.03]',
-                  shine: 'via-white/5',
-                  topBar: 'from-transparent via-yellow-500/20 to-transparent',
-                },
-                'zapmro-promo': {
-                  bg: 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-green-700',
-                  border: 'border-emerald-400/50',
-                  hoverBorder: 'hover:border-emerald-300',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(16,185,129,0.45)]',
-                  title: 'text-white',
-                  body: 'text-white/75',
-                  subtitle: 'text-emerald-100',
-                  iconBg: 'bg-[#1877F2]',
-                  iconText: 'text-white',
-                  iconBorder: 'border-white/20',
-                  badge: 'bg-white',
-                  badgeText: 'text-emerald-700',
-                  line: 'bg-white',
-                  cta: 'text-white',
-                  watermark: 'text-white/[0.08]',
-                  shine: 'via-white/30',
-                  topBar: 'from-transparent via-white/30 to-transparent',
-                },
-                'zapmro-extensao': {
-                  bg: 'bg-gradient-to-br from-[#064e3b] via-[#047857] to-[#022c22]',
-                  border: 'border-emerald-300/40',
-                  hoverBorder: 'hover:border-emerald-200',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(4,120,87,0.55)]',
-                  title: 'text-white',
-                  body: 'text-white/75',
-                  subtitle: 'text-emerald-200',
-                  iconBg: 'bg-emerald-400',
-                  iconText: 'text-[#022c22]',
-                  iconBorder: 'border-emerald-200/40',
-                  badge: 'bg-emerald-400',
-                  badgeText: 'text-[#022c22]',
-                  line: 'bg-emerald-300',
-                  cta: 'text-white',
-                  watermark: 'text-white/[0.07]',
-                  shine: 'via-white/25',
-                  topBar: 'from-transparent via-emerald-300/40 to-transparent',
-                },
-                postscomia: {
-                  bg: 'bg-gradient-to-br from-[#5D4037] via-[#795548] to-[#4E342E]',
-                  border: 'border-[#8D6E63]/50',
-                  hoverBorder: 'hover:border-yellow-400',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(93,64,55,0.55)]',
-                  title: 'text-white',
-                  body: 'text-white/70',
-                  subtitle: 'text-yellow-300',
-                  iconBg: 'bg-yellow-400',
-                  iconText: 'text-[#4E342E]',
-                  iconBorder: 'border-yellow-500/50',
-                  badge: 'bg-yellow-400',
-                  badgeText: 'text-[#4E342E]',
-                  line: 'bg-yellow-400',
-                  cta: 'text-yellow-300',
-                  watermark: 'text-white/[0.06]',
-                  shine: 'via-yellow-400/30',
-                  topBar: 'from-transparent via-yellow-400/40 to-transparent',
-                },
-                mktcompleto: {
-                  bg: 'bg-gradient-to-br from-red-600 via-red-500 to-neutral-900',
-                  border: 'border-red-400/50',
-                  hoverBorder: 'hover:border-white',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(239,68,68,0.55)]',
-                  title: 'text-white',
-                  body: 'text-white/75',
-                  subtitle: 'text-white/90',
-                  iconBg: 'bg-white',
-                  iconText: 'text-red-600',
-                  iconBorder: 'border-white/30',
-                  badge: 'bg-white',
-                  badgeText: 'text-red-600',
-                  line: 'bg-white',
-                  cta: 'text-white',
-                  watermark: 'text-white/[0.08]',
-                  shine: 'via-white/30',
-                  topBar: 'from-transparent via-white/40 to-transparent',
-                },
-                creatordev: {
-                  bg: 'bg-gradient-to-br from-[#0EA5E9] via-[#0284C7] to-black',
-                  border: 'border-sky-400/50',
-                  hoverBorder: 'hover:border-yellow-400',
-                  shadow: 'shadow-[0_25px_60px_-15px_rgba(14,165,233,0.55)]',
-                  title: 'text-white',
-                  body: 'text-white/75',
-                  subtitle: 'text-yellow-300',
-                  iconBg: 'bg-black',
-                  iconText: 'text-yellow-400',
-                  iconBorder: 'border-yellow-400/50',
-                  badge: 'bg-yellow-400',
-                  badgeText: 'text-black',
-                  line: 'bg-yellow-400',
-                  cta: 'text-yellow-300',
-                  watermark: 'text-white/[0.06]',
-                  shine: 'via-yellow-400/30',
-                  topBar: 'from-transparent via-yellow-400/40 to-transparent',
-                },
-              };
-
-              const t = theme[tool.id] || theme.creatordev;
-
-              return (
-                <button
-                  key={tool.id}
-                  onClick={() => handleSalesClick(tool.salesPath, tool.name)}
-                  style={{ animationDelay: `${i * 120}ms` }}
-                  className={`group relative text-left overflow-hidden ${t.bg} border ${t.border} ${t.hoverBorder} p-8 lg:p-10 transition-all duration-500 animate-fade-in
-                    ${
-                      tool.highlight
-                        ? `${t.shadow} lg:ml-auto lg:w-[95%]`
-                        : `${t.shadow} ${isLeft ? 'lg:w-[92%] self-start' : 'lg:ml-auto lg:w-[88%]'}`
-                    }
-                    hover:-translate-y-1`}
-                >
-                  {/* Top bar */}
-                  <span aria-hidden className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${t.topBar}`} />
-
-                  {/* Corner index badge */}
-                  <div
-                    className={`absolute -top-4 -right-4 w-20 h-20 flex items-center justify-center text-xs font-black z-10 transition-transform group-hover:rotate-6 ${t.badge} ${t.badgeText} shadow-[0_10px_30px_-5px_rgba(0,0,0,0.3)]`}
-                    style={{ fontFamily: "'Archivo Black', sans-serif" }}
-                  >
-                    {tool.badge}
-                  </div>
-
-                  {/* Number watermark */}
-                  <span
-                    aria-hidden
-                    className={`pointer-events-none absolute -bottom-6 -left-2 text-[140px] leading-none font-black ${t.watermark} select-none`}
-                    style={{ fontFamily: "'Archivo Black', sans-serif" }}
-                  >
-                    {tool.index}
-                  </span>
-
-                  {/* Icon */}
-                  <div className="relative mb-6 flex items-center gap-4">
-                    <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-3 ${t.iconBg} ${t.iconText} border ${t.iconBorder} shadow-[0_0_25px_rgba(0,0,0,0.25)]`}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className={`text-xs md:text-sm uppercase tracking-[0.3em] font-bold ${t.subtitle} flex items-center gap-2`}>
-                      {tool.subtitle}
-                      {tool.id === 'eleitoral' && (
-                        <span className="text-lg" role="img" aria-label="Bandeira do Brasil">🇧🇷</span>
-                      )}
-                    </span>
-                  </div>
-
-                  <h3
-                    className={`relative text-2xl md:text-3xl mb-4 uppercase leading-tight ${t.title}`}
-                    style={{ fontFamily: "'Archivo Black', sans-serif" }}
-                  >
-                    {tool.name}
-                  </h3>
-                  <p className={`relative mb-8 leading-relaxed text-base md:text-lg max-w-lg ${t.body}`}>
-                    {tool.description}
-                  </p>
-
-                  <div className="relative flex items-center space-x-4">
-                    <div className={`h-[2px] w-12 transition-all group-hover:w-24 ${t.line}`} />
-                    <span className={`text-sm font-black uppercase tracking-widest flex items-center gap-2 ${t.cta}`}>
-                      {tool.highlight ? 'Explorar agora' : 'Saiba mais'}
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </div>
-
-                  {/* Shine sweep */}
-                  <span className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <span className={`absolute -inset-y-4 -left-1/2 w-1/3 bg-gradient-to-r from-transparent ${t.shine} to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[600%] transition-transform duration-1000`} />
-                  </span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2 md:gap-3">
+            <a
+              href="#ferramentas"
+              className="hidden md:inline-flex text-[11px] uppercase tracking-[0.2em] font-bold px-3 py-2 rounded-lg transition-colors"
+              style={{ color: C.gray }}
+            >
+              Ferramentas
+            </a>
+            <button
+              onClick={() => setShowMembersModal(true)}
+              className="inline-flex items-center gap-2 px-3 md:px-5 py-2.5 md:py-3 rounded-xl text-[10px] md:text-xs uppercase tracking-[0.18em] font-black transition-transform hover:-translate-y-0.5 active:scale-95"
+              style={{
+                background: C.ink,
+                color: C.yellowHot,
+                border: `1px solid ${C.deep}`,
+                boxShadow: `0 12px 28px -14px ${C.gray}`,
+              }}
+            >
+              <LogIn className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Área de Membros</span>
+              <span className="sm:hidden">Membros</span>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
+
+      {/* HERO */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-10 md:pt-16 pb-10 md:pb-14">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+          <div className="lg:col-span-7">
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
+              style={{ background: '#fff', border: `1px solid ${C.shadow}`, boxShadow: `0 8px 24px -18px ${C.gray}` }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: C.yellow }} />
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold" style={{ color: C.gold }}>
+                Inteligência que vende
+              </span>
+            </div>
+
+            <h1
+              className="text-[2.1rem] sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.03] uppercase tracking-tight"
+              style={{ ...heading, color: C.ink }}
+            >
+              Soluções{' '}
+              <span className="relative inline-block">
+                <span className="relative z-10">inteligentes</span>
+                <span
+                  aria-hidden
+                  className="absolute left-0 right-0 bottom-[0.08em] h-[0.32em] -z-0"
+                  style={{ background: C.yellow, opacity: 0.55 }}
+                />
+              </span>{' '}
+              para o seu negócio
+            </h1>
+
+            <p className="mt-5 md:mt-7 text-base md:text-xl leading-relaxed max-w-2xl" style={{ color: C.gray }}>
+              Tecnologia de ponta e automação com I.A para elevar o seu negócio ao próximo nível. Escolha a ferramenta ideal para a sua jornada.
+            </p>
+
+            <div className="mt-7 md:mt-9 flex flex-col sm:flex-row gap-3">
+              <a
+                href="#ferramentas"
+                className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-xs uppercase tracking-[0.2em] font-black transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: `linear-gradient(135deg, ${C.yellowHot}, ${C.yellow})`,
+                  color: C.deep,
+                  border: `1px solid ${C.gold}`,
+                  boxShadow: `0 16px 34px -18px ${C.gold}`,
+                }}
+              >
+                Ver ferramentas <ArrowRight className="w-4 h-4" />
+              </a>
+              <button
+                onClick={() => setShowMembersModal(true)}
+                className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-xs uppercase tracking-[0.2em] font-black transition-transform hover:-translate-y-0.5"
+                style={{ background: '#fff', color: C.ink, border: `1px solid ${C.shadow}` }}
+              >
+                <Users className="w-4 h-4" /> Você já é cliente?
+              </button>
+            </div>
+          </div>
+
+          {/* Métricas */}
+          <div className="lg:col-span-5">
+            <div
+              className="rounded-2xl p-5 md:p-7 grid grid-cols-3 gap-3 md:gap-5"
+              style={{ background: '#fff', border: `1px solid ${C.shadow}`, boxShadow: `0 26px 60px -32px ${C.gray}` }}
+            >
+              {[
+                { n: '+1.8k', l: 'Empresas' },
+                { n: '24/7', l: 'Suporte' },
+                { n: '100%', l: 'Automático' },
+              ].map((m) => (
+                <div key={m.l} className="pl-3" style={{ borderLeft: `3px solid ${C.yellow}` }}>
+                  <div className="text-xl sm:text-2xl md:text-3xl" style={{ ...heading, color: C.ink }}>
+                    {m.n}
+                  </div>
+                  <div className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] mt-1" style={{ color: C.gray }}>
+                    {m.l}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center gap-2 text-[11px]" style={{ color: C.gray }}>
+              <ShieldCheck className="w-4 h-4" style={{ color: C.gold }} />
+              Ferramentas próprias, suporte humano e resultados acompanhados.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FERRAMENTAS */}
+      <section id="ferramentas" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-14 md:pb-20 scroll-mt-24">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7 md:mb-10">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.3em] font-bold mb-2" style={{ color: C.gold }}>
+              Nossas soluções
+            </div>
+            <h2 className="text-2xl md:text-4xl uppercase" style={{ ...heading, color: C.ink }}>
+              Ferramentas & Serviços
+            </h2>
+          </div>
+          <div className="text-xs uppercase tracking-[0.2em] font-bold" style={{ color: C.gray }}>
+            {tools.length} soluções disponíveis
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            const featured = !!tool.highlight;
+            return (
+              <button
+                key={tool.id}
+                onClick={() => handleSalesClick(tool.salesPath, tool.name)}
+                className="group relative text-left rounded-2xl p-5 md:p-7 flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 sm:col-span-1 lg:col-span-1"
+                style={{
+                  background: featured ? `linear-gradient(150deg, ${C.ink}, ${C.deep})` : '#fff',
+                  border: `1px solid ${featured ? C.gold : C.shadow}`,
+                  boxShadow: featured ? `0 30px 60px -30px ${C.gold}` : `0 20px 44px -30px ${C.gray}`,
+                }}
+              >
+                <span
+                  aria-hidden
+                  className="absolute top-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: `linear-gradient(90deg, transparent, ${C.yellow}, transparent)` }}
+                />
+
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <div
+                    className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
+                    style={{
+                      background: featured ? `linear-gradient(135deg, ${C.yellowHot}, ${C.yellow})` : C.ink,
+                      color: featured ? C.deep : C.yellowHot,
+                      border: `1px solid ${featured ? C.gold : C.deep}`,
+                    }}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span
+                    className="px-2.5 py-1 rounded-full text-[9px] uppercase tracking-[0.18em] font-black flex-shrink-0"
+                    style={{
+                      background: featured ? C.yellowHot : C.cream,
+                      color: featured ? C.deep : C.gold,
+                      border: `1px solid ${featured ? C.gold : C.shadow}`,
+                    }}
+                  >
+                    {tool.badge}
+                  </span>
+                </div>
+
+                <div
+                  className="text-[10px] uppercase tracking-[0.24em] font-bold mb-2 flex items-center gap-2"
+                  style={{ color: featured ? C.yellowHot : C.gold }}
+                >
+                  <span className="opacity-70">{tool.index}</span>
+                  <span className="truncate">{tool.subtitle}</span>
+                  {tool.id === 'eleitoral' && (
+                    <span className="text-base" role="img" aria-label="Bandeira do Brasil">🇧🇷</span>
+                  )}
+                </div>
+
+                <h3
+                  className="text-lg md:text-xl uppercase leading-tight mb-3"
+                  style={{ ...heading, color: featured ? C.cream : C.ink }}
+                >
+                  {tool.name}
+                </h3>
+
+                <p className="text-sm md:text-[15px] leading-relaxed mb-6" style={{ color: featured ? 'rgba(247,241,235,0.72)' : C.gray }}>
+                  {tool.description}
+                </p>
+
+                <div className="mt-auto flex items-center gap-3">
+                  <span
+                    className="h-[2px] w-8 transition-all group-hover:w-14"
+                    style={{ background: featured ? C.yellowHot : C.yellow }}
+                  />
+                  <span
+                    className="text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5"
+                    style={{ color: featured ? C.yellowHot : C.ink }}
+                  >
+                    {featured ? 'Explorar agora' : 'Saiba mais'}
+                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ÁREA DE MEMBROS — faixa destacada */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-14 md:pb-20">
+        <div
+          className="relative rounded-3xl overflow-hidden p-6 md:p-12"
+          style={{ background: `linear-gradient(140deg, ${C.ink} 0%, ${C.deep} 100%)`, border: `1px solid ${C.gold}` }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full blur-[90px]"
+            style={{ background: C.yellow, opacity: 0.18 }}
+          />
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-10 items-center">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.3em] font-bold mb-3" style={{ color: C.yellowHot }}>
+                Já é cliente?
+              </div>
+              <h2 className="text-2xl md:text-4xl uppercase leading-tight mb-4" style={{ ...heading, color: C.cream }}>
+                Área de Membros
+              </h2>
+              <p className="text-sm md:text-base leading-relaxed" style={{ color: 'rgba(247,241,235,0.7)' }}>
+                Acesse suas ferramentas, cursos e bônus liberados em um único painel. Login rápido e seguro para clientes MRO.
+              </p>
+            </div>
+            <div className="md:justify-self-end w-full md:w-auto">
+              <button
+                onClick={() => setShowMembersModal(true)}
+                className="group w-full md:w-auto inline-flex flex-col items-center gap-1 px-7 py-5 rounded-2xl transition-transform hover:-translate-y-0.5 active:scale-95"
+                style={{
+                  background: `linear-gradient(135deg, ${C.yellowHot}, ${C.yellow})`,
+                  color: C.deep,
+                  border: `1px solid ${C.gold}`,
+                  boxShadow: `0 20px 46px -22px ${C.yellow}`,
+                }}
+              >
+                <span className="flex items-center gap-2 text-sm uppercase tracking-[0.18em]" style={heading}>
+                  <Users className="w-5 h-5" /> Acessar meu painel
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">
+                  Área de membros →
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-yellow-400/10 mt-16 py-8 px-6 lg:px-12 text-center space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+      <footer className="relative z-10 py-8 px-4 sm:px-6 lg:px-10 text-center space-y-2" style={{ borderTop: `1px solid ${C.shadow}` }}>
+        <p className="text-[10px] uppercase tracking-[0.2em]" style={{ color: C.gray }}>
           Mais Resultados Online • Gabriel Fernandes da Silva • CNPJ 54.840.738/0001-96
         </p>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-white/10">
+        <p className="text-[10px] uppercase tracking-[0.2em]" style={{ color: 'rgba(26,27,26,0.22)' }}>
           © 2024 • Todos os direitos reservados
         </p>
       </footer>
 
-      {/* Existing customer CTA — placed at bottom */}
-      <div className="relative z-10 flex justify-center px-6 lg:px-12 pb-10 pt-4">
-        <button
-          onClick={() => setShowMembersModal(true)}
-          className="group relative overflow-hidden px-8 py-5 bg-neutral-900 border border-yellow-400/30 text-yellow-400 text-base uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 hover:border-yellow-400 hover:shadow-[0_10px_40px_-10px_rgba(250,204,21,0.4)] font-black"
-          style={{ fontFamily: "'Archivo Black', sans-serif" }}
-        >
-          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <span className="relative flex items-center gap-3">
-            <Users className="w-5 h-5" />
-            Você já é cliente?
-          </span>
-          <span className="relative block text-xs mt-1 opacity-70 font-bold tracking-wider">
-            Acessar área de membros →
-          </span>
-        </button>
-      </div>
-
       {/* Members modal */}
       {showMembersModal && (
         <div
-          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+          style={{ background: 'rgba(8,8,8,0.72)', backdropFilter: 'blur(8px)' }}
           onClick={() => setShowMembersModal(false)}
         >
           <div
-            className="bg-neutral-950 border border-yellow-400/30 p-6 max-w-md w-full shadow-2xl relative animate-scale-in"
+            className="relative w-full max-w-md rounded-2xl p-5 md:p-6 animate-scale-in"
+            style={{ background: C.cream, border: `1px solid ${C.gold}`, boxShadow: `0 40px 80px -30px ${C.deep}` }}
             onClick={(e) => e.stopPropagation()}
           >
-            <span aria-hidden className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
-            <div className="absolute -top-4 -right-4 w-16 h-16 bg-yellow-400 flex items-center justify-center text-black text-[10px] uppercase tracking-widest font-black shadow-[0_10px_30px_-5px_rgba(250,204,21,0.6)]" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-              VIP
-            </div>
-            <div className="flex items-center justify-between mb-6">
+            <span
+              aria-hidden
+              className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl"
+              style={{ background: `linear-gradient(90deg, transparent, ${C.yellow}, transparent)` }}
+            />
+            <div className="flex items-start justify-between mb-5 gap-3">
               <div>
-                <h3 className="text-xl uppercase text-white" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                <h3 className="text-lg md:text-xl uppercase" style={{ ...heading, color: C.ink }}>
                   Área de Membros
                 </h3>
-                <p className="text-sm text-white/50 mt-1">Qual ferramenta deseja acessar?</p>
+                <p className="text-sm mt-1" style={{ color: C.gray }}>Qual ferramenta deseja acessar?</p>
               </div>
               <button
                 onClick={() => setShowMembersModal(false)}
-                className="p-2 hover:bg-black transition-colors text-yellow-400"
+                aria-label="Fechar"
+                className="p-2 rounded-lg transition-colors"
+                style={{ background: '#fff', border: `1px solid ${C.shadow}`, color: C.ink }}
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3">
-              <button
-                onClick={() => handleMembersSelect('instagram')}
-                className="w-full p-4 border border-white/5 hover:border-yellow-400/50 bg-black hover:bg-neutral-900 transition-all duration-300 flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 bg-yellow-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(250,204,21,0.4)]">
-                  <InstagramIcon className="w-6 h-6 text-black" />
-                </div>
-                <div className="text-left">
-                  <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                    MRO Instagram
-                  </h4>
-                  <p className="text-xs text-white/50">Ferramenta para Instagram</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-yellow-400 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </button>
-
-              <button
-                onClick={() => handleMembersSelect('zapmro')}
-                className="w-full p-4 border border-white/5 hover:border-yellow-400/50 bg-black hover:bg-neutral-900 transition-all duration-300 flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 bg-yellow-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(250,204,21,0.4)]">
-                  <MessageCircle className="w-6 h-6 text-black" />
-                </div>
-                <div className="text-left">
-                  <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                    ZAPMRO Não Oficial
-                  </h4>
-                  <p className="text-xs text-white/50">Ferramenta para WhatsApp</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-yellow-400 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </button>
-
-              <button
-                onClick={() => handleMembersSelect('zapmro-oficial')}
-                className="w-full p-4 border border-white/5 hover:border-emerald-400/50 bg-black hover:bg-neutral-900 transition-all duration-300 flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 bg-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-                  <MessageCircle className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <h4 className="text-white uppercase text-sm" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                    ZAPMRO OFICIAL
-                  </h4>
-                  <p className="text-xs text-white/50">API Oficial WhatsApp · zapmro.com.br</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-emerald-400 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </button>
+              {[
+                { key: 'instagram' as const, icon: InstagramIcon, title: 'MRO Instagram', sub: 'Ferramenta para Instagram' },
+                { key: 'zapmro' as const, icon: MessageCircle, title: 'ZAPMRO Não Oficial', sub: 'Ferramenta para WhatsApp' },
+                { key: 'zapmro-oficial' as const, icon: MessageCircle, title: 'ZAPMRO OFICIAL', sub: 'API Oficial WhatsApp · zapmro.com.br' },
+              ].map((opt) => {
+                const OptIcon = opt.icon;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => handleMembersSelect(opt.key)}
+                    className="w-full p-4 rounded-xl flex items-center gap-4 group transition-all hover:-translate-y-0.5"
+                    style={{ background: '#fff', border: `1px solid ${C.shadow}` }}
+                  >
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
+                      style={{ background: C.ink, color: C.yellowHot, border: `1px solid ${C.deep}` }}
+                    >
+                      <OptIcon className="w-5 h-5" />
+                    </div>
+                    <div className="text-left min-w-0">
+                      <h4 className="uppercase text-sm truncate" style={{ ...heading, color: C.ink }}>
+                        {opt.title}
+                      </h4>
+                      <p className="text-xs truncate" style={{ color: C.gray }}>{opt.sub}</p>
+                    </div>
+                    <ArrowRight
+                      className="w-4 h-4 ml-auto flex-shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"
+                      style={{ color: C.gold }}
+                    />
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -546,16 +516,12 @@ const ToolSelector = () => {
       <WhatsAppFloatingWidget />
 
       <style>{`
-        @keyframes gradient-shift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient-shift { animation: gradient-shift 4s ease-in-out infinite; }
         @keyframes scale-in {
-          from { opacity: 0; transform: scale(0.95); }
+          from { opacity: 0; transform: scale(0.96); }
           to { opacity: 1; transform: scale(1); }
         }
         .animate-scale-in { animation: scale-in 0.25s ease-out; }
+        html { scroll-behavior: smooth; }
       `}</style>
     </div>
   );
