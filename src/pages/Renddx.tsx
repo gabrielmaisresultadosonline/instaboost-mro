@@ -182,60 +182,6 @@ const Renddx = () => {
     setSelectedBumps(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]);
   };
 
-  const handleInitialClick = () => {
-    setIsFadingOut(true);
-    setTimeout(() => {
-      setStep('opportunity');
-      setIsFadingOut(false);
-      
-      // Segunda transição automática após 2 segundos
-      setTimeout(() => {
-        setIsFadingOut(true);
-        setTimeout(() => {
-          setStep('ready');
-          setIsFadingOut(false);
-        }, 1000);
-      }, 2000);
-    }, 1000);
-  };
-
-  if (step !== 'ready') {
-    return (
-      <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4 transition-opacity duration-1000 overflow-hidden" style={{ opacity: isFadingOut ? 0 : 1 }}>
-        <style>{`
-          .dissolve-text {
-            animation: dissolve 3s forwards;
-          }
-          @keyframes dissolve {
-            0% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
-            20% { opacity: 1; filter: blur(0); transform: scale(1); }
-            80% { opacity: 1; filter: blur(0); transform: scale(1); }
-            100% { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-          }
-        `}</style>
-        {step === 'initial' ? (
-          <div className="text-center max-w-xl animate-in fade-in zoom-in duration-700">
-            <h1 className="text-4xl md:text-6xl font-black mb-12 text-white leading-tight drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-              Gostaria de saber mais sobre a <span className="text-green-500 underline decoration-green-500/30">renda extra</span> com a <span className="text-yellow-400">MRO</span>?
-            </h1>
-            <Button 
-              onClick={handleInitialClick}
-              className="bg-green-500 hover:bg-green-600 text-black text-4xl md:text-6xl font-black py-10 px-20 rounded-3xl transition-transform hover:scale-105 active:scale-95 shadow-[0_0_50px_rgba(34,197,94,0.4)]"
-            >
-              SIM
-            </Button>
-          </div>
-        ) : (
-          <div className="text-center max-w-2xl dissolve-text px-6">
-            <h2 className="text-2xl md:text-4xl font-bold text-white tracking-widest uppercase">
-              Preste atenção nessa oportunidade
-            </h2>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden animate-in fade-in duration-1000">
       <style>{`
