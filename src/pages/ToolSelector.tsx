@@ -409,7 +409,7 @@ const ToolSelector = () => {
         <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
           Mais Resultados Online • Gabriel Fernandes da Silva • CNPJ 54.840.738/0001-96
         </p>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-white/15">
           © 2024 • Todos os direitos reservados
         </p>
       </footer>
