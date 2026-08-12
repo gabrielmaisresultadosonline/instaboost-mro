@@ -224,7 +224,7 @@ const Renddx = () => {
             <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-green-300 uppercase">Oferta liberada • Vagas limitadas</span>
           </div>
           <div className="relative mb-8 sm:mb-12">
-            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white">FATURE MAIS DE <span className="text-yellow-300">R$5.000</span></h1>
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white">FATURE MAIS DE <span className="text-yellow-300">5K</span></h1>
             <h2 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-5 leading-tight text-green-400">TRABALHANDO DE CASA!</h2>
             <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Renda extra <span className="text-green-300 font-semibold">automática e real</span>. Com apenas 1 computador, instale a ferramenta MRO e comece a faturar.</p>
           </div>
