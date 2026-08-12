@@ -99,7 +99,7 @@ const ToolSelector = () => {
       icon: Code2,
       badge: '06',
       salesPath: '/creatordev',
-      index: '06',
+      index: '07',
     },
   ];
 
