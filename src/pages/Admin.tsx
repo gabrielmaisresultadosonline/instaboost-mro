@@ -1145,6 +1145,9 @@ const Admin = () => {
         {activeTab === 'lovablack' && (
           <LovablackPanel />
         )}
+        {activeTab === 'renddx_leads' && (
+          <RenddxLeadsPanel />
+        )}
           </main>
         </SidebarInset>
       </div>
