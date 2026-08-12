@@ -108,7 +108,11 @@ const Renddx = () => {
 
       if (error) throw error;
 
-      trackLead("Renddx - Quiz Registration");
+      trackLead("Renddx - Quiz Registration", {
+        email: leadEmail,
+        phone: leadWhatsApp.replace(/\D/g, ""),
+        content_name: leadName
+      });
       localStorage.setItem('renddx_lead_submitted', 'true');
       setIsLeadSaved(true);
       setShowLeadQuiz(false);
