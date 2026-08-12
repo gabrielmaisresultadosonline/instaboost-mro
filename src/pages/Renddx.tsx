@@ -49,11 +49,7 @@ const Renddx = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Estados para a animação de entrada
-  const [step, setStep] = useState<'initial' | 'opportunity' | 'ready'>('initial');
-  const [isFadingOut, setIsFadingOut] = useState(false);
-
-  // Novos estados para order bumps
+  // Estados para order bumps
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
