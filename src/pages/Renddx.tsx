@@ -243,7 +243,108 @@ const Renddx = () => {
         .arrow-bounce-right { animation: bounceArrowRight 1s ease-in-out infinite; }
       `}</style>
       
-      {showDiscountEndedPopup && (
+      {/* Lead Quiz Modal */}
+      {showLeadQuiz && !isLeadSaved && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/98 backdrop-blur-xl p-4 overflow-hidden">
+          <div className="max-w-xl w-full relative animate-in zoom-in-95 duration-500">
+            {quizStep === 0 && (
+              <div className="text-center space-y-8 p-6 sm:p-10">
+                <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/40 rounded-full px-5 py-2 mb-2">
+                  <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" /></span>
+                  <span className="text-sm font-black tracking-widest text-green-400 uppercase">NOVA OPORTUNIDADE</span>
+                </div>
+                <h1 className="text-4xl sm:text-6xl font-black leading-tight">RENDA EXTRA</h1>
+                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Aprenda grátis como fazer isso, depois você decide se aplica ou não.</p>
+                <Button 
+                  onClick={() => setQuizStep(1)}
+                  className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
+                >
+                  AVANÇAR <ArrowRight className="ml-2 w-8 h-8 arrow-bounce-right" />
+                </Button>
+              </div>
+            )}
+
+            {quizStep === 1 && (
+              <div className="space-y-8 p-6 sm:p-10">
+                <div className="flex justify-between items-end mb-4">
+                  <span className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Passo 01/03</span>
+                  <User className="w-8 h-8 text-green-500" />
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-black">Qual o seu nome?</h2>
+                <Input 
+                  value={leadName}
+                  onChange={(e) => setLeadName(e.target.value)}
+                  placeholder="Seu nome completo"
+                  className="bg-zinc-900/50 border-zinc-800 h-20 text-xl sm:text-2xl rounded-2xl px-6 focus:border-green-500 transition-all"
+                  autoFocus
+                />
+                <Button 
+                  disabled={!leadName}
+                  onClick={() => setQuizStep(2)}
+                  className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
+                >
+                  AVANÇAR <ArrowRight className="ml-2 w-8 h-8 arrow-bounce-right" />
+                </Button>
+              </div>
+            )}
+
+            {quizStep === 2 && (
+              <div className="space-y-8 p-6 sm:p-10">
+                <div className="flex justify-between items-end mb-4">
+                  <span className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Passo 02/03</span>
+                  <Mail className="w-8 h-8 text-green-500" />
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-black">Qual o seu melhor e-mail?</h2>
+                <Input 
+                  type="email"
+                  value={leadEmail}
+                  onChange={(e) => setLeadEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="bg-zinc-900/50 border-zinc-800 h-20 text-xl sm:text-2xl rounded-2xl px-6 focus:border-green-500 transition-all"
+                  autoFocus
+                />
+                <Button 
+                  disabled={!leadEmail || !leadEmail.includes('@')}
+                  onClick={() => setQuizStep(3)}
+                  className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
+                >
+                  AVANÇAR <ArrowRight className="ml-2 w-8 h-8 arrow-bounce-right" />
+                </Button>
+              </div>
+            )}
+
+            {quizStep === 3 && (
+              <div className="space-y-8 p-6 sm:p-10">
+                <div className="flex justify-between items-end mb-4">
+                  <span className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Passo 03/03</span>
+                  <Phone className="w-8 h-8 text-green-500" />
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-black">Qual seu WhatsApp?</h2>
+                <Input 
+                  type="tel"
+                  value={leadWhatsApp}
+                  onChange={(e) => setLeadWhatsApp(e.target.value)}
+                  placeholder="(00) 00000-0000"
+                  className="bg-zinc-900/50 border-zinc-800 h-20 text-xl sm:text-2xl rounded-2xl px-6 focus:border-green-500 transition-all"
+                  autoFocus
+                />
+                <Button 
+                  disabled={!leadWhatsApp || leadWhatsApp.length < 8 || loading}
+                  onClick={handleLeadSubmit}
+                  className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
+                >
+                  {loading ? <Loader2 className="animate-spin w-8 h-8 mx-auto" /> : (
+                    <>
+                      FINALIZAR E ENTRAR <Rocket className="ml-2 w-8 h-8 arrow-bounce-right" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
           <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2"><div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">⚠️ AVISO</div></div>
