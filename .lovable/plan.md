@@ -1,23 +1,53 @@
-The "black screen" on mobile devices is likely caused by a combination of high-radius CSS blurs (which can crash mobile GPUs), potential JavaScript crashes in specific browser environments (like `localStorage` access or `NodeJS` type references), and possibly a permanent full-screen overlay in some variations of the page.
+# Plano: Rodapé "Todos os direitos reservados" com cor mais fraca e opaca
 
-I will:
-1.  **Reduce/Optimize Blurs**: Lower the blur radius from `100px-180px` to more manageable values (or use simpler gradients) on the main Instagram Nova pages. High blur values are known to cause rendering failures on mobile.
-2.  **Fix Potential JS Crashes**:
-    *   Change `NodeJS.Timeout` to `any` in `useRef` to avoid potential `ReferenceError` in some browser environments.
-    *   Ensure all `localStorage` access is safely wrapped.
-3.  **Optimize Overlays**: In `InstagramNovaP.tsx` and `InstagramNovaPromo.tsx`, make sure the "Promoção Encerrada" overlay is not unintentionally blocking users or crashing the render.
-4.  **Meta Pixel Optimization**: Ensure the manual Pixel injection doesn't interfere with the React app initialization.
+## Contexto atual (confirmado por leitura)
 
-Specifically for `InstagramNovaPlan.tsx`:
-- Reduce `blur-[120px]` and `blur-[100px]` to `blur-[60px]` or use `opacity-50` with smaller blurs.
-- Fix `usernameCheckTimeoutRef` type.
-- Add a check for `window` before accessing certain properties.
+A página inicial (`/`) é renderizada por `src/pages/ToolSelector.tsx` sobre um fundo **preto** (`bg-black`, linha 118) com gradientes radiais amarelos. O rodapé está nas linhas 407-415:
 
-For `InstagramNovaP.tsx` and `InstagramNovaPromo.tsx`:
-- Reduce blurs.
-- Fix the permanent overlay that might be showing up as a "black screen" to users.
+```text
+<footer className="... border-t border-yellow-400/10 ...">
+  <p className="text-[10px] ... text-white/40">          // linha 409 — "Mais Resultados Online • Gabriel..."
+  <p className="text-[10px] ... text-white/15">          // linha 412 — "© 2024 • Todos os direitos reservados"
+</footer>
+```
 
-Technical Details:
-- Files: `src/pages/InstagramNovaPlan.tsx`, `src/pages/InstagramNovaP.tsx`, `src/pages/InstagramNovaPromo.tsx`.
-- Change `blur-[120px]` -> `blur-[60px]`.
-- Change `useRef<NodeJS.Timeout | null>` -> `useRef<any | null>`.
+- A 1ª linha já usa `text-white/40` (40% opacidade).
+- A 2ª linha ("© 2024 • Todos os direitos reservados") está em `text-white/15` após o ajuste da rodada anterior (antes era `text-white/30`).
+
+## Objetivo
+
+Deixar o texto "© 2024 • Todos os direitos reservados" (e opcionalmente a 1ª linha do rodapé) com uma cor **mais fraca, mais opaca/escura** — ou seja, menos visível, mais discreto sobre o preto, sem sumir totalmente.
+
+## Abordagem recomendada
+
+Como o fundo é preto, "mais fraca e opaca" = **menor opacidade do branco** (o texto fica mais cinza-escuro translúcido). Ajustar apenas a classe de opacidade do Tailwind, sem tocar no design system nem em tokens.
+
+### Editar (escopo mínimo, só o rodapé)
+
+Arquivo: `src/pages/ToolSelector.tsx`
+
+| Linha | Texto | De | Para |
+|------|-------|----|----|
+| 412 | "© 2024 • Todos os direitos reservados" | `text-white/15` | `text-white/10` |
+| 409 (opcional) | "Mais Resultados Online • Gabriel..." | `text-white/40` | `text-white/25` |
+
+`text-white/10` = 10% de opacidade de branco sobre preto → cinza muito escuro, discreto mas legível. É o ponto onde o texto fica "fraco e opaco" sem desaparecer.
+
+## Alternativas consideradas
+
+1. **`text-white/10`** (recomendado) — discreto, legível, mantém hierarquia (a 1ª linha continua mais visível que a 2ª).
+2. **`text-white/[0.08]`** — ainda mais fraco; arriscado em telas com baixo contraste.
+3. **Token semântico `text-muted-foreground`** — não recomendado aqui: o tema escuro global usa cinza-claro (`215 20.2% 65.1%`), que ficaria **mais claro** que o atual, indo contra o pedido. O rodapé amarelo/preto é uma identidade visual própria desta página, então manter `text-white/N` é coerente.
+4. **Cor sólida cinza** (`text-neutral-600`) — quebra a consistência com o resto do rodapé translúcido.
+
+## Fora do escopo (não será alterado)
+
+- Background, gradientes, malha pontilhada, glows amarelos.
+- Estrutura do `<footer>`, espaçamentos, borda `border-yellow-400/10`.
+- Nenhuma outra página (apenas a home `/` é alvo).
+
+## Validação
+
+Após a edição, recarregar `/` e confirmar visualmente que:
+- O texto "© 2024 • Todos os direitos reservados" continua legível mas visivelmente mais fraco que a linha de cima.
+- Nenhum erro de build/typecheck.
