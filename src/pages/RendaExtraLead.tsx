@@ -253,36 +253,28 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
               🎉 Cadastro Confirmado!
             </h1>
             <p className="text-gray-300 text-base md:text-lg mb-6 leading-relaxed">
-              Olá <span className="text-green-400 font-bold">{formData.nomeCompleto.split(" ")[0]}</span>! Para receber a aula, entre agora no nosso grupo exclusivo do WhatsApp.
+              Olá <span className="text-green-400 font-bold">{formData.nomeCompleto.split(" ")[0]}</span>! Você recebeu uma oportunidade de renda extra real.
             </p>
 
-            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 mb-6 text-left">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 mb-8 text-left">
               <p className="text-green-300 font-bold text-sm md:text-base mb-2">
-                💬 Entre no grupo do WhatsApp
+                🚀 Oportunidade Única Liberada
               </p>
               <p className="text-gray-300 text-sm md:text-base">
-                A aula será liberada em <span className="font-bold text-white">privado no grupo</span>. Não perca o aviso!
+                O valor disponível é irrisório perto do resultado que você pode ter. <span className="font-bold text-white">Aproveite enquanto duram nossas vagas!</span>
               </p>
             </div>
 
-            {whatsappGroupInvite ? (
-              <div className="relative group inline-block w-full">
-                <div className="absolute inset-0 bg-green-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
-                <a
-                  href={whatsappGroupInvite}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative inline-flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-400 text-white font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
-                >
-                  Participar do Grupo no WhatsApp
-                  <ArrowRight className="w-5 h-5" />
-                </a>
-              </div>
-            ) : (
-              <p className="text-yellow-300 text-sm">
-                Em instantes você receberá o link do grupo no seu email: <span className="font-bold">{formData.email}</span>
-              </p>
-            )}
+            <div className="relative group inline-block w-full">
+              <div className="absolute inset-0 bg-green-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+              <a
+                href="https://maisresultadosonline.com.br/renddx"
+                className="relative inline-flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-400 text-white font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
+              >
+                Aproveitar Oportunidade!
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </div>
           </div>
         </div>
       </div>

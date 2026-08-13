@@ -97,21 +97,9 @@ serve(async (req) => {
 
     log("Lead inserted successfully", { leadId: lead.id });
 
-    // Get settings for WhatsApp direct link
-    const { data: settings } = await supabase
-      .from("renda_extra_lead_settings")
-      .select("whatsapp_number, whatsapp_message, whatsapp_group_link, launch_date, launch_date_enabled")
-      .single();
+    const RENDDX_URL = "https://maisresultadosonline.com.br/renddx";
 
-    // Permanent short link — always redirects to the current WhatsApp number/message saved in /rendaextralead/admin.
-    const SHORT_WHATSAPP_LINK = "https://maisresultadosonline.com.br/r/rxl-wa";
-    const groupLink = (settings?.whatsapp_group_link || "").trim();
-    const launchDateEnabled = !!settings?.launch_date_enabled;
-    const launchDate = settings?.launch_date ? new Date(settings.launch_date).toLocaleDateString('pt-BR') : "21/01/2026";
-
-
-    // Send confirmation email via SMTP — as Gabriel, with free class link + discount mention
-    const freeClassLink = `https://maisresultadosonline.com.br/rendaextra/desconto?email=${encodeURIComponent(data.email)}`;
+    // Send confirmation email via SMTP
     const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -119,40 +107,46 @@ serve(async (req) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;font-size:1px;line-height:1px;">Entre no grupo do WhatsApp para receber a aula da MRO.</div>
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-collapse:collapse;">
 <tr>
-<td style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);padding:30px;text-align:center;">
-<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#fff;margin:15px 0 0 0;font-size:24px;">Entre no grupo do WhatsApp</h1>
+<td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:40px 20px;text-align:center;">
+<div style="background:#000;color:#fff;display:inline-block;padding:12px 30px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:15px;font-family:Arial,sans-serif;">MRO</div>
+<h1 style="color:#000;margin:0;font-size:26px;font-family:Arial,sans-serif;">🔥 Oportunidade Única Liberada!</h1>
 </td>
 </tr>
 <tr>
-<td style="padding:30px;background:#ffffff;">
+<td style="padding:40px 30px;background:#ffffff;">
 
-<p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${data.nome_completo}</strong>,</p>
-
-<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;">Aqui é o <strong>Gabriel</strong>! Para você receber a <strong>aula gratuita</strong>, entre agora no nosso grupo exclusivo do WhatsApp.</p>
-
-<div style="background:#e8f5e9;border-left:4px solid #25D366;padding:15px 20px;margin:20px 0;border-radius:8px;">
-<p style="margin:0;font-size:15px;color:#333;"><strong>💬 A aula será liberada em privado no grupo.</strong></p>
-<p style="margin:8px 0 0 0;font-size:14px;color:#555;">Entre agora para não perder o aviso e receber materiais exclusivos.</p>
+<div style="background:#f0fff4;border:1px solid #c6f6d5;padding:25px;border-radius:12px;margin-bottom:30px;text-align:center;">
+<p style="margin:0;color:#2f855a;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">✨ Parabéns por dar o primeiro passo!</p>
 </div>
 
-${groupLink ? `<div style="text-align:center;margin:30px 0;">
-<a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:18px 48px;border-radius:30px;font-size:18px;font-weight:bold;font-family:Arial,sans-serif;">
-PARTICIPAR DO GRUPO NO WHATSAPP
-</a>
-</div>` : `<p style="text-align:center;margin:20px 0;font-size:14px;color:#666;">Em instantes enviaremos o link do grupo por aqui.</p>`}
+<p style="margin:0 0 20px 0;font-size:16px;font-family:Arial,sans-serif;">Olá <strong>${data.nome_completo}</strong>!</p>
 
-<p style="margin:20px 0 0 0;font-size:14px;color:#666;line-height:1.6;">Um abraço,<br/><strong>Gabriel — MRO</strong></p>
+<p style="margin:0 0 25px 0;font-size:17px;line-height:1.6;font-family:Arial,sans-serif;">
+Você recebeu uma <strong>oportunidade de renda extra real</strong>, e o valor disponível é irrisório perto do resultado que você pode alcançar.
+</p>
+
+<div style="background:#fffaf0;border-left:5px solid #ed8936;padding:20px;margin:30px 0;border-radius:0 10px 10px 0;">
+<p style="margin:0;font-size:16px;font-weight:bold;color:#7b341e;font-family:Arial,sans-serif;">⚡ Aproveite enquanto duram nossas vagas!</p>
+</div>
+
+<div style="text-align:center;margin:40px 0;">
+<a href="${RENDDX_URL}" style="display:inline-block;background:#000000;color:#ffffff;text-decoration:none;padding:20px 45px;border-radius:50px;font-size:18px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">
+Aproveitar Oportunidade
+</a>
+</div>
+
+<p style="margin:30px 0 0 0;font-size:14px;color:#718096;text-align:center;font-family:Arial,sans-serif;">
+Clique no botão acima para acessar os detalhes agora mesmo.
+</p>
 
 </td>
 </tr>
 <tr>
-<td style="background:#1a1a1a;padding:20px;text-align:center;">
-<p style="margin:0;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</p>
-<p style="margin:10px 0 0 0;color:#666;font-size:11px;">Este email foi enviado porque você se cadastrou na página de Renda Extra.</p>
+<td style="background:#1a202c;padding:30px;text-align:center;">
+<p style="margin:0;color:#a0aec0;font-size:12px;font-family:Arial,sans-serif;">© 2026 MRO - Mais Resultados Online</p>
+<p style="margin:10px 0 0 0;color:#718096;font-size:11px;font-family:Arial,sans-serif;">Este email foi enviado porque você demonstrou interesse em nossas soluções de renda extra.</p>
 </td>
 </tr>
 </table>
@@ -161,8 +155,7 @@ PARTICIPAR DO GRUPO NO WHATSAPP
 
     const emailSent = await sendEmailViaSMTP(
       data.email,
-      "Entre no grupo do WhatsApp - Gabriel MRO",
-
+      "🔥 Oportunidade Única de Renda Extra liberada!",
       emailHtml
     );
 
@@ -173,7 +166,7 @@ PARTICIPAR DO GRUPO NO WHATSAPP
         lead_id: lead.id,
         email_to: data.email,
         email_type: "confirmacao",
-        subject: sanitizeEmailSubject("Recebemos seu interesse! - MRO Renda Extra"),
+        subject: sanitizeEmailSubject("🔥 Oportunidade Única de Renda Extra liberada!"),
         status: emailSent ? "sent" : "failed",
         error_message: emailSent ? null : "SMTP not configured or send failed",
       });
@@ -193,9 +186,7 @@ PARTICIPAR DO GRUPO NO WHATSAPP
       JSON.stringify({
         success: true,
         leadId: lead.id,
-        freeClassLink,
-        whatsappGroupLink: SHORT_WHATSAPP_LINK,
-        groupLink: groupLink || null,
+        redirectUrl: RENDDX_URL,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
