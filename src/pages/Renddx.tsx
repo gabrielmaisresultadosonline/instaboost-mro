@@ -40,7 +40,7 @@ const Renddx = () => {
   const [leadName, setLeadName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
   const [leadWhatsApp, setLeadWhatsApp] = useState("");
-  const [isLeadSaved, setIsLeadSaved] = useState(false);
+  const [isLeadSaved, setIsLeadSaved] = useState(true);
 
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
