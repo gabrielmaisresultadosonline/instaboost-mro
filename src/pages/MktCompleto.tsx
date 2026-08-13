@@ -456,12 +456,18 @@ export default function MktCompleto() {
             <div className="mt-16 mx-auto max-w-2xl">
               <TiltCard>
                 <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-black/60 p-12 backdrop-blur-xl">
-                  <div className="text-lg uppercase tracking-wider text-white/50 line-through">De R$ 1.500,00</div>
+                  <div className="text-lg uppercase tracking-wider text-white/50 line-through">De R$ 3.000,00</div>
                   <div className="mt-2 flex items-baseline justify-center gap-3">
                     <span className="text-2xl text-white/60">por apenas</span>
                   </div>
-                  <div className="serif yellow-glow mt-3 text-8xl md:text-9xl" style={{ color: ACCENT }}>R$ 800</div>
-                  <div className="mt-2 text-white/60">economia imediata de <span className="font-semibold text-white">R$ 700,00</span></div>
+                  <div className="serif yellow-glow mt-3 text-8xl md:text-9xl" style={{ color: ACCENT }}>R$ 2000</div>
+                  <div className="mt-2 text-white/60 italic">Plano único de 3 meses</div>
+                  <div className="mt-4 px-6 text-sm text-white/70 leading-relaxed max-w-md mx-auto">
+                    Um trabalho de marketing não se finaliza em 1 mês. O marketing precisa de, no mínimo, 
+                    <span className="font-bold text-white"> 3 meses para alavancar seu negócio</span>, 
+                    baseando-se no algoritmo e no aperfeiçoamento constante.
+                  </div>
+                  <div className="mt-2 text-white/60">economia imediata de <span className="font-semibold text-white">R$ 1.000,00</span></div>
 
                   <div className="my-8 h-px bg-white/10" />
 
