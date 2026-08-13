@@ -216,8 +216,8 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
       setSubmitted(true);
 
       toast({
-        title: "Cadastro realizado!",
-        description: "Você receberá um email com mais informações."
+        title: "Oportunidade liberada!",
+        description: "Redirecionando para os detalhes..."
       });
 
       await supabase.from("renda_extra_lead_analytics").insert({
