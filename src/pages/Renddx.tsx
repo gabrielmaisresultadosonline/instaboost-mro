@@ -72,13 +72,9 @@ const Renddx = () => {
   useEffect(() => {
     trackPageView('Sales Page - Renddx Promo');
     
-    // Check if user already submitted lead
-    const leadSubmitted = localStorage.getItem('renddx_lead_submitted');
-    if (!leadSubmitted) {
-      setShowLeadQuiz(true);
-    } else {
-      setIsLeadSaved(true);
-    }
+    // Skip quiz and show site directly
+    setIsLeadSaved(true);
+    setShowLeadQuiz(false);
 
     const fetchSettings = async () => {
       try {
