@@ -297,8 +297,9 @@ serve(async (req) => {
         }
 
         
-        if (itemName.startsWith("ZAPMRO_")) {
+        if (itemName.startsWith("ZAPMRO_") || itemName.startsWith("LOTARGRUPOS_")) {
           isZapMROOrder = true;
+
           // ZAPMRO_{PLAN}_{USERNAME}_{EMAIL} ou ZAPMRO_{PLAN}_{USERNAME}_{EMAIL}_BUMPS:{BUMPS}
           const parts = itemName.split("_");
           if (parts.length >= 4) {
