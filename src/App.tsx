@@ -466,6 +466,7 @@ const App = () => (
           <Route path="/renddx" element={<Renddx />} />
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/lovablack" element={<Lovablack />} />
+          <Route path="/lotargrupos" element={<LotarGrupos />} />
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
           <Route path="/audiobooks/checkout" element={<AudiobooksPreCheckout />} />
