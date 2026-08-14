@@ -117,7 +117,19 @@ const ToolSelector = () => {
       salesPath: '/creatordev',
       index: '07',
     },
+    {
+      id: 'lotargrupos',
+      name: 'Como lotar Qualquer grupo Whatsapp ou telegram !',
+      subtitle: 'API de conversão Leads Meta Ads',
+      description: 'Técnica infalível para lotar seus grupos usando anúncios de leads e automação estratégica. O método definitivo para escala.',
+      icon: LucideIcons.Send,
+      badge: 'NOVO',
+      salesPath: '/lotargrupos',
+      index: '08',
+      highlight: true,
+    },
   ];
+
 
   const handleSalesClick = (path: string, toolName: string) => {
     trackViewContent(`Sales Page: ${toolName}`, 'Navigation');
