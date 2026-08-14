@@ -122,6 +122,8 @@ import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
 import Renddx from "./pages/Renddx";
 import Lovablack from "./pages/Lovablack";
+import LotarGrupos from "./pages/LotarGrupos";
+
 
 import RendaExt from "./pages/RendaExt";
 import RendaExtAdmin from "./pages/RendaExtAdmin";
