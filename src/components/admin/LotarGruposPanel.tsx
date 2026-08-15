@@ -320,9 +320,9 @@ export default function LotarGruposPanel() {
                       const fileName = `${Math.random()}.${fileExt}`;
                       const filePath = `videos/${fileName}`;
                       
-                      console.log("Iniciando upload para bucket 'public', path:", filePath);
+                      console.log("Iniciando upload para bucket 'assets', path:", filePath);
                       const { data, error } = await supabase.storage
-                        .from('public')
+                        .from('assets')
                         .upload(filePath, file, {
                           cacheControl: '3600',
                           upsert: false
@@ -334,7 +334,7 @@ export default function LotarGruposPanel() {
                       }
                       
                       const { data: { publicUrl } } = supabase.storage
-                        .from('public')
+                        .from('assets')
                         .getPublicUrl(filePath);
                         
                       setEditingLesson({...editingLesson, video_url: publicUrl});
@@ -367,9 +367,9 @@ export default function LotarGruposPanel() {
                               const fileExt = file.name ? file.name.split('.').pop() : 'png';
                               const fileName = `${Math.random()}.${fileExt}`;
                               const filePath = `thumbnails/${fileName}`;
-                              const { data, error } = await supabase.storage.from('public').upload(filePath, file);
+                              const { data, error } = await supabase.storage.from('assets').upload(filePath, file);
                               if (error) throw error;
-                              const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
+                              const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(filePath);
                               setEditingLesson({...editingLesson, thumbnail_url: publicUrl});
                               toast({ title: "Imagem colada com sucesso!" });
                             } catch (err: any) {
@@ -397,9 +397,9 @@ export default function LotarGruposPanel() {
                         const fileExt = file.name.split('.').pop();
                         const fileName = `${Math.random()}.${fileExt}`;
                         const filePath = `thumbnails/${fileName}`;
-                        const { data, error } = await supabase.storage.from('public').upload(filePath, file);
+                        const { data, error } = await supabase.storage.from('assets').upload(filePath, file);
                         if (error) throw error;
-                        const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
+                        const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(filePath);
                         setEditingLesson({...editingLesson, thumbnail_url: publicUrl});
                         toast({ title: "Upload concluído!" });
                       } catch (err: any) {
