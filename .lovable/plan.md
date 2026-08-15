@@ -1,25 +1,42 @@
-# Plano de Implementação - Renda Extra para Renddx
+# Plano de Implementação: Área de Membros Lotar Grupos
 
-Atualizar o fluxo final do quiz de Renda Extra e o e-mail de confirmação para direcionar os usuários ao site Renddx (https://maisresultadosonline.com.br/renddx) em vez de grupos de WhatsApp.
+Este plano detalha a criação de uma área de membros completa para o produto "Lotar Grupos", incluindo autenticação, painel administrativo, gerenciamento de aulas e integração com o sistema de vendas.
 
-## Alterações Técnicas
+## 1. Banco de Dados e Segurança
 
-### 1. Frontend: RendaExtraLead.tsx
-- Modificar o estado final (`submitted`) para exibir o botão "APROVEITAR OPORTUNIDADE !" com link para `https://maisresultadosonline.com.br/renddx`.
-- Remover referências a grupos de WhatsApp e convites no estado de sucesso.
-- Atualizar o `toast` e os textos de sucesso para refletir a nova oportunidade.
+*   **Tabelas:**
+    *   `lotargrupos_users`: Gerencia o acesso dos alunos (ID, nome, e-mail, status, expiração).
+    *   `lotargrupos_lessons`: Armazena as aulas (título, vídeo, thumbnail, descrição, botões).
+*   **Segurança (RLS):**
+    *   Restringir acesso às aulas apenas para usuários com `status = 'active'`.
+    *   Painel administrativo acessível apenas para usuários com a role `admin`.
 
-### 2. Backend: Edge Function `renda-extra-register`
-- Atualizar o template HTML do e-mail de confirmação.
-- **Assunto:** "🔥 Oportunidade Única de Renda Extra liberada!"
-- **Corpo:** Mensagem personalizada conforme solicitado: "você recebeu uma oportunidade de renda extra real, e o valor disponível é irrisório perto do resultado aproveite enquanto dura nossas vagas!"
-- **Botão no E-mail:** Link direto para `https://maisresultadosonline.com.br/renddx`.
-- **Compatibilidade:** O HTML será simplificado para garantir visualização correta em clientes de e-mail antigos (Hotmail, Gmail, mobile antigos) e evitar erros de código.
+## 2. Frontend - Área do Aluno
 
-### 3. Backend: Edge Function `rendaextralead-register` (se aplicável)
-- Verificar se esta função também precisa de atualização similar, pois ambas parecem lidar com o registro de leads de Renda Extra.
+*   **`/lotargrupos` (Página de Acesso):** Página de entrada que redireciona para login ou dashboard.
+*   **`/login` (Autenticação):** Interface de login limpa e moderna.
+*   **`/dashboard` (Área de Membros):**
+    *   Grade de aulas com thumbnails.
+    *   Player de vídeo integrado.
+    *   Descrições e botões de materiais de apoio.
+*   **`/recuperar-senha`:** Fluxo básico de recuperação de acesso.
 
-## Segurança e Padrões
-- RLS já está configurado nas tabelas de leads.
-- Uso de variáveis de ambiente para segredos SMTP.
-- TypeScript strict no frontend.
+## 3. Frontend - Área Administrativa
+
+*   **`/admin` (Integração):** Adicionar a aba "Lotar Grupos" ao painel administrativo existente.
+*   **Painel de Gestão:**
+    *   **Usuários:** Listar, ativar, bloquear e pesquisar alunos.
+    *   **Aulas:** CRUD completo de aulas, incluindo upload de mídia e ordenação.
+
+## 4. Integração de Vendas
+
+*   **Webhook (`infinitepay-webhook`):**
+    *   Adicionar lógica para processar o prefixo `LOTARGRUPOS_`.
+    *   Ao confirmar pagamento: criar/atualizar usuário em `lotargrupos_users` e disparar e-mail de boas-vindas.
+*   **E-mail:** Criar template `lotargrupos-email.ts` com dados de acesso e link para a plataforma.
+
+## Detalhes Técnicos
+
+*   **Storage:** Utilizar buckets públicos/privados para thumbnails e vídeos.
+*   **API:** Edge Function `lotargrupos-api` para operações administrativas seguras.
+*   **Estado:** Uso de TanStack Query para carregamento eficiente de aulas no dashboard.
