@@ -25,7 +25,7 @@ export default function LotarGruposDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        navigate('/login');
+        navigate('/lotargrupos/login');
         return;
       }
 
@@ -40,7 +40,7 @@ export default function LotarGruposDashboard() {
       if (error || !user) {
         toast.error("Acesso não autorizado ou expirado.");
         await supabase.auth.signOut();
-        navigate('/login');
+        navigate('/lotargrupos/login');
         return;
       }
 
@@ -64,7 +64,7 @@ export default function LotarGruposDashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    navigate('/lotargrupos/login');
   };
 
   if (loading) {
