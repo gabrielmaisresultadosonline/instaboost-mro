@@ -23,6 +23,10 @@ export default defineConfig(({ mode }) => {
     "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
       env.VITE_SUPABASE_PUBLISHABLE_KEY || FALLBACK_SUPABASE_PUBLISHABLE_KEY
     ),
+    // Compatibilidade com builds antigos que ainda referenciem o nome legado.
+    "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
+      env.VITE_SUPABASE_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY || FALLBACK_SUPABASE_PUBLISHABLE_KEY
+    ),
     "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
       env.VITE_SUPABASE_PROJECT_ID || FALLBACK_SUPABASE_PROJECT_ID
     ),
