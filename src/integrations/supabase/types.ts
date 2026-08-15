@@ -3591,6 +3591,81 @@ export type Database = {
         }
         Relationships: []
       }
+      lotargrupos_lessons: {
+        Row: {
+          buttons: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          order_index: number
+          status: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          buttons?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          order_index?: number
+          status?: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          buttons?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          order_index?: number
+          status?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      lotargrupos_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          hwid: string | null
+          id: string
+          last_login: string | null
+          name: string
+          status: Database["public"]["Enums"]["access_status"]
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          hwid?: string | null
+          id?: string
+          last_login?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["access_status"]
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          hwid?: string | null
+          id?: string
+          last_login?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["access_status"]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       lovablack_settings: {
         Row: {
           description: string | null
@@ -8339,6 +8414,7 @@ export type Database = {
       }
     }
     Enums: {
+      access_status: "active" | "blocked" | "expired"
       app_role: "admin" | "user"
       lovablack_plan_type: "trial" | "monthly" | "lifetime"
     }
@@ -8468,6 +8544,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_status: ["active", "blocked", "expired"],
       app_role: ["admin", "user"],
       lovablack_plan_type: ["trial", "monthly", "lifetime"],
     },
