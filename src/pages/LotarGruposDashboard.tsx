@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
 import { toast } from 'sonner';
 
@@ -22,12 +22,14 @@ export default function LotarGruposDashboard() {
 
   useEffect(() => {
     const checkAccess = async () => {
-      const email = localStorage.getItem('mro_customer_email');
-      if (!email) {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
         navigate('/login');
         return;
       }
 
+      const email = session.user.email;
       const { data: user, error } = await supabase
         .from('lotargrupos_users')
         .select('*')
@@ -37,6 +39,7 @@ export default function LotarGruposDashboard() {
 
       if (error || !user) {
         toast.error("Acesso não autorizado ou expirado.");
+        await supabase.auth.signOut();
         navigate('/login');
         return;
       }
@@ -59,8 +62,8 @@ export default function LotarGruposDashboard() {
     checkAccess();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('mro_customer_email');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate('/login');
   };
 
