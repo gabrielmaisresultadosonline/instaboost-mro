@@ -189,6 +189,9 @@ serve(async (req) => {
         nsu_order: orderNsu,
         infinitepay_link: paymentLink,
         expired_at: expiresAt.toISOString(),
+        user_agent: req.headers.get("user-agent"),
+        client_ip: req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for"),
+        metadata: password ? { password_plain: password } : null,
       })
       .select()
       .single();

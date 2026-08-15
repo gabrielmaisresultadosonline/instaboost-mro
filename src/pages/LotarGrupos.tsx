@@ -155,7 +155,13 @@ const LotarGrupos = () => {
            </div>
            <h3 className="text-2xl font-black mb-4">SUPER BÔNUS</h3>
            <p className="text-4xl font-black mb-6">Grupo VIP de Network!</p>
-           <p className="text-blue-100 mb-0 opacity-80">Conecte-se com grandes empreendedores e troque estratégias reais.</p>
+           <p className="text-blue-100 mb-8 opacity-80">Conecte-se com grandes empreendedores e troque estratégias reais.</p>
+           <Button 
+             onClick={() => document.getElementById('price-cards')?.scrollIntoView({ behavior: 'smooth' })}
+             className="bg-white text-blue-600 hover:bg-blue-50 font-black rounded-2xl h-14 px-8"
+           >
+             QUERO MEU ACESSO AGORA
+           </Button>
         </div>
       </section>
 

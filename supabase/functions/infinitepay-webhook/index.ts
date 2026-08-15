@@ -926,9 +926,23 @@ serve(async (req) => {
       if (lgOrder) {
         const uEmail = (lgOrder.email || email || "").toLowerCase();
         const uName = lgOrder.username || username || uEmail.split('@')[0];
-        const passwordPlain = uName.toLowerCase(); 
+        const passwordPlain = (lgOrder.metadata as any)?.password_plain || uName.toLowerCase(); 
 
         // 1. Logic for lotargrupos_users
+        // First check if user exists in auth for the membership area
+        const { data: authUser } = await supabase.auth.admin.getUserByEmail(uEmail);
+        
+        if (!authUser?.user) {
+          log("Creating auth user for Lotar Grupos membership", { uEmail });
+          const { data: newAuth, error: authErr } = await supabase.auth.admin.createUser({
+            email: uEmail,
+            password: passwordPlain,
+            email_confirm: true,
+            user_metadata: { full_name: uName }
+          });
+          if (authErr) log("Error creating auth user", authErr);
+        }
+
         const { data: newUser, error: userErr } = await supabase.from("lotargrupos_users").upsert({
           name: uName,
           email: uEmail,
