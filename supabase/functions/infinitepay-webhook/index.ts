@@ -908,8 +908,65 @@ serve(async (req) => {
       }
     }
 
+    // LOTARGRUPOS orders
+    if (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("LOTARGRUPOS")) {
+      log("Processing as LOTARGRUPOS order", { order_nsu, email, username });
+      
+      let lgOrder: any = null;
+      if (order_nsu) {
+        const { data } = await supabase.from("zapmro_orders").select("*").eq("nsu_order", order_nsu).maybeSingle();
+        lgOrder = data;
+      }
+      
+      if (!lgOrder && email) {
+        const { data } = await supabase.from("zapmro_orders").select("*").eq("email", email.toLowerCase()).eq("status", "pending").maybeSingle();
+        lgOrder = data;
+      }
+
+      if (lgOrder) {
+        const uEmail = (lgOrder.email || email || "").toLowerCase();
+        const uName = lgOrder.username || username || uEmail.split('@')[0];
+        const passwordPlain = uName.toLowerCase(); 
+
+        // 1. Logic for lotargrupos_users
+        const { data: newUser, error: userErr } = await supabase.from("lotargrupos_users").upsert({
+          name: uName,
+          email: uEmail,
+          status: 'active'
+        }, { onConflict: 'email' }).select().single();
+
+        if (userErr) log("Error creating LOTARGRUPOS user", userErr);
+
+        // 2. Update order status
+        await supabase.from("zapmro_orders").update({ 
+          status: "paid", 
+          paid_at: new Date().toISOString() 
+        }).eq("id", lgOrder.id);
+
+        // 3. Send Welcome Email
+        const emailSent = await sendLotarGruposEmail(uEmail, uName, passwordPlain);
+        log("LOTARGRUPOS welcome email status", { emailSent });
+
+        // 4. Meta Tracking
+        await sendMetaPurchaseEvent(
+          uEmail,
+          Number(lgOrder.amount) || 37,
+          "Lotar Grupos",
+          lgOrder.nsu_order,
+          "https://maisresultadosonline.com.br/lotargrupos/obrigado",
+          { 
+            user_agent: lgOrder.user_agent || null,
+            client_ip: lgOrder.client_ip || null
+          }
+        );
+
+        return new Response(JSON.stringify({ success: true, message: "LOTARGRUPOS confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
     // ZAPMRO Upgrade Fee orders (taxa de atualização)
     if (isZapMROUpgradeFee || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("ZAPTAXA"))) {
+
       log("Processing as ZAPMRO Upgrade Fee order", {
         order_nsu,
         transaction_nsu,
