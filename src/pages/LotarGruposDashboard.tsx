@@ -40,7 +40,7 @@ export default function LotarGruposDashboard() {
       if (error || !user) {
         toast.error("Acesso não autorizado ou expirado.");
         await supabase.auth.signOut();
-        navigate('/login');
+        navigate('/lotargrupos/login');
         return;
       }
 
