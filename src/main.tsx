@@ -50,7 +50,7 @@ if (path === "/lotargrupos") {
   loadWithRetry(() => import("./pages/LotarGrupos.tsx"))
     .then(({ default: LotarGrupos }) => root.render(<LotarGrupos />))
     .catch(renderApp);
-} else if (path === "/renddx" || path === "/") {
+} else if (path === "/renddx") {
   loadWithRetry(() => import("./pages/Renddx.tsx"))
     .then(({ default: Renddx }) => root.render(<Renddx />))
     .catch(renderApp);
