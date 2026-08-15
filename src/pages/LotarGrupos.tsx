@@ -120,7 +120,7 @@ const LotarGrupos = () => {
           
           <div className="aspect-video w-full max-w-3xl mx-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center relative group overflow-hidden">
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-             <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform z-10 shadow-xl shadow-blue-500/20">
+             <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform z-10 shadow-xl shadow-blue-500/20" onClick={() => document.getElementById('price-cards')?.scrollIntoView({ behavior: 'smooth' })}>
                <Play className="w-8 h-8 fill-current" />
              </div>
              <p className="absolute bottom-6 left-6 text-sm font-bold text-white/80 z-10 flex items-center gap-2">
@@ -159,8 +159,72 @@ const LotarGrupos = () => {
         </div>
       </section>
 
-      {/* Checkout Section */}
-      <section className="py-20 px-4" id="checkout">
+      {/* Pricing Cards */}
+      <section className="py-20 px-4" id="price-cards">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black mb-4">Escolha o Seu Plano</h2>
+            <p className="text-slate-400">Tenha acesso vitalício ao método e aos bônus exclusivos.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Basic Plan */}
+            <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 flex flex-col items-center text-center">
+              <h3 className="text-xl font-bold mb-2">Plano Básico</h3>
+              <div className="text-4xl font-black text-blue-500 mb-6">R$ 37</div>
+              <ul className="text-sm text-slate-400 space-y-3 mb-8 text-left w-full">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Acesso ao Curso</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Suporte por E-mail</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Atualizações Gratuitas</li>
+              </ul>
+              <Button 
+                onClick={() => window.location.href = '/lotargrupos/checkout'}
+                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl"
+              >
+                COMPRAR AGORA
+              </Button>
+            </div>
+
+            {/* Recommended Plan */}
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 border border-blue-400 relative scale-105 shadow-2xl shadow-blue-500/20 flex flex-col items-center text-center">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-yellow-500 text-black text-[10px] font-black uppercase rounded-full tracking-widest">Recomendado</div>
+              <h3 className="text-xl font-bold mb-2">Plano Pro</h3>
+              <div className="text-4xl font-black text-white mb-6">R$ 37</div>
+              <ul className="text-sm text-blue-100 space-y-3 mb-8 text-left w-full">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> Tudo do Básico</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> Grupo VIP VIP</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-white" /> Mentoria Coletiva</li>
+              </ul>
+              <Button 
+                onClick={() => window.location.href = '/lotargrupos/checkout'}
+                className="w-full h-14 bg-white text-blue-600 hover:bg-blue-50 font-black rounded-2xl"
+              >
+                COMPRAR AGORA
+              </Button>
+            </div>
+
+            {/* VIP Plan */}
+            <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 flex flex-col items-center text-center">
+              <h3 className="text-xl font-bold mb-2">Plano VIP</h3>
+              <div className="text-4xl font-black text-blue-500 mb-6">R$ 37</div>
+              <ul className="text-sm text-slate-400 space-y-3 mb-8 text-left w-full">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Tudo do Pro</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Chamadas 1 a 1</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Suporte Prioritário</li>
+              </ul>
+              <Button 
+                onClick={() => window.location.href = '/lotargrupos/checkout'}
+                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl"
+              >
+                COMPRAR AGORA
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Old Checkout Section Replaced by Pre-Checkout Flow */}
+      <section className="py-20 px-4 hidden" id="checkout">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Form */}

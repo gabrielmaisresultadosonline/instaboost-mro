@@ -475,6 +475,7 @@ const App = () => (
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/lovablack" element={<Lovablack />} />
           <Route path="/lotargrupos" element={<LotarGrupos />} />
+          <Route path="/lotargrupos/checkout" element={<LotarGruposPreCheckout />} />
           <Route path="/lotargrupos/obrigado" element={<LotarGruposObrigado />} />
           <Route path="/login" element={<LotarGruposLogin />} />
           <Route path="/dashboard" element={<LotarGruposDashboard />} />
