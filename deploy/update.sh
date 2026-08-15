@@ -160,25 +160,30 @@ fi
 echo ""
 echo "🧩 Verificando conflitos de Nginx..."
 
-# 🚨 RESOLVER CONFLITO: Remove ou altera o whatsapp-bridge se ele usar o mesmo domínio
-# Agora que o ia-mro já tem o proxy para /bridge na porta 3000, não precisamos do config antigo.
+# 🚨 RESOLVER CONFLITO: Remove o whatsapp-bridge legado (mesmo domínio)
 WPP_BRIDGE_NGINX="/etc/nginx/sites-enabled/whatsapp-bridge"
 if [ -f "$WPP_BRIDGE_NGINX" ]; then
     echo "⚠️  Removendo configuração conflitante em $WPP_BRIDGE_NGINX..."
     $SUDO rm -f "$WPP_BRIDGE_NGINX"
 fi
 
-# Remove também qualquer resquício de default ou configs duplicadas que possam conflitar
 $SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
-
-# SÓ atualiza Nginx se o usuário permitir ou se for necessário para o /bridge
 echo "🛠️  Configurando Nginx para servir o build LOCAL (Sem Proxys Lovable)..."
 
-# Garante que NENHUM outro arquivo na sites-enabled aponte para o domínio
-# Isso evita que o antigo 'prompt-mro' ou 'prompts-mro' (proxys) voltem à vida
-$SUDO find /etc/nginx/sites-enabled/ -type l -exec grep -l "$DOMAIN" {} + | xargs -r $SUDO rm -f
-$SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+# Garante que NENHUM outro arquivo na sites-enabled aponte para o domínio,
+# PRESERVANDO sempre o site principal e o video-server (subdomínio video.).
+for link in /etc/nginx/sites-enabled/*; do
+    [ -e "$link" ] || continue
+    base="$(basename "$link")"
+    case "$base" in
+        "$APP_NAME"|video-server) continue ;;
+    esac
+    if grep -qs "$DOMAIN" "$link"; then
+        echo "⚠️  Removendo config conflitante: $base"
+        $SUDO rm -f "$link"
+    fi
+done
 
 # Cria a configuração limpa e direta
 $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
