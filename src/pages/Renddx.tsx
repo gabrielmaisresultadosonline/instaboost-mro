@@ -417,8 +417,14 @@ const Renddx = () => {
         </div>
       </section>
 
-      {/* Vídeo de Funcionamento */}
-      <div className="py-10">
+      {/* Título para o vídeo de funcionamento */}
+      <div className="text-center pt-8">
+        <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest mb-2">VEJA COMO A <span className="text-yellow-400">FERRAMENTA TRABALHA</span></h3>
+        <p className="text-gray-400 text-sm sm:text-lg max-w-2xl mx-auto mb-8">
+          E os resultados reais que ela pode trazer para voce todos os meses.
+        </p>
+      </div>
+      <div className="pb-16">
         <LotarGruposHeroVideo />
       </div>
 
