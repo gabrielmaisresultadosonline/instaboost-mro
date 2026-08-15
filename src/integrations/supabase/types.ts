@@ -8134,6 +8134,7 @@ export type Database = {
         Row: {
           amount: number
           api_created: boolean | null
+          client_ip: string | null
           completed_at: string | null
           created_at: string
           email: string
@@ -8141,17 +8142,20 @@ export type Database = {
           expired_at: string | null
           id: string
           infinitepay_link: string | null
+          metadata: Json | null
           nsu_order: string
           paid_at: string | null
           phone: string | null
           plan_type: string
           status: string
           updated_at: string
+          user_agent: string | null
           username: string
         }
         Insert: {
           amount?: number
           api_created?: boolean | null
+          client_ip?: string | null
           completed_at?: string | null
           created_at?: string
           email: string
@@ -8159,17 +8163,20 @@ export type Database = {
           expired_at?: string | null
           id?: string
           infinitepay_link?: string | null
+          metadata?: Json | null
           nsu_order: string
           paid_at?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
           updated_at?: string
+          user_agent?: string | null
           username: string
         }
         Update: {
           amount?: number
           api_created?: boolean | null
+          client_ip?: string | null
           completed_at?: string | null
           created_at?: string
           email?: string
@@ -8177,12 +8184,14 @@ export type Database = {
           expired_at?: string | null
           id?: string
           infinitepay_link?: string | null
+          metadata?: Json | null
           nsu_order?: string
           paid_at?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
           updated_at?: string
+          user_agent?: string | null
           username?: string
         }
         Relationships: []
