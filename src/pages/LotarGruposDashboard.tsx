@@ -149,21 +149,17 @@ export default function LotarGruposDashboard() {
           <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 max-w-6xl mx-auto w-full">
             <div className="aspect-video w-full rounded-[2.5rem] bg-black border border-slate-800 shadow-2xl overflow-hidden mb-10 relative group cursor-pointer">
 
-              {activeLesson.thumbnail_url ? (
-                <div className="w-full h-full relative">
-                  <img src={activeLesson.thumbnail_url} alt={activeLesson.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                      <Play className="w-8 h-8 text-white fill-white" />
-                    </div>
-                  </div>
-                </div>
-              ) : activeLesson.video_url ? (
+              {activeLesson.video_url ? (
                 <iframe 
                   src={activeLesson.video_url} 
                   className="w-full h-full border-0" 
                   allowFullScreen
                 />
+              ) : activeLesson.thumbnail_url ? (
+                <div className="w-full h-full relative">
+                  <img src={activeLesson.thumbnail_url} alt={activeLesson.title} className="w-full h-full object-cover" />
+                </div>
+
 
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-700">
