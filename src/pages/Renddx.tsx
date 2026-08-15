@@ -381,7 +381,9 @@ const Renddx = () => {
           {/* Vídeo Principal e CTA R$47 */}
           <div className="max-w-4xl mx-auto mb-10 sm:mb-16 space-y-8">
             <div className="bg-zinc-900/40 border border-green-500/20 rounded-3xl p-4 sm:p-6 backdrop-blur-sm">
-              <LotarGruposHeroVideo />
+              <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
+                <DiscountVideoPlayer email="public@renddx.com" nome="Visitante Renddx" />
+              </Suspense>
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
