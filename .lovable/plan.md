@@ -14,4 +14,4 @@ Este plano detalhou a criação de uma área de membros completa para o produto 
 ## 4. Integração de Vendas ✅
 * Webhook e e-mails automatizados configurados.
 
-Aprove e execute este plano por completo de forma detalhada.
+Aprove e execute este plano por completo de forma detalhada
