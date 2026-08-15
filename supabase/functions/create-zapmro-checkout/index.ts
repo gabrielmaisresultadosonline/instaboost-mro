@@ -15,10 +15,11 @@ const log = (step: string, details?: unknown) => {
   console.log(`[${timestamp}] [CREATE-ZAPMRO-CHECKOUT] ${step}${detailsStr}`);
 };
 
-const generateNSU = () => {
+const generateNSU = (type: string = "zapmro") => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
-  return `ZAPMRO${timestamp}${random}`.toUpperCase();
+  const prefix = type.toUpperCase();
+  return `${prefix}${timestamp}${random}`.toUpperCase();
 };
 
 serve(async (req) => {
@@ -60,7 +61,7 @@ serve(async (req) => {
     const cleanEmail = email.toLowerCase().trim();
     const cleanUsername = username.toLowerCase().trim();
     const cleanPhone = phone ? phone.replace(/\D/g, "").trim() : "";
-    const orderNsu = generateNSU();
+    const orderNsu = generateNSU(planType === 'lotargrupos' ? 'lotargrupos' : 'zapmro');
     const priceInCents = Math.round((amount || 397) * 100);
 
     // Verificar se usuário já existe na API ZAPMRO
@@ -89,7 +90,9 @@ serve(async (req) => {
     }
 
     // Redirect URL para página de obrigado
-    const redirectUrl = `https://maisresultadosonline.com.br/zapmro/vendas/obrigado`;
+    const redirectUrl = planType === 'lotargrupos' 
+      ? `https://maisresultadosonline.com.br/lotargrupos/obrigado`
+      : `https://maisresultadosonline.com.br/zapmro/vendas/obrigado`;
     
     // Webhook URL para receber notificação automática de pagamento
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
