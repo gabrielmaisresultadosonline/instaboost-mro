@@ -66,7 +66,7 @@ import { cn } from "@/lib/utils";
 
 const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads' | 'lotargrupos';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
