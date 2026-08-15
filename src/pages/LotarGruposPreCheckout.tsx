@@ -63,10 +63,10 @@ const LotarGruposPreCheckout = () => {
           email: email.toLowerCase().trim(),
           username: name.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
-          password: password, // Pass password to function to create user
+          password: password,
           planType: 'lotargrupos',
           amount: totalAmount,
-          selectedBumps: ['lotar-grupos', ...selectedBumps]
+          selectedBumps: selectedBumps
         }
       });
       if (error) throw error;
