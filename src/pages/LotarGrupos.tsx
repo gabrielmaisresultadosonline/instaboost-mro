@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { 
   Users, MessageCircle, Zap, Shield, CheckCircle2, 
   ArrowRight, Play, Star, Gift, Phone, Mail, User,
   Lock, MousePointer2, Loader2, Sparkles, Send, Target, BarChart3
 } from 'lucide-react';
-import heroAsset from "@/assets/lotargrupos-hero.png.asset.json";
-import LotarGruposHeroVideo from "@/components/LotarGruposHeroVideo";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
+
+const LotarGruposHeroVideo = lazy(() => import("@/components/LotarGruposHeroVideo"));
 
 const LotarGrupos = () => {
   const [email, setEmail] = useState("");
@@ -122,7 +122,7 @@ const LotarGrupos = () => {
       {/* Hero */}
       <section className="relative pt-20 pb-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold mb-8 animate-pulse">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold mb-8">
             <Sparkles className="w-4 h-4" />
             MÉTODO INÉDITO 2026
           </div>
@@ -137,7 +137,9 @@ const LotarGrupos = () => {
             Técnica infalível com API de conversão Leads utilizando Meta Ads para turbinar seus anúncios!
           </p>
 
-          <LotarGruposHeroVideo />
+          <Suspense fallback={<div className="w-full max-w-3xl mx-auto aspect-video bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center border border-slate-800"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>}>
+            <LotarGruposHeroVideo />
+          </Suspense>
         </div>
       </section>
 
@@ -184,7 +186,9 @@ const LotarGrupos = () => {
                 src="https://id-preview--d87f8e30-df83-4ce7-ae4a-4154e685c5ea.lovable.app/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9/lotargrupos-hero.png" 
                 alt="Lotar Grupos Hero" 
                 className="w-full h-auto rounded-3xl shadow-2xl border border-slate-800"
-                loading="eager"
+                loading="lazy"
+                width="800"
+                height="450"
               />
             </div>
             <h2 className="text-4xl font-black mb-4 uppercase tracking-tight">Oportunidade Única</h2>

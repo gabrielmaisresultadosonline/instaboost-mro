@@ -73,7 +73,7 @@ const LotarGruposHeroVideo = () => {
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="none"
           onClick={() => (activated ? togglePlay() : activate())}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
