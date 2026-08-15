@@ -253,8 +253,8 @@ const Renddx = () => {
                   <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" /></span>
                   <span className="text-sm font-black tracking-widest text-green-400 uppercase">NOVA OPORTUNIDADE</span>
                 </div>
-                <h1 className="text-4xl sm:text-6xl font-black leading-tight">RENDA EXTRA</h1>
-                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Aprenda grátis como fazer isso, depois você decide se aplica ou não.</p>
+                <h1 className="text-4xl sm:text-6xl font-black leading-tight">OFEREÇA SERVIÇOS PARA EMPRESAS</h1>
+                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Uma ferramenta para otimizar sua rotina de trabalho. Conheça agora.</p>
                 <Button 
                   onClick={() => setQuizStep(1)}
                   className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
@@ -374,9 +374,8 @@ const Renddx = () => {
             <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-green-300 uppercase">Oferta liberada • Vagas limitadas</span>
           </div>
           <div className="relative mb-8 sm:mb-12">
-            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white">FATURE MAIS DE <span className="text-yellow-300">5K</span></h1>
-            <h2 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-5 leading-tight text-green-400">TRABALHANDO DE CASA!</h2>
-            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Renda extra <span className="text-green-300 font-semibold">automática e real</span>. Com apenas 1 computador, instale a ferramenta MRO e comece a faturar.</p>
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white uppercase">TENHA UMA FERRAMENTA PROFISSIONAL PARA <span className="text-yellow-300">OFERECER SERVIÇOS A EMPRESAS</span></h1>
+            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Use o MRO para <span className="text-green-300 font-semibold">automatizar tarefas, otimizar seu trabalho</span> e oferecer serviços de marketing para seus próprios clientes.</p>
           </div>
 
           {/* Vídeo Principal e CTA R$47 */}
@@ -388,7 +387,7 @@ const Renddx = () => {
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">Acesso imediato por apenas</span>
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">ACESSE A FERRAMENTA E APRENDA COMO UTILIZÁ-LA</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
                     <span className="text-6xl font-black text-green-500">47</span>
@@ -400,7 +399,7 @@ const Renddx = () => {
                   onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
                   className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
                 >
-                  QUERO COMEÇAR AGORA
+                  QUERO CONHECER O MRO
                   <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 
@@ -413,7 +412,7 @@ const Renddx = () => {
 
           <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5">
             <Laptop className="w-4 h-4 text-green-300" />
-            <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">20 MIN ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
+            <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
             <Rocket className="w-4 h-4 text-green-300" />
           </div>
         </div>
@@ -432,44 +431,61 @@ const Renddx = () => {
         <div className="max-w-5xl mx-auto text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
             <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs">SUA RENDA EXTRA</span>
+            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 30 dias</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">COMO VOCÊ VAI <span className="text-green-400">FATURAR</span></h2>
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
           <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Monitor className="w-10 h-10 text-blue-500 mb-4" /><h3 className="font-bold mb-2">Instale no seu PC</h3><p className="text-gray-400 text-sm">Notebook ou Desktop, comece de casa.</p></div>
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Clock className="w-10 h-10 text-purple-500 mb-4" /><h3 className="font-bold mb-2">20 min por dia</h3><p className="text-gray-400 text-sm">Deixe rodando automaticamente.</p></div>
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><CreditCard className="w-10 h-10 text-green-500 mb-4" /><h3 className="font-bold mb-2">Cobre mensalidade</h3><p className="text-gray-400 text-sm">Receba de empresas todo mês.</p></div>
+          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Monitor className="w-10 h-10 text-blue-500 mb-4" /><h3 className="font-bold mb-2">Instale no seu computador</h3><p className="text-gray-400 text-sm">Utilize o MRO no seu notebook ou desktop.</p></div>
+          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Zap className="w-10 h-10 text-purple-500 mb-4" /><h3 className="font-bold mb-2">Aprenda a utilizar</h3><p className="text-gray-400 text-sm">Siga o treinamento e conheça os principais recursos da ferramenta.</p></div>
+          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Users className="w-10 h-10 text-green-500 mb-4" /><h3 className="font-bold mb-2">Ofereça serviços</h3><p className="text-gray-400 text-sm">Utilize a ferramenta para criar e gerenciar serviços para empresas e clientes.</p></div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-black">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-6 uppercase">UMA FERRAMENTA PARA QUEM QUER TRABALHAR COM <span className="text-yellow-300">SERVIÇOS DIGITAIS</span></h2>
+          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto mb-8">
+            Com o MRO, você tem acesso a recursos que podem ajudar na execução de tarefas e no atendimento de empresas.
+            Você decide como utilizar a ferramenta, quais serviços oferecer e quanto cobrar pelos seus serviços.
+          </p>
+          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 inline-block text-left max-w-md mx-auto">
+            <h3 className="font-bold mb-4 flex items-center gap-2"><Target className="w-5 h-5 text-green-500" /> Construa sua carteira de clientes</h3>
+            <p className="text-gray-400 text-sm">Defina seus próprios preços e condições comerciais de acordo com os serviços que oferecer.</p>
+          </div>
         </div>
       </section>
 
       {/* CTA Adicional Superior */}
       <section className="py-10 text-center">
           <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
-            QUERO COMEÇAR POR APENAS R$47 <ArrowRight className="ml-2 w-6 h-6" />
+            COMECE A UTILIZAR A FERRAMENTA <ArrowRight className="ml-2 w-6 h-6" />
           </Button>
       </section>
 
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
-          <h3 className="text-2xl font-bold mb-4">Plano Mensal</h3>
+          <h3 className="text-2xl font-bold mb-4">ACESSO COMPLETO AO MRO</h3>
+          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Mensal</div>
           <div className="text-5xl font-black mb-2 text-green-400">R$47</div>
-          <p className="text-zinc-400 mb-6">Acesso 30 Dias</p>
+          <p className="text-zinc-400 mb-6">Acesso durante 30 dias</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
-            <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-green-500" /> Ferramenta Completa</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo para conseguir faturar!</li>
-            <li className="flex items-center gap-2"><Target className="w-4 h-4 text-green-500" /> Suporte VIP</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Ferramenta completa</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo de utilização</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Materiais de treinamento</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato</li>
           </ul>
-          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.4)]">COMPRAR AGORA</Button>
+          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO ACESSAR O MRO</Button>
         </div>
       </section>
 
       {/* CTA Adicional Inferior */}
       <section className="pb-20 text-center">
           <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
-            LIBERAR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
+            VEJA COMO A FERRAMENTA FUNCIONA NA PRÁTICA <ArrowRight className="ml-2 w-6 h-6" />
           </Button>
       </section>
 
