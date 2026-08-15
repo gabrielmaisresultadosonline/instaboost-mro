@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,11 +17,13 @@ export default function LotarGruposLogin() {
 
   useEffect(() => {
     trackPageView('Login - Lotar Grupos');
-    // Check if already logged in
-    const savedEmail = localStorage.getItem('mro_customer_email');
-    if (savedEmail) {
-      navigate('/dashboard');
-    }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/dashboard');
+      }
+    };
+    checkSession();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,6 +31,21 @@ export default function LotarGruposLogin() {
     setLoading(true);
 
     try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(),
+        password: password
+      });
+
+      if (authError) {
+        toast({
+          title: "Erro de acesso",
+          description: "Credenciais inválidas ou acesso não liberado.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data: user, error } = await supabase
         .from('lotargrupos_users')
         .select('*')
@@ -37,24 +54,16 @@ export default function LotarGruposLogin() {
         .maybeSingle();
 
       if (error || !user) {
+        await supabase.auth.signOut();
         toast({
-          title: "Erro de acesso",
-          description: "E-mail não encontrado ou acesso bloqueado.",
+          title: "Acesso bloqueado",
+          description: "Você não tem uma licença ativa.",
           variant: "destructive"
         });
-        setLoading(false);
-        return;
+      } else {
+        toast({ title: "Login realizado!", description: "Bem-vindo à área de membros." });
+        navigate('/dashboard');
       }
-
-      // Simplificação do login conforme requisito: o usuário inicial é o nome em minúsculo
-      // Mas aqui vamos validar contra o banco.
-      // Como o sistema não tem um hash de senha específico para lotargrupos_users (baseado nos requisitos de unificação futura)
-      // vamos usar uma lógica de validação simples ou permitir o login se o email bater e o status for ativo
-      // para esta fase inicial, simulando o acesso que ele recebeu por e-mail.
-      
-      localStorage.setItem('mro_customer_email', email.toLowerCase().trim());
-      toast({ title: "Login realizado!", description: "Bem-vindo à área de membros." });
-      navigate('/dashboard');
     } catch (err) {
       toast({ title: "Erro no login", description: "Tente novamente mais tarde.", variant: "destructive" });
     } finally {
