@@ -108,7 +108,9 @@ serve(async (req) => {
 
     // Descrição do produto inclui email e username para identificação
     // Formato: ZAPMRO_PLANO_username_email
-    let productDescription = `ZAPMRO_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`;
+    let productDescription = planType === 'lotargrupos' 
+      ? `LOTARGRUPOS_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`
+      : `ZAPMRO_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`;
     if (orderBumps && Array.isArray(orderBumps) && orderBumps.length > 0) {
       productDescription += `_BUMPS:${orderBumps.join('+')}`;
     }
