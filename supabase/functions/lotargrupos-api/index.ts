@@ -78,6 +78,38 @@ serve(async (req) => {
       });
     }
 
+    if (action === "admin_add_user_manual") {
+      const { user } = body;
+      
+      // Criar o usuário no Auth se não existir
+      const { data: authUser, error: authError } = await supabaseClient.auth.admin.createUser({
+        email: user.email,
+        password: user.password || 'Mro@123456',
+        email_confirm: true,
+        user_metadata: { name: user.name }
+      });
+
+      if (authError && authError.message !== 'User already exists') throw authError;
+
+      const user_id = authUser?.user?.id;
+      
+      const { data, error } = await supabaseClient
+        .from("lotargrupos_users")
+        .upsert({
+          user_id,
+          name: user.name,
+          email: user.email,
+          status: 'active'
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true, user: data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "admin_update_user") {
       const { id, updates } = body;
       const { data, error } = await supabaseClient
@@ -88,6 +120,62 @@ serve(async (req) => {
         .single();
       if (error) throw error;
       return new Response(JSON.stringify({ success: true, user: data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "admin_list_sales") {
+      const { data, error } = await supabaseClient
+        .from("zapmro_orders")
+        .select("*")
+        .eq("plan_type", "lotargrupos")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true, sales: data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "admin_approve_sale") {
+      const { nsu_order } = body;
+      
+      // Buscar o pedido
+      const { data: order, error: orderErr } = await supabaseClient
+        .from("zapmro_orders")
+        .select("*")
+        .eq("nsu_order", nsu_order)
+        .maybeSingle();
+        
+      if (orderErr || !order) throw new Error("Pedido não encontrado");
+
+      // Invocar o webhook internamente para simular a aprovação (ou processar manualmente)
+      // Como o webhook é externo, vamos replicar a lógica de ativação aqui por simplicidade
+      
+      const { data: authUser, error: authError } = await supabaseClient.auth.admin.createUser({
+        email: order.email,
+        password: order.metadata?.password_plain || 'Mro@123456',
+        email_confirm: true,
+        user_metadata: { name: order.username }
+      });
+
+      if (authError && authError.message !== 'User already exists') {
+        // Se já existe, apenas buscar o ID
+      }
+
+      await supabaseClient
+        .from("lotargrupos_users")
+        .upsert({
+          name: order.username,
+          email: order.email,
+          status: 'active'
+        });
+
+      await supabaseClient
+        .from("zapmro_orders")
+        .update({ status: 'paid' })
+        .eq("nsu_order", nsu_order);
+
+      return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
