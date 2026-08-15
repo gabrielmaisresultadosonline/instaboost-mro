@@ -230,6 +230,15 @@ serve(async (req) => {
           .limit(1)
           .maybeSingle();
         access.postscomia = !!pOrder;
+
+        const { data: lgUser } = await supabase
+          .from("lotargrupos_users")
+          .select("email,status")
+          .eq("email", effEmail)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+        access.lotargrupos = !!lgUser;
       }
 
       // Liberações manuais / compras feitas pela dashboard
