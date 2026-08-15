@@ -253,8 +253,8 @@ const Renddx = () => {
                   <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" /></span>
                   <span className="text-sm font-black tracking-widest text-green-400 uppercase">NOVA OPORTUNIDADE</span>
                 </div>
-                <h1 className="text-4xl sm:text-6xl font-black leading-tight">RENDA EXTRA</h1>
-                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Aprenda grátis como fazer isso, depois você decide se aplica ou não.</p>
+                <h1 className="text-4xl sm:text-6xl font-black leading-tight">OFEREÇA SERVIÇOS PARA EMPRESAS</h1>
+                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Uma ferramenta para otimizar sua rotina de trabalho. Conheça agora.</p>
                 <Button 
                   onClick={() => setQuizStep(1)}
                   className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
