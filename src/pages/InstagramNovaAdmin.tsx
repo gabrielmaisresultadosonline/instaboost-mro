@@ -49,7 +49,8 @@ import {
   Key,
   Smartphone,
   QrCode,
-  MessageCircle
+  MessageCircle,
+  Target
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, differenceInDays, addDays } from "date-fns";
@@ -2588,6 +2589,11 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
               {order.whatsapp_sent && (
                 <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px] px-2 py-0.5">
                   <Smartphone className="w-3 h-3 mr-1" /> WhatsApp ✓
+                </Badge>
+              )}
+              {order.nsu_order?.startsWith("LOTARGRUPOS") && (
+                <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px] px-2 py-0.5">
+                  <Target className="w-3 h-3 mr-1" /> LOTARGRUPOS
                 </Badge>
               )}
             </div>

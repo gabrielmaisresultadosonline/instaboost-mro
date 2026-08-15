@@ -66,7 +66,7 @@ const LotarGruposPreCheckout = () => {
           password: password,
           planType: 'lotargrupos',
           amount: totalAmount,
-          selectedBumps: selectedBumps
+          selectedBumps: ['lotar-grupos', ...selectedBumps]
         }
       });
       if (error) throw error;
