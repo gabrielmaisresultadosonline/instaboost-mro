@@ -127,6 +127,7 @@ import LotarGrupos from "./pages/LotarGrupos";
 
 import LotarGruposLogin from "./pages/LotarGruposLogin";
 import LotarGruposDashboard from "./pages/LotarGruposDashboard";
+import LotarGruposLessonView from "./pages/LotarGruposLessonView";
 import LotarGruposObrigado from "./pages/LotarGruposObrigado";
 import LotarGruposPreCheckout from "./pages/LotarGruposPreCheckout";
 import RecuperarSenha from "./pages/RecuperarSenha";
@@ -478,9 +479,10 @@ const App = () => (
           <Route path="/lotargrupos" element={<LotarGrupos />} />
           <Route path="/lotargrupos/checkout" element={<LotarGruposPreCheckout />} />
           <Route path="/lotargrupos/obrigado" element={<LotarGruposObrigado />} />
+          <Route path="/lotargrupos/aula/:id" element={<LotarGruposLessonView />} />
           <Route path="/login" element={<LotarGruposLogin />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
-          <Route path="/dashboard" element={<LotarGruposDashboard />} />
+          <Route path="/lotargrupos/dashboard" element={<LotarGruposDashboard />} />
 
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />

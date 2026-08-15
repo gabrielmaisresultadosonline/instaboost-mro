@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAdminSessionToken } from "@/lib/adminConfig";
 import { 
   Users, Plus, FileText, Search, Loader2, 
-  ShieldBan, ShieldCheck, Mail, Video, Edit2, Trash2, Save, MoveUp, MoveDown,
+  ShieldBan, ShieldCheck, Mail, Video, Edit2, Trash2, Save, MoveUp, MoveDown, Image as ImageIcon,
   ShoppingBag, CheckCircle, Clock, AlertCircle, UserPlus
 } from "lucide-react";
 import {
@@ -306,24 +306,82 @@ export default function LotarGruposPanel() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">Thumbnail (URL ou Paste Image)</label>
-              <div className="relative">
-                <Input 
-                  value={editingLesson?.thumbnail_url || ""} 
-                  onChange={e => setEditingLesson({...editingLesson, thumbnail_url: e.target.value})} 
-                  onPaste={(e) => {
-                    const items = e.clipboardData.items;
-                    for (let i = 0; i < items.length; i++) {
-                      if (items[i].type.indexOf("image") !== -1) {
-                        toast({ title: "Upload via Paste", description: "O sistema detectou uma imagem. Para melhores resultados, faça o upload no Storage primeiro." });
+              <label className="text-xs font-bold text-slate-500 uppercase">Thumbnail (URL, Paste Image ou Upload)</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input 
+                    value={editingLesson?.thumbnail_url || ""} 
+                    onChange={e => setEditingLesson({...editingLesson, thumbnail_url: e.target.value})} 
+                    onPaste={async (e) => {
+                      const items = e.clipboardData.items;
+                      for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf("image") !== -1) {
+                          const file = items[i].getAsFile();
+                          if (file) {
+                            toast({ title: "Processando imagem...", description: "Aguarde o upload da imagem colada." });
+                            try {
+                              const fileExt = file.name ? file.name.split('.').pop() : 'png';
+                              const fileName = `${Math.random()}.${fileExt}`;
+                              const filePath = `lotargrupos/${fileName}`;
+                              const { data, error } = await supabase.storage.from('public').upload(filePath, file);
+                              if (error) throw error;
+                              const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
+                              setEditingLesson({...editingLesson, thumbnail_url: publicUrl});
+                              toast({ title: "Imagem colada com sucesso!" });
+                            } catch (err: any) {
+                              toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+                            }
+                          }
+                        }
                       }
-                    }
-                  }}
-                  placeholder="URL da imagem de capa" 
-                  className="bg-slate-950 border-slate-800"
-                />
+                    }}
+                    placeholder="URL ou cole uma imagem aqui" 
+                    className="bg-slate-950 border-slate-800"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="thumb-upload"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      toast({ title: "Fazendo upload...", description: "Aguarde a conclusão." });
+                      try {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${Math.random()}.${fileExt}`;
+                        const filePath = `lotargrupos/${fileName}`;
+                        const { data, error } = await supabase.storage.from('public').upload(filePath, file);
+                        if (error) throw error;
+                        const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
+                        setEditingLesson({...editingLesson, thumbnail_url: publicUrl});
+                        toast({ title: "Upload concluído!" });
+                      } catch (err: any) {
+                        toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+                      }
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="icon" 
+                    className="bg-slate-950 border-slate-800"
+                    onClick={() => document.getElementById('thumb-upload')?.click()}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
+              {editingLesson?.thumbnail_url && (
+                <div className="mt-2 relative w-full aspect-[1350/1080] rounded-lg overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
+                  <img src={editingLesson.thumbnail_url} alt="Preview" className="max-w-full max-h-full object-contain" />
+                  <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-bold">1350x1080 (Preview)</div>
+                </div>
+              )}
             </div>
+
 
             <div className="grid gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase">Descrição Completa</label>
