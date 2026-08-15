@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getAdminSessionToken } from "@/lib/adminConfig";
 import { 
   Users, Plus, FileText, Search, Loader2, 
-  ShieldBan, ShieldCheck, Mail, Video, Edit2, Trash2, Save, MoveUp, MoveDown
+  ShieldBan, ShieldCheck, Mail, Video, Edit2, Trash2, Save, MoveUp, MoveDown,
+  ShoppingBag, CheckCircle, Clock, AlertCircle, UserPlus
 } from "lucide-react";
 import {
   Dialog,
@@ -22,10 +23,13 @@ export default function LotarGruposPanel() {
   const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<any>(null);
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
 
   const invokeAdmin = async (action: string, payload: Record<string, unknown> = {}) => {
     const token = getAdminSessionToken();
@@ -43,8 +47,10 @@ export default function LotarGruposPanel() {
     try {
       const usersData = await invokeAdmin('admin_list_users');
       const lessonsData = await invokeAdmin('admin_list_lessons');
+      const salesData = await invokeAdmin('admin_list_sales');
       setUsers(usersData.users || []);
       setLessons(lessonsData.lessons || []);
+      setSales(salesData.sales || []);
     } catch (error: any) {
       toast({ title: "Erro ao buscar dados", description: error.message, variant: "destructive" });
     } finally {
@@ -90,15 +96,43 @@ export default function LotarGruposPanel() {
     }
   };
 
+  const handleAddUserManual = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await invokeAdmin('admin_add_user_manual', { user: newUser });
+      toast({ title: "Membro adicionado manualmente!" });
+      setIsUserDialogOpen(false);
+      setNewUser({ name: '', email: '', password: '' });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Erro ao adicionar membro", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleApproveSale = async (nsu: string) => {
+    try {
+      await invokeAdmin('admin_approve_sale', { nsu_order: nsu });
+      toast({ title: "Venda aprovada com sucesso!" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Erro ao aprovar venda", description: error.message, variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Video className="h-6 w-6 text-primary" /> Gestão Lotar Grupos
         </h2>
-        <Button onClick={() => { setEditingLesson({ order_index: lessons.length + 1, title: "", description: "" }); setIsLessonDialogOpen(true); }} size="sm" className="gap-2">
-          <Plus className="h-4 w-4" /> Nova Aula
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsUserDialogOpen(true)} size="sm" variant="outline" className="gap-2">
+            <UserPlus className="h-4 w-4" /> Add Membro
+          </Button>
+          <Button onClick={() => { setEditingLesson({ order_index: lessons.length + 1, title: "", description: "" }); setIsLessonDialogOpen(true); }} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" /> Nova Aula
+          </Button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -159,6 +193,92 @@ export default function LotarGruposPanel() {
           </div>
         </div>
       </div>
+
+      {/* Vendas */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold flex items-center gap-2 px-1">
+          <ShoppingBag className="h-4 w-4" /> Vendas Lotar Grupos (NSU)
+        </h3>
+        <Card className="bg-card/50">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="p-4 text-left font-bold text-xs uppercase text-muted-foreground">Status</th>
+                  <th className="p-4 text-left font-bold text-xs uppercase text-muted-foreground">Data</th>
+                  <th className="p-4 text-left font-bold text-xs uppercase text-muted-foreground">Email</th>
+                  <th className="p-4 text-left font-bold text-xs uppercase text-muted-foreground">NSU</th>
+                  <th className="p-4 text-right font-bold text-xs uppercase text-muted-foreground">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sales.map((sale) => (
+                  <tr key={sale.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
+                    <td className="p-4">
+                      {sale.status === 'paid' ? (
+                        <Badge className="bg-green-600/20 text-green-500 border-green-500/30 gap-1">
+                          <CheckCircle className="w-3 h-3" /> Aprovada
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-yellow-600/20 text-yellow-500 border-yellow-500/30 gap-1">
+                          <Clock className="w-3 h-3" /> Pendente
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="p-4 text-muted-foreground">
+                      {new Date(sale.created_at).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="p-4 font-medium">{sale.email}</td>
+                    <td className="p-4 font-mono text-xs">{sale.nsu_order}</td>
+                    <td className="p-4 text-right">
+                      {sale.status !== 'paid' && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-green-500 hover:text-green-600 hover:bg-green-500/10 gap-1"
+                          onClick={() => handleApproveSale(sale.nsu_order)}
+                        >
+                          <ShieldCheck className="w-3 h-3" /> Aprovar Manual
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {sales.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-muted-foreground italic">
+                      Nenhuma venda registrada ainda.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
+        <DialogContent className="max-w-md bg-slate-900 border-slate-800 text-white">
+          <DialogHeader><DialogTitle className="text-white">Adicionar Membro Manual</DialogTitle></DialogHeader>
+          <form onSubmit={handleAddUserManual} className="space-y-4 py-4">
+            <div className="grid gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase">Nome Completo</label>
+              <Input value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="bg-slate-950 border-slate-800" required />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase">Melhor E-mail</label>
+              <Input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="bg-slate-950 border-slate-800" required />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase">Senha (Padrão: Mro@123456)</label>
+              <Input type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} placeholder="Mro@123456" className="bg-slate-950 border-slate-800" />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="submit" className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold"><UserPlus className="h-4 w-4" /> Liberar Acesso</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
         <DialogContent className="max-w-2xl bg-slate-900 border-slate-800 text-white">
