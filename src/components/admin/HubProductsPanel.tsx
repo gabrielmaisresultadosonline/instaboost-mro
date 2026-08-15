@@ -421,7 +421,7 @@ export default function HubProductsPanel() {
                 <input
                   type="checkbox"
                   id="is_redirect_only"
-                  checked={editing.is_redirect_only || false}
+                  checked={Boolean(editing.is_redirect_only)}
                   onChange={(e) => setEditing({ ...editing, is_redirect_only: e.target.checked })}
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
