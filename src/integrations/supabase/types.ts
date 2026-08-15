@@ -2683,6 +2683,7 @@ export type Database = {
           is_active: boolean
           is_ebook_hub: boolean | null
           is_pinned: boolean | null
+          is_redirect_only: boolean | null
           new_until: string | null
           order_index: number
           plan_type: string | null
@@ -2704,6 +2705,7 @@ export type Database = {
           is_active?: boolean
           is_ebook_hub?: boolean | null
           is_pinned?: boolean | null
+          is_redirect_only?: boolean | null
           new_until?: string | null
           order_index?: number
           plan_type?: string | null
@@ -2725,6 +2727,7 @@ export type Database = {
           is_active?: boolean
           is_ebook_hub?: boolean | null
           is_pinned?: boolean | null
+          is_redirect_only?: boolean | null
           new_until?: string | null
           order_index?: number
           plan_type?: string | null

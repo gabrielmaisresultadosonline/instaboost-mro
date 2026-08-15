@@ -258,7 +258,7 @@ serve(async (req) => {
 
       const result = (products || []).map((p) => ({
         ...p,
-        unlocked: !isBlocked && (grantedIds.has(p.id) || !!access[p.access_source]),
+        unlocked: p.is_redirect_only || (!isBlocked && (grantedIds.has(p.id) || !!access[p.access_source])),
       }));
 
       // Identidade efetiva devolvida para o front hidratar o login das ferramentas
@@ -482,6 +482,7 @@ serve(async (req) => {
         is_ebook_hub: !!p.is_ebook_hub,
         badge_text: p.badge_text ? String(p.badge_text) : null,
         plan_type: p.plan_type ? String(p.plan_type) : 'vitalicio',
+        is_redirect_only: !!p.is_redirect_only,
       };
       if (p.id) {
         const { error } = await supabase.from("hub_products").update(payload).eq("id", String(p.id));
