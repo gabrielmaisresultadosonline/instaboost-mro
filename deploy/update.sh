@@ -45,7 +45,18 @@ npm install
 echo "🔨 Fazendo build do frontend..."
 # Limpa o dist antigo para garantir que não fiquem arquivos velhos (cache buster)
 rm -rf dist
+VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://adljdeekwifwcdcgbpit.supabase.co}" \
+VITE_SUPABASE_PUBLISHABLE_KEY="${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbGpkZWVrd2lmd2NkY2dicGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMjk0MDMsImV4cCI6MjA4MDcwNTQwM30.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4}" \
+VITE_SUPABASE_PROJECT_ID="${VITE_SUPABASE_PROJECT_ID:-adljdeekwifwcdcgbpit}" \
 npm run build
+
+# Interrompe o deploy antes do Nginx se o bundle tiver sido gerado sem a
+# configuração pública necessária para inicializar o cliente do backend.
+if ! grep -Rqs "adljdeekwifwcdcgbpit" dist/assets/*.js; then
+    echo "❌ ERRO: build inválido — configuração pública do backend ausente no bundle."
+    exit 1
+fi
+echo "✅ Configuração pública do backend confirmada no bundle."
 
 
 # ============= Bot WhatsApp (whatsapp-web.js) =============
@@ -199,6 +210,14 @@ server {
         try_files \$uri \$uri/ /index.html;
     }
 
+    # O HTML referencia bundles com hash e nunca pode ficar preso em cache.
+    # Os assets abaixo continuam imutáveis por um ano.
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+    }
+
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)\$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
@@ -227,7 +246,7 @@ echo ""
 echo "🧪 Teste de Conectividade Local:"
 # Testa se o nginx está servindo o arquivo certo sem o proxy do Lovable
 curl -s http://localhost | grep -q "flock" && echo "❌ ERRO: Conteúdo Lovable detectado!" || echo "✅ OK: Conteúdo Lovable removido."
-curl -s http://localhost | grep -q "assets/index.js" && echo "✅ OK: Assets corretos detectados." || echo "❌ ERRO: Assets não encontrados no HTML servido."
+curl -s http://localhost | grep -Eq 'assets/index-[^"[:space:]]+\.js' && echo "✅ OK: Bundle atual detectado." || echo "❌ ERRO: Bundle não encontrado no HTML servido."
 
 echo ""
 echo "✅ Atualização concluída!"

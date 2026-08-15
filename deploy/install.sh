@@ -69,7 +69,15 @@ echo -e "${YELLOW}Instalando dependências do frontend...${NC}"
 npm install
 
 echo -e "${YELLOW}Fazendo build do frontend...${NC}"
+VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://adljdeekwifwcdcgbpit.supabase.co}" \
+VITE_SUPABASE_PUBLISHABLE_KEY="${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiYWRsamRlZWt3aWZ3Y2RjZ2JwaXQiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2NTEyOTQwMywiZXhwIjoyMDgwNzA1NDAzfQ.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4}" \
+VITE_SUPABASE_PROJECT_ID="${VITE_SUPABASE_PROJECT_ID:-adljdeekwifwcdcgbpit}" \
 npm run build
+
+if ! grep -Rqs "adljdeekwifwcdcgbpit" dist/assets/*.js; then
+    echo -e "${RED}ERRO: build inválido — configuração pública do backend ausente no bundle.${NC}"
+    exit 1
+fi
 
 # Configurar Nginx
 echo -e "${YELLOW}Configurando Nginx...${NC}"
@@ -118,6 +126,12 @@ server {
     # SPA routing
     location / {
         try_files \$uri \$uri/ /index.html;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
     }
 
     add_header X-Frame-Options "SAMEORIGIN" always;
