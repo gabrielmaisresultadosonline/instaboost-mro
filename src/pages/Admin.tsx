@@ -1152,6 +1152,10 @@ const Admin = () => {
         {activeTab === 'renddx_leads' && (
           <RenddxLeadsPanel />
         )}
+        {activeTab === 'lotargrupos' && (
+          <LotarGruposPanel />
+        )}
+
           </main>
         </SidebarInset>
       </div>
