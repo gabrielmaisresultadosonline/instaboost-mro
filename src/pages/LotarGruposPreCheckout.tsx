@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { trackInitiateCheckout, trackPageView } from '@/lib/facebookTracking';
+import { trackInitiateCheckout, trackPageView, trackLead } from '@/lib/facebookTracking';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const LotarGruposPreCheckout = () => {
@@ -71,7 +71,9 @@ const LotarGruposPreCheckout = () => {
       });
       if (error) throw error;
       
+      trackLead('Lotar Grupos Pre-Checkout', { email: email.toLowerCase().trim(), phone: phone.replace(/\D/g, "").trim(), content_name: 'Lead Lotar Grupos' });
       trackInitiateCheckout('Lotar Grupos', totalAmount);
+
       window.location.href = data.payment_link;
     } catch (err) {
       console.error(err);
