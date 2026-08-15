@@ -29,8 +29,6 @@ import {
   Check,
   MousePointer2
 } from "lucide-react";
-const DiscountVideoPlayer = lazy(() => import("@/components/DiscountVideoPlayer"));
-const PromoToolVideoSection = lazy(() => import("@/components/PromoToolVideoSection"));
 import LotarGruposHeroVideo from "@/components/LotarGruposHeroVideo";
 import logoMro from "@/assets/logo-mro.png";
 
