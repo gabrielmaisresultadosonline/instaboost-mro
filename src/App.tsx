@@ -125,7 +125,12 @@ import Lovablack from "./pages/Lovablack";
 import LotarGrupos from "./pages/LotarGrupos";
 
 
+import LotarGruposLogin from "./pages/LotarGruposLogin";
+import LotarGruposDashboard from "./pages/LotarGruposDashboard";
+import LotarGruposObrigado from "./pages/LotarGruposObrigado";
+
 import RendaExt from "./pages/RendaExt";
+
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
 import CorretorMRO from "./pages/CorretorMRO";
