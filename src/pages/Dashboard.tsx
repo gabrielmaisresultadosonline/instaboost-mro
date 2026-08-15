@@ -456,6 +456,20 @@ export default function Dashboard() {
 
 
 
+      if (product.access_source === "lotargrupos" || product.slug === "lotar-grupos") {
+        if (session.email) {
+          try {
+            // Tenta logar silenciosamente usando o e-mail do hub e a senha
+            await supabase.auth.signInWithPassword({
+              email: session.email.toLowerCase().trim(),
+              password: session.password
+            });
+          } catch {
+            // Se falhar, segue para o dashboard (que redirecionará se não estiver logado)
+          }
+        }
+      }
+
       // Marca a sessão para que os botões de "voltar" das ferramentas
       // retornem para o Dashboard.
       markHubReturn();
