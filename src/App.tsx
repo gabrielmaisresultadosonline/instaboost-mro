@@ -129,6 +129,7 @@ import LotarGruposLogin from "./pages/LotarGruposLogin";
 import LotarGruposDashboard from "./pages/LotarGruposDashboard";
 import LotarGruposObrigado from "./pages/LotarGruposObrigado";
 import LotarGruposPreCheckout from "./pages/LotarGruposPreCheckout";
+import RecuperarSenha from "./pages/RecuperarSenha";
 
 import RendaExt from "./pages/RendaExt";
 
