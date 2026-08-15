@@ -132,9 +132,13 @@ export default function LotarGruposDashboard() {
                 <p className="text-[10px] text-slate-500 truncate">{userData?.email}</p>
               </div>
             </div>
+            <Button variant="ghost" className="w-full justify-start gap-3 text-slate-400 hover:text-white hover:bg-slate-800 h-12 rounded-xl" onClick={() => navigate('/dashboard')}>
+              <LayoutDashboard className="w-4 h-4" /> Voltar ao Hub
+            </Button>
             <Button variant="ghost" className="w-full justify-start gap-3 text-slate-400 hover:text-white hover:bg-slate-800 h-12 rounded-xl" onClick={handleLogout}>
               <LogOut className="w-4 h-4" /> Sair da conta
             </Button>
+
           </div>
         </div>
       </aside>

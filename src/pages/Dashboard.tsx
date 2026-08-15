@@ -470,9 +470,19 @@ export default function Dashboard() {
   };
 
   const handleCardClick = (product: HubProduct) => {
+    if (product.slug === 'lotar-grupos') {
+      if (product.unlocked) {
+        navigate('/lotargrupos/dashboard');
+      } else {
+        navigate('/lotargrupos');
+      }
+      return;
+    }
+    
     if (product.status === 'construction') {
       toast({ 
         title: "Em Construção 🚧", 
+
         description: "Este produto está sendo finalizado e estará disponível em breve.",
         variant: "default"
       });
