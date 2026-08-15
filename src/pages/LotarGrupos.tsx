@@ -137,7 +137,7 @@ const LotarGrupos = () => {
           
           <div className="w-full max-w-4xl mx-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden relative group">
             <img 
-              src={heroAsset.url.startsWith('http') ? heroAsset.url : `https://maisresultadosonline.com.br${heroAsset.url}`} 
+              src={heroAsset.url.startsWith('http') ? heroAsset.url : heroAsset.url} 
               alt="Como Lotar Qualquer Grupo" 
               className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
               onError={(e) => {
