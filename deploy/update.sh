@@ -15,6 +15,8 @@ APP_DIR="/var/www/$APP_NAME"
 NGINX_SITE="/etc/nginx/sites-available/$APP_NAME"
 DOMAIN="maisresultadosonline.com.br"
 WPP_BOT_DIR="$APP_DIR/whatsapp-bot"
+VIDEO_NGINX_SITE="/etc/nginx/sites-available/video-server"
+VIDEO_NGINX_ENABLED="/etc/nginx/sites-enabled/video-server"
 
 # Sudo helper (permite rodar como root ou usuário normal)
 SUDO=""
