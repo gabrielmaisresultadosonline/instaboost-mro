@@ -4,6 +4,7 @@ import {
   ArrowRight, Play, Star, Gift, Phone, Mail, User,
   Lock, MousePointer2, Loader2, Sparkles, Send, Target, BarChart3
 } from 'lucide-react';
+import heroAsset from "@/assets/lotargrupos-hero.png.asset.json";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -134,15 +135,19 @@ const LotarGrupos = () => {
             Técnica infalível com API de conversão Leads utilizando Meta Ads para turbinar seus anúncios!
           </p>
           
-          <div className="aspect-video w-full max-w-3xl mx-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center relative group overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-             <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform z-10 shadow-xl shadow-blue-500/20" onClick={() => document.getElementById('price-container')?.scrollIntoView({ behavior: 'smooth' })}>
-               <Play className="w-8 h-8 fill-current" />
-             </div>
-             <p className="absolute bottom-6 left-6 text-sm font-bold text-white/80 z-10 flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-               AULA DEMONSTRATIVA
-             </p>
+          <div className="w-full max-w-4xl mx-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden relative group">
+            <img 
+              src={heroAsset.url} 
+              alt="Como Lotar Qualquer Grupo" 
+              className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            <div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform z-10 shadow-xl shadow-blue-500/20" 
+              onClick={() => document.getElementById('price-container')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <ArrowRight className="w-8 h-8 text-white" />
+            </div>
           </div>
         </div>
       </section>
