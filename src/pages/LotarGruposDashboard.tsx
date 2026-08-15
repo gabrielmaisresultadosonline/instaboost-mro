@@ -25,7 +25,7 @@ export default function LotarGruposDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        navigate('/login');
+        navigate('/lotargrupos/login');
         return;
       }
 
