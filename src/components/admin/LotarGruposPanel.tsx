@@ -396,7 +396,7 @@ export default function LotarGruposPanel() {
                       try {
                         const fileExt = file.name.split('.').pop();
                         const fileName = `${Math.random()}.${fileExt}`;
-                        const filePath = `lotargrupos/${fileName}`;
+                        const filePath = `thumbnails/${fileName}`;
                         const { data, error } = await supabase.storage.from('public').upload(filePath, file);
                         if (error) throw error;
                         const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
