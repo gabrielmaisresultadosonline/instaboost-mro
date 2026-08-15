@@ -19,19 +19,14 @@ serve(async (req) => {
     const body = await req.json();
     const { action, admin_token } = body;
 
-    // Verify admin token if it's an admin action
+    // Verify admin token (same HMAC session token used by the main admin panel)
     if (action.startsWith("admin_")) {
-      // Bypass verification for local development or if token matches
-      // Note: Lovable Cloud managed tokens are handled differently, but we check the db for consistency
-      const { data: adminSettings, error: adminErr } = await supabaseClient
-        .from("lovablack_settings")
-        .select("value")
-        .eq("key", "admin_session_token")
-        .maybeSingle();
+      const sessionSecret = Deno.env.get("MRO_ADMIN_SESSION_SECRET") ?? "";
+      const admin = sessionSecret
+        ? await verifyAdminSessionToken(admin_token, sessionSecret, "mro-main-admin")
+        : null;
 
-      const validToken = adminSettings?.value || "mro-admin-token-2026";
-      
-      if (admin_token !== validToken) {
+      if (!admin) {
         return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
