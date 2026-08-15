@@ -318,7 +318,7 @@ export default function LotarGruposPanel() {
                     try {
                       const fileExt = file.name.split('.').pop();
                       const fileName = `${Math.random()}.${fileExt}`;
-                      const filePath = `lotargrupos/videos/${fileName}`;
+                      const filePath = `videos/${fileName}`;
                       
                       console.log("Iniciando upload para bucket 'public', path:", filePath);
                       const { data, error } = await supabase.storage
