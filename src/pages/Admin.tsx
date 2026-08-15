@@ -237,7 +237,9 @@ const Admin = () => {
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
     { id: 'lovablack', label: 'LOVABLACK', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'renddx_leads', label: 'Leads Renddx', icon: <Users className="w-4 h-4" /> },
+    { id: 'lotargrupos', label: 'Lotar Grupos', icon: <Video className="w-4 h-4" /> },
   ];
+
 
   const getSelectedProfileData = () => {
     return session?.profiles.find(p => p.id === selectedProfile);
