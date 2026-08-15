@@ -5,6 +5,7 @@ import {
   Lock, MousePointer2, Loader2, Sparkles, Send, Target, BarChart3
 } from 'lucide-react';
 import heroAsset from "@/assets/lotargrupos-hero.png.asset.json";
+import LotarGruposHeroVideo from "@/components/LotarGruposHeroVideo";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
