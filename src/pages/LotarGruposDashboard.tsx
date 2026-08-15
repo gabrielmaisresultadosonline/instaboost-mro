@@ -98,7 +98,7 @@ export default function LotarGruposDashboard() {
             {lessons.map((lesson) => (
               <button
                 key={lesson.id}
-                onClick={() => { navigate(`/lotargrupos/aula/${lesson.id}`); setIsSidebarOpen(false); }}
+                onClick={() => { setActiveLesson(lesson); setIsSidebarOpen(false); }}
                 className={`w-full text-left p-4 rounded-2xl transition-all group flex items-start gap-4 ${
                   activeLesson?.id === lesson.id 
                     ? 'bg-blue-600 shadow-lg shadow-blue-500/20' 
@@ -147,8 +147,8 @@ export default function LotarGruposDashboard() {
       <main className="flex-1 flex flex-col min-w-0">
         {activeLesson ? (
           <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 max-w-6xl mx-auto w-full">
-            <div className="aspect-video w-full rounded-[2.5rem] bg-black border border-slate-800 shadow-2xl overflow-hidden mb-10 relative group cursor-pointer"
-                 onClick={() => navigate(`/lotargrupos/aula/${activeLesson.id}`)}>
+            <div className="aspect-video w-full rounded-[2.5rem] bg-black border border-slate-800 shadow-2xl overflow-hidden mb-10 relative group cursor-pointer">
+
               {activeLesson.thumbnail_url ? (
                 <div className="w-full h-full relative">
                   <img src={activeLesson.thumbnail_url} alt={activeLesson.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
@@ -161,9 +161,10 @@ export default function LotarGruposDashboard() {
               ) : activeLesson.video_url ? (
                 <iframe 
                   src={activeLesson.video_url} 
-                  className="w-full h-full border-0 pointer-events-none" 
+                  className="w-full h-full border-0" 
                   allowFullScreen
                 />
+
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-700">
                   <Play className="w-20 h-20 mb-4 opacity-10" />
@@ -214,7 +215,7 @@ export default function LotarGruposDashboard() {
                 <div className="p-8 rounded-[2rem] bg-blue-600 shadow-xl shadow-blue-600/10 text-center space-y-4">
                    <h4 className="font-black text-lg">Precisa de Ajuda?</h4>
                    <p className="text-blue-100 text-sm">Nossa equipe está pronta para te auxiliar em qualquer dúvida técnica.</p>
-                   <Button variant="secondary" className="w-full font-bold h-12 rounded-xl">Suporte WhatsApp</Button>
+                   <Button variant="secondary" className="w-full font-bold h-12 rounded-xl" onClick={() => window.open('https://maisresultadosonline.com.br/whatsapp', '_blank')}>Suporte WhatsApp</Button>
                 </div>
               </div>
             </div>
