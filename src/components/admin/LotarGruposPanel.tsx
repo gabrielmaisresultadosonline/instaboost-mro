@@ -340,6 +340,7 @@ export default function LotarGruposPanel() {
                 />
               </div>
               <p className="text-[10px] text-slate-400 italic">Dica: Se preferir, pode continuar usando uma URL externa no campo acima.</p>
+            </div>
 
             <div className="grid gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase">Thumbnail (URL, Paste Image ou Upload)</label>
