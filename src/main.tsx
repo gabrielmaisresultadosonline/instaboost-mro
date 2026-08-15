@@ -26,6 +26,10 @@ if (window.location.pathname === "/lotargrupos") {
   import("./pages/LotarGrupos.tsx").then(({ default: LotarGrupos }) => {
     root.render(<LotarGrupos />);
   });
+} else if (window.location.pathname === "/renddx" || window.location.pathname === "/") {
+  import("./pages/Renddx.tsx").then(({ default: Renddx }) => {
+    root.render(<Renddx />);
+  });
 } else {
   import("./App.tsx").then(({ default: App }) => {
     root.render(<App />);
