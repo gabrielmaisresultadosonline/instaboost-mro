@@ -243,7 +243,7 @@ const LotarGrupos = () => {
               </ul>
 
               <Button 
-                onClick={() => window.location.href = '/lotargrupos/checkout'}
+                onClick={() => window.location.href = '/lotargrupos/pre-checkout'}
                 className="w-full h-20 bg-green-600 hover:bg-green-500 text-white font-black text-2xl rounded-3xl shadow-xl shadow-green-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] group"
               >
                 QUERO MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
