@@ -141,10 +141,9 @@ const LotarGrupos = () => {
               alt="Como Lotar Qualquer Grupo" 
               className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
               onError={(e) => {
-                // Fallback for VPS where asset proxy might fail
                 const target = e.target as HTMLImageElement;
-                if (!target.src.includes('placeholder')) {
-                   target.src = "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=1974&auto=format&fit=crop";
+                if (!target.src.includes('lovable.app')) {
+                   target.src = `https://id-preview--d87f8e30-df83-4ce7-ae4a-4154e685c5ea.lovable.app${heroAsset.url}`;
                 }
               }}
             />

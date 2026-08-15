@@ -50,12 +50,9 @@ VITE_SUPABASE_PUBLISHABLE_KEY="${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1
 VITE_SUPABASE_PROJECT_ID="${VITE_SUPABASE_PROJECT_ID:-adljdeekwifwcdcgbpit}" \
 npm run build
 
-# Copy internal assets to dist for VPS direct serving
-echo "📦 Copiando assets internos para produção..."
+# Note: Assets are served via Lovable CDN or Preview URL fallback.
+# Ensuring the directory exists prevents 404 logs during resolution.
 mkdir -p dist/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9
-# Note: As the real PNG is managed by Lovable storage, on VPS we need to ensure 
-# the client can resolve the path or we fallback to the local public version if it exists.
-# For now, ensuring the directory structure exists to avoid 404s if handled by a proxy.
 
 # Interrompe o deploy antes do Nginx se o bundle tiver sido gerado sem a
 # configuração pública necessária para inicializar o cliente do backend.
