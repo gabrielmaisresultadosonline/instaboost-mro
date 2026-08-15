@@ -216,7 +216,7 @@ export default function LotarGruposPanel() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">Materiais (JSON: [{ "label": "Download", "url": "..." }])</label>
+              <label className="text-xs font-bold text-slate-500 uppercase">Materiais (JSON: [&#123; "label": "Download", "url": "..." &#125;])</label>
               <textarea 
                 value={typeof editingLesson?.buttons === 'string' ? editingLesson.buttons : JSON.stringify(editingLesson?.buttons || [], null, 2)} 
                 onChange={e => {
