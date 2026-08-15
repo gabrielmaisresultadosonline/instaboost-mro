@@ -5,6 +5,7 @@ import {
   Lock, MousePointer2, Loader2, Sparkles, Send, Target, BarChart3
 } from 'lucide-react';
 import heroAsset from "@/assets/lotargrupos-hero.png.asset.json";
+import LotarGruposHeroVideo from "@/components/LotarGruposHeroVideo";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -134,6 +135,10 @@ const LotarGrupos = () => {
           <p className="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl mx-auto">
             Técnica infalível com API de conversão Leads utilizando Meta Ads para turbinar seus anúncios!
           </p>
+
+          <LotarGruposHeroVideo />
+
+
           
           <div className="w-full max-w-4xl mx-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden relative group">
             <img 
