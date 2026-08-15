@@ -49,7 +49,8 @@ import {
   Key,
   Smartphone,
   QrCode,
-  MessageCircle
+  MessageCircle,
+  Target
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, differenceInDays, addDays } from "date-fns";
