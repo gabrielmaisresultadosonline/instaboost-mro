@@ -137,9 +137,16 @@ const LotarGrupos = () => {
           
           <div className="w-full max-w-4xl mx-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden relative group">
             <img 
-              src={heroAsset.url} 
+              src={heroAsset.url.startsWith('http') ? heroAsset.url : `https://maisresultadosonline.com.br${heroAsset.url}`} 
               alt="Como Lotar Qualquer Grupo" 
               className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+              onError={(e) => {
+                // Fallback for VPS where asset proxy might fail
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes('placeholder')) {
+                   target.src = "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=1974&auto=format&fit=crop";
+                }
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
             <div 
