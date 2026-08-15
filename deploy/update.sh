@@ -243,11 +243,37 @@ server {
 }
 EOF
 
-# Ativa a configuração
+# Ativa/recria somente o link do site principal
 $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
 
-echo "🔄 Reiniciando Nginx..."
-$SUDO nginx -t && $SUDO systemctl restart nginx
+# ============================================================
+# PRESERVAR VIDEO-SERVER (video.$DOMAIN → 127.0.0.1:3001)
+# ============================================================
+if [ -f "$VIDEO_NGINX_SITE" ]; then
+    echo "🎬 Preservando configuração do video-server..."
+    $SUDO ln -sf "$VIDEO_NGINX_SITE" "$VIDEO_NGINX_ENABLED"
+    echo "✅ video-server preservado:"
+    echo "   $VIDEO_NGINX_SITE"
+    echo "   → $VIDEO_NGINX_ENABLED"
+else
+    echo "⚠️  Configuração do video-server não encontrada."
+    echo "   Nenhuma alteração será feita no video-server."
+fi
+
+# ============================================================
+# TESTE E RELOAD SEGURO (sem restart)
+# ============================================================
+echo "🔍 Testando configuração completa do Nginx..."
+if $SUDO nginx -t; then
+    echo "✅ Nginx OK."
+    echo "🔄 Recarregando Nginx sem reiniciar os serviços..."
+    $SUDO systemctl reload nginx
+    echo "✅ Nginx recarregado com sucesso."
+else
+    echo "❌ ERRO: configuração do Nginx inválida."
+    echo "🚨 Nginx NÃO será recarregado."
+    exit 1
+fi
 
 
 echo ""
