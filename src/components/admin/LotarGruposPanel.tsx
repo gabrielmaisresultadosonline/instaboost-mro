@@ -304,6 +304,42 @@ export default function LotarGruposPanel() {
                 className="bg-slate-950 border-slate-800"
               />
             </div>
+            
+            <div className="grid gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase">Upload de Vídeo (Opcional)</label>
+              <div className="flex gap-2">
+                <Input 
+                  type="file" 
+                  accept="video/*" 
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    toast({ title: "Fazendo upload do vídeo...", description: "Aguarde a conclusão. Isso pode levar alguns minutos dependendo do tamanho." });
+                    try {
+                      const fileExt = file.name.split('.').pop();
+                      const fileName = `${Math.random()}.${fileExt}`;
+                      const filePath = `lotargrupos/videos/${fileName}`;
+                      
+                      const { data, error } = await supabase.storage
+                        .from('public')
+                        .upload(filePath, file);
+                        
+                      if (error) throw error;
+                      
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('public')
+                        .getPublicUrl(filePath);
+                        
+                      setEditingLesson({...editingLesson, video_url: publicUrl});
+                      toast({ title: "Upload de vídeo concluído!" });
+                    } catch (err: any) {
+                      toast({ title: "Erro no upload do vídeo", description: err.message, variant: "destructive" });
+                    }
+                  }}
+                  className="bg-slate-950 border-slate-800"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 italic">Dica: Se preferir, pode continuar usando uma URL externa no campo acima.</p>
 
             <div className="grid gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase">Thumbnail (URL, Paste Image ou Upload)</label>
