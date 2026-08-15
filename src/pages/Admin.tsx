@@ -34,6 +34,8 @@ import MergeLogsPanel from '@/components/admin/MergeLogsPanel';
 import MroToolPanel from '@/components/admin/MroToolPanel';
 import LovablackPanel from '@/components/admin/LovablackPanel';
 import RenddxLeadsPanel from '@/components/admin/RenddxLeadsPanel';
+import LotarGruposPanel from '@/components/admin/LotarGruposPanel';
+
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
