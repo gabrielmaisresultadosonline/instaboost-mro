@@ -64,7 +64,7 @@ export default function LotarGruposDashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    navigate('/lotargrupos/login');
   };
 
   if (loading) {
