@@ -15,6 +15,8 @@ APP_DIR="/var/www/$APP_NAME"
 NGINX_SITE="/etc/nginx/sites-available/$APP_NAME"
 DOMAIN="maisresultadosonline.com.br"
 WPP_BOT_DIR="$APP_DIR/whatsapp-bot"
+VIDEO_NGINX_SITE="/etc/nginx/sites-available/video-server"
+VIDEO_NGINX_ENABLED="/etc/nginx/sites-enabled/video-server"
 
 # Sudo helper (permite rodar como root ou usuário normal)
 SUDO=""
@@ -158,25 +160,30 @@ fi
 echo ""
 echo "🧩 Verificando conflitos de Nginx..."
 
-# 🚨 RESOLVER CONFLITO: Remove ou altera o whatsapp-bridge se ele usar o mesmo domínio
-# Agora que o ia-mro já tem o proxy para /bridge na porta 3000, não precisamos do config antigo.
+# 🚨 RESOLVER CONFLITO: Remove o whatsapp-bridge legado (mesmo domínio)
 WPP_BRIDGE_NGINX="/etc/nginx/sites-enabled/whatsapp-bridge"
 if [ -f "$WPP_BRIDGE_NGINX" ]; then
     echo "⚠️  Removendo configuração conflitante em $WPP_BRIDGE_NGINX..."
     $SUDO rm -f "$WPP_BRIDGE_NGINX"
 fi
 
-# Remove também qualquer resquício de default ou configs duplicadas que possam conflitar
 $SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
-
-# SÓ atualiza Nginx se o usuário permitir ou se for necessário para o /bridge
 echo "🛠️  Configurando Nginx para servir o build LOCAL (Sem Proxys Lovable)..."
 
-# Garante que NENHUM outro arquivo na sites-enabled aponte para o domínio
-# Isso evita que o antigo 'prompt-mro' ou 'prompts-mro' (proxys) voltem à vida
-$SUDO find /etc/nginx/sites-enabled/ -type l -exec grep -l "$DOMAIN" {} + | xargs -r $SUDO rm -f
-$SUDO rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+# Garante que NENHUM outro arquivo na sites-enabled aponte para o domínio,
+# PRESERVANDO sempre o site principal e o video-server (subdomínio video.).
+for link in /etc/nginx/sites-enabled/*; do
+    [ -e "$link" ] || continue
+    base="$(basename "$link")"
+    case "$base" in
+        "$APP_NAME"|video-server) continue ;;
+    esac
+    if grep -qs "$DOMAIN" "$link"; then
+        echo "⚠️  Removendo config conflitante: $base"
+        $SUDO rm -f "$link"
+    fi
+done
 
 # Cria a configuração limpa e direta
 $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
@@ -236,11 +243,37 @@ server {
 }
 EOF
 
-# Ativa a configuração
+# Ativa/recria somente o link do site principal
 $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
 
-echo "🔄 Reiniciando Nginx..."
-$SUDO nginx -t && $SUDO systemctl restart nginx
+# ============================================================
+# PRESERVAR VIDEO-SERVER (video.$DOMAIN → 127.0.0.1:3001)
+# ============================================================
+if [ -f "$VIDEO_NGINX_SITE" ]; then
+    echo "🎬 Preservando configuração do video-server..."
+    $SUDO ln -sf "$VIDEO_NGINX_SITE" "$VIDEO_NGINX_ENABLED"
+    echo "✅ video-server preservado:"
+    echo "   $VIDEO_NGINX_SITE"
+    echo "   → $VIDEO_NGINX_ENABLED"
+else
+    echo "⚠️  Configuração do video-server não encontrada."
+    echo "   Nenhuma alteração será feita no video-server."
+fi
+
+# ============================================================
+# TESTE E RELOAD SEGURO (sem restart)
+# ============================================================
+echo "🔍 Testando configuração completa do Nginx..."
+if $SUDO nginx -t; then
+    echo "✅ Nginx OK."
+    echo "🔄 Recarregando Nginx sem reiniciar os serviços..."
+    $SUDO systemctl reload nginx
+    echo "✅ Nginx recarregado com sucesso."
+else
+    echo "❌ ERRO: configuração do Nginx inválida."
+    echo "🚨 Nginx NÃO será recarregado."
+    exit 1
+fi
 
 
 echo ""
