@@ -133,15 +133,6 @@ const LotarGrupos = () => {
             </span>
           </h1>
           
-          <div className="w-full max-w-2xl mx-auto mb-10">
-            <img 
-              src="https://id-preview--d87f8e30-df83-4ce7-ae4a-4154e685c5ea.lovable.app/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9/lotargrupos-hero.png" 
-              alt="Lotar Grupos Hero" 
-              className="w-full h-auto rounded-3xl shadow-2xl border border-slate-800"
-              loading="eager"
-            />
-          </div>
-
           <p className="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl mx-auto">
             Técnica infalível com API de conversão Leads utilizando Meta Ads para turbinar seus anúncios!
           </p>
@@ -188,6 +179,14 @@ const LotarGrupos = () => {
       <section className="py-20 px-4" id="price-container">
         <div className="max-w-xl mx-auto">
           <div className="text-center mb-12">
+            <div className="w-full max-w-2xl mx-auto mb-10">
+              <img 
+                src="https://id-preview--d87f8e30-df83-4ce7-ae4a-4154e685c5ea.lovable.app/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9/lotargrupos-hero.png" 
+                alt="Lotar Grupos Hero" 
+                className="w-full h-auto rounded-3xl shadow-2xl border border-slate-800"
+                loading="eager"
+              />
+            </div>
             <h2 className="text-4xl font-black mb-4 uppercase tracking-tight">Oportunidade Única</h2>
             <p className="text-slate-400">Tenha acesso vitalício ao método completo por um valor simbólico.</p>
           </div>
