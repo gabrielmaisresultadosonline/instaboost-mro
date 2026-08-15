@@ -95,6 +95,22 @@ const LotarGrupos = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500/30">
+      {/* Navbar com Login */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <Target className="w-6 h-6 text-blue-500" />
+          <span className="font-black text-xl tracking-tighter uppercase italic">Lotar Grupos</span>
+        </div>
+        <Button 
+          variant="outline"
+          onClick={() => window.location.href = '/login'}
+          className="rounded-full border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 font-bold px-6 text-xs"
+        >
+          <User className="w-4 h-4 mr-2" />
+          JÁ SOU ALUNO
+        </Button>
+      </nav>
+
       {/* Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600 rounded-full blur-[120px]" />
