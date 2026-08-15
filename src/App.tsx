@@ -125,7 +125,12 @@ import Lovablack from "./pages/Lovablack";
 import LotarGrupos from "./pages/LotarGrupos";
 
 
+import LotarGruposLogin from "./pages/LotarGruposLogin";
+import LotarGruposDashboard from "./pages/LotarGruposDashboard";
+import LotarGruposObrigado from "./pages/LotarGruposObrigado";
+
 import RendaExt from "./pages/RendaExt";
+
 import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
 import CorretorMRO from "./pages/CorretorMRO";
@@ -469,6 +474,10 @@ const App = () => (
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/lovablack" element={<Lovablack />} />
           <Route path="/lotargrupos" element={<LotarGrupos />} />
+          <Route path="/lotargrupos/obrigado" element={<LotarGruposObrigado />} />
+          <Route path="/login" element={<LotarGruposLogin />} />
+          <Route path="/dashboard" element={<LotarGruposDashboard />} />
+
           <Route path="/trafegopagovisitas/obrigado" element={<TrafegoPagoObrigado />} />
           <Route path="/audiobooks" element={<AudiobooksSales />} />
           <Route path="/audiobooks/checkout" element={<AudiobooksPreCheckout />} />

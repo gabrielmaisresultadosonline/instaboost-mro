@@ -34,6 +34,8 @@ import MergeLogsPanel from '@/components/admin/MergeLogsPanel';
 import MroToolPanel from '@/components/admin/MroToolPanel';
 import LovablackPanel from '@/components/admin/LovablackPanel';
 import RenddxLeadsPanel from '@/components/admin/RenddxLeadsPanel';
+import LotarGruposPanel from '@/components/admin/LotarGruposPanel';
+
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -64,7 +66,7 @@ import { cn } from "@/lib/utils";
 
 const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads' | 'lotargrupos';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -235,7 +237,9 @@ const Admin = () => {
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
     { id: 'lovablack', label: 'LOVABLACK', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'renddx_leads', label: 'Leads Renddx', icon: <Users className="w-4 h-4" /> },
+    { id: 'lotargrupos', label: 'Lotar Grupos', icon: <Video className="w-4 h-4" /> },
   ];
+
 
   const getSelectedProfileData = () => {
     return session?.profiles.find(p => p.id === selectedProfile);
@@ -1148,6 +1152,10 @@ const Admin = () => {
         {activeTab === 'renddx_leads' && (
           <RenddxLeadsPanel />
         )}
+        {activeTab === 'lotargrupos' && (
+          <LotarGruposPanel />
+        )}
+
           </main>
         </SidebarInset>
       </div>
