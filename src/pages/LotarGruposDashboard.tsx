@@ -98,7 +98,7 @@ export default function LotarGruposDashboard() {
             {lessons.map((lesson) => (
               <button
                 key={lesson.id}
-                onClick={() => { setActiveLesson(lesson); setIsSidebarOpen(false); }}
+                onClick={() => { navigate(`/lotargrupos/aula/${lesson.id}`); setIsSidebarOpen(false); }}
                 className={`w-full text-left p-4 rounded-2xl transition-all group flex items-start gap-4 ${
                   activeLesson?.id === lesson.id 
                     ? 'bg-blue-600 shadow-lg shadow-blue-500/20' 
