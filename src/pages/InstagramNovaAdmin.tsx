@@ -2590,6 +2590,11 @@ Acesse seu resumo aqui: ${window.location.origin}/resumo/${affId.toLowerCase()}`
                   <Smartphone className="w-3 h-3 mr-1" /> WhatsApp ✓
                 </Badge>
               )}
+              {order.nsu_order?.startsWith("LOTARGRUPOS") && (
+                <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px] px-2 py-0.5">
+                  <Target className="w-3 h-3 mr-1" /> LOTARGRUPOS
+                </Badge>
+              )}
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
