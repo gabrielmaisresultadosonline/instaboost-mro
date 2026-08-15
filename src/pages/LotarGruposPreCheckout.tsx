@@ -31,7 +31,7 @@ const LotarGruposPreCheckout = () => {
         .from("hub_products")
         .select("*")
         .eq("is_active", true)
-        .neq("slug", "lotar-grupos")
+        .not("slug", "in", '("lotargrupos", "lotar-grupos")')
         .order("order_index", { ascending: true });
       
       if (!error && data) setProducts(data);
