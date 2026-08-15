@@ -63,7 +63,8 @@ export default function LotarGruposLogin() {
         });
       } else {
         toast({ title: "Login realizado!", description: "Bem-vindo à área de membros." });
-        navigate('/lotargrupos/dashboard');
+        navigate('/dashboard');
+
       }
     } catch (err) {
       toast({ title: "Erro no login", description: "Tente novamente mais tarde.", variant: "destructive" });

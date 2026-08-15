@@ -33,7 +33,7 @@ const LotarGruposObrigado = () => {
         </p>
 
         <div className="grid gap-4 mt-12">
-          <div className="p-6 rounded-3xl bg-slate-900/50 border border-slate-800 text-left hover:border-blue-500/50 transition-colors group cursor-pointer" onClick={() => navigate('/login')}>
+          <div className="p-6 rounded-3xl bg-slate-900/50 border border-slate-800 text-left hover:border-blue-500/50 transition-colors group cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center text-blue-500">
                 <PlayCircle className="w-6 h-6" />
