@@ -1,5 +1,4 @@
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
 import "./index.css";
 import "@fontsource/archivo-black/400.css";
 import "@fontsource/hind/400.css";
@@ -10,4 +9,25 @@ import "@fontsource/manrope/400.css";
 import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/700.css";
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error("Elemento raiz da aplicação não encontrado");
+}
+
+const root = createRoot(rootElement);
+
+/**
+ * A página pública de vendas é carregada isoladamente para não aguardar o
+ * download das centenas de telas administrativas e produtos registradas no
+ * roteador principal. As demais rotas mantêm exatamente o fluxo existente.
+ */
+if (window.location.pathname === "/lotargrupos") {
+  import("./pages/LotarGrupos.tsx").then(({ default: LotarGrupos }) => {
+    root.render(<LotarGrupos />);
+  });
+} else {
+  import("./App.tsx").then(({ default: App }) => {
+    root.render(<App />);
+  });
+}
