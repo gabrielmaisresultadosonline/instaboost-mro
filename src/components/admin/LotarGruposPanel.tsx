@@ -318,13 +318,20 @@ export default function LotarGruposPanel() {
                     try {
                       const fileExt = file.name.split('.').pop();
                       const fileName = `${Math.random()}.${fileExt}`;
-                      const filePath = `lotargrupos/videos/${fileName}`;
+                      const filePath = `videos/${fileName}`;
                       
+                      console.log("Iniciando upload para bucket 'public', path:", filePath);
                       const { data, error } = await supabase.storage
                         .from('public')
-                        .upload(filePath, file);
+                        .upload(filePath, file, {
+                          cacheControl: '3600',
+                          upsert: false
+                        });
                         
-                      if (error) throw error;
+                      if (error) {
+                        console.error("Erro no upload do Supabase Storage:", error);
+                        throw error;
+                      }
                       
                       const { data: { publicUrl } } = supabase.storage
                         .from('public')
@@ -359,7 +366,7 @@ export default function LotarGruposPanel() {
                             try {
                               const fileExt = file.name ? file.name.split('.').pop() : 'png';
                               const fileName = `${Math.random()}.${fileExt}`;
-                              const filePath = `lotargrupos/${fileName}`;
+                              const filePath = `thumbnails/${fileName}`;
                               const { data, error } = await supabase.storage.from('public').upload(filePath, file);
                               if (error) throw error;
                               const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
@@ -389,7 +396,7 @@ export default function LotarGruposPanel() {
                       try {
                         const fileExt = file.name.split('.').pop();
                         const fileName = `${Math.random()}.${fileExt}`;
-                        const filePath = `lotargrupos/${fileName}`;
+                        const filePath = `thumbnails/${fileName}`;
                         const { data, error } = await supabase.storage.from('public').upload(filePath, file);
                         if (error) throw error;
                         const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(filePath);
