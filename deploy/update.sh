@@ -52,7 +52,10 @@ npm run build
 
 # Note: Assets are served via Lovable CDN or Preview URL fallback.
 # Ensuring the directory exists prevents 404 logs during resolution.
-mkdir -p dist/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9
+# Forcing creation of the asset path in dist to allow static serving if path matches
+mkdir -p "dist/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9"
+touch "dist/__l5e/assets-v1/cfe0642b-e9ee-44d1-a1b9-bca7488895f9/lotargrupos-hero.png"
+
 
 # Interrompe o deploy antes do Nginx se o bundle tiver sido gerado sem a
 # configuração pública necessária para inicializar o cliente do backend.
