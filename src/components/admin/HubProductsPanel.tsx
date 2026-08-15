@@ -33,6 +33,7 @@ interface HubProductRow {
   is_ebook_hub?: boolean;
   badge_text?: string | null;
   plan_type?: 'mensal' | 'anual' | 'vitalicio';
+  is_redirect_only?: boolean;
 }
 
 const emptyProduct = (): HubProductRow => ({
@@ -52,6 +53,7 @@ const emptyProduct = (): HubProductRow => ({
   is_ebook_hub: false,
   badge_text: "",
   plan_type: "vitalicio",
+  is_redirect_only: false,
 });
 
 
@@ -415,6 +417,16 @@ export default function HubProductsPanel() {
                   <option value="vitalicio">Vitalício</option>
                 </select>
               </div>
+              <div className="flex items-center gap-2 pt-8">
+                <input
+                  type="checkbox"
+                  id="is_redirect_only"
+                  checked={editing.is_redirect_only || false}
+                  onChange={(e) => setEditing({ ...editing, is_redirect_only: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label htmlFor="is_redirect_only" className="cursor-pointer">Apenas Redirecionar (Não comprar no hub)</Label>
+              </div>
             </div>
             
             {editing.id && editing.is_ebook_hub && (
@@ -484,6 +496,11 @@ export default function HubProductsPanel() {
                     {product.app_route && (
                       <Badge variant="outline" className="gap-1">
                         <ExternalLink className="h-3 w-3" /> Redirecionado · {product.app_route}
+                      </Badge>
+                    )}
+                    {product.is_redirect_only && (
+                      <Badge variant="secondary" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+                        Apenas Redirecionar
                       </Badge>
                     )}
                     <Button

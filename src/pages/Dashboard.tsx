@@ -32,6 +32,7 @@ export interface HubProduct {
   sales_page_url: string | null;
   price: number;
   access_source: string;
+  is_redirect_only?: boolean;
   unlocked: boolean;
   status?: 'active' | 'construction';
   order_index?: number;
@@ -489,6 +490,13 @@ export default function Dashboard() {
       return;
     }
 
+    if (product.is_redirect_only) {
+      if (product.sales_page_url) {
+        window.open(product.sales_page_url, "_blank");
+      }
+      return;
+    }
+
     if (product.unlocked) {
       // Produtos com rota própria abrem direto a ferramenta já logada.
       if (product.app_route) void openProduct(product);
@@ -690,7 +698,7 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {!product.unlocked && product.status !== 'construction' && (
+                  {!product.unlocked && product.status !== 'construction' && !product.is_redirect_only && (
                     <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex items-center justify-center">
                       <Lock className="h-8 w-8 text-muted-foreground" />
                     </div>
@@ -716,18 +724,27 @@ export default function Dashboard() {
                   )}
                   <Button
                     className="w-full mt-2"
-                    variant={product.status === 'construction' ? "outline" : (product.unlocked ? "default" : "secondary")}
+                    variant={product.status === 'construction' ? "outline" : (product.unlocked || product.is_redirect_only ? "default" : "secondary")}
                     disabled={opening === product.id || product.status === 'construction'}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (product.unlocked) openProduct(product);
-                      else handleCardClick(product);
+                      if (product.is_redirect_only) {
+                        if (product.sales_page_url) window.open(product.sales_page_url, "_blank");
+                      } else if (product.unlocked) {
+                        openProduct(product);
+                      } else {
+                        handleCardClick(product);
+                      }
                     }}
                   >
                     {opening === product.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : product.status === 'construction' ? (
                       "Em breve"
+                    ) : product.is_redirect_only ? (
+                      <>
+                        Acessar Agora <ArrowRight className="h-4 w-4" />
+                      </>
                     ) : product.unlocked ? (
                       <>
                         Acessar <ArrowRight className="h-4 w-4" />
