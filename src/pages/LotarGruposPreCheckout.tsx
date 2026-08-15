@@ -214,11 +214,12 @@ const LotarGruposPreCheckout = () => {
             <Button 
               onClick={handleCheckout}
               disabled={loading}
-              className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black text-xl rounded-2xl shadow-xl shadow-blue-500/20 group transition-all"
+              className="w-full h-auto min-h-[64px] py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg md:text-xl rounded-2xl shadow-xl shadow-blue-500/20 group transition-all flex-wrap gap-2 leading-tight"
             >
               {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
                 <>
-                  PAGAR E LIBERAR AGORA <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <span className="text-center uppercase">Pagar e Liberar Agora</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform shrink-0" />
                 </>
               )}
             </Button>
