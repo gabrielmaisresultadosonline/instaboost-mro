@@ -142,6 +142,7 @@ const LotarGrupos = () => {
               className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
+                // Se falhar no domínio principal, tenta o preview estável
                 if (!target.src.includes('lovable.app')) {
                    target.src = `https://id-preview--d87f8e30-df83-4ce7-ae4a-4154e685c5ea.lovable.app${heroAsset.url}`;
                 }
