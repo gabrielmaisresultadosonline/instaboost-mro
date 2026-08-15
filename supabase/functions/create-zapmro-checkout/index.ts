@@ -111,6 +111,7 @@ serve(async (req) => {
     let productDescription = planType === 'lotargrupos' 
       ? `LOTARGRUPOS_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`
       : `ZAPMRO_${planType.toUpperCase()}_${cleanUsername}_${cleanEmail}`;
+    
     if (orderBumps && Array.isArray(orderBumps) && orderBumps.length > 0) {
       productDescription += `_BUMPS:${orderBumps.join('+')}`;
     }
