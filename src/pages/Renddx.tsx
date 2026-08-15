@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 const DiscountVideoPlayer = lazy(() => import("@/components/DiscountVideoPlayer"));
 const PromoToolVideoSection = lazy(() => import("@/components/PromoToolVideoSection"));
+import LotarGruposHeroVideo from "@/components/LotarGruposHeroVideo";
 import logoMro from "@/assets/logo-mro.png";
 
 
@@ -418,13 +419,10 @@ const Renddx = () => {
         </div>
       </section>
 
-      {/* Título para o vídeo de funcionamento */}
-      <div className="text-center pt-8">
-        <h3 className="text-xl sm:text-2xl font-bold text-zinc-400 uppercase tracking-widest">Veja a ferramenta em funcionamento</h3>
+      {/* Vídeo de Funcionamento */}
+      <div className="py-10">
+        <LotarGruposHeroVideo />
       </div>
-      <Suspense fallback={<div className="py-20 bg-black h-96 w-full animate-pulse" />}>
-        <PromoToolVideoSection />
-      </Suspense>
 
 
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
