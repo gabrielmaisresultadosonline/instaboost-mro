@@ -41,7 +41,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, username, phone, planType, amount, checkUserExists, orderBumps } = body;
+    const { email, username, phone, planType, amount, checkUserExists, orderBumps, password } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
