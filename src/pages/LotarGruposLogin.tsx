@@ -20,7 +20,7 @@ export default function LotarGruposLogin() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/lotargrupos/dashboard');
+        navigate('/dashboard');
 
       }
     };
@@ -63,7 +63,8 @@ export default function LotarGruposLogin() {
         });
       } else {
         toast({ title: "Login realizado!", description: "Bem-vindo à área de membros." });
-        navigate('/lotargrupos/dashboard');
+        navigate('/dashboard');
+
       }
     } catch (err) {
       toast({ title: "Erro no login", description: "Tente novamente mais tarde.", variant: "destructive" });

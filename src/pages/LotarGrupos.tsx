@@ -104,7 +104,7 @@ const LotarGrupos = () => {
         </div>
         <Button 
           variant="outline"
-          onClick={() => window.location.href = '/login'}
+          onClick={() => window.location.href = '/dashboard'}
           className="rounded-full border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 font-bold px-6 text-xs"
         >
           <User className="w-4 h-4 mr-2" />
