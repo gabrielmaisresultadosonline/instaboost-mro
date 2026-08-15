@@ -81,9 +81,9 @@ export default function LotarGruposLogin() {
           <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-500 border border-blue-500/20">
             <Lock className="w-8 h-8" />
           </div>
-          <CardTitle className="text-3xl font-black text-white tracking-tight">ÁREA DE MEMBROS</CardTitle>
+          <CardTitle className="text-3xl font-black text-white tracking-tight">LOTAR GRUPOS</CardTitle>
           <CardDescription className="text-slate-500 font-bold text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
-            <Sparkles className="w-3 h-3 text-blue-500" /> Lotar Grupos
+            <Sparkles className="w-3 h-3 text-blue-500" /> Área de Membros
           </CardDescription>
         </CardHeader>
         <CardContent className="p-8">

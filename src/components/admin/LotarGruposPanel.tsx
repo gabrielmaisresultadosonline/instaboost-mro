@@ -161,27 +161,79 @@ export default function LotarGruposPanel() {
       </div>
 
       <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editingLesson?.id ? "Editar Aula" : "Nova Aula"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSaveLesson} className="space-y-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-bold">Título da Aula</label>
-              <Input value={editingLesson?.title || ""} onChange={e => setEditingLesson({...editingLesson, title: e.target.value})} required />
+        <DialogContent className="max-w-2xl bg-slate-900 border-slate-800 text-white">
+          <DialogHeader><DialogTitle className="text-white">{editingLesson?.id ? "Editar Aula" : "Nova Aula"}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSaveLesson} className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Título da Aula</label>
+                <Input value={editingLesson?.title || ""} onChange={e => setEditingLesson({...editingLesson, title: e.target.value})} className="bg-slate-950 border-slate-800" required />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Ordem</label>
+                <Input type="number" value={editingLesson?.order_index || 0} onChange={e => setEditingLesson({...editingLesson, order_index: parseInt(e.target.value)})} className="bg-slate-950 border-slate-800" required />
+              </div>
             </div>
+
             <div className="grid gap-2">
-              <label className="text-sm font-bold">Ordem</label>
-              <Input type="number" value={editingLesson?.order_index || 0} onChange={e => setEditingLesson({...editingLesson, order_index: parseInt(e.target.value)})} required />
+              <label className="text-xs font-bold text-slate-500 uppercase">URL do Vídeo (Embed/Direct)</label>
+              <Input 
+                value={editingLesson?.video_url || ""} 
+                onChange={e => setEditingLesson({...editingLesson, video_url: e.target.value})} 
+                placeholder="Ex: https://iframe.mediadelivery.net/embed/..." 
+                className="bg-slate-950 border-slate-800"
+              />
             </div>
+
             <div className="grid gap-2">
-              <label className="text-sm font-bold">URL do Vídeo</label>
-              <Input value={editingLesson?.video_url || ""} onChange={e => setEditingLesson({...editingLesson, video_url: e.target.value})} placeholder="URL do .m3u8 ou mp4" />
+              <label className="text-xs font-bold text-slate-500 uppercase">Thumbnail (URL ou Paste Image)</label>
+              <div className="relative">
+                <Input 
+                  value={editingLesson?.thumbnail_url || ""} 
+                  onChange={e => setEditingLesson({...editingLesson, thumbnail_url: e.target.value})} 
+                  onPaste={(e) => {
+                    const items = e.clipboardData.items;
+                    for (let i = 0; i < items.length; i++) {
+                      if (items[i].type.indexOf("image") !== -1) {
+                        toast({ title: "Upload via Paste", description: "O sistema detectou uma imagem. Para melhores resultados, faça o upload no Storage primeiro." });
+                      }
+                    }
+                  }}
+                  placeholder="URL da imagem de capa" 
+                  className="bg-slate-950 border-slate-800"
+                />
+              </div>
             </div>
+
             <div className="grid gap-2">
-              <label className="text-sm font-bold">Descrição</label>
-              <Input value={editingLesson?.description || ""} onChange={e => setEditingLesson({...editingLesson, description: e.target.value})} />
+              <label className="text-xs font-bold text-slate-500 uppercase">Descrição Completa</label>
+              <textarea 
+                value={editingLesson?.description || ""} 
+                onChange={e => setEditingLesson({...editingLesson, description: e.target.value})} 
+                className="flex min-h-[120px] w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Detalhes da aula, links importantes e orientações..."
+              />
             </div>
-            <DialogFooter>
-              <Button type="submit" className="gap-2"><Save className="h-4 w-4" /> Salvar Aula</Button>
+
+            <div className="grid gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase">Materiais (JSON: [{ "label": "Download", "url": "..." }])</label>
+              <textarea 
+                value={typeof editingLesson?.buttons === 'string' ? editingLesson.buttons : JSON.stringify(editingLesson?.buttons || [], null, 2)} 
+                onChange={e => {
+                  try {
+                    const parsed = JSON.parse(e.target.value);
+                    setEditingLesson({...editingLesson, buttons: parsed});
+                  } catch (err) {
+                    setEditingLesson({...editingLesson, buttons: e.target.value});
+                  }
+                }} 
+                className="flex min-h-[80px] w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-mono text-blue-400"
+                placeholder='[{"label": "PDF Aula", "url": "https://..."}]'
+              />
+            </div>
+
+            <DialogFooter className="pt-4 border-t border-slate-800">
+              <Button type="submit" className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold"><Save className="h-4 w-4" /> Salvar Alterações</Button>
             </DialogFooter>
           </form>
         </DialogContent>
