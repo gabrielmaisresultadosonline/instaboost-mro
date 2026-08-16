@@ -57,7 +57,7 @@ export default function Tesvc() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   // Replicando a lógica de watched, mas mantendo a independência
-  const [watched, setWatched] = useState(false);
+  const [watched, setWatched] = useState(true);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
