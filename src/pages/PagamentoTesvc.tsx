@@ -67,7 +67,8 @@ const PagamentoTesvc = () => {
   const totalPrice =
     BASE_PLAN.price +
     (withSupport ? BUMP_SUPPORT_PRICE : 0) +
-    (withExtraAccounts ? BUMP_ACCOUNTS_PRICE : 0);
+    (withExtraAccounts ? BUMP_ACCOUNTS_PRICE : 0) +
+    (withRendaExtra ? BUMP_RENDA_EXTRA_PRICE : 0);
 
   const totalAccounts = BASE_PLAN.accounts + (withExtraAccounts ? BUMP_ACCOUNTS_QTY : 0);
   
