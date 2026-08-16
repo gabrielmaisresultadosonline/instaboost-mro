@@ -35,6 +35,7 @@ const BASE_PLAN = {
 const BUMP_SUPPORT_PRICE = 19;
 const BUMP_ACCOUNTS_PRICE = 10;
 const BUMP_ACCOUNTS_QTY = 3;
+const BUMP_RENDA_EXTRA_PRICE = 13;
 
 const BENEFITS = [
   { icon: Bot, text: "Ferramenta MRO completa (Instagram)" },
