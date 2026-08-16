@@ -363,7 +363,7 @@ export default function FerramentaMROPromo() {
                       <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />Área VIP + Suporte</div>
                     </div>
                     <Link
-                      to="/pagamentomro"
+                      to="/pagamentotesvc"
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
