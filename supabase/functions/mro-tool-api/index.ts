@@ -38,7 +38,12 @@ interface MroUserRow {
   /** Contas liberadas além do plano (extras concedidos pelo admin). */
   extra_accounts?: number | null;
   expiration_days: number;
+  /** Data limite do acesso (planos com prazo, ex.: 30 dias do /renddx). */
+  expires_at?: string | null;
+  /** Origem da venda (ex.: "renddx"). */
+  source?: string | null;
   is_active: boolean;
+
   trials_used: number;
   trials_period_start: string;
   last_access: string | null;
@@ -98,15 +103,36 @@ function normalizeExpiration(value: unknown): number {
   return n >= 9999 ? LIFETIME_DAYS : n;
 }
 
+/**
+ * Calcula o estado do plano.
+ *
+ * Quando `expires_at` está preenchido (compras com prazo, ex.: plano de 30 dias
+ * vendido em /renddx) a data é a fonte da verdade: passado esse prazo o acesso é
+ * negado em todas as rotas — login da extensão, verificações de conta e painel.
+ */
 function planInfo(user: MroUserRow) {
   const lifetime = user.expiration_days >= LIFETIME_DAYS;
+  const expiresAt = user.expires_at ? new Date(user.expires_at) : null;
+  const validExpiration = expiresAt && !Number.isNaN(expiresAt.getTime()) ? expiresAt : null;
+  const timeExpired = !lifetime && !!validExpiration && validExpiration.getTime() <= Date.now();
+
+  const daysRemaining = lifetime
+    ? LIFETIME_DAYS
+    : validExpiration
+    ? Math.max(0, Math.ceil((validExpiration.getTime() - Date.now()) / 86400000))
+    : Math.max(0, Number(user.expiration_days) || 0);
+
   return {
     plan_type: lifetime ? "vitalicio" : user.expiration_days > 365 ? "anual+" : user.expiration_days > 31 ? "anual" : "mensal",
     lifetime,
-    days_remaining: lifetime ? LIFETIME_DAYS : user.expiration_days,
-    access_allowed: user.is_active && (lifetime || user.expiration_days > 0),
+    source: user.source ?? null,
+    expires_at: validExpiration ? validExpiration.toISOString() : null,
+    days_remaining: daysRemaining,
+    expired: !lifetime && (timeExpired || daysRemaining <= 0),
+    access_allowed: user.is_active && !timeExpired && (lifetime || daysRemaining > 0),
   };
 }
+
 
 /**
  * Limite real de contas fixas do usuário.
