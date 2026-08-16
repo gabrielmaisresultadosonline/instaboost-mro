@@ -38,6 +38,7 @@ function track(event_type: string, extra?: Record<string, unknown>) {
         user_agent: navigator.userAgent,
         referrer: document.referrer,
         path: window.location.pathname,
+        source: "tesvc",
         ...(extra || {}),
       },
     }).catch(() => {});
