@@ -54,7 +54,6 @@ export default function Tesvc() {
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  // Replicando a lógica de watched, mas mantendo a independência
   const [watched, setWatched] = useState(false);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
@@ -75,7 +74,6 @@ export default function Tesvc() {
       })
       .catch(() => {});
 
-    // Restore unlock (persistent across visits)
     if (localStorage.getItem("tesvc:unlocked") === "1") {
       setWatched(true);
     }
@@ -190,8 +188,6 @@ export default function Tesvc() {
   const handleCtaClick = () => {
     track("cta_click");
     try {
-      // Meta Pixel Lead
-      // @ts-ignore
       if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
         (window as any).fbq("track", "Lead", { source: "tesvc" });
       }
@@ -227,28 +223,75 @@ export default function Tesvc() {
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
         <div className="text-center">
-          <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
-          
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
-            NÃO GASTE MAIS COM ANÚNCIOS
-          </h1>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 text-green-400">
-            UTILIZE A MRO INTELIGENTE!
-          </h2>
-          <p className="text-gray-400 mb-8">
-            Instale em seu notebook, macbook ou computador de mesa!
-          </p>
-
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 rounded-full px-6 py-2 mb-8">
-            <span className="text-white font-bold text-sm">NOVA VERSÃO V8.6 — A MAIS COMPLETA</span>
-          </div>
-
-          <button 
-            onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: 'smooth' })}
-            className="block w-full max-w-sm mx-auto bg-green-600 hover:bg-green-500 text-white font-black text-xl py-5 rounded-full shadow-lg shadow-green-500/20 mb-12"
+          <span className="inline-block px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-6">
+            Oferta exclusiva
+          </span>
+          <h1
+            className="text-5xl md:text-8xl leading-[0.95] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.4)]"
+            style={{ fontWeight: 900 }}
           >
-            GARANTIR MEU ACESSO AGORA
-          </button>
+            Não gaste com anúncios
+          </h1>
+          <p className="mt-4 text-base md:text-xl font-semibold text-white/90">
+            Utilize a{" "}
+            <span className="relative inline-block text-amber-400 font-bold">
+              Ferramenta MRO
+              <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+            </span>{" "}
+            e pague <span className="underline decoration-amber-500 decoration-2 underline-offset-4">apenas uma vez!</span>
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <span className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-amber-500/50" />
+            <p className="text-[11px] md:text-xs font-medium text-amber-200/80 uppercase tracking-[0.2em]">
+              Assista ao vídeo todo para entender e receber o desconto
+            </p>
+            <span className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-amber-500/50" />
+          </div>
+        </div>
+
+        {/* Video */}
+        <div className="mt-8 relative rounded-2xl overflow-hidden bg-black ring-1 ring-amber-500/30 shadow-[0_0_60px_rgba(251,191,36,0.15)]">
+          <div className="relative aspect-video">
+            <video
+              ref={videoRef}
+              className={`w-full h-full bg-black transition-opacity duration-500 ${started ? "opacity-100" : "opacity-10"}`}
+              playsInline
+              controls={false}
+              muted={!started}
+              autoPlay
+              loop={!started}
+              preload="metadata"
+            />
+            {!started && (
+              <button
+                onClick={handleStart}
+                className="absolute inset-0 w-full h-full flex items-center justify-center group z-10"
+              >
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-amber-500 flex items-center justify-center shadow-[0_0_50px_rgba(245,158,11,0.5)] group-hover:scale-110 transition-transform duration-300">
+                  <Play className="w-8 h-8 md:w-12 md:h-12 text-black fill-current ml-1" />
+                </div>
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-amber-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs">
+                  Clique para iniciar
+                </div>
+              </button>
+            )}
+
+            {started && (
+              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between opacity-0 hover:opacity-100 transition-opacity z-20">
+                <div className="flex items-center gap-4">
+                  <button onClick={togglePlay} className="p-2 hover:bg-white/10 rounded-full transition">
+                    {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
+                  </button>
+                  <button onClick={toggleMute} className="p-2 hover:bg-white/10 rounded-full transition">
+                    {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  </button>
+                </div>
+                <button onClick={toggleFullscreen} className="p-2 hover:bg-white/10 rounded-full transition">
+                  <Maximize className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="mt-16">
@@ -311,7 +354,6 @@ export default function Tesvc() {
           </div>
         </div>
 
-        {/* Plans reveal - unlocked by default for this page */}
         {watched ? (
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
@@ -383,7 +425,7 @@ export default function Tesvc() {
                 onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: 'smooth' })}
                 className="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 hover:border-white/40 transition-colors font-bold uppercase tracking-wider"
               >
-                VER OS PLANOS
+                COMPRAR AGORA
               </button>
             </div>
           </div>
