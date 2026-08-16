@@ -126,6 +126,7 @@ const PagamentoTesvc = () => {
       const extras: string[] = [];
       if (withSupport) extras.push("suporte-whatsapp");
       if (withExtraAccounts) extras.push("mais-3-contas");
+      if (withRendaExtra) extras.push("renda-extra");
 
       const { data, error } = await supabase.functions.invoke("create-mro-checkout", {
         body: {
