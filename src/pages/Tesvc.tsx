@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck, Target, MessageCircle, Gift, User, ArrowRight, Lightbulb, UserPlus, Users, Filter, Send, Rocket, Heart, Flame, RefreshCw, MousePointerClick, Brain, FileText, CreditCard, X, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
+import logoMro from "@/assets/logo-mro.png";
 
 type PlanKey = "trial" | "solo" | "pro" | "lifetime";
 const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
