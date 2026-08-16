@@ -57,7 +57,7 @@ export default function Tesvc() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   // Replicando a lógica de watched, mas mantendo a independência
-  const [watched, setWatched] = useState(false);
+  const [watched, setWatched] = useState(true);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
@@ -249,7 +249,7 @@ export default function Tesvc() {
           <div className="mt-4 flex items-center justify-center gap-3">
             <span className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-amber-500/50" />
             <p className="text-[11px] md:text-xs font-medium text-amber-200/80 uppercase tracking-[0.2em]">
-              Assista ao vídeo todo para entender e receber o desconto
+              Assista ao vídeo para entender como funciona
             </p>
             <span className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-amber-500/50" />
           </div>
@@ -307,8 +307,8 @@ export default function Tesvc() {
           </div>
         </div>
 
-        {/* Plans reveal - unlocks at 50% */}
-        {watched ? (
+        {/* Plans reveal - unlocked by default for this page */}
+        {true ? (
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/40">
@@ -384,23 +384,10 @@ export default function Tesvc() {
               <ShieldCheck className="w-4 h-4" /> Checkout 100% seguro
             </div>
           </div>
-        ) : (
-          <div className="mt-8 flex flex-col items-center">
-            <button
-              disabled
-              className="inline-flex items-center gap-2 md:gap-3 px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-2xl bg-zinc-800 text-zinc-400 font-bold text-sm md:text-xl cursor-not-allowed ring-1 ring-zinc-700 animate-pulse"
-            >
-              <Lock className="w-4 h-4 md:w-6 md:h-6" />
-              Assista o vídeo para liberar os valores
-            </button>
-            <p className="mt-4 text-sm text-zinc-500 text-center max-w-md">
-              Os planos serão liberados automaticamente ao chegar em 50% do vídeo.
-            </p>
-          </div>
-        )}
+        ) : null}
       </div>
 
-      {watched && (
+      {true && (
         <a
           href={`https://wa.me/555192835863?text=${encodeURIComponent("Olá vim pela Tesvc, gostaria de tirar algumas dúvidas.")}`}
           target="_blank"
