@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Sparkles, Zap, Bot, ShieldCheck } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, CheckCircle2, Shield, Sparkles, Zap, Bot, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const PLAN = {
@@ -58,7 +58,8 @@ export default function FerramentaMROPromo() {
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [watched, setWatched] = useState(false);
+  // Nesta página os valores ficam liberados desde o início (sem trava por tempo de vídeo)
+  const [watched, setWatched] = useState(true);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
@@ -144,10 +145,6 @@ export default function FerramentaMROPromo() {
           milestonesRef.current.add(m);
           track("video_progress", { progress_pct: m });
         }
-      }
-      if (pct >= 50 && !watched) {
-        setWatched(true);
-        localStorage.setItem("tesvc:unlocked", "1");
       }
     };
     const onEnded = () => {
@@ -308,8 +305,8 @@ export default function FerramentaMROPromo() {
           </div>
         </div>
 
-        {/* Plans reveal - unlocks at 50% */}
-        {watched ? (
+        {/* Planos sempre visíveis (sem trava de vídeo) */}
+        {(
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/40">
@@ -371,19 +368,6 @@ export default function FerramentaMROPromo() {
             <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/50">
               <ShieldCheck className="w-4 h-4" /> Checkout 100% seguro
             </div>
-          </div>
-        ) : (
-          <div className="mt-8 flex flex-col items-center">
-            <button
-              disabled
-              className="inline-flex items-center gap-2 md:gap-3 px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-2xl bg-zinc-800 text-zinc-400 font-bold text-sm md:text-xl cursor-not-allowed ring-1 ring-zinc-700 animate-pulse"
-            >
-              <Lock className="w-4 h-4 md:w-6 md:h-6" />
-              Assista o vídeo para liberar os valores
-            </button>
-            <p className="mt-4 text-sm text-zinc-500 text-center max-w-md">
-              Os planos serão liberados automaticamente ao chegar em 50% do vídeo.
-            </p>
           </div>
         )}
       </div>
