@@ -249,7 +249,7 @@ export default function Tesvc() {
           <div className="mt-4 flex items-center justify-center gap-3">
             <span className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-amber-500/50" />
             <p className="text-[11px] md:text-xs font-medium text-amber-200/80 uppercase tracking-[0.2em]">
-              Assista ao vídeo todo para entender e receber o desconto
+              Assista ao vídeo para entender como funciona
             </p>
             <span className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-amber-500/50" />
           </div>
