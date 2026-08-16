@@ -297,7 +297,10 @@ export default function Tesvc() {
         <div className="mt-16">
           <div className="flex justify-center mb-12">
             <button 
-              onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                const el = document.getElementById("planos-container");
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
               className="px-10 py-5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-black text-xl uppercase tracking-wider shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all transform hover:scale-105 active:scale-95"
             >
               TESTE AGORA MESMO
@@ -360,7 +363,10 @@ export default function Tesvc() {
 
           <div className="flex justify-center mb-16">
             <button 
-              onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                const el = document.getElementById("planos-container");
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
               className="px-10 py-5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-black text-xl uppercase tracking-wider shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all transform hover:scale-105 active:scale-95"
             >
               TESTE AGORA MESMO
@@ -368,7 +374,7 @@ export default function Tesvc() {
           </div>
         </div>
 
-        {watched ? (
+        {true ? (
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/40">
@@ -440,7 +446,10 @@ export default function Tesvc() {
             <div className="mt-16 text-center">
               <p className="text-xl font-black text-amber-400 animate-pulse">Não perca essa oportunidade única!</p>
               <button 
-                onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => {
+                  const el = document.getElementById("planos-container");
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
                 className="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 hover:border-white/40 transition-colors font-bold uppercase tracking-wider"
               >
                 TESTE AGORA MESMO
