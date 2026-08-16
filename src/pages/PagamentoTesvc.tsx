@@ -49,6 +49,7 @@ const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const PagamentoTesvc = () => {
   const [withSupport, setWithSupport] = useState(false);
   const [withExtraAccounts, setWithExtraAccounts] = useState(false);
+  const [withRendaExtra, setWithRendaExtra] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
