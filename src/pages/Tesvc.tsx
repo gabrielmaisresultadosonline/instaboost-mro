@@ -446,7 +446,10 @@ export default function Tesvc() {
             <div className="mt-16 text-center">
               <p className="text-xl font-black text-amber-400 animate-pulse">Não perca essa oportunidade única!</p>
               <button 
-                onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => {
+                  const el = document.getElementById("planos-container");
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
                 className="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 hover:border-white/40 transition-colors font-bold uppercase tracking-wider"
               >
                 TESTE AGORA MESMO
