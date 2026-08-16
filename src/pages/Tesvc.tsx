@@ -368,7 +368,7 @@ export default function Tesvc() {
           </div>
         </div>
 
-        {watched ? (
+        {true ? (
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/40">
