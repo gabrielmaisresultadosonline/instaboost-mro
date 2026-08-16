@@ -4788,6 +4788,7 @@ export type Database = {
           payment_method: string | null
           phone: string | null
           plan_type: string
+          source: string | null
           status: string
           transaction_nsu: string | null
           updated_at: string
@@ -4811,6 +4812,7 @@ export type Database = {
           payment_method?: string | null
           phone?: string | null
           plan_type?: string
+          source?: string | null
           status?: string
           transaction_nsu?: string | null
           updated_at?: string
@@ -4834,6 +4836,7 @@ export type Database = {
           payment_method?: string | null
           phone?: string | null
           plan_type?: string
+          source?: string | null
           status?: string
           transaction_nsu?: string | null
           updated_at?: string
@@ -5050,6 +5053,8 @@ export type Database = {
           created_at: string
           email: string | null
           expiration_days: number
+          expired_email_sent_at: string | null
+          expires_at: string | null
           extra_accounts: number
           id: string
           is_active: boolean
@@ -5058,6 +5063,7 @@ export type Database = {
           password_hash: string | null
           password_plain: string | null
           plan_accounts: number
+          source: string | null
           trials_period_start: string
           trials_used: number
           updated_at: string
@@ -5068,6 +5074,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           expiration_days?: number
+          expired_email_sent_at?: string | null
+          expires_at?: string | null
           extra_accounts?: number
           id?: string
           is_active?: boolean
@@ -5076,6 +5084,7 @@ export type Database = {
           password_hash?: string | null
           password_plain?: string | null
           plan_accounts?: number
+          source?: string | null
           trials_period_start?: string
           trials_used?: number
           updated_at?: string
@@ -5086,6 +5095,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           expiration_days?: number
+          expired_email_sent_at?: string | null
+          expires_at?: string | null
           extra_accounts?: number
           id?: string
           is_active?: boolean
@@ -5094,6 +5105,7 @@ export type Database = {
           password_hash?: string | null
           password_plain?: string | null
           plan_accounts?: number
+          source?: string | null
           trials_period_start?: string
           trials_used?: number
           updated_at?: string
