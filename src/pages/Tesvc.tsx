@@ -308,14 +308,6 @@ export default function Tesvc() {
           </div>
 
           <div id="planos" className="mt-16 text-center">
-            <h2 className="text-3xl font-black mb-4">GARANTIA TOTAL</h2>
-            <p className="text-xl font-bold mb-8">30 Dias de Resultados Garantidos</p>
-            <p className="mb-8">Se em 30 dias não tiver resultados, devolvemos seu dinheiro.</p>
-            <div className="flex justify-center gap-8 mb-12 text-sm">
-              <div className="flex flex-col items-center gap-2"><span>🔒</span> Compra Segura</div>
-              <div className="flex flex-col items-center gap-2"><span>💰</span> Reembolso</div>
-              <div className="flex flex-col items-center gap-2"><span>✅</span> Garantido</div>
-            </div>
           </div>
         </div>
 
