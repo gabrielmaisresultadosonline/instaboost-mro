@@ -124,6 +124,9 @@ import Renddx from "./pages/Renddx";
 import RenddxAdmin from "./pages/RenddxAdmin";
 import Lovablack from "./pages/Lovablack";
 import LotarGrupos from "./pages/LotarGrupos";
+import Tesvc from "./pages/Tesvc";
+import PagamentoTesvc from "./pages/PagamentoTesvc";
+import PagamentoTesvcObrigado from "./pages/PagamentoTesvcObrigado";
 
 
 import LotarGruposLogin from "./pages/LotarGruposLogin";
@@ -479,6 +482,9 @@ const App = () => (
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/lovablack" element={<Lovablack />} />
           <Route path="/lotargrupos" element={<LotarGrupos />} />
+          <Route path="/tesvc" element={<Tesvc />} />
+          <Route path="/pagamentotesvc" element={<PagamentoTesvc />} />
+          <Route path="/pagamentotesvc/obrigado" element={<PagamentoTesvcObrigado />} />
           <Route path="/lotargrupos/checkout" element={<LotarGruposPreCheckout />} />
           <Route path="/lotargrupos/obrigado" element={<LotarGruposObrigado />} />
           <Route path="/lotargrupos/aula/:id" element={<LotarGruposLessonView />} />
