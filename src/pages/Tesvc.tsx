@@ -295,6 +295,14 @@ export default function Tesvc() {
         </div>
 
         <div className="mt-16">
+          <div className="flex justify-center mb-12">
+            <button 
+              onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-10 py-5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-black text-xl uppercase tracking-wider shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all transform hover:scale-105 active:scale-95"
+            >
+              TESTE AGORA MESMO
+            </button>
+          </div>
           <h2 className="text-3xl font-black text-center mb-12">O QUE VOCÊ VAI RECEBER</h2>
           
           <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 mb-8">
@@ -350,7 +358,13 @@ export default function Tesvc() {
             </ul>
           </div>
 
-          <div id="planos" className="mt-16 text-center">
+          <div className="flex justify-center mb-16">
+            <button 
+              onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-10 py-5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-black text-xl uppercase tracking-wider shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all transform hover:scale-105 active:scale-95"
+            >
+              TESTE AGORA MESMO
+            </button>
           </div>
         </div>
 
@@ -381,6 +395,7 @@ export default function Tesvc() {
                 return (
                   <div
                     key={key}
+                    id="planos-container"
                     className={`relative rounded-2xl border-2 bg-gradient-to-b to-zinc-950/60 p-5 ring-4 ${themes[key]} shadow-xl`}
                   >
                     {p.badge && (
@@ -408,8 +423,11 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      QUERO O PLANO DE TESTE
+                      TESTE AGORA MESMO
                     </Link>
+                    <div className="mt-2 text-center text-red-500 font-bold text-[11px] uppercase animate-pulse">
+                      encerra amanha!
+                    </div>
                     <div className="mt-4 flex flex-col items-center gap-1 text-[10px] opacity-60">
                       <span>Compra Segura</span>
                       <span>PIX ou Cartão</span>
@@ -422,10 +440,10 @@ export default function Tesvc() {
             <div className="mt-16 text-center">
               <p className="text-xl font-black text-amber-400 animate-pulse">Não perca essa oportunidade única!</p>
               <button 
-                onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
                 className="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 hover:border-white/40 transition-colors font-bold uppercase tracking-wider"
               >
-                COMPRAR AGORA
+                TESTE AGORA MESMO
               </button>
             </div>
           </div>
