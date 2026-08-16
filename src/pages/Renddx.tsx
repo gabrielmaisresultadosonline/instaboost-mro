@@ -193,6 +193,7 @@ const Renddx = () => {
           planType: planConfig.planType, 
           amount: totalAmount, 
           checkUserExists: true,
+          source: "renddx",
           selectedBumps: selectedBumps 
         }
       });
