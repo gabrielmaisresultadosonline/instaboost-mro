@@ -189,51 +189,80 @@ const PagamentoTesvc = () => {
         <div className="grid lg:grid-cols-5 gap-6">
           <form onSubmit={handleCheckout} className="lg:col-span-3 space-y-5">
             {/* Order bumps */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-3 shadow-sm">
-              <div>
-                <h2 className="font-black text-xl text-zinc-900">Quer melhorar seu plano?</h2>
-                <p className="text-xs text-zinc-500 mt-1">Opcional · o acesso continua de 30 dias.</p>
+            <div className="bg-gradient-to-br from-white to-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+              
+              <div className="relative">
+                <h2 className="font-black text-2xl text-zinc-900 flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-amber-500 animate-pulse" />
+                  Turbine seu plano!
+                </h2>
+                <p className="text-sm text-zinc-600 mt-1 font-medium">Selecione as opções abaixo para resultados ainda mais rápidos.</p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setWithSupport((v) => !v)}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3 ${withSupport ? "border-emerald-500 bg-emerald-50" : "border-zinc-200 hover:border-emerald-300 bg-white"}`}
-              >
-                <span className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${withSupport ? "bg-emerald-500 border-emerald-500 text-white" : "border-zinc-300"}`}>
-                  {withSupport && <CheckCircle2 className="w-4 h-4" />}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="flex items-center gap-2 font-bold text-zinc-900">
-                    <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                    Suporte via WhatsApp
-                  </span>
-                  <span className="block text-xs text-zinc-600 mt-1">
-                    Atendimento direto com nosso time durante os 30 dias.
-                  </span>
-                </span>
-                <span className="font-black text-emerald-700 whitespace-nowrap">+ {formatBRL(BUMP_SUPPORT_PRICE)}</span>
-              </button>
+              <div className="grid gap-4">
+                <button
+                  type="button"
+                  onClick={() => setWithSupport((v) => !v)}
+                  className={`group relative w-full text-left p-5 rounded-2xl border-b-4 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-start gap-4 ${
+                    withSupport 
+                      ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500/20 shadow-lg shadow-emerald-500/20" 
+                      : "border-zinc-300 bg-white hover:border-emerald-400 hover:shadow-md"
+                  }`}
+                >
+                  <div className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    withSupport ? "bg-emerald-500 border-emerald-500 text-white" : "border-zinc-300 group-hover:border-emerald-400"
+                  }`}>
+                    {withSupport && <CheckCircle2 className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 font-black text-lg text-zinc-900">
+                      <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-600">
+                        <MessageCircle className="w-5 h-5" />
+                      </div>
+                      Suporte WhatsApp VIP
+                    </div>
+                    <div className="text-sm text-zinc-600 mt-1 leading-relaxed">
+                      Time de especialistas à sua disposição durante os 30 dias.
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-400 line-through">R$ 47,00</div>
+                    <div className="font-black text-xl text-emerald-700">+ {formatBRL(BUMP_SUPPORT_PRICE)}</div>
+                  </div>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setWithExtraAccounts((v) => !v)}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3 ${withExtraAccounts ? "border-amber-500 bg-amber-50" : "border-zinc-200 hover:border-amber-300 bg-white"}`}
-              >
-                <span className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${withExtraAccounts ? "bg-amber-500 border-amber-500 text-white" : "border-zinc-300"}`}>
-                  {withExtraAccounts && <CheckCircle2 className="w-4 h-4" />}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="flex items-center gap-2 font-bold text-zinc-900">
-                    <Users className="w-4 h-4 text-amber-600 shrink-0" />
-                    + {BUMP_ACCOUNTS_QTY} contas do Instagram
-                  </span>
-                  <span className="block text-xs text-zinc-600 mt-1">
-                    Gerencie até {BASE_PLAN.accounts + BUMP_ACCOUNTS_QTY} contas na mesma ferramenta.
-                  </span>
-                </span>
-                <span className="font-black text-amber-700 whitespace-nowrap">+ {formatBRL(BUMP_ACCOUNTS_PRICE)}</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setWithExtraAccounts((v) => !v)}
+                  className={`group relative w-full text-left p-5 rounded-2xl border-b-4 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-start gap-4 ${
+                    withExtraAccounts 
+                      ? "border-indigo-600 bg-indigo-50 ring-2 ring-indigo-500/20 shadow-lg shadow-indigo-500/20" 
+                      : "border-zinc-300 bg-white hover:border-indigo-400 hover:shadow-md"
+                  }`}
+                >
+                  <div className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    withExtraAccounts ? "bg-indigo-500 border-indigo-500 text-white" : "border-zinc-300 group-hover:border-indigo-400"
+                  }`}>
+                    {withExtraAccounts && <CheckCircle2 className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 font-black text-lg text-zinc-900">
+                      <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-600">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      + {BUMP_ACCOUNTS_QTY} Contas Instagram
+                    </div>
+                    <div className="text-sm text-zinc-600 mt-1 leading-relaxed">
+                      Gerencie até {BASE_PLAN.accounts + BUMP_ACCOUNTS_QTY} contas simultaneamente.
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-400 line-through">R$ 29,90</div>
+                    <div className="font-black text-xl text-indigo-700">+ {formatBRL(BUMP_ACCOUNTS_PRICE)}</div>
+                  </div>
+                </button>
+              </div>
             </div>
 
             {/* Dados */}
