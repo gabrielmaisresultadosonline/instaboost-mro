@@ -17,10 +17,10 @@ const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
 
 function getVisitorId(): string {
   try {
-    let id = localStorage.getItem("fmp:visitor_id");
+    let id = localStorage.getItem("tesvc:visitor_id");
     if (!id) {
       id = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now()).toString();
-      localStorage.setItem("fmp:visitor_id", id);
+      localStorage.setItem("tesvc:visitor_id", id);
     }
     return id;
   } catch {
@@ -67,7 +67,7 @@ export default function FerramentaMROPromo() {
   }, [showNotice]);
 
   useEffect(() => {
-    document.title = "Ferramenta MRO — Desconto exclusivo";
+    document.title = "Tesvc — Promoção Exclusiva";
     track("page_view");
     supabase.functions
       .invoke("ferramentamropromo-video", { body: { action: "get_video" } })
@@ -77,7 +77,7 @@ export default function FerramentaMROPromo() {
       .catch(() => {});
 
     // Restore unlock (persistent across visits)
-    if (localStorage.getItem("ferramentamropromo:unlocked") === "1") {
+    if (localStorage.getItem("tesvc:unlocked") === "1") {
       setWatched(true);
     }
   }, []);
@@ -145,7 +145,7 @@ export default function FerramentaMROPromo() {
       }
       if (pct >= 50 && !watched) {
         setWatched(true);
-        localStorage.setItem("ferramentamropromo:unlocked", "1");
+        localStorage.setItem("tesvc:unlocked", "1");
       }
     };
     const onEnded = () => {
@@ -154,7 +154,7 @@ export default function FerramentaMROPromo() {
         track("video_progress", { progress_pct: 100 });
       }
       setWatched(true);
-      localStorage.setItem("ferramentamropromo:unlocked", "1");
+      localStorage.setItem("tesvc:unlocked", "1");
     };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
@@ -194,7 +194,7 @@ export default function FerramentaMROPromo() {
       // Meta Pixel Lead
       // @ts-ignore
       if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
-        (window as any).fbq("track", "Lead", { source: "ferramentamropromo" });
+        (window as any).fbq("track", "Lead", { source: "tesvc" });
       }
     } catch {}
   };
