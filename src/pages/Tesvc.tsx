@@ -396,7 +396,7 @@ export default function Tesvc() {
                   trial: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
                 };
                 const btns: Record<PlanKey, string> = {
-                  trial: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
+                  trial: "bg-green-600 hover:bg-green-500 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)]",
                 };
                 return (
                   <div
@@ -429,7 +429,7 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      TESTE AGORA MESMO
+                      COMPRAR AGORA
                     </Link>
                     <div className="mt-2 text-center text-red-500 font-bold text-[11px] uppercase animate-pulse">
                       encerra amanha!
