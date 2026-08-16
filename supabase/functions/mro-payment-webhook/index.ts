@@ -87,6 +87,7 @@ async function createInstagramUser(
   email: string | null,
   daysAccess: number,
   plan: string,
+  source: string | null = null,
 ): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
     const planMap: Record<string, { accounts: number; dias: number }> = {
@@ -114,6 +115,15 @@ async function createInstagramUser(
       expiration_days: expiration,
       is_active: true,
     };
+
+    // Planos com prazo ganham data limite real (fonte da verdade do bloqueio).
+    if (expiration < LIFETIME_DAYS && expiration > 0) {
+      payload.expires_at = new Date(Date.now() + expiration * 86400000).toISOString();
+      payload.expired_email_sent_at = null;
+    } else if (expiration >= LIFETIME_DAYS) {
+      payload.expires_at = null;
+    }
+    if (source) payload.source = source;
 
     const { data: existing } = await supabase
       .from("mro_tool_users").select("id").eq("username", normalizedUser).maybeSingle();
@@ -619,6 +629,7 @@ serve(async (req) => {
       customerEmail,
       daysAccess,
       order.plan_type,
+      order.source || null,
     );
     log("Internal API user creation result", { ...apiResult, userExists });
 
