@@ -5,10 +5,9 @@ import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Cr
 import { Link } from "react-router-dom";
 import logoMro from "@/assets/logo-mro.png";
 
-type PlanKey = "pro" | "lifetime";
+type PlanKey = "trial";
 const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
-  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "Acesso por 1 ano", badge: "MAIS POPULAR", icon: Sparkles },
-  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Acesso vitalício — sem renovação", badge: "⭐ PREMIUM VITALÍCIO", icon: InfinityIcon },
+  trial: { name: "Teste 30 Dias", price: 67, installment: "6", accounts: 1, durationLabel: "Acesso por 30 dias", badge: "OFERTA DE TESTE", icon: Zap },
 };
 const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
