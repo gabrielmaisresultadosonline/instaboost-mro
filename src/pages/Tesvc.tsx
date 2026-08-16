@@ -146,10 +146,6 @@ export default function FerramentaMROPromo() {
           track("video_progress", { progress_pct: m });
         }
       }
-      if (pct >= 50 && !watched) {
-        setWatched(true);
-        localStorage.setItem("tesvc:unlocked", "1");
-      }
     };
     const onEnded = () => {
       if (!milestonesRef.current.has(100)) {
