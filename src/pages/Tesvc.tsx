@@ -319,9 +319,10 @@ export default function FerramentaMROPromo() {
                 Mais vendas sem gastar com anúncios
               </h2>
               <p className="mt-3 text-sm md:text-lg text-white/80 max-w-2xl mx-auto">
-                <strong className="text-amber-300">Ferramenta completa + Inteligência Artificial</strong> incluso em todos os planos.
+                <strong className="text-amber-300">Ferramenta completa + Inteligência Artificial</strong> por 30 dias, com 1 conta do Instagram.
               </p>
             </div>
+
 
             <div className="max-w-md mx-auto">
               {(() => {
