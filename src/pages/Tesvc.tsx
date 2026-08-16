@@ -326,7 +326,7 @@ export default function Tesvc() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 max-w-4xl mx-auto gap-8">
+            <div className="grid grid-cols-1 max-w-md mx-auto gap-8">
               {(Object.keys(PLANS) as PlanKey[]).map((key) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
