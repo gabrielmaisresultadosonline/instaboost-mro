@@ -41,6 +41,12 @@ export interface MroUser {
   lifetime: boolean;
   plan_type: string;
   days_remaining: number;
+  /** true quando o plano com prazo (ex.: 30 dias /renddx) já venceu. */
+  expired?: boolean;
+  /** Data limite do acesso, quando o plano tem prazo. */
+  expires_at?: string | null;
+  /** Origem da venda (ex.: "renddx"). */
+  source?: string | null;
   last_access: string | null;
   created_at: string;
   has_password: boolean;
@@ -369,7 +375,19 @@ const MroUsersPanel: React.FC = () => {
                   {u.username}
                 </button>
                 {u.email && <span className="text-xs text-muted-foreground">{u.email}</span>}
-                <Badge variant={u.is_active ? 'default' : 'destructive'}>{u.is_active ? 'Ativo' : 'Inativo'}</Badge>
+                {u.expired ? (
+                  <Badge variant="destructive" className="px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                    EXPIRADO
+                  </Badge>
+                ) : (
+                  <Badge variant={u.is_active ? 'default' : 'destructive'}>{u.is_active ? 'Ativo' : 'Inativo'}</Badge>
+                )}
+                {u.source && <Badge variant="outline" className="uppercase">{u.source}</Badge>}
+                {u.expires_at && u.expiration_days < LIFETIME && (
+                  <Badge variant="secondary" className="text-[11px]">
+                    até {new Date(u.expires_at).toLocaleDateString('pt-BR')}
+                  </Badge>
+                )}
                 <Badge variant="outline" className="gap-1">
                   {u.expiration_days >= LIFETIME ? <><InfinityIcon className="w-3 h-3" /> Vitalício</> : `${u.expiration_days} dias`}
                 </Badge>

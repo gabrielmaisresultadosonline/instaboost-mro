@@ -40,7 +40,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, username, phone, name, planType, amount, checkUserExists, partner_id, redirectTo } = body;
+    const { email, username, phone, name, planType, amount, checkUserExists, partner_id, redirectTo, source } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -183,6 +183,7 @@ serve(async (req) => {
       .insert({
         email: cleanEmail,
         partner_id: partner_id || null,
+        source: typeof source === "string" && source.trim() ? source.trim().slice(0, 40) : null,
         username: cleanUsername,
         phone: cleanPhone || null,
         plan_type: planType,

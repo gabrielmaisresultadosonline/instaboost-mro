@@ -121,6 +121,7 @@ import AudiobooksPreCheckout from "./pages/AudiobooksPreCheckout";
 import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
 import Renddx from "./pages/Renddx";
+import RenddxAdmin from "./pages/RenddxAdmin";
 import Lovablack from "./pages/Lovablack";
 import LotarGrupos from "./pages/LotarGrupos";
 
@@ -352,6 +353,7 @@ const App = () => (
           <Route path="/rendaextra-desconto" element={<RendaExtraDescontoPage />} />
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
           <Route path="/renddx" element={<Renddx />} />
+          <Route path="/renddx/admin" element={<RenddxAdmin />} />
           <Route path="/renddx/access" element={<RendaExtraDescontoDuplicate />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
