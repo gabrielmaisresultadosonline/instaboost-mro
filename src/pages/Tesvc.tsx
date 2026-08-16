@@ -379,38 +379,27 @@ export default function Tesvc() {
                     >
                       {key === 'pro' ? 'QUERO O PLANO ANUAL' : 'QUERO O VITALÍCIO'}
                     </Link>
+                    <div className="mt-4 flex flex-col items-center gap-1 text-[10px] opacity-60">
+                      <span>Compra Segura</span>
+                      <span>PIX ou Cartão</span>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-8 max-w-2xl mx-auto flex items-center justify-center gap-3 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4">
-              <Shield className="w-6 h-6 text-emerald-400 shrink-0" />
-              <p className="font-black text-emerald-300 text-base">Garantia de 30 dias</p>
-            </div>
-
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/50">
-              <ShieldCheck className="w-4 h-4" /> Checkout 100% seguro
+            <div className="mt-16 text-center">
+              <p className="text-xl font-black text-amber-400 animate-pulse">Não perca essa oportunidade única!</p>
+              <button 
+                onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: 'smooth' })}
+                className="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 hover:border-white/40 transition-colors font-bold uppercase tracking-wider"
+              >
+                VER OS PLANOS
+              </button>
             </div>
           </div>
         ) : null}
       </div>
-
-      {true && (
-        <a
-          href={`https://wa.me/555192835863?text=${encodeURIComponent("Olá vim pela Tesvc, gostaria de tirar algumas dúvidas.")}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-5 right-5 z-[60] flex items-center gap-3 pl-4 pr-5 py-3 rounded-full bg-[#25D366] hover:bg-[#20b957] text-white shadow-[0_10px_40px_rgba(37,211,102,0.5)] transition-all hover:scale-105 animate-fade-in"
-          aria-label="Tire suas dúvidas no WhatsApp"
-        >
-          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-30" />
-          <svg viewBox="0 0 32 32" className="relative w-6 h-6 fill-white shrink-0" aria-hidden="true">
-            <path d="M16 .396C7.164.396 0 7.56 0 16.396c0 2.876.756 5.688 2.192 8.164L.06 32l7.664-2.008a15.94 15.94 0 0 0 8.276 2.312c8.836 0 16-7.164 16-16S24.836.396 16 .396Zm7.56 20.928c-.412-.208-2.44-1.204-2.816-1.34-.376-.14-.652-.208-.928.208-.276.412-1.064 1.34-1.304 1.616-.24.276-.48.312-.892.104-.412-.208-1.74-.64-3.312-2.04-1.224-1.092-2.052-2.436-2.292-2.848-.24-.412-.024-.632.18-.836.184-.184.412-.48.616-.72.208-.24.276-.412.412-.688.14-.276.068-.516-.036-.72-.104-.208-.928-2.24-1.276-3.064-.336-.808-.68-.696-.928-.708l-.792-.012c-.276 0-.72.104-1.096.516-.376.412-1.44 1.408-1.44 3.436 0 2.028 1.476 3.988 1.68 4.264.208.276 2.904 4.428 7.036 6.204.984.424 1.752.68 2.352.868.988.316 1.888.272 2.6.164.792-.116 2.44-.996 2.784-1.96.344-.964.344-1.788.24-1.96Z"/>
-          </svg>
-          <span className="relative text-sm font-bold whitespace-nowrap hidden sm:inline">Tire suas dúvidas</span>
-        </a>
-      )}
     </div>
   );
 }
