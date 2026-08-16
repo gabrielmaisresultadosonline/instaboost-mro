@@ -55,7 +55,7 @@ export default function Tesvc() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   // Replicando a lógica de watched, mas mantendo a independência
-  const [watched, setWatched] = useState(true);
+  const [watched, setWatched] = useState(false);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
@@ -312,7 +312,7 @@ export default function Tesvc() {
         </div>
 
         {/* Plans reveal - unlocked by default for this page */}
-        {true ? (
+        {watched ? (
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/40">
