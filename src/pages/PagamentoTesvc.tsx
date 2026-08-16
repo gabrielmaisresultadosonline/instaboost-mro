@@ -68,7 +68,7 @@ const PagamentoTesvc = () => {
     (withExtraAccounts ? BUMP_ACCOUNTS_PRICE : 0);
 
   const totalAccounts = BASE_PLAN.accounts + (withExtraAccounts ? BUMP_ACCOUNTS_QTY : 0);
-  const installment = (totalPrice / 12).toFixed(2).replace(".", ",");
+  
 
   const checkUsernameAvailability = async (u: string): Promise<boolean | null> => {
     if (u.length < 4) { setUsernameAvailable(null); return null; }
