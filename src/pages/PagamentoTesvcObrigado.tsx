@@ -13,8 +13,8 @@ const PagamentoMROObrigado = () => {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    trackPageView("Pagamento MRO - Obrigado");
-    try { trackPurchase(397, "MRO Vitalicio"); } catch {}
+    trackPageView("Pagamento Tesvc - Obrigado");
+    try { trackPurchase(397, "Tesvc Purchase"); } catch {}
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,7 +22,7 @@ const PagamentoMROObrigado = () => {
     if (!nome.trim() || nome.trim().length < 2) { toast.error("Informe seu nome"); return; }
     if (!email.trim() || !email.includes("@")) { toast.error("Informe um email válido"); return; }
     const msg = encodeURIComponent(
-      `Acabei de comprar a MRO vitalicio.\nnome: ${nome.trim()}\nemail: ${email.trim()}`
+      `Acabei de comprar a Tesvc.\nnome: ${nome.trim()}\nemail: ${email.trim()}`
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
   };
