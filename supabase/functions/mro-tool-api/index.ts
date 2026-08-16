@@ -17,6 +17,10 @@ const LIFETIME_DAYS = 999999;
 /** Testes gratuitos por mês, cada um com duração de 1 dia. */
 const MONTHLY_TRIALS = 5;
 const DEFAULT_PLAN_ACCOUNTS = 4;
+/** Contato para renovação exibido quando o plano expira. */
+const RENEWAL_WHATSAPP_LINK =
+  "https://wa.me/555192835863?text=" +
+  encodeURIComponent("Olá vim pelo renda extra, já usei 30 dias gostaria de saber sobre o desconto.");
 const PAGE_SIZE = 1000;
 
 /** SHA-256 (Web Crypto) — mesmo padrão usado nas demais APIs do projeto. */
@@ -316,7 +320,17 @@ serve(async (req) => {
       if (hash !== user.password_hash) return json({ success: false, error: "Usuário ou senha incorretos" });
 
       const info = planInfo(user);
-      if (!info.access_allowed) return json({ success: false, error: "Acesso expirado ou desativado", needs_renewal: true });
+      if (!info.access_allowed) {
+        return json({
+          success: false,
+          error: info.expired
+            ? "Seu plano expirou. Contrate um novo plano para voltar a usar a ferramenta."
+            : "Acesso expirado ou desativado",
+          expired: info.expired,
+          needs_renewal: true,
+          whatsapp: RENEWAL_WHATSAPP_LINK,
+        });
+      }
 
       user = await ensureTrialPeriod(user);
 
