@@ -384,23 +384,10 @@ export default function Tesvc() {
               <ShieldCheck className="w-4 h-4" /> Checkout 100% seguro
             </div>
           </div>
-        ) : (
-          <div className="mt-8 flex flex-col items-center">
-            <button
-              disabled
-              className="inline-flex items-center gap-2 md:gap-3 px-4 py-3 md:px-8 md:py-5 rounded-xl md:rounded-2xl bg-zinc-800 text-zinc-400 font-bold text-sm md:text-xl cursor-not-allowed ring-1 ring-zinc-700 animate-pulse"
-            >
-              <Lock className="w-4 h-4 md:w-6 md:h-6" />
-              Assista o vídeo para liberar os valores
-            </button>
-            <p className="mt-4 text-sm text-zinc-500 text-center max-w-md">
-              Os planos serão liberados automaticamente ao chegar em 50% do vídeo.
-            </p>
-          </div>
-        )}
+        ) : null}
       </div>
 
-      {watched && (
+      {true && (
         <a
           href={`https://wa.me/555192835863?text=${encodeURIComponent("Olá vim pela Tesvc, gostaria de tirar algumas dúvidas.")}`}
           target="_blank"
