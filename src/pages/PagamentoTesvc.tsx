@@ -35,6 +35,7 @@ const BASE_PLAN = {
 const BUMP_SUPPORT_PRICE = 19;
 const BUMP_ACCOUNTS_PRICE = 10;
 const BUMP_ACCOUNTS_QTY = 3;
+const BUMP_RENDA_EXTRA_PRICE = 13;
 
 const BENEFITS = [
   { icon: Bot, text: "Ferramenta MRO completa (Instagram)" },
@@ -48,6 +49,7 @@ const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const PagamentoTesvc = () => {
   const [withSupport, setWithSupport] = useState(false);
   const [withExtraAccounts, setWithExtraAccounts] = useState(false);
+  const [withRendaExtra, setWithRendaExtra] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -65,7 +67,8 @@ const PagamentoTesvc = () => {
   const totalPrice =
     BASE_PLAN.price +
     (withSupport ? BUMP_SUPPORT_PRICE : 0) +
-    (withExtraAccounts ? BUMP_ACCOUNTS_PRICE : 0);
+    (withExtraAccounts ? BUMP_ACCOUNTS_PRICE : 0) +
+    (withRendaExtra ? BUMP_RENDA_EXTRA_PRICE : 0);
 
   const totalAccounts = BASE_PLAN.accounts + (withExtraAccounts ? BUMP_ACCOUNTS_QTY : 0);
   
@@ -123,6 +126,7 @@ const PagamentoTesvc = () => {
       const extras: string[] = [];
       if (withSupport) extras.push("suporte-whatsapp");
       if (withExtraAccounts) extras.push("mais-3-contas");
+      if (withRendaExtra) extras.push("renda-extra");
 
       const { data, error } = await supabase.functions.invoke("create-mro-checkout", {
         body: {
@@ -189,18 +193,65 @@ const PagamentoTesvc = () => {
         <div className="grid lg:grid-cols-5 gap-6">
           <form onSubmit={handleCheckout} className="lg:col-span-3 space-y-5">
             {/* Order bumps */}
-            <div className="bg-gradient-to-br from-white to-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+            <div className="bg-gradient-to-br from-white to-zinc-50 border-2 border-amber-400 rounded-2xl p-6 space-y-4 shadow-2xl relative overflow-hidden group/bumps">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16 blur-2xl" />
               
-              <div className="relative">
-                <h2 className="font-black text-2xl text-zinc-900 flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-amber-500 animate-pulse" />
-                  Turbine seu plano!
-                </h2>
-                <p className="text-sm text-zinc-600 mt-1 font-medium">Selecione as opções abaixo para resultados ainda mais rápidos.</p>
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <h2 className="font-black text-2xl text-zinc-900 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-amber-500 animate-bounce" />
+                    <span className="bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent uppercase tracking-tight">
+                      Turbine seu plano agora!
+                    </span>
+                  </h2>
+                  <p className="text-sm text-zinc-600 mt-1 font-bold">Aproveite estas ofertas exclusivas para acelerar seus ganhos.</p>
+                </div>
+                <div className="hidden sm:block animate-bounce-horizontal">
+                  <Plus className="w-8 h-8 text-amber-500" />
+                </div>
               </div>
 
               <div className="grid gap-4">
+                {/* Renda Extra - Novo Bump com destaque */}
+                <button
+                  type="button"
+                  onClick={() => setWithRendaExtra((v) => !v)}
+                  className={`group relative w-full text-left p-5 rounded-2xl border-b-4 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-start gap-4 ${
+                    withRendaExtra 
+                      ? "border-amber-600 bg-amber-50 ring-2 ring-amber-500/20 shadow-lg shadow-amber-500/20" 
+                      : "border-amber-200 bg-white hover:border-amber-400 hover:shadow-md"
+                  }`}
+                >
+                  <div className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    withRendaExtra ? "bg-amber-500 border-amber-500 text-white" : "border-amber-300 group-hover:border-amber-400"
+                  }`}>
+                    {withRendaExtra && <CheckCircle2 className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 font-black text-lg text-zinc-900">
+                      <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600">
+                        <Crown className="w-5 h-5" />
+                      </div>
+                      Renda extra - Aprenda a fazer mais de 5 mil com a MRO
+                    </div>
+                    <div className="text-sm text-zinc-600 mt-1 leading-relaxed font-medium">
+                      Método testado e aprovado para escalar sua operação.
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-400 line-through">R$ 97,00</div>
+                    <div className="font-black text-xl text-amber-700">+ {formatBRL(BUMP_RENDA_EXTRA_PRICE)}</div>
+                  </div>
+                  {/* Flecha em loop do lado */}
+                  {!withRendaExtra && (
+                    <div className="absolute -left-12 top-1/2 -translate-y-1/2 hidden md:block">
+                      <div className="animate-bounce-horizontal text-amber-600">
+                        <Plus className="w-8 h-8 rotate-90" />
+                      </div>
+                    </div>
+                  )}
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setWithSupport((v) => !v)}
@@ -340,6 +391,12 @@ const PagamentoTesvc = () => {
                     <div className="flex items-center justify-between text-emerald-700">
                       <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> Suporte WhatsApp</span>
                       <span className="font-bold">{formatBRL(BUMP_SUPPORT_PRICE)}</span>
+                    </div>
+                  )}
+                  {withRendaExtra && (
+                    <div className="flex items-center justify-between text-amber-700">
+                      <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> Renda Extra</span>
+                      <span className="font-bold">{formatBRL(BUMP_RENDA_EXTRA_PRICE)}</span>
                     </div>
                   )}
                   {withExtraAccounts && (
