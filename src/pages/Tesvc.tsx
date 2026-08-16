@@ -319,6 +319,8 @@ export default function Tesvc() {
               <div className="flex flex-col items-center gap-2"><span>💰</span> Reembolso</div>
               <div className="flex flex-col items-center gap-2"><span>✅</span> Garantido</div>
             </div>
+          </div>
+        </div>
 
         {/* Plans reveal - unlocked by default for this page */}
         {true ? (
