@@ -77,6 +77,40 @@ serve(async (req) => {
     const email = String(body.email || "").trim().toLowerCase();
     const password = String(body.password || "");
 
+    /**
+     * Rotina automática (cron diário). Não expõe dados — apenas bloqueia quem
+     * passou dos 30 dias e envia o e-mail de aviso uma única vez.
+     */
+    if (action === "cron_process") {
+      const { data: pending } = await supabase
+        .from("mro_tool_users")
+        .select("*")
+        .eq("source", SOURCE)
+        .not("expires_at", "is", null)
+        .lte("expires_at", new Date().toISOString());
+
+      let blocked = 0;
+      let emailed = 0;
+      for (const u of (pending || []) as ToolUser[]) {
+        const updates: Record<string, unknown> = {};
+        if (u.is_active) {
+          updates.is_active = false;
+          blocked++;
+        }
+        if (!u.expired_email_sent_at && u.email) {
+          const sent = await sendRenddxExpiredEmail(u.email, u.name || u.username, u.username);
+          if (sent) {
+            updates.expired_email_sent_at = new Date().toISOString();
+            emailed++;
+          }
+        }
+        if (Object.keys(updates).length > 0) {
+          await supabase.from("mro_tool_users").update(updates).eq("id", u.id);
+        }
+      }
+      return json({ success: true, checked: (pending || []).length, blocked, emailed });
+    }
+
     const adminEmail = (Deno.env.get("MRO_ADMIN_EMAIL") || "").trim().toLowerCase();
     const adminPassword = Deno.env.get("MRO_ADMIN_PASSWORD") || "";
 
