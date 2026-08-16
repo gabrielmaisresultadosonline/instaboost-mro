@@ -68,7 +68,7 @@ const PagamentoTesvc = () => {
     (withExtraAccounts ? BUMP_ACCOUNTS_PRICE : 0);
 
   const totalAccounts = BASE_PLAN.accounts + (withExtraAccounts ? BUMP_ACCOUNTS_QTY : 0);
-  const installment = (totalPrice / 12).toFixed(2).replace(".", ",");
+  
 
   const checkUsernameAvailability = async (u: string): Promise<boolean | null> => {
     if (u.length < 4) { setUsernameAvailable(null); return null; }
@@ -323,9 +323,6 @@ const PagamentoTesvc = () => {
 
                 <div className="text-4xl font-black bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent mt-3">
                   {formatBRL(totalPrice)}
-                </div>
-                <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md mt-2 border border-emerald-200">
-                  12x de R$ {installment}
                 </div>
                 <div className="text-xs text-zinc-600 mt-3 font-medium">
                   {totalAccounts} {totalAccounts === 1 ? "conta" : "contas"} Instagram · 30 dias
