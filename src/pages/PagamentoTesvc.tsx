@@ -393,6 +393,12 @@ const PagamentoTesvc = () => {
                       <span className="font-bold">{formatBRL(BUMP_SUPPORT_PRICE)}</span>
                     </div>
                   )}
+                  {withRendaExtra && (
+                    <div className="flex items-center justify-between text-amber-700">
+                      <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> Renda Extra</span>
+                      <span className="font-bold">{formatBRL(BUMP_RENDA_EXTRA_PRICE)}</span>
+                    </div>
+                  )}
                   {withExtraAccounts && (
                     <div className="flex items-center justify-between text-amber-700">
                       <span className="flex items-center gap-1"><Plus className="w-3 h-3" /> +{BUMP_ACCOUNTS_QTY} contas</span>
