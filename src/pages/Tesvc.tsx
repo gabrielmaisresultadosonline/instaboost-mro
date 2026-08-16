@@ -429,7 +429,7 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      TESTE AGORA MESMO
+                      COMPRAR AGORA
                     </Link>
                     <div className="mt-2 text-center text-red-500 font-bold text-[11px] uppercase animate-pulse">
                       encerra amanha!
