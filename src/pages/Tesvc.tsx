@@ -331,12 +331,10 @@ export default function Tesvc() {
                 const p = PLANS[key];
                 const Icon = p.icon;
                 const themes: Record<PlanKey, string> = {
-                  pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
-                  lifetime: "border-violet-500/60 ring-violet-500/20 from-violet-500/10",
+                  trial: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
                 };
                 const btns: Record<PlanKey, string> = {
-                  pro: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
-                  lifetime: "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white",
+                  trial: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
                 };
                 return (
                   <div
