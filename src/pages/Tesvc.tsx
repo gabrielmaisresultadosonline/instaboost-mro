@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Sparkles, Zap, Bot, ShieldCheck } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, CheckCircle2, Shield, Sparkles, Zap, Bot, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const PLAN = {
