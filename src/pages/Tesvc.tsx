@@ -5,10 +5,9 @@ import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Cr
 import { Link } from "react-router-dom";
 import logoMro from "@/assets/logo-mro.png";
 
-type PlanKey = "pro" | "lifetime";
+type PlanKey = "trial";
 const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
-  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "Acesso por 1 ano", badge: "MAIS POPULAR", icon: Sparkles },
-  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Acesso vitalício — sem renovação", badge: "⭐ PREMIUM VITALÍCIO", icon: InfinityIcon },
+  trial: { name: "Teste 30 Dias", price: 67, installment: "6", accounts: 1, durationLabel: "Acesso por 30 dias", badge: "OFERTA DE TESTE", icon: Zap },
 };
 const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
@@ -56,7 +55,7 @@ export default function Tesvc() {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   // Replicando a lógica de watched, mas mantendo a independência
-  const [watched, setWatched] = useState(true);
+  const [watched, setWatched] = useState(false);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
@@ -309,19 +308,11 @@ export default function Tesvc() {
           </div>
 
           <div id="planos" className="mt-16 text-center">
-            <h2 className="text-3xl font-black mb-4">GARANTIA TOTAL</h2>
-            <p className="text-xl font-bold mb-8">30 Dias de Resultados Garantidos</p>
-            <p className="mb-8">Se em 30 dias não tiver resultados, devolvemos seu dinheiro.</p>
-            <div className="flex justify-center gap-8 mb-12 text-sm">
-              <div className="flex flex-col items-center gap-2"><span>🔒</span> Compra Segura</div>
-              <div className="flex flex-col items-center gap-2"><span>💰</span> Reembolso</div>
-              <div className="flex flex-col items-center gap-2"><span>✅</span> Garantido</div>
-            </div>
           </div>
         </div>
 
         {/* Plans reveal - unlocked by default for this page */}
-        {true ? (
+        {watched ? (
           <div className="mt-14 animate-fade-in">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/40">
@@ -335,17 +326,15 @@ export default function Tesvc() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 max-w-4xl mx-auto gap-8">
+            <div className="grid grid-cols-1 max-w-md mx-auto gap-8">
               {(Object.keys(PLANS) as PlanKey[]).map((key) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
                 const themes: Record<PlanKey, string> = {
-                  pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
-                  lifetime: "border-violet-500/60 ring-violet-500/20 from-violet-500/10",
+                  trial: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
                 };
                 const btns: Record<PlanKey, string> = {
-                  pro: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
-                  lifetime: "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white",
+                  trial: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
                 };
                 return (
                   <div
@@ -377,7 +366,7 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      {key === 'pro' ? 'QUERO O PLANO ANUAL' : 'QUERO O VITALÍCIO'}
+                      QUERO O PLANO DE TESTE
                     </Link>
                     <div className="mt-4 flex flex-col items-center gap-1 text-[10px] opacity-60">
                       <span>Compra Segura</span>
