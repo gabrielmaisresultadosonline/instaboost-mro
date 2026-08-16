@@ -358,7 +358,13 @@ export default function Tesvc() {
             </ul>
           </div>
 
-          <div id="planos" className="mt-16 text-center">
+          <div className="flex justify-center mb-16">
+            <button 
+              onClick={() => document.getElementById("planos-container")?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-10 py-5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-black text-xl uppercase tracking-wider shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all transform hover:scale-105 active:scale-95"
+            >
+              TESTE AGORA MESMO
+            </button>
           </div>
         </div>
 
