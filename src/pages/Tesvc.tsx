@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Sparkles, Zap, Bot, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type PlanKey = "trial" | "solo" | "pro" | "lifetime";
-const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
-  trial: { name: "Teste 1 Dia", price: 97, installment: "8", accounts: 4, durationLabel: "1 dia · liberação imediata", badge: "COMECE AQUI", icon: Zap },
-  solo: { name: "Anual Solo", price: 247, installment: "25", accounts: 1, durationLabel: "1 ano de acesso", icon: Crown },
-  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "1 ano de acesso", badge: "MAIS VENDIDO", icon: Sparkles },
-  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Pagamento único · Vitalício", badge: "MELHOR CUSTO", icon: InfinityIcon },
-};
+const PLAN = {
+  name: "Teste 30 Dias",
+  price: 67,
+  installment: "6,70",
+  accounts: 1,
+  durationLabel: "30 dias de acesso · 1 conta Instagram",
+  badge: "PLANO ÚNICO",
+  icon: Zap,
+} as const;
 const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
 const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
@@ -317,62 +319,49 @@ export default function FerramentaMROPromo() {
                 Mais vendas sem gastar com anúncios
               </h2>
               <p className="mt-3 text-sm md:text-lg text-white/80 max-w-2xl mx-auto">
-                <strong className="text-amber-300">Ferramenta completa + Inteligência Artificial</strong> incluso em todos os planos.
+                <strong className="text-amber-300">Ferramenta completa + Inteligência Artificial</strong> por 30 dias, com 1 conta do Instagram.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {(Object.keys(PLANS) as PlanKey[]).map((key) => {
-                const p = PLANS[key];
+
+            <div className="max-w-md mx-auto">
+              {(() => {
+                const p = PLAN;
                 const Icon = p.icon;
-                const themes: Record<PlanKey, string> = {
-                  trial: "border-emerald-500/60 ring-emerald-500/20 from-emerald-500/10",
-                  solo: "border-sky-500/60 ring-sky-500/20 from-sky-500/10",
-                  pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
-                  lifetime: "border-violet-500/60 ring-violet-500/20 from-violet-500/10",
-                };
-                const btns: Record<PlanKey, string> = {
-                  trial: "bg-emerald-500 hover:bg-emerald-400 text-white",
-                  solo: "bg-sky-500 hover:bg-sky-400 text-white",
-                  pro: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
-                  lifetime: "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white",
-                };
                 return (
-                  <div
-                    key={key}
-                    className={`relative rounded-2xl border-2 bg-gradient-to-b to-zinc-950/60 p-5 ring-4 ${themes[key]} shadow-xl`}
-                  >
+                  <div className="relative rounded-2xl border-2 border-emerald-500/60 ring-4 ring-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-zinc-950/60 p-6 shadow-xl">
                     {p.badge && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-3 py-1 rounded-full bg-amber-500 text-black tracking-wider shadow-md">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-black px-3 py-1 rounded-full bg-emerald-500 text-black tracking-wider shadow-md">
                         {p.badge}
                       </span>
                     )}
                     <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-white/10 mb-3">
-                      <Icon className="w-5 h-5 text-amber-300" />
+                      <Icon className="w-5 h-5 text-emerald-300" />
                     </div>
-                    <div className="font-bold text-lg">{p.name}</div>
+                    <div className="font-bold text-xl">{p.name}</div>
                     <div className="text-[11px] text-white/60 mb-3">{p.durationLabel}</div>
-                    <div className="text-3xl font-black">{formatBRL(p.price)}</div>
+                    <div className="text-4xl font-black">{formatBRL(p.price)}</div>
                     <div className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md mt-1 mb-4">
                       12x de R$ {p.installment}
                     </div>
                     <div className="space-y-2 text-sm text-white/80 border-t border-white/10 pt-3">
-                      <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /><span><strong>{p.accounts}</strong> {p.accounts === 1 ? "conta" : "contas"} Instagram</span></div>
+                      <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /><span><strong>{p.accounts}</strong> conta Instagram</span></div>
                       <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />Ferramenta MRO completa</div>
                       <div className="flex items-center gap-2"><Bot className="w-4 h-4 text-emerald-400 shrink-0" />Inteligência Artificial</div>
-                      <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />Área VIP + Suporte</div>
+                      <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />Área de Membros</div>
                     </div>
                     <Link
                       to="/pagamentotesvc"
                       onClick={handleCtaClick}
-                      className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
+                      className="mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition bg-emerald-500 hover:bg-emerald-400 text-black"
                     >
-                      Aproveitar agora →
+                      Testar 30 dias por R$67 →
                     </Link>
                   </div>
                 );
-              })}
+              })()}
             </div>
+
 
             <div className="mt-8 max-w-2xl mx-auto flex items-center justify-center gap-3 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4">
               <Shield className="w-6 h-6 text-emerald-400 shrink-0" />
