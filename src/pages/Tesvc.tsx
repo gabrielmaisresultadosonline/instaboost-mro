@@ -396,7 +396,7 @@ export default function Tesvc() {
                   trial: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
                 };
                 const btns: Record<PlanKey, string> = {
-                  trial: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
+                  trial: "bg-green-600 hover:bg-green-500 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)]",
                 };
                 return (
                   <div
