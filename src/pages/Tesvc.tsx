@@ -366,7 +366,7 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      {key === 'pro' ? 'QUERO O PLANO ANUAL' : 'QUERO O VITALÍCIO'}
+                      QUERO O PLANO DE TESTE
                     </Link>
                     <div className="mt-4 flex flex-col items-center gap-1 text-[10px] opacity-60">
                       <span>Compra Segura</span>
