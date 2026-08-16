@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import PlanExpiredOverlay from "@/components/PlanExpiredOverlay";
 import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package, Settings, Mail, KeyRound } from "lucide-react";
 
 
@@ -182,12 +183,44 @@ export default function Dashboard() {
   }, [toast]);
 
 
+  /**
+   * Plano com prazo (ex.: 30 dias vendidos em /renddx). Quando expira, o backend
+   * é a fonte da verdade e a dashboard inteira fica bloqueada por um popup.
+   */
+  const [planExpired, setPlanExpired] = useState<{ expires_at: string | null; whatsapp: string } | null>(null);
+
+  const checkPlanStatus = useCallback(async (current: DashboardSession) => {
+    try {
+      const { data } = await supabase.functions.invoke("mro-tool-api", {
+        body: {
+          action: "plan_status",
+          username: current.username || "",
+          email: current.email || "",
+        },
+      });
+      if (data?.success && data.found && data.expired) {
+        setPlanExpired({
+          expires_at: data.expires_at ?? null,
+          whatsapp:
+            data.whatsapp ||
+            "https://wa.me/555192835863?text=" +
+              encodeURIComponent("Olá vim pelo renda extra, já usei 30 dias gostaria de saber sobre o desconto."),
+        });
+      } else {
+        setPlanExpired(null);
+      }
+    } catch {
+      /* falha de rede não deve bloquear a dashboard */
+    }
+  }, []);
+
   useEffect(() => {
     if (session) {
       loadProducts(session);
       loadProfile(session);
+      checkPlanStatus(session);
     }
-  }, [session, loadProducts, loadProfile]);
+  }, [session, loadProducts, loadProfile, checkPlanStatus]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -643,6 +676,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {planExpired && (
+        <PlanExpiredOverlay
+          whatsappLink={planExpired.whatsapp}
+          displayName={session?.name || session?.username || null}
+          expiredAt={planExpired.expires_at}
+          onLogout={handleLogout}
+        />
+      )}
       <div className="bg-warning text-warning-foreground text-center py-2.5 px-4 text-sm font-medium">
         Estamos atualizando nossa área e incluindo novidades. Pode utilizar normalmente.
       </div>
