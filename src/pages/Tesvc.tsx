@@ -377,7 +377,7 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      Aproveitar agora →
+                      {key === 'pro' ? 'QUERO O PLANO ANUAL' : 'QUERO O VITALÍCIO'}
                     </Link>
                   </div>
                 );
