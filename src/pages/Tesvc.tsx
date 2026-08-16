@@ -381,6 +381,7 @@ export default function Tesvc() {
                 return (
                   <div
                     key={key}
+                    id="planos-container"
                     className={`relative rounded-2xl border-2 bg-gradient-to-b to-zinc-950/60 p-5 ring-4 ${themes[key]} shadow-xl`}
                   >
                     {p.badge && (
@@ -408,8 +409,11 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      QUERO O PLANO DE TESTE
+                      TESTE AGORA MESMO
                     </Link>
+                    <div className="mt-2 text-center text-red-500 font-bold text-[11px] uppercase animate-pulse">
+                      encerra amanha!
+                    </div>
                     <div className="mt-4 flex flex-col items-center gap-1 text-[10px] opacity-60">
                       <span>Compra Segura</span>
                       <span>PIX ou Cartão</span>
