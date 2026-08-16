@@ -379,7 +379,28 @@ serve(async (req) => {
       return json({ success: true, username: desired, available: !existing, exists: !!existing });
     }
 
+    /**
+     * Status do plano por usuário/e-mail — usado pela /dashboard para exibir o
+     * bloqueio quando o plano de 30 dias expira. Não expõe dados sensíveis.
+     */
+    if (action === "plan_status") {
+      const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
+      if (!identifier) return json({ success: false, error: "Usuário ou email é obrigatório" }, 400);
+      const user = await findUser(identifier);
+      if (!user) return json({ success: true, found: false, expired: false, access_allowed: true });
+      const info = planInfo(user);
+      return json({
+        success: true,
+        found: true,
+        username: user.username,
+        is_active: user.is_active,
+        ...info,
+        whatsapp: RENEWAL_WHATSAPP_LINK,
+      });
+    }
+
     if (action === "verify_user") {
+
 
       const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
       if (!identifier) return json({ success: false, error: "Usuário ou email é obrigatório" }, 400);
