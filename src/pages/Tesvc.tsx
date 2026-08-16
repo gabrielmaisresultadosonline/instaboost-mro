@@ -335,19 +335,15 @@ export default function Tesvc() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid sm:grid-cols-2 max-w-4xl mx-auto gap-8">
               {(Object.keys(PLANS) as PlanKey[]).map((key) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
                 const themes: Record<PlanKey, string> = {
-                  trial: "border-emerald-500/60 ring-emerald-500/20 from-emerald-500/10",
-                  solo: "border-sky-500/60 ring-sky-500/20 from-sky-500/10",
                   pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
                   lifetime: "border-violet-500/60 ring-violet-500/20 from-violet-500/10",
                 };
                 const btns: Record<PlanKey, string> = {
-                  trial: "bg-emerald-500 hover:bg-emerald-400 text-white",
-                  solo: "bg-sky-500 hover:bg-sky-400 text-white",
                   pro: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
                   lifetime: "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white",
                 };
