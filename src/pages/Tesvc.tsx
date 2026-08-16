@@ -58,7 +58,8 @@ export default function FerramentaMROPromo() {
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [watched, setWatched] = useState(false);
+  // Nesta página os valores ficam liberados desde o início (sem trava por tempo de vídeo)
+  const [watched, setWatched] = useState(true);
   const milestonesRef = useRef<Set<number>>(new Set());
   const [showNotice, setShowNotice] = useState(true);
 
