@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Lock, Maximize, CheckCircle2, Shield, Crown, Sparkles, Zap, Infinity as InfinityIcon, Bot, ShieldCheck, Target, MessageCircle, Gift, User, ArrowRight, Lightbulb, UserPlus, Users, Filter, Send, Rocket, Heart, Flame, RefreshCw, MousePointerClick, Brain, FileText, CreditCard, X, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
+import logoMro from "@/assets/logo-mro.png";
 
-type PlanKey = "trial" | "solo" | "pro" | "lifetime";
+type PlanKey = "pro" | "lifetime";
 const PLANS: Record<PlanKey, { name: string; price: number; installment: string; accounts: number; durationLabel: string; badge?: string; icon: React.ComponentType<{ className?: string }> }> = {
-  trial: { name: "Teste 1 Dia", price: 97, installment: "8", accounts: 4, durationLabel: "1 dia · liberação imediata", badge: "COMECE AQUI", icon: Zap },
-  solo: { name: "Anual Solo", price: 247, installment: "25", accounts: 1, durationLabel: "1 ano de acesso", icon: Crown },
-  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "1 ano de acesso", badge: "MAIS VENDIDO", icon: Sparkles },
-  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Pagamento único · Vitalício", badge: "MELHOR CUSTO", icon: InfinityIcon },
+  pro: { name: "Anual Pro", price: 397, installment: "40", accounts: 4, durationLabel: "Acesso por 1 ano", badge: "MAIS POPULAR", icon: Sparkles },
+  lifetime: { name: "Agência Vitalício", price: 1197, installment: "122,83", accounts: 12, durationLabel: "Acesso vitalício — sem renovação", badge: "⭐ PREMIUM VITALÍCIO", icon: InfinityIcon },
 };
 const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
@@ -229,81 +228,95 @@ export default function Tesvc() {
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
         <div className="text-center">
-          <span className="inline-block px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40 mb-6">
-            Oferta exclusiva
-          </span>
-          <h1
-            className="text-5xl md:text-8xl leading-[0.95] tracking-tight bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_30px_rgba(251,191,36,0.4)]"
-            style={{ fontWeight: 900 }}
-          >
-            Não gaste com anúncios
+          <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
+          
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
+            NÃO GASTE MAIS COM ANÚNCIOS
           </h1>
-          <p className="mt-4 text-base md:text-xl font-semibold text-white/90">
-            Utilize a{" "}
-            <span className="relative inline-block text-amber-400 font-bold">
-              Ferramenta MRO
-              <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
-            </span>{" "}
-            e pague <span className="underline decoration-amber-500 decoration-2 underline-offset-4">apenas uma vez!</span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 text-green-400">
+            UTILIZE A MRO INTELIGENTE!
+          </h2>
+          <p className="text-gray-400 mb-8">
+            Instale em seu notebook, macbook ou computador de mesa!
           </p>
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <span className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-amber-500/50" />
-            <p className="text-[11px] md:text-xs font-medium text-amber-200/80 uppercase tracking-[0.2em]">
-              Assista ao vídeo para entender como funciona
-            </p>
-            <span className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-amber-500/50" />
+
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 rounded-full px-6 py-2 mb-8">
+            <span className="text-white font-bold text-sm">NOVA VERSÃO V8.6 — A MAIS COMPLETA</span>
           </div>
+
+          <button 
+            onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: 'smooth' })}
+            className="block w-full max-w-sm mx-auto bg-green-600 hover:bg-green-500 text-white font-black text-xl py-5 rounded-full shadow-lg shadow-green-500/20 mb-12"
+          >
+            GARANTIR MEU ACESSO AGORA
+          </button>
         </div>
 
-        {/* Video */}
-        <div className="mt-8 relative rounded-2xl overflow-hidden bg-black ring-1 ring-amber-500/30 shadow-[0_0_60px_rgba(251,191,36,0.15)]">
-          <div className="relative aspect-video">
-            <video
-              ref={videoRef}
-              className={`w-full h-full bg-black transition-opacity duration-500 ${started ? "opacity-100" : "opacity-10"}`}
-              playsInline
-              controls={false}
-              muted={!started}
-              autoPlay
-              loop={!started}
-              preload="metadata"
-            />
-            {!started && (
-              <button
-                onClick={handleStart}
-                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition"
-                aria-label="Reproduzir"
-              >
-                <span className="w-20 h-20 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center shadow-2xl animate-pulse">
-                  <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
-                </span>
-              </button>
-            )}
-            {started && (
-              <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
-                <button
-                  onClick={togglePlay}
-                  className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
-                  aria-label={playing ? "Pausar" : "Reproduzir"}
-                >
-                  {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                </button>
-                <button
-                  onClick={toggleMute}
-                  className="w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
-                  aria-label={muted ? "Ativar som" : "Silenciar"}
-                >
-                  {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
-                <button
-                  onClick={toggleFullscreen}
-                  className="ml-auto w-10 h-10 rounded-full bg-black/70 hover:bg-black flex items-center justify-center"
-                  aria-label="Tela cheia"
-                >
-                  <Maximize className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+        <div className="mt-16">
+          <h2 className="text-3xl font-black text-center mb-12">O QUE VOCÊ VAI RECEBER</h2>
+          
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 mb-8">
+            <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center gap-2">
+              <Sparkles className="w-6 h-6" /> Inteligência artificial automática
+            </h3>
+            <ul className="space-y-4 text-slate-300">
+              <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /> Cria legendas prontas e otimizadas</li>
+              <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /> Gera biografias profissionais</li>
+              <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /> Melhores horários para postar</li>
+              <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /> Recomenda hashtags quentes</li>
+            </ul>
+            <p className="mt-6 text-center font-bold">Tudo isso personalizado para você, em segundos!</p>
+          </div>
+
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 mb-8">
+            <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center gap-2">
+              <Zap className="w-6 h-6" /> FERRAMENTA MRO
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 text-slate-300">
+              <p>• Curte fotos</p>
+              <p>• Segue perfis estratégicos</p>
+              <p>• Segue e deixa de seguir</p>
+              <p>• Reage aos Stories com "amei"</p>
+              <p>• Remove seguidores fakes</p>
+              <p>• Interação com 200 pessoas/dia</p>
+              <p>• Posta Stories automaticamente</p>
+            </div>
+            <p className="mt-6 text-center font-bold text-green-400">Resultados comprovados em até 7 horas de uso!</p>
+          </div>
+
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 mb-8">
+            <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center gap-2">
+              <Crown className="w-6 h-6" /> ÁREA DE MEMBROS VITALÍCIA
+            </h3>
+            <ul className="space-y-4 text-slate-300">
+              <li>• Vídeos estratégicos passo a passo</li>
+              <li>• Como deixar seu perfil profissional</li>
+              <li>• Como agendar postagens no automático</li>
+              <li>• Estratégias para bombar do zero</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 mb-12">
+            <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center gap-2">
+              <MessageCircle className="w-6 h-6" /> GRUPO VIP DE SUPORTE
+            </h3>
+            <ul className="space-y-4 text-slate-300">
+              <li>• Acesse o grupo VIP</li>
+              <li>• Tire dúvidas</li>
+              <li>• Compartilhe resultados</li>
+              <li>• Atualizações em primeira mão</li>
+            </ul>
+          </div>
+
+          <div id="planos" className="mt-16 text-center">
+            <h2 className="text-3xl font-black mb-4">GARANTIA TOTAL</h2>
+            <p className="text-xl font-bold mb-8">30 Dias de Resultados Garantidos</p>
+            <p className="mb-8">Se em 30 dias não tiver resultados, devolvemos seu dinheiro.</p>
+            <div className="flex justify-center gap-8 mb-12 text-sm">
+              <div className="flex flex-col items-center gap-2"><span>🔒</span> Compra Segura</div>
+              <div className="flex flex-col items-center gap-2"><span>💰</span> Reembolso</div>
+              <div className="flex flex-col items-center gap-2"><span>✅</span> Garantido</div>
+            </div>
           </div>
         </div>
 
@@ -322,19 +335,15 @@ export default function Tesvc() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid sm:grid-cols-2 max-w-4xl mx-auto gap-8">
               {(Object.keys(PLANS) as PlanKey[]).map((key) => {
                 const p = PLANS[key];
                 const Icon = p.icon;
                 const themes: Record<PlanKey, string> = {
-                  trial: "border-emerald-500/60 ring-emerald-500/20 from-emerald-500/10",
-                  solo: "border-sky-500/60 ring-sky-500/20 from-sky-500/10",
                   pro: "border-amber-500/70 ring-amber-500/30 from-amber-500/10 lg:scale-[1.03]",
                   lifetime: "border-violet-500/60 ring-violet-500/20 from-violet-500/10",
                 };
                 const btns: Record<PlanKey, string> = {
-                  trial: "bg-emerald-500 hover:bg-emerald-400 text-white",
-                  solo: "bg-sky-500 hover:bg-sky-400 text-white",
                   pro: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black",
                   lifetime: "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white",
                 };
@@ -368,40 +377,29 @@ export default function Tesvc() {
                       onClick={handleCtaClick}
                       className={`mt-5 block w-full text-center py-3 rounded-xl font-black text-sm transition ${btns[key]}`}
                     >
-                      Aproveitar agora →
+                      {key === 'pro' ? 'QUERO O PLANO ANUAL' : 'QUERO O VITALÍCIO'}
                     </Link>
+                    <div className="mt-4 flex flex-col items-center gap-1 text-[10px] opacity-60">
+                      <span>Compra Segura</span>
+                      <span>PIX ou Cartão</span>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-8 max-w-2xl mx-auto flex items-center justify-center gap-3 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4">
-              <Shield className="w-6 h-6 text-emerald-400 shrink-0" />
-              <p className="font-black text-emerald-300 text-base">Garantia de 30 dias</p>
-            </div>
-
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/50">
-              <ShieldCheck className="w-4 h-4" /> Checkout 100% seguro
+            <div className="mt-16 text-center">
+              <p className="text-xl font-black text-amber-400 animate-pulse">Não perca essa oportunidade única!</p>
+              <button 
+                onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: 'smooth' })}
+                className="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 hover:border-white/40 transition-colors font-bold uppercase tracking-wider"
+              >
+                VER OS PLANOS
+              </button>
             </div>
           </div>
         ) : null}
       </div>
-
-      {true && (
-        <a
-          href={`https://wa.me/555192835863?text=${encodeURIComponent("Olá vim pela Tesvc, gostaria de tirar algumas dúvidas.")}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-5 right-5 z-[60] flex items-center gap-3 pl-4 pr-5 py-3 rounded-full bg-[#25D366] hover:bg-[#20b957] text-white shadow-[0_10px_40px_rgba(37,211,102,0.5)] transition-all hover:scale-105 animate-fade-in"
-          aria-label="Tire suas dúvidas no WhatsApp"
-        >
-          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-30" />
-          <svg viewBox="0 0 32 32" className="relative w-6 h-6 fill-white shrink-0" aria-hidden="true">
-            <path d="M16 .396C7.164.396 0 7.56 0 16.396c0 2.876.756 5.688 2.192 8.164L.06 32l7.664-2.008a15.94 15.94 0 0 0 8.276 2.312c8.836 0 16-7.164 16-16S24.836.396 16 .396Zm7.56 20.928c-.412-.208-2.44-1.204-2.816-1.34-.376-.14-.652-.208-.928.208-.276.412-1.064 1.34-1.304 1.616-.24.276-.48.312-.892.104-.412-.208-1.74-.64-3.312-2.04-1.224-1.092-2.052-2.436-2.292-2.848-.24-.412-.024-.632.18-.836.184-.184.412-.48.616-.72.208-.24.276-.412.412-.688.14-.276.068-.516-.036-.72-.104-.208-.928-2.24-1.276-3.064-.336-.808-.68-.696-.928-.708l-.792-.012c-.276 0-.72.104-1.096.516-.376.412-1.44 1.408-1.44 3.436 0 2.028 1.476 3.988 1.68 4.264.208.276 2.904 4.428 7.036 6.204.984.424 1.752.68 2.352.868.988.316 1.888.272 2.6.164.792-.116 2.44-.996 2.784-1.96.344-.964.344-1.788.24-1.96Z"/>
-          </svg>
-          <span className="relative text-sm font-bold whitespace-nowrap hidden sm:inline">Tire suas dúvidas</span>
-        </a>
-      )}
     </div>
   );
 }
