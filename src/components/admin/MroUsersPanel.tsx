@@ -109,12 +109,21 @@ const MroUsersPanel: React.FC = () => {
       const offset = append ? users.length : 0;
       const data = await call({ action: 'list_users', limit: 50, offset });
       const loaded = (data.users || []) as MroUser[];
-      setUsers((current) => append ? [...current, ...loaded] : loaded);
+      
+      setUsers((current) => {
+        if (!append) return loaded;
+        // Evita duplicatas se o usuário clicar rápido ou o estado estiver dessincronizado
+        const existingIds = new Set(current.map(u => u.id));
+        const newOnes = loaded.filter(u => !existingIds.has(u.id));
+        return [...current, ...newOnes];
+      });
+      
       setTotalUsers(Number(data.total) || loaded.length);
     } catch (err) {
+      console.error('Falha ao carregar usuários:', err);
       toast({
-        title: 'Erro ao carregar usuários',
-        description: err instanceof Error ? err.message : 'Tente novamente.',
+        title: 'Erro ao carregar',
+        description: 'Falha ao buscar usuários PRO da nuvem (Timeout ou limite excedido).',
         variant: 'destructive',
       });
     } finally {
@@ -190,6 +199,7 @@ const MroUsersPanel: React.FC = () => {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return users;
+    // O filtro local funciona apenas sobre os usuários já carregados
     return users.filter((u) =>
       u.username.toLowerCase().includes(term) ||
       (u.email || '').toLowerCase().includes(term) ||
@@ -335,7 +345,12 @@ const MroUsersPanel: React.FC = () => {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[220px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por usuário, email ou conta do Instagram" />
+          <Input 
+            className="pl-9" 
+            value={search} 
+            onChange={(e) => setSearch(e.target.value)} 
+            placeholder="Buscar nos carregados (usuário, email ou @instagram)" 
+          />
         </div>
         <Badge variant="secondary">{totalUsers} usuários</Badge>
         <Badge variant="outline" className="gap-1">
