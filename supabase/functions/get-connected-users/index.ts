@@ -16,11 +16,16 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch all users with their last access, ordered by most recent
+    // Limit: only the 200 most recent sessions (avoids upstream timeout on large tables)
+    const url = new URL(req.url);
+    const limit = Math.min(Number(url.searchParams.get('limit')) || 200, 500);
+
     const { data, error } = await supabase
       .from('user_sessions')
       .select('squarecloud_username, email, days_remaining, last_access, updated_at')
-      .order('last_access', { ascending: false, nullsFirst: false });
+      .not('last_access', 'is', null)
+      .order('last_access', { ascending: false })
+      .limit(limit);
 
     if (error) {
       console.error('[get-connected-users] Error:', error.message);
