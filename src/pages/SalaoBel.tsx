@@ -173,17 +173,10 @@ const SalaoBel = () => {
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
-      const fbq = (window as any).fbq;
-      if (fbq) fbq("track", "InitiateCheckout",
-        { 
-          value: preco, 
-          currency: "BRL", 
-          content_name: "Salão Bel",
-          email: form.email,
-          phone: form.whatsapp
-        },
-        { eventID: data.nsu_order }
-      );
+      trackInitiateCheckout("Salão Bel", preco, {
+        email: form.email,
+        phone: form.whatsapp
+      });
       window.location.href = data.payment_link;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao processar");
