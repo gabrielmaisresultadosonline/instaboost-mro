@@ -25,7 +25,12 @@ const RendaSaoVivoObrigado = () => {
           setEmail(data.email || "");
           const fbq = (window as any).fbq;
           if (fbq) fbq("track", "Purchase",
-            { value: 19, currency: "BRL", content_name: "Renda Ao Vivo" },
+            { 
+              value: 19, 
+              currency: "BRL", 
+              content_name: "Renda Ao Vivo",
+              email: data.email
+            },
             { eventID: nsu }
           );
           return;

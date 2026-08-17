@@ -174,7 +174,13 @@ const RendaSaoVivo = () => {
       if (!data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "InitiateCheckout",
-        { value: preco, currency: "BRL", content_name: "Renda Ao Vivo" },
+        { 
+          value: preco, 
+          currency: "BRL", 
+          content_name: "Renda Ao Vivo",
+          email: form.email,
+          phone: form.whatsapp
+        },
         { eventID: data.nsu_order }
       );
       window.location.href = data.payment_link;

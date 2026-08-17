@@ -343,6 +343,14 @@ const RendaExtraDescontoPage = () => {
               type="submit"
               disabled={gateLoading}
               className="w-full py-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(16,185,129,0.3)] h-auto"
+              onClick={() => {
+                if (typeof (window as any).fbq === 'function') {
+                  (window as any).fbq('track', 'Lead', {
+                    content_name: 'Renda Extra Desconto Access',
+                    email: gateEmail
+                  });
+                }
+              }}
             >
               {gateLoading ? 'Verificando...' : 'Acessar Aula Grátis'}
             </Button>
