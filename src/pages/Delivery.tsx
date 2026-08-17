@@ -175,7 +175,13 @@ const Delivery = () => {
       if (!data?.success) throw new Error(data?.error || "Erro ao gerar pagamento");
       const fbq = (window as any).fbq;
       if (fbq) fbq("track", "InitiateCheckout",
-        { value: preco, currency: "BRL", content_name: "Delivery MRO" },
+        { 
+          value: preco, 
+          currency: "BRL", 
+          content_name: "Delivery MRO",
+          email: form.email,
+          phone: form.whatsapp
+        },
         { eventID: data.nsu_order }
       );
       window.location.href = data.payment_link;
