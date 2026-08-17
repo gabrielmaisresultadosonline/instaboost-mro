@@ -389,7 +389,7 @@ export const ZapmroUsersTab: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-9"
-            placeholder="Buscar por usuário, nome ou email..."
+            placeholder="Pesquisar em todos os usuários (nome, email, usuário)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
