@@ -557,15 +557,25 @@ serve(async (req) => {
 
       const users = (usersData || []) as MroUserRow[];
       const userIds = users.map((user) => user.id);
+
+      // PostgREST envia o filtro `in` na URL: com milhares de IDs a requisição
+      // estoura o tamanho máximo e a nuvem responde "Bad Request". Por isso
+      // quebramos as consultas em blocos pequenos.
+      const chunk = <T,>(arr: T[], size: number): T[][] => {
+        const out: T[][] = [];
+        for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+        return out;
+      };
+
       let accounts: MroAccountRow[] = [];
-      if (userIds.length > 0) {
+      for (const ids of chunk(userIds, 100)) {
         const { data, error } = await supabase
           .from("mro_tool_accounts")
           .select("*")
-          .in("user_id", userIds)
+          .in("user_id", ids)
           .order("created_at", { ascending: true });
         if (error) return json({ success: false, error: error.message }, 500);
-        accounts = (data || []) as MroAccountRow[];
+        accounts = accounts.concat((data || []) as MroAccountRow[]);
       }
 
       // Busca somente os prints das contas exibidas neste bloco.
@@ -573,15 +583,16 @@ serve(async (req) => {
         String(account.instagram_username || "").replace(/^@/, "").trim(),
       ).filter(Boolean))];
       let profiles: ProfileScreenshotRow[] = [];
-      if (instagramNames.length > 0) {
+      for (const names of chunk(instagramNames, 100)) {
         const { data, error } = await supabase
           .from("squarecloud_user_profiles")
           .select("squarecloud_username, instagram_username, profile_screenshot_url, updated_at")
-          .in("instagram_username", instagramNames)
+          .in("instagram_username", names)
           .order("updated_at", { ascending: false });
         if (error) return json({ success: false, error: error.message }, 500);
-        profiles = (data || []) as ProfileScreenshotRow[];
+        profiles = profiles.concat((data || []) as ProfileScreenshotRow[]);
       }
+
 
       const shotKey = (user: string, ig: string) =>
         `${String(user || "").toLowerCase().trim()}::${String(ig || "").toLowerCase().replace("@", "").trim()}`;
