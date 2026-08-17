@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Briefcase, Crown, Sparkles, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { trackPageView } from '@/lib/facebookTracking';
+import { trackPageView, trackLead } from '@/lib/facebookTracking';
 import { supabase } from '@/integrations/supabase/client';
 import Hls from 'hls.js';
 
@@ -344,12 +344,7 @@ const RendaExtraDescontoPage = () => {
               disabled={gateLoading}
               className="w-full py-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(16,185,129,0.3)] h-auto"
               onClick={() => {
-                if (typeof (window as any).fbq === 'function') {
-                  (window as any).fbq('track', 'Lead', {
-                    content_name: 'Renda Extra Desconto Access',
-                    email: gateEmail
-                  });
-                }
+                trackLead('Renda Extra Desconto Access', { email: gateEmail });
               }}
             >
               {gateLoading ? 'Verificando...' : 'Acessar Aula Grátis'}

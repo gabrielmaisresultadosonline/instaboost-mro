@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Mail, Sparkles, ExternalLink } from "lucide-react";
+import { trackPurchase } from "@/lib/facebookTracking";
 
 const RendaSaoVivoObrigado = () => {
   const [params] = useSearchParams();
