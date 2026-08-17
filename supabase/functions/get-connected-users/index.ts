@@ -25,7 +25,8 @@ serve(async (req) => {
       .select('squarecloud_username, email, days_remaining, last_access, updated_at')
       .not('last_access', 'is', null)
       .order('last_access', { ascending: false })
-      .limit(limit);
+      .limit(limit)
+      .abortSignal(AbortSignal.timeout(10000)); // Set a 10s timeout for the query itself
 
     if (error) {
       console.error('[get-connected-users] Error:', error.message);
@@ -47,9 +48,13 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[get-connected-users] Error:', error);
+    const isTimeout = error instanceof Error && (error.name === 'AbortError' || error.message.includes('timeout'));
     return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: false, 
+        error: isTimeout ? 'Database request timed out' : (error instanceof Error ? error.message : 'Unknown error')
+      }),
+      { status: isTimeout ? 504 : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
