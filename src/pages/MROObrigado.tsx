@@ -38,7 +38,7 @@ const MROObrigado = () => {
     }
 
     // Track Lead event when user submits form to WhatsApp
-    trackLead('Thank You Page - WhatsApp Access Request');
+    trackLead('Thank You Page - WhatsApp Access Request', { email: email.trim() });
 
     const message = encodeURIComponent(
       `Olá! Acabei de comprar o MRO I.A + Automação!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
