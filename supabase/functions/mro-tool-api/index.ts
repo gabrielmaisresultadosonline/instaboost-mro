@@ -541,33 +541,47 @@ serve(async (req) => {
 
     // ---------------- ADMIN ----------------
     if (action === "list_users") {
-      const nowIso = new Date().toISOString();
-      await supabase.from("mro_tool_accounts").delete().eq("is_trial", true).lt("trial_expires_at", nowIso);
+      // A tela renderiza em blocos. Carregar milhares de usuários, contas e prints
+      // numa única resposta fazia a função atingir o timeout da nuvem.
+      const requestedLimit = Number(body.limit);
+      const requestedOffset = Number(body.offset);
+      const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, Math.floor(requestedLimit))) : 50;
+      const offset = Number.isFinite(requestedOffset) ? Math.max(0, Math.floor(requestedOffset)) : 0;
 
-      const { data: users, error: usersError } = await fetchAllRows<MroUserRow>(() =>
-        supabase
-          .from("mro_tool_users")
-          .select("*")
-          .order("created_at", { ascending: true }),
-      );
-      if (usersError) return json({ success: false, error: usersError }, 500);
+      const { data: usersData, error: usersError, count } = await supabase
+        .from("mro_tool_users")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (usersError) return json({ success: false, error: usersError.message }, 500);
 
-      const { data: accounts, error: accountsError } = await fetchAllRows<MroAccountRow>(() =>
-        supabase
+      const users = (usersData || []) as MroUserRow[];
+      const userIds = users.map((user) => user.id);
+      let accounts: MroAccountRow[] = [];
+      if (userIds.length > 0) {
+        const { data, error } = await supabase
           .from("mro_tool_accounts")
           .select("*")
-          .order("created_at", { ascending: true }),
-      );
-      if (accountsError) return json({ success: false, error: accountsError }, 500);
+          .in("user_id", userIds)
+          .order("created_at", { ascending: true });
+        if (error) return json({ success: false, error: error.message }, 500);
+        accounts = (data || []) as MroAccountRow[];
+      }
 
-      // Prints capturados na área /instagram (squarecloud_user_profiles)
-      const { data: profiles, error: profilesError } = await fetchAllRows<ProfileScreenshotRow>(() =>
-        supabase
+      // Busca somente os prints das contas exibidas neste bloco.
+      const instagramNames = [...new Set(accounts.map((account) =>
+        String(account.instagram_username || "").replace(/^@/, "").trim(),
+      ).filter(Boolean))];
+      let profiles: ProfileScreenshotRow[] = [];
+      if (instagramNames.length > 0) {
+        const { data, error } = await supabase
           .from("squarecloud_user_profiles")
           .select("squarecloud_username, instagram_username, profile_screenshot_url, updated_at")
-          .order("updated_at", { ascending: false }),
-      );
-      if (profilesError) return json({ success: false, error: profilesError }, 500);
+          .in("instagram_username", instagramNames)
+          .order("updated_at", { ascending: false });
+        if (error) return json({ success: false, error: error.message }, 500);
+        profiles = (data || []) as ProfileScreenshotRow[];
+      }
 
       const shotKey = (user: string, ig: string) =>
         `${String(user || "").toLowerCase().trim()}::${String(ig || "").toLowerCase().replace("@", "").trim()}`;
@@ -610,7 +624,7 @@ serve(async (req) => {
       });
 
 
-      return json({ success: true, users: result, trials_limit: MONTHLY_TRIALS });
+      return json({ success: true, users: result, total: count || 0, trials_limit: MONTHLY_TRIALS });
     }
 
     /**
