@@ -30,7 +30,8 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('user_sessions')
         .select('squarecloud_username, updated_at, days_remaining, profile_sessions')
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .limit(200);
 
       if (error) {
         logStep('Error fetching PRO users', { error: error.message });
@@ -91,6 +92,7 @@ serve(async (req) => {
         .from('user_sessions')
         .select('id, email')
         .eq('squarecloud_username', normalizedUsername)
+        .abortSignal(AbortSignal.timeout(5000))
         .maybeSingle();
 
       if (existingSession?.email && email) {
