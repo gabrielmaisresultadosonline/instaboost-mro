@@ -21,6 +21,12 @@ interface ConversionEvent {
     fbp?: string;
     em?: string; // hashed email
     ph?: string; // hashed phone
+    fn?: string; // hashed first name
+    ln?: string; // hashed last name
+    ct?: string; // hashed city
+    st?: string; // hashed state
+    zp?: string; // hashed zip
+    country?: string; // hashed country
   };
   custom_data?: {
     content_name?: string;
@@ -41,6 +47,12 @@ interface RequestBody {
   fbp?: string;
   email?: string;
   phone?: string;
+  first_name?: string;
+  last_name?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
   content_name?: string;
   content_category?: string;
   value?: number;
@@ -97,6 +109,14 @@ serve(async (req) => {
     if (body.phone) {
       userData.ph = await hashData(body.phone);
     }
+
+    // Add other user data fields if available
+    if (body.first_name) userData.fn = await hashData(body.first_name);
+    if (body.last_name) userData.ln = await hashData(body.last_name);
+    if (body.city) userData.ct = await hashData(body.city);
+    if (body.state) userData.st = await hashData(body.state);
+    if (body.zip) userData.zp = await hashData(body.zip);
+    if (body.country) userData.country = await hashData(body.country);
 
     // Build event payload
     const event: ConversionEvent = {
