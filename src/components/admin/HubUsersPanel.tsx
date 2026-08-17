@@ -205,12 +205,13 @@ export default function HubUsersPanel() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder="Buscar por nome, email ou usuário..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+          <Input
+            className="pl-9"
+            placeholder="Pesquisar em todos os clientes (nome, email, usuário)..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
       </div>
 
       <div className="space-y-3">

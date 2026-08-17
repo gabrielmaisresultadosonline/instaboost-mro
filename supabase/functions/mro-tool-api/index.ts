@@ -545,7 +545,7 @@ serve(async (req) => {
       // numa única resposta fazia a função atingir o timeout da nuvem.
       const requestedLimit = Number(body.limit);
       const requestedOffset = Number(body.offset);
-      const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, Math.floor(requestedLimit))) : 50;
+      const limit = Number.isFinite(requestedLimit) ? Math.min(2000, Math.max(1, Math.floor(requestedLimit))) : 50;
       const offset = Number.isFinite(requestedOffset) ? Math.max(0, Math.floor(requestedOffset)) : 0;
 
       const { data: usersData, error: usersError, count } = await supabase

@@ -106,13 +106,15 @@ const MroUsersPanel: React.FC = () => {
   const loadUsers = useCallback(async (append = false) => {
     setLoading(true);
     try {
+      // O usuário solicitou carregar TUDO, mas mostrar os primeiros 50.
+      // Para garantir que "não falte ninguém", aumentamos o limite para um valor alto (ex: 2000)
+      // ou carregamos em blocos até o fim.
       const offset = append ? users.length : 0;
-      const data = await call({ action: 'list_users', limit: 50, offset });
+      const data = await call({ action: 'list_users', limit: 2000, offset });
       const loaded = (data.users || []) as MroUser[];
       
       setUsers((current) => {
         if (!append) return loaded;
-        // Evita duplicatas se o usuário clicar rápido ou o estado estiver dessincronizado
         const existingIds = new Set(current.map(u => u.id));
         const newOnes = loaded.filter(u => !existingIds.has(u.id));
         return [...current, ...newOnes];
@@ -207,9 +209,14 @@ const MroUsersPanel: React.FC = () => {
     );
   }, [users, search]);
 
-  /** A API já entrega blocos de 50; renderiza apenas o que foi carregado. */
-  const visible = filtered;
-  const hiddenCount = Math.max(0, totalUsers - users.length);
+  /** Mostra os primeiros 50 por padrão, ou todos se houver busca ou clicar em ver todos. */
+  const [showAll, setShowAll] = useState(false);
+  const visible = useMemo(() => {
+    if (search.trim() || showAll) return filtered;
+    return filtered.slice(0, 50);
+  }, [filtered, search, showAll]);
+  
+  const hiddenCount = Math.max(0, filtered.length - visible.length);
 
   const handleSave = async () => {
     if (!form.username.trim()) {
@@ -349,7 +356,7 @@ const MroUsersPanel: React.FC = () => {
             className="pl-9" 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
-            placeholder="Buscar nos carregados (usuário, email ou @instagram)" 
+            placeholder="Pesquisar usuário, email ou @instagram em todos os registros..." 
           />
         </div>
         <Badge variant="secondary">{totalUsers} usuários</Badge>
@@ -604,14 +611,21 @@ const MroUsersPanel: React.FC = () => {
         {!loading && !filtered.length && (
           <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
         )}
-        {!loading && hiddenCount > 0 && (
+        {!loading && hiddenCount > 0 && !showAll && (
           <div className="flex justify-center pt-2">
-            <Button variant="outline" disabled={loading} onClick={() => void loadUsers(true)}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Carregar mais ({hiddenCount} restantes)
+            <Button variant="outline" onClick={() => setShowAll(true)}>
+              Ver todos ({filtered.length})
             </Button>
           </div>
         )}
+        {!loading && totalUsers > users.length && (
+          <div className="flex justify-center pt-2">
+            <Button variant="ghost" size="sm" onClick={() => void loadUsers(true)} className="text-xs">
+              Carregar mais do banco ({totalUsers - users.length} restantes)
+            </Button>
+          </div>
+        )}
+
       </div>
 
       {/* Print do perfil em tamanho grande */}
