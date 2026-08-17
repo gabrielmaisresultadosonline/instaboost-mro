@@ -197,13 +197,8 @@ const MroUsersPanel: React.FC = () => {
     );
   }, [users, search]);
 
-  /** Limite inicial de renderização para não travar a página com muitos usuários. */
-  const PAGE_SIZE = 50;
-  const [showAll, setShowAll] = useState(false);
-  const visible = useMemo(
-    () => (showAll || search.trim() ? filtered : filtered.slice(0, PAGE_SIZE)),
-    [filtered, showAll, search],
-  );
+  /** A API já entrega blocos de 50; renderiza apenas o que foi carregado. */
+  const visible = filtered;
   const hiddenCount = Math.max(0, totalUsers - users.length);
 
   const handleSave = async () => {
