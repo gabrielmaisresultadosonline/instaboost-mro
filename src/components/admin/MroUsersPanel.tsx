@@ -77,6 +77,7 @@ const LIFETIME = 999999;
 const MroUsersPanel: React.FC = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<MroUser[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
@@ -102,11 +103,14 @@ const MroUsersPanel: React.FC = () => {
     return data;
   }, []);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (append = false) => {
     setLoading(true);
     try {
-      const data = await call({ action: 'list_users' });
-      setUsers((data.users || []) as MroUser[]);
+      const offset = append ? users.length : 0;
+      const data = await call({ action: 'list_users', limit: 50, offset });
+      const loaded = (data.users || []) as MroUser[];
+      setUsers((current) => append ? [...current, ...loaded] : loaded);
+      setTotalUsers(Number(data.total) || loaded.length);
     } catch (err) {
       toast({
         title: 'Erro ao carregar usuários',
@@ -116,9 +120,9 @@ const MroUsersPanel: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [call, toast]);
+  }, [call, toast, users.length]);
 
-  useEffect(() => { loadUsers(); }, [loadUsers]);
+  useEffect(() => { void loadUsers(false); }, []);
 
   const [syncing, setSyncing] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
@@ -200,7 +204,7 @@ const MroUsersPanel: React.FC = () => {
     () => (showAll || search.trim() ? filtered : filtered.slice(0, PAGE_SIZE)),
     [filtered, showAll, search],
   );
-  const hiddenCount = filtered.length - visible.length;
+  const hiddenCount = Math.max(0, totalUsers - users.length);
 
   const handleSave = async () => {
     if (!form.username.trim()) {
@@ -338,7 +342,7 @@ const MroUsersPanel: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por usuário, email ou conta do Instagram" />
         </div>
-        <Badge variant="secondary">{filtered.length} usuários</Badge>
+        <Badge variant="secondary">{totalUsers} usuários</Badge>
         <Badge variant="outline" className="gap-1">
           <Instagram className="w-3 h-3" />
           {filtered.reduce((acc, u) => acc + u.accounts.length + u.trial_accounts.length, 0)} contas
@@ -353,7 +357,7 @@ const MroUsersPanel: React.FC = () => {
           Vincular emails e senhas do /instagram
         </Button>
 
-        <Button variant="outline" size="sm" onClick={loadUsers} disabled={loading} className="gap-2">
+        <Button variant="outline" size="sm" onClick={() => void loadUsers(false)} disabled={loading} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Atualizar
         </Button>
@@ -592,8 +596,9 @@ const MroUsersPanel: React.FC = () => {
         )}
         {!loading && hiddenCount > 0 && (
           <div className="flex justify-center pt-2">
-            <Button variant="outline" onClick={() => setShowAll(true)}>
-              Ver todos ({hiddenCount} restantes)
+            <Button variant="outline" disabled={loading} onClick={() => void loadUsers(true)}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Carregar mais ({hiddenCount} restantes)
             </Button>
           </div>
         )}
