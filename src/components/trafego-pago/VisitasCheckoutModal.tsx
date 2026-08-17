@@ -25,7 +25,9 @@ export default function VisitasCheckoutModal({ plan, amount, onClose, productSlu
           (window as any).fbq('track', 'Lead', {
             content_name: productSlug,
             value: totalAmount,
-            currency: 'BRL'
+            currency: 'BRL',
+            email: email,
+            phone: whatsapp
           });
         }
         

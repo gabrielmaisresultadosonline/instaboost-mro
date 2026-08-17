@@ -149,7 +149,11 @@ const PagamentoTesvc = () => {
         return;
       }
       if (!data?.success) { toast.error(data?.error || "Erro ao criar pagamento"); return; }
-      trackInitiateCheckout(`Tesvc ${BASE_PLAN.name}`, totalPrice);
+      trackInitiateCheckout(`Tesvc ${BASE_PLAN.name}`, totalPrice, {
+        email: email.toLowerCase().trim(),
+        phone: phone.replace(/\D/g, "").trim(),
+        first_name: name.split(' ')[0]
+      });
       window.location.href = data.payment_link;
     } catch (err) {
       console.error(err);

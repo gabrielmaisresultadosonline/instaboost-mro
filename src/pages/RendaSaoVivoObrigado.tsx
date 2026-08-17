@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Mail, Sparkles, ExternalLink } from "lucide-react";
+import { trackPurchase } from "@/lib/facebookTracking";
 
 const RendaSaoVivoObrigado = () => {
   const [params] = useSearchParams();
@@ -23,11 +24,7 @@ const RendaSaoVivoObrigado = () => {
         if (data?.paid) {
           setPaid(true);
           setEmail(data.email || "");
-          const fbq = (window as any).fbq;
-          if (fbq) fbq("track", "Purchase",
-            { value: 19, currency: "BRL", content_name: "Renda Ao Vivo" },
-            { eventID: nsu }
-          );
+          trackPurchase(19, "Renda Ao Vivo", data.email, nsu);
           return;
         }
       } catch { /* ignore */ }

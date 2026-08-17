@@ -115,7 +115,7 @@ export const trackFacebookEvent = async (
     const testEventCode = getTestEventCode();
 
     const payload: Record<string, any> = {
-      pixel_id: pixelId, // Pass the dynamic Pixel ID to the edge function
+      pixel_id: pixelId,
       event_name: eventName,
       event_id: eventId,
       event_source_url: typeof window !== 'undefined' ? window.location.href : '',
@@ -124,6 +124,8 @@ export const trackFacebookEvent = async (
       fbp: fbp || undefined,
       test_event_code: testEventCode || undefined,
       currency: currency,
+      email: customData?.email,
+      phone: customData?.phone,
       ...customData
     };
 
@@ -169,11 +171,14 @@ export const trackLead = (leadSource?: string, userData?: { email?: string; phon
 /**
  * Track InitiateCheckout - when user clicks buy button
  */
-export const trackInitiateCheckout = (productName?: string, value?: number) => {
+export const trackInitiateCheckout = (productName?: string, value?: number, userData?: { email?: string; phone?: string; first_name?: string }) => {
   trackFacebookEvent('InitiateCheckout', {
     content_name: productName || 'MRO Product',
     value: value,
-    currency: 'BRL'
+    currency: 'BRL',
+    email: userData?.email,
+    phone: userData?.phone,
+    ...userData
   });
 };
 
