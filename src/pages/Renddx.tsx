@@ -79,7 +79,7 @@ const Renddx = () => {
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase.from("desconto_alunos_settings").select("is_active").single();
-        if (!error && data) { setIsDiscountActive(data.is_active); if (!data.is_active) setShowDiscountEndedPopup(true); }
+        if (!error && data) { setIsDiscountActive(data.is_active); if (!data.is_active) setShowDiscountEndedPopup(false); }
       } catch (err) { console.error("Error fetching settings:", err); } finally { setIsSettingsLoading(false); }
     };
     fetchSettings();
