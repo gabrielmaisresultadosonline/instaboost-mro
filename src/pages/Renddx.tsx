@@ -346,23 +346,19 @@ const Renddx = () => {
         </div>
       )}
 
-      {showDiscountEndedPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
-          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2"><div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">⚠️ AVISO</div></div>
-            <div className="mt-4 mb-6">
-              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Desconto Encerrado!</h2>
-              <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">Aguarde um próximo desconto para alunos renda extra.</p>
-              <p className="text-red-400 font-bold text-sm sm:text-base">Consulte os administradores para mais informações.</p>
-            </div>
-            <Button onClick={() => window.location.href = '/instagram-nova'} className="w-full btn-pulse-yellow text-lg py-5 rounded-xl border border-gray-600">
-              Página Oficial <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            {isDiscountActive && <button onClick={() => setShowDiscountEndedPopup(false)} className="mt-4 text-gray-400 hover:text-white text-sm underline">Continuar na página mesmo assim</button>}
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+        <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2"><div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">⚠️ AVISO</div></div>
+          <div className="mt-4 mb-6">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ESSE DESCONTO ENCERROU!</h2>
+            <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">ENTRE EM CONTATO COM WHATSAPP</p>
           </div>
+          <Button onClick={() => window.location.href = 'https://maisresultadosonline.com.br/whatsapp'} className="w-full btn-pulse-yellow text-lg py-5 rounded-xl border border-gray-600">
+            Falar com Suporte <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
         </div>
-      )}
+      </div>
 
       <section className="relative pt-8 sm:pt-14 pb-12 sm:pb-20 px-3 sm:px-4 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-0">
