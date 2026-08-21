@@ -63,10 +63,10 @@ const Renddx = () => {
 
   const planConfig = {
     label: 'Renda Extra MRO',
-    amount: 47,
-    planType: 'monthly',
-    priceDisplay: 'R$47',
-    durationDisplay: '30 dias de acesso',
+    amount: 300,
+    planType: 'annual',
+    priceDisplay: 'R$300',
+    durationDisplay: '1 ano de acesso',
   };
 
   useEffect(() => {
@@ -79,7 +79,7 @@ const Renddx = () => {
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase.from("desconto_alunos_settings").select("is_active").single();
-        if (!error && data) { setIsDiscountActive(data.is_active); if (!data.is_active) setShowDiscountEndedPopup(true); }
+        if (!error && data) { setIsDiscountActive(data.is_active); if (!data.is_active) setShowDiscountEndedPopup(false); }
       } catch (err) { console.error("Error fetching settings:", err); } finally { setIsSettingsLoading(false); }
     };
     fetchSettings();
@@ -200,7 +200,7 @@ const Renddx = () => {
       if (checkError) { toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
-      trackInitiateCheckout(`MRO Renda Extra Mensal - R$47`, totalAmount);
+      trackInitiateCheckout(`MRO Renda Extra Anual - R$300`, totalAmount);
       window.location.href = checkData.payment_link;
     } catch (error) { toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
@@ -346,19 +346,21 @@ const Renddx = () => {
         </div>
       )}
 
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
-        <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2"><div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">⚠️ AVISO</div></div>
-          <div className="mt-4 mb-6">
-            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ESSE DESCONTO ENCERROU!</h2>
-            <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">ENTRE EM CONTATO COM WHATSAPP</p>
+      {showDiscountEndedPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300 shadow-[0_0_50px_rgba(239,68,68,0.3)]">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2"><div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">⚠️ AVISO</div></div>
+            <div className="mt-4 mb-6">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">ESSE DESCONTO ENCERROU!</h2>
+              <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-2">ENTRE EM CONTATO COM WHATSAPP</p>
+            </div>
+            <Button onClick={() => window.location.href = 'https://maisresultadosonline.com.br/whatsapp'} className="w-full btn-pulse-yellow text-lg py-5 rounded-xl border border-gray-600">
+              Falar com Suporte <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
           </div>
-          <Button onClick={() => window.location.href = 'https://maisresultadosonline.com.br/whatsapp'} className="w-full btn-pulse-yellow text-lg py-5 rounded-xl border border-gray-600">
-            Falar com Suporte <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
         </div>
-      </div>
+      )}
 
       <section className="relative pt-8 sm:pt-14 pb-12 sm:pb-20 px-3 sm:px-4 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-0">
@@ -387,8 +389,8 @@ const Renddx = () => {
                   <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">ACESSE A FERRAMENTA E APRENDA COMO UTILIZÁ-LA</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
-                    <span className="text-6xl font-black text-green-500">47</span>
-                    <span className="text-zinc-400 text-sm font-bold">/mês</span>
+                    <span className="text-6xl font-black text-green-500">300</span>
+                    <span className="text-zinc-400 text-sm font-bold">/ano</span>
                   </div>
                 </div>
                 
@@ -427,7 +429,7 @@ const Renddx = () => {
         <div className="max-w-5xl mx-auto text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
             <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 30 dias</span>
+            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 1 ano</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
           <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
@@ -464,15 +466,15 @@ const Renddx = () => {
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
           <h3 className="text-2xl font-bold mb-4">ACESSO COMPLETO AO MRO</h3>
-          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Mensal</div>
-          <div className="text-5xl font-black mb-2 text-green-400">R$47</div>
-          <p className="text-zinc-400 mb-6">Acesso durante 30 dias</p>
+          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Anual</div>
+          <div className="text-5xl font-black mb-2 text-green-400">R$300</div>
+          <p className="text-zinc-400 mb-6">Acesso durante 1 ano</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Ferramenta completa</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo de utilização</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Materiais de treinamento</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 4 contas fixas + 5 testes</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (1 ano)</li>
           </ul>
           <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO ACESSAR O MRO</Button>
         </div>
