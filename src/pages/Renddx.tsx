@@ -389,8 +389,8 @@ const Renddx = () => {
                   <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">ACESSE A FERRAMENTA E APRENDA COMO UTILIZÁ-LA</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
-                    <span className="text-6xl font-black text-green-500">47</span>
-                    <span className="text-zinc-400 text-sm font-bold">/mês</span>
+                    <span className="text-6xl font-black text-green-500">300</span>
+                    <span className="text-zinc-400 text-sm font-bold">/ano</span>
                   </div>
                 </div>
                 
