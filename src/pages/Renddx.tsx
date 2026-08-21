@@ -200,7 +200,7 @@ const Renddx = () => {
       if (checkError) { toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
-      trackInitiateCheckout(`MRO Renda Extra Mensal - R$47`, totalAmount);
+      trackInitiateCheckout(`MRO Renda Extra Anual - R$300`, totalAmount);
       window.location.href = checkData.payment_link;
     } catch (error) { toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
