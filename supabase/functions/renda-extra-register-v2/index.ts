@@ -169,7 +169,7 @@ serve(async (req) => {
 <div style="text-align:center;margin:30px 0;">
 <p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;">Participe agora:</p>
 <a href="${groupLink}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">
-📲 ENTRAR NO GRUPO DO WHATSAPP
+📲 PARTICIPE DO GRUPO DO WHATSAPP
 </a>
 </div>
 

@@ -140,7 +140,7 @@ Aproveitar Oportunidade
 <div style="background:#e6fffa;border:1px solid #38b2ac;padding:20px;margin:30px 0;border-radius:12px;text-align:center;">
 <p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#234e52;font-family:Arial,sans-serif;">🚀 Participe do nosso grupo e fique por dentro de tudo!</p>
 <a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:15px 30px;border-radius:30px;font-size:16px;font-weight:bold;font-family:Arial,sans-serif;">
-ENTRAR NO GRUPO
+📲 PARTICIPE DO GRUPO DO WHATSAPP
 </a>
 </div>
 
