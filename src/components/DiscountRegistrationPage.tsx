@@ -134,17 +134,29 @@ export const DiscountRegistrationPage = () => {
                     <p className="text-sm text-zinc-200">
                       Enviamos um email para{" "}
                       <strong className="text-yellow-300 break-all">{email}</strong> com o link
-                      exclusivo de desconto.
+                      exclusivo de desconto e acesso ao grupo.
                     </p>
                     <p className="text-xs text-zinc-400">⏱️ O link é válido por 48 horas.</p>
                     <a
                       href="https://maisresultadosonline.com.br/descontoalunosrendaextrasss"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 hover:opacity-95 text-black font-black h-13 py-3.5 rounded-xl animate-pulse"
+                      className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 hover:opacity-95 text-black font-black h-13 py-3.5 rounded-xl animate-pulse mb-3"
                     >
                       Acessar Desconto Agora <ArrowRight className="w-5 h-5" />
                     </a>
+
+                    <div className="pt-2 border-t border-zinc-800">
+                      <p className="text-xs text-zinc-400 mb-2">🚀 Participe do grupo e fique por dentro de tudo!</p>
+                      <a
+                        href="https://maisresultadosonline.com.br/grupo-rendaextra"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-400 text-black font-black py-3 rounded-xl transition-all"
+                      >
+                        📲 PARTICIPE DO GRUPO DO WHATSAPP
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={submit} className="space-y-5">
