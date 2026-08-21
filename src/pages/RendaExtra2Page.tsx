@@ -215,6 +215,24 @@ const RendaExtraPage = () => {
 
   const progressPct = duration > 0 ? Math.max(0, Math.min(100, (1 - currentTime / duration) * 100)) : 100;
 
+  const [whatsappGroupLink, setWhatsappGroupLink] = useState<string>("");
+
+  useEffect(() => {
+    const fetchGroupLink = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("renda-extra-v2-admin", {
+          body: { action: "getGroupLink" }
+        });
+        if (data?.whatsapp_group_link) {
+          setWhatsappGroupLink(data.whatsapp_group_link);
+        }
+      } catch (err) {
+        console.error("Error fetching group link:", err);
+      }
+    };
+    fetchGroupLink();
+  }, []);
+
 
 
 
@@ -298,6 +316,19 @@ const RendaExtraPage = () => {
           <p className="text-white/40 text-sm md:text-lg leading-relaxed font-medium max-w-2xl mx-auto">
             Ainda não? Veja então esta live por completo antes de acessar sua área de prestação de serviços.
           </p>
+          
+          {whatsappGroupLink && (
+            <div className="mt-4 animate-fade-in">
+              <a 
+                href={whatsappGroupLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 hover:bg-green-400 text-black font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]"
+              >
+                Participe do grupo e fique por dentro de tudo!
+              </a>
+            </div>
+          )}
         </div>
 
 

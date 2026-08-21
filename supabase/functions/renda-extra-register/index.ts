@@ -63,6 +63,15 @@ serve(async (req) => {
     const data = await req.json();
     log("Registration request received", { email: data.email, nome: data.nome_completo });
 
+    // Fetch dynamic WhatsApp group link
+    const { data: settings } = await supabase
+      .from("renda_extra_v2_settings")
+      .select("whatsapp_group_link")
+      .limit(1)
+      .single();
+    
+    const groupLink = settings?.whatsapp_group_link || "https://maisresultadosonline.com.br/grupo-rendaextra";
+
     // Insert lead into database
     const { data: lead, error: insertError } = await supabase
       .from("renda_extra_leads")
@@ -128,6 +137,13 @@ Aproveitar Oportunidade
 </a>
 </div>
 
+<div style="background:#e6fffa;border:1px solid #38b2ac;padding:20px;margin:30px 0;border-radius:12px;text-align:center;">
+<p style="margin:0 0 15px 0;font-size:16px;font-weight:bold;color:#234e52;font-family:Arial,sans-serif;">🚀 Participe do nosso grupo e fique por dentro de tudo!</p>
+<a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:15px 30px;border-radius:30px;font-size:16px;font-weight:bold;font-family:Arial,sans-serif;">
+ENTRAR NO GRUPO
+</a>
+</div>
+
 <p style="margin:30px 0 0 0;font-size:14px;color:#718096;text-align:center;font-family:Arial,sans-serif;">
 Clique no botão acima para acessar os detalhes agora mesmo.
 </p>
@@ -178,6 +194,7 @@ Clique no botão acima para acessar os detalhes agora mesmo.
         success: true,
         leadId: lead.id,
         redirectUrl: RENDDX_URL,
+        groupLink,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
