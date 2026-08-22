@@ -116,6 +116,60 @@ const RendaExtraLeadAdmin = () => {
     }
   };
 
+  const handleSendRemarketing = async () => {
+    if (!remarketingFilters.groupLink) {
+      toast({ title: "Erro", description: "Informe o link do grupo", variant: "destructive" });
+      return;
+    }
+
+    if (!confirm(`Deseja enviar o remarketing agora para os leads filtrados?`)) return;
+
+    setRemarketingLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaextralead-admin", {
+        body: { 
+          action: "sendRemarketing", 
+          adminToken,
+          remarketing: {
+            ...remarketingFilters,
+            emailList: remarketingFilters.mode === "list" 
+              ? remarketingFilters.emailList.split("\n").map(e => e.trim()).filter(e => e && e.includes("@"))
+              : []
+          }
+        }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success) throw new Error(response.data.error || "Erro ao enviar remarketing");
+
+      toast({ 
+        title: "Remarketing enviado!", 
+        description: response.data.message || `Enviado com sucesso para ${response.data.count} leads.` 
+      });
+      loadData(adminToken);
+    } catch (error: any) {
+      toast({ title: "Erro no remarketing", description: error.message, variant: "destructive" });
+    } finally {
+      setRemarketingLoading(false);
+    }
+  };
+
+  const getFilteredRemarketingLeadsCount = () => {
+    if (remarketingFilters.mode === "list") {
+      return remarketingFilters.emailList.split("\n").map(e => e.trim()).filter(e => e && e.includes("@")).length;
+    }
+
+    const limitDate = new Date();
+    limitDate.setDate(limitDate.getDate() - remarketingFilters.days);
+    
+    return leads.filter(lead => {
+      const createdAt = new Date(lead.created_at);
+      const matchesDate = createdAt.getTime() < limitDate.getTime();
+      const matchesDevice = remarketingFilters.computerTypes.includes(lead.tipo_computador);
+      return matchesDate && matchesDevice;
+    }).length;
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("renda_extra_lead_admin_token");
     setAdminToken("");
