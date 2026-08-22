@@ -1045,7 +1045,7 @@ const MktCCAdmin = () => {
                                     {isVideoUrl(url)
                                       ? (post.poster_url
                                           ? <img src={post.poster_url} alt="Miniatura do vídeo" className="w-full h-full object-cover" />
-                                          : <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />)
+                                          : <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" autoPlay loop />)
                                       : <img src={url} alt="Mídia" className="w-full h-full object-cover" />}
                                   </div>
                                   <button
