@@ -65,7 +65,7 @@ serve(async (req) => {
 
     // Fetch dynamic WhatsApp group link
     const { data: settings } = await supabase
-      .from("renda_extra_v2_settings")
+      .from("renda_extra_lead_settings")
       .select("whatsapp_group_link")
       .limit(1)
       .single();
