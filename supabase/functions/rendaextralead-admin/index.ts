@@ -211,17 +211,88 @@ const handler = async (req: Request): Promise<Response> => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (action === "resetAnalytics") {
+    if (action === "sendRemarketing") {
       const parsed = ProtectedActionSchema.safeParse(body);
-      if (!parsed.success) {
-        return new Response(JSON.stringify({ success: false, error: "Ação inválida" }),
+      if (!parsed.success || !parsed.data.remarketing) {
+        return new Response(JSON.stringify({ success: false, error: "Dados de remarketing inválidos" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const { error } = await supabase.from("renda_extra_lead_analytics").delete().not("id", "is", null);
-      if (error) throw error;
-      return new Response(JSON.stringify({ success: true, message: "Analytics zerado com sucesso" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+      const { days, computerTypes, subject, groupLink } = parsed.data.remarketing;
+      const dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - days);
+
+      let query = supabase.from("renda_extra_lead_leads")
+        .select("nome_completo, email, created_at, tipo_computador")
+        .lte("created_at", dateLimit.toISOString());
+      
+      if (computerTypes.length > 0) {
+        query = query.in("tipo_computador", computerTypes);
+      }
+
+      const { data: leads, error: fetchError } = await query;
+      if (fetchError) throw fetchError;
+
+      if (!leads || leads.length === 0) {
+        return new Response(JSON.stringify({ success: true, count: 0, message: "Nenhum lead encontrado com estes filtros" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+      if (!smtpPassword) throw new Error("SMTP_PASSWORD not set");
+
+      const smtpClient = new SMTPClient({
+        connection: {
+          hostname: "smtp.hostinger.com",
+          port: 465,
+          tls: true,
+          auth: { username: "suporte@maisresultadosonline.com.br", password: smtpPassword },
+        },
+      });
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const lead of leads) {
+        try {
+          const html = buildRemarketingEmail(lead.nome_completo, groupLink);
+          await smtpClient.send({
+            from: "MRO <suporte@maisresultadosonline.com.br>",
+            to: lead.email,
+            subject: sanitizeEmailSubject(subject),
+            content: htmlToPlainText(html),
+            html,
+          });
+          
+          await supabase.from("renda_extra_lead_email_logs").insert({
+            email_to: lead.email,
+            email_type: "remarketing",
+            subject: sanitizeEmailSubject(subject),
+            status: "sent"
+          });
+          successCount++;
+        } catch (e) {
+          console.error(`Error sending remarketing to ${lead.email}:`, e);
+          await supabase.from("renda_extra_lead_email_logs").insert({
+            email_to: lead.email,
+            email_type: "remarketing",
+            subject: sanitizeEmailSubject(subject),
+            status: "error",
+            error_message: String(e)
+          });
+          errorCount++;
+        }
+      }
+
+      await smtpClient.close();
+      return new Response(JSON.stringify({ 
+        success: true, 
+        count: successCount, 
+        errors: errorCount,
+        message: `Remarketing enviado com sucesso para ${successCount} leads.` 
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
     return new Response(JSON.stringify({ success: false, error: "Ação inválida" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
