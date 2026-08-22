@@ -24,7 +24,7 @@ interface PhoneInstagramPreviewProps {
   className?: string;
 }
 
-const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url || "");
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
 
 /**
  * Mockup de celular simulando o perfil do Instagram, usado tanto na prévia do

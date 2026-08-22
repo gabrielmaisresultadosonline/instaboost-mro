@@ -45,7 +45,7 @@ export interface ApprovalsBoardProps {
   onOpenCycle: (cycleId: string) => void;
 }
 
-const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url || "");
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
 
 const fmtDate = (value: string | null) => {
   if (!value) return "";
