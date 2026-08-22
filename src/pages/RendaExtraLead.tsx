@@ -271,10 +271,10 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
             <div className="relative group inline-block w-full">
               <div className="absolute inset-0 bg-green-600 rounded-full translate-y-2 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
               <a
-                href="https://maisresultadosonline.com.br/renddx"
+                href={whatsappGroupInvite || groupLink || "https://maisresultadosonline.com.br/whatsapp"}
                 className="relative inline-flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-400 text-white font-black text-base sm:text-lg px-10 py-5 rounded-full uppercase tracking-[0.15em] transition-all duration-300 hover:scale-[1.03]"
               >
-                Aproveitar Oportunidade!
+                PARTICIPE DO GRUPO GRÁTIS AGORA!
                 <ArrowRight className="w-5 h-5" />
               </a>
             </div>
