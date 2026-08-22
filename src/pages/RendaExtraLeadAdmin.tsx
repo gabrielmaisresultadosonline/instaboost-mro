@@ -910,6 +910,76 @@ const RendaExtraLeadAdmin = () => {
                     )}
                   </Button>
                 </div>
+
+                <div className="pt-6 border-t border-gray-700">
+                  <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    Histórico de Envios
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-gray-700 hover:bg-transparent">
+                          <TableHead className="text-gray-300">Data/Hora</TableHead>
+                          <TableHead className="text-gray-300">Total Enviado</TableHead>
+                          <TableHead className="text-gray-300">Sucessos</TableHead>
+                          <TableHead className="text-gray-300">Erros</TableHead>
+                          <TableHead className="text-gray-300">Assunto</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {emailLogs.filter(log => log.email_type === "remarketing").length > 0 ? (
+                          Object.values(
+                            emailLogs
+                              .filter(log => log.email_type === "remarketing")
+                              .reduce((acc: any, log) => {
+                                // Agrupar por minuto para consolidar disparos em massa
+                                const date = new Date(log.created_at);
+                                const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
+                                if (!acc[key]) {
+                                  acc[key] = {
+                                    date: log.created_at,
+                                    total: 0,
+                                    success: 0,
+                                    error: 0,
+                                    subject: log.subject
+                                  };
+                                }
+                                acc[key].total++;
+                                if (log.status === "sent") acc[key].success++;
+                                else acc[key].error++;
+                                return acc;
+                              }, {})
+                          )
+                          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                          .map((batch: any, i) => (
+                            <TableRow key={i} className="border-gray-700 hover:bg-gray-800/30">
+                              <TableCell className="text-gray-300 whitespace-nowrap">
+                                {format(new Date(batch.date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                              </TableCell>
+                              <TableCell className="text-white font-bold">{batch.total}</TableCell>
+                              <TableCell className="text-green-400">{batch.success}</TableCell>
+                              <TableCell className="text-red-400">{batch.error}</TableCell>
+                              <TableCell className="text-gray-400 truncate max-w-[200px]">{batch.subject}</TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center text-gray-500 py-4">
+                              Nenhum histórico de remarketing encontrado.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="mt-4 p-3 bg-gray-900/40 rounded border border-gray-700 flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Total acumulado de envios:</span>
+                    <span className="text-blue-400 font-bold">
+                      {emailLogs.filter(log => log.email_type === "remarketing").length} e-mails
+                    </span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
