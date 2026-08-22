@@ -34,6 +34,8 @@ const ProtectedActionSchema = z.object({
   action: z.enum(["getData", "resetAnalytics", "sendRemarketing"]),
   adminToken: z.string().optional(),
   remarketing: z.object({
+    mode: z.enum(["filter", "list"]).optional().default("filter"),
+    emailList: z.array(z.string().email()).optional(),
     days: z.number().min(0).max(365),
     computerTypes: z.array(z.string()),
     subject: z.string().min(5),
@@ -218,23 +220,36 @@ const handler = async (req: Request): Promise<Response> => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const { days, computerTypes, subject, groupLink } = parsed.data.remarketing;
-      const dateLimit = new Date();
-      dateLimit.setDate(dateLimit.getDate() - days);
-
-      let query = supabase.from("renda_extra_lead_leads")
-        .select("nome_completo, email, created_at, tipo_computador")
-        .lte("created_at", dateLimit.toISOString());
+      const { mode, emailList, days, computerTypes, subject, groupLink } = parsed.data.remarketing;
       
-      if (computerTypes.length > 0) {
-        query = query.in("tipo_computador", computerTypes);
+      let leadsToEmail: Array<{ nome_completo: string; email: string }> = [];
+
+      if (mode === "list" && emailList && emailList.length > 0) {
+        // Enviar para lista manual (usamos o nome "Usuário" já que não temos o nome real)
+        leadsToEmail = emailList.map(email => ({
+          nome_completo: "Usuário",
+          email: email
+        }));
+      } else {
+        // Enviar baseado nos filtros (leads existentes)
+        const dateLimit = new Date();
+        dateLimit.setDate(dateLimit.getDate() - days);
+
+        let query = supabase.from("renda_extra_lead_leads")
+          .select("nome_completo, email, created_at, tipo_computador")
+          .lte("created_at", dateLimit.toISOString());
+        
+        if (computerTypes.length > 0) {
+          query = query.in("tipo_computador", computerTypes);
+        }
+
+        const { data: leads, error: fetchError } = await query;
+        if (fetchError) throw fetchError;
+        leadsToEmail = leads || [];
       }
 
-      const { data: leads, error: fetchError } = await query;
-      if (fetchError) throw fetchError;
-
-      if (!leads || leads.length === 0) {
-        return new Response(JSON.stringify({ success: true, count: 0, message: "Nenhum lead encontrado com estes filtros" }),
+      if (leadsToEmail.length === 0) {
+        return new Response(JSON.stringify({ success: true, count: 0, message: "Nenhum lead encontrado com estes critérios" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
@@ -253,7 +268,7 @@ const handler = async (req: Request): Promise<Response> => {
       let successCount = 0;
       let errorCount = 0;
 
-      for (const lead of leads) {
+      for (const lead of leadsToEmail) {
         try {
           const html = buildRemarketingEmail(lead.nome_completo, groupLink);
           await smtpClient.send({

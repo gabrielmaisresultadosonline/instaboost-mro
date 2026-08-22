@@ -69,6 +69,8 @@ const RendaExtraAdmin = () => {
   const [showAllLeads, setShowAllLeads] = useState(false);
   const [remarketingLoading, setRemarketingLoading] = useState(false);
   const [remarketingFilters, setRemarketingFilters] = useState({
+    mode: "filter" as "filter" | "list",
+    emailList: "",
     days: 4,
     computerTypes: ["Notebook", "Computador", "MacBook"],
     subject: "🎁 Você recebeu um convite especial!",
@@ -122,7 +124,12 @@ const RendaExtraAdmin = () => {
         body: { 
           action: "sendRemarketing", 
           adminToken,
-          remarketing: remarketingFilters
+          remarketing: {
+            ...remarketingFilters,
+            emailList: remarketingFilters.mode === "list" 
+              ? remarketingFilters.emailList.split("\n").map(e => e.trim()).filter(e => e && e.includes("@"))
+              : []
+          }
         }
       });
 
@@ -142,6 +149,10 @@ const RendaExtraAdmin = () => {
   };
 
   const getFilteredRemarketingLeadsCount = () => {
+    if (remarketingFilters.mode === "list") {
+      return remarketingFilters.emailList.split("\n").map(e => e.trim()).filter(e => e && e.includes("@")).length;
+    }
+
     const limitDate = subDays(new Date(), remarketingFilters.days);
     return leads.filter(lead => {
       const createdAt = new Date(lead.created_at);
@@ -625,44 +636,76 @@ const RendaExtraAdmin = () => {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div>
-                      <Label className="text-gray-300">Dias desde o cadastro (mínimo)</Label>
-                      <Input
-                        type="number"
-                        value={remarketingFilters.days}
-                        onChange={(e) => setRemarketingFilters({...remarketingFilters, days: parseInt(e.target.value) || 0})}
-                        className="mt-2 bg-gray-700 border-gray-600 text-white"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Ex: 4 dias (apenas leads cadastrados há 4 dias ou mais)</p>
+                    <div className="flex gap-2 p-1 bg-gray-700 rounded-lg w-fit">
+                      <Button 
+                        size="sm"
+                        variant={remarketingFilters.mode === "filter" ? "default" : "ghost"}
+                        onClick={() => setRemarketingFilters({...remarketingFilters, mode: "filter"})}
+                      >
+                        Filtros de Leads
+                      </Button>
+                      <Button 
+                        size="sm"
+                        variant={remarketingFilters.mode === "list" ? "default" : "ghost"}
+                        onClick={() => setRemarketingFilters({...remarketingFilters, mode: "list"})}
+                      >
+                        Lista de Emails
+                      </Button>
                     </div>
 
-                    <div>
-                      <Label className="text-gray-300 mb-2 block">Tipos de Dispositivo</Label>
-                      <div className="space-y-2">
-                        {["Notebook", "Computador", "MacBook", "Celular"].map((type) => (
-                          <div key={type} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`type-${type}`} 
-                              checked={remarketingFilters.computerTypes.includes(type)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setRemarketingFilters({
-                                    ...remarketingFilters, 
-                                    computerTypes: [...remarketingFilters.computerTypes, type]
-                                  });
-                                } else {
-                                  setRemarketingFilters({
-                                    ...remarketingFilters, 
-                                    computerTypes: remarketingFilters.computerTypes.filter(t => t !== type)
-                                  });
-                                }
-                              }}
-                            />
-                            <Label htmlFor={`type-${type}`} className="text-gray-300 cursor-pointer">{type}</Label>
+                    {remarketingFilters.mode === "filter" ? (
+                      <>
+                        <div>
+                          <Label className="text-gray-300">Dias desde o cadastro (mínimo)</Label>
+                          <Input
+                            type="number"
+                            value={remarketingFilters.days}
+                            onChange={(e) => setRemarketingFilters({...remarketingFilters, days: parseInt(e.target.value) || 0})}
+                            className="mt-2 bg-gray-700 border-gray-600 text-white"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Ex: 4 dias (apenas leads cadastrados há 4 dias ou mais)</p>
+                        </div>
+
+                        <div>
+                          <Label className="text-gray-300 mb-2 block">Tipos de Dispositivo</Label>
+                          <div className="space-y-2">
+                            {["Notebook", "Computador", "MacBook", "Celular"].map((type) => (
+                              <div key={type} className="flex items-center space-x-2">
+                                <Checkbox 
+                                  id={`type-${type}`} 
+                                  checked={remarketingFilters.computerTypes.includes(type)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setRemarketingFilters({
+                                        ...remarketingFilters, 
+                                        computerTypes: [...remarketingFilters.computerTypes, type]
+                                      });
+                                    } else {
+                                      setRemarketingFilters({
+                                        ...remarketingFilters, 
+                                        computerTypes: remarketingFilters.computerTypes.filter(t => t !== type)
+                                      });
+                                    }
+                                  }}
+                                />
+                                <Label htmlFor={`type-${type}`} className="text-gray-300 cursor-pointer">{type}</Label>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <Label className="text-gray-300">Lista de Emails (um por linha)</Label>
+                        <textarea
+                          value={remarketingFilters.emailList}
+                          onChange={(e) => setRemarketingFilters({...remarketingFilters, emailList: e.target.value})}
+                          className="w-full h-32 mt-2 bg-gray-700 border-gray-600 text-white p-3 rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder="email1@exemplo.com&#10;email2@exemplo.com"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Insira os e-mails manualmente para os quais deseja reenviar o convite.</p>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
