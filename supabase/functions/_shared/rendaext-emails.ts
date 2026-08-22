@@ -24,6 +24,25 @@ export const buildRendaExtEmail = (name: string) => `<!DOCTYPE html><html><body 
 <tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
 </table></body></html>`;
 
+export const buildRemarketingEmail = (name: string, groupLink: string) => `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
+<tr><td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
+<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;">MRO</div>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🚀 Convite Especial</h1>
+</td></tr>
+<tr><td style="padding:30px;color:#333;">
+<p style="font-size:16px;">Olá <strong>${name}</strong>!</p>
+<p style="font-size:16px;">Vimos que você se interessou pelo nosso método, mas ainda não entrou no nosso grupo exclusivo de alunos.</p>
+<p style="font-size:16px;">Lá enviamos dicas diárias, atualizações e estratégias que não compartilhamos em nenhum outro lugar.</p>
+<div style="background:#f8f9fa;border-left:4px solid #FFD700;padding:20px;margin:20px 0;border-radius:8px;">
+<p style="margin:0 0 10px 0;font-weight:bold;font-size:18px;">👉 Entre no grupo agora:</p>
+<a href="${groupLink}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">ENTRAR NO GRUPO VIP</a>
+</div>
+<p style="font-size:14px;color:#666;margin-top:30px;">Nos vemos lá!</p>
+</td></tr>
+<tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
+</table></body></html>`;
+
 export const sendRendaExtEmail = async (to: string, name: string): Promise<boolean> => {
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
