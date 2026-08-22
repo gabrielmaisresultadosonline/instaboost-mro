@@ -71,8 +71,8 @@ const MAX_VIDEO_BYTES = 120 * 1024 * 1024; // vídeos até 120MB
 const MAX_IMAGE_BYTES = 45 * 1024 * 1024;
 const DIRECT_UPLOAD_THRESHOLD = 4 * 1024 * 1024; // acima disso vai direto ao storage
 
-const isVideoFile = (file: File) => file.type.startsWith("video") || /\.(mp4|webm|mov)$/i.test(file.name);
-const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url || "");
+const isVideoFile = (file: File) => file.type.startsWith("video") || /\.(mp4|webm|mov|m4v)$/i.test(file.name);
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
 
 const MktCCAdmin = () => {
   const [creds, setCreds] = useState({ email: "", password: "" });
