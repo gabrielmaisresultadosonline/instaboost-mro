@@ -2,18 +2,20 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, subDays, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
   CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle,
-  ToggleLeft, ToggleRight
+  ToggleLeft, ToggleRight, Send
 } from "lucide-react";
+
 // WppBotPanel removed
 
 interface Lead {
@@ -65,6 +67,14 @@ const RendaExtraAdmin = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllLeads, setShowAllLeads] = useState(false);
+  const [remarketingLoading, setRemarketingLoading] = useState(false);
+  const [remarketingFilters, setRemarketingFilters] = useState({
+    days: 4,
+    computerTypes: ["Notebook", "Computador", "MacBook"],
+    subject: "🎁 Você recebeu um convite especial!",
+    groupLink: ""
+  });
+
 
   useEffect(() => {
     const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
@@ -97,6 +107,50 @@ const RendaExtraAdmin = () => {
       setLoginLoading(false);
     }
   };
+
+  const handleSendRemarketing = async () => {
+    if (!remarketingFilters.groupLink) {
+      toast({ title: "Erro", description: "Informe o link do grupo", variant: "destructive" });
+      return;
+    }
+
+    if (!confirm(`Deseja enviar o remarketing agora para os leads filtrados?`)) return;
+
+    setRemarketingLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaextralead-admin", {
+        body: { 
+          action: "sendRemarketing", 
+          adminToken,
+          remarketing: remarketingFilters
+        }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success) throw new Error(response.data.error || "Erro ao enviar remarketing");
+
+      toast({ 
+        title: "Remarketing enviado!", 
+        description: response.data.message || `Enviado com sucesso para ${response.data.count} leads.` 
+      });
+      loadData(adminToken);
+    } catch (error: any) {
+      toast({ title: "Erro no remarketing", description: error.message, variant: "destructive" });
+    } finally {
+      setRemarketingLoading(false);
+    }
+  };
+
+  const getFilteredRemarketingLeadsCount = () => {
+    const limitDate = subDays(new Date(), remarketingFilters.days);
+    return leads.filter(lead => {
+      const createdAt = new Date(lead.created_at);
+      const matchesDate = isBefore(createdAt, limitDate);
+      const matchesDevice = remarketingFilters.computerTypes.includes(lead.tipo_computador);
+      return matchesDate && matchesDevice;
+    }).length;
+  };
+
 
   const handleLogout = () => {
     localStorage.removeItem("renda_extra_v2_admin_token");
@@ -375,10 +429,15 @@ const RendaExtraAdmin = () => {
               <Mail className="w-4 h-4 mr-2" />
               Log de Emails
             </TabsTrigger>
+            <TabsTrigger value="remarketing" className="data-[state=active]:bg-gray-700">
+              <Send className="w-4 h-4 mr-2" />
+              Remarketing
+            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
             </TabsTrigger>
+
           </TabsList>
 
           {/* Leads Tab */}
@@ -552,7 +611,114 @@ const RendaExtraAdmin = () => {
 
 
           {/* Settings Tab */}
+          <TabsContent value="remarketing">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Send className="w-5 h-5 text-blue-400" />
+                  Sistema de Remarketing
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Reengaje leads antigos com novos convites para o grupo de WhatsApp.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-gray-300">Dias desde o cadastro (mínimo)</Label>
+                      <Input
+                        type="number"
+                        value={remarketingFilters.days}
+                        onChange={(e) => setRemarketingFilters({...remarketingFilters, days: parseInt(e.target.value) || 0})}
+                        className="mt-2 bg-gray-700 border-gray-600 text-white"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Ex: 4 dias (apenas leads cadastrados há 4 dias ou mais)</p>
+                    </div>
+
+                    <div>
+                      <Label className="text-gray-300 mb-2 block">Tipos de Dispositivo</Label>
+                      <div className="space-y-2">
+                        {["Notebook", "Computador", "MacBook", "Celular"].map((type) => (
+                          <div key={type} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`type-${type}`} 
+                              checked={remarketingFilters.computerTypes.includes(type)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setRemarketingFilters({
+                                    ...remarketingFilters, 
+                                    computerTypes: [...remarketingFilters.computerTypes, type]
+                                  });
+                                } else {
+                                  setRemarketingFilters({
+                                    ...remarketingFilters, 
+                                    computerTypes: remarketingFilters.computerTypes.filter(t => t !== type)
+                                  });
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`type-${type}`} className="text-gray-300 cursor-pointer">{type}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-gray-300">Assunto do E-mail</Label>
+                      <Input
+                        value={remarketingFilters.subject}
+                        onChange={(e) => setRemarketingFilters({...remarketingFilters, subject: e.target.value})}
+                        className="mt-2 bg-gray-700 border-gray-600 text-white"
+                        placeholder="Ex: 🎁 Convite Especial para você"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-gray-300">Novo Link do Grupo WhatsApp</Label>
+                      <Input
+                        value={remarketingFilters.groupLink}
+                        onChange={(e) => setRemarketingFilters({...remarketingFilters, groupLink: e.target.value})}
+                        className="mt-2 bg-gray-700 border-gray-600 text-white"
+                        placeholder="https://chat.whatsapp.com/..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-200 font-medium">Resumo do Público</p>
+                      <p className="text-blue-300/70 text-sm">Com base nos filtros atuais, você impactará:</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-white">{getFilteredRemarketingLeadsCount()}</span>
+                      <span className="text-blue-300 ml-2">Leads</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    onClick={handleSendRemarketing} 
+                    disabled={remarketingLoading || getFilteredRemarketingLeadsCount() === 0}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {remarketingLoading ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
+                    ) : (
+                      <><Send className="w-4 h-4 mr-2" /> Enviar Remarketing Agora</>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
           <TabsContent value="settings">
+
             <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">Configurações</CardTitle>
