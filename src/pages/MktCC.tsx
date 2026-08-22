@@ -82,6 +82,8 @@ interface MktccProject {
 
 const STORAGE_KEY = "mktcc_access_code";
 
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
+
 const statusBadge = (status: MktccPost["status"]) => {
   const base = "rounded-full font-black uppercase border-2 border-foreground";
   if (status === "approved") return <Badge className={`${base} bg-primary text-primary-foreground`}>Aprovado</Badge>;
