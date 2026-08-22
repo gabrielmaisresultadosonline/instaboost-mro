@@ -24,7 +24,7 @@ interface PhoneInstagramPreviewProps {
   className?: string;
 }
 
-const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url || "");
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
 
 /**
  * Mockup de celular simulando o perfil do Instagram, usado tanto na prévia do
@@ -144,7 +144,7 @@ export const PhoneInstagramPreview = ({
                       post.poster_url ? (
                         <img src={post.poster_url} alt={post.caption?.slice(0, 40) || "Miniatura do vídeo"} loading="lazy" className="pointer-events-none h-full w-full object-cover" />
                       ) : (
-                        <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                        <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" autoPlay loop />
                       )
                     ) : url ? (
                       <img src={url} alt={post.caption?.slice(0, 40) || "Publicação"} loading="lazy" className="pointer-events-none h-full w-full object-cover" />

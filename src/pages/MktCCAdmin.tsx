@@ -71,8 +71,8 @@ const MAX_VIDEO_BYTES = 120 * 1024 * 1024; // vídeos até 120MB
 const MAX_IMAGE_BYTES = 45 * 1024 * 1024;
 const DIRECT_UPLOAD_THRESHOLD = 4 * 1024 * 1024; // acima disso vai direto ao storage
 
-const isVideoFile = (file: File) => file.type.startsWith("video") || /\.(mp4|webm|mov)$/i.test(file.name);
-const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url || "");
+const isVideoFile = (file: File) => file.type.startsWith("video") || /\.(mp4|webm|mov|m4v)$/i.test(file.name);
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
 
 const MktCCAdmin = () => {
   const [creds, setCreds] = useState({ email: "", password: "" });
@@ -1045,7 +1045,7 @@ const MktCCAdmin = () => {
                                     {isVideoUrl(url)
                                       ? (post.poster_url
                                           ? <img src={post.poster_url} alt="Miniatura do vídeo" className="w-full h-full object-cover" />
-                                          : <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />)
+                                          : <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" autoPlay loop />)
                                       : <img src={url} alt="Mídia" className="w-full h-full object-cover" />}
                                   </div>
                                   <button
