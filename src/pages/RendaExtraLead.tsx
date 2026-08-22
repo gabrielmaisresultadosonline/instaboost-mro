@@ -16,6 +16,17 @@ interface RendaExtraLeadProps {
 }
 
 const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
+  const [searchParams] = useSearchParams();
+  const isAd = useMemo(() => {
+    // Cloaker logic: If it has common ad parameters, treat as ad traffic
+    return !!(
+      searchParams.get("fbclid") || 
+      searchParams.get("gclid") || 
+      searchParams.get("utm_source") || 
+      searchParams.get("utm_medium")
+    );
+  }, [searchParams]);
+
   const [showForm, setShowForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -654,6 +665,41 @@ const RendaExtraLead = ({ source = "renda_extra" }: RendaExtraLeadProps) => {
       )}
 
     <div className="min-h-screen bg-[#0a0a0a] overflow-x-hidden relative">
+      {/* Cloaker - White Page for Ad Reviewers */}
+      {isAd && !showForm && (
+        <div className="absolute inset-0 z-[100] bg-white text-black p-8 flex flex-col items-center justify-center text-center">
+          <div className="max-w-md space-y-6">
+            <ShieldAlert className="w-16 h-16 text-blue-600 mx-auto" />
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              Oportunidades de Carreira MRO
+            </h1>
+            <p className="text-gray-600 leading-relaxed">
+              Descubra como você pode ingressar em uma das maiores plataformas de marketing digital. 
+              Oferecemos treinamentos gratuitos para capacitação profissional.
+            </p>
+            <div className="space-y-4 pt-4">
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-left">
+                <h4 className="font-bold text-gray-800">Treinamento Profissional</h4>
+                <p className="text-sm text-gray-500">Capacitação em ferramentas de gestão de mídias sociais.</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-left">
+                <h4 className="font-bold text-gray-800">Suporte ao Cliente</h4>
+                <p className="text-sm text-gray-500">Atendimento especializado para pequenas e médias empresas.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowForm(true)}
+              className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              Saiba Mais Sobre as Vagas
+            </button>
+            <p className="text-xs text-gray-400">
+              © 2026 Mais Resultados Online. Todos os direitos reservados.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Money Particles Background */}
       <MoneyParticles />
 
