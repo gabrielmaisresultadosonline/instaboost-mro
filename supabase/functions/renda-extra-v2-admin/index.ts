@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (action === "getPublicSettings") {
       const { data: settings } = await supabase
-        .from("renda_extra_v2_settings")
+        .from("renda_extra_lead_settings")
         .select("launch_date, launch_date_enabled")
         .limit(1)
         .single();
@@ -78,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (action === "getGroupLink") {
       const { data: settings } = await supabase
-        .from("renda_extra_v2_settings")
+        .from("renda_extra_lead_settings")
         .select("whatsapp_group_link")
         .limit(1)
         .single();
@@ -92,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { data: settingsRow } = await supabase
-      .from("renda_extra_v2_settings")
+      .from("renda_extra_lead_settings")
       .select("admin_email, admin_password")
       .limit(1)
       .single();
@@ -169,7 +169,7 @@ const handler = async (req: Request): Promise<Response> => {
         supabase.from("renda_extra_v2_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_email_logs").select("*").order("created_at", { ascending: false }),
         supabase.from("renda_extra_v2_email_logs").select("*").order("created_at", { ascending: false }),
-        supabase.from("renda_extra_v2_settings").select("whatsapp_group_link, launch_date, launch_date_enabled").limit(1).single(),
+        supabase.from("renda_extra_lead_settings").select("whatsapp_group_link, launch_date, launch_date_enabled").limit(1).single(),
         supabase.from("renda_extra_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("renda_extra_v2_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("renda_extra_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", todayStartIso),
@@ -234,7 +234,7 @@ const handler = async (req: Request): Promise<Response> => {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from("renda_extra_v2_settings").update(payload).not("id", "is", null);
+      const { error } = await supabase.from("renda_extra_lead_settings").update(payload).not("id", "is", null);
       if (error) throw error;
 
       return new Response(JSON.stringify({ success: true }), {
