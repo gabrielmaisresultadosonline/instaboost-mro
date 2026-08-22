@@ -18,6 +18,8 @@ import {
 import { PhoneInstagramPreview } from "@/components/mktcc/PhoneInstagramPreview";
 import { ProfileBeforeAfter } from "@/components/mktcc/ProfileBeforeAfter";
 import { MediaPopup } from "@/components/MediaPopup";
+import { SmartMedia } from "@/components/mktcc/SmartMedia";
+
 
 interface MktccPost {
   id: string;
