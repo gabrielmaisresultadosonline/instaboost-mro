@@ -467,10 +467,13 @@ const Renddx = () => {
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
           <h3 className="text-2xl font-bold mb-4">ACESSO COMPLETO AO MRO</h3>
           <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Anual</div>
-          <div className="text-5xl font-black mb-2 text-green-400">R$300</div>
+          <div className="flex flex-col items-center mb-2">
+            <span className="text-zinc-500 text-sm line-through">De R$997</span>
+            <div className="text-5xl font-black text-green-400">R$300</div>
+          </div>
           <p className="text-zinc-400 mb-6">Acesso durante 1 ano</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 4 contas fixas + 5 testes</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
