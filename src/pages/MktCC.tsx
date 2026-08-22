@@ -1104,6 +1104,16 @@ const MktCC = () => {
                     loop
                     className="w-full h-full object-contain"
                   />
+                ) : isVideoUrl(activePost.media_urls[slide]) ? (
+                  <video
+                    src={activePost.media_urls[slide]}
+                    controls
+                    autoPlay
+                    muted
+                    playsInline
+                    loop
+                    className="w-full h-full object-contain"
+                  />
                 ) : (
                   <img
                     src={activePost.media_urls[slide]}
