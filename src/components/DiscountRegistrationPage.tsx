@@ -149,7 +149,7 @@ export const DiscountRegistrationPage = () => {
                     <div className="pt-2 border-t border-zinc-800">
                       <p className="text-xs text-zinc-400 mb-2">🚀 Participe do grupo e fique por dentro de tudo!</p>
                       <a
-                        href="https://maisresultadosonline.com.br/grupo-rendaextra"
+                        href="https://maisresultadosonline.com.br/r/rxl-wa"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-400 text-black font-black py-3 rounded-xl transition-all"
