@@ -32,8 +32,8 @@ export const buildRemarketingEmail = (name: string, groupLink: string) => `<!DOC
 </td></tr>
 <tr><td style="padding:30px;color:#333;">
 <p style="font-size:16px;">Olá <strong>${name}</strong>!</p>
-<p style="font-size:16px;">Vimos que você se interessou pelo nosso método, mas ainda não entrou no nosso grupo exclusivo de alunos.</p>
-<p style="font-size:16px;">Lá enviamos dicas diárias, atualizações e estratégias que não compartilhamos em nenhum outro lugar.</p>
+<p style="font-size:16px;">Participe do grupo grátis de renda extra MRO! Estamos com uma condição especial para você conseguir faturar mais de 5 mil mensal com a MRO, uma ferramenta exclusiva para Instagram.</p>
+<p style="font-size:16px;">Saiba mais agora mesmo participando do nosso grupo exclusivo de alunos e receba estratégias que não compartilhamos em nenhum outro lugar.</p>
 <div style="background:#f8f9fa;border-left:4px solid #FFD700;padding:20px;margin:20px 0;border-radius:8px;">
 <p style="margin:0 0 10px 0;font-weight:bold;font-size:18px;">👉 Entre no grupo agora:</p>
 <a href="${groupLink}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">ENTRAR NO GRUPO VIP</a>
