@@ -80,7 +80,7 @@ const RendaExtraLeadAdmin = () => {
     emailList: "",
     days: 4,
     computerTypes: ["Notebook", "Computador", "MacBook"],
-    subject: "🎁 Você recebeu um convite especial!",
+    subject: "💰 Participe do grupo grátis de renda extra MRO",
     groupLink: ""
   });
 
