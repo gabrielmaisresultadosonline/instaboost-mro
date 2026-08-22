@@ -220,7 +220,7 @@ const RendaExtraPage = () => {
   useEffect(() => {
     const fetchGroupLink = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("renda-extra-v2-admin", {
+        const { data, error } = await supabase.functions.invoke("rendaextralead-admin", {
           body: { action: "getGroupLink" }
         });
         if (data?.whatsapp_group_link) {
