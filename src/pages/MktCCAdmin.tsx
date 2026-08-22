@@ -958,7 +958,7 @@ const MktCCAdmin = () => {
                   <CardContent className="p-4 flex gap-4 flex-col md:flex-row">
                     <div className="w-full md:w-28 shrink-0">
                       <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden border-2 border-foreground">
-                        {isVideoUrl(post.media_urls[0] || "")
+                        {post.post_type === "video" || isVideoUrl(post.media_urls[0] || "")
                           ? (post.poster_url
                               ? <img src={post.poster_url} alt="Miniatura do vídeo" className="w-full h-full object-cover" />
                               : <video src={post.media_urls[0]} className="w-full h-full object-contain" muted playsInline preload="metadata" autoPlay loop />)

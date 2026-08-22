@@ -723,7 +723,7 @@ const MktCC = () => {
                     className="mktcc-tile relative aspect-[4/5] bg-muted overflow-hidden rounded-xl border-2 border-foreground group"
                     aria-label="Abrir publicação"
                   >
-                    {post.post_type === "video" ? (
+                    {post.post_type === "video" || isVideoUrl(post.media_urls[0]) ? (
                       post.poster_url ? (
                         <img src={post.poster_url} alt={post.caption.slice(0, 60) || "Miniatura do vídeo"} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
