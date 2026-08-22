@@ -70,6 +70,15 @@ serve(async (req) => {
 
     const data = await req.json();
     log("Registration request received", { email: data.email, nome: data.nome_completo });
+    
+    // Fetch dynamic WhatsApp group link
+    const { data: settings } = await supabase
+      .from("renda_extra_v2_settings")
+      .select("whatsapp_group_link")
+      .limit(1)
+      .single();
+    
+    const groupLink = settings?.whatsapp_group_link || "https://maisresultadosonline.com.br/grupo-rendaextra";
 
     // Insert lead into database
     const { data: lead, error: insertError } = await supabase
@@ -131,11 +140,11 @@ Você recebeu uma <strong>oportunidade de renda extra real</strong>, e o valor d
 <p style="margin:0;font-size:16px;font-weight:bold;color:#7b341e;font-family:Arial,sans-serif;">⚡ Aproveite enquanto duram nossas vagas!</p>
 </div>
 
-<div style="text-align:center;margin:40px 0;">
-<a href="${RENDDX_URL}" style="display:inline-block;background:#000000;color:#ffffff;text-decoration:none;padding:20px 45px;border-radius:50px;font-size:18px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">
-Aproveitar Oportunidade
-</a>
-</div>
+        <div style="text-align:center;margin:40px 0;">
+          <a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:20px 45px;border-radius:50px;font-size:18px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">
+            PARTICIPE DO GRUPO GRÁTIS AGORA!
+          </a>
+        </div>
 
 <p style="margin:30px 0 0 0;font-size:14px;color:#718096;text-align:center;font-family:Arial,sans-serif;">
 Clique no botão acima para acessar os detalhes agora mesmo.
@@ -187,6 +196,7 @@ Clique no botão acima para acessar os detalhes agora mesmo.
         success: true,
         leadId: lead.id,
         redirectUrl: RENDDX_URL,
+        whatsappGroupLink: groupLink,
         emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
