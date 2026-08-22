@@ -67,6 +67,14 @@ const RendaExtraAdmin = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllLeads, setShowAllLeads] = useState(false);
+  const [remarketingLoading, setRemarketingLoading] = useState(false);
+  const [remarketingFilters, setRemarketingFilters] = useState({
+    days: 4,
+    computerTypes: ["Notebook", "Computador", "MacBook"],
+    subject: "🎁 Você recebeu um convite especial!",
+    groupLink: ""
+  });
+
 
   useEffect(() => {
     const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
