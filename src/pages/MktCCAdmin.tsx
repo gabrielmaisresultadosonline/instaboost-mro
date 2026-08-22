@@ -883,7 +883,7 @@ const MktCCAdmin = () => {
                         {isVideoUrl(url)
                           ? (draft.poster_url
                               ? <img src={draft.poster_url} alt={`Miniatura ${i + 1}`} className="w-full h-full object-cover" />
-                              : <video src={url} className="w-full h-full object-contain" muted playsInline preload="metadata" />)
+                              : <video src={url} className="w-full h-full object-contain" muted playsInline preload="metadata" autoPlay loop />)
                           : <img src={url} alt={`Arquivo ${i + 1}`} className="w-full h-full object-contain" />}
                         <button
                           className="absolute top-0 right-0 bg-destructive text-destructive-foreground w-5 h-5 text-xs"
@@ -961,7 +961,7 @@ const MktCCAdmin = () => {
                         {isVideoUrl(post.media_urls[0] || "")
                           ? (post.poster_url
                               ? <img src={post.poster_url} alt="Miniatura do vídeo" className="w-full h-full object-cover" />
-                              : <video src={post.media_urls[0]} className="w-full h-full object-contain" muted playsInline preload="metadata" />)
+                              : <video src={post.media_urls[0]} className="w-full h-full object-contain" muted playsInline preload="metadata" autoPlay loop />)
                           : <img src={post.media_urls[0]} alt="Prévia" className="w-full h-full object-contain" />}
                       </div>
                       {!cycleLocked && (
