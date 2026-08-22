@@ -429,10 +429,15 @@ const RendaExtraAdmin = () => {
               <Mail className="w-4 h-4 mr-2" />
               Log de Emails
             </TabsTrigger>
+            <TabsTrigger value="remarketing" className="data-[state=active]:bg-gray-700">
+              <Send className="w-4 h-4 mr-2" />
+              Remarketing
+            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
             </TabsTrigger>
+
           </TabsList>
 
           {/* Leads Tab */}
