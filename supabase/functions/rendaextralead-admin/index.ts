@@ -31,9 +31,16 @@ const UpdateSettingsSchema = z.object({
 });
 
 const ProtectedActionSchema = z.object({
-  action: z.enum(["getData", "resetAnalytics"]),
+  action: z.enum(["getData", "resetAnalytics", "sendRemarketing"]),
   adminToken: z.string().optional(),
+  remarketing: z.object({
+    days: z.number().min(0).max(365),
+    computerTypes: z.array(z.string()),
+    subject: z.string().min(5),
+    groupLink: z.string().url(),
+  }).optional(),
 });
+
 
 const DEFAULT_MESSAGE = "Olá gostaria de aprender sobre a renda extra";
 
