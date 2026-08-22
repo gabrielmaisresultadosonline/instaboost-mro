@@ -727,7 +727,15 @@ const MktCC = () => {
                       post.poster_url ? (
                         <img src={post.poster_url} alt={post.caption.slice(0, 60) || "Miniatura do vídeo"} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
-                        <video src={post.media_urls[0]} className="w-full h-full object-cover" muted playsInline preload="metadata" autoPlay loop />
+                        <video 
+                          src={post.media_urls[0]} 
+                          className="w-full h-full object-cover" 
+                          muted 
+                          playsInline 
+                          preload="metadata" 
+                          autoPlay 
+                          loop 
+                        />
                       )
                     ) : (
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
@@ -1090,7 +1098,10 @@ const MktCC = () => {
                     src={activePost.media_urls[0]}
                     poster={activePost.poster_url || undefined}
                     controls
+                    autoPlay
+                    muted
                     playsInline
+                    loop
                     className="w-full h-full object-contain"
                   />
                 ) : (
