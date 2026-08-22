@@ -725,7 +725,7 @@ const MktCC = () => {
                       post.poster_url ? (
                         <img src={post.poster_url} alt={post.caption.slice(0, 60) || "Miniatura do vídeo"} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
-                        <video src={post.media_urls[0]} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                        <video src={post.media_urls[0]} className="w-full h-full object-cover" muted playsInline preload="metadata" autoPlay loop />
                       )
                     ) : (
                       <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
@@ -1146,8 +1146,8 @@ const MktCC = () => {
                     <div className="flex gap-2 flex-wrap">
                       {activePost.previous_media_urls.map((url, i) => (
                         <div key={url} className="w-20 h-20 rounded-lg overflow-hidden bg-muted grayscale border border-border">
-                          {/\.(mp4|webm|mov)(\?|$)/i.test(url) ? (
-                            <video src={url} className="w-full h-full object-cover" muted />
+                          {/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url) ? (
+                            <video src={url} className="w-full h-full object-cover" muted playsInline autoPlay loop />
                           ) : (
                             <img src={url} alt={`Versão anterior ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
                           )}

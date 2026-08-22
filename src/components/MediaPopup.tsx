@@ -116,6 +116,8 @@ export const MediaPopup = ({ url, type, onClose }: MediaPopupProps) => {
             src={url} 
             controls 
             autoPlay 
+            playsInline
+            loop
             className="max-w-[90vw] max-h-[85vh] rounded-lg shadow-2xl"
           />
         )}
