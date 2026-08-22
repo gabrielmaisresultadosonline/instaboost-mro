@@ -1084,35 +1084,16 @@ const MktCC = () => {
                 className="relative bg-muted rounded-xl overflow-hidden border-2 border-foreground flex items-center justify-center"
                 style={{ aspectRatio: activePost.aspect_ratio?.replace("/", " / ") || "4 / 5" }}
               >
-                {activePost.post_type === "video" ? (
-                  <video
-                    src={activePost.media_urls[0]}
-                    poster={activePost.poster_url || undefined}
-                    controls
-                    autoPlay
-                    muted
-                    playsInline
-                    loop
-                    className="w-full h-full object-contain"
-                  />
-                ) : isVideoUrl(activePost.media_urls[slide]) ? (
-                  <video
-                    src={activePost.media_urls[slide]}
-                    controls
-                    autoPlay
-                    muted
-                    playsInline
-                    loop
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <img
-                    src={activePost.media_urls[slide]}
-                    alt={activePost.caption.slice(0, 80) || "Material da publicação"}
-                    className="w-full h-full object-contain cursor-zoom-in"
-                    onClick={() => setMediaPopup({ url: activePost.media_urls[slide], type: "image" })}
-                  />
-                )}
+                <SmartMedia
+                  url={activePost.post_type === "video" ? activePost.media_urls[0] : activePost.media_urls[slide]}
+                  alt={activePost.caption.slice(0, 80) || "Material da publicação"}
+                  forceVideo={activePost.post_type === "video"}
+                  poster={activePost.poster_url || undefined}
+                  controls
+                  className="w-full h-full object-contain"
+                  onImageClick={() => setMediaPopup({ url: activePost.media_urls[slide], type: "image" })}
+                />
+
                 {activePost.post_type === "video" && (
                   <Button
                     size="sm"
