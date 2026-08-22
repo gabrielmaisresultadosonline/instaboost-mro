@@ -723,23 +723,14 @@ const MktCC = () => {
                     className="mktcc-tile relative aspect-[4/5] bg-muted overflow-hidden rounded-xl border-2 border-foreground group"
                     aria-label="Abrir publicação"
                   >
-                    {post.post_type === "video" || isVideoUrl(post.media_urls[0]) ? (
-                      post.poster_url ? (
-                        <img src={post.poster_url} alt={post.caption.slice(0, 60) || "Miniatura do vídeo"} loading="lazy" className="w-full h-full object-cover" />
-                      ) : (
-                        <video 
-                          src={post.media_urls[0]} 
-                          className="w-full h-full object-cover" 
-                          muted 
-                          playsInline 
-                          preload="metadata" 
-                          autoPlay 
-                          loop 
-                        />
-                      )
-                    ) : (
-                      <img src={post.media_urls[0]} alt={post.caption.slice(0, 60) || "Publicação"} loading="lazy" className="w-full h-full object-cover" />
-                    )}
+                    <SmartMedia
+                      url={post.media_urls[0]}
+                      alt={post.caption.slice(0, 60) || "Publicação"}
+                      forceVideo={post.post_type === "video"}
+                      poster={post.poster_url || undefined}
+                      className="w-full h-full object-cover"
+                    />
+
                     <span className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors" />
                     {post.status === "approved" && (
                       <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 rotate-[-8deg] bg-primary text-primary-foreground border-y-2 border-foreground py-1 md:py-2 text-center text-[11px] md:text-base font-black uppercase tracking-wider">
