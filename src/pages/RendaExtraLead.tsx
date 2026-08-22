@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Unused import removed: import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
 import MoneyParticles from "@/components/MoneyParticles";
-import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
+import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X, ShieldAlert } from "lucide-react";
 
 interface RendaExtraLeadProps {
   source?: "renda_extra" | "social_midia";
