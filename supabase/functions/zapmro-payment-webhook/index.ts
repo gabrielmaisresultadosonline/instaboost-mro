@@ -277,7 +277,7 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    const payload = verification.body;
+    const payload = verifiedBody as Record<string, any>;
     log("Webhook payload", payload);
 
     // Suportar chamada manual do admin (manual_approve)
