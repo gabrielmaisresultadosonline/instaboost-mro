@@ -72,6 +72,11 @@ const RendaExxxtra = () => {
 
   useEffect(() => {
     trackPageView('Sales Page - RendaExxxtra Promo');
+    // Registra lead assim que a página carrega se os dados do quiz já existirem
+    const leadSubmitted = localStorage.getItem('renddx_lead_submitted') === 'true';
+    if (leadSubmitted) {
+      trackLead("RendaExxxtra - Page Load Lead");
+    }
     
     // Skip quiz and show site directly
     setIsLeadSaved(true);

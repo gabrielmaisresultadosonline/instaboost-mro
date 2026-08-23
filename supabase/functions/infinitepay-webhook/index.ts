@@ -384,7 +384,7 @@ serve(async (req) => {
     });
 
     // DASHBOARD (hub de produtos) - Handled below in the unified HUB logic
-    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO")))) {
+    if (isHubOrder || (order_nsu && typeof order_nsu === "string" && (order_nsu.startsWith("HUB") || order_nsu.startsWith("HUB_TRAFEGOPAGO") || order_nsu.startsWith("AUDIIBOOKS")))) {
       // Logic handled at the end of the script to ensure all flags are set
     }
 
@@ -758,7 +758,7 @@ serve(async (req) => {
         
         // Dispara e-mail de boas-vindas
         try {
-          if (slug === "renddx") {
+          if (slug === "renddx" || (order_nsu && order_nsu.startsWith("HUB_RENDDX"))) {
             const { data: userData } = await supabase
               .from("zapmro_users")
               .select("username, password_plain")
@@ -787,12 +787,12 @@ serve(async (req) => {
         // Track Meta Purchase Event for HUB orders
         await sendMetaPurchaseEvent(
           (hubOrder.email as string) || email || "",
-          Number(hubOrder.amount) || 37,
-          slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : "Produto Hub",
+          Number(hubOrder.amount) || 300,
+          slug === "audiibooks" ? "O SEGREDO PARA VENDER MAIS !" : slug === "renddx" ? "Renddx - Plano 30 Dias" : "Produto Hub",
           hubOrder.nsu_order as string,
           slug === "audiibooks" 
             ? `https://maisresultadosonline.com.br/audiobooks/obrigado?paid=1`
-            : `https://maisresultadosonline.com.br/zapmro/vendas/obrigado?paid=1`
+            : `https://maisresultadosonline.com.br/mroobrigado?paid=1`
         );
 
         log("HUB order paid + access granted + email triggered + Meta tracked", { id: hubOrder.id });
