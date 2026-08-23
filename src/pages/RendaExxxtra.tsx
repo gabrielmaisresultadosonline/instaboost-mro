@@ -484,9 +484,12 @@ const RendaExxxtra = () => {
       </section>
 
       {/* CTA Adicional Inferior */}
-      <section className="pb-20 text-center">
-          <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
-            VEJA COMO A FERRAMENTA FUNCIONA NA PRÁTICA <ArrowRight className="ml-2 w-6 h-6" />
+      <section className="pb-20 px-3 sm:px-4 text-center">
+          <Button 
+            onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+            className="w-full sm:w-auto btn-pulse-yellow px-4 sm:px-10 py-6 sm:py-8 rounded-2xl text-base sm:text-xl whitespace-normal h-auto min-h-[4rem]"
+          >
+            VEJA COMO A FERRAMENTA FUNCIONA NA PRÁTICA <ArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
           </Button>
       </section>
 
