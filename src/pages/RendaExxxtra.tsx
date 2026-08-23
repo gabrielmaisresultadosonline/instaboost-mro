@@ -182,7 +182,7 @@ const RendaExxxtra = () => {
     if (!username || username.length < 4) { toast.error("Nome de usuário deve ter no mínimo 4 caracteres"); return; }
     if (usernameError) { toast.error(usernameError); return; }
     // Lead: cadastro válido preenchido (intenção de compra confirmada)
-    trackLead("Renddx - Cadastro Checkout");
+    trackLead("RendaExxxtra - Cadastro Checkout");
     setLoading(true);
     try {
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
