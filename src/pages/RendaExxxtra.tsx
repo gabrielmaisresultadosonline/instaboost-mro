@@ -486,7 +486,7 @@ const RendaExxxtra = () => {
               </div>
               <p className="text-zinc-400 mb-6">Acesso durante 30 dias</p>
               <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 4 contas fixas + 5 testes por 30 dias</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
