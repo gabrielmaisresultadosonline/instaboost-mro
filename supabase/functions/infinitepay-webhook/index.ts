@@ -836,6 +836,7 @@ serve(async (req) => {
           password_hash: passwordHash,
           password_plain: passwordPlain,
           days_remaining: days,
+          expires_at: days >= 3650 ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
           is_active: true,
           whatsapp_limit: planType === 'lifetime' || planType === 'vitalicio' ? -1 : 2
         }, { onConflict: 'username' }).select().single();
@@ -880,16 +881,39 @@ serve(async (req) => {
           }
         }
 
-        // Send Welcome Email via zapmro-api action
+        // Provisionamento automático completo (mesmo fluxo do "Aprovar Manual"):
+        // cria o usuário na API externa da ferramenta, envia o e-mail de acesso
+        // e marca o pedido como "completed".
         try {
-          await supabase.functions.invoke("zapmro-api", {
-            body: {
-              action: "send_access",
-              id: newUser?.id
-            }
-          });
-          log("ZAPMRO welcome email triggered");
-        } catch (e) { log("Error triggering ZAPMRO email", e); }
+          const { data: provisionData, error: provisionError } = await supabase.functions.invoke(
+            "zapmro-payment-webhook",
+            {
+              headers: {
+                "x-internal-call": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+              },
+              body: {
+                order_id: zapOrder.id,
+                order_nsu: zapOrder.nsu_order,
+                manual_approve: true,
+                items: [{
+                  description: `ZAPMRO_${planType === "lifetime" || planType === "vitalicio" ? "VITALICIO" : planType === "monthly" || planType === "mensal" ? "MENSAL" : "ANUAL"}_${uName}_${uEmail}`,
+                }],
+              },
+            },
+
+          );
+          if (provisionError) throw provisionError;
+          log("ZAPMRO auto-provisioning done", provisionData);
+        } catch (e) {
+          log("Error on ZAPMRO auto-provisioning, falling back to send_access", e);
+          // Fallback: pelo menos garante o envio das credenciais por e-mail.
+          try {
+            await supabase.functions.invoke("zapmro-api", {
+              body: { action: "send_access", id: newUser?.id },
+            });
+          } catch (e2) { log("Fallback send_access failed", e2); }
+        }
+
 
         // Meta Tracking (Server-side CAPI)
         await sendMetaPurchaseEvent(

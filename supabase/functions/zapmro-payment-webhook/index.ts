@@ -239,11 +239,32 @@ serve(async (req) => {
   try {
     log("Received webhook request");
 
-    // Verify webhook signature for security
-    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "ZAPMRO-PAYMENT-WEBHOOK");
-    if (!verification.verified) {
-      return verification.response;
+    // Chamadas internas (outra edge function usando a service role key) são
+    // confiáveis e não carregam assinatura do InfiniPay.
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const internalHeader = req.headers.get("x-internal-call") || "";
+    const isInternalCall = !!serviceKey && internalHeader === serviceKey;
+
+    let verifiedBody: Record<string, unknown>;
+    if (isInternalCall) {
+      log("Internal call detected - skipping signature verification");
+      const raw = await req.text();
+      try {
+        verifiedBody = raw ? JSON.parse(raw) : {};
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "Invalid JSON payload" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    } else {
+      const verification = await verifyInfinitePayWebhook(req, corsHeaders, "ZAPMRO-PAYMENT-WEBHOOK");
+      if (!verification.verified) {
+        return verification.response;
+      }
+      verifiedBody = verification.body;
     }
+
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -256,7 +277,7 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    const payload = verification.body;
+    const payload = verifiedBody as Record<string, any>;
     log("Webhook payload", payload);
 
     // Suportar chamada manual do admin (manual_approve)
