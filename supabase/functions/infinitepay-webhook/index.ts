@@ -887,6 +887,9 @@ serve(async (req) => {
           const { data: provisionData, error: provisionError } = await supabase.functions.invoke(
             "zapmro-payment-webhook",
             {
+              headers: {
+                "x-internal-call": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+              },
               body: {
                 order_id: zapOrder.id,
                 order_nsu: zapOrder.nsu_order,
@@ -896,6 +899,7 @@ serve(async (req) => {
                 }],
               },
             },
+
           );
           if (provisionError) throw provisionError;
           log("ZAPMRO auto-provisioning done", provisionData);
