@@ -140,6 +140,7 @@ serve(async (req) => {
       try {
         // Chamar webhook para processar
         const webhookResult = await supabase.functions.invoke("zapmro-payment-webhook", {
+          headers: { "x-internal-call": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "" },
           body: {
             order_nsu: nsu_order,
             items: [{
@@ -221,6 +222,7 @@ serve(async (req) => {
 
           // Chamar webhook para processar
           await supabase.functions.invoke("zapmro-payment-webhook", {
+          headers: { "x-internal-call": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "" },
             body: {
               order_nsu: nsu_order,
               items: [{
@@ -308,6 +310,7 @@ serve(async (req) => {
 
               // Chamar webhook
               await supabase.functions.invoke("zapmro-payment-webhook", {
+          headers: { "x-internal-call": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "" },
                 body: {
                   order_nsu: nsu_order,
                   items: [{
@@ -384,6 +387,7 @@ serve(async (req) => {
             .eq("nsu_order", nsu_order);
 
           await supabase.functions.invoke("zapmro-payment-webhook", {
+          headers: { "x-internal-call": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "" },
             body: {
               order_nsu: nsu_order,
               items: [{

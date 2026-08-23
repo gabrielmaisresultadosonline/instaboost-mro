@@ -836,6 +836,7 @@ serve(async (req) => {
           password_hash: passwordHash,
           password_plain: passwordPlain,
           days_remaining: days,
+          expires_at: days >= 3650 ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
           is_active: true,
           whatsapp_limit: planType === 'lifetime' || planType === 'vitalicio' ? -1 : 2
         }, { onConflict: 'username' }).select().single();
