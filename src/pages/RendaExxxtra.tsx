@@ -429,7 +429,7 @@ const RendaExxxtra = () => {
         <div className="max-w-5xl mx-auto text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
             <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 1 ano</span>
+            <span className="text-green-400 font-bold text-xs uppercase">Teste agora por 30 dias</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
           <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
