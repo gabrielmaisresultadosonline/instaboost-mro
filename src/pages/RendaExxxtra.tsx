@@ -55,6 +55,7 @@ const RendaExxxtra = () => {
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   // Estados para order bumps
   const [products, setProducts] = useState<any[]>([]);
@@ -83,6 +84,12 @@ const RendaExxxtra = () => {
       } catch (err) { console.error("Error fetching settings:", err); } finally { setIsSettingsLoading(false); }
     };
     fetchSettings();
+
+    const timer = setTimeout(() => {
+      setShowContent(true);
+    }, 15000); // 15 seconds delay
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLeadSubmit = async () => {
@@ -384,114 +391,122 @@ const RendaExxxtra = () => {
                 <DiscountVideoPlayer email="public@rendaexxxtra.com" nome="Visitante RendaExxxtra" />
               </Suspense>
               
-              <div className="mt-8 flex flex-col items-center gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE AGORA POR 30 DIAS</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-green-500">R$</span>
-                    <span className="text-6xl font-black text-green-500">67</span>
-                    <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
+              {showContent && (
+                <div className="mt-8 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                  <div className="flex flex-col items-center">
+                    <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE AGORA POR 30 DIAS</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold text-green-500">R$</span>
+                      <span className="text-6xl font-black text-green-500">67</span>
+                      <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
+                    </div>
                   </div>
+                  
+                  <Button 
+                    onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+                    className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
+                  >
+                    TESTAR AGORA POR 30 DIAS
+                    <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  
+                  <p className="text-zinc-500 text-xs font-medium flex items-center gap-2">
+                    <Shield className="w-3 h-3" /> Pagamento 100% seguro via InfinitePay
+                  </p>
                 </div>
-                
-                <Button 
-                  onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
-                >
-                  TESTAR AGORA POR 30 DIAS
-                  <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                
-                <p className="text-zinc-500 text-xs font-medium flex items-center gap-2">
-                  <Shield className="w-3 h-3" /> Pagamento 100% seguro via InfinitePay
-                </p>
-              </div>
+              )}
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5">
-            <Laptop className="w-4 h-4 text-green-300" />
-            <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
-            <Rocket className="w-4 h-4 text-green-300" />
+          {showContent && (
+            <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5 animate-in fade-in duration-1000">
+              <Laptop className="w-4 h-4 text-green-300" />
+              <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
+              <Rocket className="w-4 h-4 text-green-300" />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {showContent && (
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          {/* Vídeo de Funcionamento */}
+          <div className="py-10">
+            <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
+              <PromoToolVideoSection />
+            </Suspense>
           </div>
+
+
+          <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
+            <div className="max-w-5xl mx-auto text-center mb-10">
+              <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
+                <Rocket className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 font-bold text-xs uppercase">Teste agora por 30 dias</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
+              <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Monitor className="w-10 h-10 text-blue-500 mb-4" /><h3 className="font-bold mb-2">Instale no seu computador</h3><p className="text-gray-400 text-sm">Utilize o MRO no seu notebook ou desktop.</p></div>
+              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Zap className="w-10 h-10 text-purple-500 mb-4" /><h3 className="font-bold mb-2">Aprenda a utilizar</h3><p className="text-gray-400 text-sm">Siga o treinamento e conheça os principais recursos da ferramenta.</p></div>
+              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Users className="w-10 h-10 text-green-500 mb-4" /><h3 className="font-bold mb-2">Ofereça serviços</h3><p className="text-gray-400 text-sm">Utilize a ferramenta para criar e gerenciar serviços para empresas e clientes.</p></div>
+            </div>
+          </section>
+
+          <section className="py-16 sm:py-20 px-3 sm:px-4 bg-black">
+            <div className="max-w-5xl mx-auto text-center">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-6 uppercase">UMA FERRAMENTA PARA QUEM QUER TRABALHAR COM <span className="text-yellow-300">SERVIÇOS DIGITAIS</span></h2>
+              <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto mb-8">
+                Com o MRO, você tem acesso a recursos que podem ajudar na execução de tarefas e no atendimento de empresas.
+                Você decide como utilizar a ferramenta, quais serviços oferecer e quanto cobrar pelos seus serviços.
+              </p>
+              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 inline-block text-left max-w-md mx-auto">
+                <h3 className="font-bold mb-4 flex items-center gap-2"><Target className="w-5 h-5 text-green-500" /> Construa sua carteira de clientes</h3>
+                <p className="text-gray-400 text-sm">Defina seus próprios preços e condições comerciais de acordo com os serviços que oferecer.</p>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA Adicional Superior */}
+          <section className="py-10 text-center">
+              <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
+                COMECE A UTILIZAR A FERRAMENTA <ArrowRight className="ml-2 w-6 h-6" />
+              </Button>
+          </section>
+
+          <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
+            <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
+              <h3 className="text-2xl font-bold mb-4">TESTE AGORA POR 30 DIAS</h3>
+              <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Mensal</div>
+              <div className="flex flex-col items-center mb-2">
+                <span className="text-zinc-500 text-sm line-through">De R$147</span>
+                <div className="text-5xl font-black text-green-400">R$67</div>
+              </div>
+              <p className="text-zinc-400 mb-6">Acesso durante 30 dias</p>
+              <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (30 dias)</li>
+              </ul>
+              <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO TESTAR POR 30 DIAS</Button>
+            </div>
+          </section>
+
+          {/* CTA Adicional Inferior */}
+          <section className="pb-20 px-3 sm:px-4 text-center">
+              <Button 
+                onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+                className="w-full sm:w-auto btn-pulse-yellow px-4 sm:px-10 py-6 sm:py-8 rounded-2xl text-base sm:text-xl whitespace-normal h-auto min-h-[4rem]"
+              >
+                VEJA COMO A FERRAMENTA FUNCIONA NA PRÁTICA <ArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+              </Button>
+          </section>
         </div>
-      </section>
-
-      {/* Vídeo de Funcionamento */}
-      <div className="py-10">
-        <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
-          <PromoToolVideoSection />
-        </Suspense>
-      </div>
-
-
-      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="max-w-5xl mx-auto text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
-            <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs uppercase">Teste agora por 30 dias</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
-          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Monitor className="w-10 h-10 text-blue-500 mb-4" /><h3 className="font-bold mb-2">Instale no seu computador</h3><p className="text-gray-400 text-sm">Utilize o MRO no seu notebook ou desktop.</p></div>
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Zap className="w-10 h-10 text-purple-500 mb-4" /><h3 className="font-bold mb-2">Aprenda a utilizar</h3><p className="text-gray-400 text-sm">Siga o treinamento e conheça os principais recursos da ferramenta.</p></div>
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Users className="w-10 h-10 text-green-500 mb-4" /><h3 className="font-bold mb-2">Ofereça serviços</h3><p className="text-gray-400 text-sm">Utilize a ferramenta para criar e gerenciar serviços para empresas e clientes.</p></div>
-        </div>
-      </section>
-
-      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-black">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-6 uppercase">UMA FERRAMENTA PARA QUEM QUER TRABALHAR COM <span className="text-yellow-300">SERVIÇOS DIGITAIS</span></h2>
-          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto mb-8">
-            Com o MRO, você tem acesso a recursos que podem ajudar na execução de tarefas e no atendimento de empresas.
-            Você decide como utilizar a ferramenta, quais serviços oferecer e quanto cobrar pelos seus serviços.
-          </p>
-          <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 inline-block text-left max-w-md mx-auto">
-            <h3 className="font-bold mb-4 flex items-center gap-2"><Target className="w-5 h-5 text-green-500" /> Construa sua carteira de clientes</h3>
-            <p className="text-gray-400 text-sm">Defina seus próprios preços e condições comerciais de acordo com os serviços que oferecer.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Adicional Superior */}
-      <section className="py-10 text-center">
-          <Button onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} className="btn-pulse-yellow px-10 py-8 rounded-2xl text-xl">
-            COMECE A UTILIZAR A FERRAMENTA <ArrowRight className="ml-2 w-6 h-6" />
-          </Button>
-      </section>
-
-      <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
-        <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
-          <h3 className="text-2xl font-bold mb-4">TESTE AGORA POR 30 DIAS</h3>
-          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Mensal</div>
-          <div className="flex flex-col items-center mb-2">
-            <span className="text-zinc-500 text-sm line-through">De R$147</span>
-            <div className="text-5xl font-black text-green-400">R$67</div>
-          </div>
-          <p className="text-zinc-400 mb-6">Acesso durante 30 dias</p>
-          <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (30 dias)</li>
-          </ul>
-          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO TESTAR POR 30 DIAS</Button>
-        </div>
-      </section>
-
-      {/* CTA Adicional Inferior */}
-      <section className="pb-20 px-3 sm:px-4 text-center">
-          <Button 
-            onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-            className="w-full sm:w-auto btn-pulse-yellow px-4 sm:px-10 py-6 sm:py-8 rounded-2xl text-base sm:text-xl whitespace-normal h-auto min-h-[4rem]"
-          >
-            VEJA COMO A FERRAMENTA FUNCIONA NA PRÁTICA <ArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-          </Button>
-      </section>
+      )}
 
       {showCheckoutModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 p-4">
