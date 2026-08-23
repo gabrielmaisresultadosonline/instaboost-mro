@@ -359,6 +359,8 @@ const App = () => (
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
           <Route path="/renddx" element={<Renddx />} />
           <Route path="/renddx/admin" element={<RenddxAdmin />} />
+          <Route path="/rendaexxxtra" element={<RendaExxxtra />} />
+          <Route path="/rendaexxxtra/admin" element={<RendaExxxtraAdmin />} />
           <Route path="/renddx/access" element={<RendaExtraDescontoDuplicate />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
