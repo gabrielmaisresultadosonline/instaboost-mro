@@ -84,6 +84,12 @@ const RendaExxxtra = () => {
       } catch (err) { console.error("Error fetching settings:", err); } finally { setIsSettingsLoading(false); }
     };
     fetchSettings();
+
+    const timer = setTimeout(() => {
+      setShowContent(true);
+    }, 15000); // 15 seconds delay
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLeadSubmit = async () => {
