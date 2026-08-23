@@ -480,6 +480,7 @@ const App = () => (
           <Route path="/eleitoral" element={<Eleitoral />} />
           <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
           <Route path="/renddx" element={<Renddx />} />
+          <Route path="/rendaexxxtra" element={<RendaExxxtra />} />
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/lovablack" element={<Lovablack />} />
           <Route path="/lotargrupos" element={<LotarGrupos />} />
