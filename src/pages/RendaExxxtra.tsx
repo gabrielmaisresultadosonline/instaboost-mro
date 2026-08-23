@@ -391,36 +391,40 @@ const RendaExxxtra = () => {
                 <DiscountVideoPlayer email="public@rendaexxxtra.com" nome="Visitante RendaExxxtra" />
               </Suspense>
               
-              <div className="mt-8 flex flex-col items-center gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE AGORA POR 30 DIAS</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-green-500">R$</span>
-                    <span className="text-6xl font-black text-green-500">67</span>
-                    <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
+              {showContent && (
+                <div className="mt-8 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                  <div className="flex flex-col items-center">
+                    <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE AGORA POR 30 DIAS</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold text-green-500">R$</span>
+                      <span className="text-6xl font-black text-green-500">67</span>
+                      <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
+                    </div>
                   </div>
+                  
+                  <Button 
+                    onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+                    className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
+                  >
+                    TESTAR AGORA POR 30 DIAS
+                    <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  
+                  <p className="text-zinc-500 text-xs font-medium flex items-center gap-2">
+                    <Shield className="w-3 h-3" /> Pagamento 100% seguro via InfinitePay
+                  </p>
                 </div>
-                
-                <Button 
-                  onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
-                >
-                  TESTAR AGORA POR 30 DIAS
-                  <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                
-                <p className="text-zinc-500 text-xs font-medium flex items-center gap-2">
-                  <Shield className="w-3 h-3" /> Pagamento 100% seguro via InfinitePay
-                </p>
-              </div>
+              )}
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5">
-            <Laptop className="w-4 h-4 text-green-300" />
-            <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
-            <Rocket className="w-4 h-4 text-green-300" />
-          </div>
+          {showContent && (
+            <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5 animate-in fade-in duration-1000">
+              <Laptop className="w-4 h-4 text-green-300" />
+              <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
+              <Rocket className="w-4 h-4 text-green-300" />
+            </div>
+          )}
         </div>
       </section>
 
