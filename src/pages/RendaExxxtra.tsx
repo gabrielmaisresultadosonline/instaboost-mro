@@ -56,6 +56,7 @@ const RendaExxxtra = () => {
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [contentProgress, setContentProgress] = useState(0);
 
   // Estados para order bumps
   const [products, setProducts] = useState<any[]>([]);
@@ -90,11 +91,22 @@ const RendaExxxtra = () => {
     };
     fetchSettings();
 
-    const timer = setTimeout(() => {
-      setShowContent(true);
-    }, 15000); // 15 seconds delay
+    const totalTime = 15000;
+    const interval = 100;
+    const step = (interval / totalTime) * 100;
 
-    return () => clearTimeout(timer);
+    const progressTimer = setInterval(() => {
+      setContentProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressTimer);
+          setShowContent(true);
+          return 100;
+        }
+        return prev + step;
+      });
+    }, interval);
+
+    return () => clearInterval(progressTimer);
   }, []);
 
   const handleLeadSubmit = async () => {
@@ -418,6 +430,23 @@ const RendaExxxtra = () => {
                   <p className="text-zinc-500 text-xs font-medium flex items-center gap-2">
                     <Shield className="w-3 h-3" /> Pagamento 100% seguro via InfinitePay
                   </p>
+                </div>
+              )}
+
+              {!showContent && (
+                <div className="w-full max-w-xl mx-auto mt-8 animate-in fade-in duration-700">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-full bg-zinc-900 h-3 rounded-full overflow-hidden border border-zinc-800 p-0.5">
+                      <div 
+                        className="bg-green-500 h-full rounded-full transition-all duration-100 ease-linear shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                        style={{ width: `${contentProgress}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 text-zinc-400 font-bold text-xs uppercase tracking-[0.2em]">
+                      <Loader2 className="w-4 h-4 animate-spin text-green-500" />
+                      {contentProgress < 100 ? 'Carregando conteúdo aguarde...' : 'Pronto!'}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
