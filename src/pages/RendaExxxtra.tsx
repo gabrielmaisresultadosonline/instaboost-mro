@@ -477,9 +477,9 @@ const RendaExxxtra = () => {
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (1 ano)</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (30 dias)</li>
           </ul>
-          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO ACESSAR O MRO</Button>
+          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO TESTAR POR 30 DIAS</Button>
         </div>
       </section>
 
