@@ -104,7 +104,7 @@ const RendaExxxtra = () => {
 
       if (error) throw error;
 
-      trackLead("Renddx - Quiz Registration", {
+      trackLead("RendaExxxtra - Quiz Registration", {
         email: leadEmail,
         phone: leadWhatsApp.replace(/\D/g, ""),
         content_name: leadName
