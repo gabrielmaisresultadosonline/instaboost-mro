@@ -122,6 +122,8 @@ import Eleitoral from "./pages/Eleitoral";
 import EleitoralAdmin from "./pages/EleitoralAdmin";
 import Renddx from "./pages/Renddx";
 import RenddxAdmin from "./pages/RenddxAdmin";
+import RendaExxxtra from "./pages/RendaExxxtra";
+import RendaExxxtraAdmin from "./pages/RendaExxxtraAdmin";
 import Lovablack from "./pages/Lovablack";
 import LotarGrupos from "./pages/LotarGrupos";
 import Tesvc from "./pages/Tesvc";
@@ -357,6 +359,8 @@ const App = () => (
           <Route path="/rendaextra/desconto/promo" element={<RendaExtraDescontoPromoPage />} />
           <Route path="/renddx" element={<Renddx />} />
           <Route path="/renddx/admin" element={<RenddxAdmin />} />
+          <Route path="/rendaexxxtra" element={<RendaExxxtra />} />
+          <Route path="/rendaexxxtra/admin" element={<RendaExxxtraAdmin />} />
           <Route path="/renddx/access" element={<RendaExtraDescontoDuplicate />} />
           <Route path="/rendaextralead" element={<RendaExtraLead />} />
           <Route path="/rendaextralead/admin" element={<RendaExtraLeadAdmin />} />
@@ -478,7 +482,6 @@ const App = () => (
           <Route path="/ferramentamropromo/admin" element={<FerramentaMROPromoAdmin />} />
           <Route path="/eleitoral" element={<Eleitoral />} />
           <Route path="/eleitoral/admin" element={<EleitoralAdmin />} />
-          <Route path="/renddx" element={<Renddx />} />
           <Route path="/trafegopagovisitas" element={<TrafegoPagoVisitas />} />
           <Route path="/lovablack" element={<Lovablack />} />
           <Route path="/lotargrupos" element={<LotarGrupos />} />
