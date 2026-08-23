@@ -55,6 +55,7 @@ const RendaExxxtra = () => {
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   // Estados para order bumps
   const [products, setProducts] = useState<any[]>([]);
