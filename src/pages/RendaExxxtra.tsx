@@ -63,10 +63,10 @@ const RendaExxxtra = () => {
 
   const planConfig = {
     label: 'Renda Extra MRO',
-    amount: 300,
-    planType: 'annual',
-    priceDisplay: 'R$300',
-    durationDisplay: '1 ano de acesso',
+    amount: 67,
+    planType: 'mensal',
+    priceDisplay: 'R$67',
+    durationDisplay: '30 dias de acesso',
   };
 
   useEffect(() => {
@@ -200,7 +200,7 @@ const RendaExxxtra = () => {
       if (checkError) { toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
-      trackInitiateCheckout(`MRO Renda Extra Anual - R$300`, totalAmount);
+      trackInitiateCheckout(`MRO Renda Extra Teste 30 Dias - R$67`, totalAmount);
       window.location.href = checkData.payment_link;
     } catch (error) { toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
@@ -386,11 +386,11 @@ const RendaExxxtra = () => {
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">ACESSE A FERRAMENTA E APRENDA COMO UTILIZÁ-LA</span>
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE AGORA POR 30 DIAS</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
-                    <span className="text-6xl font-black text-green-500">300</span>
-                    <span className="text-zinc-400 text-sm font-bold">/ano</span>
+                    <span className="text-6xl font-black text-green-500">67</span>
+                    <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
                   </div>
                 </div>
                 
@@ -398,7 +398,7 @@ const RendaExxxtra = () => {
                   onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
                   className="w-full sm:w-auto btn-pulse-yellow px-12 py-8 rounded-2xl text-xl shadow-[0_0_30px_rgba(234,179,8,0.4)] transition-all hover:scale-105 active:scale-95 group"
                 >
-                  QUERO CONHECER O MRO
+                  TESTAR AGORA POR 30 DIAS
                   <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 
@@ -429,7 +429,7 @@ const RendaExxxtra = () => {
         <div className="max-w-5xl mx-auto text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
             <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 1 ano</span>
+            <span className="text-green-400 font-bold text-xs uppercase">Teste agora por 30 dias</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
           <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
@@ -465,21 +465,21 @@ const RendaExxxtra = () => {
       <section ref={pricingRef} className="py-16 sm:py-24 px-3 sm:px-4 bg-zinc-950">
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
-          <h3 className="text-2xl font-bold mb-4">ACESSO COMPLETO AO MRO</h3>
-          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Anual</div>
+          <h3 className="text-2xl font-bold mb-4">TESTE AGORA POR 30 DIAS</h3>
+          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Mensal</div>
           <div className="flex flex-col items-center mb-2">
-            <span className="text-zinc-500 text-sm line-through">De R$997</span>
-            <div className="text-5xl font-black text-green-400">R$300</div>
+            <span className="text-zinc-500 text-sm line-through">De R$147</span>
+            <div className="text-5xl font-black text-green-400">R$67</div>
           </div>
-          <p className="text-zinc-400 mb-6">Acesso durante 1 ano</p>
+          <p className="text-zinc-400 mb-6">Acesso durante 30 dias</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (1 ano)</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (30 dias)</li>
           </ul>
-          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO ACESSAR O MRO</Button>
+          <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO TESTAR POR 30 DIAS</Button>
         </div>
       </section>
 
