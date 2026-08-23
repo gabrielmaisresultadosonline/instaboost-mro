@@ -70,7 +70,7 @@ const RendaExxxtra = () => {
   };
 
   useEffect(() => {
-    trackPageView('Sales Page - Renddx Promo');
+    trackPageView('Sales Page - RendaExxxtra Promo');
     
     // Skip quiz and show site directly
     setIsLeadSaved(true);
