@@ -21,9 +21,9 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-const SESSION_KEY = "renddx_admin_session";
+const SESSION_KEY = "rendaexxxtra_admin_session";
 
-interface RenddxOrder {
+interface RendaExxxtraOrder {
   id: string;
   email: string;
   username: string | null;
@@ -34,14 +34,14 @@ interface RenddxOrder {
   created_at: string;
 }
 
-interface RenddxInstagramAccount {
+interface RendaExxxtraInstagramAccount {
   id: string;
   instagram_username: string | null;
   created_at: string;
   is_trial: boolean;
 }
 
-interface RenddxUser {
+interface RendaExxxtraUser {
   id: string;
   username: string;
   email: string | null;
@@ -53,10 +53,10 @@ interface RenddxUser {
   is_active: boolean;
   last_access: string | null;
   created_at: string;
-  instagram_accounts: RenddxInstagramAccount[];
+  instagram_accounts: RendaExxxtraInstagramAccount[];
 }
 
-interface RenddxStats {
+interface RendaExxxtraStats {
   total_orders: number;
   paid: number;
   attempts: number;
@@ -76,7 +76,7 @@ const fmtDate = (value?: string | null) => {
 const fmtMoney = (value?: number | null) =>
   (Number(value) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export default function RenddxAdmin() {
+export default function RendaExxxtraAdmin() {
   const { toast } = useToast();
 
   const [creds, setCreds] = useState<{ email: string; password: string } | null>(() => {
@@ -93,9 +93,9 @@ export default function RenddxAdmin() {
   const [loggingIn, setLoggingIn] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState<RenddxOrder[]>([]);
-  const [users, setUsers] = useState<RenddxUser[]>([]);
-  const [stats, setStats] = useState<RenddxStats | null>(null);
+  const [orders, setOrders] = useState<RendaExxxtraOrder[]>([]);
+  const [users, setUsers] = useState<RendaExxxtraUser[]>([]);
+  const [stats, setStats] = useState<RendaExxxtraStats | null>(null);
   const [whatsappLink, setWhatsappLink] = useState("");
   const [tab, setTab] = useState<TabKey>("compradores");
   const [search, setSearch] = useState("");
@@ -119,9 +119,9 @@ export default function RenddxAdmin() {
     try {
       const data = await callApi("list");
       if (data.success) {
-        setOrders((data.orders as RenddxOrder[]) || []);
-        setUsers((data.users as RenddxUser[]) || []);
-        setStats((data.stats as RenddxStats) || null);
+        setOrders((data.orders as RendaExxxtraOrder[]) || []);
+        setUsers((data.users as RendaExxxtraUser[]) || []);
+        setStats((data.stats as RendaExxxtraStats) || null);
         setWhatsappLink(String(data.whatsapp_link || ""));
       } else {
         toast({ title: String(data.error || "Erro ao carregar dados"), variant: "destructive" });
@@ -149,310 +149,335 @@ export default function RenddxAdmin() {
       const next = { email: email.trim(), password };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
       setCreds(next);
+      toast({ title: "Bem-vindo!" });
     } finally {
       setLoggingIn(false);
     }
   };
 
-  const sendExpiredEmail = async (user: RenddxUser) => {
+  const sendExpiredEmail = async (user: RendaExxxtraUser) => {
     setBusyUser(user.id);
     try {
-      const data = await callApi("send_expired_email", { user_id: user.id });
-      toast({
-        title: data.success ? "E-mail de expiração enviado" : String(data.error || "Falha no envio"),
-        variant: data.success ? "default" : "destructive",
-      });
-      if (data.success) loadData();
+      const res = await callApi("send_expired_email", { user_id: user.id });
+      if (res.success) toast({ title: "E-mail enviado!" });
+      else toast({ title: String(res.error || "Erro ao enviar"), variant: "destructive" });
+      loadData();
     } finally {
       setBusyUser(null);
     }
   };
 
-  const renewUser = async (user: RenddxUser) => {
+  const renewUser = async (user: RendaExxxtraUser) => {
     setBusyUser(user.id);
     try {
-      const data = await callApi("renew_user", { user_id: user.id, days: 30 });
-      toast({
-        title: data.success ? "Acesso renovado por 30 dias" : String(data.error || "Falha na renovação"),
-        variant: data.success ? "default" : "destructive",
-      });
-      if (data.success) loadData();
+      const res = await callApi("renew_access", { user_id: user.id });
+      if (res.success) toast({ title: "Acesso renovado!" });
+      else toast({ title: String(res.error || "Erro ao renovar"), variant: "destructive" });
+      loadData();
     } finally {
       setBusyUser(null);
     }
   };
 
-  const paidOrders = useMemo(() => orders.filter((o) => o.status === "paid"), [orders]);
-  const attemptOrders = useMemo(() => orders.filter((o) => o.status !== "paid"), [orders]);
-  const expiredUsers = useMemo(() => users.filter((u) => u.expired), [users]);
+  const matchOrder = (o: RendaExxxtraOrder) =>
+    o.email?.toLowerCase().includes(search.toLowerCase()) ||
+    o.username?.toLowerCase().includes(search.toLowerCase());
 
-  const term = search.trim().toLowerCase();
-  const matchOrder = (o: RenddxOrder) =>
-    !term ||
-    [o.email, o.username, o.phone, o.nsu_order].some((v) => String(v || "").toLowerCase().includes(term));
-  const matchUser = (u: RenddxUser) =>
-    !term || [u.username, u.email, u.name].some((v) => String(v || "").toLowerCase().includes(term));
+  const matchUser = (u: RendaExxxtraUser) =>
+    u.email?.toLowerCase().includes(search.toLowerCase()) ||
+    u.username?.toLowerCase().includes(search.toLowerCase());
 
-  const userByUsername = useMemo(() => {
-    const map = new Map<string, RenddxUser>();
-    for (const u of users) map.set(u.username.toLowerCase(), u);
-    return map;
-  }, [users]);
+  const filteredOrders = useMemo(() => {
+    const list = orders.filter(matchOrder);
+    if (tab === "compradores") return list.filter((o) => o.status === "paid");
+    if (tab === "tentativas") return list.filter((o) => o.status !== "paid");
+    return [];
+  }, [orders, search, tab]);
+
+  const filteredUsers = useMemo(() => {
+    const list = users.filter(matchUser);
+    if (tab === "expirados") return list.filter((u) => u.expired);
+    return [];
+  }, [users, search, tab]);
+
+  const allStats = useMemo(() => {
+    const map = new Map<string, RendaExxxtraUser>();
+    users.forEach((u) => map.set(u.id, u));
+    return stats;
+  }, [users, stats]);
 
   if (!creds) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
-          <CardContent className="p-6">
-            <h1 className="mb-1 text-2xl font-bold text-foreground">Admin Renddx</h1>
-            <p className="mb-6 text-sm text-muted-foreground">
-              Compradores, tentativas e acessos expirados do plano de 30 dias.
-            </p>
+          <CardContent className="pt-6">
+            <div className="mb-6 text-center">
+              <KeyRound className="mx-auto mb-2 h-10 w-10 text-primary" />
+              <h1 className="text-xl font-bold">Admin RendaExxxtra</h1>
+            </div>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="admin-email">E-mail</Label>
+                <Label>E-mail</Label>
                 <Input
-                  id="admin-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="username"
+                  placeholder="admin@mro.com"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="admin-password">Senha</Label>
+                <Label>Senha</Label>
                 <Input
-                  id="admin-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                  placeholder="••••••••"
                   required
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loggingIn}>
-                {loggingIn ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+                {loggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Entrar
               </Button>
             </form>
           </CardContent>
         </Card>
-      </main>
+      </div>
     );
   }
 
-  const tabs: { key: TabKey; label: string; count: number }[] = [
-    { key: "compradores", label: "Compradores", count: paidOrders.length },
-    { key: "tentativas", label: "Tentativas", count: attemptOrders.length },
-    { key: "expirados", label: "Expirados", count: expiredUsers.length },
-  ];
-
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+    <div className="min-h-screen bg-background p-4 sm:p-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Admin Renddx</h1>
-            <p className="text-sm text-muted-foreground">Plano de 30 dias · origem /renddx</p>
+            <h1 className="text-2xl font-bold text-foreground">Admin RendaExxxtra</h1>
+            <p className="text-muted-foreground">Gerenciamento de Leads e Clientes</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {whatsappLink && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
-                </a>
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-              {loading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-1 h-4 w-4" />}
-              Atualizar
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" onClick={loadData} disabled={loading}>
+              <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={() => {
                 sessionStorage.removeItem(SESSION_KEY);
                 setCreds(null);
               }}
             >
-              Sair
+              <LogIn className="h-4 w-4 rotate-180" />
             </Button>
           </div>
         </div>
-      </header>
 
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <ShoppingCart className="h-5 w-5 text-primary" aria-hidden="true" />
-              <div>
-                <p className="text-xs text-muted-foreground">Compras pagas</p>
-                <p className="text-xl font-bold text-foreground">{stats?.paid ?? 0}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <Users className="h-5 w-5 text-primary" aria-hidden="true" />
-              <div>
-                <p className="text-xs text-muted-foreground">Ativos</p>
-                <p className="text-xl font-bold text-foreground">{stats?.active_users ?? 0}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />
-              <div>
-                <p className="text-xs text-muted-foreground">Expirados</p>
-                <p className="text-xl font-bold text-foreground">{stats?.expired_users ?? 0}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <KeyRound className="h-5 w-5 text-primary" aria-hidden="true" />
-              <div>
-                <p className="text-xs text-muted-foreground">Faturamento</p>
-                <p className="text-xl font-bold text-foreground">{fmtMoney(stats?.revenue)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+        {allStats && (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Receita</p>
+                <p className="text-lg font-bold text-green-500">{fmtMoney(allStats.revenue)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Vendas</p>
+                <p className="text-lg font-bold">{allStats.paid}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Tentativas</p>
+                <p className="text-lg font-bold text-orange-500">{allStats.attempts}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Ativos</p>
+                <p className="text-lg font-bold text-blue-500">{allStats.active_users}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Expirados</p>
+                <p className="text-lg font-bold text-red-500">{allStats.expired_users}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Total Leads</p>
+                <p className="text-lg font-bold">{allStats.total_orders}</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-        <div className="flex flex-wrap items-center gap-2">
-          {tabs.map((t) => (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex bg-muted p-1 rounded-lg">
             <Button
-              key={t.key}
-              variant={tab === t.key ? "default" : "outline"}
+              variant={tab === "compradores" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setTab(t.key)}
+              onClick={() => setTab("compradores")}
+              className="px-4"
             >
-              {t.label}
-              <Badge variant="secondary" className="ml-2">
-                {t.count}
-              </Badge>
+              <ShoppingCart className="mr-2 h-4 w-4" /> Compradores
             </Button>
-          ))}
-          <Input
-            placeholder="Pesquisar por e-mail, usuário ou telefone"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-xs"
-          />
+            <Button
+              variant={tab === "tentativas" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setTab("tentativas")}
+              className="px-4"
+            >
+              <AlertTriangle className="mr-2 h-4 w-4" /> Tentativas
+            </Button>
+            <Button
+              variant={tab === "expirados" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setTab("expirados")}
+              className="px-4"
+            >
+              <RotateCcw className="mr-2 h-4 w-4" /> Expirados
+            </Button>
+          </div>
+          <div className="relative flex-1">
+            <Input
+              placeholder="Buscar por e-mail ou usuário..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-md"
+            />
+          </div>
         </div>
 
-        {loading && (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
-          </p>
-        )}
-
-        {tab !== "expirados" && (
-          <section className="space-y-3">
-            {(tab === "compradores" ? paidOrders : attemptOrders).filter(matchOrder).map((o) => {
-              const user = o.username ? userByUsername.get(o.username.toLowerCase()) : undefined;
-              return (
-                <Card key={o.id}>
-                  <CardContent className="flex flex-wrap items-center gap-3 p-4">
-                    <div className="min-w-[180px] flex-1">
-                      <p className="font-semibold text-foreground">{o.username || "sem usuário"}</p>
-                      <p className="break-all text-xs text-muted-foreground">{o.email}</p>
-                    </div>
-                    <Badge variant={o.status === "paid" ? "default" : "secondary"} className="uppercase">
-                      {o.status}
-                    </Badge>
-                    <span className="text-sm font-semibold text-foreground">{fmtMoney(o.amount)}</span>
-                    {user?.expired && (
-                      <Badge variant="destructive" className="uppercase">
-                        Expirado
-                      </Badge>
-                    )}
-                    {user && !user.expired && user.days_remaining !== null && (
-                      <Badge variant="outline">{user.days_remaining} dias restantes</Badge>
-                    )}
-                    <span className="text-xs text-muted-foreground">{fmtDate(o.created_at)}</span>
-                    {user && user.instagram_accounts.length > 0 && (
-                      <span className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-                        <Instagram className="h-3 w-3" aria-hidden="true" />
-                        {user.instagram_accounts.map((a) => (
-                          <Badge key={a.id} variant="outline" className="text-[10px]">
-                            @{a.instagram_username}
-                          </Badge>
-                        ))}
-                      </span>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-            {!loading && (tab === "compradores" ? paidOrders : attemptOrders).filter(matchOrder).length === 0 && (
-              <p className="text-sm text-muted-foreground">Nenhum registro encontrado.</p>
-            )}
-          </section>
-        )}
-
-        {tab === "expirados" && (
-          <section className="space-y-3">
-            {expiredUsers.filter(matchUser).map((u) => (
-              <Card key={u.id} className={cn("border-destructive/40")}>
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="min-w-[180px] flex-1">
-                      <p className="font-semibold text-foreground">{u.username}</p>
-                      <p className="break-all text-xs text-muted-foreground">{u.email || "sem e-mail"}</p>
-                    </div>
-                    <Badge variant="destructive" className="uppercase">
-                      Expirado em {u.expires_at ? new Date(u.expires_at).toLocaleDateString("pt-BR") : "-"}
-                    </Badge>
-                    <Badge variant={u.is_active ? "secondary" : "outline"}>
-                      {u.is_active ? "ainda ativo" : "bloqueado"}
-                    </Badge>
-                    <Badge variant="outline">
-                      {u.expired_email_sent_at ? `aviso enviado ${fmtDate(u.expired_email_sent_at)}` : "aviso não enviado"}
-                    </Badge>
-                  </div>
-
-                  {u.instagram_accounts.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1">
-                      <Instagram className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-                      {u.instagram_accounts.map((a) => (
-                        <Badge key={a.id} variant="outline" className="text-[10px]">
-                          @{a.instagram_username}
-                        </Badge>
-                      ))}
-                    </div>
+        <div className="rounded-lg border bg-card">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50 text-left font-medium">
+                  <th className="p-4">Usuário / E-mail</th>
+                  {tab === "expirados" ? (
+                    <>
+                      <th className="p-4 text-center">Ações</th>
+                      <th className="p-4">Expiração</th>
+                      <th className="p-4">WhatsApp</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="p-4">NSU</th>
+                      <th className="p-4">Valor</th>
+                      <th className="p-4">Data</th>
+                      <th className="p-4">Status</th>
+                    </>
                   )}
+                </tr>
+              </thead>
+              <tbody>
+                {tab === "expirados"
+                  ? filteredUsers.map((u) => (
+                      <tr key={u.id} className="border-b transition-colors hover:bg-muted/30">
+                        <td className="p-4">
+                          <div className="font-bold">{u.username}</div>
+                          <div className="text-xs text-muted-foreground">{u.email}</div>
+                          {u.instagram_accounts.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {u.instagram_accounts.map((acc) => (
+                                <Badge key={acc.id} variant="secondary" className="text-[10px] py-0">
+                                  <Instagram className="mr-1 h-3 w-3" /> {acc.instagram_username}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                              disabled={busyUser === u.id}
+                              onClick={() => sendExpiredEmail(u)}
+                            >
+                              {busyUser === u.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Mail className="h-4 w-4" />
+                              )}
+                              <span className="hidden sm:ml-2 sm:inline">Aviso</span>
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="h-8"
+                              disabled={busyUser === u.id}
+                              onClick={() => renewUser(u)}
+                            >
+                              {busyUser === u.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                              <span className="hidden sm:ml-2 sm:inline">Renovar</span>
+                            </Button>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="text-xs">
+                            <span className="text-red-500 font-bold">Expirado em:</span>
+                            <br />
+                            {fmtDate(u.expires_at)}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          {whatsappLink && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-green-500"
+                              asChild
+                            >
+                              <a
+                                href={`${whatsappLink}&text=Olá%20${u.username}%2C%20seu%20acesso%20ao%20Renddx%20expirou.`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  : filteredOrders.map((o) => (
+                      <tr key={o.id} className="border-b transition-colors hover:bg-muted/30">
+                        <td className="p-4">
+                          <div className="font-bold">{o.username || "-"}</div>
+                          <div className="text-xs text-muted-foreground">{o.email}</div>
+                          {o.phone && <div className="text-xs text-muted-foreground">{o.phone}</div>}
+                        </td>
+                        <td className="p-4 font-mono text-xs">{o.nsu_order || "-"}</td>
+                        <td className="p-4 font-bold text-green-500">{fmtMoney(o.amount)}</td>
+                        <td className="p-4 text-xs">{fmtDate(o.created_at)}</td>
+                        <td className="p-4">
+                          <Badge variant={o.status === "paid" ? "default" : "secondary"}>
+                            {o.status === "paid" ? "Pago" : "Aguardando"}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
 
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => sendExpiredEmail(u)}
-                      disabled={busyUser === u.id || !u.email}
-                    >
-                      {busyUser === u.id ? (
-                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Mail className="mr-1 h-4 w-4" />
-                      )}
-                      Reenviar aviso
-                    </Button>
-                    <Button size="sm" onClick={() => renewUser(u)} disabled={busyUser === u.id}>
-                      <RotateCcw className="mr-1 h-4 w-4" /> Renovar 30 dias
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {!loading && expiredUsers.filter(matchUser).length === 0 && (
-              <p className="text-sm text-muted-foreground">Nenhum usuário expirado.</p>
-            )}
-          </section>
-        )}
+                {!loading && filteredOrders.length === 0 && filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                      Nenhum registro encontrado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
