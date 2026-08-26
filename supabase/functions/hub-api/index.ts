@@ -27,19 +27,31 @@ function genNSU() {
   return `HUB${Date.now()}${Math.floor(Math.random() * 1000)}`;
 }
 
-/** Verifica se o registro de usuário (MRO ou ZAPMRO) ainda está com acesso válido. */
+/**
+ * Verifica se o registro de usuário (MRO ou ZAPMRO) ainda está com acesso válido.
+ *
+ * IMPORTANTE: `expiration_days` / `days_remaining` são contadores de dias RESTANTES
+ * (atualizados diariamente), NÃO a duração total do plano. Por isso nunca se deve
+ * calcular a expiração como `created_at + dias`: um cliente criado há 28 dias com
+ * 20 dias restantes apareceria como expirado. Quando existe uma data explícita
+ * (`expires_at`), ela tem prioridade.
+ */
 function isAccessActive(row: Record<string, unknown> | null): boolean {
   if (!row) return false;
   if (row.is_active === false) return false;
+
   const days = Number(row.expiration_days ?? row.days_remaining ?? 0);
-  if (days >= LIFETIME_DAYS) return true;
-  const created = row.last_access || row.created_at;
-  if (!days) return false;
-  if (!created) return true;
-  const start = new Date(String(row.created_at || created)).getTime();
-  const expires = start + days * 24 * 60 * 60 * 1000;
-  return Date.now() < expires;
+  if (Number.isFinite(days) && days >= LIFETIME_DAYS) return true;
+
+  const explicitExpiry = row.expires_at ?? row.subscription_end ?? null;
+  if (explicitExpiry) {
+    const ts = new Date(String(explicitExpiry)).getTime();
+    if (!Number.isNaN(ts)) return Date.now() < ts;
+  }
+
+  return Number.isFinite(days) && days > 0;
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
