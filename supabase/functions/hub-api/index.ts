@@ -164,9 +164,59 @@ serve(async (req) => {
         }
       }
 
+      let lotarGruposTokenHash: string | null = null;
+
+      // SSO opcional para a área de membros Lotar Grupos. O token só é emitido
+      // depois que as credenciais do Hub foram validadas acima e o e-mail possui
+      // uma licença ativa do produto.
+      if (body.issue_lotargrupos_sso === true && email) {
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const { data: lotarUser } = await supabase
+          .from("lotargrupos_users")
+          .select("email,status,name")
+          .eq("email", normalizedEmail)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+
+        if (lotarUser) {
+          let { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: normalizedEmail,
+          });
+
+          // Compras antigas ou liberações manuais podem ainda não possuir uma
+          // conta no Auth. Criamos a identidade com senha aleatória e tentamos
+          // gerar o token novamente, sem alterar a senha usada no Hub.
+          if (linkError) {
+            const randomPassword = `${crypto.randomUUID()}-${crypto.randomUUID()}`;
+            const { error: createError } = await supabase.auth.admin.createUser({
+              email: normalizedEmail,
+              password: randomPassword,
+              email_confirm: true,
+              user_metadata: { full_name: lotarUser.name || name || "Aluno" },
+            });
+
+            if (!createError) {
+              const retry = await supabase.auth.admin.generateLink({
+                type: "magiclink",
+                email: normalizedEmail,
+              });
+              linkData = retry.data;
+              linkError = retry.error;
+            }
+          }
+
+          if (!linkError && linkData?.properties?.hashed_token) {
+            lotarGruposTokenHash = linkData.properties.hashed_token;
+          }
+        }
+      }
+
       return json({
         success: true,
         user: { username, email, name },
+        lotargrupos_token_hash: lotarGruposTokenHash,
       });
 
     }

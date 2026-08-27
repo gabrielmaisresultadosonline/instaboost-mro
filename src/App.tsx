@@ -498,6 +498,7 @@ const App = () => (
           <Route path="/lotargrupos/checkout" element={<LotarGruposPreCheckout />} />
           <Route path="/lotargrupos/pre-checkout" element={<LotarGruposPreCheckout />} />
           <Route path="/login" element={<LotarGruposLogin />} />
+          <Route path="/lotargrupos/login" element={<LotarGruposLogin />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
           <Route path="/lotargrupos/dashboard" element={<LotarGruposDashboard />} />
 
