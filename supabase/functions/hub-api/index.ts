@@ -248,7 +248,19 @@ serve(async (req) => {
 
           if (!linkError && linkData?.properties?.hashed_token) {
             lotarGruposTokenHash = linkData.properties.hashed_token;
+
+            // A policy da área de membros lê o registro pelo auth.uid(), então o
+            // vínculo precisa existir antes do primeiro acesso.
+            const authUserId = (linkData as { user?: { id?: string } })?.user?.id;
+            if (authUserId) {
+              await supabase
+                .from("lotargrupos_users")
+                .update({ user_id: authUserId })
+                .eq("email", normalizedEmail)
+                .is("user_id", null);
+            }
           }
+
         }
       }
 
