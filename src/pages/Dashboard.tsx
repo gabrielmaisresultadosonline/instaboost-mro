@@ -530,14 +530,15 @@ export default function Dashboard() {
   };
 
   const handleCardClick = (product: HubProduct) => {
-    if (product.slug === 'lotar-grupos') {
+    if (product.slug === 'lotar-grupos' || product.slug === 'lotargrupos') {
       if (product.unlocked) {
-        navigate('/lotargrupos/dashboard');
+        void openProduct(product);
       } else {
         navigate('/lotargrupos');
       }
       return;
     }
+
     
     if (product.status === 'construction') {
       toast({ 
