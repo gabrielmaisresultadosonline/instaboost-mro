@@ -167,19 +167,60 @@ serve(async (req) => {
       let lotarGruposTokenHash: string | null = null;
 
       // SSO opcional para a área de membros Lotar Grupos. O token só é emitido
-      // depois que as credenciais do Hub foram validadas acima e o e-mail possui
-      // uma licença ativa do produto.
+      // depois que as credenciais do Hub foram validadas acima e o cliente possui
+      // acesso ao produto (licença própria OU liberação manual/compra no Hub).
       if (body.issue_lotargrupos_sso === true && email) {
         const normalizedEmail = String(email).trim().toLowerCase();
+        const normalizedUsername = username ? String(username).trim().toLowerCase() : "";
+
         const { data: lotarUser } = await supabase
           .from("lotargrupos_users")
           .select("email,status,name")
           .eq("email", normalizedEmail)
-          .eq("status", "active")
           .limit(1)
           .maybeSingle();
 
-        if (lotarUser) {
+        let hasAccess = !!lotarUser && lotarUser.status === "active";
+
+        // Liberações feitas pela dashboard de produtos (hub_access) também valem.
+        if (!hasAccess) {
+          const { data: product } = await supabase
+            .from("hub_products")
+            .select("id")
+            .eq("slug", "lotargrupos")
+            .limit(1)
+            .maybeSingle();
+
+          if (product?.id) {
+            const filters = [`email.eq.${normalizedEmail}`];
+            if (normalizedUsername) filters.push(`username.eq.${normalizedUsername}`);
+            const { data: grants } = await supabase
+              .from("hub_access")
+              .select("expires_at")
+              .eq("product_id", product.id)
+              .or(filters.join(","));
+            hasAccess = (grants || []).some(
+              (g: { expires_at: string | null }) =>
+                !g.expires_at || new Date(g.expires_at).getTime() > Date.now(),
+            );
+          }
+        }
+
+        if (hasAccess) {
+          // A área de membros exige um registro ativo em lotargrupos_users.
+          if (!lotarUser) {
+            await supabase.from("lotargrupos_users").insert({
+              email: normalizedEmail,
+              name: name || "Aluno",
+              status: "active",
+            });
+          } else if (lotarUser.status !== "active") {
+            await supabase
+              .from("lotargrupos_users")
+              .update({ status: "active" })
+              .eq("email", normalizedEmail);
+          }
+
           let { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
             type: "magiclink",
             email: normalizedEmail,
@@ -188,30 +229,41 @@ serve(async (req) => {
           // Compras antigas ou liberações manuais podem ainda não possuir uma
           // conta no Auth. Criamos a identidade com senha aleatória e tentamos
           // gerar o token novamente, sem alterar a senha usada no Hub.
-          if (linkError) {
+          if (linkError || !linkData?.properties?.hashed_token) {
             const randomPassword = `${crypto.randomUUID()}-${crypto.randomUUID()}`;
-            const { error: createError } = await supabase.auth.admin.createUser({
+            await supabase.auth.admin.createUser({
               email: normalizedEmail,
               password: randomPassword,
               email_confirm: true,
-              user_metadata: { full_name: lotarUser.name || name || "Aluno" },
+              user_metadata: { full_name: name || "Aluno" },
             });
 
-            if (!createError) {
-              const retry = await supabase.auth.admin.generateLink({
-                type: "magiclink",
-                email: normalizedEmail,
-              });
-              linkData = retry.data;
-              linkError = retry.error;
-            }
+            const retry = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: normalizedEmail,
+            });
+            linkData = retry.data;
+            linkError = retry.error;
           }
 
           if (!linkError && linkData?.properties?.hashed_token) {
             lotarGruposTokenHash = linkData.properties.hashed_token;
+
+            // A policy da área de membros lê o registro pelo auth.uid(), então o
+            // vínculo precisa existir antes do primeiro acesso.
+            const authUserId = (linkData as { user?: { id?: string } })?.user?.id;
+            if (authUserId) {
+              await supabase
+                .from("lotargrupos_users")
+                .update({ user_id: authUserId })
+                .eq("email", normalizedEmail)
+                .is("user_id", null);
+            }
           }
+
         }
       }
+
 
       return json({
         success: true,
