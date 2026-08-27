@@ -489,7 +489,15 @@ export default function Dashboard() {
 
 
 
-      if (product.access_source === "lotargrupos" || product.slug === "lotar-grupos") {
+      // Lotar Grupos: aceita as duas variações de slug já cadastradas no hub e
+      // sempre abre a área de membros própria do produto, ignorando o
+      // `app_route` legado (que aponta para /dashboard e travava o clique).
+      const isLotarGrupos =
+        product.access_source === "lotargrupos" ||
+        product.slug === "lotar-grupos" ||
+        product.slug === "lotargrupos";
+
+      if (isLotarGrupos) {
         if (session.email) {
           try {
             // Tenta logar silenciosamente usando o e-mail do hub e a senha
@@ -501,17 +509,21 @@ export default function Dashboard() {
             // Se falhar, segue para o dashboard (que redirecionará se não estiver logado)
           }
         }
+        markHubReturn();
+        navigate("/lotargrupos/dashboard");
+        return;
       }
 
       // Marca a sessão para que os botões de "voltar" das ferramentas
       // retornem para o Dashboard.
       markHubReturn();
 
-      if (product.app_route) {
+      if (product.app_route && product.app_route !== "/dashboard") {
         navigate(product.app_route);
       } else {
         navigate(`/dashboard/produto/${product.slug}`);
       }
+
     } finally {
       setOpening(null);
     }
