@@ -8366,6 +8366,54 @@ export type Database = {
         }
         Relationships: []
       }
+      zapzap_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_enviado: boolean
+          id: string
+          nome: string
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_enviado?: boolean
+          id?: string
+          nome: string
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_enviado?: boolean
+          id?: string
+          nome?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      zapzap_settings: {
+        Row: {
+          created_at: string
+          grupo_link: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grupo_link?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grupo_link?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       mro_orders_public: {
