@@ -498,17 +498,44 @@ export default function Dashboard() {
         product.slug === "lotargrupos";
 
       if (isLotarGrupos) {
-        if (session.email) {
-          try {
-            // Tenta logar silenciosamente usando o e-mail do hub e a senha
-            await supabase.auth.signInWithPassword({
-              email: session.email.toLowerCase().trim(),
-              password: session.password
-            });
-          } catch {
-            // Se falhar, segue para o dashboard (que redirecionará se não estiver logado)
-          }
+        const identifier = session.username || session.email;
+        if (!identifier) {
+          toast({ title: "Não foi possível identificar seu acesso", variant: "destructive" });
+          return;
         }
+
+        const { data: ssoData, error: ssoError } = await supabase.functions.invoke("hub-api", {
+          body: {
+            action: "login",
+            identifier,
+            password: session.password,
+            issue_lotargrupos_sso: true,
+          },
+        });
+
+        const tokenHash = typeof ssoData?.lotargrupos_token_hash === "string"
+          ? ssoData.lotargrupos_token_hash
+          : "";
+
+        if (ssoError || !ssoData?.success || !tokenHash) {
+          toast({
+            title: "Não foi possível abrir o Lotar Grupos",
+            description: "Atualize a página e tente novamente.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "email",
+        });
+
+        if (verifyError) {
+          toast({ title: "Falha ao iniciar sua sessão", variant: "destructive" });
+          return;
+        }
+
         markHubReturn();
         navigate("/lotargrupos/dashboard");
         return;

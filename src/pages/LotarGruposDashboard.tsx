@@ -22,14 +22,18 @@ export default function LotarGruposDashboard() {
 
   useEffect(() => {
     const checkAccess = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
       
-      if (!session) {
+      if (!authUser) {
         navigate('/lotargrupos/login');
         return;
       }
 
-      const email = session.user.email;
+      const email = authUser.email;
+      if (!email) {
+        navigate('/lotargrupos/login');
+        return;
+      }
       const { data: user, error } = await supabase
         .from('lotargrupos_users')
         .select('*')
