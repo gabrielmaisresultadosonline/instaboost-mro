@@ -19,7 +19,7 @@ const API_TIMEOUT_MS = 30_000; // 30 segundos
 /**
  * Invoca uma Edge Function com timeout. Se estourar, rejeita com erro claro.
  */
-async function invokeWithTimeout<T = unknown>(
+async function invokeWithTimeout<T extends Record<string, any> = Record<string, any>>(
   fn: "hub-api" | "mro-tool-api",
   body: Record<string, unknown>,
   timeoutMs = API_TIMEOUT_MS
