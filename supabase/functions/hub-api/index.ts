@@ -117,12 +117,12 @@ serve(async (req) => {
       const [mroResult, zapResult] = await Promise.all([
         supabase
           .from("mro_tool_users")
-          .select("username,email,name,password_hash,password_plain")
+          .select("*")
           .ilike(lookupColumn, identifier)
           .limit(1),
         supabase
           .from("zapmro_users")
-          .select("username,email,name,password_hash,password_plain")
+          .select("*")
           .ilike(lookupColumn, identifier)
           .limit(1),
       ]);
