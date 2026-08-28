@@ -8460,6 +8460,18 @@ export type Database = {
       }
     }
     Functions: {
+      dump_list_tables: {
+        Args: never
+        Returns: {
+          row_count: number
+          table_name: string
+        }[]
+      }
+      dump_schema_info: { Args: never; Returns: Json }
+      dump_table_rows: {
+        Args: { p_limit?: number; p_offset?: number; p_table: string }
+        Returns: Json
+      }
       get_whatsapp_public_config: { Args: never; Returns: Json }
       has_role: {
         Args: {
