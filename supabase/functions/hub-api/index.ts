@@ -118,12 +118,12 @@ serve(async (req) => {
         supabase
           .from("mro_tool_users")
           .select("username,email,name,password_hash,password_plain")
-          .eq(lookupColumn, identifier)
+          .ilike(lookupColumn, identifier)
           .limit(1),
         supabase
           .from("zapmro_users")
           .select("username,email,name,password_hash,password_plain")
-          .eq(lookupColumn, identifier)
+          .ilike(lookupColumn, identifier)
           .limit(1),
       ]);
 

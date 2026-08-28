@@ -205,7 +205,7 @@ serve(async (req) => {
       const { data } = await supabase
         .from("mro_tool_users")
         .select("*")
-        .eq(lookupColumn, id)
+        .ilike(lookupColumn, id)
         .limit(1);
       return (data?.[0] as MroUserRow) || null;
     }
