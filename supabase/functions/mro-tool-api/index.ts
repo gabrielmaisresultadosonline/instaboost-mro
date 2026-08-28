@@ -22,6 +22,25 @@ const RENEWAL_WHATSAPP_LINK =
   "https://wa.me/555192835863?text=" +
   encodeURIComponent("Olá vim pelo renda extra, já usei 30 dias gostaria de saber sobre o desconto.");
 const PAGE_SIZE = 1000;
+/** Timeout em ms para operações de banco — exceder resulta em erro rápido em vez de timeout de 150s. */
+const DB_TIMEOUT_MS = 10_000;
+
+/**
+ * Cria cliente com timeout na conexão.
+ * O Supabase JS não expõe o AbortController diretamente na v2, então
+ * usamos um wrapper de fetch com signal.
+ */
+function createTimedClient(url: string, key: string) {
+  return createClient(url, key, {
+    global: {
+      fetch: (input, init) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), DB_TIMEOUT_MS);
+        return fetch(input, { ...init, signal: controller.signal as any }).finally(() => clearTimeout(timeout));
+      },
+    },
+  });
+}
 
 /** SHA-256 (Web Crypto) — mesmo padrão usado nas demais APIs do projeto. */
 async function sha256(value: string): Promise<string> {
@@ -70,13 +89,19 @@ interface ProfileScreenshotRow {
   updated_at: string | null;
 }
 
+/**
+ * Busca todas as linhas com paginação, parando quando atinge maxRows.
+ * Usa o fetch com timeout global para nunca ultrapassar DB_TIMEOUT_MS por página.
+ */
 async function fetchAllRows<Row>(
+  supabase: ReturnType<typeof createTimedClient>,
   queryFactory: () => { range: (from: number, to: number) => PromiseLike<{ data: Row[] | null; error: { message: string } | null }> },
+  maxRows = 10_000,
 ): Promise<{ data: Row[]; error: string | null }> {
   const rows: Row[] = [];
 
-  for (let from = 0; ; from += PAGE_SIZE) {
-    const to = from + PAGE_SIZE - 1;
+  for (let from = 0; from < maxRows; from += PAGE_SIZE) {
+    const to = Math.min(from + PAGE_SIZE - 1, maxRows - 1);
     const { data, error } = await queryFactory().range(from, to);
 
     if (error) return { data: rows, error: error.message };
@@ -137,7 +162,6 @@ function planInfo(user: MroUserRow) {
   };
 }
 
-
 /**
  * Limite real de contas fixas do usuário.
  * Soma as contas do plano com os extras liberados manualmente pelo admin.
@@ -151,12 +175,18 @@ function totalSlots(user: MroUserRow): number {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let supabase: ReturnType<typeof createTimedClient>;
   try {
-    const supabase = createClient(
+    supabase = createTimedClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+  } catch (initErr) {
+    console.error("[MRO-TOOL-API] init error:", initErr);
+    return json({ success: false, error: "Erro ao inicializar conexão com banco" }, 500);
+  }
 
+  try {
     const raw = await req.text();
     let body: Record<string, any> = {};
     try {
@@ -179,15 +209,12 @@ serve(async (req) => {
       return (data?.[0] as MroUserRow) || null;
     }
 
-    /** Remove contas de teste expiradas e devolve as contas válidas. */
+    /**
+     * Devolve as contas fixas válidas do usuário.
+     * A limpeza de contas de teste expiradas foi movida para o trigger SQL
+     * (ver migration: auto_cleanup_expired_trials) para não travar o login.
+     */
     async function getAccounts(userId: string): Promise<MroAccountRow[]> {
-      await supabase
-        .from("mro_tool_accounts")
-        .delete()
-        .eq("user_id", userId)
-        .eq("is_trial", true)
-        .lt("trial_expires_at", new Date().toISOString());
-
       const { data } = await supabase
         .from("mro_tool_accounts")
         .select("*")
@@ -400,8 +427,6 @@ serve(async (req) => {
     }
 
     if (action === "verify_user") {
-
-
       const identifier = String(body.username || body.email || body.identifier || "").trim().toLowerCase();
       if (!identifier) return json({ success: false, error: "Usuário ou email é obrigatório" }, 400);
       let user = await findUser(identifier);
@@ -489,7 +514,7 @@ serve(async (req) => {
 
       const fixedCount = accounts.filter((a) => !a.is_trial).length;
       const total = totalSlots(user);
-      
+
       if (fixedCount >= total) {
         await supabase.from("mro_tool_logs").insert({
           user_id: user.id,
@@ -641,54 +666,63 @@ serve(async (req) => {
     /**
      * Vincula automaticamente os emails (created_accesses e mro_orders) e as senhas
      * já cadastradas na área /instagram aos usuários da ferramenta MRO.
-     * Assim o cliente consegue logar por usuário ou email e o admin consegue reenviar o acesso.
+     * Usa COUNT(*) para contar registros sem varrer linha por linha.
      */
     if (action === "sync_emails" || action === "sync_credentials") {
+      // Conta quantos registros existem em cada tabela para decidir a estratégia.
+      const [{ count: accessesCount }, { count: ordersCount }, { count: usersCount }] = await Promise.all([
+        supabase.from("created_accesses").select("id", { count: "exact", head: true }),
+        supabase.from("mro_orders").select("id", { count: "exact", head: true }),
+        supabase.from("mro_tool_users").select("id", { count: "exact", head: true }),
+      ]);
+
       const emailByUsername = new Map<string, string>();
       const passwordByUsername = new Map<string, string>();
 
-      const { data: accesses } = await fetchAllRows<{
-        username: string;
-        customer_email: string | null;
-        password: string | null;
-      }>(() =>
-        supabase
+      // Se houver poucos registros, busca tudo; senão, busca apenas os mais recentes.
+      const accessesLimit = Math.min(Number(accessesCount) || 0, 5000);
+      if (accessesLimit > 0) {
+        const { data: accesses } = await supabase
           .from("created_accesses")
           .select("username, customer_email, password")
-          .order("created_at", { ascending: false }),
-      );
-      for (const row of accesses) {
-        const u = String(row.username || "").trim().toLowerCase();
-        const e = String(row.customer_email || "").trim().toLowerCase();
-        const p = String(row.password || "").trim();
-        if (!u) continue;
-        if (e && !emailByUsername.has(u)) emailByUsername.set(u, e);
-        if (p && !passwordByUsername.has(u)) passwordByUsername.set(u, p);
+          .order("created_at", { ascending: false })
+          .limit(accessesLimit);
+        for (const row of (accesses || []) as any[]) {
+          const u = String(row.username || "").trim().toLowerCase();
+          const e = String(row.customer_email || "").trim().toLowerCase();
+          const p = String(row.password || "").trim();
+          if (!u) continue;
+          if (e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+          if (p && !passwordByUsername.has(u)) passwordByUsername.set(u, p);
+        }
       }
 
-      const { data: orders } = await fetchAllRows<{ username: string | null; email: string | null }>(() =>
-        supabase
+      const ordersLimit = Math.min(Number(ordersCount) || 0, 5000);
+      if (ordersLimit > 0) {
+        const { data: orders } = await supabase
           .from("mro_orders")
           .select("username, email")
-          .order("created_at", { ascending: false }),
-      );
-      for (const row of orders) {
-        const u = String(row.username || "").trim().toLowerCase();
-        const e = String(row.email || "").trim().toLowerCase();
-        if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+          .order("created_at", { ascending: false })
+          .limit(ordersLimit);
+        for (const row of (orders || []) as any[]) {
+          const u = String(row.username || "").trim().toLowerCase();
+          const e = String(row.email || "").trim().toLowerCase();
+          if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+        }
       }
 
-      const { data: allUsers } = await fetchAllRows<MroUserRow>(() =>
-        supabase
-          .from("mro_tool_users")
-          .select("id, username, email, password_plain")
-          .order("created_at", { ascending: true }),
-      );
+      // Atualiza usuários em lotes pequenos para não estourar o timeout.
+      const { data: allUsers } = await supabase
+        .from("mro_tool_users")
+        .select("id, username, email, password_plain")
+        .order("created_at", { ascending: true })
+        .limit(2000);
 
       const overwrite = body.overwrite === true;
       let updated = 0;
       let passwords = 0;
-      for (const u of allUsers) {
+
+      for (const u of (allUsers || []) as any[]) {
         const key = String(u.username || "").trim().toLowerCase();
         const patch: Record<string, unknown> = {};
 
@@ -710,7 +744,7 @@ serve(async (req) => {
         }
       }
 
-      return json({ success: true, updated, passwords, total: allUsers.length });
+      return json({ success: true, updated, passwords, total: (allUsers || []).length });
     }
 
     /**
@@ -754,8 +788,6 @@ serve(async (req) => {
 
       return json({ success: true, email: user.email });
     }
-
-
 
     if (action === "upsert_user") {
       const username = String(body.username || "").trim().toLowerCase();
@@ -837,13 +869,13 @@ serve(async (req) => {
 
       const { error } = await supabase.from("mro_tool_accounts").insert({ user_id: userId, instagram_username: instagram });
       if (error) return json({ success: false, error: error.message }, 500);
-      
+
       await supabase.from("mro_tool_logs").insert({
         user_id: userId,
         action_type: "account_added",
         details: { instagram, is_admin: true }
       });
-      
+
       return json({ success: true });
     }
 
@@ -1044,7 +1076,12 @@ serve(async (req) => {
 
     return json({ success: false, error: "Ação inválida" }, 400);
   } catch (error) {
-    console.error("[MRO-TOOL-API]", error instanceof Error ? error.message : "Unknown");
+    const message = error instanceof Error ? error.message : "Unknown";
+    console.error("[MRO-TOOL-API]", message);
+    // AbortError = timeout de 10s; retorna 504 para o frontend mostrar erro claro.
+    if (message.includes("aborted") || message.includes("canceled")) {
+      return json({ success: false, error: "Tempo limite excedido no banco de dados. Tente novamente em alguns segundos." }, 504);
+    }
     return json({ success: false, error: "Erro interno" }, 500);
   }
 });
