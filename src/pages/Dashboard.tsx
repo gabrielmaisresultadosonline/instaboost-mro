@@ -231,9 +231,19 @@ export default function Dashboard() {
     }
     setLoggingIn(true);
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
+      const { data, error: invokeError } = await supabase.functions.invoke("hub-api", {
         body: { action: "login", identifier: identifier.trim(), password },
       });
+      if (invokeError) {
+        console.error("[Dashboard] invoke error:", invokeError);
+        toast({ 
+          title: "Erro de conexão", 
+          description: "Não foi possível conectar ao servidor. Tente novamente em alguns segundos.",
+          variant: "destructive" 
+        });
+        setLoggingIn(false);
+        return;
+      }
       if (data?.success) {
         const next: DashboardSession = {
           username: data.user.username || null,
@@ -246,8 +256,13 @@ export default function Dashboard() {
       } else {
         toast({ title: data?.error || "Não foi possível entrar", variant: "destructive" });
       }
-    } catch {
-      toast({ title: "Erro inesperado ao entrar", variant: "destructive" });
+    } catch (err) {
+      console.error("[Dashboard] Unexpected login error:", err);
+      toast({ 
+        title: "Erro inesperado", 
+        description: err instanceof Error ? err.message : "Algo deu errado. Tente novamente.",
+        variant: "destructive" 
+      });
     } finally {
       setLoggingIn(false);
     }
