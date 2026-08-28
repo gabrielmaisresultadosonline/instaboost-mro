@@ -35,6 +35,7 @@ import MroToolPanel from '@/components/admin/MroToolPanel';
 import LovablackPanel from '@/components/admin/LovablackPanel';
 import RenddxLeadsPanel from '@/components/admin/RenddxLeadsPanel';
 import LotarGruposPanel from '@/components/admin/LotarGruposPanel';
+import DumpPanel from '@/components/admin/DumpPanel';
 
 import {
   Users, Settings, Video, LogOut, Search, 
@@ -45,6 +46,7 @@ import {
   Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus,
   Package,
 
+  Database,
 } from 'lucide-react';
 
 import { 
@@ -66,7 +68,7 @@ import { cn } from "@/lib/utils";
 
 const PostsComIAAdmin = lazy(() => import('@/pages/PostsComIAAdmin'));
 
-type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads' | 'lotargrupos';
+type Tab = 'users' | 'calls' | 'tutorials' | 'zapmro' | 'zapmro_taxas' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'userlist' | 'whatsapp' | 'partners' | 'hub' | 'postscomia' | 'merges' | 'lovablack' | 'renddx_leads' | 'lotargrupos' | 'dump';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -238,6 +240,7 @@ const Admin = () => {
     { id: 'lovablack', label: 'LOVABLACK', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'renddx_leads', label: 'Leads Renddx', icon: <Users className="w-4 h-4" /> },
     { id: 'lotargrupos', label: 'Lotar Grupos', icon: <Video className="w-4 h-4" /> },
+    { id: 'dump', label: 'Dump', icon: <Database className="w-4 h-4" /> },
   ];
 
 
@@ -1154,6 +1157,9 @@ const Admin = () => {
         )}
         {activeTab === 'lotargrupos' && (
           <LotarGruposPanel />
+        )}
+        {activeTab === 'dump' && (
+          <DumpPanel />
         )}
 
           </main>
