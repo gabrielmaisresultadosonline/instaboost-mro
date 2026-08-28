@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -14,6 +10,20 @@ const json = (body: unknown, status = 200) =>
 
 const INFINITEPAY_HANDLE = "paguemro";
 const LIFETIME_DAYS = 999999;
+const DB_TIMEOUT_MS = 10_000;
+
+function createTimedClient(url: string, key: string) {
+  return createClient(url, key, {
+    auth: { persistSession: false },
+    global: {
+      fetch: (input, init) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), DB_TIMEOUT_MS);
+        return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timeout));
+      },
+    },
+  });
+}
 
 async function sha256(value: string): Promise<string> {
   const data = new TextEncoder().encode(value);
@@ -56,10 +66,9 @@ function isAccessActive(row: Record<string, unknown> | null): boolean {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const supabase = createClient(
+  const supabase = createTimedClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { persistSession: false } },
   );
 
   try {
@@ -93,19 +102,28 @@ serve(async (req) => {
         );
       };
 
-      const safe = identifier.replace(/[,()"']/g, "");
-
       let username: string | null = null;
       let email: string | null = null;
       let name: string | null = null;
       let matched = false;
 
-      // 1) MRO Ferramenta
-      const { data: mroRows } = await supabase
-        .from("mro_tool_users")
-        .select("*")
-        .or(`username.eq.${safe},email.eq.${safe}`)
-        .limit(1);
+      // Busca direta e paralela nas duas fontes. Evita OR sem índice e elimina
+      // uma segunda espera quando o usuário existe apenas no ZAPMRO.
+      const lookupColumn = identifier.includes("@") ? "email" : "username";
+      const [mroResult, zapResult] = await Promise.all([
+        supabase
+          .from("mro_tool_users")
+          .select("username,email,name,password_hash,password_plain")
+          .eq(lookupColumn, identifier)
+          .limit(1),
+        supabase
+          .from("zapmro_users")
+          .select("username,email,name,password_hash,password_plain")
+          .eq(lookupColumn, identifier)
+          .limit(1),
+      ]);
+
+      const mroRows = mroResult.data;
       const mro = mroRows?.[0] || null;
       if (passwordMatches(mro)) {
         matched = true;
@@ -116,11 +134,7 @@ serve(async (req) => {
 
       // 2) ZAPMRO
       if (!matched) {
-        const { data: zapRows } = await supabase
-          .from("zapmro_users")
-          .select("*")
-          .or(`username.eq.${safe},email.eq.${safe}`)
-          .limit(1);
+        const zapRows = zapResult.data;
         const zap = zapRows?.[0] || null;
         if (passwordMatches(zap)) {
           matched = true;

@@ -175,7 +175,9 @@ export default function Dashboard() {
     setLoadingError(null);
     try {
       const data = await invokeWithTimeout("hub-api", {
-        body: { action: "products", username: current.username || "", email: current.email || "" },
+        action: "products",
+        username: current.username || "",
+        email: current.email || "",
       });
       if (data?.success) {
         const list = data.products as HubProduct[];

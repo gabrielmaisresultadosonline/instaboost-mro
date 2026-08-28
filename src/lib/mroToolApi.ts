@@ -70,7 +70,7 @@ export const mroToolApi = async (
   body: Record<string, unknown>,
 ): Promise<MroToolResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke('mro-tool-api', body);
+    const { data, error } = await supabase.functions.invoke('mro-tool-api', { body });
     if (error) {
       console.error('[mroToolApi] invoke error:', error);
       return { success: false, error: 'Erro ao conectar com o servidor' };

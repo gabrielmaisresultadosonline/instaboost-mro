@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -201,10 +197,11 @@ serve(async (req) => {
     async function findUser(identifier: string): Promise<MroUserRow | null> {
       const id = identifier.trim().toLowerCase();
       if (!id) return null;
+      const lookupColumn = id.includes("@") ? "email" : "username";
       const { data } = await supabase
         .from("mro_tool_users")
         .select("*")
-        .or(`username.eq.${id},email.eq.${id}`)
+        .eq(lookupColumn, id)
         .limit(1);
       return (data?.[0] as MroUserRow) || null;
     }
