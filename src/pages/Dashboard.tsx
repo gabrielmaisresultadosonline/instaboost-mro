@@ -11,8 +11,38 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import PlanExpiredOverlay from "@/components/PlanExpiredOverlay";
-import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package, Settings, Mail, KeyRound } from "lucide-react";
+import { Loader2, Lock, LogIn, LogOut, ArrowRight, ShoppingCart, Eye, Package, Settings, Mail, KeyRound, AlertCircle, RefreshCw } from "lucide-react";
 
+
+const API_TIMEOUT_MS = 30_000; // 30 segundos
+
+/**
+ * Invoca uma Edge Function com timeout. Se estourar, rejeita com erro claro.
+ */
+async function invokeWithTimeout<T = unknown>(
+  fn: "hub-api" | "mro-tool-api",
+  body: Record<string, unknown>,
+  timeoutMs = API_TIMEOUT_MS
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const { data, error } = await supabase.functions.invoke<T>(fn, {
+      body,
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (error) throw error;
+    return data as T;
+  } catch (err: unknown) {
+    clearTimeout(timer);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("Tempo esgotado — o servidor demorou demais para responder. Tente novamente.");
+    }
+    throw err;
+  }
+}
 
 export const DASHBOARD_SESSION_KEY = "mro_dashboard_session";
 
@@ -64,9 +94,11 @@ export default function Dashboard() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const [products, setProducts] = useState<HubProduct[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
 
   const [lockedProduct, setLockedProduct] = useState<HubProduct | null>(null);
@@ -116,13 +148,11 @@ export default function Dashboard() {
 
   const loadProfile = useCallback(async (current: DashboardSession) => {
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: {
-          action: "profile",
-          username: current.username || "",
-          email: current.email || "",
-          password: current.password,
-        },
+      const data = await invokeWithTimeout("hub-api", {
+        action: "profile",
+        username: current.username || "",
+        email: current.email || "",
+        password: current.password,
       });
       if (data?.success && data.profile) {
         const p = data.profile as HubProfile;
@@ -130,7 +160,6 @@ export default function Dashboard() {
         setFormName(p.name || current.name || "");
         setFormEmail(p.email || "");
         setFormWhats(p.whatsapp || "");
-        // Cliente sem e-mail, nome ou WhatsApp precisa completar antes de continuar.
         const nameOk = profileNameIsComplete(p.name || current.name);
         const whatsOk = profileWhatsIsComplete(p.whatsapp);
         setNeedsEmail(!p.email || !nameOk || !whatsOk);
@@ -141,29 +170,24 @@ export default function Dashboard() {
   }, []);
 
 
-
   const loadProducts = useCallback(async (current: DashboardSession) => {
     setLoading(true);
+    setLoadingError(null);
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
+      const data = await invokeWithTimeout("hub-api", {
         body: { action: "products", username: current.username || "", email: current.email || "" },
       });
       if (data?.success) {
         const list = data.products as HubProduct[];
-        // Sort products: pinned first, then by order_index, then by title
         const sorted = [...list].sort((a, b) => {
           if (a.is_pinned && !b.is_pinned) return -1;
           if (!a.is_pinned && b.is_pinned) return 1;
-          
           const orderA = a.order_index ?? 0;
           const orderB = b.order_index ?? 0;
           if (orderA !== orderB) return orderA - orderB;
-          
           return a.title.localeCompare(b.title);
         });
         setProducts(sorted);
-        // O backend resolve a identidade completa (e-mail vinculado ao usuário etc).
-        // Guardamos isso na sessão para conseguir logar automaticamente nas ferramentas.
         const identity = data.identity as { email?: string | null; username?: string | null } | undefined;
         if (identity && ((identity.email && !current.email) || (identity.username && !current.username))) {
           const merged: DashboardSession = {
@@ -175,8 +199,10 @@ export default function Dashboard() {
           setSession(merged);
         }
       }
-    } catch {
-      toast({ title: "Erro ao carregar produtos", variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao carregar seus produtos.";
+      setLoadingError(msg);
+      toast({ title: "Erro ao carregar produtos", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -191,13 +217,15 @@ export default function Dashboard() {
 
   const checkPlanStatus = useCallback(async (current: DashboardSession) => {
     try {
-      const { data } = await supabase.functions.invoke("mro-tool-api", {
-        body: {
+      const data = await invokeWithTimeout(
+        "mro-tool-api",
+        {
           action: "plan_status",
           username: current.username || "",
           email: current.email || "",
         },
-      });
+        20_000 // timeout menor para status — 20s é suficiente
+      );
       if (data?.success && data.found && data.expired) {
         setPlanExpired({
           expires_at: data.expires_at ?? null,
@@ -211,6 +239,7 @@ export default function Dashboard() {
       }
     } catch {
       /* falha de rede não deve bloquear a dashboard */
+      setPlanExpired(null);
     }
   }, []);
 
@@ -230,20 +259,13 @@ export default function Dashboard() {
       return;
     }
     setLoggingIn(true);
+    setLoginError(null);
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("hub-api", {
-        body: { action: "login", identifier: identifier.trim(), password },
+      const data = await invokeWithTimeout("hub-api", {
+        action: "login",
+        identifier: identifier.trim(),
+        password,
       });
-      if (invokeError) {
-        console.error("[Dashboard] invoke error:", invokeError);
-        toast({ 
-          title: "Erro de conexão", 
-          description: "Não foi possível conectar ao servidor. Tente novamente em alguns segundos.",
-          variant: "destructive" 
-        });
-        setLoggingIn(false);
-        return;
-      }
       if (data?.success) {
         const next: DashboardSession = {
           username: data.user.username || null,
@@ -254,15 +276,14 @@ export default function Dashboard() {
         localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
         setSession(next);
       } else {
-        toast({ title: data?.error || "Não foi possível entrar", variant: "destructive" });
+        const errMsg = data?.error || "Não foi possível entrar. Verifique usuário e senha.";
+        setLoginError(errMsg);
+        toast({ title: errMsg, variant: "destructive" });
       }
-    } catch (err) {
-      console.error("[Dashboard] Unexpected login error:", err);
-      toast({ 
-        title: "Erro inesperado", 
-        description: err instanceof Error ? err.message : "Algo deu errado. Tente novamente.",
-        variant: "destructive" 
-      });
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Erro ao conectar. Tente novamente.";
+      setLoginError(errMsg);
+      toast({ title: "Erro de conexão", description: errMsg, variant: "destructive" });
     } finally {
       setLoggingIn(false);
     }
@@ -274,11 +295,12 @@ export default function Dashboard() {
     setProducts([]);
     setProfile(null);
     setNeedsEmail(false);
+    setLoadingError(null);
+    setLoginError(null);
   };
 
   /**
    * Salva os dados do cliente (nome, e-mail, WhatsApp e senha) no banco.
-   * O nome de acesso (usuário) nunca é alterado nem removido.
    */
   const saveProfile = async (requireEmail: boolean) => {
     if (!session) return;
@@ -287,7 +309,6 @@ export default function Dashboard() {
       toast({ title: "Informe um e-mail válido", variant: "destructive" });
       return;
     }
-    // No cadastro obrigatório, nome e WhatsApp também são exigidos
     const nameValue = formName.trim();
     const whatsDigits = formWhats.replace(/\D/g, "");
     if (requireEmail) {
@@ -306,37 +327,33 @@ export default function Dashboard() {
     }
     setSavingProfile(true);
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: {
-          action: "update_profile",
-          username: session.username || "",
-          email: session.email || "",
-          password: session.password,
-          new_email: email,
-          new_name: formName.trim(),
-          new_whatsapp: formWhats,
-          new_password: formNewPassword || undefined,
-        },
+      const data = await invokeWithTimeout("hub-api", {
+        action: "update_profile",
+        username: session.username || "",
+        email: session.email || "",
+        password: session.password,
+        new_email: email,
+        new_name: formName.trim(),
+        new_whatsapp: formWhats,
+        new_password: formNewPassword || undefined,
       });
       if (!data?.success) {
         if (data?.conflict) {
           setMergeEmail(email);
           const list = Array.isArray(data.conflict_accounts) ? data.conflict_accounts : [];
           setMergeConflicts(list);
-          // Pré-seleciona o acesso com o qual o cliente está logado agora
           setMergePrimary(
             list.find((c: { current?: boolean }) => c.current)?.username || session.username || list[0]?.username || "",
           );
           return;
-
         }
         toast({ title: data?.error || "Não foi possível salvar", variant: "destructive" });
         return;
       }
       const next: DashboardSession = {
-        username: session.username || data.profile?.username || null,
-        email: data.profile?.email || email || session.email,
-        name: data.profile?.name || formName.trim() || session.name,
+        username: session.username || (data.profile as { username?: string })?.username || null,
+        email: (data.profile as { email?: string })?.email || email || session.email,
+        name: (data.profile as { name?: string })?.name || formName.trim() || session.name,
         password: (data.password as string) || session.password,
       };
       localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
@@ -365,17 +382,15 @@ export default function Dashboard() {
     if (!session || !mergeEmail) return;
     setMerging(true);
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: {
-          action: "merge_accounts",
-          username: session.username || "",
-          email: session.email || "",
-          password: session.password,
-          target_email: mergeEmail,
-          primary_username: mergePrimary || mergeConflicts[0]?.username || session.username || "",
-          new_name: formName.trim(),
-          new_whatsapp: formWhats,
-        },
+      const data = await invokeWithTimeout("hub-api", {
+        action: "merge_accounts",
+        username: session.username || "",
+        email: session.email || "",
+        password: session.password,
+        target_email: mergeEmail,
+        primary_username: mergePrimary || mergeConflicts[0]?.username || session.username || "",
+        new_name: formName.trim(),
+        new_whatsapp: formWhats,
       });
       if (!data?.success) {
         toast({ title: data?.error || "Não foi possível unificar", variant: "destructive" });
@@ -385,19 +400,19 @@ export default function Dashboard() {
       const next: DashboardSession = {
         ...session,
         email: data.email || mergeEmail,
-        name: data.profile?.name || formName.trim() || session.name,
+        name: (data.profile as { name?: string })?.name || formName.trim() || session.name,
       };
       localStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify(next));
       setSession(next);
       setProfile((prev) => ({
-        username: prev?.username || session.username || data.primary?.username || "",
+        username: prev?.username || session.username || ((data.primary as { username?: string })?.username) || "",
         email: data.email || mergeEmail,
-        name: data.profile?.name || formName.trim() || prev?.name || "",
-        whatsapp: data.profile?.whatsapp || normalizedWhats || prev?.whatsapp || "",
+        name: (data.profile as { name?: string })?.name || formName.trim() || prev?.name || "",
+        whatsapp: (data.profile as { whatsapp?: string })?.whatsapp || normalizedWhats || prev?.whatsapp || "",
         has_email: true,
       }));
-      setFormName(data.profile?.name || formName.trim());
-      setFormWhats(data.profile?.whatsapp || normalizedWhats);
+      setFormName((data.profile as { name?: string })?.name || formName.trim());
+      setFormWhats((data.profile as { whatsapp?: string })?.whatsapp || normalizedWhats);
       setFormEmail(data.email || mergeEmail);
       setNeedsEmail(false);
       setShowConfig(false);
@@ -415,8 +430,6 @@ export default function Dashboard() {
     }
   };
 
-
-
   /** Envia um único lembrete de acesso para o e-mail vinculado ao cliente. */
   const handleRecover = async () => {
     const email = recoverEmail.trim().toLowerCase();
@@ -426,9 +439,7 @@ export default function Dashboard() {
     }
     setRecovering(true);
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: { action: "recover_access", email },
-      });
+      const data = await invokeWithTimeout("hub-api", { action: "recover_access", email });
       if (data?.success) {
         toast({ title: "Enviamos seu acesso", description: `Confira a caixa de entrada de ${email}.` });
         setShowRecover(false);
@@ -443,11 +454,8 @@ export default function Dashboard() {
     }
   };
 
-
-
   /**
-   * Abre o produto já autenticado. Cada ferramenta guarda a sessão de um jeito
-   * diferente, então hidratamos o storage esperado antes de navegar.
+   * Abre o produto já autenticado.
    */
   const openProduct = async (product: HubProduct) => {
     if (!session) return;
@@ -473,17 +481,14 @@ export default function Dashboard() {
         if (session.email) localStorage.setItem("zapmro_email", session.email);
       }
 
-      // Posts com IA usa apenas e-mail. Se o cliente entrou por usuário (ou o acesso
-      // foi liberado manualmente, sem pedido no /postscomia/admin), resolvemos o
-      // e-mail vinculado e, na falta dele, criamos a sessão pelo próprio usuário.
-      // O produto já veio marcado como `unlocked` pela hub-api, então a liberação
-      // manual é autoridade suficiente para abrir a área de membros logado.
       if (product.access_source === "postscomia" || product.slug === "postscomia") {
         let memberEmail = session.email;
         if (!memberEmail) {
           try {
-            const { data } = await supabase.functions.invoke("hub-api", {
-              body: { action: "products", username: session.username || "", email: "" },
+            const data = await invokeWithTimeout("hub-api", {
+              action: "products",
+              username: session.username || "",
+              email: "",
             });
             memberEmail = (data?.identity?.email as string | undefined) || null;
           } catch {
@@ -502,11 +507,6 @@ export default function Dashboard() {
         );
       }
 
-
-
-      // Lotar Grupos: aceita as duas variações de slug já cadastradas no hub e
-      // sempre abre a área de membros própria do produto, ignorando o
-      // `app_route` legado (que aponta para /dashboard e travava o clique).
       const isLotarGrupos =
         product.access_source === "lotargrupos" ||
         product.slug === "lotar-grupos" ||
@@ -526,13 +526,14 @@ export default function Dashboard() {
             password: session.password,
             issue_lotargrupos_sso: true,
           },
+          signal: AbortSignal.timeout(30_000),
         });
 
-        const tokenHash = typeof ssoData?.lotargrupos_token_hash === "string"
-          ? ssoData.lotargrupos_token_hash
+        const tokenHash = typeof (ssoData as { lotargrupos_token_hash?: string })?.lotargrupos_token_hash === "string"
+          ? (ssoData as { lotargrupos_token_hash: string }).lotargrupos_token_hash
           : "";
 
-        if (ssoError || !ssoData?.success || !tokenHash) {
+        if (ssoError || !(ssoData as { success?: boolean })?.success || !tokenHash) {
           toast({
             title: "Não foi possível abrir o Lotar Grupos",
             description: "Atualize a página e tente novamente.",
@@ -556,8 +557,6 @@ export default function Dashboard() {
         return;
       }
 
-      // Marca a sessão para que os botões de "voltar" das ferramentas
-      // retornem para o Dashboard.
       markHubReturn();
 
       if (product.app_route && product.app_route !== "/dashboard") {
@@ -581,11 +580,9 @@ export default function Dashboard() {
       return;
     }
 
-    
     if (product.status === 'construction') {
-      toast({ 
-        title: "Em Construção 🚧", 
-
+      toast({
+        title: "Em Construção 🚧",
         description: "Este produto está sendo finalizado e estará disponível em breve.",
         variant: "default"
       });
@@ -600,7 +597,6 @@ export default function Dashboard() {
     }
 
     if (product.unlocked) {
-      // Produtos com rota própria abrem direto a ferramenta já logada.
       if (product.app_route) void openProduct(product);
       else {
         markHubReturn();
@@ -622,21 +618,19 @@ export default function Dashboard() {
     }
     setBuying(true);
     try {
-      const { data } = await supabase.functions.invoke("hub-api", {
-        body: {
-          action: "create_checkout",
-          slug: lockedProduct.slug,
-          name: buyName.trim(),
-          email: buyEmail.trim().toLowerCase(),
-          whatsapp: buyPhone,
-        },
+      const data = await invokeWithTimeout("hub-api", {
+        action: "create_checkout",
+        slug: lockedProduct.slug,
+        name: buyName.trim(),
+        email: buyEmail.trim().toLowerCase(),
+        whatsapp: buyPhone,
       });
-      if (data?.success && data.payment_link) {
-        window.open(data.payment_link, "_blank");
+      if (data?.success && (data as { payment_link?: string }).payment_link) {
+        window.open((data as { payment_link: string }).payment_link, "_blank");
         toast({ title: "Pagamento gerado", description: "Assim que confirmado o acesso é liberado automaticamente." });
         setLockedProduct(null);
       } else {
-        toast({ title: data?.error || "Erro ao gerar pagamento", variant: "destructive" });
+        toast({ title: (data as { error?: string }).error || "Erro ao gerar pagamento", variant: "destructive" });
       }
     } catch {
       toast({ title: "Erro ao gerar pagamento", variant: "destructive" });
@@ -661,15 +655,25 @@ export default function Dashboard() {
                 Entre com seu usuário ou e-mail para acessar todos os seus produtos em um só lugar.
               </p>
             </div>
+
+            {/* Erro visível no login */}
+            {loginError && (
+              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-2 text-sm text-destructive">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{loginError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="identifier">Usuário ou e-mail</Label>
                 <Input
                   id="identifier"
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(e) => { setIdentifier(e.target.value); setLoginError(null); }}
                   placeholder="seu usuário ou e-mail"
                   autoComplete="username"
+                  disabled={loggingIn}
                 />
               </div>
               <div className="space-y-2">
@@ -678,14 +682,15 @@ export default function Dashboard() {
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setLoginError(null); }}
                   placeholder="sua senha"
                   autoComplete="current-password"
+                  disabled={loggingIn}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loggingIn}>
                 {loggingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-                Entrar
+                {loggingIn ? "Entrando..." : "Entrar"}
               </Button>
               <button
                 type="button"
@@ -756,14 +761,36 @@ export default function Dashboard() {
               <LogOut className="h-4 w-4" /> Sair
             </Button>
           </div>
-
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Estado de carregamento com spinner */}
         {loading ? (
-          <div className="flex justify-center py-20">
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Carregando seus produtos…</p>
+          </div>
+        ) : loadingError ? (
+          /* Estado de erro com mensagem e botão de tentar novamente */
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" />
+              <p className="font-medium">{loadingError}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setLoadingError(null);
+                  loadProducts(session);
+                }}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Tentar novamente
+              </Button>
+            </div>
           </div>
         ) : products.length === 0 ? (
           <p className="text-center text-muted-foreground py-20">Nenhum produto disponível no momento.</p>
@@ -839,7 +866,7 @@ export default function Dashboard() {
                     onClick={(e) => {
                       e.stopPropagation();
                       if (product.is_redirect_only) {
-                        if (product.sales_page_url) window.open(product.sales_page_url, "_blank");
+                        if (product.sales_page_url) window.open(product.sales_page_url as string, "_blank");
                       } else if (product.unlocked) {
                         openProduct(product);
                       } else {
@@ -852,17 +879,11 @@ export default function Dashboard() {
                     ) : product.status === 'construction' ? (
                       "Em breve"
                     ) : product.is_redirect_only ? (
-                      <>
-                        Acessar Agora <ArrowRight className="h-4 w-4" />
-                      </>
+                      <><ArrowRight className="h-4 w-4" /> Acessar Agora</>
                     ) : product.unlocked ? (
-                      <>
-                        Acessar <ArrowRight className="h-4 w-4" />
-                      </>
+                      <><ArrowRight className="h-4 w-4" /> Acessar</>
                     ) : (
-                      <>
-                        <Lock className="h-4 w-4" /> Desbloquear
-                      </>
+                      <><Lock className="h-4 w-4" /> Desbloquear</>
                     )}
                   </Button>
                 </CardContent>
@@ -884,7 +905,7 @@ export default function Dashboard() {
                 🔓 COMPRE PARA DESBLOQUEAR !
              </p>
           </div>
-          
+
           <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar">
             <DialogHeader className="space-y-2 text-left">
               <DialogTitle className="text-2xl font-black text-black leading-tight tracking-tight uppercase">
@@ -897,8 +918,8 @@ export default function Dashboard() {
 
             {!showBuyForm ? (
               <div className="flex flex-col gap-4 py-2">
-                <Button 
-                  className="w-full h-16 bg-[#059669] hover:bg-[#047857] text-white font-black text-xl uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center" 
+                <Button
+                  className="w-full h-16 bg-[#059669] hover:bg-[#047857] text-white font-black text-xl uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center"
                   onClick={() => setShowBuyForm(true)}
                 >
                   <span className="text-[10px] opacity-80 font-bold mb-0.5">QUERO DESBLOQUEAR AGORA</span>
@@ -925,9 +946,9 @@ export default function Dashboard() {
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="space-y-1.5">
                   <Label htmlFor="buy-name" className="text-zinc-900 font-bold text-xs uppercase ml-1">Nome completo</Label>
-                  <Input 
-                    id="buy-name" 
-                    value={buyName} 
+                  <Input
+                    id="buy-name"
+                    value={buyName}
                     onChange={(e) => setBuyName(e.target.value)}
                     className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
                     placeholder="Seu nome"
@@ -935,10 +956,10 @@ export default function Dashboard() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="buy-email" className="text-zinc-900 font-bold text-xs uppercase ml-1">E-mail</Label>
-                  <Input 
-                    id="buy-email" 
-                    type="email" 
-                    value={buyEmail} 
+                  <Input
+                    id="buy-email"
+                    type="email"
+                    value={buyEmail}
                     onChange={(e) => setBuyEmail(e.target.value)}
                     className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
                     placeholder="seu@email.com"
@@ -946,27 +967,27 @@ export default function Dashboard() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="buy-phone" className="text-zinc-900 font-bold text-xs uppercase ml-1">WhatsApp (DDD + número)</Label>
-                  <Input 
-                    id="buy-phone" 
-                    value={buyPhone} 
-                    onChange={(e) => setBuyPhone(e.target.value)} 
+                  <Input
+                    id="buy-phone"
+                    value={buyPhone}
+                    onChange={(e) => setBuyPhone(e.target.value)}
                     placeholder="11999999999"
                     className="bg-white border-zinc-200 text-black h-11 focus:ring-2 focus:ring-[#10b981] focus:border-transparent rounded-lg font-medium"
                   />
                 </div>
-                
+
                 <div className="flex flex-col gap-3 pt-4">
-                  <Button 
-                    className="w-full h-14 bg-[#059669] hover:bg-[#047857] text-white font-black text-lg uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2" 
-                    onClick={handleBuy} 
+                  <Button
+                    className="w-full h-14 bg-[#059669] hover:bg-[#047857] text-white font-black text-lg uppercase tracking-tight rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                    onClick={handleBuy}
                     disabled={buying}
                   >
                     {buying ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShoppingCart className="h-5 w-5" />}
                     Pagar agora
                   </Button>
 
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full text-zinc-400 font-bold text-xs uppercase"
                     onClick={() => setShowBuyForm(false)}
                   >
@@ -985,7 +1006,7 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>Complete seu cadastro</DialogTitle>
             <DialogDescription>
-              Precisamos do seu e-mail, nome e WhatsApp para vincular seus acessos e permitir a recuperação de senha. Ficam salvos junto ao seu acesso.
+              Precisamos do seu e-mail, nome e WhatsApp para vincular seus acessos e permitir a recuperação de senha.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -1083,16 +1104,13 @@ export default function Dashboard() {
               Este e-mail já está vinculado a outro acesso
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Encontramos outros acessos usando <span className="font-bold text-white">{mergeEmail}</span>. Deseja unificar tudo em uma
-              única conta?
+              Encontramos outros acessos usando <span className="font-bold text-white">{mergeEmail}</span>. Deseja unificar tudo em uma única conta?
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="rounded-2xl border border-zinc-800 bg-black/60 p-4">
-              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">
-                Escolha o acesso principal
-              </p>
+              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-yellow-500">Escolha o acesso principal</p>
               <ul className="space-y-2">
                 {mergeConflicts.map((c, i) => {
                   const selected = (mergePrimary || mergeConflicts[0]?.username) === c.username;
@@ -1103,9 +1121,7 @@ export default function Dashboard() {
                         onClick={() => setMergePrimary(c.username)}
                         className={cn(
                           "flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition",
-                          selected
-                            ? "border-yellow-500 bg-yellow-500/10"
-                            : "border-zinc-800 bg-transparent hover:border-zinc-600",
+                          selected ? "border-yellow-500 bg-yellow-500/10" : "border-zinc-800 bg-transparent hover:border-zinc-600",
                         )}
                       >
                         <span className="flex items-center gap-3 min-w-0">
@@ -1127,22 +1143,18 @@ export default function Dashboard() {
                         <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-400">
                           {c.tool}
                         </span>
-
                       </button>
                     </li>
                   );
                 })}
               </ul>
               <p className="mt-3 text-[11px] text-zinc-500">
-                O acesso selecionado será o seu login principal. Os demais continuam liberados no mesmo e-mail.
+                O acesso selecionado será o seu login principal.
               </p>
             </div>
 
-
             <p className="text-xs leading-relaxed text-zinc-400">
-              Ao unificar, todos os seus produtos passam a ficar no mesmo e-mail. Você poderá entrar na área de membros
-              <span className="text-white"> pelo e-mail e senha</span> ou <span className="text-white">pelo usuário e senha</span> — e
-              enviaremos um resumo completo por e-mail.
+              Ao unificar, todos os seus produtos passam a ficar no mesmo e-mail.
             </p>
 
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -1173,7 +1185,7 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase tracking-tight text-yellow-400">Acessos unificados!</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Tudo o que você tem liberado agora está no mesmo acesso. Guarde seus dados abaixo.
+              Tudo o que você tem liberado agora está no mesmo acesso.
             </DialogDescription>
           </DialogHeader>
 
@@ -1214,7 +1226,7 @@ export default function Dashboard() {
 
             <p className="text-xs text-zinc-400">
               {mergeResult?.emailSent
-                ? `Enviamos um e-mail para ${mergeResult?.email} com todos os seus acessos e o link da área de membros.`
+                ? `Enviamos um e-mail para ${mergeResult?.email} com todos os seus acessos.`
                 : "Não conseguimos enviar o e-mail de resumo agora, mas seus acessos já estão unificados."}
             </p>
 
@@ -1229,6 +1241,5 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
     </div>
-
   );
 }
