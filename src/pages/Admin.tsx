@@ -46,6 +46,7 @@ import {
   Menu, LayoutDashboard, ChevronLeft, ShieldCheck, UserPlus,
   Package,
 
+  Database,
 } from 'lucide-react';
 
 import { 
