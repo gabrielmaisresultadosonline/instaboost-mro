@@ -53,10 +53,11 @@ Deno.serve(async (req) => {
     }
 
     const token = typeof body.token === "string" ? body.token : "";
-    const admin = await verifyAdminSessionToken(token, sessionSecret).catch(() => null);
-    if (!admin || (admin as { scope?: string }).scope !== "mro-main-admin") {
+    const admin = await verifyAdminSessionToken(token, sessionSecret, "mro-main-admin").catch(() => null);
+    if (!admin) {
       return json({ success: false, error: "Acesso não autorizado" }, 401);
     }
+
 
     const action = typeof body.action === "string" ? body.action : "";
     const db = createServiceClient(url, serviceKey);
