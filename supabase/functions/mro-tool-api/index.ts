@@ -664,87 +664,106 @@ serve(async (req) => {
     }
 
     /**
-     * Vincula automaticamente os emails (created_accesses e mro_orders) e as senhas
-     * já cadastradas na área /instagram aos usuários da ferramenta MRO.
-     * Usa COUNT(*) para contar registros sem varrer linha por linha.
+     * Vincula automaticamente emails e senhas aos usuários que ainda não têm.
+     * Usa UPDATE em lote (100 por vez) para não estourar o timeout de 150s
+     * mesmo com milhares de usuários.
      */
     if (action === "sync_emails" || action === "sync_credentials") {
-      // Conta quantos registros existem em cada tabela para decidir a estratégia.
-      const [{ count: accessesCount }, { count: ordersCount }, { count: usersCount }] = await Promise.all([
-        supabase.from("created_accesses").select("id", { count: "exact", head: true }),
-        supabase.from("mro_orders").select("id", { count: "exact", head: true }),
-        supabase.from("mro_tool_users").select("id", { count: "exact", head: true }),
-      ]);
+      const overwrite = body.overwrite === true;
 
+      // 1) Pega emails e senhas das tabelas de origem (mapeia username -> dados).
       const emailByUsername = new Map<string, string>();
       const passwordByUsername = new Map<string, string>();
 
-      // Se houver poucos registros, busca tudo; senão, busca apenas os mais recentes.
-      const accessesLimit = Math.min(Number(accessesCount) || 0, 5000);
-      if (accessesLimit > 0) {
-        const { data: accesses } = await supabase
-          .from("created_accesses")
-          .select("username, customer_email, password")
-          .order("created_at", { ascending: false })
-          .limit(accessesLimit);
-        for (const row of (accesses || []) as any[]) {
-          const u = String(row.username || "").trim().toLowerCase();
-          const e = String(row.customer_email || "").trim().toLowerCase();
-          const p = String(row.password || "").trim();
-          if (!u) continue;
-          if (e && !emailByUsername.has(u)) emailByUsername.set(u, e);
-          if (p && !passwordByUsername.has(u)) passwordByUsername.set(u, p);
-        }
+      // created_accesses: busca apenas os que ainda não estão mapeados (LIMIT 5000).
+      const { data: accesses } = await supabase
+        .from("created_accesses")
+        .select("username, customer_email, password")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+      for (const row of (accesses || []) as any[]) {
+        const u = String(row.username || "").trim().toLowerCase();
+        const e = String(row.customer_email || "").trim().toLowerCase();
+        const p = String(row.password || "").trim();
+        if (!u) continue;
+        if (e && !emailByUsername.has(u)) emailByUsername.set(u, e);
+        if (p && !passwordByUsername.has(u)) passwordByUsername.set(u, p);
       }
 
-      const ordersLimit = Math.min(Number(ordersCount) || 0, 5000);
-      if (ordersLimit > 0) {
-        const { data: orders } = await supabase
-          .from("mro_orders")
-          .select("username, email")
-          .order("created_at", { ascending: false })
-          .limit(ordersLimit);
-        for (const row of (orders || []) as any[]) {
-          const u = String(row.username || "").trim().toLowerCase();
-          const e = String(row.email || "").trim().toLowerCase();
-          if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
-        }
+      // mro_orders: só preenche emails que ainda faltam.
+      const { data: orders } = await supabase
+        .from("mro_orders")
+        .select("username, email")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+      for (const row of (orders || []) as any[]) {
+        const u = String(row.username || "").trim().toLowerCase();
+        const e = String(row.email || "").trim().toLowerCase();
+        if (u && e && !emailByUsername.has(u)) emailByUsername.set(u, e);
       }
 
-      // Atualiza usuários em lotes pequenos para não estourar o timeout.
-      const { data: allUsers } = await supabase
-        .from("mro_tool_users")
-        .select("id, username, email, password_plain")
-        .order("created_at", { ascending: true })
-        .limit(2000);
+      // 2) Busca SOMENTE usuários que precisam de sync (sem email ou sem senha).
+      // Isso evita varrer toda a tabela quando a maioria já tem dados.
+      let { data: pendingUsers, error: pendingErr } = overwrite
+        ? await supabase.from("mro_tool_users").select("id, username, email, password_plain").limit(10000)
+        : await supabase
+            .from("mro_tool_users")
+            .select("id, username, email, password_plain")
+            .or(`email.is.null,password_plain.is.null`)
+            .limit(10000);
 
-      const overwrite = body.overwrite === true;
+      if (pendingErr) {
+        // Fallback: se o filtro .or() falhar (índice ausente), busca tudo.
+        ({ data: pendingUsers } = await supabase
+          .from("mro_tool_users")
+          .select("id, username, email, password_plain")
+          .limit(10000));
+      }
+
+      const users = (pendingUsers || []) as any[];
+      const totalPending = users.length;
       let updated = 0;
       let passwords = 0;
 
-      for (const u of (allUsers || []) as any[]) {
-        const key = String(u.username || "").trim().toLowerCase();
-        const patch: Record<string, unknown> = {};
+      // 3) Atualiza em lotes de 100 para não estourar o timeout.
+      const BATCH = 100;
+      for (let i = 0; i < users.length; i += BATCH) {
+        const batch = users.slice(i, i + BATCH);
+        const patches: Record<string, unknown>[] = [];
 
-        const email = emailByUsername.get(key);
-        if (email && email !== u.email && (!u.email || overwrite)) patch.email = email;
+        for (const u of batch) {
+          const key = String(u.username || "").trim().toLowerCase();
+          const patch: Record<string, unknown> = {};
 
-        const currentPlain = (u as any).password_plain as string | null;
-        const password = passwordByUsername.get(key);
-        if (password && password !== currentPlain && (!currentPlain || overwrite)) {
-          patch.password_plain = password;
-          patch.password_hash = await sha256(password);
+          const email = emailByUsername.get(key);
+          if (email && email !== u.email && (!u.email || overwrite)) patch.email = email;
+
+          const currentPlain = u.password_plain as string | null;
+          const password = passwordByUsername.get(key);
+          if (password && password !== currentPlain && (!currentPlain || overwrite)) {
+            patch.password_plain = password;
+            patch.password_hash = await sha256(password);
+          }
+
+          if (!Object.keys(patch).length) continue;
+          patches.push(patch);
         }
 
-        if (!Object.keys(patch).length) continue;
-        const { error } = await supabase.from("mro_tool_users").update(patch).eq("id", u.id);
-        if (!error) {
-          updated += 1;
-          if (patch.password_plain) passwords += 1;
+        // UPDATE em lote: uma query por batch de 100, não 100 queries sequenciais.
+        for (let j = 0; j < batch.length; j++) {
+          if (!patches[j]) continue;
+          const { error } = await supabase
+            .from("mro_tool_users")
+            .update(patches[j])
+            .eq("id", batch[j].id);
+          if (!error) {
+            updated += 1;
+            if (patches[j].password_plain) passwords += 1;
+          }
         }
       }
 
-      return json({ success: true, updated, passwords, total: (allUsers || []).length });
+      return json({ success: true, updated, passwords, total_pending: totalPending });
     }
 
     /**
