@@ -15,7 +15,6 @@ import IgLayout from "@/components/ig/IgLayout";
 import IgGuard from "@/components/ig/IgGuard";
 import { IgEmpty, IgError, IgLoading } from "@/components/ig/IgStates";
 import { igApi, type IgConversation, type IgMessage } from "@/lib/ig/api";
-import { useIgSession } from "@/lib/ig/useIgSession";
 import { useToast } from "@/hooks/use-toast";
 
 function formatTime(value: string | null): string {
