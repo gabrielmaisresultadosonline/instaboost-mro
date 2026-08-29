@@ -76,14 +76,17 @@ Deno.serve(async (req) => {
     for (const entry of payload.entry ?? []) {
       const instagramAccountId = entry.id ? String(entry.id) : null;
 
+      // A Meta envia o ID da conta profissional (instagram_user_id) no entry.id,
+      // que pode ser diferente do id retornado pelo /me na conexão.
       const { data: account } = instagramAccountId
         ? await db
             .from("ig_accounts")
             .select("id, tenant_id")
-            .eq("instagram_account_id", instagramAccountId)
+            .or(`instagram_account_id.eq.${instagramAccountId},instagram_user_id.eq.${instagramAccountId}`)
             .is("deleted_at", null)
             .maybeSingle()
         : { data: null };
+
 
       const items: Array<{ field: string; value: unknown }> = [
         ...((entry.changes ?? []) as Array<{ field?: string; value?: unknown }>).map((c) => ({
