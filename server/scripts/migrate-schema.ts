@@ -18,6 +18,8 @@ import { log } from "./lib/log.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(here, "../migrations");
+const dumpPath = path.join(migrationsDir, "001_schema_legacy.sql");
+
 
 /**
  * O banco de origem roda PostgreSQL 17; um pg_dump 14 (padrão do Ubuntu 22.04)
