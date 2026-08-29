@@ -10,6 +10,7 @@ import IgRegister from "./IgRegister";
 import IgForgotPassword from "./IgForgotPassword";
 import IgResetPassword from "./IgResetPassword";
 import IgDashboard from "./IgDashboard";
+import IgInbox from "./IgInbox";
 import IgInstagramCallback from "./IgInstagramCallback";
 import IgSettings from "./IgSettings";
 import IgSettingsInstagram from "./IgSettingsInstagram";
@@ -23,12 +24,6 @@ import IgAdminApp from "./IgAdminApp";
 
 /** Módulos das fases 2 a 5: shell e isolamento já ativos, dados reais em breve. */
 const MODULES: Array<{ path: string; title: string; description: string; phase: string }> = [
-  {
-    path: "inbox/*",
-    title: "Inbox",
-    description: "As conversas de Direct aparecem aqui conforme os eventos chegam pela API oficial da Meta.",
-    phase: "Direct e atendimento",
-  },
   {
     path: "comments/*",
     title: "Comentários",
@@ -78,6 +73,7 @@ const IgRoutes = () => (
     <Route path="reset-password" element={<IgResetPassword />} />
 
     <Route path="dashboard" element={<IgDashboard />} />
+    <Route path="inbox" element={<IgInbox />} />
     <Route path="auth/instagram" element={<Navigate to="/IG/settings/instagram" replace />} />
     <Route path="auth/instagram/callback" element={<IgInstagramCallback />} />
 

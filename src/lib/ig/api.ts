@@ -60,6 +60,26 @@ export interface IgDashboard {
   metrics: Record<string, number | null>;
 }
 
+export interface IgConversation {
+  id: string;
+  participant_id: string;
+  participant_username: string | null;
+  participant_name: string | null;
+  participant_picture_url: string | null;
+  last_message_text: string | null;
+  last_message_at: string | null;
+  last_direction: "in" | "out" | null;
+  unread_count: number;
+}
+
+export interface IgMessage {
+  id: string;
+  direction: "in" | "out";
+  text: string | null;
+  attachments: unknown[];
+  sent_at: string;
+}
+
 /** Erro de negócio já traduzido para o usuário final. */
 export class IgApiError extends Error {
   readonly code?: string;
@@ -102,11 +122,33 @@ export const igApi = {
       { action: "notifications", tenant_id: tenantId },
     ),
 
+  conversations: (tenantId: string) =>
+    invoke<{ conversations: IgConversation[] }>("ig-api", { action: "conversations", tenant_id: tenantId }),
+
+  messages: (tenantId: string, conversationId: string) =>
+    invoke<{ messages: IgMessage[] }>("ig-api", {
+      action: "messages",
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+    }),
+
+  sendMessage: (tenantId: string, conversationId: string, text: string) =>
+    invoke<{ sent_at: string }>("ig-api", {
+      action: "send_message",
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      text,
+    }),
+
+  subscribeWebhook: (tenantId: string) =>
+    invoke<{ subscribed: number }>("ig-api", { action: "subscribe_webhook", tenant_id: tenantId }),
+
   oauthConfig: () => invoke<{ app_id: string; scopes: string }>("ig-oauth", { action: "get-config" }),
 
   exchangeCode: (input: { code: string; redirect_uri: string; tenant_id: string }) =>
     invoke<{ account: IgAccount }>("ig-oauth", { action: "exchange-code", ...input }),
 };
+
 
 /** URL de callback do OAuth — deve estar cadastrada no App da Meta. */
 export const IG_REDIRECT_URI = IG_OAUTH_REDIRECT_URI;

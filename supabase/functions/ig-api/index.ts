@@ -25,7 +25,12 @@ type Action =
   | "me"
   | "dashboard"
   | "disconnect"
-  | "notifications";
+  | "notifications"
+  | "conversations"
+  | "messages"
+  | "send_message"
+  | "subscribe_webhook";
+
 
 const PERIODS: Record<string, number> = { today: 1, "7d": 7, "30d": 30, "90d": 90 };
 
@@ -48,7 +53,10 @@ Deno.serve(async (req) => {
       period?: string;
       full_name?: string;
       company?: string;
+      conversation_id?: string;
+      text?: string;
     };
+
 
     const action = body.action;
     if (!action) return fail("Ação não informada.", 400);
@@ -229,7 +237,143 @@ Deno.serve(async (req) => {
       return json({ success: true, notifications: data ?? [] });
     }
 
+    // ---------------- INBOX: LISTA DE CONVERSAS ----------------
+    if (action === "conversations") {
+      const { data } = await db
+        .from("ig_conversations")
+        .select(
+          "id, participant_id, participant_username, participant_name, participant_picture_url, last_message_text, last_message_at, last_direction, unread_count",
+        )
+        .eq("tenant_id", tenantId)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(100);
+
+      return json({ success: true, conversations: data ?? [] });
+    }
+
+    // ---------------- INBOX: MENSAGENS DE UMA CONVERSA ----------------
+    if (action === "messages") {
+      if (!body.conversation_id) return fail("Conversa não informada.", 400);
+
+      const { data } = await db
+        .from("ig_messages")
+        .select("id, direction, text, attachments, sent_at")
+        .eq("tenant_id", tenantId)
+        .eq("conversation_id", body.conversation_id)
+        .order("sent_at", { ascending: true })
+        .limit(300);
+
+      await db
+        .from("ig_conversations")
+        .update({ unread_count: 0 })
+        .eq("id", body.conversation_id)
+        .eq("tenant_id", tenantId);
+
+      return json({ success: true, messages: data ?? [] });
+    }
+
+    // ---------------- INBOX: RESPONDER ----------------
+    if (action === "send_message") {
+      const text = (body.text ?? "").trim();
+      if (!body.conversation_id) return fail("Conversa não informada.", 400);
+      if (!text) return fail("Escreva uma mensagem antes de enviar.", 400);
+      if (text.length > 950) return fail("A mensagem excede o limite do Instagram (950 caracteres).", 400);
+
+      const { data: conversation } = await db
+        .from("ig_conversations")
+        .select("id, participant_id, ig_account_id")
+        .eq("id", body.conversation_id)
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+
+      if (!conversation) return fail("Conversa não encontrada.", 404);
+
+      const { data: token } = await db
+        .from("ig_tokens")
+        .select("access_token")
+        .eq("ig_account_id", conversation.ig_account_id)
+        .maybeSingle();
+
+      if (!token?.access_token) {
+        return fail("Conta do Instagram sem autorização válida. Reconecte em Configurações.", 400, "needs_reconnect");
+      }
+
+      const res = await fetch("https://graph.instagram.com/v21.0/me/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient: { id: conversation.participant_id },
+          message: { text },
+          access_token: token.access_token,
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok || result.error) {
+        console.error("[ig-api] send_message failed:", JSON.stringify(result).slice(0, 300));
+        const metaMessage = (result?.error?.error_user_msg as string | undefined) ?? null;
+        return fail(
+          metaMessage ??
+            "O Instagram não aceitou o envio. Só é possível responder dentro de 24h após a última mensagem do usuário.",
+          400,
+          "meta_error",
+        );
+      }
+
+      const sentAt = new Date().toISOString();
+      await db.from("ig_messages").insert({
+        tenant_id: tenantId,
+        conversation_id: conversation.id,
+        ig_account_id: conversation.ig_account_id,
+        mid: (result.message_id as string | undefined) ?? null,
+        direction: "out",
+        text,
+        sender_id: null,
+        recipient_id: conversation.participant_id,
+        sent_at: sentAt,
+      });
+
+      await db
+        .from("ig_conversations")
+        .update({ last_message_text: text, last_message_at: sentAt, last_direction: "out", unread_count: 0 })
+        .eq("id", conversation.id);
+
+      return json({ success: true, sent_at: sentAt });
+    }
+
+    // ---------------- ASSINAR WEBHOOK DA CONTA ----------------
+    if (action === "subscribe_webhook") {
+      const { data: accounts } = await db
+        .from("ig_accounts")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null);
+
+      let subscribed = 0;
+      for (const account of accounts ?? []) {
+        const { data: token } = await db
+          .from("ig_tokens")
+          .select("access_token")
+          .eq("ig_account_id", account.id)
+          .maybeSingle();
+        if (!token?.access_token) continue;
+
+        const res = await fetch(
+          `https://graph.instagram.com/v21.0/me/subscribed_apps?subscribed_fields=messages,comments,live_comments,message_reactions&access_token=${token.access_token}`,
+          { method: "POST" },
+        );
+        const result = await res.json().catch(() => ({}));
+        const ok = res.ok && result.success !== false && !result.error;
+        if (!ok) console.error("[ig-api] subscribe failed:", JSON.stringify(result).slice(0, 300));
+        await db.from("ig_accounts").update({ webhook_subscribed: ok }).eq("id", account.id);
+        if (ok) subscribed++;
+      }
+
+      return json({ success: true, subscribed });
+    }
+
     return fail("Ação não reconhecida.", 400);
+
   } catch (error) {
     console.error("[ig-api] unexpected error:", (error as Error).message);
     return fail("Erro interno. Tente novamente em instantes.", 500);

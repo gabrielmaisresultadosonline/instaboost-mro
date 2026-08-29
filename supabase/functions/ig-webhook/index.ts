@@ -67,7 +67,9 @@ Deno.serve(async (req) => {
   }
 
   // ---------- Registro idempotente + enfileiramento ----------
+  let queued = false;
   try {
+
     const payload = JSON.parse(rawBody) as {
       object?: string;
       entry?: Array<{ id?: string; time?: number; changes?: unknown[]; messaging?: unknown[] }>;
@@ -76,14 +78,17 @@ Deno.serve(async (req) => {
     for (const entry of payload.entry ?? []) {
       const instagramAccountId = entry.id ? String(entry.id) : null;
 
+      // A Meta envia o ID da conta profissional (instagram_user_id) no entry.id,
+      // que pode ser diferente do id retornado pelo /me na conexão.
       const { data: account } = instagramAccountId
         ? await db
             .from("ig_accounts")
             .select("id, tenant_id")
-            .eq("instagram_account_id", instagramAccountId)
+            .or(`instagram_account_id.eq.${instagramAccountId},instagram_user_id.eq.${instagramAccountId}`)
             .is("deleted_at", null)
             .maybeSingle()
         : { data: null };
+
 
       const items: Array<{ field: string; value: unknown }> = [
         ...((entry.changes ?? []) as Array<{ field?: string; value?: unknown }>).map((c) => ({
@@ -123,9 +128,22 @@ Deno.serve(async (req) => {
             payload: { event_id: inserted.id, ig_account_id: account.id },
             dedupe_key: `event:${inserted.id}`,
           });
+          queued = true;
         }
       }
     }
+
+    // Processamento imediato (tempo real). Fire-and-forget: a Meta recebe 200 na hora.
+    if (queued) {
+      const workerUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/ig-worker`;
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+      fetch(workerUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" },
+        body: "{}",
+      }).catch((error) => console.error("[ig-webhook] worker trigger failed:", (error as Error).message));
+    }
+
   } catch (error) {
     // Nunca devolver erro para a Meta: isso causa reenvio em massa.
     console.error("[ig-webhook] processing error:", (error as Error).message);

@@ -34,10 +34,131 @@ async function bumpUsage(db: SupabaseClient, tenantId: string | null, metric: st
   }
 }
 
+/** Busca o perfil público do participante (best-effort, nunca derruba o job). */
+async function fetchParticipant(
+  db: SupabaseClient,
+  accountRowId: string,
+  participantId: string,
+): Promise<{ username: string | null; name: string | null; picture: string | null }> {
+  try {
+    const { data: token } = await db
+      .from("ig_tokens")
+      .select("access_token")
+      .eq("ig_account_id", accountRowId)
+      .maybeSingle();
+    if (!token?.access_token) return { username: null, name: null, picture: null };
+
+    const res = await fetch(
+      `https://graph.instagram.com/v21.0/${participantId}?fields=username,name,profile_pic&access_token=${token.access_token}`,
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) return { username: null, name: null, picture: null };
+    return {
+      username: data.username ?? null,
+      name: data.name ?? null,
+      picture: data.profile_pic ?? null,
+    };
+  } catch {
+    return { username: null, name: null, picture: null };
+  }
+}
+
+/** Grava um evento de Direct como conversa + mensagem do Inbox. */
+async function persistDirect(
+  db: SupabaseClient,
+  tenantId: string,
+  accountRowId: string,
+  value: Record<string, unknown>,
+): Promise<boolean> {
+  const sender = (value.sender as { id?: string } | undefined)?.id ?? null;
+  const recipient = (value.recipient as { id?: string } | undefined)?.id ?? null;
+  const message = value.message as
+    | { mid?: string; text?: string; is_echo?: boolean; is_deleted?: boolean; attachments?: unknown[] }
+    | undefined;
+
+  if (!message || !sender || !recipient || message.is_deleted) return false;
+
+  const isEcho = Boolean(message.is_echo);
+  const direction: "in" | "out" = isEcho ? "out" : "in";
+  const participantId = isEcho ? recipient : sender;
+  const sentAt = value.timestamp ? new Date(Number(value.timestamp)).toISOString() : new Date().toISOString();
+  const text = message.text ?? null;
+  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+
+  const { data: existing } = await db
+    .from("ig_conversations")
+    .select("id")
+    .eq("ig_account_id", accountRowId)
+    .eq("participant_id", participantId)
+    .maybeSingle();
+
+  let conversationId = existing?.id as string | undefined;
+
+  if (!conversationId) {
+    const profile = await fetchParticipant(db, accountRowId, participantId);
+    const { data: created } = await db
+      .from("ig_conversations")
+      .insert({
+        tenant_id: tenantId,
+        ig_account_id: accountRowId,
+        participant_id: participantId,
+        participant_username: profile.username,
+        participant_name: profile.name,
+        participant_picture_url: profile.picture,
+      })
+      .select("id")
+      .maybeSingle();
+    conversationId = created?.id as string | undefined;
+    if (!conversationId) return false;
+  }
+
+  const { error: insertError } = await db.from("ig_messages").insert({
+    tenant_id: tenantId,
+    conversation_id: conversationId,
+    ig_account_id: accountRowId,
+    mid: message.mid ?? null,
+    direction,
+    text,
+    attachments,
+    sender_id: sender,
+    recipient_id: recipient,
+    sent_at: sentAt,
+  });
+
+  // Mensagem duplicada (mesmo mid) → nada a fazer.
+  if (insertError && insertError.code !== "23505") throw new Error(insertError.message);
+  if (insertError) return false;
+
+  const preview = text ?? (attachments.length > 0 ? "[anexo]" : null);
+
+  if (direction === "in") {
+    const { data: conv } = await db
+      .from("ig_conversations")
+      .select("unread_count")
+      .eq("id", conversationId)
+      .maybeSingle();
+    await db
+      .from("ig_conversations")
+      .update({
+        last_message_text: preview,
+        last_message_at: sentAt,
+        last_direction: direction,
+        unread_count: Number(conv?.unread_count ?? 0) + 1,
+      })
+      .eq("id", conversationId);
+  } else {
+    await db
+      .from("ig_conversations")
+      .update({ last_message_text: preview, last_message_at: sentAt, last_direction: direction })
+      .eq("id", conversationId);
+  }
+
+  return direction === "in";
+}
+
 /**
- * Processa um job. Na Fase 1 os handlers de webhook apenas contabilizam
- * métricas reais e marcam o evento — Direct/comentários/automações entram
- * nas fases seguintes, sem mudar o contrato da fila.
+ * Processa um job. Eventos de Direct alimentam o Inbox em tempo real;
+ * demais campos apenas contabilizam métricas reais.
  */
 async function handleJob(
   db: SupabaseClient,
@@ -45,9 +166,23 @@ async function handleJob(
 ): Promise<void> {
   if (job.type.startsWith("webhook.")) {
     const eventId = job.payload.event_id as string | undefined;
+    const accountRowId = job.payload.ig_account_id as string | undefined;
     const field = job.type.slice("webhook.".length);
 
-    if (field === "messages") await bumpUsage(db, job.tenant_id, "messages_received");
+    if (field === "messages" && eventId && accountRowId && job.tenant_id) {
+      const { data: event } = await db
+        .from("ig_webhook_events")
+        .select("payload")
+        .eq("id", eventId)
+        .maybeSingle();
+
+      const inbound = event?.payload
+        ? await persistDirect(db, job.tenant_id, accountRowId, event.payload as Record<string, unknown>)
+        : false;
+
+      if (inbound) await bumpUsage(db, job.tenant_id, "messages_received");
+    }
+
     if (field === "comments") await bumpUsage(db, job.tenant_id, "comments_processed");
 
     if (eventId) {
@@ -61,6 +196,7 @@ async function handleJob(
 
   throw new Error(`unknown job type: ${job.type}`);
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

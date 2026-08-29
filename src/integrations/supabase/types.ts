@@ -2934,6 +2934,69 @@ export type Database = {
           },
         ]
       }
+      ig_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          ig_account_id: string
+          last_direction: string | null
+          last_message_at: string | null
+          last_message_text: string | null
+          participant_id: string
+          participant_name: string | null
+          participant_picture_url: string | null
+          participant_username: string | null
+          tenant_id: string
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ig_account_id: string
+          last_direction?: string | null
+          last_message_at?: string | null
+          last_message_text?: string | null
+          participant_id: string
+          participant_name?: string | null
+          participant_picture_url?: string | null
+          participant_username?: string | null
+          tenant_id: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ig_account_id?: string
+          last_direction?: string | null
+          last_message_at?: string | null
+          last_message_text?: string | null
+          participant_id?: string
+          participant_name?: string | null
+          participant_picture_url?: string | null
+          participant_username?: string | null
+          tenant_id?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_conversations_ig_account_id_fkey"
+            columns: ["ig_account_id"]
+            isOneToOne: false
+            referencedRelation: "ig_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ig_jobs: {
         Row: {
           attempts: number
@@ -2980,6 +3043,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ig_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_messages: {
+        Row: {
+          attachments: Json
+          conversation_id: string
+          created_at: string
+          direction: string
+          id: string
+          ig_account_id: string
+          mid: string | null
+          recipient_id: string | null
+          sender_id: string | null
+          sent_at: string
+          tenant_id: string
+          text: string | null
+        }
+        Insert: {
+          attachments?: Json
+          conversation_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          ig_account_id: string
+          mid?: string | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          sent_at?: string
+          tenant_id: string
+          text?: string | null
+        }
+        Update: {
+          attachments?: Json
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          ig_account_id?: string
+          mid?: string | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          sent_at?: string
+          tenant_id?: string
+          text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ig_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_messages_ig_account_id_fkey"
+            columns: ["ig_account_id"]
+            isOneToOne: false
+            referencedRelation: "ig_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "ig_tenants"
