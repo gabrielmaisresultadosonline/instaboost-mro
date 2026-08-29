@@ -47,6 +47,11 @@ Deno.serve(async (req) => {
       blocked?: boolean;
       limit?: number;
       search?: string;
+      app_id?: string;
+      app_secret?: string;
+      scopes?: string;
+      redirect_uri?: string;
+      webhook_verify_token?: string;
     };
 
     const action = body.action;
@@ -289,6 +294,65 @@ Deno.serve(async (req) => {
         : { data: [] };
 
       return json({ success: true, accounts: accounts ?? [], tenants: tenants ?? [] });
+    }
+
+    // ---------------- CONFIG DO APP DA META ----------------
+    if (action === "app-config") {
+      const { data } = await db
+        .from("ig_app_config")
+        .select("app_id, scopes, redirect_uri, webhook_verify_token, updated_at, updated_by")
+        .eq("id", "default")
+        .maybeSingle();
+
+      const envAppId = Deno.env.get("META_APP_ID") ?? Deno.env.get("FACEBOOK_APP_ID") ?? "";
+      const envSecret = Deno.env.get("META_APP_SECRET") ?? Deno.env.get("FACEBOOK_APP_SECRET") ?? "";
+
+      return json({
+        success: true,
+        config: {
+          app_id: data?.app_id ?? envAppId,
+          scopes: data?.scopes ?? null,
+          redirect_uri: data?.redirect_uri ?? null,
+          webhook_verify_token: data?.webhook_verify_token ?? null,
+          // Nunca retornamos o segredo: apenas se existe.
+          has_app_secret: Boolean(data?.app_secret ?? envSecret),
+          source: data?.app_id ? "database" : envAppId ? "secrets" : "none",
+          updated_at: data?.updated_at ?? null,
+          updated_by: data?.updated_by ?? null,
+        },
+      });
+    }
+
+    if (action === "save-app-config") {
+      const appId = String(body.app_id ?? "").trim();
+      const appSecret = String(body.app_secret ?? "").trim();
+      if (!appId || appId.length > 64) return fail("Informe um App ID válido.", 400);
+
+      const patch: Record<string, unknown> = {
+        id: "default",
+        app_id: appId,
+        scopes: String(body.scopes ?? "").trim() || null,
+        redirect_uri: String(body.redirect_uri ?? "").trim() || null,
+        webhook_verify_token: String(body.webhook_verify_token ?? "").trim() || null,
+        updated_by: adminEmail,
+        updated_at: new Date().toISOString(),
+      };
+      if (appSecret) patch.app_secret = appSecret;
+
+      const { error } = await db.from("ig_app_config").upsert(patch, { onConflict: "id" });
+      if (error) {
+        console.error("[ig-admin] save-app-config failed:", error.message);
+        return fail("Não foi possível salvar a configuração.", 500);
+      }
+
+      await audit(db, {
+        actor_type: "super_admin",
+        action: "admin.app_config_saved",
+        ip,
+        metadata: { admin: adminEmail, secret_updated: Boolean(appSecret) },
+      });
+
+      return json({ success: true });
     }
 
     // ---------------- LOGS ----------------

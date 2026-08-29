@@ -59,6 +59,28 @@ export const igAdminApi = {
 
   changePassword: (newPassword: string) => invoke<{ success: true }>({ action: "change-password", new_password: newPassword }),
 
+  appConfig: () =>
+    invoke<{
+      config: {
+        app_id: string | null;
+        scopes: string | null;
+        redirect_uri: string | null;
+        webhook_verify_token: string | null;
+        has_app_secret: boolean;
+        source: "database" | "secrets" | "none";
+        updated_at: string | null;
+        updated_by: string | null;
+      };
+    }>({ action: "app-config" }),
+
+  saveAppConfig: (input: {
+    app_id: string;
+    app_secret?: string;
+    scopes?: string;
+    redirect_uri?: string;
+    webhook_verify_token?: string;
+  }) => invoke<{ success: true }>({ action: "save-app-config", ...input }),
+
   dashboard: () => invoke<{ stats: IgAdminStats }>({ action: "dashboard" }),
 
   users: (search?: string) =>

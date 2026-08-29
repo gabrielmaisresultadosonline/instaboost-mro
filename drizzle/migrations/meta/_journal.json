@@ -15,6 +15,13 @@
       "when": 1787964728375,
       "tag": "0001_ig_phase1_core_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787965840381,
+      "tag": "0002_ig_app_config",
+      "breakpoints": true
     }
   ]
 }
