@@ -1,0 +1,85 @@
+/**
+ * Migração completa, em ordem de dependência, com registro de cada etapa.
+ *
+ * A ordem não é negociável: estrutura antes de dados, dados antes de URLs
+ * (a reescrita de links roda sobre as linhas já importadas), e conferência
+ * sempre por último.
+ *
+ * Uso:
+ *   npm run migrate:all                # tudo, com reescrita de URLs simulada
+ *   npm run migrate:all -- --apply-urls  # tudo, gravando as URLs novas
+ *   npm run migrate:all -- --skip-storage
+ */
+
+import { pool } from "../src/db.js";
+import { migrateSchema } from "./migrate-schema.js";
+import { migrateData } from "./migrate-data.js";
+import { migrateUsers } from "./migrate-users.js";
+import { migrateStorage } from "./migrate-storage.js";
+import { rewriteUrls } from "./rewrite-urls.js";
+import { verify } from "./verify.js";
+import { log } from "./lib/log.js";
+
+interface Step {
+  name: string;
+  run: () => Promise<unknown>;
+  skip?: boolean;
+}
+
+async function record(step: string, status: string, details: unknown): Promise<void> {
+  await pool
+    .query(
+      `INSERT INTO public.migration_runs (step, status, details, finished_at)
+       VALUES ($1, $2, $3::jsonb, now())`,
+      [step, status, JSON.stringify(details ?? {})],
+    )
+    .catch(() => undefined); // a tabela só existe após o bootstrap
+}
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  const applyUrls = args.includes("--apply-urls");
+  const startedAt = Date.now();
+
+  console.log("\n\x1b[1m═══ Migração para PostgreSQL próprio (VPS) ═══\x1b[0m");
+
+  const steps: Step[] = [
+    { name: "schema", run: () => migrateSchema() },
+    { name: "data", run: () => migrateData(), skip: args.includes("--skip-data") },
+    { name: "users", run: () => migrateUsers(), skip: args.includes("--skip-data") },
+    { name: "storage", run: () => migrateStorage(), skip: args.includes("--skip-storage") },
+    { name: "urls", run: () => rewriteUrls(applyUrls) },
+    { name: "verify", run: () => verify() },
+  ];
+
+  for (const step of steps) {
+    if (step.skip) {
+      log.warn(`Etapa "${step.name}" ignorada por parâmetro.`);
+      continue;
+    }
+    try {
+      await step.run();
+      await record(step.name, "ok", {});
+    } catch (error) {
+      const message = (error as Error).message;
+      await record(step.name, "erro", { message });
+      log.error(`Etapa "${step.name}" falhou: ${message}`);
+      // Estrutura é pré-requisito de tudo; sem ela não faz sentido continuar.
+      if (step.name === "schema") process.exit(1);
+    }
+  }
+
+  const minutes = ((Date.now() - startedAt) / 60000).toFixed(1);
+  log.step(`Concluído em ${minutes} min`);
+
+  if (!applyUrls) {
+    log.warn("As URLs de mídia foram apenas simuladas. Rode com `--apply-urls` no corte final.");
+  }
+
+  await pool.end();
+}
+
+main().catch((error: Error) => {
+  log.error(error.message);
+  process.exit(1);
+});
