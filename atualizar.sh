@@ -112,6 +112,7 @@ fi
 
 # ---------- 6. Serviços ----------
 step "6/7 Reiniciando serviços"
+mkdir -p /var/log/mro 2>/dev/null || sudo mkdir -p /var/log/mro
 if command -v pm2 >/dev/null 2>&1; then
   [ -f ecosystem.config.cjs ] && pm2 startOrReload ecosystem.config.cjs --update-env >/dev/null
   pm2 restart all >/dev/null || true
