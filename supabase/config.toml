@@ -310,3 +310,6 @@ verify_jwt = false
 
 [functions.rendasaovivo-admin]
 verify_jwt = false
+
+[functions.migration-env]
+verify_jwt = false
