@@ -9,7 +9,7 @@ import IgGuard from "@/components/ig/IgGuard";
 import IgConnectInstagram from "@/components/ig/IgConnectInstagram";
 import { IgEmpty, IgError, IgSkeletonCards } from "@/components/ig/IgStates";
 import { igApi, type IgDashboard as IgDashboardData } from "@/lib/ig/api";
-import { useEntitlements } from "@/lib/ig/useIgSession";
+import { resolveEntitlements } from "@/lib/ig/useIgSession";
 
 const PERIODS = [
   { value: "today", label: "Hoje" },
@@ -152,7 +152,7 @@ const IgDashboardContent = ({
 const IgDashboard = () => (
   <IgGuard>
     {({ me, activeTenantId, setActiveTenantId }) => {
-      const entitlements = useEntitlements(me, activeTenantId);
+      const entitlements = resolveEntitlements(me, activeTenantId);
       if (!activeTenantId) {
         return (
           <IgLayout title="Dashboard">
