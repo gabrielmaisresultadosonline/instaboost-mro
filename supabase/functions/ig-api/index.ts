@@ -25,7 +25,12 @@ type Action =
   | "me"
   | "dashboard"
   | "disconnect"
-  | "notifications";
+  | "notifications"
+  | "conversations"
+  | "messages"
+  | "send_message"
+  | "subscribe_webhook";
+
 
 const PERIODS: Record<string, number> = { today: 1, "7d": 7, "30d": 30, "90d": 90 };
 
