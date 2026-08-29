@@ -60,6 +60,26 @@ export interface IgDashboard {
   metrics: Record<string, number | null>;
 }
 
+export interface IgConversation {
+  id: string;
+  participant_id: string;
+  participant_username: string | null;
+  participant_name: string | null;
+  participant_picture_url: string | null;
+  last_message_text: string | null;
+  last_message_at: string | null;
+  last_direction: "in" | "out" | null;
+  unread_count: number;
+}
+
+export interface IgMessage {
+  id: string;
+  direction: "in" | "out";
+  text: string | null;
+  attachments: unknown[];
+  sent_at: string;
+}
+
 /** Erro de negócio já traduzido para o usuário final. */
 export class IgApiError extends Error {
   readonly code?: string;
