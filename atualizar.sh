@@ -83,19 +83,21 @@ if [ -f server/.env ]; then
     warn "3/7 DATABASE_URL vazio ou psql ausente: banco local ignorado."
   fi
 else
-  warn "3/7 server/.env não existe — baixe o arquivo pronto em /admin → Migração."
+  fail "server/.env não existe. Baixe o arquivo pronto em /admin → Migração, salve como server/.env e rode de novo (sem ele não há banco local nem download de mídias)."
 fi
 
 # ---------- 4. Tabelas, usuários e arquivos ----------
 if [ "$RAPIDO" = true ]; then
   warn "4/7 Migração de dados ignorada (--rapido)."
-elif [ "$DB_PRONTO" = true ] && [ -n "${LEGACY_DATABASE_URL:-}" ]; then
-  step "4/7 Copiando tabelas, usuários e arquivos do Supabase"
+elif [ "$DB_PRONTO" != true ]; then
+  fail "Banco local indisponível: confira DATABASE_URL em server/.env e se o psql está instalado."
+elif [ -z "${LEGACY_SUPABASE_SERVICE_KEY:-}" ]; then
+  fail "LEGACY_SUPABASE_SERVICE_KEY vazio em server/.env — é essa chave que baixa os vídeos/imagens dos buckets."
+else
+  step "4/7 Copiando tabelas, usuários e TODAS as mídias do Supabase"
   warn "Pode levar bastante tempo na primeira vez (os vídeos são o maior volume)."
   (cd server && npm run migrate:all -- "${MIGRATE_ARGS[@]+"${MIGRATE_ARGS[@]}"}")
   ok "Dados e mídias sincronizados (Supabase segue intacto)."
-else
-  warn "4/7 LEGACY_DATABASE_URL ausente: nada a copiar do Supabase."
 fi
 
 # ---------- 5. Frontend ----------
