@@ -116,6 +116,21 @@ SQL
     STORAGE_DIR="${STORAGE_ROOT:-/var/www/uploads}"
     mkdir -p "$STORAGE_DIR"; chmod 750 "$STORAGE_DIR"
     ok "Uploads em $STORAGE_DIR."
+
+    # O Supabase roda PostgreSQL 17: um pg_dump 14 (padrão do Ubuntu 22.04)
+    # aborta com "server version mismatch" ao copiar o schema.
+    if ! ls /usr/lib/postgresql/1[7-9]/bin/pg_dump >/dev/null 2>&1; then
+      warn "Instalando postgresql-client-17 (necessário para copiar o schema do Supabase)."
+      sudo install -d /usr/share/keyrings
+      curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+        | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+      echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo "$VERSION_CODENAME")-pgdg main" \
+        | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+      sudo apt-get update -qq
+      sudo apt-get install -y -qq postgresql-client-17 \
+        || fail "Falha ao instalar postgresql-client-17. Rode manualmente e repita."
+      ok "postgresql-client-17 instalado."
+    fi
     DB_PRONTO=true
   else
     warn "3/7 DATABASE_URL vazio ou psql ausente: banco local ignorado."
