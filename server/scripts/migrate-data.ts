@@ -81,23 +81,12 @@ async function copyTable(legacyUrl: string, table: TableInfo): Promise<{ copied:
   const staging = `_stg_${table.name}`.slice(0, 63);
   const target = `public.${quoteIdentifier(table.name)}`;
 
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query(`SET LOCAL role service_role`);
-    await client.query(
-      `CREATE TEMP TABLE ${quoteIdentifier(staging)} (LIKE ${target} INCLUDING DEFAULTS) ON COMMIT DROP`,
-    );
-    await client.query("COMMIT");
-  } finally {
-    client.release();
-  }
-
-  // Tabela temporária não sobrevive à conexão; usamos uma tabela real
-  // descartável para o COPY vindo do psql externo.
+  // Tabela de apoio real (não TEMP): o COPY vem de um processo psql externo,
+  // que abre a própria conexão e não veria uma tabela temporária nossa.
   const stagingReal = `public.${quoteIdentifier(staging)}`;
   await pool.query(`DROP TABLE IF EXISTS ${stagingReal}`);
   await pool.query(`CREATE UNLOGGED TABLE ${stagingReal} (LIKE ${target})`);
+
 
   try {
     await pipe(
