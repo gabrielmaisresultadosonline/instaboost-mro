@@ -96,3 +96,22 @@ export const env = {
 if (env.auth.jwtSecret.length < 32) {
   throw new Error("[env] JWT_SECRET precisa ter no mínimo 32 caracteres.");
 }
+
+/**
+ * Acesso à origem legada durante a migração.
+ *
+ * Retornado em formato estável para os scripts: `url` e `serviceKey` servem à
+ * API de storage; `databaseUrl` serve ao pg_dump/psql. Cada script decide o
+ * que é obrigatório para a sua etapa, por isso aqui apenas normalizamos.
+ */
+export function requireLegacy(): {
+  url: string;
+  serviceKey: string;
+  databaseUrl: string;
+} {
+  return {
+    url: env.legacy.supabaseUrl.replace(/\/+$/, ""),
+    serviceKey: env.legacy.supabaseServiceKey,
+    databaseUrl: env.legacy.databaseUrl,
+  };
+}
