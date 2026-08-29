@@ -98,7 +98,22 @@ Deno.serve(async (req) => {
       }
 
       const { hash } = await hashPassword(password, account.password_salt);
-      if (!timingSafeEqual(hash, account.password_hash)) {
+      let passwordOk = timingSafeEqual(hash, account.password_hash);
+
+      // Auto-recuperação: enquanto a troca obrigatória está pendente, o valor
+      // atual do secret sempre vale (cobre rotação do secret ou hash provisionado
+      // antes da senha correta). Depois da troca, só a senha definida funciona.
+      if (!passwordOk && account.must_change_password && initialPassword && password === initialPassword) {
+        const fresh = await hashPassword(initialPassword);
+        await db
+          .from("ig_admin_accounts")
+          .update({ password_hash: fresh.hash, password_salt: fresh.salt })
+          .eq("id", account.id);
+        passwordOk = true;
+      }
+
+      if (!passwordOk) {
+
         const failedAttempts = account.failed_attempts + 1;
         await db
           .from("ig_admin_accounts")
