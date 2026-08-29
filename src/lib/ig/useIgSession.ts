@@ -120,3 +120,22 @@ export function useEntitlements(me: IgMe | null, tenantId: string | null): {
     [plan],
   );
 }
+
+/** Versão sem hook dos entitlements — usar dentro de render-props. */
+export function resolveEntitlements(me: IgMe | null, tenantId: string | null): {
+  plan: IgPlan | null;
+  can: (feature: string) => boolean;
+  limit: (key: keyof IgPlan) => number | null;
+} {
+  const tenant = me && tenantId ? me.tenants.find((t) => t.id === tenantId) : null;
+  const plan = tenant ? me?.plans.find((p) => p.id === tenant.plan_id) ?? null : null;
+
+  return {
+    plan,
+    can: (feature: string) => Boolean(plan?.features?.[feature]),
+    limit: (key: keyof IgPlan) => {
+      const value = plan?.[key];
+      return typeof value === "number" ? value : null;
+    },
+  };
+}
