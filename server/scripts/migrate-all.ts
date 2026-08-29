@@ -39,17 +39,19 @@ async function record(step: string, status: string, details: unknown): Promise<v
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const applyUrls = args.includes("--apply-urls");
+  // --only-storage: baixa apenas vídeos/áudios/imagens dos buckets.
+  const onlyStorage = args.includes("--only-storage");
   const startedAt = Date.now();
 
   console.log("\n\x1b[1m═══ Migração para PostgreSQL próprio (VPS) ═══\x1b[0m");
 
   const steps: Step[] = [
-    { name: "schema", run: () => migrateSchema() },
-    { name: "data", run: () => migrateData(), skip: args.includes("--skip-data") },
-    { name: "users", run: () => migrateUsers(), skip: args.includes("--skip-data") },
+    { name: "schema", run: () => migrateSchema(), skip: onlyStorage },
+    { name: "data", run: () => migrateData(), skip: onlyStorage || args.includes("--skip-data") },
+    { name: "users", run: () => migrateUsers(), skip: onlyStorage || args.includes("--skip-data") },
     { name: "storage", run: () => migrateStorage(), skip: args.includes("--skip-storage") },
-    { name: "urls", run: () => rewriteUrls(applyUrls) },
-    { name: "verify", run: () => verify() },
+    { name: "urls", run: () => rewriteUrls(applyUrls), skip: onlyStorage },
+    { name: "verify", run: () => verify(), skip: onlyStorage },
   ];
 
   for (const step of steps) {
