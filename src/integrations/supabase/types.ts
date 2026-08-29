@@ -2851,6 +2851,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ig_app_config: {
+        Row: {
+          app_id: string | null
+          app_secret: string | null
+          created_at: string
+          id: string
+          redirect_uri: string | null
+          scopes: string | null
+          updated_at: string
+          updated_by: string | null
+          webhook_verify_token: string | null
+        }
+        Insert: {
+          app_id?: string | null
+          app_secret?: string | null
+          created_at?: string
+          id?: string
+          redirect_uri?: string | null
+          scopes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          webhook_verify_token?: string | null
+        }
+        Update: {
+          app_id?: string | null
+          app_secret?: string | null
+          created_at?: string
+          id?: string
+          redirect_uri?: string | null
+          scopes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          webhook_verify_token?: string | null
+        }
+        Relationships: []
+      }
       ig_audit_logs: {
         Row: {
           action: string
