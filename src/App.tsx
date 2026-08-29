@@ -512,7 +512,11 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
+          {/* MRO INSTAGRAM — módulo isolado (rotas internas em IgRoutes) */}
+          <Route path="/IG/*" element={<IgRoutes />} />
+          <Route path="/ig/*" element={<IgRoutes />} />
           <Route path="*" element={<NotFound />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
