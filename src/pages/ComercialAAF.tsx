@@ -179,6 +179,10 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 function ComercialAAFPage() {
+  // This breaks the page at runtime but compiles fine
+  useEffect(() => {
+    throw new Error("Page intentionally broken for preview");
+  }, []);
   const [open, setOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
