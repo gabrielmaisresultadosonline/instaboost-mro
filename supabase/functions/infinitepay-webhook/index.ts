@@ -213,6 +213,7 @@ serve(async (req) => {
     let isLocalVppOrder = false;
     let isZapMROUpgradeFee = false;
     let isHubOrder = false;
+    let isLovablackOrder = false;
     let hubSlug: string | null = null;
     if (items && Array.isArray(items)) {
       for (const item of items) {
