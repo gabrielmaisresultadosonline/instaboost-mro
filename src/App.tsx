@@ -222,6 +222,8 @@ import PagamentoMRO from "./pages/PagamentoMRO";
 import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
 import AgenteMRO from "./pages/AgenteMRO";
 import AgenteMROPainel from "./pages/AgenteMROPainel";
+import IgRoutes from "./pages/ig/IgRoutes";
+
 import TrafegoPagoVisitas from "./pages/TrafegoPagoVisitas";
 import TrafegoPagoObrigado from "./pages/TrafegoPagoObrigado";
 import AudiobooksSales from "./pages/AudiobooksSales";
