@@ -21,26 +21,10 @@ interface Divergence {
 }
 
 async function countRows(connection: string): Promise<Map<string, number>> {
-  const output = await runOrThrow("psql", [
-    "-t", "-A", "-F", "|", "-d", connection,
-    "-c", `
-      SELECT c.relname,
-             (SELECT count(*) FROM ONLY pg_catalog.pg_class WHERE false) -- placeholder
-        FROM pg_class c LIMIT 0
-    `,
-  ]).catch(() => "");
-  void output;
-
-  // Contagem exata precisa de count(*) por tabela; fazemos via query dinâmica.
-  const json = await runOrThrow("psql", [
-    "-t", "-A", "-d", connection,
-    "-c", `
-      DO $$ BEGIN NULL; END $$;
-    `,
-  ]).catch(() => "");
-  void json;
-
+  // count(*) precisa ser por tabela. Em vez de N chamadas ao psql, montamos
+  // uma única query que usa query_to_xml para contar cada tabela dinamicamente.
   const result = await runOrThrow("psql", [
+
     "-t", "-A", "-d", connection,
     "-c", `
       SELECT string_agg(format('%s=%s', tbl, cnt), ',')
