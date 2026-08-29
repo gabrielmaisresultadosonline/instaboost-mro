@@ -22,6 +22,17 @@ const UserSchema = z.object({
   plan_type: z.enum(["trial", "monthly", "lifetime"]).default("monthly"),
 });
 
+/** Plano único mensal da Lovablack (em reais). */
+const LOVABLACK_PRICE = 97;
+const INFINITEPAY_HANDLE = "paguemro";
+
+const CheckoutSchema = z.object({
+  name: z.string().trim().min(3, "Informe seu nome completo").max(120),
+  email: z.string().trim().email("E-mail inválido").max(255).transform((v) => v.toLowerCase()),
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(72),
+  whatsapp: z.string().trim().transform((v) => v.replace(/\D/g, "")).refine((v) => v.length >= 10, "WhatsApp inválido"),
+});
+
 const UpdateSchema = z.object({
   blocked: z.boolean().optional(),
   custom_message: z.string().max(1000).nullable().optional(),
@@ -101,6 +112,67 @@ Deno.serve(async (req) => {
         global_announcement: settings.global_announcement || "", min_version: settings.min_extension_version || "1.0.0",
       }});
     }
+
+    // Checkout público: cria pedido pendente + link InfinitePay (plano mensal R$97)
+    if (body.action === "checkout") {
+      const parsed = CheckoutSchema.safeParse(body);
+      if (!parsed.success) {
+        return json({ success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" }, 400);
+      }
+      const { name, email, password, whatsapp } = parsed.data;
+
+      const { data: existing } = await db.from("lovablack_users").select("id").eq("email", email).maybeSingle();
+      if (existing) {
+        return json({ success: false, error: "Este e-mail já possui acesso. Faça login." }, 400);
+      }
+
+      const orderNsu = `LOVABLACK${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.toUpperCase();
+      const priceInCents = LOVABLACK_PRICE * 100;
+      const redirectUrl = "https://maisresultadosonline.com.br/lovablack?paid=1";
+      const webhookUrl = `${url}/functions/v1/infinitepay-webhook`;
+      const items = [{ description: `LOVABLACK_${email}`, quantity: 1, price: priceInCents }];
+
+      let paymentLink = "";
+      try {
+        const res = await fetch("https://api.checkout.infinitepay.io/links", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            handle: INFINITEPAY_HANDLE,
+            items,
+            itens: items,
+            order_nsu: orderNsu,
+            redirect_url: redirectUrl,
+            webhook_url: webhookUrl,
+            customer: { email, name, ...(whatsapp ? { phone_number: whatsapp, phone: whatsapp } : {}) },
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) paymentLink = data.checkout_url || data.link || data.url || "";
+      } catch (err) {
+        console.error("[lovablack-api] InfinitePay error", err);
+      }
+
+      if (!paymentLink) {
+        const itemsEncoded = encodeURIComponent(JSON.stringify([{ name: `LOVABLACK_${email}`, price: priceInCents, quantity: 1 }]));
+        paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}`;
+      }
+
+      const { error: orderError } = await db.from("lovablack_orders").insert({
+        name, email, password, whatsapp: whatsapp || null,
+        plan_type: "monthly", amount: LOVABLACK_PRICE, status: "pending",
+        nsu_order: orderNsu, infinitepay_link: paymentLink,
+        expired_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+      });
+      if (orderError) {
+        console.error("[lovablack-api] order insert error", orderError);
+        return json({ success: false, error: "Não foi possível iniciar o pagamento." }, 500);
+      }
+
+      return json({ success: true, payment_link: paymentLink, order_nsu: orderNsu });
+    }
+
+
 
     const bearer = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
     const isServiceRequest = bearer === serviceKey;

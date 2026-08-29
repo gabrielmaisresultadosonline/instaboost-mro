@@ -4504,6 +4504,57 @@ export type Database = {
         }
         Relationships: []
       }
+      lovablack_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          name: string
+          nsu_order: string
+          paid_at: string | null
+          password: string
+          plan_type: string
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name: string
+          nsu_order: string
+          paid_at?: string | null
+          password: string
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name?: string
+          nsu_order?: string
+          paid_at?: string | null
+          password?: string
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       lovablack_settings: {
         Row: {
           description: string | null

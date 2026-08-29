@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { trackPageView, trackLead, trackInitiateCheckout } from "@/lib/facebookTracking";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { 
+import {
   ArrowRight,
   Shield,
   Zap,
@@ -19,324 +18,389 @@ import {
   CreditCard,
   Loader2,
   Monitor,
-  Laptop,
-  Flame,
-  Star,
-  Download,
-  X
+  Code2,
+  Infinity as InfinityIcon,
+  X,
+  ChevronDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logoMro from "@/assets/logo-mro.png";
 
+/** Preço único do plano mensal (em reais). */
+const MONTHLY_PRICE = 97;
+
+interface CheckoutForm {
+  name: string;
+  email: string;
+  password: string;
+  whatsapp: string;
+}
+
+const EMPTY_FORM: CheckoutForm = { name: "", email: "", password: "", whatsapp: "" };
+
+const FEATURES: string[] = [
+  "Créditos ilimitados dentro do Lovable",
+  "Crie SaaS, sites e sistemas complexos",
+  "Sem limite de projetos ou mensagens",
+  "Atualizações automáticas da extensão",
+  "Suporte prioritário via WhatsApp",
+  "Acesso imediato após o pagamento",
+];
+
+const BENEFITS = [
+  { icon: InfinityIcon, title: "Créditos Ilimitados", text: "Trabalhe o dia inteiro sem se preocupar com o consumo de créditos." },
+  { icon: Code2, title: "Projetos Complexos", text: "Construa SaaS completos, dashboards, APIs e integrações sem travas." },
+  { icon: Zap, title: "Alta Velocidade", text: "Extensão leve, otimizada e sem interferir no funcionamento do editor." },
+  { icon: Shield, title: "100% Segura", text: "Não altera seu código nem armazena seus projetos. Apenas libera o uso." },
+  { icon: Monitor, title: "Funciona no seu PC", text: "Compatível com Chrome, Edge e Brave no Windows, macOS e Linux." },
+  { icon: Rocket, title: "Setup em 2 minutos", text: "Instale, faça login com seu acesso e comece a criar imediatamente." },
+];
+
+const FAQ = [
+  { q: "Como funciona a extensão?", a: "Após a compra você recebe seu acesso, instala a extensão no navegador, faz login com o e-mail e senha cadastrados e passa a usar o Lovable sem consumir seus créditos." },
+  { q: "O plano é mensal mesmo?", a: "Sim. É apenas um plano mensal de R$97, sem fidelidade. Você renova quando quiser." },
+  { q: "E se eu não gostar?", a: "Você tem 7 dias de garantia incondicional. Se não gostar, devolvemos 100% do valor pago." },
+  { q: "Preciso ter conta no Lovable?", a: "Sim, você usa sua própria conta. A extensão apenas remove as limitações de uso durante suas criações." },
+  { q: "Funciona em mais de um computador?", a: "O acesso é individual, para uso em uma máquina por vez, para garantir a estabilidade do sistema." },
+];
+
 const Lovablack = () => {
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "lifetime">("monthly");
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [form, setForm] = useState<CheckoutForm>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    trackPageView('Sales Page - Lovablack');
+    trackPageView("Sales Page - Lovablack");
   }, []);
 
-  const handleOpenCheckout = (plan: "monthly" | "lifetime") => {
-    setSelectedPlan(plan);
-    setShowCheckoutModal(true);
-    trackInitiateCheckout(`Lovablack - ${plan}`, plan === "monthly" ? 47 : 147);
+  const updateField = (field: keyof CheckoutForm, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOpenCheckout = () => {
+    setShowCheckout(true);
+    trackInitiateCheckout("Lovablack - Mensal", MONTHLY_PRICE);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) { toast.error("E-mail inválido"); return; }
-    if (!name) { toast.error("Nome é obrigatório"); return; }
-    if (!whatsapp) { toast.error("WhatsApp é obrigatório"); return; }
+
+    const name = form.name.trim();
+    const email = form.email.trim().toLowerCase();
+    const whatsapp = form.whatsapp.replace(/\D/g, "");
+
+    if (name.length < 3) { toast.error("Informe seu nome completo."); return; }
+    if (!email.includes("@") || email.length < 6) { toast.error("Informe um e-mail válido."); return; }
+    if (form.password.length < 6) { toast.error("A senha deve ter no mínimo 6 caracteres."); return; }
+    if (whatsapp.length < 10) { toast.error("Informe um WhatsApp válido com DDD."); return; }
 
     setLoading(true);
     trackLead("Lovablack - Cadastro Checkout");
 
     try {
-      const amount = selectedPlan === "monthly" ? 47 : 147;
-      
-      // Chamada para criar o checkout (reutilizando a lógica de checkout do sistema)
-      const { data, error } = await supabase.functions.invoke("lovablack-checkout", {
-        body: { 
-          email: email.toLowerCase().trim(),
-          name: name.trim(),
-          whatsapp: whatsapp.replace(/\D/g, ""),
-          planType: selectedPlan,
-          amount: amount
-        }
+      const { data, error } = await supabase.functions.invoke("lovablack-api", {
+        body: { action: "checkout", name, email, password: form.password, whatsapp },
       });
 
       if (error) throw error;
-      if (data.payment_link) {
-        window.location.href = data.payment_link;
-      } else {
-        toast.error("Erro ao gerar link de pagamento.");
+      if (!data?.success) {
+        toast.error(data?.error || "Não foi possível gerar o pagamento.");
+        return;
       }
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao processar. Tente novamente.");
+
+      window.location.href = data.payment_link;
+    } catch (err) {
+      console.error("[Lovablack] checkout error", err);
+      toast.error("Erro ao processar. Tente novamente em instantes.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30">
+    <div className="min-h-screen bg-black text-white font-sans">
       <style>{`
-        .btn-pulse-green { 
-          position: relative; 
-          overflow: hidden; 
-          animation: pulse-green 2s infinite; 
-          transition: all 0.3s ease; 
-        }
-        .btn-pulse-green::after { 
-          content: ""; 
-          position: absolute; 
-          top: -50%; 
-          left: -60%; 
-          width: 20%; 
-          height: 200%; 
-          background: rgba(255, 255, 255, 0.4); 
-          transform: rotate(30deg); 
-          animation: light-sweep 3s infinite; 
-          filter: blur(5px); 
-        }
-        @keyframes light-sweep { 0% { left: -60%; } 30% { left: 150%; } 100% { left: 150%; } }
-        @keyframes pulse-green { 
-          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); } 
-          70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } 
-          100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } 
+        .lb-pulse { animation: lb-pulse 2.2s infinite; }
+        @keyframes lb-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }
+          70% { box-shadow: 0 0 0 18px rgba(220, 38, 38, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
       `}</style>
 
-      {/* Hero Section */}
-      <header className="relative pt-20 pb-16 px-4 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary/5 blur-[120px] rounded-full -z-10" />
-        
-        <div className="max-w-5xl mx-auto text-center">
-          <img src={logoMro} alt="MRO" className="h-16 md:h-24 mx-auto mb-8 drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" />
-          
-          <div className="inline-flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-1.5 mb-8">
+      {/* HERO */}
+      <header className="relative overflow-hidden px-4 pt-16 pb-20">
+        <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[520px] w-full -translate-x-1/2 rounded-full bg-red-600/10 blur-[140px]" />
+        <div className="mx-auto max-w-5xl text-center">
+          <img src={logoMro} alt="Logo MRO Lovablack" className="mx-auto mb-8 h-14 md:h-20" />
+
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900 px-4 py-1.5">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
             </span>
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Extensão Oficial Lovablack</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Extensão Oficial Lovablack</span>
           </div>
 
-          <h1 className="text-4xl md:text-7xl font-black mb-6 leading-tight">
-            EXTENSÃO PARA USAR <span className="text-primary">LOVABLE</span> SEM PAGAR CRÉDITOS!
+          <h1 className="mb-6 text-4xl font-black leading-tight md:text-6xl">
+            A MELHOR FERRAMENTA <span className="text-red-600">LOVABLE</span> DO MERCADO
           </h1>
-          
-          <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-10">
-            A extensão definitiva para você criar SAAS, sites e sistemas complexos sem limites.
+
+          <p className="mx-auto mb-10 max-w-3xl text-lg text-zinc-400 md:text-2xl">
+            Use o Lovable sem se preocupar com créditos e construa SaaS, sites e sistemas completos
+            com liberdade total. Plano mensal, sem fidelidade.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Button 
-              onClick={() => handleOpenCheckout("monthly")}
-              className="w-full sm:w-auto btn-pulse-green bg-green-500 hover:bg-green-600 text-black font-black text-xl px-12 py-8 rounded-2xl"
-            >
-              TESTE GRÁTIS AGORA
-              <ArrowRight className="ml-2 w-6 h-6" />
-            </Button>
-            <Button 
-              variant="outline"
-              className="w-full sm:w-auto border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800 text-white font-bold text-lg px-8 py-8 rounded-2xl"
-              onClick={() => window.open('https://chrome.google.com/webstore', '_blank')}
-            >
-              <Download className="mr-2 w-5 h-5" />
-              BAIXAR EXTENSÃO
-            </Button>
-          </div>
+          <Button
+            onClick={handleOpenCheckout}
+            className="lb-pulse w-full rounded-2xl bg-red-600 px-10 py-8 text-lg font-black text-white hover:bg-red-700 sm:w-auto md:text-xl"
+          >
+            QUERO ACESSO AGORA — R$97/MÊS
+            <ArrowRight className="ml-2 h-6 w-6" />
+          </Button>
 
-          {/* Feature Badges */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            {[
-              { icon: Zap, text: "Créditos Ilimitados" },
-              { icon: Shield, text: "100% Seguro" },
-              { icon: Monitor, text: "Sistemas Complexos" },
-              { icon: Rocket, text: "Alta Velocidade" }
-            ].map((f, i) => (
-              <div key={i} className="flex items-center gap-3 bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl">
-                <f.icon className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold text-zinc-300">{f.text}</span>
-              </div>
-            ))}
-          </div>
+          <p className="mt-5 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-500">
+            <Shield className="h-4 w-4 text-red-600" /> 7 dias de garantia incondicional
+          </p>
         </div>
       </header>
 
-      {/* Main Info Section */}
-      <section className="py-20 px-4 bg-zinc-950">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-black mb-8">
-            OTIMO PARA CRIAR <span className="text-primary">SAAS</span>, PROJETOS DE SITES E SISTEMAS COMPLEXOS.
+      {/* BENEFÍCIOS */}
+      <section className="border-y border-zinc-900 bg-zinc-950 px-4 py-20">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-4 text-center text-3xl font-black md:text-5xl">
+            TUDO QUE VOCÊ PRECISA PARA <span className="text-red-600">CRIAR SEM LIMITES</span>
           </h2>
-          <p className="text-zinc-400 text-lg md:text-xl leading-relaxed">
-            Nossa extensão integra-se perfeitamente ao Lovable, permitindo que você foque na criação sem se preocupar com o consumo de créditos da plataforma original. Economize centenas de reais todos os meses.
+          <p className="mx-auto mb-14 max-w-2xl text-center text-zinc-500">
+            Uma extensão feita para quem constrói de verdade: produtos digitais, sistemas e projetos para clientes.
+          </p>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {BENEFITS.map((b) => (
+              <article key={b.title} className="rounded-2xl border border-zinc-800 bg-black p-6 transition-colors hover:border-red-600/60">
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-red-600/10">
+                  <b.icon className="h-5 w-5 text-red-600" />
+                </div>
+                <h3 className="mb-2 text-lg font-black text-white">{b.title}</h3>
+                <p className="text-sm leading-relaxed text-zinc-400">{b.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PLANO */}
+      <section id="pricing" className="px-4 py-24">
+        <div className="mx-auto max-w-lg">
+          <div className="mb-12 text-center">
+            <h2 className="mb-3 text-4xl font-black md:text-5xl">PLANO ÚNICO</h2>
+            <p className="text-sm font-bold uppercase tracking-widest text-zinc-500">Acesso liberado após a confirmação</p>
+          </div>
+
+          <Card className="relative overflow-hidden border-red-600 bg-zinc-900 shadow-[0_0_45px_rgba(220,38,38,0.18)]">
+            <div className="absolute right-0 top-0 rounded-bl-lg bg-red-600 px-4 py-1 text-[10px] font-black uppercase tracking-tighter text-white">
+              Sem fidelidade
+            </div>
+            <CardHeader className="pb-2 text-center">
+              <Badge className="mx-auto mb-4 w-fit border-none bg-red-600 text-white">MENSAL</Badge>
+              <CardTitle className="text-3xl font-black text-white">LOVABLACK PRO</CardTitle>
+              <div className="mt-5 flex items-baseline justify-center gap-1">
+                <span className="text-2xl font-bold text-red-600">R$</span>
+                <span className="text-7xl font-black text-white">97</span>
+                <span className="font-bold text-zinc-500">/mês</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-7 pt-6">
+              <ul className="space-y-3.5">
+                {FEATURES.map((f) => (
+                  <li key={f} className="flex items-start gap-3 text-sm font-medium text-zinc-300">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                onClick={handleOpenCheckout}
+                className="lb-pulse w-full rounded-xl bg-red-600 py-7 text-lg font-black text-white hover:bg-red-700"
+              >
+                ASSINAR AGORA
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/50 p-4 text-center">
+                <Shield className="h-5 w-5 shrink-0 text-red-600" />
+                <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+                  Garantia de 7 dias — devolução integral
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* GARANTIA */}
+      <section className="border-y border-zinc-900 bg-zinc-950 px-4 py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-red-600/10">
+            <Shield className="h-8 w-8 text-red-600" />
+          </div>
+          <h2 className="mb-4 text-3xl font-black md:text-4xl">RISCO ZERO POR 7 DIAS</h2>
+          <p className="text-lg leading-relaxed text-zinc-400">
+            Teste a Lovablack por 7 dias completos. Se por qualquer motivo você achar que não é para você,
+            basta nos chamar e devolvemos 100% do valor pago, sem perguntas e sem burocracia.
           </p>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-black mb-4">ESCOLHA SEU PLANO</h2>
-            <p className="text-zinc-500 font-bold uppercase tracking-widest">Acesso imediato após a confirmação</p>
+      {/* FAQ */}
+      <section className="px-4 py-24">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="mb-12 text-center text-3xl font-black md:text-4xl">PERGUNTAS FREQUENTES</h2>
+          <div className="space-y-3">
+            {FAQ.map((item, i) => (
+              <div key={item.q} className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  aria-expanded={openFaq === i}
+                  className="flex w-full items-center justify-between gap-4 p-5 text-left font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600"
+                >
+                  {item.q}
+                  <ChevronDown className={`h-5 w-5 shrink-0 text-red-600 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
+                </button>
+                {openFaq === i && (
+                  <p className="border-t border-zinc-800 p-5 text-sm leading-relaxed text-zinc-400">{item.a}</p>
+                )}
+              </div>
+            ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Mensal */}
-            <Card className="bg-zinc-900 border-zinc-800 relative overflow-hidden group hover:border-primary/50 transition-all duration-300">
-              <CardHeader className="text-center pb-2">
-                <Badge className="w-fit mx-auto mb-4 bg-zinc-800 text-zinc-400 border-zinc-700">POPULAR</Badge>
-                <CardTitle className="text-3xl font-black text-white">MENSAL</CardTitle>
-                <div className="mt-4 flex items-baseline justify-center gap-1">
-                  <span className="text-2xl font-bold text-primary">R$</span>
-                  <span className="text-6xl font-black text-white">47</span>
-                  <span className="text-zinc-500 font-bold">/mês</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-6">
-                <ul className="space-y-4">
-                  {["Créditos Ilimitados", "Uso em 1 máquina", "Suporte via WhatsApp", "Atualizações Inclusas"].map((f, i) => (
-                    <li key={i} className="flex items-center gap-3 text-zinc-300 font-medium">
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  onClick={() => handleOpenCheckout("monthly")}
-                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-7 text-lg rounded-xl"
-                >
-                  ASSINAR AGORA
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Vitalício */}
-            <Card className="bg-zinc-900 border-primary shadow-[0_0_30px_rgba(59,130,246,0.15)] relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-              <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase tracking-tighter">
-                Melhor Custo Benefício
-              </div>
-              <CardHeader className="text-center pb-2">
-                <Badge className="w-fit mx-auto mb-4 bg-primary text-white border-none">VITALÍCIO</Badge>
-                <CardTitle className="text-3xl font-black text-white">ILIMITADO</CardTitle>
-                <div className="mt-4 flex items-baseline justify-center gap-1">
-                  <span className="text-2xl font-bold text-primary">R$</span>
-                  <span className="text-6xl font-black text-white">147</span>
-                  <span className="text-zinc-500 font-bold">VITALÍCIO</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-6">
-                <ul className="space-y-4">
-                  {["TUDO DO MENSAL", "ACESSO PARA SEMPRE", "Prioridade no Suporte", "Bônus de Lançamento"].map((f, i) => (
-                    <li key={i} className="flex items-center gap-3 text-zinc-300 font-black">
-                      <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  onClick={() => handleOpenCheckout("lifetime")}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-black py-7 text-lg rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.4)]"
-                >
-                  GARANTIR VITALÍCIO
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="mt-12 text-center">
+            <Button
+              onClick={handleOpenCheckout}
+              className="lb-pulse w-full rounded-2xl bg-red-600 px-10 py-7 text-lg font-black text-white hover:bg-red-700 sm:w-auto"
+            >
+              COMEÇAR POR R$97/MÊS
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-4 border-t border-zinc-900 text-center">
-        <img src={logoMro} alt="MRO" className="h-10 mx-auto mb-6 opacity-50" />
-        <p className="text-zinc-600 text-sm">© 2026 Lovablack - Uma ferramenta MRO Inteligente. Todos os direitos reservados.</p>
+      <footer className="border-t border-zinc-900 px-4 py-12 text-center">
+        <img src={logoMro} alt="Logo MRO" className="mx-auto mb-6 h-10 opacity-50" />
+        <p className="text-sm text-zinc-600">
+          © {new Date().getFullYear()} Lovablack — Uma ferramenta MRO. Todos os direitos reservados.
+        </p>
       </footer>
 
-      {/* Checkout Modal */}
-      {showCheckoutModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowCheckoutModal(false)} />
-          <Card className="relative w-full max-w-md bg-zinc-900 border-zinc-800 shadow-2xl animate-in zoom-in-95 duration-200">
-            <CardHeader className="text-center relative">
-              <button 
-                onClick={() => setShowCheckoutModal(false)}
-                className="absolute top-4 right-4 text-zinc-500 hover:text-white"
+      {/* MODAL DE CHECKOUT */}
+      {showCheckout && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Finalizar assinatura">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowCheckout(false)} />
+          <Card className="relative max-h-[92vh] w-full max-w-md overflow-y-auto border-zinc-800 bg-zinc-900 shadow-2xl">
+            <CardHeader className="relative text-center">
+              <button
+                type="button"
+                onClick={() => setShowCheckout(false)}
+                aria-label="Fechar"
+                className="absolute right-4 top-4 text-zinc-500 hover:text-white"
               >
-                <X className="w-6 h-6" />
+                <X className="h-6 w-6" />
               </button>
-              <CardTitle className="text-2xl font-black">FINALIZAR ACESSO</CardTitle>
-              <p className="text-zinc-400 font-medium">Plano {selectedPlan === "monthly" ? "Mensal R$47" : "Vitalício R$147"}</p>
+              <CardTitle className="text-2xl font-black">CRIAR SEU ACESSO</CardTitle>
+              <p className="font-medium text-zinc-400">Plano Mensal — R${MONTHLY_PRICE}/mês</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black text-zinc-500 uppercase">Seu Nome Completo</label>
+                  <label htmlFor="lb-name" className="text-xs font-black uppercase text-zinc-500">Nome completo</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                    <Input 
-                      placeholder="Ex: João da Silva" 
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      className="pl-10 bg-zinc-800 border-zinc-700 text-white"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-black text-zinc-500 uppercase">Seu Melhor E-mail</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                    <Input 
-                      type="email"
-                      placeholder="exemplo@email.com" 
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      className="pl-10 bg-zinc-800 border-zinc-700 text-white"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-black text-zinc-500 uppercase">WhatsApp</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                    <Input 
-                      placeholder="(00) 00000-0000" 
-                      value={whatsapp}
-                      onChange={e => setWhatsapp(e.target.value)}
-                      className="pl-10 bg-zinc-800 border-zinc-700 text-white"
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                    <Input
+                      id="lb-name"
+                      placeholder="Ex: João da Silva"
+                      value={form.name}
+                      onChange={(e) => updateField("name", e.target.value)}
+                      maxLength={120}
+                      className="border-zinc-700 bg-zinc-800 pl-10 text-white"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="pt-4">
-                  <Button 
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-7 text-xl rounded-xl"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-                    ) : (
-                      <>
-                        PAGAR AGORA
-                        <CreditCard className="ml-2 w-6 h-6" />
-                      </>
-                    )}
-                  </Button>
+                <div className="space-y-1.5">
+                  <label htmlFor="lb-email" className="text-xs font-black uppercase text-zinc-500">Seu melhor e-mail</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                    <Input
+                      id="lb-email"
+                      type="email"
+                      placeholder="exemplo@email.com"
+                      value={form.email}
+                      onChange={(e) => updateField("email", e.target.value)}
+                      maxLength={255}
+                      className="border-zinc-700 bg-zinc-800 pl-10 text-white"
+                      required
+                    />
+                  </div>
                 </div>
-                <p className="text-[10px] text-center text-zinc-600 uppercase font-black tracking-widest mt-4 flex items-center justify-center gap-2">
-                  <Shield className="w-3 h-3" /> Pagamento 100% Seguro via InfinitePay
+
+                <div className="space-y-1.5">
+                  <label htmlFor="lb-password" className="text-xs font-black uppercase text-zinc-500">Crie sua senha</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                    <Input
+                      id="lb-password"
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={form.password}
+                      onChange={(e) => updateField("password", e.target.value)}
+                      minLength={6}
+                      maxLength={72}
+                      className="border-zinc-700 bg-zinc-800 pl-10 text-white"
+                      required
+                    />
+                  </div>
+                  <p className="text-[11px] text-zinc-500">Você usará este e-mail e senha para entrar na extensão.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="lb-whatsapp" className="text-xs font-black uppercase text-zinc-500">WhatsApp</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                    <Input
+                      id="lb-whatsapp"
+                      inputMode="tel"
+                      placeholder="(00) 00000-0000"
+                      value={form.whatsapp}
+                      onChange={(e) => updateField("whatsapp", e.target.value)}
+                      maxLength={20}
+                      className="border-zinc-700 bg-zinc-800 pl-10 text-white"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-red-600 py-7 text-lg font-black text-white hover:bg-red-700"
+                >
+                  {loading ? (
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                  ) : (
+                    <>
+                      PAGAR R${MONTHLY_PRICE} E LIBERAR
+                      <CreditCard className="ml-2 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+
+                <p className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                  <Shield className="h-3 w-3" /> Pagamento seguro • Garantia de 7 dias
                 </p>
               </form>
             </CardContent>
@@ -346,6 +410,5 @@ const Lovablack = () => {
     </div>
   );
 };
-
 
 export default Lovablack;

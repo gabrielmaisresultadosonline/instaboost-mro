@@ -213,6 +213,7 @@ serve(async (req) => {
     let isLocalVppOrder = false;
     let isZapMROUpgradeFee = false;
     let isHubOrder = false;
+    let isLovablackOrder = false;
     let hubSlug: string | null = null;
     if (items && Array.isArray(items)) {
       for (const item of items) {
@@ -253,6 +254,13 @@ serve(async (req) => {
           isDeliveryOrder = true;
           email = itemName.replace("DELIVERY_", "").toLowerCase();
           log("Parsed DELIVERY order", { email });
+          break;
+        }
+
+        if (itemName.startsWith("LOVABLACK_")) {
+          isLovablackOrder = true;
+          email = itemName.replace("LOVABLACK_", "").toLowerCase();
+          log("Parsed LOVABLACK order", { email });
           break;
         }
 
@@ -549,6 +557,60 @@ serve(async (req) => {
         await supabase.from("postscomia_orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", pcOrder.id);
         await sendMetaPurchaseEvent(pcOrder.email, Number(pcOrder.amount) || 67, "Posts com IA", pcOrder.nsu_order, "https://maisresultadosonline.com.br/postscomia");
         return new Response(JSON.stringify({ success: true, message: "POSTSCOMIA confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
+
+    // LOVABLACK orders (plano mensal R$97) — provisiona acesso automaticamente
+    if (isLovablackOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("LOVABLACK"))) {
+      log("Processing as LOVABLACK order", { order_nsu, email });
+      let lbOrder: any = null;
+      if (order_nsu) {
+        const r = await supabase.from("lovablack_orders").select("*").eq("nsu_order", order_nsu).eq("status", "pending").maybeSingle();
+        lbOrder = r.data;
+      }
+      if (!lbOrder && email) {
+        const r = await supabase.from("lovablack_orders").select("*").eq("email", email)
+          .eq("status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        lbOrder = r.data;
+      }
+      if (lbOrder) {
+        // Cria (ou reativa) o usuário da extensão com plano mensal
+        const { data: existingUser } = await supabase.from("lovablack_users")
+          .select("id").eq("email", lbOrder.email).maybeSingle();
+
+        if (existingUser) {
+          await supabase.from("lovablack_users").update({
+            name: lbOrder.name,
+            password: lbOrder.password,
+            whatsapp: lbOrder.whatsapp,
+            plan_type: "monthly",
+            blocked: false,
+          }).eq("id", existingUser.id);
+        } else {
+          const { error: userError } = await supabase.from("lovablack_users").insert({
+            name: lbOrder.name,
+            email: lbOrder.email,
+            password: lbOrder.password,
+            whatsapp: lbOrder.whatsapp,
+            plan_type: "monthly",
+          });
+          if (userError) log("Error creating LOVABLACK user", userError);
+        }
+
+        await sendMetaPurchaseEvent(
+          lbOrder.email,
+          Number(lbOrder.amount) || 97,
+          "Lovablack Mensal",
+          lbOrder.nsu_order,
+          "https://maisresultadosonline.com.br/lovablack"
+        );
+
+        await supabase.from("lovablack_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+        }).eq("id", lbOrder.id);
+
+        return new Response(JSON.stringify({ success: true, message: "LOVABLACK confirmed" }), { status: 200, headers: corsHeaders });
       }
     }
 
