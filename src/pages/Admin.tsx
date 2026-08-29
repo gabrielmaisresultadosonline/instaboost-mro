@@ -48,6 +48,7 @@ import {
   Package,
 
   Database,
+  ServerCog,
 } from 'lucide-react';
 
 import { 
