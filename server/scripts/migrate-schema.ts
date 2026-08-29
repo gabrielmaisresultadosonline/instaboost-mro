@@ -20,6 +20,39 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(here, "../migrations");
 const dumpPath = path.join(migrationsDir, "001_schema_legacy.sql");
 
+
+/**
+ * O banco de origem roda PostgreSQL 17; um pg_dump 14 (padrão do Ubuntu 22.04)
+ * aborta com "server version mismatch". Preferimos, então, o binário mais novo
+ * instalado em /usr/lib/postgresql/<versão>/bin, ou o indicado em PG_DUMP_BIN.
+ */
+function resolvePgDump(): string {
+  const override = process.env.PG_DUMP_BIN;
+  if (override && fs.existsSync(override)) return override;
+
+  const root = "/usr/lib/postgresql";
+  if (fs.existsSync(root)) {
+    const candidates = fs
+      .readdirSync(root)
+      .map((version) => ({ version: Number.parseInt(version, 10), bin: path.join(root, version, "bin/pg_dump") }))
+      .filter((candidate) => Number.isFinite(candidate.version) && fs.existsSync(candidate.bin))
+      .sort((a, b) => b.version - a.version);
+
+    if (candidates.length > 0) {
+      if (candidates[0].version < 17) {
+        log.warn(
+          `pg_dump ${candidates[0].version} é mais antigo que o banco de origem (17). ` +
+            "Instale o cliente novo: sudo apt install -y postgresql-client-17",
+        );
+      }
+      return candidates[0].bin;
+    }
+  }
+
+  return "pg_dump";
+}
+
+
 /** Objetos gerenciados pelo bootstrap — não devem vir do dump. */
 const SKIP_PATTERNS = [
   /^CREATE SCHEMA public;/im,
@@ -111,7 +144,7 @@ export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promi
   }
 
   log.info("Extraindo schema do banco atual (pg_dump --schema-only)...");
-  const raw = await runOrThrow("pg_dump", [
+  const raw = await runOrThrow(resolvePgDump(), [
     "--schema-only",
     "--no-owner",
     "--no-privileges",
