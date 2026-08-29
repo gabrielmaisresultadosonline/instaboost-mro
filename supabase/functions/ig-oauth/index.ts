@@ -184,7 +184,25 @@ Deno.serve(async (req) => {
         { onConflict: "ig_account_id,token_type" },
       );
 
+      // 5) Assina o webhook da conta para receber Direct e comentários em tempo real.
+      let webhookSubscribed = false;
+      try {
+        const subRes = await fetch(
+          `https://graph.instagram.com/v21.0/me/subscribed_apps?subscribed_fields=messages,comments,live_comments,message_reactions&access_token=${accessToken}`,
+          { method: "POST" },
+        );
+        const subData = await subRes.json().catch(() => ({}));
+        webhookSubscribed = subRes.ok && subData.success !== false && !subData.error;
+        if (!webhookSubscribed) {
+          console.error("[ig-oauth] webhook subscribe failed:", JSON.stringify(subData).slice(0, 300));
+        }
+      } catch (error) {
+        console.error("[ig-oauth] webhook subscribe error:", (error as Error).message);
+      }
+      await db.from("ig_accounts").update({ webhook_subscribed: webhookSubscribed }).eq("id", account.id);
+
       await db.from("ig_tenants").update({ onboarding_done: true }).eq("id", tenant_id);
+
 
       await audit(db, {
         tenant_id,
