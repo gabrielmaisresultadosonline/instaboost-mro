@@ -67,7 +67,9 @@ Deno.serve(async (req) => {
   }
 
   // ---------- Registro idempotente + enfileiramento ----------
+  let queued = false;
   try {
+
     const payload = JSON.parse(rawBody) as {
       object?: string;
       entry?: Array<{ id?: string; time?: number; changes?: unknown[]; messaging?: unknown[] }>;
