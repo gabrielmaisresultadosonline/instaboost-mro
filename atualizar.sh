@@ -37,7 +37,8 @@ for arg in "$@"; do
   case "$arg" in
     --rapido)    RAPIDO=true ;;
     --sem-midia) MIGRATE_ARGS+=("--skip-storage") ;;
-    *) fail "Parâmetro desconhecido: $arg (use --rapido ou --sem-midia)" ;;
+    --so-midia)  MIGRATE_ARGS+=("--only-storage") ;;
+    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia ou --so-midia)" ;;
   esac
 done
 
