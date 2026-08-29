@@ -20,15 +20,32 @@ Deno.serve(async (req) => {
     const mode = url.searchParams.get("hub.mode");
     const token = url.searchParams.get("hub.verify_token");
     const challenge = url.searchParams.get("hub.challenge");
-    const verifyToken = Deno.env.get("META_WEBHOOK_VERIFY_TOKEN") ?? "";
 
-    if (mode === "subscribe" && verifyToken && token && timingSafeEqual(token, verifyToken)) {
+    // Aceita o token salvo no painel (/IG/admin/app) ou, na ausência, o secret do ambiente.
+    let saved: string | null = null;
+    try {
+      const { data } = await db
+        .from("ig_app_config")
+        .select("webhook_verify_token")
+        .eq("id", "default")
+        .maybeSingle();
+      saved = (data?.webhook_verify_token as string | null) ?? null;
+    } catch (error) {
+      console.error("[ig-webhook] config read failed:", (error as Error).message);
+    }
+
+    const candidates = [saved, Deno.env.get("META_WEBHOOK_VERIFY_TOKEN") ?? null]
+      .map((v) => v?.trim())
+      .filter((v): v is string => Boolean(v));
+
+    if (mode === "subscribe" && token && candidates.some((c) => timingSafeEqual(token.trim(), c))) {
       return new Response(challenge ?? "", { status: 200, headers: { "Content-Type": "text/plain" } });
     }
 
     console.error("[ig-webhook] verification rejected");
     return new Response("Forbidden", { status: 403 });
   }
+
 
   if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
 
