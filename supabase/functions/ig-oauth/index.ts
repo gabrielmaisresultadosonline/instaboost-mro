@@ -13,7 +13,7 @@ import {
   friendlyMetaError,
   getAuthUser,
   json,
-  metaAppCredentials,
+  resolveMetaCredentials,
   rateLimit,
   serviceClient,
 } from "../_shared/ig-core.ts";
