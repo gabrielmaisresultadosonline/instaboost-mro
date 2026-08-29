@@ -2741,6 +2741,675 @@ export type Database = {
         }
         Relationships: []
       }
+      ig_accounts: {
+        Row: {
+          account_type: string | null
+          connection_state: string
+          created_at: string
+          deleted_at: string | null
+          followers_count: number | null
+          id: string
+          instagram_account_id: string
+          instagram_user_id: string | null
+          is_active: boolean
+          last_error: string | null
+          last_synced_at: string | null
+          media_count: number | null
+          name: string | null
+          profile_picture_url: string | null
+          tenant_id: string
+          updated_at: string
+          username: string | null
+          webhook_subscribed: boolean
+        }
+        Insert: {
+          account_type?: string | null
+          connection_state?: string
+          created_at?: string
+          deleted_at?: string | null
+          followers_count?: number | null
+          id?: string
+          instagram_account_id: string
+          instagram_user_id?: string | null
+          is_active?: boolean
+          last_error?: string | null
+          last_synced_at?: string | null
+          media_count?: number | null
+          name?: string | null
+          profile_picture_url?: string | null
+          tenant_id: string
+          updated_at?: string
+          username?: string | null
+          webhook_subscribed?: boolean
+        }
+        Update: {
+          account_type?: string | null
+          connection_state?: string
+          created_at?: string
+          deleted_at?: string | null
+          followers_count?: number | null
+          id?: string
+          instagram_account_id?: string
+          instagram_user_id?: string | null
+          is_active?: boolean
+          last_error?: string | null
+          last_synced_at?: string | null
+          media_count?: number | null
+          name?: string | null
+          profile_picture_url?: string | null
+          tenant_id?: string
+          updated_at?: string
+          username?: string | null
+          webhook_subscribed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_admin_accounts: {
+        Row: {
+          created_at: string
+          email: string
+          failed_attempts: number
+          id: string
+          last_login_at: string | null
+          locked_until: string | null
+          must_change_password: boolean
+          password_hash: string
+          password_salt: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          failed_attempts?: number
+          id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          must_change_password?: boolean
+          password_hash: string
+          password_salt: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          failed_attempts?: number
+          id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          must_change_password?: boolean
+          password_hash?: string
+          password_salt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ig_audit_logs: {
+        Row: {
+          action: string
+          actor_type: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          ip: string | null
+          metadata: Json
+          result: string
+          target: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_type?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          result?: string
+          target?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_type?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          result?: string
+          target?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          last_error: string | null
+          max_attempts: number
+          payload: Json
+          run_after: string
+          status: string
+          tenant_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          payload?: Json
+          run_after?: string
+          status?: string
+          tenant_id?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          payload?: Json
+          run_after?: string
+          status?: string
+          tenant_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_notification_settings: {
+        Row: {
+          account_disconnected: boolean
+          automation_executed: boolean
+          growth_alert: boolean
+          meta_error: boolean
+          new_comment: boolean
+          new_message: boolean
+          publish_failed: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_disconnected?: boolean
+          automation_executed?: boolean
+          growth_alert?: boolean
+          meta_error?: boolean
+          new_comment?: boolean
+          new_message?: boolean
+          publish_failed?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_disconnected?: boolean
+          automation_executed?: boolean
+          growth_alert?: boolean
+          meta_error?: boolean
+          new_comment?: boolean
+          new_message?: boolean
+          publish_failed?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_notification_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          read_at: string | null
+          tenant_id: string
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          tenant_id: string
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          tenant_id?: string
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_plans: {
+        Row: {
+          created_at: string
+          features: Json
+          history_days: number
+          id: string
+          is_active: boolean
+          max_accounts: number
+          max_ai_calls_month: number
+          max_automations: number
+          max_members: number
+          max_messages_month: number
+          name: string
+          price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          history_days?: number
+          id: string
+          is_active?: boolean
+          max_accounts?: number
+          max_ai_calls_month?: number
+          max_automations?: number
+          max_members?: number
+          max_messages_month?: number
+          name: string
+          price_cents?: number
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          history_days?: number
+          id?: string
+          is_active?: boolean
+          max_accounts?: number
+          max_ai_calls_month?: number
+          max_automations?: number
+          max_members?: number
+          max_messages_month?: number
+          name?: string
+          price_cents?: number
+        }
+        Relationships: []
+      }
+      ig_profiles: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          is_blocked: boolean
+          last_login_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          is_blocked?: boolean
+          last_login_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          is_blocked?: boolean
+          last_login_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ig_rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
+      ig_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ig_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_super_admins: {
+        Row: {
+          created_at: string
+          email: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ig_tenant_members: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["ig_role"]
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["ig_role"]
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["ig_role"]
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_tenants: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_blocked: boolean
+          name: string
+          onboarding_done: boolean
+          plan_id: string
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_blocked?: boolean
+          name: string
+          onboarding_done?: boolean
+          plan_id?: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_blocked?: boolean
+          name?: string
+          onboarding_done?: boolean
+          plan_id?: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_tenants_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ig_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          ig_account_id: string
+          tenant_id: string
+          token_type: string
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ig_account_id: string
+          tenant_id: string
+          token_type?: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ig_account_id?: string
+          tenant_id?: string
+          token_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_tokens_ig_account_id_fkey"
+            columns: ["ig_account_id"]
+            isOneToOne: false
+            referencedRelation: "ig_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_usage: {
+        Row: {
+          id: string
+          metric: string
+          period_start: string
+          tenant_id: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          id?: string
+          metric: string
+          period_start?: string
+          tenant_id: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          id?: string
+          metric?: string
+          period_start?: string
+          tenant_id?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_webhook_events: {
+        Row: {
+          error: string | null
+          event_key: string
+          field: string | null
+          id: string
+          instagram_account_id: string | null
+          object: string | null
+          payload: Json
+          processed_at: string | null
+          received_at: string
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          error?: string | null
+          event_key: string
+          field?: string | null
+          id?: string
+          instagram_account_id?: string | null
+          object?: string | null
+          payload: Json
+          processed_at?: string | null
+          received_at?: string
+          status?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          error?: string | null
+          event_key?: string
+          field?: string | null
+          id?: string
+          instagram_account_id?: string | null
+          object?: string | null
+          payload?: Json
+          processed_at?: string | null
+          received_at?: string
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       infinitepay_webhook_logs: {
         Row: {
           affiliate_id: string | null
@@ -8480,6 +9149,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      ig_has_tenant_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["ig_role"][]
+          _tenant_id: string
+        }
+        Returns: boolean
+      }
+      ig_is_super_admin: { Args: never; Returns: boolean }
+      ig_is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
+      ig_rate_limit_hit: {
+        Args: { _bucket: string; _limit: number; _window_seconds: number }
+        Returns: boolean
+      }
       increment_broadcast_failed: { Args: { b_id: string }; Returns: undefined }
       increment_broadcast_sent: { Args: { b_id: string }; Returns: undefined }
       increment_corretor_corrections: {
@@ -8500,6 +9182,7 @@ export type Database = {
     Enums: {
       access_status: "active" | "blocked" | "expired"
       app_role: "admin" | "user"
+      ig_role: "owner" | "admin" | "manager" | "agent" | "analyst"
       lovablack_plan_type: "trial" | "monthly" | "lifetime"
     }
     CompositeTypes: {
@@ -8630,6 +9313,7 @@ export const Constants = {
     Enums: {
       access_status: ["active", "blocked", "expired"],
       app_role: ["admin", "user"],
+      ig_role: ["owner", "admin", "manager", "agent", "analyst"],
       lovablack_plan_type: ["trial", "monthly", "lifetime"],
     },
   },
