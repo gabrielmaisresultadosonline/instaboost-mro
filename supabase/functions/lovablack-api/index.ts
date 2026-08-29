@@ -22,6 +22,17 @@ const UserSchema = z.object({
   plan_type: z.enum(["trial", "monthly", "lifetime"]).default("monthly"),
 });
 
+/** Plano único mensal da Lovablack (em reais). */
+const LOVABLACK_PRICE = 97;
+const INFINITEPAY_HANDLE = "paguemro";
+
+const CheckoutSchema = z.object({
+  name: z.string().trim().min(3, "Informe seu nome completo").max(120),
+  email: z.string().trim().email("E-mail inválido").max(255).transform((v) => v.toLowerCase()),
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(72),
+  whatsapp: z.string().trim().transform((v) => v.replace(/\D/g, "")).refine((v) => v.length >= 10, "WhatsApp inválido"),
+});
+
 const UpdateSchema = z.object({
   blocked: z.boolean().optional(),
   custom_message: z.string().max(1000).nullable().optional(),
