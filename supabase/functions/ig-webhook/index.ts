@@ -7,7 +7,7 @@
  *
  * Nenhum processamento pesado acontece aqui: quem processa é o ig-worker.
  */
-import { audit, corsHeaders, enqueue, hmacHex, metaAppCredentials, serviceClient, timingSafeEqual } from "../_shared/ig-core.ts";
+import { audit, corsHeaders, enqueue, hmacHex, resolveMetaCredentials, serviceClient, timingSafeEqual } from "../_shared/ig-core.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
 
   // ---------- Validação de assinatura ----------
-  const { appSecret } = metaAppCredentials();
+  const { appSecret } = await resolveMetaCredentials(db);
   const signatureHeader = req.headers.get("x-hub-signature-256");
 
   if (!appSecret || !signatureHeader?.startsWith("sha256=")) {
