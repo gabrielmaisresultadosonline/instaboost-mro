@@ -141,7 +141,12 @@ export const igApi = {
     }),
 
   subscribeWebhook: (tenantId: string) =>
-    invoke<{ subscribed: number }>("ig-api", { action: "subscribe_webhook", tenant_id: tenantId }),
+    invoke<{
+      subscribed: number;
+      synced_conversations: number;
+      synced_messages: number;
+      sync_error: string | null;
+    }>("ig-api", { action: "subscribe_webhook", tenant_id: tenantId }),
 
   oauthConfig: () => invoke<{ app_id: string; scopes: string }>("ig-oauth", { action: "get-config" }),
 

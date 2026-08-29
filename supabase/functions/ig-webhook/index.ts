@@ -133,15 +133,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Processamento imediato (tempo real). Fire-and-forget: a Meta recebe 200 na hora.
+    // Processamento imediato (tempo real). A execução precisa ser aguardada: uma
+    // Promise solta pode ser cancelada assim que esta função devolve a resposta,
+    // deixando o job eternamente pendente e o Inbox vazio.
     if (queued) {
       const workerUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/ig-worker`;
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-      fetch(workerUrl, {
+      const workerResponse = await fetch(workerUrl, {
         method: "POST",
         headers: { Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" },
         body: "{}",
-      }).catch((error) => console.error("[ig-webhook] worker trigger failed:", (error as Error).message));
+      });
+
+      if (!workerResponse.ok) {
+        console.error(`[ig-webhook] worker trigger failed: HTTP ${workerResponse.status}`);
+      }
     }
 
   } catch (error) {

@@ -91,26 +91,38 @@ async function persistDirect(
     .eq("ig_account_id", accountRowId)
     .eq("participant_id", participantId)
     .maybeSingle();
+  const profile = existing ? null : await fetchParticipant(db, accountRowId, participantId);
+  const { data: conversation, error: conversationError } = existing
+    ? { data: existing, error: null }
+    : await db
+        .from("ig_conversations")
+        .upsert(
+          {
+            tenant_id: tenantId,
+            ig_account_id: accountRowId,
+            participant_id: participantId,
+            participant_username: profile?.username ?? null,
+            participant_name: profile?.name ?? null,
+            participant_picture_url: profile?.picture ?? null,
+          },
+          { onConflict: "ig_account_id,participant_id", ignoreDuplicates: true },
+        )
+        .select("id")
+        .maybeSingle();
 
-  let conversationId = existing?.id as string | undefined;
-
-  if (!conversationId) {
-    const profile = await fetchParticipant(db, accountRowId, participantId);
-    const { data: created } = await db
+  // Em uma corrida, outro worker pode criar a conversa entre a leitura e o
+  // upsert. Nesse caso, buscamos a linha vencedora sem perder a mensagem.
+  let conversationId = conversation?.id as string | undefined;
+  if (!conversationId && !conversationError) {
+    const { data: racedConversation } = await db
       .from("ig_conversations")
-      .insert({
-        tenant_id: tenantId,
-        ig_account_id: accountRowId,
-        participant_id: participantId,
-        participant_username: profile.username,
-        participant_name: profile.name,
-        participant_picture_url: profile.picture,
-      })
       .select("id")
+      .eq("ig_account_id", accountRowId)
+      .eq("participant_id", participantId)
       .maybeSingle();
-    conversationId = created?.id as string | undefined;
-    if (!conversationId) return false;
+    conversationId = racedConversation?.id as string | undefined;
   }
+  if (conversationError || !conversationId) throw new Error(conversationError?.message ?? "conversation persist failed");
 
   const { error: insertError } = await db.from("ig_messages").insert({
     tenant_id: tenantId,

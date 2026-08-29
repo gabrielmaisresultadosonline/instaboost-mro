@@ -34,6 +34,137 @@ type Action =
 
 const PERIODS: Record<string, number> = { today: 1, "7d": 7, "30d": 30, "90d": 90 };
 
+interface MetaMessage {
+  id?: string;
+  created_time?: string;
+  from?: { id?: string; username?: string; name?: string };
+  to?: { data?: Array<{ id?: string; username?: string; name?: string }> };
+  message?: string;
+  attachments?: { data?: unknown[] };
+}
+
+interface MetaConversation {
+  id?: string;
+  updated_time?: string;
+  participants?: { data?: Array<{ id?: string; username?: string; name?: string }> };
+  messages?: { data?: MetaMessage[] };
+}
+
+/**
+ * Importa conversas já existentes pela Conversations API oficial. Isso cobre
+ * mensagens enviadas antes da assinatura do webhook e também recupera o Inbox
+ * quando a Meta entrega apenas eventos auxiliares, como confirmações de leitura.
+ */
+async function syncInboxHistory(
+  db: ReturnType<typeof serviceClient>,
+  tenantId: string,
+  account: { id: string; instagram_account_id: string | null; instagram_user_id: string | null },
+  accessToken: string,
+): Promise<{ conversations: number; messages: number }> {
+  const params = new URLSearchParams({
+    platform: "instagram",
+    fields: "id,updated_time,participants,messages.limit(50){id,created_time,from,to,message,attachments}",
+    limit: "50",
+    access_token: accessToken,
+  });
+  const response = await fetch(`https://graph.instagram.com/v21.0/me/conversations?${params.toString()}`);
+  const payload = (await response.json().catch(() => ({}))) as {
+    data?: MetaConversation[];
+    error?: { message?: string; code?: number };
+  };
+
+  if (!response.ok || payload.error) {
+    const detail = payload.error?.message ?? `HTTP ${response.status}`;
+    console.error(`[ig-api] inbox sync failed: ${detail.slice(0, 240)}`);
+    throw new Error("Não foi possível sincronizar as conversas do Instagram.");
+  }
+
+  const ownIds = new Set(
+    [account.instagram_account_id, account.instagram_user_id].filter((value): value is string => Boolean(value)),
+  );
+  let conversationCount = 0;
+  let messageCount = 0;
+
+  for (const conversation of payload.data ?? []) {
+    const participants = conversation.participants?.data ?? [];
+    const participant = participants.find((item) => item.id && !ownIds.has(String(item.id)));
+    const fallbackMessage = conversation.messages?.data?.[0];
+    const fallbackSender = fallbackMessage?.from?.id ? String(fallbackMessage.from.id) : null;
+    const participantId = participant?.id
+      ? String(participant.id)
+      : fallbackSender && !ownIds.has(fallbackSender)
+        ? fallbackSender
+        : null;
+    if (!participantId) continue;
+
+    const { data: savedConversation, error: conversationError } = await db
+      .from("ig_conversations")
+      .upsert(
+        {
+          tenant_id: tenantId,
+          ig_account_id: account.id,
+          participant_id: participantId,
+          participant_username: participant?.username ?? null,
+          participant_name: participant?.name ?? null,
+        },
+        { onConflict: "ig_account_id,participant_id" },
+      )
+      .select("id")
+      .single();
+
+    if (conversationError || !savedConversation) {
+      console.error("[ig-api] conversation sync persist failed:", conversationError?.message ?? "missing row");
+      continue;
+    }
+    conversationCount++;
+
+    const orderedMessages = [...(conversation.messages?.data ?? [])].reverse();
+    let latest: { text: string | null; sentAt: string; direction: "in" | "out" } | null = null;
+
+    for (const message of orderedMessages) {
+      if (!message.id) continue;
+      const senderId = message.from?.id ? String(message.from.id) : null;
+      const recipientId = message.to?.data?.[0]?.id ? String(message.to.data[0].id) : null;
+      const direction: "in" | "out" = senderId && ownIds.has(senderId) ? "out" : "in";
+      const sentAt = message.created_time ?? conversation.updated_time ?? new Date().toISOString();
+      const text = message.message ?? null;
+      const attachments = message.attachments?.data ?? [];
+      const { error: messageError } = await db.from("ig_messages").upsert(
+        {
+          tenant_id: tenantId,
+          conversation_id: savedConversation.id,
+          ig_account_id: account.id,
+          mid: message.id,
+          direction,
+          text,
+          attachments,
+          sender_id: senderId,
+          recipient_id: recipientId,
+          sent_at: sentAt,
+        },
+        { onConflict: "mid" },
+      );
+      if (!messageError) {
+        messageCount++;
+        latest = { text: text ?? (attachments.length > 0 ? "[anexo]" : null), sentAt, direction };
+      }
+    }
+
+    if (latest) {
+      await db
+        .from("ig_conversations")
+        .update({
+          last_message_text: latest.text,
+          last_message_at: latest.sentAt,
+          last_direction: latest.direction,
+        })
+        .eq("id", savedConversation.id);
+    }
+  }
+
+  return { conversations: conversationCount, messages: messageCount };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -345,11 +476,14 @@ Deno.serve(async (req) => {
     if (action === "subscribe_webhook") {
       const { data: accounts } = await db
         .from("ig_accounts")
-        .select("id")
+        .select("id, instagram_account_id, instagram_user_id")
         .eq("tenant_id", tenantId)
         .is("deleted_at", null);
 
       let subscribed = 0;
+      let syncedConversations = 0;
+      let syncedMessages = 0;
+      let syncError: string | null = null;
       for (const account of accounts ?? []) {
         const { data: token } = await db
           .from("ig_tokens")
@@ -367,9 +501,23 @@ Deno.serve(async (req) => {
         if (!ok) console.error("[ig-api] subscribe failed:", JSON.stringify(result).slice(0, 300));
         await db.from("ig_accounts").update({ webhook_subscribed: ok }).eq("id", account.id);
         if (ok) subscribed++;
+
+        try {
+          const synced = await syncInboxHistory(db, tenantId, account, token.access_token);
+          syncedConversations += synced.conversations;
+          syncedMessages += synced.messages;
+        } catch (error) {
+          syncError = error instanceof Error ? error.message : "Falha ao sincronizar o histórico.";
+        }
       }
 
-      return json({ success: true, subscribed });
+      return json({
+        success: true,
+        subscribed,
+        synced_conversations: syncedConversations,
+        synced_messages: syncedMessages,
+        sync_error: syncError,
+      });
     }
 
     return fail("Ação não reconhecida.", 400);
