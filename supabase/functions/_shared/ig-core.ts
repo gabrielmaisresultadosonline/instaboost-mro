@@ -227,6 +227,38 @@ export function metaAppCredentials(): { appId: string; appSecret: string } {
   };
 }
 
+/**
+ * Credenciais efetivas: o que o super admin salvou no painel tem prioridade;
+ * na ausência, cai para os secrets do ambiente. O secret nunca é retornado ao cliente.
+ */
+export async function resolveMetaCredentials(
+  db: SupabaseClient,
+): Promise<{ appId: string; appSecret: string; scopes: string | null; source: "database" | "secrets" | "none" }> {
+  const env = metaAppCredentials();
+  try {
+    const { data } = await db
+      .from("ig_app_config")
+      .select("app_id, app_secret, scopes")
+      .eq("id", "default")
+      .maybeSingle();
+
+    if (data?.app_id && data?.app_secret) {
+      return {
+        appId: String(data.app_id),
+        appSecret: String(data.app_secret),
+        scopes: (data.scopes as string | null) ?? null,
+        source: "database",
+      };
+    }
+  } catch (error) {
+    console.error("[ig-core] app config read failed:", (error as Error).message);
+  }
+
+  if (env.appId && env.appSecret) return { ...env, scopes: null, source: "secrets" };
+  return { appId: "", appSecret: "", scopes: null, source: "none" };
+}
+
+
 /** Traduz erro da Meta em mensagem amigável, preservando o detalhe técnico para o log. */
 export function friendlyMetaError(raw: unknown): { userMessage: string; technical: string } {
   const technical = typeof raw === "string" ? raw : JSON.stringify(raw ?? {});
