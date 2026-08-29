@@ -257,6 +257,13 @@ serve(async (req) => {
           break;
         }
 
+        if (itemName.startsWith("LOVABLACK_")) {
+          isLovablackOrder = true;
+          email = itemName.replace("LOVABLACK_", "").toLowerCase();
+          log("Parsed LOVABLACK order", { email });
+          break;
+        }
+
         if (itemName.startsWith("SALAOBEL_")) {
           isSalaoBelOrder = true;
           email = itemName.replace("SALAOBEL_", "").toLowerCase();
