@@ -19,6 +19,7 @@ import IgAdminDashboard from "./IgAdminDashboard";
 import IgAdminUsers from "./IgAdminUsers";
 import IgAdminInstagram from "./IgAdminInstagram";
 import IgAdminLogs from "./IgAdminLogs";
+import IgAdminApp from "./IgAdminApp";
 
 /** Módulos das fases 2 a 5: shell e isolamento já ativos, dados reais em breve. */
 const MODULES: Array<{ path: string; title: string; description: string; phase: string }> = [
@@ -103,6 +104,7 @@ const IgRoutes = () => (
     <Route path="admin/users" element={<IgAdminUsers />} />
     <Route path="admin/users/:id" element={<IgAdminUsers />} />
     <Route path="admin/instagram" element={<IgAdminInstagram />} />
+    <Route path="admin/app" element={<IgAdminApp />} />
     <Route path="admin/logs" element={<IgAdminLogs />} />
 
     <Route path="*" element={<Navigate to="/IG" replace />} />

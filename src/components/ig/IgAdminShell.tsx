@@ -1,7 +1,7 @@
 /** Shell do painel administrativo global do /IG (SUPER_ADMIN). */
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Activity, Instagram, LayoutDashboard, LogOut, ScrollText, Users } from "lucide-react";
+import { Activity, Instagram, KeyRound, LayoutDashboard, LogOut, ScrollText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getAdminToken, setAdminToken } from "@/lib/ig/adminApi";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/IG/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/IG/admin/users", label: "Usuários", icon: Users },
   { to: "/IG/admin/instagram", label: "Instagram", icon: Instagram },
+  { to: "/IG/admin/app", label: "App da Meta", icon: KeyRound },
   { to: "/IG/admin/logs", label: "Logs", icon: ScrollText },
 ];
 
