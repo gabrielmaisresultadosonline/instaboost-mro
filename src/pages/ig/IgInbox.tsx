@@ -153,8 +153,13 @@ const IgInboxContent = ({
 
   const handleSync = async () => {
     try {
-      await igApi.subscribeWebhook(tenantId);
-      toast({ title: "Recebimento reativado", description: "Sua conta voltou a assinar os eventos de Direct." });
+      const result = await igApi.subscribeWebhook(tenantId);
+      toast({
+        title: "Inbox sincronizado",
+        description: result.sync_error
+          ? result.sync_error
+          : `${result.synced_conversations} conversa(s) e ${result.synced_messages} mensagem(ns) sincronizadas.`,
+      });
       await loadConversations();
     } catch (err) {
       toast({

@@ -85,32 +85,21 @@ async function persistDirect(
   const text = message.text ?? null;
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
 
-  const { data: existing } = await db
-    .from("ig_conversations")
-    .select("id")
-    .eq("ig_account_id", accountRowId)
-    .eq("participant_id", participantId)
-    .maybeSingle();
-
-  let conversationId = existing?.id as string | undefined;
-
-  if (!conversationId) {
-    const profile = await fetchParticipant(db, accountRowId, participantId);
-    const { data: created } = await db
+  const profile = await fetchParticipant(db, accountRowId, participantId);
+  const { data: conversation, error: conversationError } = await db
       .from("ig_conversations")
-      .insert({
+      .upsert({
         tenant_id: tenantId,
         ig_account_id: accountRowId,
         participant_id: participantId,
         participant_username: profile.username,
         participant_name: profile.name,
         participant_picture_url: profile.picture,
-      })
+      }, { onConflict: "ig_account_id,participant_id" })
       .select("id")
-      .maybeSingle();
-    conversationId = created?.id as string | undefined;
-    if (!conversationId) return false;
-  }
+      .single();
+  const conversationId = conversation?.id as string | undefined;
+  if (conversationError || !conversationId) throw new Error(conversationError?.message ?? "conversation persist failed");
 
   const { error: insertError } = await db.from("ig_messages").insert({
     tenant_id: tenantId,
