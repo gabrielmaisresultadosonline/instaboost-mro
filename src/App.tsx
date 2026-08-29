@@ -222,6 +222,8 @@ import PagamentoMRO from "./pages/PagamentoMRO";
 import PagamentoMROObrigado from "./pages/PagamentoMROObrigado";
 import AgenteMRO from "./pages/AgenteMRO";
 import AgenteMROPainel from "./pages/AgenteMROPainel";
+import IgRoutes from "./pages/ig/IgRoutes";
+
 import TrafegoPagoVisitas from "./pages/TrafegoPagoVisitas";
 import TrafegoPagoObrigado from "./pages/TrafegoPagoObrigado";
 import AudiobooksSales from "./pages/AudiobooksSales";
@@ -510,7 +512,11 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/agentemro" element={<AgenteMRO />} />
           <Route path="/agentemro/painel" element={<AgenteMROPainel />} />
+          {/* MRO INSTAGRAM — módulo isolado (rotas internas em IgRoutes) */}
+          <Route path="/IG/*" element={<IgRoutes />} />
+          <Route path="/ig/*" element={<IgRoutes />} />
           <Route path="*" element={<NotFound />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
