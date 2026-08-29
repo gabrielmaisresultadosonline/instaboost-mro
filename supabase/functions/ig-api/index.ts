@@ -53,7 +53,10 @@ Deno.serve(async (req) => {
       period?: string;
       full_name?: string;
       company?: string;
+      conversation_id?: string;
+      text?: string;
     };
+
 
     const action = body.action;
     if (!action) return fail("Ação não informada.", 400);
