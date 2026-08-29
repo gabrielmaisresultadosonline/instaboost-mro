@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { igAdminApi } from "@/lib/ig/adminApi";
 import IgAdminShell from "@/components/ig/IgAdminShell";
 import { IgLoading } from "@/components/ig/IgStates";
+import { IG_OAUTH_REDIRECT_URI, IG_PRIVACY_URL, IG_WEBHOOK_URL } from "@/lib/ig/constants";
 
 const DEFAULT_SCOPES = [
   "instagram_business_basic",
@@ -21,8 +22,8 @@ const DEFAULT_SCOPES = [
   "instagram_business_manage_insights",
 ].join(",");
 
-const CALLBACK_URL = `${window.location.origin}/IG/auth/instagram/callback`;
-const WEBHOOK_URL = "https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/ig-webhook";
+const CALLBACK_URL = IG_OAUTH_REDIRECT_URI;
+const WEBHOOK_URL = IG_WEBHOOK_URL;
 
 export default function IgAdminApp() {
   const [loading, setLoading] = useState(true);
@@ -186,7 +187,7 @@ export default function IgAdminApp() {
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Deauthorize / Data deletion</p>
-                  <code className="block break-all text-xs">{`${window.location.origin}/politica-de-privacidade-ig`}</code>
+                  <code className="block break-all text-xs">{IG_PRIVACY_URL}</code>
                 </div>
               </div>
             </CardContent>

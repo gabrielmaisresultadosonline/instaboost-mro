@@ -5,6 +5,7 @@
  * App Secret, access token da Meta, service role key ou senha de admin.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { IG_OAUTH_REDIRECT_URI } from "@/lib/ig/constants";
 
 export type IgRole = "owner" | "admin" | "manager" | "agent" | "analyst";
 
@@ -108,7 +109,7 @@ export const igApi = {
 };
 
 /** URL de callback do OAuth — deve estar cadastrada no App da Meta. */
-export const IG_REDIRECT_URI = `${window.location.origin}/IG/auth/instagram/callback`;
+export const IG_REDIRECT_URI = IG_OAUTH_REDIRECT_URI;
 
 /** Monta a URL de autorização da Meta usando somente dados públicos. */
 export function buildInstagramAuthUrl(appId: string, scopes: string, state: string): string {
