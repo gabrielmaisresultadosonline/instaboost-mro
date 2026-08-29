@@ -12,7 +12,7 @@
 import { pool } from "../src/db.js";
 import { env, requireLegacy } from "../src/env.js";
 import { log } from "./lib/log.js";
-import { quoteIdentifier } from "../src/rest/identifiers.js";
+import { quoteIdent } from "../src/rest/identifiers.js";
 
 interface TextColumn {
   table: string;
@@ -40,7 +40,7 @@ export async function rewriteUrls(apply: boolean): Promise<void> {
 
   const legacy = requireLegacy();
   const legacyBase = `${legacy.url}/storage/v1/object/public/`;
-  const newBase = `${env.publicApiUrl}/storage/v1/object/public/`;
+  const newBase = `${env.publicUrl}/storage/v1/object/public/`;
 
   if (legacyBase === newBase) {
     log.warn("URL antiga e nova são iguais; nada a reescrever.");
@@ -54,8 +54,8 @@ export async function rewriteUrls(apply: boolean): Promise<void> {
   const changes: Record<string, unknown>[] = [];
 
   for (const column of columns) {
-    const table = `public.${quoteIdentifier(column.table)}`;
-    const field = quoteIdentifier(column.column);
+    const table = `public.${quoteIdent(column.table)}`;
+    const field = quoteIdent(column.column);
     const asText = column.type === "jsonb" || column.type === "json" ? `${field}::text` : field;
 
     const { rows } = await pool.query<{ count: string }>(

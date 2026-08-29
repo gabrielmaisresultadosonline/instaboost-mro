@@ -14,7 +14,7 @@ import { env, requireLegacy } from "../src/env.js";
 import { pool } from "../src/db.js";
 import { pipe, runOrThrow } from "./lib/shell.js";
 import { log } from "./lib/log.js";
-import { quoteIdentifier } from "../src/rest/identifiers.js";
+import { quoteIdent } from "../src/rest/identifiers.js";
 
 /** Tabelas gerenciadas pelo backend local — não vêm do banco antigo. */
 const EXCLUDED = new Set([
@@ -77,13 +77,13 @@ async function copyTable(legacyUrl: string, table: TableInfo): Promise<{ copied:
     return { copied: 0, inserted: 0 };
   }
 
-  const columnList = columns.map(quoteIdentifier).join(", ");
+  const columnList = columns.map(quoteIdent).join(", ");
   const staging = `_stg_${table.name}`.slice(0, 63);
-  const target = `public.${quoteIdentifier(table.name)}`;
+  const target = `public.${quoteIdent(table.name)}`;
 
   // Tabela de apoio real (não TEMP): o COPY vem de um processo psql externo,
   // que abre a própria conexão e não veria uma tabela temporária nossa.
-  const stagingReal = `public.${quoteIdentifier(staging)}`;
+  const stagingReal = `public.${quoteIdent(staging)}`;
   await pool.query(`DROP TABLE IF EXISTS ${stagingReal}`);
   await pool.query(`CREATE UNLOGGED TABLE ${stagingReal} (LIKE ${target})`);
 
@@ -94,7 +94,7 @@ async function copyTable(legacyUrl: string, table: TableInfo): Promise<{ copied:
         command: "psql",
         args: [
           "-v", "ON_ERROR_STOP=1", "-d", legacyUrl,
-          "-c", `COPY (SELECT ${columnList} FROM public.${quoteIdentifier(table.name)}) TO STDOUT WITH (FORMAT csv)`,
+          "-c", `COPY (SELECT ${columnList} FROM public.${quoteIdent(table.name)}) TO STDOUT WITH (FORMAT csv)`,
         ],
       },
       {
