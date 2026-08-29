@@ -111,7 +111,7 @@ export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promi
   }
 
   log.info("Extraindo schema do banco atual (pg_dump --schema-only)...");
-  const raw = await runOrThrow("pg_dump", [
+  const raw = await runOrThrow(resolvePgDump(), [
     "--schema-only",
     "--no-owner",
     "--no-privileges",
