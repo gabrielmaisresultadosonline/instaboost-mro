@@ -291,35 +291,30 @@ const IgInboxContent = ({
   );
 };
 
-const IgInbox = () => {
-  const { loading, me, activeTenantId, setActiveTenantId, error } = useIgSession();
-
-  if (loading) return <IgLoading label="Carregando..." />;
-  if (error) return <IgError message={error} />;
-
-  const tenantId = activeTenantId ?? me?.tenants[0]?.id ?? null;
-  if (!tenantId) {
-    return (
-      <IgLayout title="Inbox">
-        <IgEmpty title="Workspace não encontrado" description="Recarregue a página ou faça login novamente." />
-      </IgLayout>
-    );
-  }
-
-  return (
-    <IgInboxContent
-      tenantId={tenantId}
-      tenants={me?.tenants ?? []}
-      activeTenantId={activeTenantId}
-      onTenantChange={setActiveTenantId}
-    />
-  );
-};
-
 const IgInboxPage = () => (
   <IgGuard>
-    <IgInbox />
+    {({ me, activeTenantId, setActiveTenantId }) => {
+      const tenantId = activeTenantId ?? me?.tenants[0]?.id ?? null;
+
+      if (!tenantId) {
+        return (
+          <IgLayout title="Inbox">
+            <IgEmpty title="Workspace não encontrado" description="Recarregue a página ou faça login novamente." />
+          </IgLayout>
+        );
+      }
+
+      return (
+        <IgInboxContent
+          tenantId={tenantId}
+          tenants={me?.tenants ?? []}
+          activeTenantId={activeTenantId}
+          onTenantChange={setActiveTenantId}
+        />
+      );
+    }}
   </IgGuard>
 );
 
 export default IgInboxPage;
+
