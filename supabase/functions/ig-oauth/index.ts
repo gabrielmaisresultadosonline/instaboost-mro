@@ -47,15 +47,20 @@ Deno.serve(async (req) => {
       tenant_id?: string;
     };
 
-    const { appId, appSecret } = metaAppCredentials();
+    const { appId, appSecret, scopes: configuredScopes } = await resolveMetaCredentials(db);
     if (!appId || !appSecret) {
-      return fail("Integração com a Meta ainda não está configurada.", 503, "meta_not_configured");
+      return fail(
+        "Integração com a Meta ainda não está configurada. O administrador precisa salvar o App ID e o App Secret em /IG/admin/app.",
+        503,
+        "meta_not_configured",
+      );
     }
 
     if (action === "get-config") {
       // Somente dados públicos: app id e scopes.
-      return json({ success: true, app_id: appId, scopes: SCOPES });
+      return json({ success: true, app_id: appId, scopes: configuredScopes?.trim() || SCOPES });
     }
+
 
     if (action === "exchange-code") {
       if (!code || !redirect_uri || !tenant_id) {
