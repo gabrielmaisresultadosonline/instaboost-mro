@@ -14,6 +14,11 @@ const FALLBACK_SUPABASE_PROJECT_ID = "adljdeekwifwcdcgbpit";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
+  // Corte para o backend próprio: um único switch troca a origem de dados de
+  // todo o app. Enquanto for "false", nada muda e o Supabase continua ativo.
+  const useLocalBackend = env.VITE_USE_LOCAL_BACKEND === "true";
+  const apiUrl = env.VITE_API_URL || "https://api.maisresultadosonline.com.br";
+
   return {
   base: "/",
   define: {
@@ -30,6 +35,11 @@ export default defineConfig(({ mode }) => {
     "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
       env.VITE_SUPABASE_PROJECT_ID || FALLBACK_SUPABASE_PROJECT_ID
     ),
+    "import.meta.env.VITE_API_URL": JSON.stringify(apiUrl),
+    "import.meta.env.VITE_API_ANON_KEY": JSON.stringify(
+      env.VITE_API_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY || FALLBACK_SUPABASE_PUBLISHABLE_KEY
+    ),
+    "import.meta.env.VITE_USE_LOCAL_BACKEND": JSON.stringify(String(useLocalBackend)),
   },
   server: {
     host: "::",
@@ -41,10 +51,20 @@ export default defineConfig(({ mode }) => {
     componentTagger(),
   ].filter(Boolean),
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      // Redireciona as 213 páginas para o backend da VPS sem editá-las.
+      ...(useLocalBackend
+        ? [
+            {
+              find: /^@\/integrations\/supabase\/client$/,
+              replacement: path.resolve(__dirname, "./src/integrations/backend/client.ts"),
+            },
+          ]
+        : []),
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+    ],
   },
+
   build: {
     outDir: "dist",
     assetsDir: "assets",
