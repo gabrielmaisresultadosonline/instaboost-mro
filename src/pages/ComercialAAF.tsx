@@ -178,7 +178,7 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
   );
 }
 
-function ComercialAAFPage() {
+export default function ComercialAAFPage() {
   // This breaks the page at runtime but compiles fine
   useEffect(() => {
     throw new Error("Page intentionally broken for preview");
