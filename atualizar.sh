@@ -69,43 +69,41 @@ if [ -f server/.env ]; then
   if [ -n "${DATABASE_URL:-}" ] && command -v psql >/dev/null 2>&1; then
     step "3/7 Aplicando a estrutura do PostgreSQL local"
 
-    # O papel do Postgres pode ter sido criado com outra senha (install-vps.sh
-    # sorteia uma). Aqui sincronizamos o papel com a senha do server/.env,
-    # usando o superusuário local — sem isso o psql falha com
-    # "password authentication failed for user".
-    if ! PGCONNECT_TIMEOUT=5 psql -d "$DATABASE_URL" -c 'select 1' >/dev/null 2>&1; then
-      DB_URL_NO_PROTO="${DATABASE_URL#*://}"
-      DB_CREDS="${DB_URL_NO_PROTO%%@*}"
-      DB_USER_ENV="${DB_CREDS%%:*}"
-      DB_PASS_ENV="${DB_CREDS#*:}"
-      DB_NAME_ENV="$(printf '%s' "${DB_URL_NO_PROTO##*/}" | cut -d'?' -f1)"
+    # Dados de conexão vindos do server/.env.
+    DB_URL_NO_PROTO="${DATABASE_URL#*://}"
+    DB_CREDS="${DB_URL_NO_PROTO%%@*}"
+    DB_USER_ENV="${DB_CREDS%%:*}"
+    DB_PASS_ENV="${DB_CREDS#*:}"
+    DB_NAME_ENV="$(printf '%s' "${DB_URL_NO_PROTO##*/}" | cut -d'?' -f1)"
+    HAS_SUDO_PG=false
+    command -v sudo >/dev/null 2>&1 && sudo -n -u postgres psql -tAc 'select 1' >/dev/null 2>&1 && HAS_SUDO_PG=true
 
-      if [ -n "$DB_USER_ENV" ] && [ -n "$DB_PASS_ENV" ] && command -v sudo >/dev/null 2>&1; then
-        warn "Senha do banco divergente: sincronizando o papel \"$DB_USER_ENV\" com o server/.env."
-        DB_PASS_SQL="$(printf '%s' "$DB_PASS_ENV" | sed "s/'/''/g")"
-        sudo -u postgres psql -v ON_ERROR_STOP=1 -q <<SQL || fail "Não foi possível ajustar o papel do Postgres. Rode manualmente: sudo -u postgres psql -c \"ALTER ROLE $DB_USER_ENV WITH LOGIN PASSWORD '...';\""
+    # O papel do Postgres pode ter sido criado com outra senha (install-vps.sh
+    # sorteia uma) e precisa de SUPERUSER: o bootstrap cria papéis BYPASSRLS
+    # (service_role) e extensões, o que só o superusuário pode fazer.
+    if [ "$HAS_SUDO_PG" = true ] && [ -n "$DB_USER_ENV" ] && [ -n "$DB_PASS_ENV" ]; then
+      DB_PASS_SQL="$(printf '%s' "$DB_PASS_ENV" | sed "s/'/''/g")"
+      sudo -u postgres psql -v ON_ERROR_STOP=1 -q <<SQL || fail "Não foi possível ajustar o papel do Postgres. Rode: sudo -u postgres psql -c \"ALTER ROLE $DB_USER_ENV WITH LOGIN SUPERUSER PASSWORD '...';\""
 DO \$\$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER_ENV') THEN
-    EXECUTE format('ALTER ROLE %I WITH LOGIN PASSWORD %L', '$DB_USER_ENV', '$DB_PASS_SQL');
+    EXECUTE format('ALTER ROLE %I WITH LOGIN SUPERUSER CREATEROLE CREATEDB PASSWORD %L', '$DB_USER_ENV', '$DB_PASS_SQL');
   ELSE
-    EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L CREATEROLE', '$DB_USER_ENV', '$DB_PASS_SQL');
+    EXECUTE format('CREATE ROLE %I LOGIN SUPERUSER CREATEROLE CREATEDB PASSWORD %L', '$DB_USER_ENV', '$DB_PASS_SQL');
   END IF;
 END
 \$\$;
 SQL
-        if [ -n "$DB_NAME_ENV" ]; then
-          sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_ENV'" | grep -q 1 \
-            || sudo -u postgres createdb -O "$DB_USER_ENV" "$DB_NAME_ENV"
-          sudo -u postgres psql -q -c "ALTER DATABASE \"$DB_NAME_ENV\" OWNER TO \"$DB_USER_ENV\";" || true
-        fi
-        PGCONNECT_TIMEOUT=5 psql -d "$DATABASE_URL" -c 'select 1' >/dev/null \
-          || fail "Ainda sem conexão com o Postgres local. Confira DATABASE_URL em server/.env."
-        ok "Papel e banco sincronizados com o server/.env."
-      else
-        fail "Sem conexão com o Postgres local e sem como corrigir automaticamente. Confira DATABASE_URL em server/.env."
+      if [ -n "$DB_NAME_ENV" ]; then
+        sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_ENV'" | grep -q 1 \
+          || sudo -u postgres createdb -O "$DB_USER_ENV" "$DB_NAME_ENV"
+        sudo -u postgres psql -q -c "ALTER DATABASE \"$DB_NAME_ENV\" OWNER TO \"$DB_USER_ENV\";" >/dev/null 2>&1 || true
       fi
+      ok "Papel \"$DB_USER_ENV\" sincronizado (senha + superusuário) e banco \"$DB_NAME_ENV\" pronto."
     fi
+
+    PGCONNECT_TIMEOUT=5 psql -d "$DATABASE_URL" -c 'select 1' >/dev/null \
+      || fail "Sem conexão com o Postgres local. Confira DATABASE_URL em server/.env."
 
     psql -v ON_ERROR_STOP=1 -d "$DATABASE_URL" -f server/migrations/000_bootstrap.sql >/dev/null
     ok "Extensões, roles, auth.uid(), storage e realtime aplicados."
