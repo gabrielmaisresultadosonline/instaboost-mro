@@ -31,8 +31,14 @@ interface TableInfo {
   dependencies: string[];
 }
 
+interface LocalTableRow {
+  table_name: string;
+  columns: string[];
+  has_pk: boolean;
+}
+
 async function listLocalTables(): Promise<TableInfo[]> {
-  const { rows } = await pool.query<{ table_name: string; columns: string[]; has_pk: boolean }>(`
+  const result = await pool.query<LocalTableRow>(`
     SELECT c.relname AS table_name,
            array_agg(a.attname::text ORDER BY a.attnum) AS columns,
            EXISTS (
@@ -49,6 +55,7 @@ async function listLocalTables(): Promise<TableInfo[]> {
      GROUP BY c.relname, c.oid
      ORDER BY c.relname
   `);
+  const rows: LocalTableRow[] = result.rows;
 
   const tables = rows
     .filter((row) => !EXCLUDED.has(row.table_name) && !row.table_name.startsWith("_stg_"))
