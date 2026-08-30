@@ -111,6 +111,7 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
   log.info(`${buckets.length} buckets encontrados.`);
 
   const summary: Record<string, unknown>[] = [];
+  let totalFailures = 0;
 
   for (const bucket of buckets) {
     await pool.query(
@@ -159,9 +160,13 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
         `(${(bytes / 1024 / 1024).toFixed(1)} MB).`,
     );
     summary.push({ bucket: bucket.id, total: objects.length, baixados: downloaded, existentes: skipped, falhas: failed });
+    totalFailures += failed;
   }
 
   log.table(summary);
+  if (totalFailures > 0) {
+    throw new Error(`${totalFailures} arquivos não puderam ser baixados. O corte foi bloqueado para evitar mídia ausente.`);
+  }
 }
 
 async function registerObject(bucketId: string, object: LegacyObject, size: number): Promise<void> {

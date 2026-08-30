@@ -27,6 +27,7 @@ interface TableInfo {
   name: string;
   columns: string[];
   hasPrimaryKey: boolean;
+  dependencies: string[];
 }
 
 async function listLocalTables(): Promise<TableInfo[]> {
@@ -48,9 +49,76 @@ async function listLocalTables(): Promise<TableInfo[]> {
      ORDER BY c.relname
   `);
 
-  return rows
+  const tables = rows
     .filter((row) => !EXCLUDED.has(row.table_name))
-    .map((row) => ({ name: row.table_name, columns: row.columns, hasPrimaryKey: row.has_pk }));
+    .map((row) => ({
+      name: row.table_name,
+      columns: row.columns,
+      hasPrimaryKey: row.has_pk,
+      dependencies: [] as string[],
+    }));
+
+  const byName = new Map(tables.map((table) => [table.name, table]));
+  const foreignKeys = await pool.query<{ child_table: string; parent_table: string }>(`
+    SELECT child.relname AS child_table, parent.relname AS parent_table
+      FROM pg_constraint fk
+      JOIN pg_class child ON child.oid = fk.conrelid
+      JOIN pg_namespace child_ns ON child_ns.oid = child.relnamespace
+      JOIN pg_class parent ON parent.oid = fk.confrelid
+      JOIN pg_namespace parent_ns ON parent_ns.oid = parent.relnamespace
+     WHERE fk.contype = 'f'
+       AND child_ns.nspname = 'public'
+       AND parent_ns.nspname = 'public'
+  `);
+
+  for (const foreignKey of foreignKeys.rows) {
+    const table = byName.get(foreignKey.child_table);
+    if (
+      table &&
+      foreignKey.parent_table !== foreignKey.child_table &&
+      byName.has(foreignKey.parent_table) &&
+      !table.dependencies.includes(foreignKey.parent_table)
+    ) {
+      table.dependencies.push(foreignKey.parent_table);
+    }
+  }
+
+  return tables;
+}
+
+/** Pais precisam ser copiados antes dos filhos para preservar todas as FKs. */
+function sortByForeignKeys(tables: TableInfo[]): TableInfo[] {
+  const selected = new Set(tables.map((table) => table.name));
+  const pending = new Map(
+    tables.map((table) => [
+      table.name,
+      new Set(table.dependencies.filter((dependency) => selected.has(dependency))),
+    ]),
+  );
+  const ordered: TableInfo[] = [];
+
+  while (pending.size > 0) {
+    const ready = [...pending.entries()]
+      .filter(([, dependencies]) => dependencies.size === 0)
+      .map(([name]) => name)
+      .sort();
+
+    if (ready.length === 0) {
+      const cyclic = [...pending.keys()].sort();
+      log.warn(`Dependência circular detectada entre: ${cyclic.join(", ")}. Essas tabelas serão tentadas em múltiplas passagens.`);
+      ordered.push(...cyclic.map((name) => tables.find((table) => table.name === name)).filter((table): table is TableInfo => Boolean(table)));
+      break;
+    }
+
+    for (const name of ready) {
+      const table = tables.find((candidate) => candidate.name === name);
+      if (table) ordered.push(table);
+      pending.delete(name);
+      for (const dependencies of pending.values()) dependencies.delete(name);
+    }
+  }
+
+  return ordered;
 }
 
 async function legacyColumns(legacyUrl: string, table: string): Promise<Set<string>> {
@@ -163,36 +231,58 @@ export async function migrateData(only?: string[]): Promise<void> {
     return;
   }
 
-  const tables = (await listLocalTables()).filter(
+  const tables = sortByForeignKeys((await listLocalTables()).filter(
     (table) => !only || only.length === 0 || only.includes(table.name),
-  );
+  ));
   log.info(`${tables.length} tabelas para sincronizar.`);
 
   const summary: Record<string, unknown>[] = [];
-  let failures = 0;
+  let pending = [...tables];
+  const lastErrors = new Map<string, string>();
 
-  for (const table of tables) {
-    try {
-      const result = await copyTable(legacy.databaseUrl, table);
-      if (result.copied > 0) {
-        log.ok(`${table.name}: ${result.inserted}/${result.copied} linhas novas.`);
+  // Uma nova passagem resolve dependências indiretas e bancos parcialmente
+  // migrados sem apagar o que já foi copiado nas execuções anteriores.
+  for (let pass = 1; pending.length > 0 && pass <= tables.length; pass += 1) {
+    const failedThisPass: TableInfo[] = [];
+    let progress = 0;
+
+    for (const table of pending) {
+      try {
+        const result = await copyTable(legacy.databaseUrl, table);
+        if (result.copied > 0) {
+          log.ok(`${table.name}: ${result.inserted}/${result.copied} linhas novas.`);
+        }
+        summary.push({ tabela: table.name, lidas: result.copied, inseridas: result.inserted });
+        lastErrors.delete(table.name);
+        progress += 1;
+      } catch (error) {
+        const message = (error as Error).message;
+        lastErrors.set(table.name, message);
+        failedThisPass.push(table);
       }
-      summary.push({ tabela: table.name, lidas: result.copied, inseridas: result.inserted });
-    } catch (error) {
-      failures += 1;
-      log.error(`${table.name}: ${(error as Error).message.split("\n")[0]}`);
-      summary.push({ tabela: table.name, lidas: 0, inseridas: 0, erro: (error as Error).message.slice(0, 80) });
     }
+
+    pending = failedThisPass;
+    if (pending.length === 0) break;
+    if (progress === 0) break;
+    log.info(`Nova passagem: ${pending.length} tabelas aguardando dependências.`);
+  }
+
+  for (const table of pending) {
+    const message = lastErrors.get(table.name) ?? "erro desconhecido";
+    log.error(`${table.name}: ${message.split("\n")[0]}`);
+    summary.push({ tabela: table.name, lidas: 0, inseridas: 0, erro: message.slice(0, 160) });
   }
 
   log.info("Reajustando sequences...");
   await resetSequences();
 
   const totalRows = summary.reduce((sum, row) => sum + Number(row.inseridas ?? 0), 0);
-  log.ok(`${totalRows} linhas importadas. ${failures} tabelas com erro.`);
+  log.ok(`${totalRows} linhas importadas. ${pending.length} tabelas com erro.`);
 
-  if (failures > 0) {
+  if (pending.length > 0) {
     log.table(summary.filter((row) => row.erro));
+    throw new Error(`${pending.length} tabelas não puderam ser migradas. O corte foi bloqueado para evitar perda de dados.`);
   }
 }
 

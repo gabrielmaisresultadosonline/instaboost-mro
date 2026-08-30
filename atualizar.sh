@@ -168,9 +168,8 @@ step "6/7 Reiniciando serviços"
 mkdir -p /var/log/mro 2>/dev/null || sudo mkdir -p /var/log/mro
 if command -v pm2 >/dev/null 2>&1; then
   [ -f ecosystem.config.cjs ] && pm2 startOrReload ecosystem.config.cjs --update-env >/dev/null
-  pm2 restart all >/dev/null || true
   pm2 save >/dev/null || true
-  ok "PM2 recarregado (mro-api, wpp-bot-mro, video-server)."
+  ok "PM2 recarregado (mro-api)."
 else
   warn "PM2 não instalado (npm i -g pm2)."
 fi
@@ -184,14 +183,23 @@ if [ "$DB_PRONTO" = true ] && [ "$RAPIDO" = false ]; then
   (cd server && npm run migrate:verify) || warn "Conferência apontou divergências (veja acima)."
 fi
 PORT_LOCAL="${PORT:-8787}"
+BACKEND_OK=false
 for i in $(seq 1 20); do
-  if curl -sf "http://127.0.0.1:${PORT_LOCAL}/health" >/dev/null; then
+  if HEALTH_JSON="$(curl -sf --max-time 3 "http://127.0.0.1:${PORT_LOCAL}/health")" \
+    && printf '%s' "$HEALTH_JSON" | grep -q '"ok":true'; then
     ok "Backend local respondendo na porta ${PORT_LOCAL}."
+    BACKEND_OK=true
     break
   fi
-  [ "$i" = "20" ] && warn "Backend local não respondeu em /health (o site atual continua no ar pelo Supabase)."
+  if [ "$i" = "20" ]; then
+    warn "Backend local não ficou saudável em /health. Últimos logs:"
+    pm2 status mro-api 2>/dev/null || true
+    tail -n 40 /var/log/mro/api-error.log 2>/dev/null || true
+  fi
   sleep 1
 done
+
+[ "$BACKEND_OK" = true ] || fail "Backend local indisponível; o corte foi bloqueado. O site atual continua no Lovable Cloud."
 
 cat <<EOF
 

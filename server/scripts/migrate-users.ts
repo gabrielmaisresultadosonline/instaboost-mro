@@ -71,18 +71,19 @@ export async function migrateUsers(): Promise<void> {
   }
 
   let imported = 0;
-  let skipped = 0;
+  let socialOnly = 0;
 
   for (const user of users) {
-    if (!user.encrypted_password) {
-      skipped += 1;
-      continue;
-    }
-
     // Prefixamos o hash bcrypt para o verificador saber qual algoritmo usar.
-    const storedHash = user.encrypted_password.startsWith("$2")
-      ? `bcrypt:${user.encrypted_password}`
-      : user.encrypted_password;
+    // Contas exclusivamente sociais também precisam existir localmente porque
+    // tabelas de negócio podem referenciar seus UUIDs por foreign key. O valor
+    // sentinela nunca autentica por senha.
+    const storedHash = user.encrypted_password
+      ? user.encrypted_password.startsWith("$2")
+        ? `bcrypt:${user.encrypted_password}`
+        : user.encrypted_password
+      : "disabled:social-login";
+    if (!user.encrypted_password) socialOnly += 1;
 
     const result = await pool.query(
       `INSERT INTO public.auth_users
@@ -108,7 +109,7 @@ export async function migrateUsers(): Promise<void> {
     imported += result.rowCount ?? 0;
   }
 
-  log.ok(`${imported} contas importadas com a senha preservada. ${skipped} sem senha (login social) ignoradas.`);
+  log.ok(`${imported} contas importadas; ${socialOnly} contas sociais preservadas sem habilitar login por senha.`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
