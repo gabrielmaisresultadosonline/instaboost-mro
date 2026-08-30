@@ -55,8 +55,8 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.get("/health", async (_req, res) => {
   const db = await healthCheck().catch((error: Error) => ({ ok: false, error: error.message }));
-  res.json({
-    ok: "ok" in db ? db.ok : false,
+  res.status(db.ok ? 200 : 503).json({
+    ok: db.ok,
     database: db,
     functions: { available: listAvailableFunctions().length, running: functionsStatus() },
     realtime: realtimeStatus(),

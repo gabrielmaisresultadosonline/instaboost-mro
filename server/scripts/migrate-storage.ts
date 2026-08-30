@@ -121,10 +121,15 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
       [bucket.id, bucket.name, bucket.public],
     );
 
-    const objects = await listObjects(bucket.id).catch((error: Error) => {
-      log.error(`${bucket.id}: ${error.message}`);
-      return [] as LegacyObject[];
-    });
+    let objects: LegacyObject[];
+    try {
+      objects = await listObjects(bucket.id);
+    } catch (error) {
+      totalFailures += 1;
+      log.error(`${bucket.id}: ${(error as Error).message}`);
+      summary.push({ bucket: bucket.id, total: 0, baixados: 0, existentes: 0, falhas: 1 });
+      continue;
+    }
 
     let downloaded = 0;
     let skipped = 0;
