@@ -87,13 +87,33 @@ async function listObjects(bucket: string, prefix = ""): Promise<LegacyObject[]>
 
 async function downloadObject(bucket: string, name: string, destination: string): Promise<number> {
   const encoded = name.split("/").map(encodeURIComponent).join("/");
-  const response = await legacyRequest(`/storage/v1/object/${bucket}/${encoded}`);
-  if (!response.ok) {
-    throw new Error(`download falhou (${response.status})`);
+  const paths = [
+    `/storage/v1/object/${bucket}/${encoded}`,
+    `/storage/v1/object/public/${bucket}/${encoded}`,
+  ];
+  let lastStatus = 0;
+  let buffer: Buffer | null = null;
+
+  for (const pathname of paths) {
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const response = await legacyRequest(pathname);
+      lastStatus = response.status;
+      if (response.ok) {
+        buffer = Buffer.from(await response.arrayBuffer());
+        break;
+      }
+      // 4xx não transitório: tenta imediatamente a rota pública alternativa.
+      if (response.status >= 400 && response.status < 500) break;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+    }
+    if (buffer) break;
+  }
+
+  if (!buffer) {
+    throw new Error(`download falhou após novas tentativas (${lastStatus})`);
   }
 
   fs.mkdirSync(path.dirname(destination), { recursive: true });
-  const buffer = Buffer.from(await response.arrayBuffer());
   fs.writeFileSync(destination, buffer);
   return buffer.byteLength;
 }
