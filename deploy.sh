@@ -116,12 +116,17 @@ fi
 step "Checando a saúde do sistema"
 PORT_LOCAL="${PORT:-8787}"
 for attempt in $(seq 1 20); do
-  if curl -sf "http://127.0.0.1:${PORT_LOCAL}/health" >/dev/null; then
-    curl -s "http://127.0.0.1:${PORT_LOCAL}/health" | head -c 400; echo
+  if HEALTH_JSON="$(curl -sf --max-time 3 "http://127.0.0.1:${PORT_LOCAL}/health")" \
+    && printf '%s' "$HEALTH_JSON" | grep -q '"ok":true'; then
+    printf '%s' "$HEALTH_JSON" | head -c 400; echo
     ok "Backend respondendo na porta ${PORT_LOCAL}."
     break
   fi
-  [ "$attempt" = "20" ] && fail "Backend não respondeu em /health."
+  if [ "$attempt" = "20" ]; then
+    pm2 status mro-api 2>/dev/null || true
+    tail -n 40 /var/log/mro/api-error.log 2>/dev/null || true
+    fail "Backend não respondeu de forma saudável em /health."
+  fi
   sleep 1
 done
 

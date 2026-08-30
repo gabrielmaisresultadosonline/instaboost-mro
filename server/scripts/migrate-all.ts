@@ -47,12 +47,26 @@ async function main(): Promise<void> {
 
   const steps: Step[] = [
     { name: "schema", run: () => migrateSchema(), skip: onlyStorage },
-    { name: "data", run: () => migrateData(), skip: onlyStorage || args.includes("--skip-data") },
     { name: "users", run: () => migrateUsers(), skip: onlyStorage || args.includes("--skip-data") },
+    { name: "data", run: () => migrateData(), skip: onlyStorage || args.includes("--skip-data") },
     { name: "storage", run: () => migrateStorage(), skip: args.includes("--skip-storage") },
     { name: "urls", run: () => rewriteUrls(applyUrls), skip: onlyStorage },
-    { name: "verify", run: () => verify(), skip: onlyStorage },
+    {
+      name: "verify",
+      run: async () => {
+        const clean = await verify();
+        if (!clean && applyUrls) {
+          throw new Error("A conferência final encontrou divergências; as URLs não podem ser cortadas com dados pendentes.");
+        }
+        if (!clean) {
+          log.warn("A origem recebeu alterações durante a sincronização. Rode novamente antes do corte final.");
+        }
+      },
+      skip: onlyStorage,
+    },
   ];
+
+  const failedSteps: string[] = [];
 
   for (const step of steps) {
     if (step.skip) {
@@ -66,8 +80,12 @@ async function main(): Promise<void> {
       const message = (error as Error).message;
       await record(step.name, "erro", { message });
       log.error(`Etapa "${step.name}" falhou: ${message}`);
+      failedSteps.push(step.name);
       // Estrutura é pré-requisito de tudo; sem ela não faz sentido continuar.
-      if (step.name === "schema") process.exit(1);
+      if (step.name === "schema" || (applyUrls && ["users", "data", "storage"].includes(step.name))) {
+        await pool.end();
+        throw new Error(`Etapa obrigatória "${step.name}" falhou. Nenhuma URL foi alterada.`);
+      }
     }
   }
 
@@ -79,6 +97,9 @@ async function main(): Promise<void> {
   }
 
   await pool.end();
+  if (failedSteps.length > 0) {
+    throw new Error(`Migração incompleta nas etapas: ${failedSteps.join(", ")}. O corte não foi autorizado.`);
+  }
 }
 
 main().catch((error: Error) => {

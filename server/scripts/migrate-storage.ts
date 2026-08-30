@@ -87,13 +87,33 @@ async function listObjects(bucket: string, prefix = ""): Promise<LegacyObject[]>
 
 async function downloadObject(bucket: string, name: string, destination: string): Promise<number> {
   const encoded = name.split("/").map(encodeURIComponent).join("/");
-  const response = await legacyRequest(`/storage/v1/object/${bucket}/${encoded}`);
-  if (!response.ok) {
-    throw new Error(`download falhou (${response.status})`);
+  const paths = [
+    `/storage/v1/object/${bucket}/${encoded}`,
+    `/storage/v1/object/public/${bucket}/${encoded}`,
+  ];
+  let lastStatus = 0;
+  let buffer: Buffer | null = null;
+
+  for (const pathname of paths) {
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const response = await legacyRequest(pathname);
+      lastStatus = response.status;
+      if (response.ok) {
+        buffer = Buffer.from(await response.arrayBuffer());
+        break;
+      }
+      // 4xx não transitório: tenta imediatamente a rota pública alternativa.
+      if (response.status >= 400 && response.status < 500) break;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+    }
+    if (buffer) break;
+  }
+
+  if (!buffer) {
+    throw new Error(`download falhou após novas tentativas (${lastStatus})`);
   }
 
   fs.mkdirSync(path.dirname(destination), { recursive: true });
-  const buffer = Buffer.from(await response.arrayBuffer());
   fs.writeFileSync(destination, buffer);
   return buffer.byteLength;
 }
@@ -111,6 +131,7 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
   log.info(`${buckets.length} buckets encontrados.`);
 
   const summary: Record<string, unknown>[] = [];
+  let totalFailures = 0;
 
   for (const bucket of buckets) {
     await pool.query(
@@ -120,10 +141,15 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
       [bucket.id, bucket.name, bucket.public],
     );
 
-    const objects = await listObjects(bucket.id).catch((error: Error) => {
-      log.error(`${bucket.id}: ${error.message}`);
-      return [] as LegacyObject[];
-    });
+    let objects: LegacyObject[];
+    try {
+      objects = await listObjects(bucket.id);
+    } catch (error) {
+      totalFailures += 1;
+      log.error(`${bucket.id}: ${(error as Error).message}`);
+      summary.push({ bucket: bucket.id, total: 0, baixados: 0, existentes: 0, falhas: 1 });
+      continue;
+    }
 
     let downloaded = 0;
     let skipped = 0;
@@ -159,9 +185,13 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
         `(${(bytes / 1024 / 1024).toFixed(1)} MB).`,
     );
     summary.push({ bucket: bucket.id, total: objects.length, baixados: downloaded, existentes: skipped, falhas: failed });
+    totalFailures += failed;
   }
 
   log.table(summary);
+  if (totalFailures > 0) {
+    throw new Error(`${totalFailures} arquivos não puderam ser baixados. O corte foi bloqueado para evitar mídia ausente.`);
+  }
 }
 
 async function registerObject(bucketId: string, object: LegacyObject, size: number): Promise<void> {
