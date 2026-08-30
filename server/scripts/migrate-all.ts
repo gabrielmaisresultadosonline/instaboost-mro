@@ -82,7 +82,10 @@ async function main(): Promise<void> {
       log.error(`Etapa "${step.name}" falhou: ${message}`);
       failedSteps.push(step.name);
       // Estrutura é pré-requisito de tudo; sem ela não faz sentido continuar.
-      if (step.name === "schema") process.exit(1);
+      if (step.name === "schema" || (applyUrls && ["users", "data", "storage"].includes(step.name))) {
+        await pool.end();
+        throw new Error(`Etapa obrigatória "${step.name}" falhou. Nenhuma URL foi alterada.`);
+      }
     }
   }
 
