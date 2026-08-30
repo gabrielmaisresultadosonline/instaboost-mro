@@ -55,7 +55,12 @@ async function main(): Promise<void> {
       name: "verify",
       run: async () => {
         const clean = await verify();
-        if (!clean) throw new Error("A conferência encontrou divergências.");
+        if (!clean && applyUrls) {
+          throw new Error("A conferência final encontrou divergências; as URLs não podem ser cortadas com dados pendentes.");
+        }
+        if (!clean) {
+          log.warn("A origem recebeu alterações durante a sincronização. Rode novamente antes do corte final.");
+        }
       },
       skip: onlyStorage,
     },
