@@ -184,14 +184,14 @@ if [ "$DB_PRONTO" = true ] && [ "$RAPIDO" = false ]; then
 fi
 PORT_LOCAL="${PORT:-8787}"
 BACKEND_OK=false
-for i in $(seq 1 20); do
+for i in $(seq 1 30); do
   if HEALTH_JSON="$(curl -sf --max-time 3 "http://127.0.0.1:${PORT_LOCAL}/health")" \
     && printf '%s' "$HEALTH_JSON" | grep -q '"ok":true'; then
     ok "Backend local respondendo na porta ${PORT_LOCAL}."
     BACKEND_OK=true
     break
   fi
-  if [ "$i" = "20" ]; then
+  if [ "$i" = "30" ]; then
     warn "Backend local não ficou saudável em /health. Últimos logs:"
     pm2 status mro-api 2>/dev/null || true
     tail -n 40 /var/log/mro/api-error.log 2>/dev/null || true

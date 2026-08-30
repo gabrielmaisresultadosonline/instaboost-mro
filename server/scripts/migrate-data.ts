@@ -18,6 +18,7 @@ import { quoteIdent } from "../src/rest/identifiers.js";
 
 /** Tabelas gerenciadas pelo backend local — não vêm do banco antigo. */
 const EXCLUDED = new Set([
+  "auth_users",
   "storage_buckets",
   "storage_objects",
   "migration_runs",
@@ -50,7 +51,7 @@ async function listLocalTables(): Promise<TableInfo[]> {
   `);
 
   const tables = rows
-    .filter((row) => !EXCLUDED.has(row.table_name))
+    .filter((row) => !EXCLUDED.has(row.table_name) && !row.table_name.startsWith("_stg_"))
     .map((row) => ({
       name: row.table_name,
       columns: row.columns,
