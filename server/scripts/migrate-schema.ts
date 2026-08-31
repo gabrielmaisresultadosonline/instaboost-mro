@@ -136,6 +136,66 @@ async function applySql(sqlPath: string, label: string, tolerant: boolean): Prom
   log.ok(`${label} aplicado.`);
 }
 
+/** Lista as tabelas base do schema `public` de uma conexão. */
+async function listTables(connection: string): Promise<Set<string>> {
+  const output = await runOrThrow("psql", [
+    "-t", "-A", "-d", connection,
+    "-c", `SELECT c.relname FROM pg_class c
+             JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relkind = 'r'`,
+  ]);
+  return new Set(output.split("\n").map((line) => line.trim()).filter(Boolean));
+}
+
+/**
+ * Recria, uma a uma, as tabelas que existem na origem mas não localmente.
+ * Um único ERROR no meio do dump grande (por exemplo dependência ainda
+ * inexistente) descarta o restante daquele comando; isolando por tabela o
+ * problema deixa de ser silencioso.
+ */
+async function createMissingTables(legacyUrl: string): Promise<void> {
+  const [legacyTables, localTables] = await Promise.all([
+    listTables(legacyUrl),
+    listTables(env.database.url),
+  ]);
+
+  const missing = [...legacyTables].filter((table) => !localTables.has(table)).sort();
+  if (missing.length === 0) {
+    log.ok("Nenhuma tabela ausente: estrutura completa.");
+    return;
+  }
+
+  log.warn(`${missing.length} tabelas não foram criadas pelo dump: ${missing.join(", ")}`);
+  const tempPath = path.join(migrationsDir, "_missing_tables.sql");
+  const stillMissing: string[] = [];
+
+  for (const table of missing) {
+    try {
+      const raw = await runOrThrow(resolvePgDump(), [
+        "--schema-only", "--no-owner", "--no-privileges", "--no-tablespaces", "--no-comments",
+        "-t", `public.${table}`, legacyUrl,
+      ]);
+      fs.writeFileSync(tempPath, sanitizeDump(raw), "utf8");
+      await run("psql", ["-v", "ON_ERROR_STOP=0", "-d", env.database.url, "-f", tempPath]);
+    } catch (error) {
+      log.warn(`${table}: ${(error as Error).message}`);
+    }
+  }
+
+  fs.rmSync(tempPath, { force: true });
+
+  const afterwards = await listTables(env.database.url);
+  for (const table of missing) if (!afterwards.has(table)) stillMissing.push(table);
+
+  if (stillMissing.length > 0) {
+    throw new Error(
+      `Não foi possível criar as tabelas: ${stillMissing.join(", ")}. ` +
+        "Sem elas os dados dessas tabelas não podem ser migrados.",
+    );
+  }
+  log.ok(`${missing.length} tabelas recriadas individualmente.`);
+}
+
 export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promise<void> {
   fs.mkdirSync(migrationsDir, { recursive: true });
 
