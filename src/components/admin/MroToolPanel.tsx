@@ -20,7 +20,8 @@ const SUB_TABS: { id: SubTab; label: string; icon: React.ReactNode }[] = [
   { id: 'tutorials', label: 'Tutoriais', icon: <BookOpen className="w-4 h-4" /> },
   { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
   { id: 'import', label: 'Colar usuários', icon: <ClipboardPaste className="w-4 h-4" /> },
-  { id: 'docs', label: 'Documentação', icon: <FileCode className="w-4 h-4" /> },
+  { id: 'docs', label: 'Documentação (Supabase)', icon: <FileCode className="w-4 h-4" /> },
+  { id: 'docs-pg', label: 'Documentação (PostgreSQL)', icon: <Database className="w-4 h-4" /> },
 ];
 
 /** Container da seção "MRO Ferramenta" com abas internas. */
@@ -65,6 +66,8 @@ const MroToolPanel: React.FC<MroToolPanelProps> = ({ downloadLink, onDownloadLin
       )}
 
       {subTab === 'docs' && <MroApiDocumentation />}
+
+      {subTab === 'docs-pg' && <ExtensionPostgresDocs tool="mro" />}
     </div>
   );
 };

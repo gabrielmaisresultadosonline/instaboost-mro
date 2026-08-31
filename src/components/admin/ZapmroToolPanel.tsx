@@ -6,9 +6,10 @@ import ZapmroAPIDocumentation from '@/components/admin/ZapmroAPIDocumentation';
 import { ZapmroUsersTab, ZapmroAnnouncementsTab } from '@/components/admin/ZapmroUsersPanel';
 import ZapmroSessionsTab from '@/components/admin/ZapmroSessionsPanel';
 import ZapmroBulkImport from '@/components/admin/ZapmroBulkImport';
-import { BookOpen, Users, Megaphone, FileCode, Wifi, ClipboardPaste } from 'lucide-react';
+import ExtensionPostgresDocs from '@/components/admin/ExtensionPostgresDocs';
+import { BookOpen, Users, Megaphone, FileCode, Wifi, ClipboardPaste, Database } from 'lucide-react';
 
-type SubTab = 'tutorials' | 'users' | 'bulk' | 'sessions' | 'announcements' | 'docs';
+type SubTab = 'tutorials' | 'users' | 'bulk' | 'sessions' | 'announcements' | 'docs' | 'docs-pg';
 
 interface ZapmroToolPanelProps {
   downloadLink: string;
@@ -22,7 +23,8 @@ const SUB_TABS: { id: SubTab; label: string; icon: React.ReactNode }[] = [
   { id: 'bulk', label: 'Colar usuários', icon: <ClipboardPaste className="w-4 h-4" /> },
   { id: 'sessions', label: 'Acessos / IPs', icon: <Wifi className="w-4 h-4" /> },
   { id: 'announcements', label: 'Avisos', icon: <Megaphone className="w-4 h-4" /> },
-  { id: 'docs', label: 'Documentação', icon: <FileCode className="w-4 h-4" /> },
+  { id: 'docs', label: 'Documentação (Supabase)', icon: <FileCode className="w-4 h-4" /> },
+  { id: 'docs-pg', label: 'Documentação (PostgreSQL)', icon: <Database className="w-4 h-4" /> },
 ];
 
 /** Container da seção "ZAPMRO Ferramenta" com abas internas. */
@@ -64,6 +66,7 @@ const ZapmroToolPanel: React.FC<ZapmroToolPanelProps> = ({
       {subTab === 'sessions' && <ZapmroSessionsTab />}
       {subTab === 'announcements' && <ZapmroAnnouncementsTab />}
       {subTab === 'docs' && <ZapmroAPIDocumentation />}
+      {subTab === 'docs-pg' && <ExtensionPostgresDocs tool="zapmro" />}
     </div>
   );
 };
