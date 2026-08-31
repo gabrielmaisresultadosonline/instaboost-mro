@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IgLayout from "@/components/ig/IgLayout";
 import IgGuard from "@/components/ig/IgGuard";
+import IgSyncButton from "@/components/ig/IgSyncButton";
 import IgConnectInstagram from "@/components/ig/IgConnectInstagram";
 import { IgEmpty, IgError, IgSkeletonCards } from "@/components/ig/IgStates";
 import { igApi, type IgDashboard as IgDashboardData } from "@/lib/ig/api";
@@ -78,9 +79,12 @@ const IgDashboardContent = ({
       activeTenantId={activeTenantId}
       onTenantChange={onTenantChange}
       actions={
-        <Button variant="outline" size="icon" onClick={() => void load()} aria-label="Atualizar dados">
-          <RefreshCcw className="h-4 w-4" aria-hidden />
-        </Button>
+        <div className="flex items-center gap-2">
+          <IgSyncButton tenantId={tenantId} onDone={() => void load()} />
+          <Button variant="outline" size="icon" onClick={() => void load()} aria-label="Atualizar dados">
+            <RefreshCcw className="h-4 w-4" aria-hidden />
+          </Button>
+        </div>
       }
     >
       {error ? (
