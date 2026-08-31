@@ -5,9 +5,10 @@ import ModuleManager from '@/components/admin/ModuleManager';
 import MroUsersPanel from '@/components/admin/MroUsersPanel';
 import MroBulkImport from '@/components/admin/MroBulkImport';
 import MroApiDocumentation from '@/components/admin/MroApiDocumentation';
-import { BookOpen, Users, ClipboardPaste, FileCode } from 'lucide-react';
+import ExtensionPostgresDocs from '@/components/admin/ExtensionPostgresDocs';
+import { BookOpen, Users, ClipboardPaste, FileCode, Database } from 'lucide-react';
 
-type SubTab = 'tutorials' | 'users' | 'import' | 'docs';
+type SubTab = 'tutorials' | 'users' | 'import' | 'docs' | 'docs-pg';
 
 interface MroToolPanelProps {
   downloadLink: string;
@@ -19,7 +20,8 @@ const SUB_TABS: { id: SubTab; label: string; icon: React.ReactNode }[] = [
   { id: 'tutorials', label: 'Tutoriais', icon: <BookOpen className="w-4 h-4" /> },
   { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
   { id: 'import', label: 'Colar usuários', icon: <ClipboardPaste className="w-4 h-4" /> },
-  { id: 'docs', label: 'Documentação', icon: <FileCode className="w-4 h-4" /> },
+  { id: 'docs', label: 'Documentação (Supabase)', icon: <FileCode className="w-4 h-4" /> },
+  { id: 'docs-pg', label: 'Documentação (PostgreSQL)', icon: <Database className="w-4 h-4" /> },
 ];
 
 /** Container da seção "MRO Ferramenta" com abas internas. */
@@ -64,6 +66,8 @@ const MroToolPanel: React.FC<MroToolPanelProps> = ({ downloadLink, onDownloadLin
       )}
 
       {subTab === 'docs' && <MroApiDocumentation />}
+
+      {subTab === 'docs-pg' && <ExtensionPostgresDocs tool="mro" />}
     </div>
   );
 };
