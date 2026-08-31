@@ -466,18 +466,18 @@ const Renddx = () => {
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
           <h3 className="text-2xl font-bold mb-4">ACESSO COMPLETO AO MRO</h3>
-          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Anual</div>
+          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano 30 Dias</div>
           <div className="flex flex-col items-center mb-2">
-            <span className="text-zinc-500 text-sm line-through">De R$997</span>
-            <div className="text-5xl font-black text-green-400">R$300</div>
+            <span className="text-zinc-500 text-sm line-through">De R$297</span>
+            <div className="text-5xl font-black text-green-400">R$97</div>
           </div>
-          <p className="text-zinc-400 mb-6">Acesso durante 1 ano</p>
+          <p className="text-zinc-400 mb-6">30 dias de acesso • suporte já incluso</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (1 ano)</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo de uso</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento de gestão para empresas</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte incluso via WhatsApp</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (30 dias)</li>
           </ul>
           <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO ACESSAR O MRO</Button>
         </div>
