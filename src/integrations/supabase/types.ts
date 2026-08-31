@@ -2934,6 +2934,151 @@ export type Database = {
           },
         ]
       }
+      ig_comments: {
+        Row: {
+          comment_id: string
+          commented_at: string | null
+          created_at: string
+          from_id: string | null
+          from_username: string | null
+          hidden: boolean
+          id: string
+          ig_account_id: string
+          is_own: boolean
+          media_id: string | null
+          media_row_id: string | null
+          parent_comment_id: string | null
+          replied: boolean
+          tenant_id: string
+          text: string | null
+          updated_at: string
+        }
+        Insert: {
+          comment_id: string
+          commented_at?: string | null
+          created_at?: string
+          from_id?: string | null
+          from_username?: string | null
+          hidden?: boolean
+          id?: string
+          ig_account_id: string
+          is_own?: boolean
+          media_id?: string | null
+          media_row_id?: string | null
+          parent_comment_id?: string | null
+          replied?: boolean
+          tenant_id: string
+          text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          comment_id?: string
+          commented_at?: string | null
+          created_at?: string
+          from_id?: string | null
+          from_username?: string | null
+          hidden?: boolean
+          id?: string
+          ig_account_id?: string
+          is_own?: boolean
+          media_id?: string | null
+          media_row_id?: string | null
+          parent_comment_id?: string | null
+          replied?: boolean
+          tenant_id?: string
+          text?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_comments_ig_account_id_fkey"
+            columns: ["ig_account_id"]
+            isOneToOne: false
+            referencedRelation: "ig_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_comments_media_row_id_fkey"
+            columns: ["media_row_id"]
+            isOneToOne: false
+            referencedRelation: "ig_media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_comments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          ig_account_id: string
+          last_interaction_at: string | null
+          name: string | null
+          notes: string | null
+          participant_id: string
+          picture_url: string | null
+          source: string
+          stage: string
+          tags: string[]
+          tenant_id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ig_account_id: string
+          last_interaction_at?: string | null
+          name?: string | null
+          notes?: string | null
+          participant_id: string
+          picture_url?: string | null
+          source?: string
+          stage?: string
+          tags?: string[]
+          tenant_id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ig_account_id?: string
+          last_interaction_at?: string | null
+          name?: string | null
+          notes?: string | null
+          participant_id?: string
+          picture_url?: string | null
+          source?: string
+          stage?: string
+          tags?: string[]
+          tenant_id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_contacts_ig_account_id_fkey"
+            columns: ["ig_account_id"]
+            isOneToOne: false
+            referencedRelation: "ig_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_contacts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ig_conversations: {
         Row: {
           created_at: string
@@ -3043,6 +3188,87 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ig_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_media: {
+        Row: {
+          caption: string | null
+          comments_count: number | null
+          created_at: string
+          id: string
+          ig_account_id: string
+          like_count: number | null
+          media_id: string
+          media_product_type: string | null
+          media_type: string | null
+          media_url: string | null
+          permalink: string | null
+          published_at: string | null
+          reach: number | null
+          saved: number | null
+          shares: number | null
+          tenant_id: string
+          thumbnail_url: string | null
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string
+          id?: string
+          ig_account_id: string
+          like_count?: number | null
+          media_id: string
+          media_product_type?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          permalink?: string | null
+          published_at?: string | null
+          reach?: number | null
+          saved?: number | null
+          shares?: number | null
+          tenant_id: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string
+          id?: string
+          ig_account_id?: string
+          like_count?: number | null
+          media_id?: string
+          media_product_type?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          permalink?: string | null
+          published_at?: string | null
+          reach?: number | null
+          saved?: number | null
+          shares?: number | null
+          tenant_id?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_media_ig_account_id_fkey"
+            columns: ["ig_account_id"]
+            isOneToOne: false
+            referencedRelation: "ig_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ig_media_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "ig_tenants"
