@@ -111,7 +111,7 @@ async function api(body) {
 curl -fsS ${base}/health && echo
 
 # 2) a função da extensão responde?
-curl -fsS -X POST '${endpoint}' \
+curl -fsS -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
   -H 'apikey: SUA_ANON_KEY_DA_VPS' \\
   -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo`;
