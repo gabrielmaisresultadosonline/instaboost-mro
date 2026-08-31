@@ -85,6 +85,9 @@ async function listObjects(bucket: string, prefix = ""): Promise<LegacyObject[]>
   return collected;
 }
 
+/** Objeto listado mas irrecuperável na origem (linha órfã no Storage). */
+class MissingAtSource extends Error {}
+
 async function downloadObject(bucket: string, name: string, destination: string): Promise<number> {
   const encoded = name.split("/").map(encodeURIComponent).join("/");
   const paths = [
