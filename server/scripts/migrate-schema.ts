@@ -66,7 +66,8 @@ function sanitizeDump(sql: string): string {
 
   for (const line of lines) {
     // pg_dump emite comandos de configuração de sessão que não se aplicam aqui.
-    if (/^SET (default_table_access_method|idle_in_transaction|lock_timeout|row_security)/i.test(line)) continue;
+    // `transaction_timeout` só existe no PostgreSQL 17 (origem); o cliente 14 aborta.
+    if (/^SET (default_table_access_method|idle_in_transaction|lock_timeout|row_security|transaction_timeout)/i.test(line)) continue;
     if (/^SELECT pg_catalog\.set_config\('search_path'/i.test(line)) continue;
     if (/^(GRANT|REVOKE) .* ON SCHEMA public/i.test(line)) continue;
     if (/^COMMENT ON (SCHEMA|EXTENSION)/i.test(line)) continue;
@@ -104,6 +105,13 @@ function sanitizeDump(sql: string): string {
   result = result.replace(/^CREATE (OR REPLACE )?VIEW /gim, "CREATE OR REPLACE VIEW ");
   result = result.replace(/^CREATE FUNCTION /gim, "CREATE OR REPLACE FUNCTION ");
 
+  // O Supabase instala pgcrypto/uuid-ossp no schema `extensions`; aqui elas
+  // ficam em `public`, então as chamadas qualificadas são reapontadas.
+  result = result.replace(/\bextensions\./gi, "public.");
+
+  // `security_invoker` em views só existe no PostgreSQL 15+; no 14 é erro.
+  result = result.replace(/\s+WITH \(security_invoker[^)]*\)/gi, "");
+
   return result;
 }
 
@@ -126,6 +134,66 @@ async function applySql(sqlPath: string, label: string, tolerant: boolean): Prom
     for (const problem of problems.slice(0, 10)) log.warn(problem.trim());
   }
   log.ok(`${label} aplicado.`);
+}
+
+/** Lista as tabelas base do schema `public` de uma conexão. */
+async function listTables(connection: string): Promise<Set<string>> {
+  const output = await runOrThrow("psql", [
+    "-t", "-A", "-d", connection,
+    "-c", `SELECT c.relname FROM pg_class c
+             JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relkind = 'r'`,
+  ]);
+  return new Set(output.split("\n").map((line) => line.trim()).filter(Boolean));
+}
+
+/**
+ * Recria, uma a uma, as tabelas que existem na origem mas não localmente.
+ * Um único ERROR no meio do dump grande (por exemplo dependência ainda
+ * inexistente) descarta o restante daquele comando; isolando por tabela o
+ * problema deixa de ser silencioso.
+ */
+async function createMissingTables(legacyUrl: string): Promise<void> {
+  const [legacyTables, localTables] = await Promise.all([
+    listTables(legacyUrl),
+    listTables(env.database.url),
+  ]);
+
+  const missing = [...legacyTables].filter((table) => !localTables.has(table)).sort();
+  if (missing.length === 0) {
+    log.ok("Nenhuma tabela ausente: estrutura completa.");
+    return;
+  }
+
+  log.warn(`${missing.length} tabelas não foram criadas pelo dump: ${missing.join(", ")}`);
+  const tempPath = path.join(migrationsDir, "_missing_tables.sql");
+  const stillMissing: string[] = [];
+
+  for (const table of missing) {
+    try {
+      const raw = await runOrThrow(resolvePgDump(), [
+        "--schema-only", "--no-owner", "--no-privileges", "--no-tablespaces", "--no-comments",
+        "-t", `public.${table}`, legacyUrl,
+      ]);
+      fs.writeFileSync(tempPath, sanitizeDump(raw), "utf8");
+      await run("psql", ["-v", "ON_ERROR_STOP=0", "-d", env.database.url, "-f", tempPath]);
+    } catch (error) {
+      log.warn(`${table}: ${(error as Error).message}`);
+    }
+  }
+
+  fs.rmSync(tempPath, { force: true });
+
+  const afterwards = await listTables(env.database.url);
+  for (const table of missing) if (!afterwards.has(table)) stillMissing.push(table);
+
+  if (stillMissing.length > 0) {
+    throw new Error(
+      `Não foi possível criar as tabelas: ${stillMissing.join(", ")}. ` +
+        "Sem elas os dados dessas tabelas não podem ser migrados.",
+    );
+  }
+  log.ok(`${missing.length} tabelas recriadas individualmente.`);
 }
 
 export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promise<void> {
@@ -163,6 +231,10 @@ export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promi
   // 3) Aplica de forma tolerante: objetos já criados pelo bootstrap repetem.
   log.info("Aplicando schema no PostgreSQL local...");
   await applySql(dumpPath, "schema", true);
+
+  // 3b) Rede de segurança: um erro em cascata no dump grande pode deixar
+  // tabelas de fora. Recriamos individualmente as que faltarem.
+  await createMissingTables(legacy.databaseUrl);
 
   // 4) Restaura os GRANTs, que o dump não trouxe (--no-privileges).
   log.info("Reaplicando GRANTs para anon/authenticated/service_role...");

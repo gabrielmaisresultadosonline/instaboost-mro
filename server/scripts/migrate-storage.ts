@@ -85,6 +85,9 @@ async function listObjects(bucket: string, prefix = ""): Promise<LegacyObject[]>
   return collected;
 }
 
+/** Objeto listado mas irrecuperável na origem (linha órfã no Storage). */
+class MissingAtSource extends Error {}
+
 async function downloadObject(bucket: string, name: string, destination: string): Promise<number> {
   const encoded = name.split("/").map(encodeURIComponent).join("/");
   const paths = [
@@ -110,6 +113,11 @@ async function downloadObject(bucket: string, name: string, destination: string)
   }
 
   if (!buffer) {
+    // 400/404 nas duas rotas = o objeto não existe mais na origem. Não há o que
+    // baixar, então isso não pode bloquear o corte: nada será perdido.
+    if (lastStatus === 400 || lastStatus === 404) {
+      throw new MissingAtSource(`ausente na origem (${lastStatus})`);
+    }
     throw new Error(`download falhou após novas tentativas (${lastStatus})`);
   }
 
@@ -154,6 +162,7 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
     let downloaded = 0;
     let skipped = 0;
     let failed = 0;
+    let orphans = 0;
     let bytes = 0;
 
     for (const object of objects) {
@@ -175,16 +184,28 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
         downloaded += 1;
         await registerObject(bucket.id, object, size);
       } catch (error) {
+        if (error instanceof MissingAtSource) {
+          orphans += 1;
+          log.warn(`${bucket.id}/${object.name}: ${error.message} — nada a copiar.`);
+          continue;
+        }
         failed += 1;
         log.error(`${bucket.id}/${object.name}: ${(error as Error).message}`);
       }
     }
 
     log.ok(
-      `${bucket.id}: ${downloaded} baixados, ${skipped} já existentes, ${failed} falhas ` +
-        `(${(bytes / 1024 / 1024).toFixed(1)} MB).`,
+      `${bucket.id}: ${downloaded} baixados, ${skipped} já existentes, ${orphans} inexistentes na origem, ` +
+        `${failed} falhas (${(bytes / 1024 / 1024).toFixed(1)} MB).`,
     );
-    summary.push({ bucket: bucket.id, total: objects.length, baixados: downloaded, existentes: skipped, falhas: failed });
+    summary.push({
+      bucket: bucket.id,
+      total: objects.length,
+      baixados: downloaded,
+      existentes: skipped,
+      orfaos: orphans,
+      falhas: failed,
+    });
     totalFailures += failed;
   }
 
