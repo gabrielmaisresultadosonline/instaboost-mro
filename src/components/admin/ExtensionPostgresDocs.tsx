@@ -107,13 +107,14 @@ async function api(body) {
   );
 
   const healthSnippet = `# 1) o backend da VPS está de pé?
-curl -s ${base}/health | jq
+# Não depende de jq: curl falha se a API não responder com HTTP 2xx.
+curl -fsS ${base}/health && echo
 
 # 2) a função da extensão responde?
-curl -s -X POST '${endpoint}' \\
+curl -fsS -X POST '${endpoint}' \
   -H 'Content-Type: application/json' \\
   -H 'apikey: SUA_ANON_KEY_DA_VPS' \\
-  -d '{"action":"verify_user","username":"usuario_de_teste"}' | jq`;
+  -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo`;
 
   const Block: React.FC<{ id: string; title: string; description?: string; code: string }> = ({
     id,
