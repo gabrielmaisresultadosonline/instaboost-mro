@@ -429,10 +429,10 @@ const Renddx = () => {
         <div className="max-w-5xl mx-auto text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
             <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 1 ano</span>
+            <span className="text-green-400 font-bold text-xs uppercase">Teste por 30 dias</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
-          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
+          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Utilize a MRO para empresas: organize atendimentos, automatize tarefas e profissionalize sua operação.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Monitor className="w-10 h-10 text-blue-500 mb-4" /><h3 className="font-bold mb-2">Instale no seu computador</h3><p className="text-gray-400 text-sm">Utilize o MRO no seu notebook ou desktop.</p></div>
