@@ -19,6 +19,14 @@ import {
   rateLimit,
   serviceClient,
 } from "../_shared/ig-core.ts";
+import {
+  rebuildContacts,
+  replyToComment,
+  syncComments,
+  syncMedia,
+  syncProfile,
+  type IgAccountRow,
+} from "../_shared/ig-sync.ts";
 
 type Action =
   | "bootstrap"
@@ -29,7 +37,14 @@ type Action =
   | "conversations"
   | "messages"
   | "send_message"
-  | "subscribe_webhook";
+  | "subscribe_webhook"
+  | "sync_now"
+  | "media"
+  | "comments"
+  | "reply_comment"
+  | "contacts"
+  | "update_contact";
+
 
 
 const PERIODS: Record<string, number> = { today: 1, "7d": 7, "30d": 30, "90d": 90 };
@@ -186,7 +201,13 @@ Deno.serve(async (req) => {
       company?: string;
       conversation_id?: string;
       text?: string;
+      comment_id?: string;
+      contact_id?: string;
+      stage?: string;
+      notes?: string;
+      only?: "reels" | "posts";
     };
+
 
 
     const action = body.action;
@@ -295,18 +316,48 @@ Deno.serve(async (req) => {
       const days = PERIODS[body.period ?? "30d"] ?? 30;
       const since = new Date(Date.now() - days * 86_400_000).toISOString();
 
-      const [{ data: accounts }, { data: usage }, { count: eventCount }] = await Promise.all([
+      const countIn = (table: string, column: string) =>
+        db
+          .from(table)
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .gte(column, since);
+
+      const [
+        { data: accounts },
+        { data: usage },
+        { count: eventCount },
+        { count: receivedCount },
+        { count: sentCount },
+        { count: commentCount },
+        { count: contactCount },
+        { count: mediaCount },
+      ] = await Promise.all([
         db
           .from("ig_accounts")
           .select("id, username, followers_count, media_count, connection_state, last_synced_at")
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
         db.from("ig_usage").select("metric, value, period_start").eq("tenant_id", tenantId),
+        countIn("ig_webhook_events", "received_at"),
         db
-          .from("ig_webhook_events")
+          .from("ig_messages")
           .select("id", { count: "exact", head: true })
           .eq("tenant_id", tenantId)
-          .gte("received_at", since),
+          .eq("direction", "in")
+          .gte("sent_at", since),
+        db
+          .from("ig_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("direction", "out")
+          .gte("sent_at", since),
+        countIn("ig_comments", "commented_at"),
+        countIn("ig_contacts", "created_at"),
+        db
+          .from("ig_media")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId),
       ]);
 
       const metrics = Object.fromEntries((usage ?? []).map((u) => [u.metric, Number(u.value)]));
@@ -319,14 +370,15 @@ Deno.serve(async (req) => {
         // Somente dados reais. Ausência de dado retorna null → UI mostra "Sem dados disponíveis".
         metrics: {
           followers: accounts?.[0]?.followers_count ?? null,
-          media: accounts?.[0]?.media_count ?? null,
-          messages_received: metrics.messages_received ?? null,
-          messages_sent: metrics.messages_sent ?? null,
-          comments_processed: metrics.comments_processed ?? null,
+          media: accounts?.[0]?.media_count ?? mediaCount ?? null,
+          messages_received: receivedCount ?? 0,
+          messages_sent: sentCount ?? 0,
+          comments_processed: commentCount ?? 0,
           automations_executed: metrics.automations_executed ?? null,
-          leads: metrics.leads ?? null,
+          leads: contactCount ?? 0,
           ai_calls: metrics.ai_calls ?? null,
           webhook_events: eventCount ?? 0,
+
         },
       });
     }
@@ -520,7 +572,185 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---------------- SINCRONIZAÇÃO COMPLETA (perfil, mídias, comentários, inbox, CRM) ----------------
+    if (action === "sync_now") {
+      const { data: accounts } = await db
+        .from("ig_accounts")
+        .select("id, tenant_id, instagram_account_id, instagram_user_id")
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null);
+
+      if (!accounts || accounts.length === 0) {
+        return fail("Nenhuma conta do Instagram conectada neste workspace.", 400, "no_account");
+      }
+
+      const summary = {
+        profile: 0,
+        media: 0,
+        comments: 0,
+        conversations: 0,
+        messages: 0,
+        contacts: 0,
+        errors: [] as string[],
+      };
+
+      for (const account of accounts as IgAccountRow[]) {
+        const { data: token } = await db
+          .from("ig_tokens")
+          .select("access_token")
+          .eq("ig_account_id", account.id)
+          .maybeSingle();
+
+        if (!token?.access_token) {
+          summary.errors.push("Conta sem autorização válida. Reconecte em Configurações.");
+          await db.from("ig_accounts").update({ connection_state: "needs_reconnect" }).eq("id", account.id);
+          continue;
+        }
+
+        const profile = await syncProfile(db, account, token.access_token);
+        if (profile.ok) summary.profile += profile.count;
+        else if (profile.error) summary.errors.push(`Perfil: ${profile.error}`);
+
+        const media = await syncMedia(db, account, token.access_token);
+        if (media.ok) summary.media += media.count;
+        else if (media.error) summary.errors.push(`Mídias: ${media.error}`);
+
+        const comments = await syncComments(db, account, token.access_token);
+        summary.comments += comments.count;
+        if (comments.error) summary.errors.push(`Comentários: ${comments.error}`);
+
+        try {
+          const inbox = await syncInboxHistory(db, tenantId, account, token.access_token);
+          summary.conversations += inbox.conversations;
+          summary.messages += inbox.messages;
+        } catch (error) {
+          summary.errors.push(`Directs: ${(error as Error).message}`);
+        }
+
+        const contacts = await rebuildContacts(db, account);
+        summary.contacts += contacts.count;
+      }
+
+      await audit(db, {
+        tenant_id: tenantId,
+        actor_user_id: user.id,
+        action: "instagram.synced",
+        ip: clientIp(req),
+        metadata: { ...summary, errors: summary.errors.length },
+      });
+
+      return json({ success: true, ...summary });
+    }
+
+    // ---------------- MÍDIAS / REELS ----------------
+    if (action === "media") {
+      let query = db
+        .from("ig_media")
+        .select(
+          "id, media_id, media_type, media_product_type, caption, permalink, media_url, thumbnail_url, like_count, comments_count, views_count, reach, saved, shares, published_at",
+        )
+        .eq("tenant_id", tenantId)
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .limit(100);
+
+      if (body.only === "reels") query = query.eq("media_product_type", "REELS");
+      if (body.only === "posts") query = query.neq("media_product_type", "REELS");
+
+      const { data } = await query;
+      return json({ success: true, media: data ?? [] });
+    }
+
+    // ---------------- COMENTÁRIOS ----------------
+    if (action === "comments") {
+      const { data } = await db
+        .from("ig_comments")
+        .select(
+          "id, comment_id, media_id, from_username, text, is_own, replied, hidden, commented_at, media_row_id",
+        )
+        .eq("tenant_id", tenantId)
+        .eq("is_own", false)
+        .order("commented_at", { ascending: false, nullsFirst: false })
+        .limit(200);
+
+      const mediaIds = [...new Set((data ?? []).map((c) => c.media_row_id).filter(Boolean))] as string[];
+      const { data: media } = mediaIds.length
+        ? await db.from("ig_media").select("id, permalink, thumbnail_url, media_url, caption").in("id", mediaIds)
+        : { data: [] as unknown[] };
+
+      return json({ success: true, comments: data ?? [], media: media ?? [] });
+    }
+
+    // ---------------- RESPONDER COMENTÁRIO ----------------
+    if (action === "reply_comment") {
+      const text = (body.text ?? "").trim();
+      if (!body.comment_id) return fail("Comentário não informado.", 400);
+      if (!text) return fail("Escreva uma resposta antes de enviar.", 400);
+      if (text.length > 2200) return fail("A resposta excede o limite do Instagram.", 400);
+
+      const { data: comment } = await db
+        .from("ig_comments")
+        .select("id, comment_id, ig_account_id")
+        .eq("id", body.comment_id)
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+
+      if (!comment) return fail("Comentário não encontrado.", 404);
+
+      const { data: token } = await db
+        .from("ig_tokens")
+        .select("access_token")
+        .eq("ig_account_id", comment.ig_account_id)
+        .maybeSingle();
+
+      if (!token?.access_token) {
+        return fail("Conta sem autorização válida. Reconecte em Configurações.", 400, "needs_reconnect");
+      }
+
+      try {
+        await replyToComment(comment.comment_id, text, token.access_token);
+      } catch (error) {
+        return fail((error as Error).message, 400, "meta_error");
+      }
+
+      await db.from("ig_comments").update({ replied: true }).eq("id", comment.id);
+      return json({ success: true });
+    }
+
+    // ---------------- CONTATOS / CRM ----------------
+    if (action === "contacts") {
+      const { data } = await db
+        .from("ig_contacts")
+        .select("id, participant_id, username, name, picture_url, stage, source, notes, last_interaction_at, created_at")
+        .eq("tenant_id", tenantId)
+        .order("last_interaction_at", { ascending: false, nullsFirst: false })
+        .limit(500);
+
+      return json({ success: true, contacts: data ?? [] });
+    }
+
+    if (action === "update_contact") {
+      if (!body.contact_id) return fail("Contato não informado.", 400);
+      const stages = ["novo", "contato", "qualificado", "negociacao", "cliente", "perdido"];
+      const patch: Record<string, unknown> = {};
+      if (body.stage !== undefined) {
+        if (!stages.includes(body.stage)) return fail("Etapa inválida.", 400);
+        patch.stage = body.stage;
+      }
+      if (body.notes !== undefined) patch.notes = body.notes.slice(0, 2000);
+      if (Object.keys(patch).length === 0) return fail("Nada para atualizar.", 400);
+
+      const { error } = await db
+        .from("ig_contacts")
+        .update(patch)
+        .eq("id", body.contact_id)
+        .eq("tenant_id", tenantId);
+
+      if (error) return fail("Não foi possível atualizar o contato.", 500);
+      return json({ success: true });
+    }
+
     return fail("Ação não reconhecida.", 400);
+
 
   } catch (error) {
     console.error("[ig-api] unexpected error:", (error as Error).message);

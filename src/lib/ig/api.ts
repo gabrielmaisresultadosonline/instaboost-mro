@@ -80,6 +80,63 @@ export interface IgMessage {
   sent_at: string;
 }
 
+
+export interface IgMediaItem {
+  id: string;
+  media_id: string;
+  media_type: string | null;
+  media_product_type: string | null;
+  caption: string | null;
+  permalink: string | null;
+  media_url: string | null;
+  thumbnail_url: string | null;
+  like_count: number | null;
+  comments_count: number | null;
+  views_count: number | null;
+  reach: number | null;
+  saved: number | null;
+  shares: number | null;
+  published_at: string | null;
+}
+
+export interface IgComment {
+  id: string;
+  comment_id: string;
+  media_id: string | null;
+  media_row_id: string | null;
+  from_username: string | null;
+  text: string | null;
+  is_own: boolean;
+  replied: boolean;
+  hidden: boolean;
+  commented_at: string | null;
+}
+
+export type IgContactStage = "novo" | "contato" | "qualificado" | "negociacao" | "cliente" | "perdido";
+
+export interface IgContact {
+  id: string;
+  participant_id: string;
+  username: string | null;
+  name: string | null;
+  picture_url: string | null;
+  stage: IgContactStage;
+  source: "direct" | "comment" | "manual";
+  notes: string | null;
+  last_interaction_at: string | null;
+  created_at: string;
+}
+
+export interface IgSyncSummary {
+  profile: number;
+  media: number;
+  comments: number;
+  conversations: number;
+  messages: number;
+  contacts: number;
+  errors: string[];
+}
+
 /** Erro de negócio já traduzido para o usuário final. */
 export class IgApiError extends Error {
   readonly code?: string;
@@ -147,6 +204,36 @@ export const igApi = {
       synced_messages: number;
       sync_error: string | null;
     }>("ig-api", { action: "subscribe_webhook", tenant_id: tenantId }),
+
+  syncNow: (tenantId: string) => invoke<IgSyncSummary>("ig-api", { action: "sync_now", tenant_id: tenantId }),
+
+  media: (tenantId: string, only?: "reels" | "posts") =>
+    invoke<{ media: IgMediaItem[] }>("ig-api", { action: "media", tenant_id: tenantId, only }),
+
+  comments: (tenantId: string) =>
+    invoke<{ comments: IgComment[]; media: Array<Pick<IgMediaItem, "id" | "permalink" | "thumbnail_url" | "media_url" | "caption">> }>(
+      "ig-api",
+      { action: "comments", tenant_id: tenantId },
+    ),
+
+  replyComment: (tenantId: string, commentId: string, text: string) =>
+    invoke<{ success: true }>("ig-api", {
+      action: "reply_comment",
+      tenant_id: tenantId,
+      comment_id: commentId,
+      text,
+    }),
+
+  contacts: (tenantId: string) =>
+    invoke<{ contacts: IgContact[] }>("ig-api", { action: "contacts", tenant_id: tenantId }),
+
+  updateContact: (tenantId: string, contactId: string, patch: { stage?: IgContactStage; notes?: string }) =>
+    invoke<{ success: true }>("ig-api", {
+      action: "update_contact",
+      tenant_id: tenantId,
+      contact_id: contactId,
+      ...patch,
+    }),
 
   oauthConfig: () => invoke<{ app_id: string; scopes: string }>("ig-oauth", { action: "get-config" }),
 

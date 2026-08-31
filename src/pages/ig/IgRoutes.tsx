@@ -15,6 +15,9 @@ import IgInstagramCallback from "./IgInstagramCallback";
 import IgSettings from "./IgSettings";
 import IgSettingsInstagram from "./IgSettingsInstagram";
 import IgModulePlaceholder from "./IgModulePlaceholder";
+import { IgReelsPage, IgContentPage } from "./IgMedia";
+import IgCommentsPage from "./IgComments";
+import { IgContactsPage, IgCrmPage } from "./IgContacts";
 import IgAdminLogin from "./IgAdminLogin";
 import IgAdminDashboard from "./IgAdminDashboard";
 import IgAdminUsers from "./IgAdminUsers";
@@ -24,32 +27,6 @@ import IgAdminApp from "./IgAdminApp";
 
 /** Módulos das fases 2 a 5: shell e isolamento já ativos, dados reais em breve. */
 const MODULES: Array<{ path: string; title: string; description: string; phase: string }> = [
-  {
-    path: "comments/*",
-    title: "Comentários",
-    description: "Comentários recebidos nos seus posts e Reels, com resposta pública e Direct privado.",
-    phase: "Comentários e resposta privada",
-  },
-  {
-    path: "automations/*",
-    title: "Automações",
-    description: "Gatilho, condição e ação: comentário para Direct, palavras-chave e acionamento de IA.",
-    phase: "Automação",
-  },
-  {
-    path: "contacts/*",
-    title: "Contatos",
-    description: "Base de contatos formada a partir das interações reais do seu Instagram.",
-    phase: "CRM",
-  },
-  { path: "crm/*", title: "CRM", description: "Funil Kanban dos leads originados no Instagram.", phase: "CRM" },
-  {
-    path: "content/*",
-    title: "Conteúdo",
-    description: "Publicação, agendamento e calendário via Content Publishing API.",
-    phase: "Publicação",
-  },
-  { path: "reels/*", title: "Reels", description: "Desempenho dos seus Reels conforme métricas liberadas pela Meta.", phase: "Publicação" },
   { path: "stories/*", title: "Stories", description: "Recursos de Stories oficialmente suportados pela API.", phase: "Publicação" },
   {
     path: "analytics/*",
@@ -74,6 +51,11 @@ const IgRoutes = () => (
 
     <Route path="dashboard" element={<IgDashboard />} />
     <Route path="inbox" element={<IgInbox />} />
+    <Route path="comments" element={<IgCommentsPage />} />
+    <Route path="contacts" element={<IgContactsPage />} />
+    <Route path="crm" element={<IgCrmPage />} />
+    <Route path="reels" element={<IgReelsPage />} />
+    <Route path="content" element={<IgContentPage />} />
     <Route path="auth/instagram" element={<Navigate to="/IG/settings/instagram" replace />} />
     <Route path="auth/instagram/callback" element={<IgInstagramCallback />} />
 
