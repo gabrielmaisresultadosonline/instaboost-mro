@@ -62,11 +62,11 @@ const Renddx = () => {
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
 
   const planConfig = {
-    label: 'Renda Extra MRO',
-    amount: 300,
-    planType: 'annual',
-    priceDisplay: 'R$300',
-    durationDisplay: '1 ano de acesso',
+    label: 'MRO para Empresas',
+    amount: 97,
+    planType: 'monthly',
+    priceDisplay: 'R$97',
+    durationDisplay: '30 dias de acesso',
   };
 
   useEffect(() => {
@@ -200,7 +200,7 @@ const Renddx = () => {
       if (checkError) { toast.error("Erro ao criar link de pagamento. Tente novamente."); return; }
       if (checkData.userExists) { toast.error("Este nome de usuário já está em uso. Escolha outro."); setUsernameError("Usuário já existe, escolha outro"); return; }
       if (!checkData.success) { toast.error(checkData.error || "Erro ao criar pagamento"); return; }
-      trackInitiateCheckout(`MRO Renda Extra Anual - R$300`, totalAmount);
+      trackInitiateCheckout(`MRO para Empresas - 30 dias - R$97`, totalAmount);
       window.location.href = checkData.payment_link;
     } catch (error) { toast.error("Erro ao processar. Tente novamente."); } finally { setLoading(false); }
   };
@@ -255,7 +255,7 @@ const Renddx = () => {
                   <span className="text-sm font-black tracking-widest text-green-400 uppercase">NOVA OPORTUNIDADE</span>
                 </div>
                 <h1 className="text-4xl sm:text-6xl font-black leading-tight">OFEREÇA SERVIÇOS PARA EMPRESAS</h1>
-                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Uma ferramenta para otimizar sua rotina de trabalho. Conheça agora.</p>
+                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Utilize a MRO para empresas! Uma ferramenta profissional para otimizar sua rotina de trabalho.</p>
                 <Button 
                   onClick={() => setQuizStep(1)}
                   className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
@@ -373,11 +373,11 @@ const Renddx = () => {
             <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-green-300 uppercase">Oferta liberada • Vagas limitadas</span>
           </div>
           <div className="relative mb-8 sm:mb-12">
-            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white uppercase">TENHA UMA FERRAMENTA PROFISSIONAL PARA <span className="text-yellow-300">OFERECER SERVIÇOS A EMPRESAS</span></h1>
-            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Use o MRO para <span className="text-green-300 font-semibold">automatizar tarefas, otimizar seu trabalho</span> e oferecer serviços de marketing para seus próprios clientes.</p>
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white uppercase">UTILIZE A MRO PARA <span className="text-yellow-300">EMPRESAS!</span></h1>
+            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Software profissional de gestão e automação de marketing para <span className="text-green-300 font-semibold">empresas, agências e prestadores de serviço</span>. Organize processos, ganhe produtividade e atenda mais clientes.</p>
           </div>
 
-          {/* Vídeo Principal e CTA R$47 */}
+          {/* Vídeo Principal e CTA R$97 / 30 dias */}
           <div className="max-w-4xl mx-auto mb-10 sm:mb-16 space-y-8">
             <div className="bg-zinc-900/40 border border-green-500/20 rounded-3xl p-4 sm:p-6 backdrop-blur-sm">
               <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
@@ -386,11 +386,11 @@ const Renddx = () => {
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">ACESSE A FERRAMENTA E APRENDA COMO UTILIZÁ-LA</span>
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">30 DIAS DE ACESSO COM SUPORTE INCLUSO</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
-                    <span className="text-6xl font-black text-green-500">300</span>
-                    <span className="text-zinc-400 text-sm font-bold">/ano</span>
+                    <span className="text-6xl font-black text-green-500">97</span>
+                    <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
                   </div>
                 </div>
                 
@@ -429,10 +429,10 @@ const Renddx = () => {
         <div className="max-w-5xl mx-auto text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
             <Rocket className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 font-bold text-xs uppercase">Conheça por 1 ano</span>
+            <span className="text-green-400 font-bold text-xs uppercase">Teste por 30 dias</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4 uppercase">COMO FUNCIONA O <span className="text-green-400">MODELO DE SERVIÇO</span></h2>
-          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Preste serviço para empresas usando a ferramenta MRO e cobre mensalidade!</p>
+          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">Utilize a MRO para empresas: organize atendimentos, automatize tarefas e profissionalize sua operação.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800"><Monitor className="w-10 h-10 text-blue-500 mb-4" /><h3 className="font-bold mb-2">Instale no seu computador</h3><p className="text-gray-400 text-sm">Utilize o MRO no seu notebook ou desktop.</p></div>
@@ -466,18 +466,18 @@ const Renddx = () => {
         <div className="max-w-md mx-auto bg-zinc-900 border-2 border-green-500 rounded-3xl p-8 text-center relative shadow-[0_0_40px_rgba(34,197,94,0.2)]">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-black px-6 py-1 rounded-full text-xs">OFERTA EXCLUSIVA</div>
           <h3 className="text-2xl font-bold mb-4">ACESSO COMPLETO AO MRO</h3>
-          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano Anual</div>
+          <div className="text-zinc-400 text-sm font-bold mb-2 uppercase tracking-widest">Plano 30 Dias</div>
           <div className="flex flex-col items-center mb-2">
-            <span className="text-zinc-500 text-sm line-through">De R$997</span>
-            <div className="text-5xl font-black text-green-400">R$300</div>
+            <span className="text-zinc-500 text-sm line-through">De R$297</span>
+            <div className="text-5xl font-black text-green-400">R$97</div>
           </div>
-          <p className="text-zinc-400 mb-6">Acesso durante 1 ano</p>
+          <p className="text-zinc-400 mb-6">30 dias de acesso • suporte já incluso</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento para renda extra</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte VIP</li>
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (1 ano)</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo de uso</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento de gestão para empresas</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte incluso via WhatsApp</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Acesso imediato (30 dias)</li>
           </ul>
           <Button onClick={() => setShowCheckoutModal(true)} className="w-full bg-green-500 hover:bg-green-600 text-black font-black py-6 rounded-xl text-lg btn-pulse-green shadow-[0_0_20px_rgba(34,197,94,0.2)]">QUERO ACESSAR O MRO</Button>
         </div>
