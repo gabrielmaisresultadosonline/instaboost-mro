@@ -184,16 +184,28 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
         downloaded += 1;
         await registerObject(bucket.id, object, size);
       } catch (error) {
+        if (error instanceof MissingAtSource) {
+          orphans += 1;
+          log.warn(`${bucket.id}/${object.name}: ${error.message} — nada a copiar.`);
+          continue;
+        }
         failed += 1;
         log.error(`${bucket.id}/${object.name}: ${(error as Error).message}`);
       }
     }
 
     log.ok(
-      `${bucket.id}: ${downloaded} baixados, ${skipped} já existentes, ${failed} falhas ` +
-        `(${(bytes / 1024 / 1024).toFixed(1)} MB).`,
+      `${bucket.id}: ${downloaded} baixados, ${skipped} já existentes, ${orphans} inexistentes na origem, ` +
+        `${failed} falhas (${(bytes / 1024 / 1024).toFixed(1)} MB).`,
     );
-    summary.push({ bucket: bucket.id, total: objects.length, baixados: downloaded, existentes: skipped, falhas: failed });
+    summary.push({
+      bucket: bucket.id,
+      total: objects.length,
+      baixados: downloaded,
+      existentes: skipped,
+      orfaos: orphans,
+      falhas: failed,
+    });
     totalFailures += failed;
   }
 
