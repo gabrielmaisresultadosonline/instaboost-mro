@@ -316,18 +316,48 @@ Deno.serve(async (req) => {
       const days = PERIODS[body.period ?? "30d"] ?? 30;
       const since = new Date(Date.now() - days * 86_400_000).toISOString();
 
-      const [{ data: accounts }, { data: usage }, { count: eventCount }] = await Promise.all([
+      const countIn = (table: string, column: string) =>
+        db
+          .from(table)
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .gte(column, since);
+
+      const [
+        { data: accounts },
+        { data: usage },
+        { count: eventCount },
+        { count: receivedCount },
+        { count: sentCount },
+        { count: commentCount },
+        { count: contactCount },
+        { count: mediaCount },
+      ] = await Promise.all([
         db
           .from("ig_accounts")
           .select("id, username, followers_count, media_count, connection_state, last_synced_at")
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
         db.from("ig_usage").select("metric, value, period_start").eq("tenant_id", tenantId),
+        countIn("ig_webhook_events", "received_at"),
         db
-          .from("ig_webhook_events")
+          .from("ig_messages")
           .select("id", { count: "exact", head: true })
           .eq("tenant_id", tenantId)
-          .gte("received_at", since),
+          .eq("direction", "in")
+          .gte("sent_at", since),
+        db
+          .from("ig_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("direction", "out")
+          .gte("sent_at", since),
+        countIn("ig_comments", "commented_at"),
+        countIn("ig_contacts", "created_at"),
+        db
+          .from("ig_media")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId),
       ]);
 
       const metrics = Object.fromEntries((usage ?? []).map((u) => [u.metric, Number(u.value)]));
@@ -340,14 +370,15 @@ Deno.serve(async (req) => {
         // Somente dados reais. Ausência de dado retorna null → UI mostra "Sem dados disponíveis".
         metrics: {
           followers: accounts?.[0]?.followers_count ?? null,
-          media: accounts?.[0]?.media_count ?? null,
-          messages_received: metrics.messages_received ?? null,
-          messages_sent: metrics.messages_sent ?? null,
-          comments_processed: metrics.comments_processed ?? null,
+          media: accounts?.[0]?.media_count ?? mediaCount ?? null,
+          messages_received: receivedCount ?? 0,
+          messages_sent: sentCount ?? 0,
+          comments_processed: commentCount ?? 0,
           automations_executed: metrics.automations_executed ?? null,
-          leads: metrics.leads ?? null,
+          leads: contactCount ?? 0,
           ai_calls: metrics.ai_calls ?? null,
           webhook_events: eventCount ?? 0,
+
         },
       });
     }
