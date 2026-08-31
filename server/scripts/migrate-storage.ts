@@ -162,6 +162,7 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
     let downloaded = 0;
     let skipped = 0;
     let failed = 0;
+    let orphans = 0;
     let bytes = 0;
 
     for (const object of objects) {
