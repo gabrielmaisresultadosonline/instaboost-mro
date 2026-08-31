@@ -113,6 +113,11 @@ async function downloadObject(bucket: string, name: string, destination: string)
   }
 
   if (!buffer) {
+    // 400/404 nas duas rotas = o objeto não existe mais na origem. Não há o que
+    // baixar, então isso não pode bloquear o corte: nada será perdido.
+    if (lastStatus === 400 || lastStatus === 404) {
+      throw new MissingAtSource(`ausente na origem (${lastStatus})`);
+    }
     throw new Error(`download falhou após novas tentativas (${lastStatus})`);
   }
 
