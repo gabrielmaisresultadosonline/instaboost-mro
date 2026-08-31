@@ -62,11 +62,11 @@ const Renddx = () => {
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
 
   const planConfig = {
-    label: 'Renda Extra MRO',
-    amount: 300,
-    planType: 'annual',
-    priceDisplay: 'R$300',
-    durationDisplay: '1 ano de acesso',
+    label: 'MRO para Empresas',
+    amount: 97,
+    planType: 'monthly',
+    priceDisplay: 'R$97',
+    durationDisplay: '30 dias de acesso',
   };
 
   useEffect(() => {
