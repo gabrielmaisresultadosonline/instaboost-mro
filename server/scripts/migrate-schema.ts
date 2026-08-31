@@ -172,6 +172,10 @@ export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promi
   log.info("Aplicando schema no PostgreSQL local...");
   await applySql(dumpPath, "schema", true);
 
+  // 3b) Rede de segurança: um erro em cascata no dump grande pode deixar
+  // tabelas de fora. Recriamos individualmente as que faltarem.
+  await createMissingTables(legacy.databaseUrl);
+
   // 4) Restaura os GRANTs, que o dump não trouxe (--no-privileges).
   log.info("Reaplicando GRANTs para anon/authenticated/service_role...");
   await runOrThrow("psql", [
