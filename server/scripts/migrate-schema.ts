@@ -66,7 +66,8 @@ function sanitizeDump(sql: string): string {
 
   for (const line of lines) {
     // pg_dump emite comandos de configuração de sessão que não se aplicam aqui.
-    if (/^SET (default_table_access_method|idle_in_transaction|lock_timeout|row_security)/i.test(line)) continue;
+    // `transaction_timeout` só existe no PostgreSQL 17 (origem); o cliente 14 aborta.
+    if (/^SET (default_table_access_method|idle_in_transaction|lock_timeout|row_security|transaction_timeout)/i.test(line)) continue;
     if (/^SELECT pg_catalog\.set_config\('search_path'/i.test(line)) continue;
     if (/^(GRANT|REVOKE) .* ON SCHEMA public/i.test(line)) continue;
     if (/^COMMENT ON (SCHEMA|EXTENSION)/i.test(line)) continue;
