@@ -201,7 +201,13 @@ Deno.serve(async (req) => {
       company?: string;
       conversation_id?: string;
       text?: string;
+      comment_id?: string;
+      contact_id?: string;
+      stage?: string;
+      notes?: string;
+      only?: "reels" | "posts";
     };
+
 
 
     const action = body.action;
