@@ -19,6 +19,14 @@ import {
   rateLimit,
   serviceClient,
 } from "../_shared/ig-core.ts";
+import {
+  rebuildContacts,
+  replyToComment,
+  syncComments,
+  syncMedia,
+  syncProfile,
+  type IgAccountRow,
+} from "../_shared/ig-sync.ts";
 
 type Action =
   | "bootstrap"
@@ -29,7 +37,14 @@ type Action =
   | "conversations"
   | "messages"
   | "send_message"
-  | "subscribe_webhook";
+  | "subscribe_webhook"
+  | "sync_now"
+  | "media"
+  | "comments"
+  | "reply_comment"
+  | "contacts"
+  | "update_contact";
+
 
 
 const PERIODS: Record<string, number> = { today: 1, "7d": 7, "30d": 30, "90d": 90 };
