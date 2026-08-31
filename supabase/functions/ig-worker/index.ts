@@ -168,6 +168,100 @@ async function persistDirect(
   return direction === "in";
 }
 
+
+/** Cria/atualiza o contato do CRM a partir de uma interação real. */
+async function upsertContact(
+  db: SupabaseClient,
+  tenantId: string,
+  accountRowId: string,
+  participantId: string,
+  source: "direct" | "comment",
+  interactionAt: string,
+  username?: string | null,
+  name?: string | null,
+  picture?: string | null,
+): Promise<void> {
+  const { data: existing } = await db
+    .from("ig_contacts")
+    .select("id")
+    .eq("ig_account_id", accountRowId)
+    .eq("participant_id", participantId)
+    .maybeSingle();
+
+  if (existing) {
+    await db
+      .from("ig_contacts")
+      .update({
+        last_interaction_at: interactionAt,
+        ...(username ? { username } : {}),
+        ...(name ? { name } : {}),
+        ...(picture ? { picture_url: picture } : {}),
+      })
+      .eq("id", existing.id);
+    return;
+  }
+
+  await db.from("ig_contacts").insert({
+    tenant_id: tenantId,
+    ig_account_id: accountRowId,
+    participant_id: participantId,
+    username: username ?? null,
+    name: name ?? null,
+    picture_url: picture ?? null,
+    source,
+    last_interaction_at: interactionAt,
+  });
+}
+
+/** Persiste um comentário recebido via webhook. */
+async function persistComment(
+  db: SupabaseClient,
+  tenantId: string,
+  accountRowId: string,
+  value: Record<string, unknown>,
+): Promise<boolean> {
+  const commentId = (value.id as string | undefined) ?? null;
+  if (!commentId) return false;
+
+  const from = value.from as { id?: string; username?: string } | undefined;
+  const media = value.media as { id?: string } | undefined;
+  const mediaId = media?.id ?? null;
+  const commentedAt = value.timestamp
+    ? new Date(typeof value.timestamp === "number" ? Number(value.timestamp) * 1000 : String(value.timestamp)).toISOString()
+    : new Date().toISOString();
+
+  const { data: mediaRow } = mediaId
+    ? await db
+        .from("ig_media")
+        .select("id")
+        .eq("ig_account_id", accountRowId)
+        .eq("media_id", mediaId)
+        .maybeSingle()
+    : { data: null };
+
+  const { error } = await db.from("ig_comments").upsert(
+    {
+      tenant_id: tenantId,
+      ig_account_id: accountRowId,
+      media_row_id: mediaRow?.id ?? null,
+      comment_id: commentId,
+      media_id: mediaId,
+      parent_comment_id: (value.parent_id as string | undefined) ?? null,
+      from_id: from?.id ?? null,
+      from_username: from?.username ?? null,
+      text: (value.text as string | undefined) ?? null,
+      commented_at: commentedAt,
+    },
+    { onConflict: "ig_account_id,comment_id" },
+  );
+  if (error) throw new Error(error.message);
+
+  if (from?.id) {
+    await upsertContact(db, tenantId, accountRowId, from.id, "comment", commentedAt, from.username ?? null);
+  }
+  return true;
+}
+
 /**
  * Processa um job. Eventos de Direct alimentam o Inbox em tempo real;
  * demais campos apenas contabilizam métricas reais.
@@ -193,9 +287,40 @@ async function handleJob(
         : false;
 
       if (inbound) await bumpUsage(db, job.tenant_id, "messages_received");
+
+      const sender = (event?.payload as { sender?: { id?: string } } | undefined)?.sender?.id;
+      if (inbound && sender) {
+        const { data: conv } = await db
+          .from("ig_conversations")
+          .select("participant_username, participant_name, participant_picture_url, last_message_at")
+          .eq("ig_account_id", accountRowId)
+          .eq("participant_id", sender)
+          .maybeSingle();
+        await upsertContact(
+          db,
+          job.tenant_id,
+          accountRowId,
+          sender,
+          "direct",
+          conv?.last_message_at ?? new Date().toISOString(),
+          conv?.participant_username,
+          conv?.participant_name,
+          conv?.participant_picture_url,
+        );
+      }
     }
 
-    if (field === "comments") await bumpUsage(db, job.tenant_id, "comments_processed");
+    if (field === "comments" && eventId && accountRowId && job.tenant_id) {
+      const { data: event } = await db
+        .from("ig_webhook_events")
+        .select("payload")
+        .eq("id", eventId)
+        .maybeSingle();
+      if (event?.payload) {
+        await persistComment(db, job.tenant_id, accountRowId, event.payload as Record<string, unknown>);
+      }
+      await bumpUsage(db, job.tenant_id, "comments_processed");
+    }
 
     if (eventId) {
       await db
