@@ -105,6 +105,13 @@ function sanitizeDump(sql: string): string {
   result = result.replace(/^CREATE (OR REPLACE )?VIEW /gim, "CREATE OR REPLACE VIEW ");
   result = result.replace(/^CREATE FUNCTION /gim, "CREATE OR REPLACE FUNCTION ");
 
+  // O Supabase instala pgcrypto/uuid-ossp no schema `extensions`; aqui elas
+  // ficam em `public`, então as chamadas qualificadas são reapontadas.
+  result = result.replace(/\bextensions\./gi, "public.");
+
+  // `security_invoker` em views só existe no PostgreSQL 15+; no 14 é erro.
+  result = result.replace(/\s+WITH \(security_invoker[^)]*\)/gi, "");
+
   return result;
 }
 
