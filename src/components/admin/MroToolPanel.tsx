@@ -5,9 +5,10 @@ import ModuleManager from '@/components/admin/ModuleManager';
 import MroUsersPanel from '@/components/admin/MroUsersPanel';
 import MroBulkImport from '@/components/admin/MroBulkImport';
 import MroApiDocumentation from '@/components/admin/MroApiDocumentation';
-import { BookOpen, Users, ClipboardPaste, FileCode } from 'lucide-react';
+import ExtensionPostgresDocs from '@/components/admin/ExtensionPostgresDocs';
+import { BookOpen, Users, ClipboardPaste, FileCode, Database } from 'lucide-react';
 
-type SubTab = 'tutorials' | 'users' | 'import' | 'docs';
+type SubTab = 'tutorials' | 'users' | 'import' | 'docs' | 'docs-pg';
 
 interface MroToolPanelProps {
   downloadLink: string;
