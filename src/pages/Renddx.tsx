@@ -373,8 +373,8 @@ const Renddx = () => {
             <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-green-300 uppercase">Oferta liberada • Vagas limitadas</span>
           </div>
           <div className="relative mb-8 sm:mb-12">
-            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white uppercase">TENHA UMA FERRAMENTA PROFISSIONAL PARA <span className="text-yellow-300">OFERECER SERVIÇOS A EMPRESAS</span></h1>
-            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Use o MRO para <span className="text-green-300 font-semibold">automatizar tarefas, otimizar seu trabalho</span> e oferecer serviços de marketing para seus próprios clientes.</p>
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight tracking-tight text-white uppercase">UTILIZE A MRO PARA <span className="text-yellow-300">EMPRESAS!</span></h1>
+            <p className="relative mt-4 text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Software profissional de gestão e automação de marketing para <span className="text-green-300 font-semibold">empresas, agências e prestadores de serviço</span>. Organize processos, ganhe produtividade e atenda mais clientes.</p>
           </div>
 
           {/* Vídeo Principal e CTA R$47 */}
