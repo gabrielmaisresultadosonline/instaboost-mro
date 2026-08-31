@@ -255,7 +255,7 @@ const Renddx = () => {
                   <span className="text-sm font-black tracking-widest text-green-400 uppercase">NOVA OPORTUNIDADE</span>
                 </div>
                 <h1 className="text-4xl sm:text-6xl font-black leading-tight">OFEREÇA SERVIÇOS PARA EMPRESAS</h1>
-                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Uma ferramenta para otimizar sua rotina de trabalho. Conheça agora.</p>
+                <p className="text-xl sm:text-2xl text-zinc-300 font-medium">Utilize a MRO para empresas! Uma ferramenta profissional para otimizar sua rotina de trabalho.</p>
                 <Button 
                   onClick={() => setQuizStep(1)}
                   className="w-full btn-pulse-yellow py-10 rounded-2xl text-2xl"
