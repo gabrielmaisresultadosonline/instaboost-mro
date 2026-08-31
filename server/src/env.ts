@@ -7,6 +7,10 @@
  * produção — muito mais caros de diagnosticar.
  */
 
+// Precisa ser o primeiro efeito colateral: popula process.env a partir do .env
+// (o PM2 não faz isso por conta própria).
+import "./load-env.js";
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value || value.trim() === "") {
