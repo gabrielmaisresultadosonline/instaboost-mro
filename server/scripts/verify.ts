@@ -200,7 +200,7 @@ async function verifyFiles(): Promise<{ registrados: number; faltando: string[] 
  * de cada tipo relevante (imagem, vídeo, PDF, JSON). Arquivo no disco não
  * prova que o Nginx e as permissões estão certos.
  */
-async function verifyPublicReads(): Promise<boolean> {
+async function verifyPublicReads(): Promise<CheckResult> {
   log.info(`Testando leitura pública em ${env.publicUrl}/storage/v1/object/public/ ...`);
 
   const { rows } = await pool.query<{ bucket_id: string; name: string; content_type: string | null }>(`
@@ -220,38 +220,52 @@ async function verifyPublicReads(): Promise<boolean> {
 
   if (rows.length === 0) {
     log.warn("Nenhum arquivo público registrado para testar.");
-    return false;
+    return "falha";
   }
 
   const failures: Record<string, unknown>[] = [];
+  let somenteLocal = 0;
+
   for (const row of rows) {
     const encoded = row.name.split("/").map(encodeURIComponent).join("/");
-    const url = `${env.publicUrl}/storage/v1/object/public/${row.bucket_id}/${encoded}`;
-    try {
-      const response = await fetch(url, { method: "GET", headers: { range: "bytes=0-1023" } });
-      if (!response.ok && response.status !== 206) {
-        failures.push({ arquivo: `${row.bucket_id}/${row.name}`, status: response.status });
-        continue;
-      }
-      await response.arrayBuffer();
-    } catch (error) {
-      failures.push({ arquivo: `${row.bucket_id}/${row.name}`, status: (error as Error).message });
+    const pathname = `/storage/v1/object/public/${row.bucket_id}/${encoded}`;
+    const { result, status } = await fetchDomainWithLocalFallback(pathname, {
+      method: "GET",
+      headers: { range: "bytes=0-1023" },
+    });
+
+    const httpOk = typeof status === "number" && (status < 400 || status === 206);
+    if (result === "falha" || !httpOk) {
+      failures.push({ arquivo: `${row.bucket_id}/${row.name}`, status });
+      continue;
     }
+    if (result === "somente-local") somenteLocal += 1;
   }
 
   if (failures.length > 0) {
-    log.error(`${failures.length}/${rows.length} arquivos públicos não abriram pelo domínio:`);
+    log.error(`${failures.length}/${rows.length} arquivos públicos não abriram:`);
     log.table(failures.slice(0, 20));
     log.warn(
       `Confira o Nginx (proxy para 127.0.0.1:${env.port}) e as permissões de ${env.storage.root} ` +
         "(dono do processo Node precisa de leitura; 750 é suficiente).",
     );
-    return false;
+    await explainDomainFailure();
+    return "falha";
+  }
+
+  if (somenteLocal > 0) {
+    log.warn(
+      `${somenteLocal}/${rows.length} arquivos públicos abriram pelo backend local (127.0.0.1:${env.port}) ` +
+        "mas o domínio não respondeu. Os arquivos e as rotas estão corretos: falta a camada de rede.",
+    );
+    await explainDomainFailure();
+    return "somente-local";
   }
 
   log.ok(`${rows.length} arquivos públicos (imagem, vídeo, PDF, JSON) abriram pelo domínio.`);
-  return true;
+  return "ok";
 }
+
 
 /** Permissões do diretório de uploads: leitura pelo processo do backend. */
 function verifyStoragePermissions(): boolean {
