@@ -29,6 +29,12 @@ const TOOL_META: Record<ExtensionTool, { label: string; fn: string; legacy: stri
 
 const DEFAULT_API = 'https://api.maisresultadosonline.com.br';
 
+/** Chave anon do backend atual (Supabase) — pública por natureza. */
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? '';
+
+/** Onde guardamos a ANON_KEY da VPS para não pedir de novo a cada visita. */
+const VPS_KEY_STORAGE = 'mro-docs-vps-anon-key';
+
 /**
  * Documentação da NOVA versão da extensão, já apontando para o backend
  * próprio em PostgreSQL (VPS). O contrato de request/response é idêntico ao
@@ -45,10 +51,26 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [apiUrl, setApiUrl] = useState<string>(defaultApiUrl);
+  const [vpsAnonKey, setVpsAnonKey] = useState<string>(
+    () => (typeof window !== 'undefined' ? window.localStorage.getItem(VPS_KEY_STORAGE) ?? '' : ''),
+  );
 
   const meta = TOOL_META[tool];
   const base = apiUrl.replace(/\/+$/, '');
   const endpoint = `${base}/functions/v1/${meta.fn}`;
+
+  /**
+   * Sem chave preenchida usamos um marcador explícito em vez de string vazia:
+   * um curl com `apikey: ` vazio falharia silenciosamente com 401 e o
+   * programador perderia tempo procurando o erro no lugar errado.
+   */
+  const vpsKey = vpsAnonKey.trim() || 'COLE_AQUI_A_ANON_KEY_DA_VPS';
+  const supaKey = SUPABASE_ANON_KEY || 'COLE_AQUI_A_ANON_KEY_DO_SUPABASE';
+
+  const saveVpsKey = (value: string): void => {
+    setVpsAnonKey(value);
+    if (typeof window !== 'undefined') window.localStorage.setItem(VPS_KEY_STORAGE, value.trim());
+  };
 
   const copy = (key: string, value: string): void => {
     void navigator.clipboard.writeText(value);
@@ -60,9 +82,26 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
   const curl = useMemo(
     () => `curl -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
-  -H 'apikey: SUA_ANON_KEY_DA_VPS' \\
+  -H 'apikey: ${vpsKey}' \\
+  -H 'Authorization: Bearer ${vpsKey}' \\
   -d '{"action":"login","username":"usuario","password":"senha"}'`,
-    [endpoint],
+    [endpoint, vpsKey],
+  );
+
+  const keysSnippet = useMemo(
+    () => `# ---- Chaves de API (headers) ----
+# Backend ATUAL (Supabase)
+SUPABASE_URL=https://adljdeekwifwcdcgbpit.supabase.co
+SUPABASE_ANON_KEY=${supaKey}
+
+# Backend NOVO (PostgreSQL na VPS)
+API_URL=${base}
+API_ANON_KEY=${vpsKey}
+
+# Em ambos os backends a chave vai nos DOIS headers:
+#   apikey: <ANON_KEY>
+#   Authorization: Bearer <ANON_KEY>   (ou o JWT do usuário logado)`,
+    [base, supaKey, vpsKey],
   );
 
   const migrationSnippet = useMemo(
@@ -71,11 +110,11 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
 const BACKENDS = {
   supabase: {
     url: "${meta.legacy}",
-    apikey: "SUA_ANON_KEY_SUPABASE",
+    apikey: "${supaKey}",
   },
   postgres: {
     url: "${endpoint}",
-    apikey: "SUA_ANON_KEY_DA_VPS",
+    apikey: "${vpsKey}",
   },
 };
 
@@ -92,7 +131,11 @@ async function api(body) {
     try {
       const res = await fetch(cfg.url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: cfg.apikey },
+        headers: {
+          "Content-Type": "application/json",
+          apikey: cfg.apikey,
+          Authorization: "Bearer " + cfg.apikey,
+        },
         body: JSON.stringify(body),
       });
       if (!res.ok && res.status >= 500) throw new Error("backend " + key + " indisponível");
@@ -103,7 +146,7 @@ async function api(body) {
   }
   throw lastError ?? new Error("Nenhum backend respondeu");
 }`,
-    [endpoint, meta.legacy],
+    [endpoint, meta.legacy, supaKey, vpsKey],
   );
 
   const healthSnippet = `# 1) o backend da VPS está de pé?
@@ -113,7 +156,8 @@ curl -fsS ${base}/health && echo
 # 2) a função da extensão responde?
 curl -fsS -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
-  -H 'apikey: SUA_ANON_KEY_DA_VPS' \\
+  -H 'apikey: ${vpsKey}' \\
+  -H 'Authorization: Bearer ${vpsKey}' \\
   -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo`;
 
   const Block: React.FC<{ id: string; title: string; description?: string; code: string }> = ({
@@ -185,19 +229,56 @@ curl -fsS -X POST '${endpoint}' \\
               </Button>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="pg-anon-key">
+              ANON_KEY da VPS (gerada no painel → aba Migração)
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="pg-anon-key"
+                value={vpsAnonKey}
+                onChange={(e) => saveVpsKey(e.target.value)}
+                className="flex-1 rounded-md border bg-background px-3 py-2 text-xs font-mono"
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              />
+              <Button size="sm" variant="outline" onClick={() => copy('anon', vpsKey)}>
+                {copied === 'anon' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              </Button>
+            </div>
+            {!vpsAnonKey.trim() && (
+              <p className="text-xs text-yellow-600">
+                Cole aqui a <code>ANON_KEY</code> do <code>server/.env</code> da VPS. Enquanto estiver vazia, os exemplos
+                abaixo mostram <code>COLE_AQUI_A_ANON_KEY_DA_VPS</code> no lugar da chave.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-md border p-3 space-y-1">
+            <Badge variant="outline">ANON_KEY do Supabase (atual)</Badge>
+            <code className="block text-[11px] break-all text-muted-foreground">{supaKey}</code>
+          </div>
         </CardContent>
       </Card>
 
       <Block
-        id="curl"
-        title="1) Teste rápido (login)"
-        description="O corpo do POST é idêntico ao da API atual. A chave anon da VPS é gerada no painel → aba Migração."
-        code={curl}
+        id="keys"
+        title="1) Chaves de API (copie e envie ao programador)"
+        description="Todas as chaves necessárias nos dois backends. Nada aqui é segredo de servidor — são chaves publicáveis (role anon)."
+        code={keysSnippet}
       />
 
       <Block
+        id="curl"
+        title="2) Teste rápido (login)"
+        description="O corpo do POST é idêntico ao da API atual, já com a chave anon preenchida."
+        code={curl}
+      />
+
+
+      <Block
         id="paridade"
-        title="2) Paridade de rotas (o que muda)"
+        title="3) Paridade de rotas (o que muda)"
         description="Mapa de conversão entre os dois backends. Nenhum campo de resposta muda."
         code={`Supabase                                     →  PostgreSQL (VPS)
 /functions/v1/${meta.fn}${' '.repeat(Math.max(1, 22 - meta.fn.length))}→  /functions/v1/${meta.fn}
@@ -205,20 +286,22 @@ curl -fsS -X POST '${endpoint}' \\
 /storage/v1/object/public/<bucket>/<arquivo> →  /storage/v1/object/public/<bucket>/<arquivo>
 /auth/v1/*                                   →  /auth/v1/*
 
-Header 'apikey'  → usar a ANON_KEY da VPS (mesma posição, valor diferente)
-Header 'Authorization: Bearer <jwt>' → formato de claims idêntico (HS256)`}
+Header 'apikey'
+  Supabase: ${supaKey}
+  VPS:      ${vpsKey}
+Header 'Authorization: Bearer <ANON_KEY ou JWT>' → claims idênticos (HS256)`}
       />
 
       <Block
         id="config"
-        title="3) Código da extensão com fallback automático"
+        title="4) Código da extensão com fallback automático"
         description="Publique a versão nova com PREFER='postgres'. Se a VPS falhar, a extensão volta sozinha ao Supabase — os usuários não percebem nada."
         code={migrationSnippet}
       />
 
       <Block
         id="health"
-        title="4) Checklist de validação antes de desligar o Supabase"
+        title="5) Checklist de validação antes de desligar o Supabase"
         description="Rode na VPS ou no seu terminal. Só desligue o backend antigo quando as duas respostas vierem OK."
         code={healthSnippet}
       />
