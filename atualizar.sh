@@ -180,29 +180,43 @@ else
 fi
 
 # ---------- 5. Frontend ----------
-# O build precisa da ANON_KEY da VPS embutida: é assim que o painel /admin
-# mostra a chave nas documentações sem ninguém precisar procurá-la, e é assim
-# que o site fala com o backend próprio. Reescrevemos apenas as chaves VITE_*
-# do .env da raiz, preservando qualquer outra linha já existente.
+# REGRA: o site só passa a falar com o backend da VPS no corte (--corte /
+# --aplicar-urls) e apenas se a API pública estiver respondendo de fato.
+# Antes isso era forçado em toda atualização, então uma pendência de DNS/Nginx
+# no subdomínio `api` derrubava /admin, /dashboard, vídeos e login mesmo com a
+# nuvem saudável. Fora do corte, o build continua na nuvem (Lovable Cloud).
 step "5/7 Compilando o site"
-if [ -n "${ANON_KEY:-}" ]; then
-  API_PUBLICA="${PUBLIC_API_URL:-https://api.maisresultadosonline.com.br}"
-  touch .env
-  # Remove só as linhas que vamos regravar (não apaga o resto do arquivo).
-  grep -vE '^(VITE_API_URL|VITE_API_ANON_KEY|VITE_USE_LOCAL_BACKEND)=' .env > .env.tmp || true
-  {
-    cat .env.tmp
-    echo "VITE_API_URL=$API_PUBLICA"
-    echo "VITE_API_ANON_KEY=$ANON_KEY"
-    echo "VITE_USE_LOCAL_BACKEND=true"
-  } > .env
-  rm -f .env.tmp
-  export VITE_API_URL="$API_PUBLICA"
-  export VITE_API_ANON_KEY="$ANON_KEY"
-  export VITE_USE_LOCAL_BACKEND=true
-  ok "ANON_KEY da VPS embutida no build (visível em /admin → documentações)."
+API_PUBLICA="${PUBLIC_API_URL:-https://api.maisresultadosonline.com.br}"
+USAR_BACKEND_LOCAL=false
+
+if [ "$CORTE" = true ] || [ "${MRO_FRONTEND_LOCAL:-}" = "1" ]; then
+  if [ -z "${ANON_KEY:-}" ]; then
+    warn "ANON_KEY vazio em server/.env: build mantido na nuvem."
+  elif curl -sf --max-time 5 "$API_PUBLICA/health" | grep -q '"ok":true'; then
+    USAR_BACKEND_LOCAL=true
+  else
+    warn "$API_PUBLICA não respondeu /health: build mantido na nuvem (corrija DNS/Nginx antes do corte)."
+  fi
+fi
+
+touch .env
+# Remove só as linhas que vamos regravar (não apaga o resto do arquivo).
+grep -vE '^(VITE_API_URL|VITE_API_ANON_KEY|VITE_USE_LOCAL_BACKEND)=' .env > .env.tmp || true
+{
+  cat .env.tmp
+  echo "VITE_API_URL=$API_PUBLICA"
+  [ -n "${ANON_KEY:-}" ] && echo "VITE_API_ANON_KEY=$ANON_KEY"
+  echo "VITE_USE_LOCAL_BACKEND=$USAR_BACKEND_LOCAL"
+} > .env
+rm -f .env.tmp
+export VITE_API_URL="$API_PUBLICA"
+[ -n "${ANON_KEY:-}" ] && export VITE_API_ANON_KEY="$ANON_KEY"
+export VITE_USE_LOCAL_BACKEND="$USAR_BACKEND_LOCAL"
+
+if [ "$USAR_BACKEND_LOCAL" = true ]; then
+  ok "Build apontando para o backend da VPS ($API_PUBLICA) — saúde confirmada."
 else
-  warn "ANON_KEY vazio em server/.env: o site será compilado sem a chave da VPS."
+  ok "Build apontando para o Lovable Cloud (backend próprio segue em paralelo)."
 fi
 npm run build
 [ -d dist ] || fail "Build não gerou a pasta dist/."
