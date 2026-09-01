@@ -217,10 +217,18 @@ const IgInboxContent = ({
       activeTenantId={activeTenantId}
       onTenantChange={onTenantChange}
       actions={
-        <Button variant="outline" size="sm" onClick={handleSync}>
-          <RefreshCcw className="mr-2 h-4 w-4" aria-hidden />
-          Reativar recebimento
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleSync}>
+            <RefreshCcw className="mr-2 h-4 w-4" aria-hidden />
+            Reativar recebimento
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/IG/diagnostico">
+              <Stethoscope className="mr-2 h-4 w-4" aria-hidden />
+              Diagnóstico
+            </Link>
+          </Button>
+        </div>
       }
     >
       {error ? (
