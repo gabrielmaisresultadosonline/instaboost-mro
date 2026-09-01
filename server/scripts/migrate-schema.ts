@@ -225,7 +225,7 @@ async function createMissingTables(legacyUrl: string): Promise<void> {
   log.ok(`${missing.length} tabelas recriadas individualmente.`);
 }
 
-export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promise<void> {
+export async function migrateSchema(options: { dumpOnly?: boolean; force?: boolean } = {}): Promise<void> {
   fs.mkdirSync(migrationsDir, { recursive: true });
 
   log.step("Etapa 1/5 — Estrutura do banco");
@@ -238,6 +238,22 @@ export async function migrateSchema(options: { dumpOnly?: boolean } = {}): Promi
   if (!legacy.databaseUrl) {
     log.warn("LEGACY_DATABASE_URL ausente: pulando a cópia do schema antigo.");
     return;
+  }
+
+  // Reexecuções: se nenhuma tabela falta, o dump inteiro (minutos de pg_dump +
+  // psql) não muda nada. Só criamos o que ainda não existe.
+  const force = options.force || process.env.MIGRATE_FORCE_SCHEMA === "1";
+  if (!options.dumpOnly && !force) {
+    const [legacyTables, localTables] = await Promise.all([
+      listTables(legacy.databaseUrl),
+      listTables(env.database.url),
+    ]);
+    const missing = [...legacyTables].filter((table) => !localTables.has(table));
+    if (missing.length === 0) {
+      log.ok(`Estrutura já completa (${localTables.size} tabelas): dump ignorado.`);
+      return;
+    }
+    log.info(`${missing.length} tabelas ausentes: aplicando o schema completo.`);
   }
 
   log.info("Extraindo schema do banco atual (pg_dump --schema-only)...");
