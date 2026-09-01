@@ -73,6 +73,64 @@ export interface IgConversation {
   ai_paused?: boolean;
 }
 
+/** Configuração do agente de IA que atende o Direct. */
+export interface IgAiSettings {
+  id: string;
+  tenant_id: string;
+  enabled: boolean;
+  auto_reply: boolean;
+  model: string;
+  tone: string;
+  persona: string;
+  business_context: string | null;
+  knowledge: string | null;
+  greeting: string | null;
+  handoff_keywords: string[];
+  max_replies_per_conversation: number;
+  reply_delay_seconds: number;
+}
+
+export interface IgAutomation {
+  id: string;
+  name: string;
+  channel: "direct" | "comment";
+  match_type: "contains" | "exact" | "any" | "starts_with";
+  keywords: string[];
+  reply_text: string;
+  is_active: boolean;
+  priority: number;
+  triggered_count: number;
+  last_triggered_at: string | null;
+}
+
+export interface IgDiagLog {
+  id: string;
+  scope: string;
+  step: string;
+  level: "debug" | "info" | "warn" | "error";
+  http_status: number | null;
+  duration_ms: number | null;
+  message: string | null;
+  detail: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface IgDiagReport {
+  account:
+    | {
+        username: string | null;
+        connection_state: string;
+        webhook_subscribed: boolean;
+        last_synced_at: string | null;
+      }
+    | string
+    | null;
+  token_expires_at?: string | null;
+  db_counts?: Record<string, number>;
+  pending_jobs?: number;
+  probes: Array<{ step: string; ok: boolean; http: number; count: number | null; error: string | null }>;
+}
+
 export interface IgMessage {
   id: string;
   direction: "in" | "out";
