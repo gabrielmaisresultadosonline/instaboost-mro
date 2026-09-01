@@ -75,12 +75,27 @@ async function explainDomainFailure(): Promise<void> {
  * local com o cabeçalho Host, o que prova que a rota e o arquivo estão certos e
  * isola a pendência à camada de infraestrutura.
  */
+/**
+ * Um 200 não prova nada quando o HTTPS do subdomínio cai no "default server"
+ * (o site React): o Nginx devolve index.html para /health e /rest, 405 para
+ * POST e 404 para arquivos. Detectar o HTML evita um verde falso.
+ */
+async function servesFrontendHtml(response: Response): Promise<boolean> {
+  const type = response.headers.get("content-type") ?? "";
+  if (!type.includes("text/html")) return false;
+  const body = await response.clone().text().catch(() => "");
+  return /<!doctype html|<div id="root"/i.test(body);
+}
+
 async function fetchDomainWithLocalFallback(
   pathname: string,
   init?: RequestInit,
 ): Promise<{ result: CheckResult; status: number | string }> {
   try {
     const response = await fetch(`${env.publicUrl}${pathname}`, init);
+    if (await servesFrontendHtml(response)) {
+      return { result: "falha", status: "devolveu o HTML do site (vhost da API não atende em HTTPS)" };
+    }
     return { result: "ok", status: response.status };
   } catch (error) {
     const { host } = await diagnoseDomain();
