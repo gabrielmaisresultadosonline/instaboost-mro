@@ -209,6 +209,18 @@ done
 
 [ "$BACKEND_OK" = true ] || fail "Backend local indisponível; o corte foi bloqueado. O site atual continua no Lovable Cloud."
 
+# ---------- 8. Corte (opcional) ----------
+# Roda só com --corte/--aplicar-urls: resincroniza o delta, confere estrutura,
+# dados, mídias, storage público, backend e cron, e imprime o relatório final.
+if [ "$CORTE" = true ]; then
+  step "8/8 Corte final — conferência completa e URLs"
+  [ "$DB_PRONTO" = true ] || fail "Banco local indisponível: corte abortado."
+  (cd server && npm run migrate:corte -- "${CORTE_ARGS[@]+"${CORTE_ARGS[@]}"}") \
+    || fail "Corte bloqueado pela conferência. Nada foi apontado para a VPS; o Supabase segue intacto."
+  ok "Corte concluído com conferência aprovada."
+fi
+
+
 cat <<EOF
 
 $(echo -e "${G}═══ Atualização concluída ═══${N}")
