@@ -66,11 +66,16 @@ async function main(): Promise<void> {
   if (report.excedentes.length > 0) {
     log.warn("Diferenças legítimas documentadas (VPS com linhas a mais):");
     log.table(report.excedentes);
+    for (const item of report.excedentes) {
+      const ids = await extraIds(item.tabela);
+      if (ids.length > 0) log.info(`${item.tabela}: registros só na VPS → ${ids.join(", ")}`);
+    }
     log.info(
       "Cada linha acima foi criada na VPS durante os testes ou removida na origem depois da cópia. " +
         "Nenhum dado da origem está faltando nessas tabelas.",
     );
   }
+
 
   log.info(
     "Frontend — testar após o corte: / , login, /dashboard, /admin, /crm, /zapmro, /IG, /mktcc, " +
