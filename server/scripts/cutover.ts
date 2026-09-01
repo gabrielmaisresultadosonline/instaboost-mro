@@ -15,15 +15,52 @@
  */
 
 import { pool } from "../src/db.js";
+import { env, requireLegacy } from "../src/env.js";
 import { migrateData } from "./migrate-data.js";
 import { migrateStorage } from "./migrate-storage.js";
 import { rewriteUrls } from "./rewrite-urls.js";
 import { verifyDetailed } from "./verify.js";
+import { runOrThrow } from "./lib/shell.js";
 import { log } from "./lib/log.js";
+import { quoteIdent } from "../src/rest/identifiers.js";
 
 function status(ok: boolean): string {
   return ok ? "\x1b[32mOK\x1b[0m" : "\x1b[31mNÃO OK\x1b[0m";
 }
+
+/**
+ * Identifica exatamente quais registros existem na VPS e não na origem.
+ * Sem isso, "+4 linhas" é apenas um número — e número não documenta nada.
+ */
+async function extraIds(table: string, limit = 20): Promise<string[]> {
+  const legacy = requireLegacy();
+  if (!legacy.databaseUrl) return [];
+
+  const pk = await pool.query<{ col: string }>(
+    `SELECT a.attname AS col
+       FROM pg_constraint c
+       JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+      WHERE c.conrelid = $1::regclass AND c.contype = 'p'`,
+    [`public.${table}`],
+  );
+  if (pk.rows.length !== 1) return []; // PK composta/ausente: não há id único a citar.
+
+  const column = quoteIdent(pk.rows[0].col);
+  const select = `SELECT ${column}::text FROM public.${quoteIdent(table)} ORDER BY 1`;
+
+  const [origem, destino] = await Promise.all([
+    runOrThrow("psql", ["-t", "-A", "-d", legacy.databaseUrl, "-c", select]),
+    runOrThrow("psql", ["-t", "-A", "-d", env.database.url, "-c", select]),
+  ]);
+
+  const origemSet = new Set(origem.split("\n").map((line) => line.trim()).filter(Boolean));
+  return destino
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((id) => id && !origemSet.has(id))
+    .slice(0, limit);
+}
+
 
 async function main(): Promise<void> {
   const apply = process.argv.includes("--apply");
