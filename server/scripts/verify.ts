@@ -14,11 +14,88 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import dns from "node:dns/promises";
 import { env, requireLegacy } from "../src/env.js";
 import { pool } from "../src/db.js";
 import { runOrThrow, run } from "./lib/shell.js";
 import { log } from "./lib/log.js";
 import { verifySchema, type SchemaDivergence } from "./verify-schema.js";
+
+/**
+ * Resultado de uma checagem que pode passar pelo backend local mas não pelo
+ * domínio público. Distinguir os dois é essencial: "só local funciona" é
+ * pendência de DNS/Nginx (infra, não migração) e não pode marcar dados/mídia
+ * como corrompidos.
+ */
+type CheckResult = "ok" | "somente-local" | "falha";
+
+/**
+ * Diagnostica o domínio público uma única vez: DNS resolve? Para onde?
+ * `fetch failed` sozinho não distingue "domínio não existe" de "Nginx caiu".
+ */
+let domainDiagnosis: { host: string; addresses: string[]; resolves: boolean } | null = null;
+
+async function diagnoseDomain(): Promise<{ host: string; addresses: string[]; resolves: boolean }> {
+  if (domainDiagnosis) return domainDiagnosis;
+  const host = (() => {
+    try {
+      return new URL(env.publicUrl).hostname;
+    } catch {
+      return env.publicUrl;
+    }
+  })();
+  try {
+    const records = await dns.lookup(host, { all: true });
+    domainDiagnosis = { host, addresses: records.map((r) => r.address), resolves: records.length > 0 };
+  } catch {
+    domainDiagnosis = { host, addresses: [], resolves: false };
+  }
+  return domainDiagnosis;
+}
+
+/** Explica, em uma linha, por que o domínio não respondeu. */
+async function explainDomainFailure(): Promise<void> {
+  const { host, addresses, resolves } = await diagnoseDomain();
+  if (!resolves) {
+    log.warn(
+      `O domínio ${host} não resolve neste servidor (DNS). Crie o registro A de ${host} ` +
+        "apontando para o IP público da VPS (ou, se estiver na Cloudflare, verifique se o registro existe e está proxied).",
+    );
+    return;
+  }
+  log.warn(
+    `${host} resolve para ${addresses.join(", ")}, mas a conexão falhou. ` +
+      `Verifique o vhost do Nginx para ${host} (proxy_pass http://127.0.0.1:${env.port}), ` +
+      "o certificado TLS (certbot) e as portas 80/443 liberadas no firewall.",
+  );
+}
+
+/**
+ * Tenta pelo domínio; se a falha for de rede (DNS/TLS/porta), repete no backend
+ * local com o cabeçalho Host, o que prova que a rota e o arquivo estão certos e
+ * isola a pendência à camada de infraestrutura.
+ */
+async function fetchDomainWithLocalFallback(
+  pathname: string,
+  init?: RequestInit,
+): Promise<{ result: CheckResult; status: number | string }> {
+  try {
+    const response = await fetch(`${env.publicUrl}${pathname}`, init);
+    return { result: "ok", status: response.status };
+  } catch (error) {
+    const { host } = await diagnoseDomain();
+    try {
+      const local = await fetch(`http://127.0.0.1:${env.port}${pathname}`, {
+        ...init,
+        headers: { ...(init?.headers ?? {}), host },
+      });
+      return { result: "somente-local", status: local.status };
+    } catch {
+      return { result: "falha", status: (error as Error).message };
+    }
+  }
+}
+
 
 interface Divergence {
   tabela: string;
@@ -123,7 +200,7 @@ async function verifyFiles(): Promise<{ registrados: number; faltando: string[] 
  * de cada tipo relevante (imagem, vídeo, PDF, JSON). Arquivo no disco não
  * prova que o Nginx e as permissões estão certos.
  */
-async function verifyPublicReads(): Promise<boolean> {
+async function verifyPublicReads(): Promise<CheckResult> {
   log.info(`Testando leitura pública em ${env.publicUrl}/storage/v1/object/public/ ...`);
 
   const { rows } = await pool.query<{ bucket_id: string; name: string; content_type: string | null }>(`
@@ -143,38 +220,52 @@ async function verifyPublicReads(): Promise<boolean> {
 
   if (rows.length === 0) {
     log.warn("Nenhum arquivo público registrado para testar.");
-    return false;
+    return "falha";
   }
 
   const failures: Record<string, unknown>[] = [];
+  let somenteLocal = 0;
+
   for (const row of rows) {
     const encoded = row.name.split("/").map(encodeURIComponent).join("/");
-    const url = `${env.publicUrl}/storage/v1/object/public/${row.bucket_id}/${encoded}`;
-    try {
-      const response = await fetch(url, { method: "GET", headers: { range: "bytes=0-1023" } });
-      if (!response.ok && response.status !== 206) {
-        failures.push({ arquivo: `${row.bucket_id}/${row.name}`, status: response.status });
-        continue;
-      }
-      await response.arrayBuffer();
-    } catch (error) {
-      failures.push({ arquivo: `${row.bucket_id}/${row.name}`, status: (error as Error).message });
+    const pathname = `/storage/v1/object/public/${row.bucket_id}/${encoded}`;
+    const { result, status } = await fetchDomainWithLocalFallback(pathname, {
+      method: "GET",
+      headers: { range: "bytes=0-1023" },
+    });
+
+    const httpOk = typeof status === "number" && (status < 400 || status === 206);
+    if (result === "falha" || !httpOk) {
+      failures.push({ arquivo: `${row.bucket_id}/${row.name}`, status });
+      continue;
     }
+    if (result === "somente-local") somenteLocal += 1;
   }
 
   if (failures.length > 0) {
-    log.error(`${failures.length}/${rows.length} arquivos públicos não abriram pelo domínio:`);
+    log.error(`${failures.length}/${rows.length} arquivos públicos não abriram:`);
     log.table(failures.slice(0, 20));
     log.warn(
       `Confira o Nginx (proxy para 127.0.0.1:${env.port}) e as permissões de ${env.storage.root} ` +
         "(dono do processo Node precisa de leitura; 750 é suficiente).",
     );
-    return false;
+    await explainDomainFailure();
+    return "falha";
+  }
+
+  if (somenteLocal > 0) {
+    log.warn(
+      `${somenteLocal}/${rows.length} arquivos públicos abriram pelo backend local (127.0.0.1:${env.port}) ` +
+        "mas o domínio não respondeu. Os arquivos e as rotas estão corretos: falta a camada de rede.",
+    );
+    await explainDomainFailure();
+    return "somente-local";
   }
 
   log.ok(`${rows.length} arquivos públicos (imagem, vídeo, PDF, JSON) abriram pelo domínio.`);
-  return true;
+  return "ok";
 }
+
 
 /** Permissões do diretório de uploads: leitura pelo processo do backend. */
 function verifyStoragePermissions(): boolean {
@@ -236,51 +327,69 @@ async function verifyCron(): Promise<boolean> {
 }
 
 /** Backend: health, banco, auth, storage e funções, pelo localhost e pelo domínio. */
-async function verifyBackend(): Promise<boolean> {
-  const targets = [`http://127.0.0.1:${env.port}`, env.publicUrl];
-  let allOk = true;
-
-  for (const base of targets) {
-    const checks: { nome: string; url: string; init?: RequestInit; aceitos: number[] }[] = [
-      { nome: "health", url: `${base}/health`, aceitos: [200] },
-      {
-        nome: "banco (REST)",
-        url: `${base}/rest/v1/hub_products?select=id&limit=1`,
-        init: { headers: { apikey: env.auth.anonKey, authorization: `Bearer ${env.auth.anonKey}` } },
-        aceitos: [200, 401, 403],
+async function verifyBackend(): Promise<{ local: boolean; dominio: CheckResult }> {
+  const checks = (base: string): { nome: string; url: string; init?: RequestInit; aceitos: number[] }[] => [
+    { nome: "health", url: `${base}/health`, aceitos: [200] },
+    {
+      nome: "banco (REST)",
+      url: `${base}/rest/v1/hub_products?select=id&limit=1`,
+      init: { headers: { apikey: env.auth.anonKey, authorization: `Bearer ${env.auth.anonKey}` } },
+      aceitos: [200, 401, 403],
+    },
+    // 400 aqui é resposta legítima: credencial inválida foi processada pelo auth.
+    {
+      nome: "auth (login inválido responde)",
+      url: `${base}/auth/v1/token?grant_type=password`,
+      init: {
+        method: "POST",
+        headers: { "content-type": "application/json", apikey: env.auth.anonKey },
+        body: JSON.stringify({ email: "verify@invalid.local", password: "x" }),
       },
-      // 400 aqui é resposta legítima: credencial inválida foi processada pelo auth.
-      {
-        nome: "auth (login inválido responde)",
-        url: `${base}/auth/v1/token?grant_type=password`,
-        init: {
-          method: "POST",
-          headers: { "content-type": "application/json", apikey: env.auth.anonKey },
-          body: JSON.stringify({ email: "verify@invalid.local", password: "x" }),
-        },
-        aceitos: [400, 401],
-      },
-      { nome: "funções", url: `${base}/functions/v1/`, aceitos: [200, 404, 400] },
-    ];
+      aceitos: [400, 401],
+    },
+    { nome: "funções", url: `${base}/functions/v1/`, aceitos: [200, 404, 400] },
+  ];
 
-    for (const check of checks) {
-      try {
-        const response = await fetch(check.url, check.init);
-        if (!check.aceitos.includes(response.status)) {
-          log.error(`${base} → ${check.nome}: HTTP ${response.status}`);
-          allOk = false;
-        } else {
-          log.ok(`${base} → ${check.nome}: HTTP ${response.status}`);
-        }
-      } catch (error) {
-        log.error(`${base} → ${check.nome}: ${(error as Error).message}`);
-        allOk = false;
+  // 1) Localhost: é isto que diz se o backend em si está saudável.
+  const localBase = `http://127.0.0.1:${env.port}`;
+  let localOk = true;
+  for (const check of checks(localBase)) {
+    try {
+      const response = await fetch(check.url, check.init);
+      if (!check.aceitos.includes(response.status)) {
+        log.error(`${localBase} → ${check.nome}: HTTP ${response.status}`);
+        localOk = false;
+      } else {
+        log.ok(`${localBase} → ${check.nome}: HTTP ${response.status}`);
       }
+    } catch (error) {
+      log.error(`${localBase} → ${check.nome}: ${(error as Error).message}`);
+      localOk = false;
     }
   }
 
-  return allOk;
+  // 2) Domínio: falha de rede aqui é pendência de DNS/Nginx, não do backend.
+  let dominio: CheckResult = "ok";
+  for (const check of checks("")) {
+    const pathname = check.url;
+    const { result, status } = await fetchDomainWithLocalFallback(pathname, check.init);
+    if (result === "ok" && typeof status === "number" && check.aceitos.includes(status)) {
+      log.ok(`${env.publicUrl} → ${check.nome}: HTTP ${status}`);
+      continue;
+    }
+    if (result === "somente-local") {
+      log.warn(`${env.publicUrl} → ${check.nome}: domínio inacessível (local respondeu HTTP ${status}).`);
+      if (dominio === "ok") dominio = "somente-local";
+      continue;
+    }
+    log.error(`${env.publicUrl} → ${check.nome}: ${status}`);
+    dominio = "falha";
+  }
+
+  if (dominio !== "ok") await explainDomainFailure();
+  return { local: localOk, dominio };
 }
+
 
 export async function verifyDetailed(): Promise<VerifyReport> {
   log.step("Etapa 5/5 — Conferência final");
@@ -290,9 +399,9 @@ export async function verifyDetailed(): Promise<VerifyReport> {
   await verifyFunctions();
   const schemaDivergencias = await verifySchema();
   const permissoesOk = verifyStoragePermissions();
-  const leituraOk = await verifyPublicReads();
+  const leitura = await verifyPublicReads();
   const cronOk = await verifyCron();
-  const backendOk = await verifyBackend();
+  const backend = await verifyBackend();
 
   const faltando = divergences.filter((item) => item.tipo === "faltando");
   const excedentes = divergences.filter((item) => item.tipo === "excedente");
@@ -315,14 +424,17 @@ export async function verifyDetailed(): Promise<VerifyReport> {
 
   const schemaCritico = schemaDivergencias.filter((item) => item.situacao === "ausente na VPS");
 
+  // Mídia é considerada íntegra quando o arquivo existe, é legível e a rota
+  // responde — seja pelo domínio, seja pelo backend local com o Host correto.
+  // Domínio fora do ar é pendência de infraestrutura, tratada separadamente.
   const report: VerifyReport = {
     banco: true,
     tabelas: schemaCritico.length === 0,
     dados: faltando.length === 0,
-    storage: files.faltando.length === 0 && permissoesOk && leituraOk,
+    storage: files.faltando.length === 0 && permissoesOk && leitura !== "falha",
     schema: schemaCritico.length === 0,
     cron: cronOk,
-    backend: backendOk,
+    backend: backend.local,
     faltando,
     excedentes,
     arquivosAusentes: files.faltando,
@@ -335,8 +447,17 @@ export async function verifyDetailed(): Promise<VerifyReport> {
     log.warn("Há pendências críticas. Rode `npm run migrate:data` e `npm run migrate:storage` novamente.");
   }
 
+  const dominioPendente = leitura === "somente-local" || backend.dominio !== "ok";
+  if (dominioPendente) {
+    log.warn(
+      "Pendência de infraestrutura (não de migração): o domínio público não responde neste servidor. " +
+        "O backend local está OK; resolva DNS/Nginx/TLS antes do corte.",
+    );
+  }
+
   return report;
 }
+
 
 /** Compatibilidade com o fluxo antigo: true quando nada crítico está pendente. */
 export async function verify(): Promise<boolean> {
