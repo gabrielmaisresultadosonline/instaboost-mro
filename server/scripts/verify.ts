@@ -399,9 +399,9 @@ export async function verifyDetailed(): Promise<VerifyReport> {
   await verifyFunctions();
   const schemaDivergencias = await verifySchema();
   const permissoesOk = verifyStoragePermissions();
-  const leituraOk = await verifyPublicReads();
+  const leitura = await verifyPublicReads();
   const cronOk = await verifyCron();
-  const backendOk = await verifyBackend();
+  const backend = await verifyBackend();
 
   const faltando = divergences.filter((item) => item.tipo === "faltando");
   const excedentes = divergences.filter((item) => item.tipo === "excedente");
@@ -424,14 +424,17 @@ export async function verifyDetailed(): Promise<VerifyReport> {
 
   const schemaCritico = schemaDivergencias.filter((item) => item.situacao === "ausente na VPS");
 
+  // Mídia é considerada íntegra quando o arquivo existe, é legível e a rota
+  // responde — seja pelo domínio, seja pelo backend local com o Host correto.
+  // Domínio fora do ar é pendência de infraestrutura, tratada separadamente.
   const report: VerifyReport = {
     banco: true,
     tabelas: schemaCritico.length === 0,
     dados: faltando.length === 0,
-    storage: files.faltando.length === 0 && permissoesOk && leituraOk,
+    storage: files.faltando.length === 0 && permissoesOk && leitura !== "falha",
     schema: schemaCritico.length === 0,
     cron: cronOk,
-    backend: backendOk,
+    backend: backend.local,
     faltando,
     excedentes,
     arquivosAusentes: files.faltando,
@@ -444,8 +447,17 @@ export async function verifyDetailed(): Promise<VerifyReport> {
     log.warn("Há pendências críticas. Rode `npm run migrate:data` e `npm run migrate:storage` novamente.");
   }
 
+  const dominioPendente = leitura === "somente-local" || backend.dominio !== "ok";
+  if (dominioPendente) {
+    log.warn(
+      "Pendência de infraestrutura (não de migração): o domínio público não responde neste servidor. " +
+        "O backend local está OK; resolva DNS/Nginx/TLS antes do corte.",
+    );
+  }
+
   return report;
 }
+
 
 /** Compatibilidade com o fluxo antigo: true quando nada crítico está pendente. */
 export async function verify(): Promise<boolean> {
