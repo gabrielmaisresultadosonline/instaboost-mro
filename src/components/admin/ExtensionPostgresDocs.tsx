@@ -121,9 +121,10 @@ const BACKENDS = {
   },
 };
 
-// Troque para "postgres" na versão nova. Se algo falhar, o fallback
-// automático abaixo devolve o usuário ao backend antigo (zero downtime).
-const PREFER = "postgres";
+// ATENÇÃO: mantenha "supabase" enquanto a VPS não devolver os headers de CORS
+// ('Access-Control-Allow-Origin') para https://www.instagram.com. Com PREFER
+// "postgres" antes disso o preflight falha e a extensão fica sem backend.
+const PREFER = "supabase";
 
 async function api(body) {
   const order = PREFER === "postgres" ? ["postgres", "supabase"] : ["supabase", "postgres"];
