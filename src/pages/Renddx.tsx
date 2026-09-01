@@ -386,13 +386,15 @@ const Renddx = () => {
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">30 DIAS DE ACESSO COM SUPORTE INCLUSO</span>
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE POR 30 DIAS • SUPORTE INCLUSO</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
                     <span className="text-6xl font-black text-green-500">97</span>
                     <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
                   </div>
+                  <span className="mt-2 text-green-300 text-xs sm:text-sm font-semibold uppercase tracking-wide">4 contas fixas + 5 testes</span>
                 </div>
+
                 
                 <Button 
                   onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
