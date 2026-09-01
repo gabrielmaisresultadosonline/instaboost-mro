@@ -5,10 +5,13 @@
  * escuta as tabelas via Realtime, sem polling agressivo.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCcw, Send } from "lucide-react";
+import { Bot, RefreshCcw, Send, Sparkles, Stethoscope } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import IgLayout from "@/components/ig/IgLayout";
