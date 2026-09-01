@@ -121,9 +121,10 @@ const BACKENDS = {
   },
 };
 
-// Troque para "postgres" na versão nova. Se algo falhar, o fallback
-// automático abaixo devolve o usuário ao backend antigo (zero downtime).
-const PREFER = "postgres";
+// ATENÇÃO: mantenha "supabase" enquanto a VPS não devolver os headers de CORS
+// ('Access-Control-Allow-Origin') para https://www.instagram.com. Com PREFER
+// "postgres" antes disso o preflight falha e a extensão fica sem backend.
+const PREFER = "supabase";
 
 async function api(body) {
   const order = PREFER === "postgres" ? ["postgres", "supabase"] : ["supabase", "postgres"];
@@ -161,7 +162,15 @@ curl -fsS -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
   -H 'apikey: ${vpsKey}' \\
   -H 'Authorization: Bearer ${vpsKey}' \\
-  -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo`;
+  -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo
+
+# 3) CORS liberado para a extensão? (motivo nº1 de falha em produção)
+# A resposta do preflight PRECISA conter 'access-control-allow-origin'.
+curl -si -X OPTIONS '${endpoint}' \\
+  -H 'Origin: https://www.instagram.com' \\
+  -H 'Access-Control-Request-Method: POST' \\
+  -H 'Access-Control-Request-Headers: authorization, apikey, content-type' \\
+  | grep -i 'access-control-allow' || echo 'FALHOU: VPS sem CORS — mantenha PREFER = "supabase"'`;
 
   const Block: React.FC<{ id: string; title: string; description?: string; code: string }> = ({
     id,
@@ -193,6 +202,18 @@ curl -fsS -X POST '${endpoint}' \\
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-1">
+            <p className="text-xs font-semibold text-destructive">
+              ⚠️ Enquanto o domínio da VPS não responder, use o backend atual (nuvem)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Se a extensão apontar para <code>{base}</code> antes do corte, o navegador bloqueia com{' '}
+              <em>“No 'Access-Control-Allow-Origin' header”</em> / <code>ERR_FAILED</code> — o servidor nem é
+              alcançado. Por isso os exemplos abaixo já vêm com <code>PREFER = "supabase"</code> e o checklist do
+              item 5 tem um teste de CORS obrigatório.
+            </p>
+          </div>
+
           <p className="text-sm text-muted-foreground">
             Esta é a documentação da <strong>versão nova</strong> da extensão, já apontando para o backend próprio em
             PostgreSQL. Todas as <em>actions</em>, campos de envio e respostas são <strong>exatamente os mesmos</strong>{' '}
@@ -306,9 +327,10 @@ Header 'Authorization: Bearer <ANON_KEY ou JWT>' → claims idênticos (HS256)`}
       <Block
         id="config"
         title="4) Código da extensão com fallback automático"
-        description="Publique a versão nova com PREFER='postgres'. Se a VPS falhar, a extensão volta sozinha ao Supabase — os usuários não percebem nada."
+        description="Publique com PREFER='supabase' (nuvem) enquanto a VPS não liberar CORS para https://www.instagram.com. Só troque para 'postgres' após o checklist abaixo passar."
         code={migrationSnippet}
       />
+
 
       <Block
         id="health"

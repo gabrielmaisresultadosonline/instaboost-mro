@@ -25,10 +25,11 @@ const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea
   const { toast } = useToast();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   /**
-   * Qual backend a documentação descreve. Mantemos os dois lado a lado para
-   * publicar a extensão nova e validar em produção antes de desligar o antigo.
+   * Qual backend a documentação descreve. O padrão é o backend ATUAL (nuvem),
+   * porque é o único que hoje responde com CORS liberado para a extensão.
+   * A VPS só deve ser selecionada depois do corte validado.
    */
-  const [backend, setBackend] = useState<'supabase' | 'postgres'>('postgres');
+  const [backend, setBackend] = useState<'supabase' | 'postgres'>('supabase');
 
   const supabaseUrl = SUPABASE_API_URL;
   const postgresUrl = vpsApiUrl();
@@ -74,9 +75,11 @@ SUPABASE_URL=${supabaseUrl}
 SUPABASE_ANON_KEY=${supabaseKey}`;
 
   const fallbackSnippet = `// 🔁 Avisos com fallback automático (zero downtime)
+// ORDEM IMPORTANTE: a nuvem vem primeiro porque a VPS ainda não responde
+// com 'Access-Control-Allow-Origin' para https://www.instagram.com.
 const AVISOS = [
-  { name: "postgres", url: "${postgresUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${postgresKey}" },
   { name: "supabase", url: "${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${supabaseKey}" },
+  { name: "postgres", url: "${postgresUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${postgresKey}" },
 ];
 
 async function fetchAnnouncementsWithFallback() {
