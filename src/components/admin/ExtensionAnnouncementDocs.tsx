@@ -16,8 +16,21 @@ interface ExtensionAnnouncementDocsProps {
 const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea = 'extension' }: ExtensionAnnouncementDocsProps) => {
   const { toast } = useToast();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  /**
+   * Qual backend a documentação descreve. Mantemos os dois lado a lado para
+   * publicar a extensão nova e validar em produção antes de desligar o antigo.
+   */
+  const [backend, setBackend] = useState<'supabase' | 'postgres'>('postgres');
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://adljdeekwifwcdcgbpit.supabase.co';
+  const supabaseUrl = SUPABASE_API_URL;
+  const postgresUrl = vpsApiUrl();
+  const anonKeyFromBuild = vpsAnonKeyFromBuild();
+  const postgresKey = vpsAnonKey() || ANON_KEY_PLACEHOLDER;
+  const supabaseKey = SUPABASE_ANON_KEY || 'COLE_AQUI_A_ANON_KEY_DO_SUPABASE';
+
+  const isPostgres = backend === 'postgres';
+  const baseUrl = isPostgres ? postgresUrl : supabaseUrl;
+  const apiKey = isPostgres ? postgresKey : supabaseKey;
 
   const copyToClipboard = (text: string, section: string) => {
     navigator.clipboard.writeText(text);
@@ -32,7 +45,48 @@ const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea
   const fileName = targetArea === 'extension' ? 'extension-announcements.json' : `${targetArea}-announcements.json`;
   const storageKey = `mro_${targetArea}_announcements`;
   const label = targetArea === 'extension' ? 'Extensão Chrome' : `Extensão Chrome ${extensionNumber}`;
-  const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
+  const endpoint = `${baseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
+
+  /**
+   * Chaves prontas para copiar. O storage público não exige `apikey`, mas
+   * enviamos de qualquer forma: o mesmo bloco serve para as rotas /rest/v1 e
+   * /functions/v1, onde a chave é obrigatória em ambos os backends.
+   */
+  const keysSnippet = `# ---- Avisos: ${isPostgres ? 'PostgreSQL (VPS)' : 'Supabase (atual)'} ----
+API_URL=${baseUrl}
+API_ANON_KEY=${apiKey}
+ENDPOINT_AVISOS=${endpoint}
+
+# Headers usados nas rotas autenticadas (/rest/v1 e /functions/v1):
+#   apikey: ${apiKey}
+#   Authorization: Bearer ${apiKey}
+
+# ---- Backend antigo (Supabase), mantenha durante a transição ----
+SUPABASE_URL=${supabaseUrl}
+SUPABASE_ANON_KEY=${supabaseKey}`;
+
+  const fallbackSnippet = `// 🔁 Avisos com fallback automático (zero downtime)
+const AVISOS = [
+  { name: "postgres", url: "${postgresUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${postgresKey}" },
+  { name: "supabase", url: "${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${supabaseKey}" },
+];
+
+async function fetchAnnouncementsWithFallback() {
+  for (const cfg of AVISOS) {
+    try {
+      const res = await fetch(cfg.url + "?t=" + Date.now(), {
+        headers: { apikey: cfg.apikey, Authorization: "Bearer " + cfg.apikey },
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      return { announcements: data.announcements || [], _backend: cfg.name };
+    } catch (error) {
+      console.warn("[avisos] backend indisponível:", cfg.name, error);
+    }
+  }
+  return { announcements: [], _backend: null };
+}`;
+
 
   const fetchCode = `// 🔔 Buscar avisos da extensão
 const ANNOUNCEMENTS_URL = '${endpoint}';
