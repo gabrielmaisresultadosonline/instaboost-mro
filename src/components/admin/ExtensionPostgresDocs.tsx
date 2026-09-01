@@ -202,6 +202,18 @@ curl -si -X OPTIONS '${endpoint}' \\
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-1">
+            <p className="text-xs font-semibold text-destructive">
+              ⚠️ Enquanto o domínio da VPS não responder, use o backend atual (nuvem)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Se a extensão apontar para <code>{base}</code> antes do corte, o navegador bloqueia com{' '}
+              <em>“No 'Access-Control-Allow-Origin' header”</em> / <code>ERR_FAILED</code> — o servidor nem é
+              alcançado. Por isso os exemplos abaixo já vêm com <code>PREFER = "supabase"</code> e o checklist do
+              item 5 tem um teste de CORS obrigatório.
+            </p>
+          </div>
+
           <p className="text-sm text-muted-foreground">
             Esta é a documentação da <strong>versão nova</strong> da extensão, já apontando para o backend próprio em
             PostgreSQL. Todas as <em>actions</em>, campos de envio e respostas são <strong>exatamente os mesmos</strong>{' '}
