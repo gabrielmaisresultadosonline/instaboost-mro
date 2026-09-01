@@ -5,6 +5,7 @@
  * tokens: apenas status HTTP, mensagens de erro da Graph API e contagens.
  */
 import { corsHeaders, serviceClient } from "../_shared/ig-core.ts";
+import { rebuildContacts, syncComments, syncMedia, syncProfile } from "../_shared/ig-sync.ts";
 
 const GRAPH = "https://graph.instagram.com/v21.0";
 
@@ -89,6 +90,7 @@ Deno.serve(async (req) => {
         `${GRAPH}/me/conversations?platform=instagram&fields=id,updated_time,participants,messages.limit(5){id,created_time,from,message}&limit=5&access_token=${t}`,
       ),
     );
+    probes.push(await probe("conversations_no_platform", `${GRAPH}/me/conversations?fields=id,updated_time,participants&limit=5&access_token=${t}`));
     probes.push(await probe("subscribed_apps", `${GRAPH}/me/subscribed_apps?access_token=${t}`));
 
     // Comentários da mídia mais recente (se houver).
@@ -101,6 +103,23 @@ Deno.serve(async (req) => {
       probes.push(await probe("media/insights", `${GRAPH}/${firstMedia.id}/insights?metric=reach,saved,shares&access_token=${t}`));
     }
 
+    // Executa a sincronização real e relata cada etapa.
+    const runSync = new URL(req.url).searchParams.get("run") === "sync";
+    const syncSteps: Record<string, unknown> = {};
+    if (runSync) {
+      const acc = {
+        id: account.id,
+        tenant_id: account.tenant_id,
+        instagram_account_id: account.instagram_account_id,
+        instagram_user_id: account.instagram_user_id,
+      };
+      syncSteps.profile = await syncProfile(db, acc, t);
+      syncSteps.media = await syncMedia(db, acc, t);
+      syncSteps.comments = await syncComments(db, acc, t);
+      syncSteps.contacts = await rebuildContacts(db, acc);
+      console.log("[ig-diag] sync steps", JSON.stringify(syncSteps));
+    }
+
     const counts: Record<string, number | null> = {};
     for (const table of ["ig_media", "ig_comments", "ig_conversations", "ig_messages", "ig_contacts"]) {
       const { count } = await db.from(table).select("id", { count: "exact", head: true }).eq("ig_account_id", account.id);
@@ -111,6 +130,7 @@ Deno.serve(async (req) => {
       account: { username: account.username, connection_state: account.connection_state, last_synced_at: account.last_synced_at },
       token_expires_at: token.expires_at,
       db_counts: counts,
+      sync_steps: syncSteps,
       probes,
     });
   }
