@@ -32,15 +32,22 @@ warn(){ echo -e "  ${Y}!${N} $1"; }
 fail(){ echo -e "  ${R}✗${N} $1"; exit 1; }
 
 RAPIDO=false
+CORTE=false
+CORTE_ARGS=()
 MIGRATE_ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --rapido)    RAPIDO=true ;;
     --sem-midia) MIGRATE_ARGS+=("--skip-storage") ;;
     --so-midia)  MIGRATE_ARGS+=("--only-storage") ;;
-    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia ou --so-midia)" ;;
+    # Conferência completa (estrutura, dados, mídias, storage público, backend,
+    # cron) + reescrita das URLs. Sem --aplicar-urls as URLs só são simuladas.
+    --corte)       CORTE=true ;;
+    --aplicar-urls) CORTE=true; CORTE_ARGS+=("--apply") ;;
+    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia, --so-midia, --corte ou --aplicar-urls)" ;;
   esac
 done
+
 
 # ---------- 1. Código do GitHub ----------
 step "1/7 Baixando o código do GitHub"
