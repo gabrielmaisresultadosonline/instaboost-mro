@@ -43,6 +43,13 @@
       "when": 1788214185292,
       "tag": "0005_ig_media_comments_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788301365144,
+      "tag": "0006_ig_ai_agent_automations_and_diag_logs",
+      "breakpoints": true
     }
   ]
 }
