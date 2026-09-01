@@ -26,6 +26,7 @@ interface Divergence {
   novo: number;
   diferenca: number;
   tipo: "faltando" | "excedente";
+  [key: string]: unknown;
 }
 
 export interface VerifyReport {
@@ -203,7 +204,7 @@ async function verifyCron(): Promise<boolean> {
     .query<{ count: string }>(
       `SELECT count(*)::text AS count FROM pg_extension WHERE extname = 'pg_cron'`,
     )
-    .then((r) => Number(r.rows[0]?.count ?? 0) > 0)
+    .then((r: { rows: { count: string }[] }) => Number(r.rows[0]?.count ?? 0) > 0)
     .catch(() => false);
 
   if (usesPgCron) {

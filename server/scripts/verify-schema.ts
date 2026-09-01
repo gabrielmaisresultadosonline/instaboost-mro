@@ -17,6 +17,7 @@ export interface SchemaDivergence {
   categoria: string;
   objeto: string;
   situacao: string;
+  [key: string]: unknown;
 }
 
 /** Consultas que devolvem uma lista de "assinaturas" comparáveis entre bancos. */
