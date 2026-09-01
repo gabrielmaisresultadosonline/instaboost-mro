@@ -292,7 +292,7 @@ async function handleJob(
       if (inbound && sender) {
         const { data: conv } = await db
           .from("ig_conversations")
-          .select("participant_username, participant_name, participant_picture_url, last_message_at")
+          .select("id, participant_username, participant_name, participant_picture_url, last_message_at")
           .eq("ig_account_id", accountRowId)
           .eq("participant_id", sender)
           .maybeSingle();
@@ -307,6 +307,28 @@ async function handleJob(
           conv?.participant_name,
           conv?.participant_picture_url,
         );
+
+        // Atendimento automático: automações por palavra-chave e agente de IA.
+        if (conv?.id) {
+          const incomingText =
+            ((event?.payload as { message?: { text?: string } } | undefined)?.message?.text ?? null) || null;
+          try {
+            await autoRespondDirect(db, {
+              tenantId: job.tenant_id,
+              conversationId: conv.id as string,
+              incomingText,
+            });
+          } catch (error) {
+            await igLog(db, {
+              scope: "ig-agent",
+              step: "auto_respond.exception",
+              level: "error",
+              tenant_id: job.tenant_id,
+              ig_account_id: accountRowId,
+              message: (error as Error).message,
+            });
+          }
+        }
       }
     }
 
