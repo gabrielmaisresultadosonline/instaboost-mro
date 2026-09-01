@@ -10,6 +10,7 @@
     "migrate:data": "tsx scripts/migrate-data.ts",
     "migrate:storage": "tsx scripts/migrate-storage.ts",
     "migrate:urls": "tsx scripts/rewrite-urls.ts",
+    "verify": "tsx scripts/verify.ts",
     "migrate:verify": "tsx scripts/verify.ts",
     "migrate:verify-schema": "tsx scripts/verify-schema.ts",
     "migrate:corte": "tsx scripts/cutover.ts",
