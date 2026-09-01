@@ -6,6 +6,8 @@
  * Pode ser acionado por cron ou manualmente.
  */
 import { corsHeaders, json, serviceClient } from "../_shared/ig-core.ts";
+import { autoRespondDirect } from "../_shared/ig-ai.ts";
+import { igLog } from "../_shared/ig-log.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const BATCH_SIZE = 25;
