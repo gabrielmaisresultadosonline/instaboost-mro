@@ -11,6 +11,8 @@
     "migrate:storage": "tsx scripts/migrate-storage.ts",
     "migrate:urls": "tsx scripts/rewrite-urls.ts",
     "migrate:verify": "tsx scripts/verify.ts",
+    "migrate:verify-schema": "tsx scripts/verify-schema.ts",
+    "migrate:corte": "tsx scripts/cutover.ts",
     "migrate:all": "tsx scripts/migrate-all.ts",
     "keys": "tsx scripts/generate-keys.ts",
     "migrate:users": "tsx scripts/migrate-users.ts",
