@@ -293,6 +293,60 @@ Deno.serve(async (req) => {
       return json({ success: true });
     }
 
+    // ---------------- SENHA DO CLIENTE (recuperação pelo admin) ----------------
+    if (action === "set-user-password") {
+      const newPassword = String(body.new_user_password ?? "");
+      if (!body.user_id) return fail("Usuário não informado.", 400);
+      if (newPassword.length < 8 || newPassword.length > 200) {
+        return fail("A nova senha deve ter entre 8 e 200 caracteres.", 400);
+      }
+
+      const { error } = await db.auth.admin.updateUserById(body.user_id, { password: newPassword });
+      if (error) {
+        console.error("[ig-admin] set-user-password failed:", error.message);
+        return fail("Não foi possível alterar a senha deste usuário.", 400);
+      }
+
+      await audit(db, {
+        actor_type: "super_admin",
+        action: "admin.user_password_reset",
+        target: body.user_id,
+        ip,
+        metadata: { admin: adminEmail },
+      });
+
+      return json({ success: true });
+    }
+
+    if (action === "user-recovery-link") {
+      const email = String(body.email ?? "").trim().toLowerCase();
+      if (!email) return fail("E-mail não informado.", 400);
+
+      const redirectTo = `${String(body.redirect_uri ?? "").trim() || "https://maisresultadosonline.com.br"}/IG/reset-password`;
+      const { data, error } = await db.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo },
+      });
+
+      if (error || !data?.properties?.action_link) {
+        console.error("[ig-admin] user-recovery-link failed:", error?.message);
+        return fail("Não foi possível gerar o link de recuperação.", 400);
+      }
+
+      await audit(db, {
+        actor_type: "super_admin",
+        action: "admin.user_recovery_link",
+        target: body.user_id ?? email,
+        ip,
+        metadata: { admin: adminEmail },
+      });
+
+      return json({ success: true, link: data.properties.action_link });
+    }
+
+
+
     // ---------------- CONTAS INSTAGRAM ----------------
     if (action === "instagram") {
       const { data: accounts } = await db
