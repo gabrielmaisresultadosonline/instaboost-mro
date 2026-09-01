@@ -441,7 +441,7 @@ Deno.serve(async (req) => {
       const { data } = await db
         .from("ig_conversations")
         .select(
-          "id, participant_id, participant_username, participant_name, participant_picture_url, last_message_text, last_message_at, last_direction, unread_count",
+          "id, participant_id, participant_username, participant_name, participant_picture_url, last_message_text, last_message_at, last_direction, unread_count, ai_paused",
         )
         .eq("tenant_id", tenantId)
         .order("last_message_at", { ascending: false, nullsFirst: false })
