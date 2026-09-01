@@ -51,10 +51,26 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [apiUrl, setApiUrl] = useState<string>(defaultApiUrl);
+  const [vpsAnonKey, setVpsAnonKey] = useState<string>(
+    () => (typeof window !== 'undefined' ? window.localStorage.getItem(VPS_KEY_STORAGE) ?? '' : ''),
+  );
 
   const meta = TOOL_META[tool];
   const base = apiUrl.replace(/\/+$/, '');
   const endpoint = `${base}/functions/v1/${meta.fn}`;
+
+  /**
+   * Sem chave preenchida usamos um marcador explícito em vez de string vazia:
+   * um curl com `apikey: ` vazio falharia silenciosamente com 401 e o
+   * programador perderia tempo procurando o erro no lugar errado.
+   */
+  const vpsKey = vpsAnonKey.trim() || 'COLE_AQUI_A_ANON_KEY_DA_VPS';
+  const supaKey = SUPABASE_ANON_KEY || 'COLE_AQUI_A_ANON_KEY_DO_SUPABASE';
+
+  const saveVpsKey = (value: string): void => {
+    setVpsAnonKey(value);
+    if (typeof window !== 'undefined') window.localStorage.setItem(VPS_KEY_STORAGE, value.trim());
+  };
 
   const copy = (key: string, value: string): void => {
     void navigator.clipboard.writeText(value);
@@ -66,9 +82,26 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
   const curl = useMemo(
     () => `curl -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
-  -H 'apikey: SUA_ANON_KEY_DA_VPS' \\
+  -H 'apikey: ${vpsKey}' \\
+  -H 'Authorization: Bearer ${vpsKey}' \\
   -d '{"action":"login","username":"usuario","password":"senha"}'`,
-    [endpoint],
+    [endpoint, vpsKey],
+  );
+
+  const keysSnippet = useMemo(
+    () => `# ---- Chaves de API (headers) ----
+# Backend ATUAL (Supabase)
+SUPABASE_URL=https://adljdeekwifwcdcgbpit.supabase.co
+SUPABASE_ANON_KEY=${supaKey}
+
+# Backend NOVO (PostgreSQL na VPS)
+API_URL=${base}
+API_ANON_KEY=${vpsKey}
+
+# Em ambos os backends a chave vai nos DOIS headers:
+#   apikey: <ANON_KEY>
+#   Authorization: Bearer <ANON_KEY>   (ou o JWT do usuário logado)`,
+    [base, supaKey, vpsKey],
   );
 
   const migrationSnippet = useMemo(
@@ -77,11 +110,11 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
 const BACKENDS = {
   supabase: {
     url: "${meta.legacy}",
-    apikey: "SUA_ANON_KEY_SUPABASE",
+    apikey: "${supaKey}",
   },
   postgres: {
     url: "${endpoint}",
-    apikey: "SUA_ANON_KEY_DA_VPS",
+    apikey: "${vpsKey}",
   },
 };
 
@@ -98,7 +131,11 @@ async function api(body) {
     try {
       const res = await fetch(cfg.url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: cfg.apikey },
+        headers: {
+          "Content-Type": "application/json",
+          apikey: cfg.apikey,
+          Authorization: "Bearer " + cfg.apikey,
+        },
         body: JSON.stringify(body),
       });
       if (!res.ok && res.status >= 500) throw new Error("backend " + key + " indisponível");
@@ -109,7 +146,7 @@ async function api(body) {
   }
   throw lastError ?? new Error("Nenhum backend respondeu");
 }`,
-    [endpoint, meta.legacy],
+    [endpoint, meta.legacy, supaKey, vpsKey],
   );
 
   const healthSnippet = `# 1) o backend da VPS está de pé?
@@ -119,7 +156,8 @@ curl -fsS ${base}/health && echo
 # 2) a função da extensão responde?
 curl -fsS -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
-  -H 'apikey: SUA_ANON_KEY_DA_VPS' \\
+  -H 'apikey: ${vpsKey}' \\
+  -H 'Authorization: Bearer ${vpsKey}' \\
   -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo`;
 
   const Block: React.FC<{ id: string; title: string; description?: string; code: string }> = ({
