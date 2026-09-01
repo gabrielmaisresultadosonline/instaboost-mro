@@ -504,3 +504,58 @@
   color: black !important;
   font-weight: 900 !important;
 }
+
+
+/* ============================================================
+   MRO INSTAGRAM (/IG) — tema Instagram (fundo branco) escopado em .ig-theme
+   Sobrescreve apenas os tokens semânticos dentro do módulo /IG.
+   ============================================================ */
+.ig-theme {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --primary: 334 76% 53%;            /* Instagram pink #E1306C */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 97%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 265 72% 55%;             /* Instagram purple #833AB4 */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 4 82% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 89%;
+  --input: 0 0% 89%;
+  --ring: 334 76% 53%;
+  --radius: 0.9rem;
+
+  --ig-gradient: linear-gradient(
+    90deg,
+    #f9ce34 0%,
+    #ee2a7b 50%,
+    #6228d7 100%
+  );
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.ig-gradient-text {
+  background: var(--ig-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ig-gradient-bg {
+  background: var(--ig-gradient);
+  color: #fff;
+}
+
+.ig-gradient-ring {
+  background: var(--ig-gradient);
+  padding: 2px;
+  border-radius: 9999px;
+}
