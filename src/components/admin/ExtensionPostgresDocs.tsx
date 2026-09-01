@@ -29,6 +29,12 @@ const TOOL_META: Record<ExtensionTool, { label: string; fn: string; legacy: stri
 
 const DEFAULT_API = 'https://api.maisresultadosonline.com.br';
 
+/** Chave anon do backend atual (Supabase) — pública por natureza. */
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? '';
+
+/** Onde guardamos a ANON_KEY da VPS para não pedir de novo a cada visita. */
+const VPS_KEY_STORAGE = 'mro-docs-vps-anon-key';
+
 /**
  * Documentação da NOVA versão da extensão, já apontando para o backend
  * próprio em PostgreSQL (VPS). O contrato de request/response é idêntico ao
