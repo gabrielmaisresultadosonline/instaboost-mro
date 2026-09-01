@@ -14,11 +14,88 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import dns from "node:dns/promises";
 import { env, requireLegacy } from "../src/env.js";
 import { pool } from "../src/db.js";
 import { runOrThrow, run } from "./lib/shell.js";
 import { log } from "./lib/log.js";
 import { verifySchema, type SchemaDivergence } from "./verify-schema.js";
+
+/**
+ * Resultado de uma checagem que pode passar pelo backend local mas não pelo
+ * domínio público. Distinguir os dois é essencial: "só local funciona" é
+ * pendência de DNS/Nginx (infra, não migração) e não pode marcar dados/mídia
+ * como corrompidos.
+ */
+type CheckResult = "ok" | "somente-local" | "falha";
+
+/**
+ * Diagnostica o domínio público uma única vez: DNS resolve? Para onde?
+ * `fetch failed` sozinho não distingue "domínio não existe" de "Nginx caiu".
+ */
+let domainDiagnosis: { host: string; addresses: string[]; resolves: boolean } | null = null;
+
+async function diagnoseDomain(): Promise<{ host: string; addresses: string[]; resolves: boolean }> {
+  if (domainDiagnosis) return domainDiagnosis;
+  const host = (() => {
+    try {
+      return new URL(env.publicUrl).hostname;
+    } catch {
+      return env.publicUrl;
+    }
+  })();
+  try {
+    const records = await dns.lookup(host, { all: true });
+    domainDiagnosis = { host, addresses: records.map((r) => r.address), resolves: records.length > 0 };
+  } catch {
+    domainDiagnosis = { host, addresses: [], resolves: false };
+  }
+  return domainDiagnosis;
+}
+
+/** Explica, em uma linha, por que o domínio não respondeu. */
+async function explainDomainFailure(): Promise<void> {
+  const { host, addresses, resolves } = await diagnoseDomain();
+  if (!resolves) {
+    log.warn(
+      `O domínio ${host} não resolve neste servidor (DNS). Crie o registro A de ${host} ` +
+        "apontando para o IP público da VPS (ou, se estiver na Cloudflare, verifique se o registro existe e está proxied).",
+    );
+    return;
+  }
+  log.warn(
+    `${host} resolve para ${addresses.join(", ")}, mas a conexão falhou. ` +
+      `Verifique o vhost do Nginx para ${host} (proxy_pass http://127.0.0.1:${env.port}), ` +
+      "o certificado TLS (certbot) e as portas 80/443 liberadas no firewall.",
+  );
+}
+
+/**
+ * Tenta pelo domínio; se a falha for de rede (DNS/TLS/porta), repete no backend
+ * local com o cabeçalho Host, o que prova que a rota e o arquivo estão certos e
+ * isola a pendência à camada de infraestrutura.
+ */
+async function fetchDomainWithLocalFallback(
+  pathname: string,
+  init?: RequestInit,
+): Promise<{ result: CheckResult; status: number | string }> {
+  try {
+    const response = await fetch(`${env.publicUrl}${pathname}`, init);
+    return { result: "ok", status: response.status };
+  } catch (error) {
+    const { host } = await diagnoseDomain();
+    try {
+      const local = await fetch(`http://127.0.0.1:${env.port}${pathname}`, {
+        ...init,
+        headers: { ...(init?.headers ?? {}), host },
+      });
+      return { result: "somente-local", status: local.status };
+    } catch {
+      return { result: "falha", status: (error as Error).message };
+    }
+  }
+}
+
 
 interface Divergence {
   tabela: string;
