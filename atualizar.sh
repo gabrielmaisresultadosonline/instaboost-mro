@@ -33,6 +33,7 @@ fail(){ echo -e "  ${R}✗${N} $1"; exit 1; }
 
 RAPIDO=false
 CORTE=false
+FUNDO=false
 CORTE_ARGS=()
 MIGRATE_ARGS=()
 for arg in "$@"; do
@@ -40,13 +41,31 @@ for arg in "$@"; do
     --rapido)    RAPIDO=true ;;
     --sem-midia) MIGRATE_ARGS+=("--skip-storage") ;;
     --so-midia)  MIGRATE_ARGS+=("--only-storage") ;;
+    # Reaplica tudo mesmo que já esteja em dia (mais lento, raramente preciso).
+    --forcar)    export MIGRATE_FORCE_SCHEMA=1 MIGRATE_FORCE_DATA=1 ;;
+    # Roda destacado do SSH: a queda da conexão não mata mais a migração.
+    --fundo)     FUNDO=true ;;
     # Conferência completa (estrutura, dados, mídias, storage público, backend,
     # cron) + reescrita das URLs. Sem --aplicar-urls as URLs só são simuladas.
     --corte)       CORTE=true ;;
     --aplicar-urls) CORTE=true; CORTE_ARGS+=("--apply") ;;
-    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia, --so-midia, --corte ou --aplicar-urls)" ;;
+    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia, --so-midia, --forcar, --fundo, --corte ou --aplicar-urls)" ;;
   esac
 done
+
+# "Lost connection to the server" no meio da etapa 4 é a sessão SSH caindo e
+# levando o processo com ela. Com --fundo o script se desprende do terminal e
+# continua rodando; o log fica em /var/log/mro/atualizar.log.
+if [ "$FUNDO" = true ] && [ "${MRO_DESTACADO:-}" != "1" ]; then
+  mkdir -p /var/log/mro 2>/dev/null || sudo mkdir -p /var/log/mro
+  ARGS_SEM_FUNDO=()
+  for arg in "$@"; do [ "$arg" = "--fundo" ] || ARGS_SEM_FUNDO+=("$arg"); done
+  MRO_DESTACADO=1 setsid nohup "$0" "${ARGS_SEM_FUNDO[@]+"${ARGS_SEM_FUNDO[@]}"}" \
+    >> /var/log/mro/atualizar.log 2>&1 &
+  echo "Rodando em segundo plano (PID $!). Acompanhe com:"
+  echo "  tail -f /var/log/mro/atualizar.log"
+  exit 0
+fi
 
 
 # ---------- 1. Código do GitHub ----------
