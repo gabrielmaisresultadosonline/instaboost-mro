@@ -278,11 +278,25 @@ const IgInboxContent = ({
               </div>
             ) : (
               <>
-                <div className="border-b border-border px-4 py-3">
-                  <p className="text-sm font-semibold">{participantLabel(selected)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    A Meta permite responder até 24h após a última mensagem do usuário.
-                  </p>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">{participantLabel(selected)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      A Meta permite responder até 24h após a última mensagem do usuário.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4 text-muted-foreground" aria-hidden />
+                    <Label htmlFor="ai-pause" className="text-xs text-muted-foreground">
+                      {selected.ai_paused ? "Atendimento humano" : "IA responde"}
+                    </Label>
+                    <Switch
+                      id="ai-pause"
+                      checked={!selected.ai_paused}
+                      onCheckedChange={(checked) => void handleTogglePause(!checked)}
+                      aria-label="Alternar atendimento por IA nesta conversa"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
