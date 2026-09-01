@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  FileText, Copy, Check, X, Code, ExternalLink, 
-  Clock, Eye, Bell, Settings, Zap
+import {
+  FileText, Copy, Check, X, Code, ExternalLink,
+  Clock, Eye, Bell, Settings, Zap, Database, Key
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
