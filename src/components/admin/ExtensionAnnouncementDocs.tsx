@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  FileText, Copy, Check, X, Code, ExternalLink, 
-  Clock, Eye, Bell, Settings, Zap
+import {
+  FileText, Copy, Check, X, Code, ExternalLink,
+  Clock, Eye, Bell, Settings, Zap, Database, Key
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  ANON_KEY_PLACEHOLDER,
+  SUPABASE_ANON_KEY,
+  SUPABASE_API_URL,
+  vpsAnonKey,
+  vpsAnonKeyFromBuild,
+  vpsApiUrl,
+} from '@/lib/vpsApiConfig';
 
 interface ExtensionAnnouncementDocsProps {
   announcementId?: string;
@@ -16,8 +24,21 @@ interface ExtensionAnnouncementDocsProps {
 const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea = 'extension' }: ExtensionAnnouncementDocsProps) => {
   const { toast } = useToast();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  /**
+   * Qual backend a documentação descreve. Mantemos os dois lado a lado para
+   * publicar a extensão nova e validar em produção antes de desligar o antigo.
+   */
+  const [backend, setBackend] = useState<'supabase' | 'postgres'>('postgres');
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://adljdeekwifwcdcgbpit.supabase.co';
+  const supabaseUrl = SUPABASE_API_URL;
+  const postgresUrl = vpsApiUrl();
+  const anonKeyFromBuild = vpsAnonKeyFromBuild();
+  const postgresKey = vpsAnonKey() || ANON_KEY_PLACEHOLDER;
+  const supabaseKey = SUPABASE_ANON_KEY || 'COLE_AQUI_A_ANON_KEY_DO_SUPABASE';
+
+  const isPostgres = backend === 'postgres';
+  const baseUrl = isPostgres ? postgresUrl : supabaseUrl;
+  const apiKey = isPostgres ? postgresKey : supabaseKey;
 
   const copyToClipboard = (text: string, section: string) => {
     navigator.clipboard.writeText(text);
@@ -32,14 +53,58 @@ const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea
   const fileName = targetArea === 'extension' ? 'extension-announcements.json' : `${targetArea}-announcements.json`;
   const storageKey = `mro_${targetArea}_announcements`;
   const label = targetArea === 'extension' ? 'Extensão Chrome' : `Extensão Chrome ${extensionNumber}`;
-  const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
+  const endpoint = `${baseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
 
-  const fetchCode = `// 🔔 Buscar avisos da extensão
+  /**
+   * Chaves prontas para copiar. O storage público não exige `apikey`, mas
+   * enviamos de qualquer forma: o mesmo bloco serve para as rotas /rest/v1 e
+   * /functions/v1, onde a chave é obrigatória em ambos os backends.
+   */
+  const keysSnippet = `# ---- Avisos: ${isPostgres ? 'PostgreSQL (VPS)' : 'Supabase (atual)'} ----
+API_URL=${baseUrl}
+API_ANON_KEY=${apiKey}
+ENDPOINT_AVISOS=${endpoint}
+
+# Headers usados nas rotas autenticadas (/rest/v1 e /functions/v1):
+#   apikey: ${apiKey}
+#   Authorization: Bearer ${apiKey}
+
+# ---- Backend antigo (Supabase), mantenha durante a transição ----
+SUPABASE_URL=${supabaseUrl}
+SUPABASE_ANON_KEY=${supabaseKey}`;
+
+  const fallbackSnippet = `// 🔁 Avisos com fallback automático (zero downtime)
+const AVISOS = [
+  { name: "postgres", url: "${postgresUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${postgresKey}" },
+  { name: "supabase", url: "${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}", apikey: "${supabaseKey}" },
+];
+
+async function fetchAnnouncementsWithFallback() {
+  for (const cfg of AVISOS) {
+    try {
+      const res = await fetch(cfg.url + "?t=" + Date.now(), {
+        headers: { apikey: cfg.apikey, Authorization: "Bearer " + cfg.apikey },
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      return { announcements: data.announcements || [], _backend: cfg.name };
+    } catch (error) {
+      console.warn("[avisos] backend indisponível:", cfg.name, error);
+    }
+  }
+  return { announcements: [], _backend: null };
+}`;
+
+
+  const fetchCode = `// 🔔 Buscar avisos da extensão (${isPostgres ? 'PostgreSQL / VPS' : 'Supabase'})
 const ANNOUNCEMENTS_URL = '${endpoint}';
+const API_ANON_KEY = '${apiKey}';
 
 async function fetchExtensionAnnouncements() {
   try {
-    const response = await fetch(ANNOUNCEMENTS_URL + '?t=' + Date.now());
+    const response = await fetch(ANNOUNCEMENTS_URL + '?t=' + Date.now(), {
+      headers: { apikey: API_ANON_KEY, Authorization: 'Bearer ' + API_ANON_KEY },
+    });
     if (!response.ok) return [];
     
     const data = await response.json();
@@ -302,6 +367,36 @@ interface ExtensionAnnouncement {
         </div>
 
         <div className="p-6 space-y-8">
+          <section className="space-y-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Database className="w-5 h-5 text-emerald-500" /> Backend
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={isPostgres ? 'default' : 'outline'}
+                onClick={() => setBackend('postgres')}
+              >
+                PostgreSQL (VPS)
+              </Button>
+              <Button
+                size="sm"
+                variant={!isPostgres ? 'default' : 'outline'}
+                onClick={() => setBackend('supabase')}
+              >
+                Supabase (atual)
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Todos os exemplos abaixo mudam junto com o backend selecionado — endpoint, chave e headers.{' '}
+              {isPostgres && anonKeyFromBuild
+                ? 'A ANON_KEY da VPS foi carregada automaticamente do build.'
+                : isPostgres
+                  ? 'A ANON_KEY da VPS aparece automaticamente após o deploy com ./atualizar.sh (até então mostramos um marcador).'
+                  : ''}
+            </p>
+          </section>
+
           <section>
             <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Zap className="w-5 h-5 text-yellow-500" /> Endpoint</h3>
             <div className="bg-secondary/50 rounded-lg p-4">
@@ -315,7 +410,28 @@ interface ExtensionAnnouncement {
           </section>
 
           <section>
+            <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Key className="w-5 h-5 text-amber-500" /> Chaves de API (copie e envie ao programador)</h3>
+            <div className="bg-secondary/50 rounded-lg p-4 relative">
+              <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(keysSnippet, 'Chaves')}>
+                {copiedSection === 'Chaves' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+              <pre className="text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap">{keysSnippet}</pre>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Database className="w-5 h-5 text-emerald-500" /> Avisos com fallback automático (PostgreSQL → Supabase)</h3>
+            <div className="bg-secondary/50 rounded-lg p-4 relative">
+              <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(fallbackSnippet, 'Fallback')}>
+                {copiedSection === 'Fallback' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+              <pre className="text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap">{fallbackSnippet}</pre>
+            </div>
+          </section>
+
+          <section>
             <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Settings className="w-5 h-5 text-blue-500" /> Estrutura de Dados</h3>
+
             <div className="bg-secondary/50 rounded-lg p-4 relative">
               <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(dataStructure, 'Estrutura')}>
                 {copiedSection === 'Estrutura' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}

@@ -4,6 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Database, Server } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  ANON_KEY_PLACEHOLDER,
+  DEFAULT_VPS_API_URL,
+  SUPABASE_ANON_KEY,
+  saveVpsAnonKey,
+  vpsAnonKey as readVpsAnonKey,
+  vpsAnonKeyFromBuild,
+  vpsApiUrl,
+} from '@/lib/vpsApiConfig';
 
 /** Ferramenta a ser documentada. Cada uma tem sua própria função de API. */
 export type ExtensionTool = 'mro' | 'zapmro';
@@ -27,13 +36,7 @@ const TOOL_META: Record<ExtensionTool, { label: string; fn: string; legacy: stri
   },
 };
 
-const DEFAULT_API = 'https://api.maisresultadosonline.com.br';
-
-/** Chave anon do backend atual (Supabase) — pública por natureza. */
-const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? '';
-
-/** Onde guardamos a ANON_KEY da VPS para não pedir de novo a cada visita. */
-const VPS_KEY_STORAGE = 'mro-docs-vps-anon-key';
+const DEFAULT_API = DEFAULT_VPS_API_URL;
 
 /**
  * Documentação da NOVA versão da extensão, já apontando para o backend
@@ -46,14 +49,13 @@ const VPS_KEY_STORAGE = 'mro-docs-vps-anon-key';
  */
 const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
   tool,
-  defaultApiUrl = DEFAULT_API,
+  defaultApiUrl = vpsApiUrl(),
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [apiUrl, setApiUrl] = useState<string>(defaultApiUrl);
-  const [vpsAnonKey, setVpsAnonKey] = useState<string>(
-    () => (typeof window !== 'undefined' ? window.localStorage.getItem(VPS_KEY_STORAGE) ?? '' : ''),
-  );
+  const [anonKey, setAnonKey] = useState<string>(() => readVpsAnonKey());
+  const keyFromBuild = vpsAnonKeyFromBuild();
 
   const meta = TOOL_META[tool];
   const base = apiUrl.replace(/\/+$/, '');
@@ -64,13 +66,14 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
    * um curl com `apikey: ` vazio falharia silenciosamente com 401 e o
    * programador perderia tempo procurando o erro no lugar errado.
    */
-  const vpsKey = vpsAnonKey.trim() || 'COLE_AQUI_A_ANON_KEY_DA_VPS';
+  const vpsKey = anonKey.trim() || ANON_KEY_PLACEHOLDER;
   const supaKey = SUPABASE_ANON_KEY || 'COLE_AQUI_A_ANON_KEY_DO_SUPABASE';
 
   const saveVpsKey = (value: string): void => {
-    setVpsAnonKey(value);
-    if (typeof window !== 'undefined') window.localStorage.setItem(VPS_KEY_STORAGE, value.trim());
+    setAnonKey(value);
+    saveVpsAnonKey(value);
   };
+
 
   const copy = (key: string, value: string): void => {
     void navigator.clipboard.writeText(value);
@@ -232,12 +235,12 @@ curl -fsS -X POST '${endpoint}' \\
 
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground" htmlFor="pg-anon-key">
-              ANON_KEY da VPS (gerada no painel → aba Migração)
+              ANON_KEY da VPS {keyFromBuild ? '(carregada automaticamente do build da VPS)' : '(gerada no painel → aba Migração)'}
             </label>
             <div className="flex gap-2">
               <input
                 id="pg-anon-key"
-                value={vpsAnonKey}
+                value={anonKey}
                 onChange={(e) => saveVpsKey(e.target.value)}
                 className="flex-1 rounded-md border bg-background px-3 py-2 text-xs font-mono"
                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -246,13 +249,21 @@ curl -fsS -X POST '${endpoint}' \\
                 {copied === 'anon' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               </Button>
             </div>
-            {!vpsAnonKey.trim() && (
-              <p className="text-xs text-yellow-600">
-                Cole aqui a <code>ANON_KEY</code> do <code>server/.env</code> da VPS. Enquanto estiver vazia, os exemplos
-                abaixo mostram <code>COLE_AQUI_A_ANON_KEY_DA_VPS</code> no lugar da chave.
+            {keyFromBuild ? (
+              <p className="text-xs text-emerald-600">
+                Chave lida do <code>.env</code> gerado pelo <code>./atualizar.sh</code> na VPS — já preenchida em todos os
+                exemplos abaixo.
               </p>
+            ) : (
+              !anonKey.trim() && (
+                <p className="text-xs text-yellow-600">
+                  Cole aqui a <code>ANON_KEY</code> do <code>server/.env</code> da VPS. Enquanto estiver vazia, os exemplos
+                  abaixo mostram <code>{ANON_KEY_PLACEHOLDER}</code> no lugar da chave.
+                </p>
+              )
             )}
           </div>
+
 
           <div className="rounded-md border p-3 space-y-1">
             <Badge variant="outline">ANON_KEY do Supabase (atual)</Badge>

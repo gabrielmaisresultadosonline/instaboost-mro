@@ -161,7 +161,30 @@ else
 fi
 
 # ---------- 5. Frontend ----------
+# O build precisa da ANON_KEY da VPS embutida: é assim que o painel /admin
+# mostra a chave nas documentações sem ninguém precisar procurá-la, e é assim
+# que o site fala com o backend próprio. Reescrevemos apenas as chaves VITE_*
+# do .env da raiz, preservando qualquer outra linha já existente.
 step "5/7 Compilando o site"
+if [ -n "${ANON_KEY:-}" ]; then
+  API_PUBLICA="${PUBLIC_API_URL:-https://api.maisresultadosonline.com.br}"
+  touch .env
+  # Remove só as linhas que vamos regravar (não apaga o resto do arquivo).
+  grep -vE '^(VITE_API_URL|VITE_API_ANON_KEY|VITE_USE_LOCAL_BACKEND)=' .env > .env.tmp || true
+  {
+    cat .env.tmp
+    echo "VITE_API_URL=$API_PUBLICA"
+    echo "VITE_API_ANON_KEY=$ANON_KEY"
+    echo "VITE_USE_LOCAL_BACKEND=true"
+  } > .env
+  rm -f .env.tmp
+  export VITE_API_URL="$API_PUBLICA"
+  export VITE_API_ANON_KEY="$ANON_KEY"
+  export VITE_USE_LOCAL_BACKEND=true
+  ok "ANON_KEY da VPS embutida no build (visível em /admin → documentações)."
+else
+  warn "ANON_KEY vazio em server/.env: o site será compilado sem a chave da VPS."
+fi
 npm run build
 [ -d dist ] || fail "Build não gerou a pasta dist/."
 ok "Site compilado ($(du -sh dist | cut -f1))."
