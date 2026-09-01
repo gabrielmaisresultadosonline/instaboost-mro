@@ -165,6 +165,15 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
     let orphans = 0;
     let bytes = 0;
 
+    // Uma consulta por bucket em vez de um UPSERT por arquivo: em reexecuções
+    // com milhares de objetos isso é a diferença entre segundos e minutos.
+    const registered = new Map<string, number>();
+    const rows = await pool.query<{ name: string; size: string | number | null }>(
+      `SELECT name, size FROM public.storage_objects WHERE bucket_id = $1`,
+      [bucket.id],
+    );
+    for (const row of rows.rows) registered.set(row.name, Number(row.size ?? 0));
+
     for (const object of objects) {
       const destination = path.join(env.storage.root, bucket.id, object.name);
       const expectedSize = object.metadata?.size ?? null;
@@ -173,7 +182,10 @@ export async function migrateStorage(onlyBucket?: string): Promise<void> {
         const stats = fs.statSync(destination);
         if (expectedSize === null || stats.size === expectedSize) {
           skipped += 1;
-          await registerObject(bucket.id, object, stats.size);
+          // Já baixado e já registrado com o mesmo tamanho: nada a fazer.
+          if (registered.get(object.name) !== stats.size) {
+            await registerObject(bucket.id, object, stats.size);
+          }
           continue;
         }
       }

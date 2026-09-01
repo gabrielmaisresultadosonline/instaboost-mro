@@ -207,6 +207,35 @@ async function copyTable(legacyUrl: string, table: TableInfo): Promise<{ copied:
   }
 }
 
+/** Tabelas existentes no schema public de uma conexão. */
+async function tableNames(connection: string): Promise<Set<string>> {
+  const output = await runOrThrow("psql", [
+    "-t", "-A", "-d", connection,
+    "-c", `SELECT table_name FROM information_schema.tables
+             WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`,
+  ]);
+  return new Set(output.split("\n").map((line) => line.trim()).filter(Boolean));
+}
+
+/**
+ * Conta as linhas de várias tabelas numa única ida ao banco. É isso que permite
+ * pular, em segundos, tudo o que já foi copiado numa execução anterior.
+ */
+async function rowCounts(connection: string, tables: string[]): Promise<Map<string, number>> {
+  if (tables.length === 0) return new Map();
+  const query = tables
+    .map((table) => `SELECT '${table}' AS t, count(*)::text AS n FROM public.${quoteIdent(table)}`)
+    .join(" UNION ALL ");
+
+  const output = await runOrThrow("psql", ["-t", "-A", "-F", "|", "-d", connection, "-c", query]);
+  const counts = new Map<string, number>();
+  for (const line of output.split("\n")) {
+    const [name, count] = line.trim().split("|");
+    if (name) counts.set(name, Number(count ?? 0));
+  }
+  return counts;
+}
+
 async function resetSequences(): Promise<void> {
   await pool.query(`
     DO $$
@@ -239,12 +268,41 @@ export async function migrateData(only?: string[]): Promise<void> {
     return;
   }
 
-  const tables = sortByForeignKeys((await listLocalTables()).filter(
+  const allTables = sortByForeignKeys((await listLocalTables()).filter(
     (table) => !only || only.length === 0 || only.includes(table.name),
   ));
-  log.info(`${tables.length} tabelas para sincronizar.`);
 
   const summary: Record<string, unknown>[] = [];
+
+  // ---- Filtro incremental: copia só o que ainda falta ----
+  // Duas contagens (uma em cada banco) custam segundos; um COPY completo de 219
+  // tabelas custa minutos. Se o local já tem tantas linhas quanto a origem,
+  // não há nada novo para trazer.
+  let tables = allTables;
+  if (process.env.MIGRATE_FORCE_DATA !== "1") {
+    const existsInLegacy = await tableNames(legacy.databaseUrl);
+    const comparable = allTables.filter((table) => existsInLegacy.has(table.name)).map((table) => table.name);
+    const [legacyCounts, localCounts] = await Promise.all([
+      rowCounts(legacy.databaseUrl, comparable),
+      rowCounts(env.database.url, comparable),
+    ]);
+
+    const skipped: string[] = [];
+    tables = allTables.filter((table) => {
+      if (!existsInLegacy.has(table.name)) return false;
+      const origem = legacyCounts.get(table.name) ?? 0;
+      const local = localCounts.get(table.name) ?? 0;
+      if (local >= origem) {
+        skipped.push(table.name);
+        summary.push({ tabela: table.name, lidas: origem, inseridas: 0, situacao: "em dia" });
+        return false;
+      }
+      return true;
+    });
+    log.ok(`${skipped.length} tabelas já em dia (ignoradas).`);
+  }
+
+  log.info(`${tables.length} tabelas para sincronizar.`);
   let pending = [...tables];
   const lastErrors = new Map<string, string>();
 
