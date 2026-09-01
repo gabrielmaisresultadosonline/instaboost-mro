@@ -49,14 +49,13 @@ const DEFAULT_API = DEFAULT_VPS_API_URL;
  */
 const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
   tool,
-  defaultApiUrl = DEFAULT_API,
+  defaultApiUrl = vpsApiUrl(),
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [apiUrl, setApiUrl] = useState<string>(defaultApiUrl);
-  const [vpsAnonKey, setVpsAnonKey] = useState<string>(
-    () => (typeof window !== 'undefined' ? window.localStorage.getItem(VPS_KEY_STORAGE) ?? '' : ''),
-  );
+  const [anonKey, setAnonKey] = useState<string>(() => readVpsAnonKey());
+  const keyFromBuild = vpsAnonKeyFromBuild();
 
   const meta = TOOL_META[tool];
   const base = apiUrl.replace(/\/+$/, '');
@@ -67,13 +66,14 @@ const ExtensionPostgresDocs: React.FC<ExtensionPostgresDocsProps> = ({
    * um curl com `apikey: ` vazio falharia silenciosamente com 401 e o
    * programador perderia tempo procurando o erro no lugar errado.
    */
-  const vpsKey = vpsAnonKey.trim() || 'COLE_AQUI_A_ANON_KEY_DA_VPS';
+  const vpsKey = anonKey.trim() || ANON_KEY_PLACEHOLDER;
   const supaKey = SUPABASE_ANON_KEY || 'COLE_AQUI_A_ANON_KEY_DO_SUPABASE';
 
   const saveVpsKey = (value: string): void => {
-    setVpsAnonKey(value);
-    if (typeof window !== 'undefined') window.localStorage.setItem(VPS_KEY_STORAGE, value.trim());
+    setAnonKey(value);
+    saveVpsAnonKey(value);
   };
+
 
   const copy = (key: string, value: string): void => {
     void navigator.clipboard.writeText(value);
