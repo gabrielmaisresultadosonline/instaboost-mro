@@ -456,7 +456,7 @@ Deno.serve(async (req) => {
 
       const { data } = await db
         .from("ig_messages")
-        .select("id, direction, text, attachments, sent_at")
+        .select("id, direction, text, attachments, sent_at, is_ai")
         .eq("tenant_id", tenantId)
         .eq("conversation_id", body.conversation_id)
         .order("sent_at", { ascending: true })
