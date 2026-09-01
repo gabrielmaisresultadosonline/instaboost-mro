@@ -5,6 +5,14 @@ import {
   Clock, Eye, Bell, Settings, Zap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  ANON_KEY_PLACEHOLDER,
+  SUPABASE_ANON_KEY,
+  SUPABASE_API_URL,
+  vpsAnonKey,
+  vpsAnonKeyFromBuild,
+  vpsApiUrl,
+} from '@/lib/vpsApiConfig';
 
 interface ExtensionAnnouncementDocsProps {
   announcementId?: string;
