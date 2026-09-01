@@ -218,6 +218,10 @@ Deno.serve(async (req) => {
       stage?: string;
       notes?: string;
       only?: "reels" | "posts";
+      settings?: Record<string, unknown>;
+      automation?: Record<string, unknown>;
+      automation_id?: string;
+      paused?: boolean;
     };
 
 
