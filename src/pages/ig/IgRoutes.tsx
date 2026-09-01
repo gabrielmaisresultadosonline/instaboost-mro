@@ -45,6 +45,7 @@ const MODULES: Array<{ path: string; title: string; description: string; phase: 
 ];
 
 const IgRoutes = () => (
+  <div className="ig-theme min-h-screen bg-background text-foreground">
   <Routes>
     <Route index element={<IgLanding />} />
     <Route path="login" element={<IgLogin />} />
@@ -94,6 +95,7 @@ const IgRoutes = () => (
 
     <Route path="*" element={<Navigate to="/IG" replace />} />
   </Routes>
+  </div>
 );
 
 export default IgRoutes;
