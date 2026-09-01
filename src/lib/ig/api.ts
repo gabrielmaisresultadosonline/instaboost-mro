@@ -236,6 +236,47 @@ export const igApi = {
       ...patch,
     }),
 
+  aiSettings: (tenantId: string) =>
+    invoke<{ settings: IgAiSettings }>("ig-api", { action: "ai_settings", tenant_id: tenantId }),
+
+  saveAiSettings: (tenantId: string, settings: Partial<IgAiSettings>) =>
+    invoke<{ settings: IgAiSettings }>("ig-api", { action: "save_ai_settings", tenant_id: tenantId, settings }),
+
+  aiSuggest: (tenantId: string, conversationId: string, text?: string) =>
+    invoke<{ draft: string }>("ig-api", {
+      action: "ai_suggest",
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      text,
+    }),
+
+  setAiPause: (tenantId: string, conversationId: string, paused: boolean) =>
+    invoke<{ ai_paused: boolean }>("ig-api", {
+      action: "set_ai_pause",
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      paused,
+    }),
+
+  automations: (tenantId: string) =>
+    invoke<{ automations: IgAutomation[] }>("ig-api", { action: "automations", tenant_id: tenantId }),
+
+  saveAutomation: (tenantId: string, automation: Partial<IgAutomation>) =>
+    invoke<{ success: true }>("ig-api", { action: "save_automation", tenant_id: tenantId, automation }),
+
+  deleteAutomation: (tenantId: string, automationId: string) =>
+    invoke<{ success: true }>("ig-api", {
+      action: "delete_automation",
+      tenant_id: tenantId,
+      automation_id: automationId,
+    }),
+
+  logs: (tenantId: string) => invoke<{ logs: IgDiagLog[] }>("ig-api", { action: "logs", tenant_id: tenantId }),
+
+  diag: (tenantId: string) =>
+    invoke<{ report: IgDiagReport[]; hint?: string }>("ig-api", { action: "diag", tenant_id: tenantId }),
+
+
   oauthConfig: () => invoke<{ app_id: string; scopes: string }>("ig-oauth", { action: "get-config" }),
 
   exchangeCode: (input: { code: string; redirect_uri: string; tenant_id: string }) =>
