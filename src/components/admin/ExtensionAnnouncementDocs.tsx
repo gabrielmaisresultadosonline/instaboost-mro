@@ -367,6 +367,36 @@ interface ExtensionAnnouncement {
         </div>
 
         <div className="p-6 space-y-8">
+          <section className="space-y-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Database className="w-5 h-5 text-emerald-500" /> Backend
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={isPostgres ? 'default' : 'outline'}
+                onClick={() => setBackend('postgres')}
+              >
+                PostgreSQL (VPS)
+              </Button>
+              <Button
+                size="sm"
+                variant={!isPostgres ? 'default' : 'outline'}
+                onClick={() => setBackend('supabase')}
+              >
+                Supabase (atual)
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Todos os exemplos abaixo mudam junto com o backend selecionado — endpoint, chave e headers.{' '}
+              {isPostgres && anonKeyFromBuild
+                ? 'A ANON_KEY da VPS foi carregada automaticamente do build.'
+                : isPostgres
+                  ? 'A ANON_KEY da VPS aparece automaticamente após o deploy com ./atualizar.sh (até então mostramos um marcador).'
+                  : ''}
+            </p>
+          </section>
+
           <section>
             <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Zap className="w-5 h-5 text-yellow-500" /> Endpoint</h3>
             <div className="bg-secondary/50 rounded-lg p-4">
@@ -380,7 +410,28 @@ interface ExtensionAnnouncement {
           </section>
 
           <section>
+            <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Key className="w-5 h-5 text-amber-500" /> Chaves de API (copie e envie ao programador)</h3>
+            <div className="bg-secondary/50 rounded-lg p-4 relative">
+              <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(keysSnippet, 'Chaves')}>
+                {copiedSection === 'Chaves' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+              <pre className="text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap">{keysSnippet}</pre>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Database className="w-5 h-5 text-emerald-500" /> Avisos com fallback automático (PostgreSQL → Supabase)</h3>
+            <div className="bg-secondary/50 rounded-lg p-4 relative">
+              <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(fallbackSnippet, 'Fallback')}>
+                {copiedSection === 'Fallback' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+              <pre className="text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap">{fallbackSnippet}</pre>
+            </div>
+          </section>
+
+          <section>
             <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><Settings className="w-5 h-5 text-blue-500" /> Estrutura de Dados</h3>
+
             <div className="bg-secondary/50 rounded-lg p-4 relative">
               <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(dataStructure, 'Estrutura')}>
                 {copiedSection === 'Estrutura' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
