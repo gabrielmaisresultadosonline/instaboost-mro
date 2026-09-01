@@ -28,6 +28,9 @@ import {
   type IgAccountRow,
 } from "../_shared/ig-sync.ts";
 
+import { generateAiReply, loadAiSettings } from "../_shared/ig-ai.ts";
+import { igLog, loggedGraphFetch } from "../_shared/ig-log.ts";
+
 type Action =
   | "bootstrap"
   | "me"
@@ -43,9 +46,18 @@ type Action =
   | "comments"
   | "reply_comment"
   | "contacts"
-  | "update_contact";
+  | "update_contact"
+  | "ai_settings"
+  | "save_ai_settings"
+  | "ai_suggest"
+  | "set_ai_pause"
+  | "automations"
+  | "save_automation"
+  | "delete_automation"
+  | "logs"
+  | "diag";
 
-
+const GRAPH = "https://graph.instagram.com/v21.0";
 
 const PERIODS: Record<string, number> = { today: 1, "7d": 7, "30d": 30, "90d": 90 };
 
