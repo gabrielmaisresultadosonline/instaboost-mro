@@ -607,29 +607,41 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const t0 = Date.now();
         const profile = await syncProfile(db, account, token.access_token);
         if (profile.ok) summary.profile += profile.count;
         else if (profile.error) summary.errors.push(`Perfil: ${profile.error}`);
+        console.log(`[ig-api] sync profile ok=${profile.ok} (${Date.now() - t0}ms)`);
 
+        const t1 = Date.now();
         const media = await syncMedia(db, account, token.access_token);
         if (media.ok) summary.media += media.count;
         else if (media.error) summary.errors.push(`Mídias: ${media.error}`);
+        console.log(`[ig-api] sync media=${media.count} ok=${media.ok} (${Date.now() - t1}ms)`);
 
+        const t2 = Date.now();
         const comments = await syncComments(db, account, token.access_token);
         summary.comments += comments.count;
         if (comments.error) summary.errors.push(`Comentários: ${comments.error}`);
+        console.log(`[ig-api] sync comments=${comments.count} (${Date.now() - t2}ms)`);
 
         try {
+          const t3 = Date.now();
           const inbox = await syncInboxHistory(db, tenantId, account, token.access_token);
           summary.conversations += inbox.conversations;
           summary.messages += inbox.messages;
+          console.log(
+            `[ig-api] sync inbox conversations=${inbox.conversations} messages=${inbox.messages} (${Date.now() - t3}ms)`,
+          );
         } catch (error) {
           summary.errors.push(`Directs: ${(error as Error).message}`);
         }
 
         const contacts = await rebuildContacts(db, account);
         summary.contacts += contacts.count;
+        console.log(`[ig-api] sync contacts=${contacts.count}; total ${Date.now() - t0}ms`);
       }
+
 
       await audit(db, {
         tenant_id: tenantId,
