@@ -96,12 +96,15 @@ async function fetchAnnouncementsWithFallback() {
 }`;
 
 
-  const fetchCode = `// 🔔 Buscar avisos da extensão
+  const fetchCode = `// 🔔 Buscar avisos da extensão (${isPostgres ? 'PostgreSQL / VPS' : 'Supabase'})
 const ANNOUNCEMENTS_URL = '${endpoint}';
+const API_ANON_KEY = '${apiKey}';
 
 async function fetchExtensionAnnouncements() {
   try {
-    const response = await fetch(ANNOUNCEMENTS_URL + '?t=' + Date.now());
+    const response = await fetch(ANNOUNCEMENTS_URL + '?t=' + Date.now(), {
+      headers: { apikey: API_ANON_KEY, Authorization: 'Bearer ' + API_ANON_KEY },
+    });
     if (!response.ok) return [];
     
     const data = await response.json();
