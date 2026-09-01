@@ -162,7 +162,15 @@ curl -fsS -X POST '${endpoint}' \\
   -H 'Content-Type: application/json' \\
   -H 'apikey: ${vpsKey}' \\
   -H 'Authorization: Bearer ${vpsKey}' \\
-  -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo`;
+  -d '{"action":"verify_user","username":"usuario_de_teste"}' && echo
+
+# 3) CORS liberado para a extensão? (motivo nº1 de falha em produção)
+# A resposta do preflight PRECISA conter 'access-control-allow-origin'.
+curl -si -X OPTIONS '${endpoint}' \\
+  -H 'Origin: https://www.instagram.com' \\
+  -H 'Access-Control-Request-Method: POST' \\
+  -H 'Access-Control-Request-Headers: authorization, apikey, content-type' \\
+  | grep -i 'access-control-allow' || echo 'FALHOU: VPS sem CORS — mantenha PREFER = "supabase"'`;
 
   const Block: React.FC<{ id: string; title: string; description?: string; code: string }> = ({
     id,
