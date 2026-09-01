@@ -191,7 +191,8 @@ const IgInboxContent = ({
       ) : conversations.length === 0 ? (
         <IgEmpty
           title="Nenhuma conversa ainda"
-          description="Envie um Direct para a conta conectada. Se nada aparecer, clique em Reativar recebimento para assinar novamente os eventos da Meta."
+          description="A Meta só entrega Directs por API quando o acesso a mensagens está liberado no app do Instagram: Configurações → Mensagens e respostas aos stories → Ferramentas conectadas → Permitir acesso a mensagens. Depois clique em Reativar recebimento e envie um Direct de teste."
+
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">

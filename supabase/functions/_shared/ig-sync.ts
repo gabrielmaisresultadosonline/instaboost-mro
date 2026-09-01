@@ -22,6 +22,21 @@ export interface SyncStepResult {
   error?: string;
 }
 
+
+/** Executa tarefas em paralelo com limite de concorrência (evita timeout na Edge). */
+async function mapLimit<T, R>(items: T[], limit: number, task: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = [];
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      results[index] = await task(items[index]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
 async function graphGet<T>(path: string, params: Record<string, string>): Promise<T> {
   const query = new URLSearchParams(params).toString();
   const response = await fetch(`${GRAPH}/${path}?${query}`);
@@ -127,35 +142,39 @@ export async function syncMedia(
       access_token: token,
     });
 
-    let saved = 0;
-    for (const media of data.data ?? []) {
-      if (!media.id) continue;
+    const list = (data.data ?? []).filter((media) => Boolean(media.id));
+    console.log(`[ig-sync] media list: ${list.length} itens`);
+
+    const rows = await mapLimit(list, 8, async (media) => {
       const isReel = (media.media_product_type ?? "").toUpperCase() === "REELS";
       const insights = await fetchMediaInsights(media.id, token, isReel);
+      return {
+        tenant_id: account.tenant_id,
+        ig_account_id: account.id,
+        media_id: media.id,
+        media_type: media.media_type ?? null,
+        media_product_type: media.media_product_type ?? null,
+        caption: media.caption ?? null,
+        permalink: media.permalink ?? null,
+        media_url: media.media_url ?? null,
+        thumbnail_url: media.thumbnail_url ?? null,
+        like_count: media.like_count ?? null,
+        comments_count: media.comments_count ?? null,
+        views_count: insights.views,
+        reach: insights.reach,
+        saved: insights.saved,
+        shares: insights.shares,
+        published_at: media.timestamp ?? null,
+      };
+    });
 
-      const { error } = await db.from("ig_media").upsert(
-        {
-          tenant_id: account.tenant_id,
-          ig_account_id: account.id,
-          media_id: media.id,
-          media_type: media.media_type ?? null,
-          media_product_type: media.media_product_type ?? null,
-          caption: media.caption ?? null,
-          permalink: media.permalink ?? null,
-          media_url: media.media_url ?? null,
-          thumbnail_url: media.thumbnail_url ?? null,
-          like_count: media.like_count ?? null,
-          comments_count: media.comments_count ?? null,
-          views_count: insights.views,
-          reach: insights.reach,
-          saved: insights.saved,
-          shares: insights.shares,
-          published_at: media.timestamp ?? null,
-        },
-        { onConflict: "ig_account_id,media_id" },
-      );
-      if (!error) saved++;
+    let saved = 0;
+    if (rows.length > 0) {
+      const { error } = await db.from("ig_media").upsert(rows, { onConflict: "ig_account_id,media_id" });
+      if (error) throw new Error(error.message);
+      saved = rows.length;
     }
+    console.log(`[ig-sync] media saved: ${saved}`);
 
     return { ok: true, count: saved };
   } catch (error) {
@@ -199,19 +218,18 @@ export async function syncComments(
   let saved = 0;
   let lastError: string | null = null;
 
-  for (const row of mediaRows) {
+  const batches = await mapLimit(mediaRows, 6, async (row) => {
     try {
       const data = await graphGet<{ data?: MetaComment[] }>(`${row.media_id}/comments`, {
         fields: "id,text,timestamp,username,from,parent_id,hidden,replies{id}",
         limit: "50",
         access_token: token,
       });
-
-      for (const comment of data.data ?? []) {
-        if (!comment.id) continue;
-        const username = comment.username ?? comment.from?.username ?? null;
-        const { error } = await db.from("ig_comments").upsert(
-          {
+      return (data.data ?? [])
+        .filter((comment) => Boolean(comment.id))
+        .map((comment) => {
+          const username = comment.username ?? comment.from?.username ?? null;
+          return {
             tenant_id: account.tenant_id,
             ig_account_id: account.id,
             media_row_id: row.id,
@@ -225,15 +243,24 @@ export async function syncComments(
             replied: (comment.replies?.data?.length ?? 0) > 0,
             hidden: Boolean(comment.hidden),
             commented_at: comment.timestamp ?? null,
-          },
-          { onConflict: "ig_account_id,comment_id" },
-        );
-        if (!error) saved++;
-      }
+          };
+        });
     } catch (error) {
-      lastError = (error as Error).message;
+      const message = (error as Error).message;
+      lastError = message;
+      console.error(`[ig-sync] comments failed for media ${row.media_id}: ${message.slice(0, 160)}`);
+      return [];
     }
+
+  });
+
+  const rows = batches.flat();
+  if (rows.length > 0) {
+    const { error } = await db.from("ig_comments").upsert(rows, { onConflict: "ig_account_id,comment_id" });
+    if (error) lastError = error.message;
+    else saved = rows.length;
   }
+  console.log(`[ig-sync] comments saved: ${saved} de ${mediaRows.length} mídias`);
 
   if (lastError) console.error("[ig-sync] comments partial failure:", lastError.slice(0, 200));
   return { ok: saved > 0 || !lastError, count: saved, error: lastError ?? undefined };
