@@ -32,15 +32,22 @@ warn(){ echo -e "  ${Y}!${N} $1"; }
 fail(){ echo -e "  ${R}✗${N} $1"; exit 1; }
 
 RAPIDO=false
+CORTE=false
+CORTE_ARGS=()
 MIGRATE_ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --rapido)    RAPIDO=true ;;
     --sem-midia) MIGRATE_ARGS+=("--skip-storage") ;;
     --so-midia)  MIGRATE_ARGS+=("--only-storage") ;;
-    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia ou --so-midia)" ;;
+    # Conferência completa (estrutura, dados, mídias, storage público, backend,
+    # cron) + reescrita das URLs. Sem --aplicar-urls as URLs só são simuladas.
+    --corte)       CORTE=true ;;
+    --aplicar-urls) CORTE=true; CORTE_ARGS+=("--apply") ;;
+    *) fail "Parâmetro desconhecido: $arg (use --rapido, --sem-midia, --so-midia, --corte ou --aplicar-urls)" ;;
   esac
 done
+
 
 # ---------- 1. Código do GitHub ----------
 step "1/7 Baixando o código do GitHub"
@@ -179,9 +186,10 @@ fi
 
 # ---------- 7. Verificação ----------
 step "7/7 Conferência"
-if [ "$DB_PRONTO" = true ] && [ "$RAPIDO" = false ]; then
+if [ "$DB_PRONTO" = true ] && [ "$RAPIDO" = false ] && [ "$CORTE" = false ]; then
   (cd server && npm run migrate:verify) || warn "Conferência apontou divergências (veja acima)."
 fi
+
 PORT_LOCAL="${PORT:-8787}"
 BACKEND_OK=false
 for i in $(seq 1 30); do
@@ -200,6 +208,18 @@ for i in $(seq 1 30); do
 done
 
 [ "$BACKEND_OK" = true ] || fail "Backend local indisponível; o corte foi bloqueado. O site atual continua no Lovable Cloud."
+
+# ---------- 8. Corte (opcional) ----------
+# Roda só com --corte/--aplicar-urls: resincroniza o delta, confere estrutura,
+# dados, mídias, storage público, backend e cron, e imprime o relatório final.
+if [ "$CORTE" = true ]; then
+  step "8/8 Corte final — conferência completa e URLs"
+  [ "$DB_PRONTO" = true ] || fail "Banco local indisponível: corte abortado."
+  (cd server && npm run migrate:corte -- "${CORTE_ARGS[@]+"${CORTE_ARGS[@]}"}") \
+    || fail "Corte bloqueado pela conferência. Nada foi apontado para a VPS; o Supabase segue intacto."
+  ok "Corte concluído com conferência aprovada."
+fi
+
 
 cat <<EOF
 

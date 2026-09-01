@@ -112,8 +112,37 @@ function sanitizeDump(sql: string): string {
   // `security_invoker` em views só existe no PostgreSQL 15+; no 14 é erro.
   result = result.replace(/\s+WITH \(security_invoker[^)]*\)/gi, "");
 
+  // Reexecuções do dump reaplicam PKs/uniques/FKs já criadas. Sem proteção o
+  // psql grita "multiple primary keys for table X are not allowed" (42P16) e
+  // "constraint already exists" (42710) — ruído que esconde erros reais.
+  // Envolvemos cada constraint/trigger/policy num bloco que ignora apenas
+  // esses códigos, mantendo qualquer outro erro visível.
+  result = wrapIdempotent(result, /^ALTER TABLE (?:ONLY )?[^;]*?ADD CONSTRAINT[^;]*;/gim);
+  result = wrapIdempotent(result, /^CREATE TRIGGER [^;]*;/gim);
+  result = wrapIdempotent(result, /^CREATE POLICY [^;]*;/gim);
+
   return result;
 }
+
+/**
+ * Executa o comando dentro de um bloco que engole apenas erros de "já existe".
+ * Preserva o SQL original — nada é reescrito além do envelope.
+ */
+function wrapIdempotent(sql: string, pattern: RegExp): string {
+  return sql.replace(pattern, (statement) => {
+    if (/\$mig\$/.test(statement)) return statement;
+    return [
+      "DO $mig$ BEGIN",
+      statement,
+      "EXCEPTION",
+      // 42P16 invalid_table_definition (múltiplas PKs), 42710 duplicate_object,
+      // 42P07 duplicate_table (policy/trigger homônimos).
+      "  WHEN invalid_table_definition OR duplicate_object OR duplicate_table THEN NULL;",
+      "END $mig$;",
+    ].join("\n");
+  });
+}
+
 
 async function applySql(sqlPath: string, label: string, tolerant: boolean): Promise<void> {
   const args = ["-v", "ON_ERROR_STOP=1", "-d", env.database.url, "-f", sqlPath];
