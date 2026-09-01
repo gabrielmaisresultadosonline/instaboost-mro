@@ -1,7 +1,7 @@
 /** Shell do painel administrativo global do /IG (SUPER_ADMIN). */
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Activity, Instagram, KeyRound, LayoutDashboard, LogOut, ScrollText, Users } from "lucide-react";
+import { Instagram, KeyRound, LayoutDashboard, LogOut, ScrollText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getAdminToken, setAdminToken } from "@/lib/ig/adminApi";
@@ -39,8 +39,12 @@ export function IgAdminShell({ title, children }: { title: string; children: Rea
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-primary" aria-hidden />
-            <span className="text-xs font-bold uppercase tracking-widest">MRO Instagram · Admin</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl ig-gradient-bg">
+              <Instagram className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="ig-gradient-text text-xs font-black uppercase tracking-widest">
+              MRO Instagram · Admin
+            </span>
           </div>
           <nav className="flex flex-1 flex-wrap items-center gap-1" aria-label="Navegação administrativa">
             {NAV.map(({ to, label, icon: Icon }) => (

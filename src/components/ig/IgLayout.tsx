@@ -109,10 +109,10 @@ export function IgLayout({
         {/* Sidebar desktop */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-6 lg:flex">
           <Link to="/IG" className="mb-8 flex items-center gap-2 px-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl ig-gradient-bg">
               <Sparkles className="h-4 w-4" aria-hidden />
             </span>
-            <span className="text-sm font-bold uppercase tracking-wide">MRO Instagram</span>
+            <span className="ig-gradient-text text-sm font-black uppercase tracking-wide">MRO Instagram</span>
           </Link>
           <NavItems />
           <div className="mt-auto pt-6">

@@ -103,6 +103,17 @@ export const igAdminApi = {
   setUserBlocked: (userId: string, blocked: boolean) =>
     invoke<{ success: true }>({ action: "set-user-blocked", user_id: userId, blocked }),
 
+  setUserPassword: (userId: string, newPassword: string) =>
+    invoke<{ success: true }>({ action: "set-user-password", user_id: userId, new_user_password: newPassword }),
+
+  userRecoveryLink: (userId: string, email: string) =>
+    invoke<{ link: string }>({
+      action: "user-recovery-link",
+      user_id: userId,
+      email,
+      redirect_uri: window.location.origin,
+    }),
+
   instagram: () =>
     invoke<{
       accounts: Array<{
