@@ -186,9 +186,10 @@ fi
 
 # ---------- 7. Verificação ----------
 step "7/7 Conferência"
-if [ "$DB_PRONTO" = true ] && [ "$RAPIDO" = false ]; then
+if [ "$DB_PRONTO" = true ] && [ "$RAPIDO" = false ] && [ "$CORTE" = false ]; then
   (cd server && npm run migrate:verify) || warn "Conferência apontou divergências (veja acima)."
 fi
+
 PORT_LOCAL="${PORT:-8787}"
 BACKEND_OK=false
 for i in $(seq 1 30); do
