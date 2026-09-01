@@ -155,6 +155,41 @@ const IgInboxContent = ({
     }
   };
 
+  /** Pede uma sugestão de resposta à IA e joga no campo de texto (sem enviar). */
+  const handleSuggest = async () => {
+    if (!selectedId) return;
+    setSuggesting(true);
+    try {
+      const result = await igApi.aiSuggest(tenantId, selectedId);
+      setDraft(result.draft);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "A IA não respondeu",
+        description: err instanceof Error ? err.message : "Veja os detalhes em /IG/diagnostico.",
+      });
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  /** Liga/desliga o atendimento automático apenas nesta conversa. */
+  const handleTogglePause = async (paused: boolean) => {
+    if (!selectedId) return;
+    setConversations((prev) => prev.map((c) => (c.id === selectedId ? { ...c, ai_paused: paused } : c)));
+    try {
+      await igApi.setAiPause(tenantId, selectedId, paused);
+    } catch (err) {
+      setConversations((prev) => prev.map((c) => (c.id === selectedId ? { ...c, ai_paused: !paused } : c)));
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    }
+  };
+
+
   const handleSync = async () => {
     try {
       const result = await igApi.subscribeWebhook(tenantId);
