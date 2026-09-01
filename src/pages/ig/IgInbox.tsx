@@ -321,7 +321,11 @@ const IgInboxContent = ({
                           <p className="whitespace-pre-wrap break-words">
                             {message.text ?? "[anexo recebido no Instagram]"}
                           </p>
-                          <p className="mt-1 text-[11px] opacity-70">{formatTime(message.sent_at)}</p>
+                          <p className="mt-1 flex items-center gap-1 text-[11px] opacity-70">
+                            {message.is_ai ? <Bot className="h-3 w-3" aria-hidden /> : null}
+                            {message.is_ai ? "IA · " : ""}
+                            {formatTime(message.sent_at)}
+                          </p>
                         </div>
                       </div>
                     ))
