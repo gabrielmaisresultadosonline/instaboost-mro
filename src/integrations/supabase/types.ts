@@ -2851,6 +2851,68 @@ export type Database = {
         }
         Relationships: []
       }
+      ig_ai_settings: {
+        Row: {
+          auto_reply: boolean
+          business_context: string | null
+          created_at: string
+          enabled: boolean
+          greeting: string | null
+          handoff_keywords: string[]
+          id: string
+          knowledge: string | null
+          max_replies_per_conversation: number
+          model: string
+          persona: string
+          reply_delay_seconds: number
+          tenant_id: string
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          auto_reply?: boolean
+          business_context?: string | null
+          created_at?: string
+          enabled?: boolean
+          greeting?: string | null
+          handoff_keywords?: string[]
+          id?: string
+          knowledge?: string | null
+          max_replies_per_conversation?: number
+          model?: string
+          persona?: string
+          reply_delay_seconds?: number
+          tenant_id: string
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_reply?: boolean
+          business_context?: string | null
+          created_at?: string
+          enabled?: boolean
+          greeting?: string | null
+          handoff_keywords?: string[]
+          id?: string
+          knowledge?: string | null
+          max_replies_per_conversation?: number
+          model?: string
+          persona?: string
+          reply_delay_seconds?: number
+          tenant_id?: string
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_ai_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ig_app_config: {
         Row: {
           app_id: string | null
@@ -2927,6 +2989,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ig_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_automations: {
+        Row: {
+          channel: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean
+          keywords: string[]
+          last_triggered_at: string | null
+          match_type: string
+          name: string
+          priority: number
+          reply_text: string
+          tenant_id: string
+          triggered_count: number
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          last_triggered_at?: string | null
+          match_type?: string
+          name: string
+          priority?: number
+          reply_text: string
+          tenant_id: string
+          triggered_count?: number
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          last_triggered_at?: string | null
+          match_type?: string
+          name?: string
+          priority?: number
+          reply_text?: string
+          tenant_id?: string
+          triggered_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_automations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "ig_tenants"
@@ -3081,6 +3205,8 @@ export type Database = {
       }
       ig_conversations: {
         Row: {
+          ai_paused: boolean
+          ai_replies_count: number
           created_at: string
           id: string
           ig_account_id: string
@@ -3096,6 +3222,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_paused?: boolean
+          ai_replies_count?: number
           created_at?: string
           id?: string
           ig_account_id: string
@@ -3111,6 +3239,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_paused?: boolean
+          ai_replies_count?: number
           created_at?: string
           id?: string
           ig_account_id?: string
@@ -3135,6 +3265,56 @@ export type Database = {
           },
           {
             foreignKeyName: "ig_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "ig_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ig_diag_logs: {
+        Row: {
+          created_at: string
+          detail: Json
+          duration_ms: number | null
+          http_status: number | null
+          id: string
+          ig_account_id: string | null
+          level: string
+          message: string | null
+          scope: string
+          step: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          duration_ms?: number | null
+          http_status?: number | null
+          id?: string
+          ig_account_id?: string | null
+          level?: string
+          message?: string | null
+          scope: string
+          step: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          duration_ms?: number | null
+          http_status?: number | null
+          id?: string
+          ig_account_id?: string | null
+          level?: string
+          message?: string | null
+          scope?: string
+          step?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ig_diag_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "ig_tenants"
@@ -3284,6 +3464,7 @@ export type Database = {
           direction: string
           id: string
           ig_account_id: string
+          is_ai: boolean
           mid: string | null
           recipient_id: string | null
           sender_id: string | null
@@ -3298,6 +3479,7 @@ export type Database = {
           direction: string
           id?: string
           ig_account_id: string
+          is_ai?: boolean
           mid?: string | null
           recipient_id?: string | null
           sender_id?: string | null
@@ -3312,6 +3494,7 @@ export type Database = {
           direction?: string
           id?: string
           ig_account_id?: string
+          is_ai?: boolean
           mid?: string | null
           recipient_id?: string | null
           sender_id?: string | null

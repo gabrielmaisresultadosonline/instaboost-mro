@@ -11,6 +11,9 @@ import IgForgotPassword from "./IgForgotPassword";
 import IgResetPassword from "./IgResetPassword";
 import IgDashboard from "./IgDashboard";
 import IgInbox from "./IgInbox";
+import IgAi from "./IgAi";
+import IgAutomations from "./IgAutomations";
+import IgDiagnostics from "./IgDiagnostics";
 import IgInstagramCallback from "./IgInstagramCallback";
 import IgSettings from "./IgSettings";
 import IgSettingsInstagram from "./IgSettingsInstagram";
@@ -34,7 +37,7 @@ const MODULES: Array<{ path: string; title: string; description: string; phase: 
     description: "Crescimento, conteúdo, audiência, score e oportunidades a partir dos Insights da Meta.",
     phase: "Analytics",
   },
-  { path: "ai/*", title: "IA", description: "Configurações e base de conhecimento da IA de atendimento e conteúdo.", phase: "IA" },
+  
   { path: "settings/team", title: "Equipe", description: "Convites, papéis e permissões dos membros do workspace.", phase: "Configurações" },
   { path: "settings/notifications", title: "Notificações", description: "Escolha quais eventos geram aviso para a sua equipe.", phase: "Configurações" },
   { path: "settings/billing", title: "Plano e cobrança", description: "Plano atual, limites contratados e consumo do período.", phase: "Configurações" },
@@ -54,6 +57,10 @@ const IgRoutes = () => (
     <Route path="comments" element={<IgCommentsPage />} />
     <Route path="contacts" element={<IgContactsPage />} />
     <Route path="crm" element={<IgCrmPage />} />
+    <Route path="ai" element={<IgAi />} />
+    <Route path="automations" element={<IgAutomations />} />
+    <Route path="diagnostico" element={<IgDiagnostics />} />
+    <Route path="diagnostics" element={<Navigate to="/IG/diagnostico" replace />} />
     <Route path="reels" element={<IgReelsPage />} />
     <Route path="content" element={<IgContentPage />} />
     <Route path="auth/instagram" element={<Navigate to="/IG/settings/instagram" replace />} />

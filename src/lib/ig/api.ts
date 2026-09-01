@@ -70,6 +70,65 @@ export interface IgConversation {
   last_message_at: string | null;
   last_direction: "in" | "out" | null;
   unread_count: number;
+  ai_paused?: boolean;
+}
+
+/** Configuração do agente de IA que atende o Direct. */
+export interface IgAiSettings {
+  id: string;
+  tenant_id: string;
+  enabled: boolean;
+  auto_reply: boolean;
+  model: string;
+  tone: string;
+  persona: string;
+  business_context: string | null;
+  knowledge: string | null;
+  greeting: string | null;
+  handoff_keywords: string[];
+  max_replies_per_conversation: number;
+  reply_delay_seconds: number;
+}
+
+export interface IgAutomation {
+  id: string;
+  name: string;
+  channel: "direct" | "comment";
+  match_type: "contains" | "exact" | "any" | "starts_with";
+  keywords: string[];
+  reply_text: string;
+  is_active: boolean;
+  priority: number;
+  triggered_count: number;
+  last_triggered_at: string | null;
+}
+
+export interface IgDiagLog {
+  id: string;
+  scope: string;
+  step: string;
+  level: "debug" | "info" | "warn" | "error";
+  http_status: number | null;
+  duration_ms: number | null;
+  message: string | null;
+  detail: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface IgDiagReport {
+  account:
+    | {
+        username: string | null;
+        connection_state: string;
+        webhook_subscribed: boolean;
+        last_synced_at: string | null;
+      }
+    | string
+    | null;
+  token_expires_at?: string | null;
+  db_counts?: Record<string, number>;
+  pending_jobs?: number;
+  probes: Array<{ step: string; ok: boolean; http: number; count: number | null; error: string | null }>;
 }
 
 export interface IgMessage {
@@ -78,6 +137,8 @@ export interface IgMessage {
   text: string | null;
   attachments: unknown[];
   sent_at: string;
+  /** true quando a mensagem foi enviada pelo agente de IA. */
+  is_ai?: boolean;
 }
 
 
@@ -234,6 +295,47 @@ export const igApi = {
       contact_id: contactId,
       ...patch,
     }),
+
+  aiSettings: (tenantId: string) =>
+    invoke<{ settings: IgAiSettings }>("ig-api", { action: "ai_settings", tenant_id: tenantId }),
+
+  saveAiSettings: (tenantId: string, settings: Partial<IgAiSettings>) =>
+    invoke<{ settings: IgAiSettings }>("ig-api", { action: "save_ai_settings", tenant_id: tenantId, settings }),
+
+  aiSuggest: (tenantId: string, conversationId: string, text?: string) =>
+    invoke<{ draft: string }>("ig-api", {
+      action: "ai_suggest",
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      text,
+    }),
+
+  setAiPause: (tenantId: string, conversationId: string, paused: boolean) =>
+    invoke<{ ai_paused: boolean }>("ig-api", {
+      action: "set_ai_pause",
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      paused,
+    }),
+
+  automations: (tenantId: string) =>
+    invoke<{ automations: IgAutomation[] }>("ig-api", { action: "automations", tenant_id: tenantId }),
+
+  saveAutomation: (tenantId: string, automation: Partial<IgAutomation>) =>
+    invoke<{ success: true }>("ig-api", { action: "save_automation", tenant_id: tenantId, automation }),
+
+  deleteAutomation: (tenantId: string, automationId: string) =>
+    invoke<{ success: true }>("ig-api", {
+      action: "delete_automation",
+      tenant_id: tenantId,
+      automation_id: automationId,
+    }),
+
+  logs: (tenantId: string) => invoke<{ logs: IgDiagLog[] }>("ig-api", { action: "logs", tenant_id: tenantId }),
+
+  diag: (tenantId: string) =>
+    invoke<{ report: IgDiagReport[]; hint?: string }>("ig-api", { action: "diag", tenant_id: tenantId }),
+
 
   oauthConfig: () => invoke<{ app_id: string; scopes: string }>("ig-oauth", { action: "get-config" }),
 

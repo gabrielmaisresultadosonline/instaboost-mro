@@ -5,10 +5,13 @@
  * escuta as tabelas via Realtime, sem polling agressivo.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCcw, Send } from "lucide-react";
+import { Bot, RefreshCcw, Send, Sparkles, Stethoscope } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import IgLayout from "@/components/ig/IgLayout";
@@ -46,6 +49,7 @@ const IgInboxContent = ({
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -151,6 +155,41 @@ const IgInboxContent = ({
     }
   };
 
+  /** Pede uma sugestão de resposta à IA e joga no campo de texto (sem enviar). */
+  const handleSuggest = async () => {
+    if (!selectedId) return;
+    setSuggesting(true);
+    try {
+      const result = await igApi.aiSuggest(tenantId, selectedId);
+      setDraft(result.draft);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "A IA não respondeu",
+        description: err instanceof Error ? err.message : "Veja os detalhes em /IG/diagnostico.",
+      });
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  /** Liga/desliga o atendimento automático apenas nesta conversa. */
+  const handleTogglePause = async (paused: boolean) => {
+    if (!selectedId) return;
+    setConversations((prev) => prev.map((c) => (c.id === selectedId ? { ...c, ai_paused: paused } : c)));
+    try {
+      await igApi.setAiPause(tenantId, selectedId, paused);
+    } catch (err) {
+      setConversations((prev) => prev.map((c) => (c.id === selectedId ? { ...c, ai_paused: !paused } : c)));
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    }
+  };
+
+
   const handleSync = async () => {
     try {
       const result = await igApi.subscribeWebhook(tenantId);
@@ -178,10 +217,18 @@ const IgInboxContent = ({
       activeTenantId={activeTenantId}
       onTenantChange={onTenantChange}
       actions={
-        <Button variant="outline" size="sm" onClick={handleSync}>
-          <RefreshCcw className="mr-2 h-4 w-4" aria-hidden />
-          Reativar recebimento
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleSync}>
+            <RefreshCcw className="mr-2 h-4 w-4" aria-hidden />
+            Reativar recebimento
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/IG/diagnostico">
+              <Stethoscope className="mr-2 h-4 w-4" aria-hidden />
+              Diagnóstico
+            </Link>
+          </Button>
+        </div>
       }
     >
       {error ? (
@@ -231,11 +278,25 @@ const IgInboxContent = ({
               </div>
             ) : (
               <>
-                <div className="border-b border-border px-4 py-3">
-                  <p className="text-sm font-semibold">{participantLabel(selected)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    A Meta permite responder até 24h após a última mensagem do usuário.
-                  </p>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">{participantLabel(selected)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      A Meta permite responder até 24h após a última mensagem do usuário.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4 text-muted-foreground" aria-hidden />
+                    <Label htmlFor="ai-pause" className="text-xs text-muted-foreground">
+                      {selected.ai_paused ? "Atendimento humano" : "IA responde"}
+                    </Label>
+                    <Switch
+                      id="ai-pause"
+                      checked={!selected.ai_paused}
+                      onCheckedChange={(checked) => void handleTogglePause(!checked)}
+                      aria-label="Alternar atendimento por IA nesta conversa"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -260,7 +321,11 @@ const IgInboxContent = ({
                           <p className="whitespace-pre-wrap break-words">
                             {message.text ?? "[anexo recebido no Instagram]"}
                           </p>
-                          <p className="mt-1 text-[11px] opacity-70">{formatTime(message.sent_at)}</p>
+                          <p className="mt-1 flex items-center gap-1 text-[11px] opacity-70">
+                            {message.is_ai ? <Bot className="h-3 w-3" aria-hidden /> : null}
+                            {message.is_ai ? "IA · " : ""}
+                            {formatTime(message.sent_at)}
+                          </p>
                         </div>
                       </div>
                     ))
@@ -269,7 +334,7 @@ const IgInboxContent = ({
                 </div>
 
                 <form
-                  className="flex items-center gap-2 border-t border-border px-4 py-3"
+                  className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3"
                   onSubmit={(event) => {
                     event.preventDefault();
                     void handleSend();
@@ -281,7 +346,18 @@ const IgInboxContent = ({
                     placeholder="Escreva sua resposta..."
                     maxLength={950}
                     aria-label="Mensagem"
+                    className="min-w-[180px] flex-1"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void handleSuggest()}
+                    disabled={suggesting}
+                    title="Gerar rascunho com a IA"
+                  >
+                    <Sparkles className={suggesting ? "mr-2 h-4 w-4 animate-pulse" : "mr-2 h-4 w-4"} aria-hidden />
+                    {suggesting ? "Gerando..." : "Sugerir com IA"}
+                  </Button>
                   <Button type="submit" disabled={sending || !draft.trim()}>
                     <Send className="mr-2 h-4 w-4" aria-hidden />
                     {sending ? "Enviando..." : "Enviar"}
