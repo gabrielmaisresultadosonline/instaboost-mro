@@ -17,6 +17,7 @@ import {
   Menu,
   Settings,
   Sparkles,
+  Stethoscope,
   Users,
   Zap,
 } from "lucide-react";
