@@ -390,7 +390,7 @@ const MroUsersPanel: React.FC = () => {
           Vincular emails e senhas do /instagram
         </Button>
 
-        <Button variant="outline" size="sm" onClick={() => void loadUsers(false)} disabled={loading} className="gap-2">
+        <Button variant="outline" size="sm" onClick={() => void loadUsers()} disabled={loading} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Atualizar
         </Button>
