@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -72,6 +72,8 @@ const EMPTY_USER: UserForm = {
 };
 
 const LIFETIME = 999999;
+const INITIAL_USERS_LIMIT = 50;
+const BACKGROUND_USERS_LIMIT = 100;
 
 /** Painel de controle de usuários da Ferramenta MRO (contas de Instagram + planos). */
 const MroUsersPanel: React.FC = () => {
@@ -89,6 +91,7 @@ const MroUsersPanel: React.FC = () => {
   const [userLogs, setUserLogs] = useState<Record<string, any[]>>({});
   const [loadingLogs, setLoadingLogs] = useState<Record<string, boolean>>({});
   const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({});
+  const loadRequestId = useRef(0);
 
 
   const handleCopyAccess = async (u: MroUser) => {
@@ -103,37 +106,50 @@ const MroUsersPanel: React.FC = () => {
     return data;
   }, []);
 
-  const loadUsers = useCallback(async (append = false) => {
+  const loadUsers = useCallback(async () => {
+    const requestId = ++loadRequestId.current;
     setLoading(true);
     try {
-      // O usuário solicitou carregar TUDO, mas mostrar os primeiros 50.
-      // Para garantir que "não falte ninguém", aumentamos o limite para um valor alto (ex: 2000)
-      // ou carregamos em blocos até o fim.
-      const offset = append ? users.length : 0;
-      const data = await call({ action: 'list_users', limit: 2000, offset });
-      const loaded = (data.users || []) as MroUser[];
-      
-      setUsers((current) => {
-        if (!append) return loaded;
-        const existingIds = new Set(current.map(u => u.id));
-        const newOnes = loaded.filter(u => !existingIds.has(u.id));
-        return [...current, ...newOnes];
-      });
-      
-      setTotalUsers(Number(data.total) || loaded.length);
+      // Busca primeiro somente os 50 visíveis. Depois carrega o restante em
+      // blocos menores, evitando uma resposta única com milhares de contas e
+      // imagens que excedia o tempo/tamanho permitido pela função na nuvem.
+      const firstPage = await call({ action: 'list_users', limit: INITIAL_USERS_LIMIT, offset: 0 });
+      if (requestId !== loadRequestId.current) return;
+
+      const firstUsers = (firstPage.users || []) as MroUser[];
+      const cloudTotal = Number(firstPage.total) || firstUsers.length;
+      setUsers(firstUsers);
+      setTotalUsers(cloudTotal);
+
+      for (let offset = firstUsers.length; offset < cloudTotal; offset += BACKGROUND_USERS_LIMIT) {
+        const page = await call({ action: 'list_users', limit: BACKGROUND_USERS_LIMIT, offset });
+        if (requestId !== loadRequestId.current) return;
+
+        const pageUsers = (page.users || []) as MroUser[];
+        if (pageUsers.length === 0) break;
+
+        setUsers((current) => {
+          const existingIds = new Set(current.map((user) => user.id));
+          return [...current, ...pageUsers.filter((user) => !existingIds.has(user.id))];
+        });
+      }
     } catch (err) {
+      if (requestId !== loadRequestId.current) return;
       console.error('Falha ao carregar usuários:', err);
       toast({
         title: 'Erro ao carregar',
-        description: 'Falha ao buscar usuários PRO da nuvem (Timeout ou limite excedido).',
+        description: 'Falha ao buscar os usuários da Ferramenta MRO na nuvem. Tente atualizar novamente.',
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestId.current) setLoading(false);
     }
-  }, [call, toast, users.length]);
+  }, [call, toast]);
 
-  useEffect(() => { void loadUsers(false); }, []);
+  useEffect(() => {
+    void loadUsers();
+    return () => { loadRequestId.current += 1; };
+  }, [loadUsers]);
 
   const [syncing, setSyncing] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
@@ -618,11 +634,10 @@ const MroUsersPanel: React.FC = () => {
             </Button>
           </div>
         )}
-        {!loading && totalUsers > users.length && (
-          <div className="flex justify-center pt-2">
-            <Button variant="ghost" size="sm" onClick={() => void loadUsers(true)} className="text-xs">
-              Carregar mais do banco ({totalUsers - users.length} restantes)
-            </Button>
+        {loading && users.length > 0 && (
+          <div className="flex items-center justify-center gap-2 pt-2 text-xs text-muted-foreground">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Carregando todos da nuvem ({users.length} de {totalUsers})
           </div>
         )}
 
