@@ -6,7 +6,8 @@
  * no primeiro acesso. Nenhuma senha, hash ou token aparece em log ou resposta.
  *
  * Ações: login | change-password | dashboard | users | user-detail
- *        | set-user-blocked | instagram | logs
+ *        | set-user-blocked | set-user-password | user-recovery-link
+ *        | instagram | logs
  */
 import {
   audit,
@@ -43,6 +44,7 @@ Deno.serve(async (req) => {
       email?: string;
       password?: string;
       new_password?: string;
+      new_user_password?: string;
       user_id?: string;
       blocked?: boolean;
       limit?: number;
