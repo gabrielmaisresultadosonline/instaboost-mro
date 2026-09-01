@@ -70,6 +70,7 @@ export interface IgConversation {
   last_message_at: string | null;
   last_direction: "in" | "out" | null;
   unread_count: number;
+  ai_paused?: boolean;
 }
 
 export interface IgMessage {
