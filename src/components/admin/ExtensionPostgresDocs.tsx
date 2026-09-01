@@ -307,9 +307,10 @@ Header 'Authorization: Bearer <ANON_KEY ou JWT>' → claims idênticos (HS256)`}
       <Block
         id="config"
         title="4) Código da extensão com fallback automático"
-        description="Publique a versão nova com PREFER='postgres'. Se a VPS falhar, a extensão volta sozinha ao Supabase — os usuários não percebem nada."
+        description="Publique com PREFER='supabase' (nuvem) enquanto a VPS não liberar CORS para https://www.instagram.com. Só troque para 'postgres' após o checklist abaixo passar."
         code={migrationSnippet}
       />
+
 
       <Block
         id="health"
