@@ -278,7 +278,7 @@ curl -fsS -X POST '${endpoint}' \\
 
       <Block
         id="paridade"
-        title="2) Paridade de rotas (o que muda)"
+        title="3) Paridade de rotas (o que muda)"
         description="Mapa de conversão entre os dois backends. Nenhum campo de resposta muda."
         code={`Supabase                                     →  PostgreSQL (VPS)
 /functions/v1/${meta.fn}${' '.repeat(Math.max(1, 22 - meta.fn.length))}→  /functions/v1/${meta.fn}
@@ -286,20 +286,22 @@ curl -fsS -X POST '${endpoint}' \\
 /storage/v1/object/public/<bucket>/<arquivo> →  /storage/v1/object/public/<bucket>/<arquivo>
 /auth/v1/*                                   →  /auth/v1/*
 
-Header 'apikey'  → usar a ANON_KEY da VPS (mesma posição, valor diferente)
-Header 'Authorization: Bearer <jwt>' → formato de claims idêntico (HS256)`}
+Header 'apikey'
+  Supabase: ${supaKey}
+  VPS:      ${vpsKey}
+Header 'Authorization: Bearer <ANON_KEY ou JWT>' → claims idênticos (HS256)`}
       />
 
       <Block
         id="config"
-        title="3) Código da extensão com fallback automático"
+        title="4) Código da extensão com fallback automático"
         description="Publique a versão nova com PREFER='postgres'. Se a VPS falhar, a extensão volta sozinha ao Supabase — os usuários não percebem nada."
         code={migrationSnippet}
       />
 
       <Block
         id="health"
-        title="4) Checklist de validação antes de desligar o Supabase"
+        title="5) Checklist de validação antes de desligar o Supabase"
         description="Rode na VPS ou no seu terminal. Só desligue o backend antigo quando as duas respostas vierem OK."
         code={healthSnippet}
       />
