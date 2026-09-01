@@ -268,12 +268,41 @@ export async function migrateData(only?: string[]): Promise<void> {
     return;
   }
 
-  const tables = sortByForeignKeys((await listLocalTables()).filter(
+  const allTables = sortByForeignKeys((await listLocalTables()).filter(
     (table) => !only || only.length === 0 || only.includes(table.name),
   ));
-  log.info(`${tables.length} tabelas para sincronizar.`);
 
   const summary: Record<string, unknown>[] = [];
+
+  // ---- Filtro incremental: copia só o que ainda falta ----
+  // Duas contagens (uma em cada banco) custam segundos; um COPY completo de 219
+  // tabelas custa minutos. Se o local já tem tantas linhas quanto a origem,
+  // não há nada novo para trazer.
+  let tables = allTables;
+  if (process.env.MIGRATE_FORCE_DATA !== "1") {
+    const existsInLegacy = await tableNames(legacy.databaseUrl);
+    const comparable = allTables.filter((table) => existsInLegacy.has(table.name)).map((table) => table.name);
+    const [legacyCounts, localCounts] = await Promise.all([
+      rowCounts(legacy.databaseUrl, comparable),
+      rowCounts(env.database.url, comparable),
+    ]);
+
+    const skipped: string[] = [];
+    tables = allTables.filter((table) => {
+      if (!existsInLegacy.has(table.name)) return false;
+      const origem = legacyCounts.get(table.name) ?? 0;
+      const local = localCounts.get(table.name) ?? 0;
+      if (local >= origem) {
+        skipped.push(table.name);
+        summary.push({ tabela: table.name, lidas: origem, inseridas: 0, situacao: "em dia" });
+        return false;
+      }
+      return true;
+    });
+    log.ok(`${skipped.length} tabelas já em dia (ignoradas).`);
+  }
+
+  log.info(`${tables.length} tabelas para sincronizar.`);
   let pending = [...tables];
   const lastErrors = new Map<string, string>();
 
