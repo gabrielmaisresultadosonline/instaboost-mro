@@ -34,7 +34,7 @@ const MODULES: Array<{ path: string; title: string; description: string; phase: 
     description: "Crescimento, conteúdo, audiência, score e oportunidades a partir dos Insights da Meta.",
     phase: "Analytics",
   },
-  { path: "ai/*", title: "IA", description: "Configurações e base de conhecimento da IA de atendimento e conteúdo.", phase: "IA" },
+  
   { path: "settings/team", title: "Equipe", description: "Convites, papéis e permissões dos membros do workspace.", phase: "Configurações" },
   { path: "settings/notifications", title: "Notificações", description: "Escolha quais eventos geram aviso para a sua equipe.", phase: "Configurações" },
   { path: "settings/billing", title: "Plano e cobrança", description: "Plano atual, limites contratados e consumo do período.", phase: "Configurações" },
