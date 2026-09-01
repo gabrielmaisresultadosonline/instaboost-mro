@@ -386,13 +386,15 @@ const Renddx = () => {
               
               <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">30 DIAS DE ACESSO COM SUPORTE INCLUSO</span>
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-widest">TESTE POR 30 DIAS • SUPORTE INCLUSO</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-green-500">R$</span>
                     <span className="text-6xl font-black text-green-500">97</span>
                     <span className="text-zinc-400 text-sm font-bold">/30 dias</span>
                   </div>
+                  <span className="mt-2 text-green-300 text-xs sm:text-sm font-semibold uppercase tracking-wide">4 contas fixas + 5 testes</span>
                 </div>
+
                 
                 <Button 
                   onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })} 
@@ -409,6 +411,13 @@ const Renddx = () => {
             </div>
           </div>
 
+          {/* Vídeo de Funcionamento (logo abaixo do container do valor) */}
+          <div className="mb-10 sm:mb-16">
+            <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
+              <PromoToolVideoSection />
+            </Suspense>
+          </div>
+
           <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5">
             <Laptop className="w-4 h-4 text-green-300" />
             <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
@@ -417,12 +426,6 @@ const Renddx = () => {
         </div>
       </section>
 
-      {/* Vídeo de Funcionamento */}
-      <div className="py-10">
-        <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
-          <PromoToolVideoSection />
-        </Suspense>
-      </div>
 
 
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
@@ -473,7 +476,7 @@ const Renddx = () => {
           </div>
           <p className="text-zinc-400 mb-6">30 dias de acesso • suporte já incluso</p>
           <ul className="text-left space-y-3 mb-8 text-zinc-300 text-sm">
-            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 12 contas fixas + 5 testes (Total 17)</li>
+            <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> 4 contas fixas + 5 testes (Total 9)</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Passo a passo completo de uso</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Treinamento de gestão para empresas</li>
             <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Suporte incluso via WhatsApp</li>
