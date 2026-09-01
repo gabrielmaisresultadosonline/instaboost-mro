@@ -761,6 +761,263 @@ Deno.serve(async (req) => {
       return json({ success: true });
     }
 
+    // ---------------- AGENTE DE IA ----------------
+    if (action === "ai_settings") {
+      const settings = await loadAiSettings(db, tenantId);
+      return json({ success: true, settings });
+    }
+
+    if (action === "save_ai_settings") {
+      if (!(await assertTenantMember(db, tenantId, user.id, ["owner", "admin"]))) {
+        return fail("Apenas o proprietário ou administrador pode configurar a IA.", 403);
+      }
+      await loadAiSettings(db, tenantId);
+
+      const input = (body.settings ?? {}) as Record<string, unknown>;
+      const allowedModels = ["google/gemini-2.5-flash", "google/gemini-2.5-pro", "google/gemini-2.5-flash-lite"];
+      const patch: Record<string, unknown> = {};
+
+      if (typeof input.enabled === "boolean") patch.enabled = input.enabled;
+      if (typeof input.auto_reply === "boolean") patch.auto_reply = input.auto_reply;
+      if (typeof input.model === "string") {
+        if (!allowedModels.includes(input.model)) return fail("Modelo de IA não suportado.", 400);
+        patch.model = input.model;
+      }
+      for (const field of ["tone", "persona", "business_context", "knowledge", "greeting"]) {
+        if (typeof input[field] === "string") patch[field] = String(input[field]).slice(0, 6000);
+      }
+      if (Array.isArray(input.handoff_keywords)) {
+        patch.handoff_keywords = input.handoff_keywords
+          .map((value) => String(value).trim().slice(0, 80))
+          .filter(Boolean)
+          .slice(0, 30);
+      }
+      if (input.max_replies_per_conversation !== undefined) {
+        const value = Number(input.max_replies_per_conversation);
+        if (!Number.isFinite(value) || value < 1 || value > 50) return fail("Limite de respostas inválido (1 a 50).", 400);
+        patch.max_replies_per_conversation = Math.round(value);
+      }
+      if (Object.keys(patch).length === 0) return fail("Nada para atualizar.", 400);
+
+      const { error } = await db.from("ig_ai_settings").update(patch).eq("tenant_id", tenantId);
+      if (error) return fail("Não foi possível salvar as configurações da IA.", 500);
+
+      await audit(db, {
+        tenant_id: tenantId,
+        actor_user_id: user.id,
+        action: "ai.settings_updated",
+        ip: clientIp(req),
+        metadata: { fields: Object.keys(patch) },
+      });
+      const settings = await loadAiSettings(db, tenantId);
+      return json({ success: true, settings });
+    }
+
+    if (action === "ai_suggest") {
+      if (!body.conversation_id) return fail("Conversa não informada.", 400);
+      const settings = await loadAiSettings(db, tenantId);
+      if (!settings.enabled) return fail("Ative o agente de IA em /IG/ai antes de gerar sugestões.", 400, "ai_disabled");
+
+      const { data: conversation } = await db
+        .from("ig_conversations")
+        .select("id, participant_username, participant_id, last_message_text")
+        .eq("id", body.conversation_id)
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      if (!conversation) return fail("Conversa não encontrada.", 404);
+
+      const draft = await generateAiReply(db, {
+        settings,
+        conversationId: conversation.id,
+        participant: conversation.participant_username ?? "cliente",
+        incomingText: (body.text ?? conversation.last_message_text ?? null) as string | null,
+        tenantId,
+      });
+      if (!draft) return fail("A IA não conseguiu gerar a resposta agora. Veja os detalhes em /IG/diagnostico.", 400, "ai_error");
+      return json({ success: true, draft });
+    }
+
+    if (action === "set_ai_pause") {
+      if (!body.conversation_id) return fail("Conversa não informada.", 400);
+      const paused = Boolean(body.paused);
+      const { error } = await db
+        .from("ig_conversations")
+        .update({ ai_paused: paused, ...(paused ? {} : { ai_replies_count: 0 }) })
+        .eq("id", body.conversation_id)
+        .eq("tenant_id", tenantId);
+      if (error) return fail("Não foi possível alterar o modo de atendimento.", 500);
+      return json({ success: true, ai_paused: paused });
+    }
+
+    // ---------------- AUTOMAÇÕES ----------------
+    if (action === "automations") {
+      const { data } = await db
+        .from("ig_automations")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
+        .order("priority", { ascending: true });
+      return json({ success: true, automations: data ?? [] });
+    }
+
+    if (action === "save_automation") {
+      if (!(await assertTenantMember(db, tenantId, user.id, ["owner", "admin", "manager"]))) {
+        return fail("Você não tem permissão para editar automações.", 403);
+      }
+      const input = (body.automation ?? {}) as Record<string, unknown>;
+      const name = String(input.name ?? "").trim();
+      const replyText = String(input.reply_text ?? "").trim();
+      const channel = String(input.channel ?? "direct");
+      const matchType = String(input.match_type ?? "contains");
+
+      if (!name) return fail("Dê um nome para a automação.", 400);
+      if (!replyText) return fail("Escreva a resposta automática.", 400);
+      if (replyText.length > 900) return fail("A resposta excede 900 caracteres.", 400);
+      if (!["direct", "comment"].includes(channel)) return fail("Canal inválido.", 400);
+      if (!["contains", "exact", "any", "starts_with"].includes(matchType)) return fail("Tipo de gatilho inválido.", 400);
+
+      const keywords = Array.isArray(input.keywords)
+        ? input.keywords.map((value) => String(value).trim().slice(0, 80)).filter(Boolean).slice(0, 50)
+        : [];
+      if (matchType !== "any" && keywords.length === 0) return fail("Informe ao menos uma palavra-chave.", 400);
+
+      const payload = {
+        tenant_id: tenantId,
+        name: name.slice(0, 120),
+        channel,
+        match_type: matchType,
+        keywords,
+        reply_text: replyText,
+        is_active: input.is_active === undefined ? true : Boolean(input.is_active),
+        priority: Number.isFinite(Number(input.priority)) ? Math.round(Number(input.priority)) : 100,
+      };
+
+      if (input.id) {
+        const { error } = await db
+          .from("ig_automations")
+          .update(payload)
+          .eq("id", String(input.id))
+          .eq("tenant_id", tenantId);
+        if (error) return fail("Não foi possível salvar a automação.", 500);
+      } else {
+        const { error } = await db.from("ig_automations").insert({ ...payload, created_by: user.id });
+        if (error) return fail("Não foi possível criar a automação.", 500);
+      }
+      return json({ success: true });
+    }
+
+    if (action === "delete_automation") {
+      if (!body.automation_id) return fail("Automação não informada.", 400);
+      const { error } = await db
+        .from("ig_automations")
+        .update({ deleted_at: new Date().toISOString(), is_active: false })
+        .eq("id", body.automation_id)
+        .eq("tenant_id", tenantId);
+      if (error) return fail("Não foi possível remover a automação.", 500);
+      return json({ success: true });
+    }
+
+    // ---------------- LOGS TÉCNICOS ----------------
+    if (action === "logs") {
+      const { data } = await db
+        .from("ig_diag_logs")
+        .select("id, scope, step, level, http_status, duration_ms, message, detail, created_at")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      return json({ success: true, logs: data ?? [] });
+    }
+
+    // ---------------- DIAGNÓSTICO DA CONEXÃO COM A META ----------------
+    if (action === "diag") {
+      const { data: accounts } = await db
+        .from("ig_accounts")
+        .select("id, username, connection_state, webhook_subscribed, last_synced_at, instagram_account_id")
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null);
+
+      if (!accounts || accounts.length === 0) {
+        return json({ success: true, report: [], hint: "Nenhuma conta do Instagram conectada neste workspace." });
+      }
+
+      const report: unknown[] = [];
+      for (const account of accounts) {
+        const { data: token } = await db
+          .from("ig_tokens")
+          .select("access_token, expires_at")
+          .eq("ig_account_id", account.id)
+          .maybeSingle();
+
+        if (!token?.access_token) {
+          await igLog(db, {
+            scope: "ig-diag",
+            step: "token.missing",
+            level: "error",
+            tenant_id: tenantId,
+            ig_account_id: account.id,
+            message: "Conta sem token salvo — refaça a conexão do Instagram.",
+          });
+          report.push({ account: account.username, token: null, probes: [] });
+          continue;
+        }
+
+        const t = token.access_token as string;
+        const probes = [];
+        for (const [step, url] of [
+          ["me", `${GRAPH}/me?fields=id,user_id,username,followers_count,media_count&access_token=${t}`],
+          ["me/media", `${GRAPH}/me/media?fields=id,media_type,permalink,timestamp&limit=3&access_token=${t}`],
+          [
+            "me/conversations",
+            `${GRAPH}/me/conversations?platform=instagram&fields=id,updated_time,participants&limit=5&access_token=${t}`,
+          ],
+          ["subscribed_apps", `${GRAPH}/me/subscribed_apps?access_token=${t}`],
+        ] as Array<[string, string]>) {
+          const result = await loggedGraphFetch(
+            db,
+            { scope: "ig-diag", step, tenant_id: tenantId, ig_account_id: account.id },
+            url,
+          );
+          probes.push({
+            step,
+            ok: result.ok,
+            http: result.status,
+            count: Array.isArray(result.payload.data) ? (result.payload.data as unknown[]).length : null,
+            error: result.error ?? null,
+          });
+        }
+
+        const counts: Record<string, number> = {};
+        for (const table of ["ig_media", "ig_comments", "ig_conversations", "ig_messages", "ig_contacts"]) {
+          const { count } = await db
+            .from(table)
+            .select("id", { count: "exact", head: true })
+            .eq("ig_account_id", account.id);
+          counts[table] = count ?? 0;
+        }
+
+        const { count: pendingJobs } = await db
+          .from("ig_jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("status", "pending");
+
+        report.push({
+          account: {
+            username: account.username,
+            connection_state: account.connection_state,
+            webhook_subscribed: account.webhook_subscribed,
+            last_synced_at: account.last_synced_at,
+          },
+          token_expires_at: token.expires_at,
+          db_counts: counts,
+          pending_jobs: pendingJobs ?? 0,
+          probes,
+        });
+      }
+
+      return json({ success: true, report });
+    }
+
     return fail("Ação não reconhecida.", 400);
 
 
