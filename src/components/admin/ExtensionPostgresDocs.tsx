@@ -4,6 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Database, Server } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  ANON_KEY_PLACEHOLDER,
+  DEFAULT_VPS_API_URL,
+  SUPABASE_ANON_KEY,
+  saveVpsAnonKey,
+  vpsAnonKey as readVpsAnonKey,
+  vpsAnonKeyFromBuild,
+  vpsApiUrl,
+} from '@/lib/vpsApiConfig';
 
 /** Ferramenta a ser documentada. Cada uma tem sua própria função de API. */
 export type ExtensionTool = 'mro' | 'zapmro';
