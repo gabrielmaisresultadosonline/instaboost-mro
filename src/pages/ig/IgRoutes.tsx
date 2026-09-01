@@ -54,6 +54,10 @@ const IgRoutes = () => (
     <Route path="comments" element={<IgCommentsPage />} />
     <Route path="contacts" element={<IgContactsPage />} />
     <Route path="crm" element={<IgCrmPage />} />
+    <Route path="ai" element={<IgAi />} />
+    <Route path="automations" element={<IgAutomations />} />
+    <Route path="diagnostico" element={<IgDiagnostics />} />
+    <Route path="diagnostics" element={<Navigate to="/IG/diagnostico" replace />} />
     <Route path="reels" element={<IgReelsPage />} />
     <Route path="content" element={<IgContentPage />} />
     <Route path="auth/instagram" element={<Navigate to="/IG/settings/instagram" replace />} />
