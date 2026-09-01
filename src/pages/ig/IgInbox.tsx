@@ -330,7 +330,7 @@ const IgInboxContent = ({
                 </div>
 
                 <form
-                  className="flex items-center gap-2 border-t border-border px-4 py-3"
+                  className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3"
                   onSubmit={(event) => {
                     event.preventDefault();
                     void handleSend();
@@ -342,7 +342,18 @@ const IgInboxContent = ({
                     placeholder="Escreva sua resposta..."
                     maxLength={950}
                     aria-label="Mensagem"
+                    className="min-w-[180px] flex-1"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void handleSuggest()}
+                    disabled={suggesting}
+                    title="Gerar rascunho com a IA"
+                  >
+                    <Sparkles className={suggesting ? "mr-2 h-4 w-4 animate-pulse" : "mr-2 h-4 w-4"} aria-hidden />
+                    {suggesting ? "Gerando..." : "Sugerir com IA"}
+                  </Button>
                   <Button type="submit" disabled={sending || !draft.trim()}>
                     <Send className="mr-2 h-4 w-4" aria-hidden />
                     {sending ? "Enviando..." : "Enviar"}
