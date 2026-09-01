@@ -45,7 +45,8 @@ const NAV = [
   { to: "/IG/reels", label: "Reels", icon: Film },
   { to: "/IG/stories", label: "Stories", icon: Sparkles },
   { to: "/IG/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/IG/ai", label: "IA", icon: Bot },
+  { to: "/IG/ai", label: "Agente de IA", icon: Bot },
+  { to: "/IG/diagnostico", label: "Diagnóstico", icon: Stethoscope },
   { to: "/IG/settings", label: "Configurações", icon: Settings },
 ];
 
