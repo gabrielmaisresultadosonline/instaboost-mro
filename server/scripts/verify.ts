@@ -327,51 +327,69 @@ async function verifyCron(): Promise<boolean> {
 }
 
 /** Backend: health, banco, auth, storage e funções, pelo localhost e pelo domínio. */
-async function verifyBackend(): Promise<boolean> {
-  const targets = [`http://127.0.0.1:${env.port}`, env.publicUrl];
-  let allOk = true;
-
-  for (const base of targets) {
-    const checks: { nome: string; url: string; init?: RequestInit; aceitos: number[] }[] = [
-      { nome: "health", url: `${base}/health`, aceitos: [200] },
-      {
-        nome: "banco (REST)",
-        url: `${base}/rest/v1/hub_products?select=id&limit=1`,
-        init: { headers: { apikey: env.auth.anonKey, authorization: `Bearer ${env.auth.anonKey}` } },
-        aceitos: [200, 401, 403],
+async function verifyBackend(): Promise<{ local: boolean; dominio: CheckResult }> {
+  const checks = (base: string): { nome: string; url: string; init?: RequestInit; aceitos: number[] }[] => [
+    { nome: "health", url: `${base}/health`, aceitos: [200] },
+    {
+      nome: "banco (REST)",
+      url: `${base}/rest/v1/hub_products?select=id&limit=1`,
+      init: { headers: { apikey: env.auth.anonKey, authorization: `Bearer ${env.auth.anonKey}` } },
+      aceitos: [200, 401, 403],
+    },
+    // 400 aqui é resposta legítima: credencial inválida foi processada pelo auth.
+    {
+      nome: "auth (login inválido responde)",
+      url: `${base}/auth/v1/token?grant_type=password`,
+      init: {
+        method: "POST",
+        headers: { "content-type": "application/json", apikey: env.auth.anonKey },
+        body: JSON.stringify({ email: "verify@invalid.local", password: "x" }),
       },
-      // 400 aqui é resposta legítima: credencial inválida foi processada pelo auth.
-      {
-        nome: "auth (login inválido responde)",
-        url: `${base}/auth/v1/token?grant_type=password`,
-        init: {
-          method: "POST",
-          headers: { "content-type": "application/json", apikey: env.auth.anonKey },
-          body: JSON.stringify({ email: "verify@invalid.local", password: "x" }),
-        },
-        aceitos: [400, 401],
-      },
-      { nome: "funções", url: `${base}/functions/v1/`, aceitos: [200, 404, 400] },
-    ];
+      aceitos: [400, 401],
+    },
+    { nome: "funções", url: `${base}/functions/v1/`, aceitos: [200, 404, 400] },
+  ];
 
-    for (const check of checks) {
-      try {
-        const response = await fetch(check.url, check.init);
-        if (!check.aceitos.includes(response.status)) {
-          log.error(`${base} → ${check.nome}: HTTP ${response.status}`);
-          allOk = false;
-        } else {
-          log.ok(`${base} → ${check.nome}: HTTP ${response.status}`);
-        }
-      } catch (error) {
-        log.error(`${base} → ${check.nome}: ${(error as Error).message}`);
-        allOk = false;
+  // 1) Localhost: é isto que diz se o backend em si está saudável.
+  const localBase = `http://127.0.0.1:${env.port}`;
+  let localOk = true;
+  for (const check of checks(localBase)) {
+    try {
+      const response = await fetch(check.url, check.init);
+      if (!check.aceitos.includes(response.status)) {
+        log.error(`${localBase} → ${check.nome}: HTTP ${response.status}`);
+        localOk = false;
+      } else {
+        log.ok(`${localBase} → ${check.nome}: HTTP ${response.status}`);
       }
+    } catch (error) {
+      log.error(`${localBase} → ${check.nome}: ${(error as Error).message}`);
+      localOk = false;
     }
   }
 
-  return allOk;
+  // 2) Domínio: falha de rede aqui é pendência de DNS/Nginx, não do backend.
+  let dominio: CheckResult = "ok";
+  for (const check of checks("")) {
+    const pathname = check.url;
+    const { result, status } = await fetchDomainWithLocalFallback(pathname, check.init);
+    if (result === "ok" && typeof status === "number" && check.aceitos.includes(status)) {
+      log.ok(`${env.publicUrl} → ${check.nome}: HTTP ${status}`);
+      continue;
+    }
+    if (result === "somente-local") {
+      log.warn(`${env.publicUrl} → ${check.nome}: domínio inacessível (local respondeu HTTP ${status}).`);
+      if (dominio === "ok") dominio = "somente-local";
+      continue;
+    }
+    log.error(`${env.publicUrl} → ${check.nome}: ${status}`);
+    dominio = "falha";
+  }
+
+  if (dominio !== "ok") await explainDomainFailure();
+  return { local: localOk, dominio };
 }
+
 
 export async function verifyDetailed(): Promise<VerifyReport> {
   log.step("Etapa 5/5 — Conferência final");
