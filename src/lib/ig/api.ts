@@ -137,6 +137,8 @@ export interface IgMessage {
   text: string | null;
   attachments: unknown[];
   sent_at: string;
+  /** true quando a mensagem foi enviada pelo agente de IA. */
+  is_ai?: boolean;
 }
 
 
