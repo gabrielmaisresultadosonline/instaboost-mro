@@ -229,15 +229,52 @@ curl -fsS -X POST '${endpoint}' \\
               </Button>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="pg-anon-key">
+              ANON_KEY da VPS (gerada no painel → aba Migração)
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="pg-anon-key"
+                value={vpsAnonKey}
+                onChange={(e) => saveVpsKey(e.target.value)}
+                className="flex-1 rounded-md border bg-background px-3 py-2 text-xs font-mono"
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              />
+              <Button size="sm" variant="outline" onClick={() => copy('anon', vpsKey)}>
+                {copied === 'anon' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              </Button>
+            </div>
+            {!vpsAnonKey.trim() && (
+              <p className="text-xs text-yellow-600">
+                Cole aqui a <code>ANON_KEY</code> do <code>server/.env</code> da VPS. Enquanto estiver vazia, os exemplos
+                abaixo mostram <code>COLE_AQUI_A_ANON_KEY_DA_VPS</code> no lugar da chave.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-md border p-3 space-y-1">
+            <Badge variant="outline">ANON_KEY do Supabase (atual)</Badge>
+            <code className="block text-[11px] break-all text-muted-foreground">{supaKey}</code>
+          </div>
         </CardContent>
       </Card>
 
       <Block
+        id="keys"
+        title="1) Chaves de API (copie e envie ao programador)"
+        description="Todas as chaves necessárias nos dois backends. Nada aqui é segredo de servidor — são chaves publicáveis (role anon)."
+        code={keysSnippet}
+      />
+
+      <Block
         id="curl"
-        title="1) Teste rápido (login)"
-        description="O corpo do POST é idêntico ao da API atual. A chave anon da VPS é gerada no painel → aba Migração."
+        title="2) Teste rápido (login)"
+        description="O corpo do POST é idêntico ao da API atual, já com a chave anon preenchida."
         code={curl}
       />
+
 
       <Block
         id="paridade"
