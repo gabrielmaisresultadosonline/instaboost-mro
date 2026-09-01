@@ -411,6 +411,13 @@ const Renddx = () => {
             </div>
           </div>
 
+          {/* Vídeo de Funcionamento (logo abaixo do container do valor) */}
+          <div className="mb-10 sm:mb-16">
+            <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
+              <PromoToolVideoSection />
+            </Suspense>
+          </div>
+
           <div className="inline-flex items-center gap-2 sm:gap-3 bg-green-600/20 backdrop-blur-sm border border-green-500/40 rounded-full px-4 py-2.5">
             <Laptop className="w-4 h-4 text-green-300" />
             <span className="text-white font-semibold text-[11px] sm:text-sm tracking-wide">AUTOMATIZE TAREFAS E TENHA MAIS TEMPO PARA SEUS CLIENTES</span>
@@ -419,12 +426,6 @@ const Renddx = () => {
         </div>
       </section>
 
-      {/* Vídeo de Funcionamento */}
-      <div className="py-10">
-        <Suspense fallback={<div className="aspect-video w-full bg-zinc-900 animate-pulse rounded-xl" />}>
-          <PromoToolVideoSection />
-        </Suspense>
-      </div>
 
 
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
