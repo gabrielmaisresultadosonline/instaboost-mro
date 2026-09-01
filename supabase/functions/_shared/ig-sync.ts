@@ -246,10 +246,12 @@ export async function syncComments(
           };
         });
     } catch (error) {
-      lastError = (error as Error).message;
-      console.error(`[ig-sync] comments failed for media ${row.media_id}: ${lastError.slice(0, 160)}`);
+      const message = (error as Error).message;
+      lastError = message;
+      console.error(`[ig-sync] comments failed for media ${row.media_id}: ${message.slice(0, 160)}`);
       return [];
     }
+
   });
 
   const rows = batches.flat();
